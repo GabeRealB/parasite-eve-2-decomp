@@ -16,6 +16,7 @@ s32 gMistShootingGalleryUnscaledBp;
 
 #include "mist_shooting_gallery_private.h"
 
+#include "actors/actor_107600.h"
 #include "actors/actor_215100.h"
 #include "actors/task_tables.h"
 
@@ -106,7 +107,6 @@ typedef struct {
 } _MistShootingGallerySpawn;
 STATIC_ASSERT_SIZEOF(_MistShootingGallerySpawn, 0xC);
 
-extern TaskDesc D_actor_107600_80134F94[];
 /// The second course's wave script, walked exactly like
 /// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186910;
@@ -2362,7 +2362,7 @@ WorldCoordRoomLights gMistShootingGalleryAlternateRoomLights = {
 };
 
 AreaResource D_mist_shooting_gallery_8018DF50[3] = {
-    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_107600_80134F94 },
+    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107600TaskDescriptors },
     { 143, 151, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor215100PierceTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -3869,7 +3869,7 @@ void mistShootingGallerySpawnDemoTarget(void)
     TmdObject* model;
     GfxCoord*  rootCoord;
 
-    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, MIST_SHOOTING_GALLERY_DEMO_TARGET_KIND | (MIST_SHOOTING_GALLERY_DEMO_MOUNT_BEHAVIOUR << MIST_SHOOTING_GALLERY_DEMO_BEHAVIOUR_SHIFT), NULL);
+    enemy = enemySpawnFromTable(gActor107600TaskDescriptors, ACTOR_107600_TASK_MOUNT, MIST_SHOOTING_GALLERY_DEMO_TARGET_KIND | (MIST_SHOOTING_GALLERY_DEMO_MOUNT_BEHAVIOUR << MIST_SHOOTING_GALLERY_DEMO_BEHAVIOUR_SHIFT), NULL);
     if (enemy != NULL) {
         model                    = enemy->task->extra.tmd;
         model->texturePageOffset = 0;
@@ -4079,7 +4079,7 @@ static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShoot
     GfxCoord*                rootCoord;
 
     work  = controller->work;
-    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, spawn->spawnArgLo | (spawn->spawnArgHi << MIST_SHOOTING_GALLERY_SPAWN_HIGH_HALF_SHIFT), NULL);
+    enemy = enemySpawnFromTable(gActor107600TaskDescriptors, ACTOR_107600_TASK_MOUNT, spawn->spawnArgLo | (spawn->spawnArgHi << MIST_SHOOTING_GALLERY_SPAWN_HIGH_HALF_SHIFT), NULL);
     if (enemy != NULL) {
         // Retain the parent overwrite before transfer; source-ring ownership is unproven.
         enemy->task->parent = controller;

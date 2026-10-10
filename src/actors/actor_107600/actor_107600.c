@@ -1,3 +1,5 @@
+#include "actors/actor_107600.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/gtemac.h>
 #include <psyq/libgte.h>
@@ -333,10 +335,6 @@ extern _Actor107600Waypoint* D_actor_107600_80135624[];
  * `_Actor107600TargetWork::hitMarkFirst`. */
 extern DVECTOR D_actor_107600_80135730[];
 
-/* Table `_actor107600SpawnTarget` spawns from, indexed with `targetKind + 1`; it
- * is the trailing animation/data blob, not the leading rodata. */
-extern TaskDesc D_actor_107600_80134F94[];
-
 /* The pair-source record the spawn state hangs off the enemy's `Enemy.param`
  * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
  * 16-entry HP table it indexes with the target kind. Both are trailing-blob
@@ -376,199 +374,236 @@ DamageAttack D_actor_107600_80134F80[1] = { 0 };
 
 EnemyParams D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0 };
 
-TaskDesc D_actor_107600_80134F94[19] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel095EC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel097DC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel099CC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09BBC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09DAC } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09F9C } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A18C } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A37C } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A56C } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
+/// Execution priority shared by the gallery mount and its carried target.
+enum { ACTOR_107600_TASK_PRIORITY = 96 };
+
+TaskDesc gActor107600TaskDescriptors[ACTOR_107600_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel095EC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel097DC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel099CC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09BBC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09DAC } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09F9C } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A18C } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A37C } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A56C } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
+    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
 };
 
-_Actor107600Waypoint D_actor_107600_80135078[2] = {
+/// Mount path 0: hold at the spawn position for the spawn argument's hold time.
+///
+/// The first record's coordinates are unused. Hold time is seconds at 30 ticks
+/// per second; zero holds until the child target finishes.
+static _Actor107600Waypoint _gActor107600MountPath0[] = {
     { 0, 3000, 0 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135084[3] = {
+/// Mount path 1: decreasing X at Z 6000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath1[] = {
     { 1500, 6000, 40 },
     { -1500, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135098[3] = {
+/// Mount path 2: decreasing X at Z 4500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath2[] = {
     { 1500, 4500, 40 },
     { -1500, 4500, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801350AC[3] = {
+/// Mount path 3: decreasing X at Z 3000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath3[] = {
     { 1500, 3000, 40 },
     { -1500, 3000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801350C0[3] = {
+/// Mount path 4: decreasing X at Z 1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath4[] = {
     { 1500, 1500, 40 },
     { -1500, 1500, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801350D4[3] = {
+/// Mount path 5: decreasing X at Z 0, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath5[] = {
     { 1500, 0, 40 },
     { -1500, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801350E8[2] = {
+/// Mount path 6: reach XZ (-1400, 5800), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath6[] = {
     { -1400, 5800, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801350F4[2] = {
+/// Mount path 7: reach XZ (-1400, 3000), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath7[] = {
     { -1400, 3000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135100[2] = {
+/// Mount path 8: reach XZ (-1400, 200), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath8[] = {
     { -1400, 200, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013510C[3] = {
+/// Mount path 9: increasing X at Z 6000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath9[] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135120[3] = {
+/// Mount path 10: increasing X at Z 4500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath10[] = {
     { 1500, 4500, 40 },
     { 6000, 4500, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135134[3] = {
+/// Mount path 11: increasing X at Z 3000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath11[] = {
     { 1500, 3000, 40 },
     { 6000, 3000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135148[3] = {
+/// Mount path 12: increasing X at Z 1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath12[] = {
     { 1500, 1500, 40 },
     { 6000, 1500, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013515C[3] = {
+/// Mount path 13: increasing X at Z 0, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath13[] = {
     { 1500, 0, 40 },
     { 4500, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135170[2] = {
+/// Mount path 14: reach XZ (4600, 5800), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath14[] = {
     { 4600, 5800, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013517C[2] = {
+/// Mount path 15: reach XZ (4600, 3000), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath15[] = {
     { 4600, 3000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135188[2] = {
+/// Mount path 16: reach XZ (4600, 200), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath16[] = {
     { 4600, 200, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135194[3] = {
+/// Mount path 17: Z stops 3000 then 0 at X 6000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath17[] = {
     { 6000, 3000, 40 },
     { 6000, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801351A8[3] = {
+/// Mount path 18: decreasing Z at X 4500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath18[] = {
     { 4500, 3000, 40 },
     { 4500, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801351BC[3] = {
+/// Mount path 19: decreasing Z at X 3000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath19[] = {
     { 3000, 3000, 40 },
     { 3000, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801351D0[3] = {
+/// Mount path 20: decreasing Z at X 1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath20[] = {
     { 1500, 3000, 40 },
     { 1500, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801351E4[3] = {
+/// Mount path 21: decreasing Z at X 0, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath21[] = {
     { 0, 3000, 40 },
     { 0, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801351F8[3] = {
+/// Mount path 22: decreasing Z at X -1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath22[] = {
     { -1500, 3000, 40 },
     { -1500, 0, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013520C[2] = {
+/// Mount path 23: reach XZ (4600, 200), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath23[] = {
     { 4600, 200, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135218[2] = {
+/// Mount path 24: reach XZ (1600, 200), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath24[] = {
     { 1600, 200, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135224[2] = {
+/// Mount path 25: reach XZ (-1400, 200), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath25[] = {
     { -1400, 200, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135230[3] = {
+/// Mount path 26: Z stops 3000 then 6000 at X 6000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath26[] = {
     { 6000, 3000, 40 },
     { 6000, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135244[3] = {
+/// Mount path 27: increasing Z at X 4500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath27[] = {
     { 4500, 3000, 40 },
     { 4500, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135258[3] = {
+/// Mount path 28: increasing Z at X 3000, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath28[] = {
     { 3000, 3000, 40 },
     { 3000, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013526C[3] = {
+/// Mount path 29: increasing Z at X 1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath29[] = {
     { 1500, 3000, 40 },
     { 1500, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135280[3] = {
+/// Mount path 30: increasing Z at X 0, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath30[] = {
     { 0, 3000, 40 },
     { 0, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
@@ -812,37 +847,37 @@ _Actor107600Waypoint D_actor_107600_80135610[3] = {
 };
 
 _Actor107600Waypoint* D_actor_107600_80135624[62] = {
-    D_actor_107600_80135078,
-    D_actor_107600_80135084,
-    D_actor_107600_80135098,
-    D_actor_107600_801350AC,
-    D_actor_107600_801350C0,
-    D_actor_107600_801350D4,
-    D_actor_107600_801350E8,
-    D_actor_107600_801350F4,
-    D_actor_107600_80135100,
-    D_actor_107600_8013510C,
-    D_actor_107600_80135120,
-    D_actor_107600_80135134,
-    D_actor_107600_80135148,
-    D_actor_107600_8013515C,
-    D_actor_107600_80135170,
-    D_actor_107600_8013517C,
-    D_actor_107600_80135188,
-    D_actor_107600_80135194,
-    D_actor_107600_801351A8,
-    D_actor_107600_801351BC,
-    D_actor_107600_801351D0,
-    D_actor_107600_801351E4,
-    D_actor_107600_801351F8,
-    D_actor_107600_8013520C,
-    D_actor_107600_80135218,
-    D_actor_107600_80135224,
-    D_actor_107600_80135230,
-    D_actor_107600_80135244,
-    D_actor_107600_80135258,
-    D_actor_107600_8013526C,
-    D_actor_107600_80135280,
+    _gActor107600MountPath0,
+    _gActor107600MountPath1,
+    _gActor107600MountPath2,
+    _gActor107600MountPath3,
+    _gActor107600MountPath4,
+    _gActor107600MountPath5,
+    _gActor107600MountPath6,
+    _gActor107600MountPath7,
+    _gActor107600MountPath8,
+    _gActor107600MountPath9,
+    _gActor107600MountPath10,
+    _gActor107600MountPath11,
+    _gActor107600MountPath12,
+    _gActor107600MountPath13,
+    _gActor107600MountPath14,
+    _gActor107600MountPath15,
+    _gActor107600MountPath16,
+    _gActor107600MountPath17,
+    _gActor107600MountPath18,
+    _gActor107600MountPath19,
+    _gActor107600MountPath20,
+    _gActor107600MountPath21,
+    _gActor107600MountPath22,
+    _gActor107600MountPath23,
+    _gActor107600MountPath24,
+    _gActor107600MountPath25,
+    _gActor107600MountPath26,
+    _gActor107600MountPath27,
+    _gActor107600MountPath28,
+    _gActor107600MountPath29,
+    _gActor107600MountPath30,
     D_actor_107600_80135294,
     D_actor_107600_801352A8,
     D_actor_107600_801352B4,
@@ -1387,7 +1422,7 @@ static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targe
     GfxCoord*  targetCoord;
     TmdObject* targetModel;
 
-    targetEnemy = enemySpawnFromTable(D_actor_107600_80134F94, targetKind + 1, targetFlags, mountEnemy);
+    targetEnemy = enemySpawnFromTable(gActor107600TaskDescriptors, targetKind + ACTOR_107600_TASK_TARGET_BASE, targetFlags, mountEnemy);
     if (targetEnemy != NULL) {
         taskReparent(mountEnemy->task, targetEnemy->task);
         targetCoord                        = targetEnemy->task->extra.tmd->coords;

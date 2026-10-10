@@ -76829,7 +76829,7 @@ Find the spawner through the enemy table the actor is spawned from - `grep -F`
 the table symbol across `asm/USA/`:
 
 ```
-grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
+grep -rnF 'gActor107600TaskDescriptors' asm/USA/          # -> only mist_shooting_gallery
 ```
 
 `_mistShootingGallerySpawnTarget` spawns it, calls
