@@ -201,7 +201,7 @@ static inline void _dryfieldNightMotelBalconyProjectParticleCentre(EffectCentreS
     gte_stflg(&scratch->projectionFlags);
 }
 
-extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183750[1];
+static WorldCollisionGrid         _gDryfieldNightMotelBalconyRooms1And2CollisionGrid;
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183FE0[1];
 extern WorldCollisionOccluder     D_dryfield_night_motel_balcony_8018EF70[2];
 extern WorldCollisionTrigger      D_dryfield_night_motel_balcony_8018E2FC[8];
@@ -280,8 +280,8 @@ WorldCoordRoomLighting D_dryfield_night_motel_balcony_80182E00[3] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_motel_balcony_80182E18[3] = {
-    { D_dryfield_night_motel_balcony_80183750, D_dryfield_night_motel_balcony_8018E2FC, D_dryfield_night_motel_balcony_8018EAFC, D_dryfield_night_motel_balcony_8018EF70 },
-    { D_dryfield_night_motel_balcony_80183750, D_dryfield_night_motel_balcony_8018E55C, D_dryfield_night_motel_balcony_8018EC2C, D_dryfield_night_motel_balcony_8018EF70 },
+    { &_gDryfieldNightMotelBalconyRooms1And2CollisionGrid, D_dryfield_night_motel_balcony_8018E2FC, D_dryfield_night_motel_balcony_8018EAFC, D_dryfield_night_motel_balcony_8018EF70 },
+    { &_gDryfieldNightMotelBalconyRooms1And2CollisionGrid, D_dryfield_night_motel_balcony_8018E55C, D_dryfield_night_motel_balcony_8018EC2C, D_dryfield_night_motel_balcony_8018EF70 },
     { D_dryfield_night_motel_balcony_80183FE0, D_dryfield_night_motel_balcony_8018E854, D_dryfield_night_motel_balcony_8018ED5C, D_dryfield_night_motel_balcony_8018EF70 },
 };
 
@@ -387,30 +387,50 @@ DirectionWarpEntry D_dryfield_night_motel_balcony_80182EAC[5] = {
     { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 465 },
 };
 
-static SVECTOR _gDryfieldNightMotelBalconyCollision06190Normals[7] = {
+/// Room-space face normals for the rooms 1 and 2 collision grid; 4096 represents unit length.
+static SVECTOR _gDryfieldNightMotelBalconyRooms1And2CollisionGridNormals[7] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightMotelBalconyCollision06190Verts[69] = {
+/// Room-space vertices for the rooms 1 and 2 collision mesh, in signed game-coordinate units.
+static SVECTOR _gDryfieldNightMotelBalconyRooms1And2CollisionGridVerts[69] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightMotelBalconyCollision06190Faces[32] = {
+/// Indexed triangles and quads for the rooms 1 and 2 collision mesh.
+static WorldCollisionGridFace _gDryfieldNightMotelBalconyRooms1And2CollisionGridFaces[32] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_faces.inc"
 };
 
-static s16 _gDryfieldNightMotelBalconyCollision06190Cells[342] = {
+/// Signed face-index lists for the rooms 1 and 2 collision cells, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldNightMotelBalconyRooms1And2CollisionGridCells[342] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelBalconyCollision06190Cells[i])
-static s16* _gDryfieldNightMotelBalconyCollision06190Table[64] = {
+#define GRID_CELL(i) (&_gDryfieldNightMotelBalconyRooms1And2CollisionGridCells[i])
+/// X-major 8-by-8 cell directory into the rooms 1 and 2 collision face-index lists.
+static s16* _gDryfieldNightMotelBalconyRooms1And2CollisionGridTable[64] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_balcony_80183750[1] = {
-    { NULL, _gDryfieldNightMotelBalconyCollision06190Normals, _gDryfieldNightMotelBalconyCollision06190Verts, _gDryfieldNightMotelBalconyCollision06190Faces, _gDryfieldNightMotelBalconyCollision06190Table, 0x32BE, 0x341C, 8, 8, 4000, 32 },
+/// Collision grid shared by nighttime motel balcony rooms 1 and 2.
+///
+/// The 8 by 8 XZ cells have sides of 4000 game units and origin (-12990, -13340).
+/// Activation binds the writable descriptor to the current view transform.
+/// The descriptor and its mesh/index pools stay live with the loaded room overlay.
+static WorldCollisionGrid _gDryfieldNightMotelBalconyRooms1And2CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightMotelBalconyRooms1And2CollisionGridNormals,
+    .vertices    = _gDryfieldNightMotelBalconyRooms1And2CollisionGridVerts,
+    .faces       = _gDryfieldNightMotelBalconyRooms1And2CollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightMotelBalconyRooms1And2CollisionGridTable,
+    .xBias       = 12990,
+    .zBias       = 13340,
+    .cellCountX  = 8,
+    .cellCountZ  = 8,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelBalconyRooms1And2CollisionGridFaces),
 };
 
 static SVECTOR _gDryfieldNightMotelBalconyCollision06A20Normals[11] = {
@@ -999,7 +1019,12 @@ SpriteSource D_dryfield_night_motel_balcony_80186304[74] = {
     { 142, 0x4000, { .fields = { 8, 48 } }, 96, -32, 887, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_801868CC[6] = {
+/// Sprite ranges for mapped balcony view 8.
+///
+/// Ranges cover all 74 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView8SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 3, 0 } },
     { 15, 19, 0, 0, { 0, 0 } },
@@ -1008,117 +1033,138 @@ SpriteBatch D_dryfield_night_motel_balcony_801868CC[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_night_motel_balcony_801868FC[2] = {
+/// Clipping rectangle and full-screen restore boundary for mapped balcony view 8.
+///
+/// The rectangle uses draw-buffer pixels; the restore boundary is an
+/// unscaled OT sorting depth. The second record terminates the list.
+/// The clip also affects scene primitives drawn before the restore command.
+static SpriteDrawArea _gDryfieldNightMotelBalconyView8SpriteDrawAreas[2] = {
     { { 0, 0, 263, 239 }, 875 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_80186910[102] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, 72, 511, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -144, 80, 433, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, 88, 484, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 104, 485, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -64, 64, 622, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 56 } }, -56, 64, 576, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 8, 72, 516, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 48, 80, 474, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 96, 88, 449, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 96, 427, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 80, 721, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 80, 716, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 88, 708, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 96, 713, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 104, 627, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 96, 715, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 16, 24, 1189, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, 24, 1085, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 0, 32, 1000, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -8, 32, 925, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, 40, 862, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -24, 40, 601, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 48, 608, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 24, 48, 1175, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 16, 56, 1067, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, 8, 64, 978, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 56, 80, 839, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 8, 72, 903, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 64, 72, 903, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 8, 1830, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 8, 1672, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, 8, 1469, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, 16, 1314, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 48, 24, 1701, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 40, 32, 1478, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 32, 40, 1328, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 16, 2205, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 24, 2125, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 0, 2108, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 0, 2040, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, 0, 1977, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 0, 8, 1932, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 24, 8, 1877, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -16, -16, 2703, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, -8, 2631, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 16, -24, 2534, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -104, 0, 2402, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -88, 0, 2317, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -72, 0, 2238, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, -8, 2701, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -144, 0, 2595, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 0, 2517, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, 0, 2447, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -40, 2915, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, -40, 3206, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -48, 3147, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -96, -48, 3264, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -80, -48, 3562, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, -24, 3345, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 88, 8 } }, 24, 32, 1535, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 104, 8 } }, 8, 40, 1359, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 112, 8 } }, 0, 48, 1225, { .fields = { 8, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 120, 8 } }, -8, 56, 1117, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 96, 8 } }, 32, 80, 889, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 56, 8 } }, 72, 88, 615, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 64, 8 } }, -16, 72, 953, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 72, 8 } }, 48, 72, 953, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 72, 8 } }, -16, 64, 1028, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 56, 8 } }, 56, 64, 1028, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 8 } }, 40, 16, 2055, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 64, 8 } }, 32, 24, 1726, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 48, 8, 1871, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 40, 8, 1692, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 16, 24, 1239, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, 8, 24, 1135, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 0, 40, 1038, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -8, 40, 978, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -16, 48, 910, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -24, 48, 746, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -32, 48, 746, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -40, 56, 757, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -48, 56, 767, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -56, 64, 685, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -64, 64, 695, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, 32, 8, 1500, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 24, 16, 1350, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -80, 8, 2326, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -160, -8, 2805, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -152, 0, 2725, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -136, 0, 2618, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -120, 0, 2520, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -104, 0, 2427, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -88, 0, 2363, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -72, 0, 2263, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -56, 0, 2193, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, -40, 8, 2127, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, -24, 8, 2062, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, -8, 8, 2001, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 8, 8, 1943, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 24, 8, 1889, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, 40, 8, 1845, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -136, -24, 3352, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+/// Texture format and neutral RGB modulation of the view sprite sources below.
+enum {
+    DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT = 1,
+    DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB  = 128,
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80187108[19] = {
+/// Depth-sorted room sprites for mapped balcony view 9.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView9SpriteSources[102] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -160, 72, 511, { .fields = { 96, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -144, 80, 433, { .fields = { 32, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, 88, 484, { .fields = { 120, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -112, 104, 485, { .fields = { 48, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -64, 64, 622, { .fields = { 64, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 56 } }, -56, 64, 576, { .fields = { 64, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 8, 72, 516, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 40 } }, 48, 80, 474, { .fields = { 16, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 32 } }, 96, 88, 449, { .fields = { 0, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 144, 96, 427, { .fields = { 16, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -88, 80, 721, { .fields = { 16, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, 80, 716, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -72, 88, 708, { .fields = { 40, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, 96, 713, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -56, 104, 627, { .fields = { 8, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -48, 96, 715, { .fields = { 8, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 16, 24, 1189, { .fields = { 40, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 8, 24, 1085, { .fields = { 80, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 0, 32, 1000, { .fields = { 88, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -8, 32, 925, { .fields = { 80, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -16, 40, 862, { .fields = { 32, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -24, 40, 601, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -32, 48, 608, { .fields = { 8, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 24, 48, 1175, { .fields = { 72, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 16, 56, 1067, { .fields = { 48, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, 8, 64, 978, { .fields = { 24, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 56, 80, 839, { .fields = { 88, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 8, 72, 903, { .fields = { 72, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 64, 72, 903, { .fields = { 80, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, 8, 1830, { .fields = { 8, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 40, 8, 1672, { .fields = { 16, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 32, 8, 1469, { .fields = { 80, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 24, 16, 1314, { .fields = { 16, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 48, 24, 1701, { .fields = { 72, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 40, 32, 1478, { .fields = { 56, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 32, 40, 1328, { .fields = { 56, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 88, 16, 2205, { .fields = { 32, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, 24, 2125, { .fields = { 56, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -48, 0, 2108, { .fields = { 0, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -32, 0, 2040, { .fields = { 16, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -16, 0, 1977, { .fields = { 48, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 0, 8, 1932, { .fields = { 112, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 24, 8, 1877, { .fields = { 112, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -16, -16, 2703, { .fields = { 96, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 0, -8, 2631, { .fields = { 24, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 16, -24, 2534, { .fields = { 56, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -104, 0, 2402, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -88, 0, 2317, { .fields = { 120, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -72, 0, 2238, { .fields = { 112, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -160, -8, 2701, { .fields = { 96, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -144, 0, 2595, { .fields = { 112, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -128, 0, 2517, { .fields = { 112, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, 0, 2447, { .fields = { 112, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -72, -40, 2915, { .fields = { 88, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -120, -40, 3206, { .fields = { 72, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -112, -48, 3147, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -96, -48, 3264, { .fields = { 112, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -80, -48, 3562, { .fields = { 112, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -136, -24, 3345, { .fields = { 48, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 88, 8 } }, 24, 32, 1535, { .fields = { 32, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 104, 8 } }, 8, 40, 1359, { .fields = { 16, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 112, 8 } }, 0, 48, 1225, { .fields = { 8, 8 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 120, 8 } }, -8, 56, 1117, { .fields = { 0, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 96, 8 } }, 32, 80, 889, { .fields = { 24, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 56, 8 } }, 72, 88, 615, { .fields = { 56, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 64, 8 } }, -16, 72, 953, { .fields = { 48, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 72, 8 } }, 48, 72, 953, { .fields = { 40, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 72, 8 } }, -16, 64, 1028, { .fields = { 40, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 56, 8 } }, 56, 64, 1028, { .fields = { 56, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 48, 8 } }, 40, 16, 2055, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 64, 8 } }, 32, 24, 1726, { .fields = { 48, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 48, 8, 1871, { .fields = { 32, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 40, 8, 1692, { .fields = { 88, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 16, 24, 1239, { .fields = { 120, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, 8, 24, 1135, { .fields = { 72, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 0, 40, 1038, { .fields = { 112, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -8, 40, 978, { .fields = { 64, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -16, 48, 910, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -24, 48, 746, { .fields = { 72, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -32, 48, 746, { .fields = { 80, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -40, 56, 757, { .fields = { 40, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -48, 56, 767, { .fields = { 48, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -56, 64, 685, { .fields = { 24, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -64, 64, 695, { .fields = { 88, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, 32, 8, 1500, { .fields = { 56, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 24, 16, 1350, { .fields = { 40, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 8, 2326, { .fields = { 88, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -160, -8, 2805, { .fields = { 24, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -152, 0, 2725, { .fields = { 0, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -136, 0, 2618, { .fields = { 0, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -120, 0, 2520, { .fields = { 0, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -104, 0, 2427, { .fields = { 24, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -88, 0, 2363, { .fields = { 16, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -72, 0, 2263, { .fields = { 16, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -56, 0, 2193, { .fields = { 16, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 16 } }, -40, 8, 2127, { .fields = { 112, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 16 } }, -24, 8, 2062, { .fields = { 112, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 16 } }, -8, 8, 2001, { .fields = { 112, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, 8, 8, 1943, { .fields = { 0, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, 24, 8, 1889, { .fields = { 0, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 16 } }, 40, 8, 1845, { .fields = { 120, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -136, -24, 3352, { .fields = { 48, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+};
+
+/// Sprite ranges for mapped balcony view 9.
+///
+/// Ranges cover all 102 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView9SpriteBatches[19] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 6, 0 } },
     { 4, 6, 0, 0, { 9, 0 } },
@@ -1140,72 +1186,82 @@ SpriteBatch D_dryfield_night_motel_balcony_80187108[19] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_801871A0[62] = {
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 0, 4829, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -32, 24, 4295, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -64, 24, 4323, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -104, 24, 3777, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -104, 24, 2457, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 32, 2451, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -112, 40, 2433, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -112, 48, 1821, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -112, 56, 1512, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -88, 56, 1493, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -120, 64, 1237, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 1062, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -128, 80, 1012, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 40, 1522, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 40, 1342, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 40, 1197, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, 40, 1081, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 48, 984, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, 48, 905, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, 48, 838, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, 56, 779, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, 56, 743, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 56, 721, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 56, 706, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 64, 647, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, 0, 1349, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 56, 1517, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 48, 1620, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -112, 0, 1534, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 56, 1517, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 64, 1517, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 88, 40 } }, -160, 80, 403, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 88, 48 } }, -72, 72, 469, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 64, 56 } }, 16, 64, 594, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 8 } }, -104, 32, 3778, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 64, 8 } }, -112, 40, 2458, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 80, 8 } }, -112, 48, 1846, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 104, 8 } }, -120, 56, 1518, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 120, 8 } }, -120, 64, 1237, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 80, 8 } }, -128, 80, 1023, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 88, 8 } }, -80, 72, 1063, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 8 } }, -128, 72, 1088, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -96, 16, 4829, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -80, 32, 4027, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -72, 24, 3762, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -64, 24, 2460, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -56, 32, 2462, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -48, 32, 2435, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -40, 32, 1522, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -32, 40, 1493, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -24, 56, 1251, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -16, 56, 1081, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -8, 64, 985, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 0, 64, 907, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 8, 64, 838, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 16, 64, 825, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 24, 64, 742, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 32, 56, 721, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 40, 64, 624, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 48, 64, 633, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 56, 64, 639, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, 64, 72, 626, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 10.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView10SpriteSources[62] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -104, 0, 4829, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -32, 24, 4295, { .fields = { 48, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -64, 24, 4323, { .fields = { 32, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, -104, 24, 3777, { .fields = { 8, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -104, 24, 2457, { .fields = { 48, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -64, 32, 2451, { .fields = { 16, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -112, 40, 2433, { .fields = { 96, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -112, 48, 1821, { .fields = { 104, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -112, 56, 1512, { .fields = { 8, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -88, 56, 1493, { .fields = { 112, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -120, 64, 1237, { .fields = { 72, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, -128, 72, 1062, { .fields = { 56, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -128, 80, 1012, { .fields = { 104, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -40, 40, 1522, { .fields = { 56, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, 40, 1342, { .fields = { 56, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -24, 40, 1197, { .fields = { 56, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -16, 40, 1081, { .fields = { 104, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -8, 48, 984, { .fields = { 112, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 0, 48, 905, { .fields = { 80, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 8, 48, 838, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 16, 56, 779, { .fields = { 120, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 24, 56, 743, { .fields = { 112, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 32, 56, 721, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, 56, 706, { .fields = { 48, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 48, 64, 647, { .fields = { 32, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -120, 0, 1349, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -96, 56, 1517, { .fields = { 16, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -96, 48, 1620, { .fields = { 8, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -112, 0, 1534, { .fields = { 120, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -112, 56, 1517, { .fields = { 24, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -112, 64, 1517, { .fields = { 24, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 88, 40 } }, -160, 80, 403, { .fields = { 32, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 88, 48 } }, -72, 72, 469, { .fields = { 40, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 64, 56 } }, 16, 64, 594, { .fields = { 64, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 48, 8 } }, -104, 32, 3778, { .fields = { 120, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 64, 8 } }, -112, 40, 2458, { .fields = { 112, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 80, 8 } }, -112, 48, 1846, { .fields = { 88, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 104, 8 } }, -120, 56, 1518, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 120, 8 } }, -120, 64, 1237, { .fields = { 64, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 80, 8 } }, -128, 80, 1023, { .fields = { 104, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 88, 8 } }, -80, 72, 1063, { .fields = { 96, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 8 } }, -128, 72, 1088, { .fields = { 0, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -96, 16, 4829, { .fields = { 64, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 32, 4027, { .fields = { 80, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -72, 24, 3762, { .fields = { 56, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -64, 24, 2460, { .fields = { 72, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -56, 32, 2462, { .fields = { 64, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -48, 32, 2435, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -40, 32, 1522, { .fields = { 88, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -32, 40, 1493, { .fields = { 96, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -24, 56, 1251, { .fields = { 48, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -16, 56, 1081, { .fields = { 56, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -8, 64, 985, { .fields = { 104, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 0, 64, 907, { .fields = { 112, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 8, 64, 838, { .fields = { 88, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 16, 64, 825, { .fields = { 80, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 24, 64, 742, { .fields = { 48, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 32, 56, 721, { .fields = { 104, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 40, 64, 624, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 48, 64, 633, { .fields = { 56, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 56, 64, 639, { .fields = { 96, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 8 } }, 64, 72, 626, { .fields = { 32, 8 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80187678[14] = {
+/// Sprite ranges for mapped balcony view 10.
+///
+/// Ranges cover all 62 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView10SpriteBatches[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 7, 0 } },
     { 1, 1, 0, 0, { 2, 0 } },
@@ -1222,64 +1278,74 @@ SpriteBatch D_dryfield_night_motel_balcony_80187678[14] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_801876E8[54] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -56, 2590, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -24, 2409, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, -48, 2679, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -40, 2519, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -40, 2519, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -40, 2519, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, -40, 2519, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, -40, 2371, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, -24, 2345, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -24, 2169, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -24, 2249, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, -24, 2772, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -8, 2225, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, -8, 2879, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -32, -32, 2423, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -64, -24, 2334, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, -16, 2251, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, -8, 2174, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, -8, 2174, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -16, 2251, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -16, 2127, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, -24, 2313, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, -8, 2207, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 0, 2119, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 8, 1938, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 8, 2073, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 0, 2082, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 2979, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -56, 96, 1479, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, -128, 96, 1480, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -128, 64, 1619, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -72, 64, 1619, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -128, 40, 1778, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -80, 40, 1778, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, 24, 1912, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, 24, 1874, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 8, 1913, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -120, 16, 2077, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -152, -48, 2005, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -144, -32, 2121, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -136, -16, 2251, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -128, 0, 2177, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 64, 24 } }, -128, 96, 1530, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 64, 24 } }, -64, 96, 1532, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 32 } }, -128, 64, 1669, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 32 } }, -72, 64, 1669, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 24 } }, -128, 40, 1828, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 24 } }, -80, 40, 1828, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 16 } }, -112, 24, 1962, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 16 } }, -72, 24, 1924, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -72, 8, 1963, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 24 } }, -128, -40, 2189, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 24 } }, -128, -16, 2333, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -120, 8, 2218, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 11.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView11SpriteSources[54] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, -56, 2590, { .fields = { 32, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, -24, 2409, { .fields = { 48, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 16, -48, 2679, { .fields = { 96, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, -40, 2519, { .fields = { 8, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -40, 2519, { .fields = { 16, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 16, -40, 2519, { .fields = { 16, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 32, -40, 2519, { .fields = { 16, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 48, -40, 2371, { .fields = { 8, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -8, -24, 2345, { .fields = { 8, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 8, -24, 2169, { .fields = { 8, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 24, -24, 2249, { .fields = { 0, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 40, -24, 2772, { .fields = { 0, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -8, 2225, { .fields = { 0, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 16, -8, 2879, { .fields = { 32, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -32, -32, 2423, { .fields = { 120, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -64, -24, 2334, { .fields = { 104, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, -16, 2251, { .fields = { 120, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -64, -8, 2174, { .fields = { 120, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -48, -8, 2174, { .fields = { 120, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, -16, 2251, { .fields = { 120, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, -16, 2127, { .fields = { 0, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 0, -24, 2313, { .fields = { 8, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 0, -8, 2207, { .fields = { 8, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -72, 0, 2119, { .fields = { 0, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -64, 8, 1938, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -48, 8, 2073, { .fields = { 16, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, 0, 2082, { .fields = { 56, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, 0, 2979, { .fields = { 56, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -56, 96, 1479, { .fields = { 24, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 24 } }, -128, 96, 1480, { .fields = { 56, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 32 } }, -128, 64, 1619, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 32 } }, -72, 64, 1619, { .fields = { 72, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -128, 40, 1778, { .fields = { 80, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -80, 40, 1778, { .fields = { 80, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -112, 24, 1912, { .fields = { 32, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -72, 24, 1874, { .fields = { 24, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -72, 8, 1913, { .fields = { 32, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -120, 16, 2077, { .fields = { 56, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -152, -48, 2005, { .fields = { 104, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -144, -32, 2121, { .fields = { 112, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 16 } }, -136, -16, 2251, { .fields = { 0, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, -128, 0, 2177, { .fields = { 24, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 64, 24 } }, -128, 96, 1530, { .fields = { 16, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 64, 24 } }, -64, 96, 1532, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 32 } }, -128, 64, 1669, { .fields = { 72, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 32 } }, -72, 64, 1669, { .fields = { 72, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 24 } }, -128, 40, 1828, { .fields = { 32, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 24 } }, -80, 40, 1828, { .fields = { 40, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 16 } }, -112, 24, 1962, { .fields = { 32, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 16 } }, -72, 24, 1924, { .fields = { 24, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 16 } }, -72, 8, 1963, { .fields = { 48, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 24 } }, -128, -40, 2189, { .fields = { 88, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 24 } }, -128, -16, 2333, { .fields = { 80, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 8 } }, -120, 8, 2218, { .fields = { 56, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80187B20[8] = {
+/// Sprite ranges for mapped balcony view 11.
+///
+/// Ranges cover all 54 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView11SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 14, 0, 0, { 0, 0 } },
@@ -1290,50 +1356,60 @@ SpriteBatch D_dryfield_night_motel_balcony_80187B20[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_80187B60[40] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -72, -24, 3382, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -88, -16, 2947, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, -8, 2941, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -136, -16, 2646, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 48, 1762, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -8, 2497, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 0, 2580, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 8, 2338, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 16, 2173, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 24, 1928, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 32, 1863, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 1816, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -144, 32, 1747, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 40, 1811, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 48, 1687, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 56, 1599, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 64, 1555, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 72, 1660, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 80, 1629, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 80, 1634, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 88, 2412, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 96, 2312, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 104, 2220, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 112, 2135, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -160, -8, 2775, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -160, 0, 2605, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -160, 8, 2363, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -160, 16, 2198, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -160, 24, 1953, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -160, 32, 1888, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -160, 40, 1836, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -160, 48, 1712, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -160, 56, 1624, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 64, 1580, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 72, 1685, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 80, 1654, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 88, 2437, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 96, 2337, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -160, 104, 2245, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 8 } }, -160, 112, 2160, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 12.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView12SpriteSources[40] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -72, -24, 3382, { .fields = { 88, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -88, -16, 2947, { .fields = { 72, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -80, -8, 2941, { .fields = { 96, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -136, -16, 2646, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 48, 1762, { .fields = { 96, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -152, -8, 2497, { .fields = { 112, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 0, 2580, { .fields = { 104, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 8, 2338, { .fields = { 104, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 16, 2173, { .fields = { 104, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 24, 1928, { .fields = { 96, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 32, 1863, { .fields = { 80, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 40, 1816, { .fields = { 80, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -144, 32, 1747, { .fields = { 80, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 40, 1811, { .fields = { 72, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 48, 1687, { .fields = { 72, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 56, 1599, { .fields = { 72, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 64, 1555, { .fields = { 64, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 72, 1660, { .fields = { 64, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 80, 1629, { .fields = { 88, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 80, 1634, { .fields = { 88, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 88, 2412, { .fields = { 88, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 96, 2312, { .fields = { 88, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 104, 2220, { .fields = { 88, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 112, 2135, { .fields = { 80, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, -160, -8, 2775, { .fields = { 104, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, -160, 0, 2605, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, -160, 8, 2363, { .fields = { 104, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, -160, 16, 2198, { .fields = { 104, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 8 } }, -160, 24, 1953, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 8 } }, -160, 32, 1888, { .fields = { 96, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 8 } }, -160, 40, 1836, { .fields = { 96, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 8 } }, -160, 48, 1712, { .fields = { 96, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 8 } }, -160, 56, 1624, { .fields = { 96, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 64, 1580, { .fields = { 88, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 72, 1685, { .fields = { 88, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 80, 1654, { .fields = { 88, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 88, 2437, { .fields = { 88, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 96, 2337, { .fields = { 88, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 104, 2245, { .fields = { 56, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 8 } }, -160, 112, 2160, { .fields = { 80, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80187E80[8] = {
+/// Sprite ranges for mapped balcony view 12.
+///
+/// Ranges cover all 40 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView12SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 1, 0, 0, { 0, 0 } },
@@ -1344,55 +1420,70 @@ SpriteBatch D_dryfield_night_motel_balcony_80187E80[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80187EC0[2] = {
+/// Empty sprite batch list for mapped balcony view 13.
+///
+/// The zero-count opener keeps the decoded background; the next record ends
+/// the list. Its address also occupies the unused source slot in the view
+/// descriptor and is never read as source sprites.
+static SpriteBatch _gDryfieldNightMotelBalconyView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_80187ED0[40] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 88, 3522, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 88, 2356, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 96, 2694, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 96, 0x32D6, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 88, 0x32E5, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 88, 2476, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 88, 2489, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 64, 96, 2421, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 56, 104, 2102, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 96, 0x3969, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 96, 1198, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 96, 1349, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 96, 2450, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 56, 104, 2035, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 48, 112, 1311, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 112, 625, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 104, 750, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 96, 950, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, 96, 1018, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, 96, 1107, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 96, 1129, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 104, 1238, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 48, 112, 1254, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, 16, 2229, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 112, 16, 1550, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 120, 72, 1458, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, 24, 2356, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 104, 24, 2148, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 112, 48, 1625, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 64, 88, 3647, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, 0, 112, 950, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 16, 104, 1053, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 24, 96, 1132, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 32, 96, 1154, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 40, 96, 1374, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 48, 88, 2501, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 56, 88, 2539, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, 64, 96, 2744, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 8 } }, 56, 104, 2137, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 64, 8 } }, 48, 112, 1336, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 14.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView14SpriteSources[40] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 88, 3522, { .fields = { 120, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 56, 88, 2356, { .fields = { 104, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 64, 96, 2694, { .fields = { 72, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, 96, 0x32D6, { .fields = { 96, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, 88, 0x32E5, { .fields = { 104, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 48, 88, 2476, { .fields = { 104, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 56, 88, 2489, { .fields = { 104, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 64, 96, 2421, { .fields = { 56, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 56, 104, 2102, { .fields = { 48, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 24, 96, 0x3969, { .fields = { 96, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 32, 96, 1198, { .fields = { 104, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 40, 96, 1349, { .fields = { 104, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, 96, 2450, { .fields = { 96, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 56, 104, 2035, { .fields = { 64, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 48, 112, 1311, { .fields = { 40, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -48, 112, 625, { .fields = { 72, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -16, 104, 750, { .fields = { 88, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 8, 96, 950, { .fields = { 112, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 16, 96, 1018, { .fields = { 112, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 24, 96, 1107, { .fields = { 112, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 32, 96, 1129, { .fields = { 112, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, 104, 1238, { .fields = { 104, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 48, 112, 1254, { .fields = { 48, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 104, 16, 2229, { .fields = { 112, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 112, 16, 1550, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 120, 72, 1458, { .fields = { 112, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 96, 24, 2356, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 104, 24, 2148, { .fields = { 120, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 112, 48, 1625, { .fields = { 120, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 64, 88, 3647, { .fields = { 112, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 8 } }, 0, 112, 950, { .fields = { 88, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 16, 104, 1053, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 24, 96, 1132, { .fields = { 104, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 32, 96, 1154, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 40, 96, 1374, { .fields = { 104, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 48, 88, 2501, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 56, 88, 2539, { .fields = { 104, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, 64, 96, 2744, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 8 } }, 56, 104, 2137, { .fields = { 56, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 64, 8 } }, 48, 112, 1336, { .fields = { 40, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_801881F0[9] = {
+/// Sprite ranges for mapped balcony view 14.
+///
+/// Ranges cover all 40 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView14SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 6, 0, 0, { 4, 0 } },
@@ -1404,64 +1495,84 @@ SpriteBatch D_dryfield_night_motel_balcony_801881F0[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80188238[2] = {
+/// Empty sprite batch list for mapped balcony view 15.
+///
+/// The zero-count opener keeps the decoded background; the next record ends
+/// the list. Its address also occupies the unused source slot in the view
+/// descriptor and is never read as source sprites.
+static SpriteBatch _gDryfieldNightMotelBalconyView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80188248[2] = {
+/// Empty sprite batch list for mapped balcony view 16.
+///
+/// The zero-count opener keeps the decoded background; the next record ends
+/// the list. Its address also occupies the unused source slot in the view
+/// descriptor and is never read as source sprites.
+static SpriteBatch _gDryfieldNightMotelBalconyView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_80188258[44] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -16, 975, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 40, -40, 975, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 160 } }, 48, -40, 975, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 64, -104, 950, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, -72, 975, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -120, 40, 425, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -112, 40, 425, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -104, 48, 425, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -96, 56, 525, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, 56, 525, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, -80, 64, 775, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, -72, 64, 775, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, 72, 775, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -56, 80, 975, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -32, 80, 975, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -8, 80, 975, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 16, 80, 975, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 32, 80, 975, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 48, 357, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 56 } }, -80, 64, 774, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 64 } }, -96, 56, 524, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 40 } }, -56, 80, 974, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 160 } }, 80, -40, 980, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 72 } }, 48, 48, 980, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 88 } }, 72, -40, 980, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 8 } }, -136, 112, 337, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 8 } }, -128, 112, 337, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 64, 160 } }, 48, -40, 999, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4040, { .fields = { 48, 40 } }, 0, 80, 974, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4040, { .fields = { 24, 56 } }, -80, 64, 774, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4040, { .fields = { 16, 40 } }, -56, 80, 974, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4040, { .fields = { 16, 64 } }, -96, 56, 524, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 24, 80 } }, -120, 40, 424, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4040, { .fields = { 40, 40 } }, -40, 80, 996, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -136, 96, 313, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -128, 96, 337, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -136, 80, 312, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -128, 80, 336, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -136, 64, 330, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -128, 64, 356, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -136, 32, 378, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -128, 32, 407, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -136, 48, 329, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 16 } }, -128, 48, 355, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 17.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView17SpriteSources[44] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, -16, 975, { .fields = { 56, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, 40, -40, 975, { .fields = { 72, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 160 } }, 48, -40, 975, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 64, -104, 950, { .fields = { 8, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 48, -72, 975, { .fields = { 16, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -120, 40, 425, { .fields = { 88, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -112, 40, 425, { .fields = { 80, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -104, 48, 425, { .fields = { 64, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 64 } }, -96, 56, 525, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -88, 56, 525, { .fields = { 24, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 56 } }, -80, 64, 775, { .fields = { 88, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 56 } }, -72, 64, 775, { .fields = { 88, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 48 } }, -64, 72, 775, { .fields = { 80, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -56, 80, 975, { .fields = { 64, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -32, 80, 975, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -8, 80, 975, { .fields = { 48, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 16, 80, 975, { .fields = { 72, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 32, 80, 975, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -128, 48, 357, { .fields = { 72, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 56 } }, -80, 64, 774, { .fields = { 72, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 64 } }, -96, 56, 524, { .fields = { 120, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 40 } }, -56, 80, 974, { .fields = { 48, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 160 } }, 80, -40, 980, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 72 } }, 48, 48, 980, { .fields = { 32, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 88 } }, 72, -40, 980, { .fields = { 120, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 8 } }, -136, 112, 337, { .fields = { 120, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 8 } }, -128, 112, 337, { .fields = { 64, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 64, 160 } }, 48, -40, 999, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 48, 40 } }, 0, 80, 974, { .fields = { 24, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 24, 56 } }, -80, 64, 774, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 40 } }, -56, 80, 974, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 64 } }, -96, 56, 524, { .fields = { 104, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 24, 80 } }, -120, 40, 424, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 40, 40 } }, -40, 80, 996, { .fields = { 24, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -136, 96, 313, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -128, 96, 337, { .fields = { 80, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -136, 80, 312, { .fields = { 88, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -128, 80, 336, { .fields = { 48, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -136, 64, 330, { .fields = { 64, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -128, 64, 356, { .fields = { 56, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -136, 32, 378, { .fields = { 32, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -128, 32, 407, { .fields = { 112, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -136, 48, 329, { .fields = { 40, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 16 } }, -128, 48, 355, { .fields = { 104, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_801885C8[6] = {
+/// Sprite ranges for mapped balcony view 17.
+///
+/// Ranges cover all 44 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Scene cues hide batch 2 or 3; the zero-length batch 1 retains its slot.
+static SpriteBatch _gDryfieldNightMotelBalconyView17SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 3, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
@@ -1470,117 +1581,135 @@ SpriteBatch D_dryfield_night_motel_balcony_801885C8[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_night_motel_balcony_801885F8[2] = {
+/// Clipping rectangle and full-screen restore boundary for mapped balcony view 17.
+///
+/// The rectangle uses draw-buffer pixels; the restore boundary is an
+/// unscaled OT sorting depth. The second record terminates the list.
+/// The clip also affects scene primitives drawn before the restore command.
+static SpriteDrawArea _gDryfieldNightMotelBalconyView17SpriteDrawAreas[2] = {
     { { 0, 0, 257, 239 }, 999 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_8018860C[102] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -32, 1425, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 160 } }, 48, -56, 1425, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 80, -64, 1334, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 80, 56, 1418, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 96, -8, 1425, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -16, 88, 1425, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -88, 24, 1425, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -88, 48, 1425, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 1425, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -88, 88, 1425, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -56, 16, 1425, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -64, 40, 1425, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -56, 56, 1425, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, 80, 1425, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -32, 48, 1425, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 16, 24, 1425, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, 32, 1425, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, 48, 1425, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 32, 64, 1425, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 32, 80, 1897, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 72, 48, 1425, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 72, 32, 1425, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -40, 80, 1425, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -16, 80, 1425, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -40, 64, 1425, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -8, 64, 1557, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1425, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -16, 24, 1425, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -160, 104, 1088, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 16 } }, -128, 104, 1088, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -96, 96, 1149, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -64, 96, 1149, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, 24, 96, 1128, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, 48, 96, 1128, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -32, 96, 1149, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, 0, 96, 1128, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 16 } }, 72, 104, 1043, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 8 } }, 112, 112, 797, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 16 } }, -120, 80, 2775, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -16, 64, 2775, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 0, 72, 2775, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 16 } }, 32, 80, 2775, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, -80, 72, 2775, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, -56, 72, 2775, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -32, 72, 2775, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -72, 104, 1171, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -136, 96, 1195, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 32 } }, 16, 72, 1424, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 56, 72, 1424, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, -48, 80, 1513, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, -16, 80, 1513, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -104, 80, 1171, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -88, 80, 1171, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -72, 80, 1171, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -160, 80, 1048, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -136, 80, 2775, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -112, 80, 2775, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 24 } }, -88, 80, 2775, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -56, 80, 2775, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -24, 80, 2775, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 8, 80, 2775, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, 40, 80, 2775, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 48, 88, 1424, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 16 } }, -128, 88, 1210, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -96, 80, 1163, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -72, 72, 1405, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, -48, 88, 1341, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 32, 80, 1424, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 16 } }, 40, -32, 1694, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 152 } }, 48, -56, 1424, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 16 } }, 56, 96, 1000, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 56, 24 } }, 104, 96, 1000, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 48 } }, 80, -64, 1000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 8, 8 } }, -16, 32, 1437, { .fields = { 8, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 8, 8 } }, 0, 32, 1437, { .fields = { 8, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 8 } }, -88, 24, 1437, { .fields = { 24, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 24, 8 } }, -88, 48, 1437, { .fields = { 104, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 32 } }, -88, 80, 1437, { .fields = { 16, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, -56, 16, 1437, { .fields = { 88, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 16 } }, -64, 40, 1437, { .fields = { 64, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 32, 8 } }, -88, 64, 1437, { .fields = { 0, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 40 } }, -56, 56, 1437, { .fields = { 80, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 16 } }, -72, 96, 1437, { .fields = { 56, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 8 } }, -72, 80, 1437, { .fields = { 32, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 48, 8 } }, -32, 48, 1437, { .fields = { 16, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 56, 8 } }, -40, 24, 1437, { .fields = { 0, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 80 } }, 16, 24, 1437, { .fields = { 112, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 8 } }, 32, 32, 1437, { .fields = { 24, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 8 } }, 32, 48, 1437, { .fields = { 24, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 8 } }, 32, 64, 1437, { .fields = { 24, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 16 } }, 32, 72, 1437, { .fields = { 56, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 72, 48, 1437, { .fields = { 96, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 88, 48, 1437, { .fields = { 104, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 104, 48, 1437, { .fields = { 104, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 72, 24, 1437, { .fields = { 104, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 88, 24, 1437, { .fields = { 96, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 24 } }, 104, 24, 1437, { .fields = { 104, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 8 } }, -40, 80, 1437, { .fields = { 104, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 16, 16 } }, -24, 80, 1437, { .fields = { 56, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 24, 8 } }, -8, 80, 1437, { .fields = { 16, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 32, 8 } }, -40, 64, 1437, { .fields = { 16, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4040, { .fields = { 24, 8 } }, -8, 64, 1437, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// Depth-sorted room sprites for mapped balcony view 18.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+/// Sources 38..72 are the scene-controlled breakaway pieces; the last 29
+/// sources enable semitransparency.
+static SpriteSource _gDryfieldNightMotelBalconyView18SpriteSources[102] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, -32, 1425, { .fields = { 72, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 160 } }, 48, -56, 1425, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 80, -64, 1334, { .fields = { 64, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 80, 56, 1418, { .fields = { 32, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, 96, -8, 1425, { .fields = { 72, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -16, 88, 1425, { .fields = { 96, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 24, 1425, { .fields = { 16, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -88, 48, 1425, { .fields = { 24, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 64, 1425, { .fields = { 16, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -88, 88, 1425, { .fields = { 96, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -56, 16, 1425, { .fields = { 88, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -64, 40, 1425, { .fields = { 40, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -56, 56, 1425, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, 80, 1425, { .fields = { 24, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -32, 48, 1425, { .fields = { 0, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 16, 24, 1425, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 32, 32, 1425, { .fields = { 16, 8 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 32, 48, 1425, { .fields = { 8, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 32, 64, 1425, { .fields = { 16, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 32, 80, 1897, { .fields = { 0, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 72, 48, 1425, { .fields = { 8, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, 72, 32, 1425, { .fields = { 48, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -40, 80, 1425, { .fields = { 32, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -16, 80, 1425, { .fields = { 32, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -40, 64, 1425, { .fields = { 32, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -8, 64, 1557, { .fields = { 72, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -40, 24, 1425, { .fields = { 40, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -16, 24, 1425, { .fields = { 8, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 16 } }, -160, 104, 1088, { .fields = { 56, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 16 } }, -128, 104, 1088, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, -96, 96, 1149, { .fields = { 64, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, -64, 96, 1149, { .fields = { 64, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, 24, 96, 1128, { .fields = { 72, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, 48, 96, 1128, { .fields = { 80, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, -32, 96, 1149, { .fields = { 72, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, 0, 96, 1128, { .fields = { 80, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 40, 16 } }, 72, 104, 1043, { .fields = { 24, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 8 } }, 112, 112, 797, { .fields = { 48, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 40, 16 } }, -120, 80, 2775, { .fields = { 32, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -16, 64, 2775, { .fields = { 32, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, 0, 72, 2775, { .fields = { 104, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 16 } }, 32, 80, 2775, { .fields = { 40, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, -80, 72, 2775, { .fields = { 112, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, -56, 72, 2775, { .fields = { 112, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -32, 72, 2775, { .fields = { 120, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 104, 1171, { .fields = { 16, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 16 } }, -136, 96, 1195, { .fields = { 32, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 40, 32 } }, 16, 72, 1424, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 56, 72, 1424, { .fields = { 72, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 40 } }, -48, 80, 1513, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 40 } }, -16, 80, 1513, { .fields = { 32, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -104, 80, 1171, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -88, 80, 1171, { .fields = { 120, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 24 } }, -72, 80, 1171, { .fields = { 8, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -160, 80, 1048, { .fields = { 24, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -136, 80, 2775, { .fields = { 8, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -112, 80, 2775, { .fields = { 8, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 24 } }, -88, 80, 2775, { .fields = { 32, 184 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, -56, 80, 2775, { .fields = { 120, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, -24, 80, 2775, { .fields = { 104, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, 8, 80, 2775, { .fields = { 112, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 24 } }, 40, 80, 2775, { .fields = { 112, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 48, 88, 1424, { .fields = { 96, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 24, 16 } }, -128, 88, 1210, { .fields = { 48, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -96, 80, 1163, { .fields = { 8, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -72, 72, 1405, { .fields = { 8, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 16 } }, -48, 88, 1341, { .fields = { 64, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, 32, 80, 1424, { .fields = { 96, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 16 } }, 40, -32, 1694, { .fields = { 72, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 152 } }, 48, -56, 1424, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 48, 16 } }, 56, 96, 1000, { .fields = { 24, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 56, 24 } }, 104, 96, 1000, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 48 } }, 80, -64, 1000, { .fields = { 48, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 8 } }, -16, 32, 1437, { .fields = { 8, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 8, 8 } }, 0, 32, 1437, { .fields = { 8, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 8 } }, -88, 24, 1437, { .fields = { 24, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 24, 8 } }, -88, 48, 1437, { .fields = { 104, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 16, 32 } }, -88, 80, 1437, { .fields = { 16, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, -56, 16, 1437, { .fields = { 88, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 16 } }, -64, 40, 1437, { .fields = { 64, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 32, 8 } }, -88, 64, 1437, { .fields = { 0, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 16, 40 } }, -56, 56, 1437, { .fields = { 80, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 16 } }, -72, 96, 1437, { .fields = { 56, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 16, 8 } }, -72, 80, 1437, { .fields = { 32, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 48, 8 } }, -32, 48, 1437, { .fields = { 16, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 56, 8 } }, -40, 24, 1437, { .fields = { 0, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 257), { .fields = { 16, 80 } }, 16, 24, 1437, { .fields = { 112, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 8 } }, 32, 32, 1437, { .fields = { 24, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 8 } }, 32, 48, 1437, { .fields = { 24, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 8 } }, 32, 64, 1437, { .fields = { 24, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 16 } }, 32, 72, 1437, { .fields = { 56, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 72, 48, 1437, { .fields = { 96, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 88, 48, 1437, { .fields = { 104, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 104, 48, 1437, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 72, 24, 1437, { .fields = { 104, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 88, 24, 1437, { .fields = { 96, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 24 } }, 104, 24, 1437, { .fields = { 104, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 8 } }, -40, 80, 1437, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 16, 16 } }, -24, 80, 1437, { .fields = { 56, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 24, 8 } }, -8, 80, 1437, { .fields = { 16, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 32, 8 } }, -40, 64, 1437, { .fields = { 16, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 257), { .fields = { 24, 8 } }, -8, 64, 1437, { .fields = { 24, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80188E04[13] = {
+/// Sprite ranges for mapped balcony view 18.
+///
+/// Ranges cover all 102 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Scene cues show or hide breakaway batches 6..10. Zero-length batches
+/// 1 and 3 retain their slots so later batch indices remain stable.
+static SpriteBatch _gDryfieldNightMotelBalconyView18SpriteBatches[13] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 5, 0, 0, { 6, 0 } },
@@ -1596,69 +1725,84 @@ SpriteBatch D_dryfield_night_motel_balcony_80188E04[13] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_night_motel_balcony_80188E6C[2] = {
+/// Clipping rectangle and full-screen restore boundary for mapped balcony view 18.
+///
+/// The rectangle uses draw-buffer pixels; the restore boundary is an
+/// unscaled OT sorting depth. The second record terminates the list.
+/// The clip also affects scene primitives drawn before the restore command.
+static SpriteDrawArea _gDryfieldNightMotelBalconyView18SpriteDrawAreas[2] = {
     { { 0, 0, 272, 239 }, 1425 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_80188E80[54] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 112, 750, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 104, 750, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 96, 750, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 88, 750, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 88, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 80, 750, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -96, 80, 750, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -120, 72, 730, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 72, 730, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 64, 750, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -48, 64, 700, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -24, 56, 675, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 80, 750, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, 96, 750, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -48, 80, 750, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 8, 64, 625, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 48, 72, 450, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 96, 72, 450, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 136, 64, 507, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -72, -96, 1110, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -80, 1114, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -72, -40, 1088, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 32, 1028, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -120, -120, 896, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -72, -120, 896, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -120, -112, 929, { .fields = { 112, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -72, -112, 929, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -128, -104, 1017, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -80, -104, 1017, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -136, -96, 1081, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -88, -96, 1081, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -136, -88, 1154, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -88, -88, 1154, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -136, -80, 1343, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -96, -80, 1343, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -136, -72, 1366, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -96, -72, 1366, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -136, -64, 1558, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -96, -64, 1558, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -136, -56, 1694, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -104, -56, 1694, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -136, -48, 1644, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -104, -48, 1644, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -136, -32, 2242, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -104, -32, 2242, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -136, -40, 2019, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, -40, 2019, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -80, 40, 958, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 88 } }, -72, -40, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 16 } }, -160, 32, 293, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 16 } }, -160, 48, 160, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 16 } }, -160, 64, 109, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -160, 80, 83, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -160, 96, 64, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 19.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+static SpriteSource _gDryfieldNightMotelBalconyView19SpriteSources[54] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -80, 112, 750, { .fields = { 96, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 104, 750, { .fields = { 16, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 96, 750, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 88, 750, { .fields = { 104, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -112, 88, 750, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -120, 80, 750, { .fields = { 16, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 80, 750, { .fields = { 120, 64 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -120, 72, 730, { .fields = { 120, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 72, 730, { .fields = { 16, 72 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -72, 64, 750, { .fields = { 24, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -48, 64, 700, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -24, 56, 675, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -72, 80, 750, { .fields = { 32, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -72, 96, 750, { .fields = { 32, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -48, 80, 750, { .fields = { 40, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 56 } }, 8, 64, 625, { .fields = { 56, 112 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 48 } }, 48, 72, 450, { .fields = { 48, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 96, 72, 450, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 136, 64, 507, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -72, -96, 1110, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -40, -80, 1114, { .fields = { 104, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -72, -40, 1088, { .fields = { 96, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, 32, 1028, { .fields = { 56, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -120, -120, 896, { .fields = { 0, 208 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -72, -120, 896, { .fields = { 112, 32 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -120, -112, 929, { .fields = { 112, 8 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -72, -112, 929, { .fields = { 112, 24 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -128, -104, 1017, { .fields = { 112, 40 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -80, -104, 1017, { .fields = { 112, 120 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -136, -96, 1081, { .fields = { 8, 248 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -88, -96, 1081, { .fields = { 112, 16 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -136, -88, 1154, { .fields = { 112, 128 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -88, -88, 1154, { .fields = { 112, 136 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -136, -80, 1343, { .fields = { 120, 144 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -96, -80, 1343, { .fields = { 112, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -136, -72, 1366, { .fields = { 120, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -96, -72, 1366, { .fields = { 104, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -136, -64, 1558, { .fields = { 112, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -96, -64, 1558, { .fields = { 112, 160 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, -56, 1694, { .fields = { 120, 240 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -104, -56, 1694, { .fields = { 104, 96 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, -48, 1644, { .fields = { 112, 56 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -104, -48, 1644, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, -32, 2242, { .fields = { 112, 104 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -104, -32, 2242, { .fields = { 112, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, -40, 2019, { .fields = { 112, 80 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -104, -40, 2019, { .fields = { 0, 216 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, -80, 40, 958, { .fields = { 16, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 88 } }, -72, -40, 1100, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 16 } }, -160, 32, 293, { .fields = { 24, 232 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 40, 16 } }, -160, 48, 160, { .fields = { 8, 192 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 32, 16 } }, -160, 64, 109, { .fields = { 16, 176 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 16 } }, -160, 80, 83, { .fields = { 16, 48 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -160, 96, 64, { .fields = { 112, 224 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_801892B8[8] = {
+/// Sprite ranges for mapped balcony view 19.
+///
+/// Ranges cover all 54 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Scene cues select visibility of batches 1 and 2.
+static SpriteBatch _gDryfieldNightMotelBalconyView19SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 4, 0, 0, { 0, 0 } },
@@ -1669,25 +1813,41 @@ SpriteBatch D_dryfield_night_motel_balcony_801892B8[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_balcony_801892F8[8] = {
-    { 142, 0x3FC0, { .fields = { 64, 40 } }, -80, -64, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 48 } }, -80, -24, 1000, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 88 } }, -88, 24, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 80 } }, 32, 24, 1000, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 64, 40 } }, -80, -64, 1025, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 120, 64 } }, -80, -24, 1025, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 112, 72 } }, -88, 40, 1025, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 64 } }, 24, 40, 1025, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprites for mapped balcony view 20.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// Depth is an unscaled OT sorting value. Texture pages use 8-bit pixels;
+/// palette rows are in VRAM. The loaded room overlay owns this writable array.
+/// The two four-sprite ranges are selected by section visibility state.
+static SpriteSource _gDryfieldNightMotelBalconyView20SpriteSources[8] = {
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 40 } }, -80, -64, 1000, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 112, 48 } }, -80, -24, 1000, { .fields = { 32, 152 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 120, 88 } }, -88, 24, 1000, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 80 } }, 32, 24, 1000, { .fields = { 80, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 64, 40 } }, -80, -64, 1025, { .fields = { 80, 200 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 120, 64 } }, -80, -24, 1025, { .fields = { 32, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 112, 72 } }, -88, 40, 1025, { .fields = { 16, 168 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 64 } }, 24, 40, 1025, { .fields = { 24, 88 } }, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_80189398[4] = {
+/// Sprite ranges for mapped balcony view 20.
+///
+/// Ranges cover all 8 source elements. The zero-count opener keeps
+/// the decoded background; the terminal record ends the list.
+/// Section-state streams address the writable hidden bytes by batch index.
+static SpriteBatch _gDryfieldNightMotelBalconyView20SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 4, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_balcony_801893B8[2] = {
+/// Empty sprite batch list for mapped balcony view 21.
+///
+/// The zero-count opener keeps the decoded background; the next record ends
+/// the list. Its address also occupies the unused source slot in the view
+/// descriptor and is never read as source sprites.
+static SpriteBatch _gDryfieldNightMotelBalconyView21SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -2664,20 +2824,20 @@ SpriteView D_dryfield_night_motel_balcony_8018D078[39] = {
     { { .elements = D_dryfield_night_motel_balcony_80185550 }, D_dryfield_night_motel_balcony_80185988, NULL },
     { { .elements = D_dryfield_night_motel_balcony_801859B8 }, D_dryfield_night_motel_balcony_80185CB0, NULL },
     { { .elements = D_dryfield_night_motel_balcony_80185CE8 }, D_dryfield_night_motel_balcony_801862B0, D_dryfield_night_motel_balcony_801862F0 },
-    { { .elements = D_dryfield_night_motel_balcony_80186304 }, D_dryfield_night_motel_balcony_801868CC, D_dryfield_night_motel_balcony_801868FC },
-    { { .elements = D_dryfield_night_motel_balcony_80186910 }, D_dryfield_night_motel_balcony_80187108, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_801871A0 }, D_dryfield_night_motel_balcony_80187678, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_801876E8 }, D_dryfield_night_motel_balcony_80187B20, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_80187B60 }, D_dryfield_night_motel_balcony_80187E80, NULL },
-    { { .empty = D_dryfield_night_motel_balcony_80187EC0 }, D_dryfield_night_motel_balcony_80187EC0, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_80187ED0 }, D_dryfield_night_motel_balcony_801881F0, NULL },
-    { { .empty = D_dryfield_night_motel_balcony_80188238 }, D_dryfield_night_motel_balcony_80188238, NULL },
-    { { .empty = D_dryfield_night_motel_balcony_80188248 }, D_dryfield_night_motel_balcony_80188248, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_80188258 }, D_dryfield_night_motel_balcony_801885C8, D_dryfield_night_motel_balcony_801885F8 },
-    { { .elements = D_dryfield_night_motel_balcony_8018860C }, D_dryfield_night_motel_balcony_80188E04, D_dryfield_night_motel_balcony_80188E6C },
-    { { .elements = D_dryfield_night_motel_balcony_80188E80 }, D_dryfield_night_motel_balcony_801892B8, NULL },
-    { { .elements = D_dryfield_night_motel_balcony_801892F8 }, D_dryfield_night_motel_balcony_80189398, NULL },
-    { { .empty = D_dryfield_night_motel_balcony_801893B8 }, D_dryfield_night_motel_balcony_801893B8, NULL },
+    { { .elements = D_dryfield_night_motel_balcony_80186304 }, _gDryfieldNightMotelBalconyView8SpriteBatches, _gDryfieldNightMotelBalconyView8SpriteDrawAreas },
+    { { .elements = _gDryfieldNightMotelBalconyView9SpriteSources }, _gDryfieldNightMotelBalconyView9SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView10SpriteSources }, _gDryfieldNightMotelBalconyView10SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView11SpriteSources }, _gDryfieldNightMotelBalconyView11SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView12SpriteSources }, _gDryfieldNightMotelBalconyView12SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelBalconyView13SpriteBatches }, _gDryfieldNightMotelBalconyView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView14SpriteSources }, _gDryfieldNightMotelBalconyView14SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelBalconyView15SpriteBatches }, _gDryfieldNightMotelBalconyView15SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelBalconyView16SpriteBatches }, _gDryfieldNightMotelBalconyView16SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView17SpriteSources }, _gDryfieldNightMotelBalconyView17SpriteBatches, _gDryfieldNightMotelBalconyView17SpriteDrawAreas },
+    { { .elements = _gDryfieldNightMotelBalconyView18SpriteSources }, _gDryfieldNightMotelBalconyView18SpriteBatches, _gDryfieldNightMotelBalconyView18SpriteDrawAreas },
+    { { .elements = _gDryfieldNightMotelBalconyView19SpriteSources }, _gDryfieldNightMotelBalconyView19SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelBalconyView20SpriteSources }, _gDryfieldNightMotelBalconyView20SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelBalconyView21SpriteBatches }, _gDryfieldNightMotelBalconyView21SpriteBatches, NULL },
     { { .elements = D_dryfield_night_motel_balcony_801893C8 }, D_dryfield_night_motel_balcony_80189508, NULL },
     { { .elements = D_dryfield_night_motel_balcony_80189528 }, D_dryfield_night_motel_balcony_801897A8, NULL },
     { { .elements = D_dryfield_night_motel_balcony_801897F8 }, D_dryfield_night_motel_balcony_80189820, NULL },
