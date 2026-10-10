@@ -15,23 +15,40 @@
 
 #include "main/coord.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_motel_room_5_8017D6B4[];
+enum {
+    DRYFIELD_MOTEL_ROOM_5_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_5, 2),
+    DRYFIELD_MOTEL_ROOM_5_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_5, 1),
+    DRYFIELD_MOTEL_ROOM_5_MAP_FLAG        = 464,
+    // High nibble selects this room's departure endpoint 1; low nibble the balcony's arrival endpoint 2.
+    DRYFIELD_MOTEL_ROOM_5_BALCONY_WARP_ENDPOINTS = 0x12,
+    DRYFIELD_MOTEL_ROOM_5_CLASS_1_WALK_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_MOTEL_ROOM_5_CLASS_1_RUN_CUE_BASE   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
+    DRYFIELD_MOTEL_ROOM_5_CLASS_2_WALK_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
+    DRYFIELD_MOTEL_ROOM_5_CLASS_2_RUN_CUE_BASE   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
+};
 
 static s32 _dryfieldMotelRoom5RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom5ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldMotelRoom5IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _dryfieldMotelRoom5IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-extern WorldCollisionGrid    D_dryfield_motel_room_5_8017DC9C[1];
-extern WorldCollisionTrigger D_dryfield_motel_room_5_8017DE40[8];
-extern WorldCollisionTrigger D_dryfield_motel_room_5_8017E0A0[1];
-extern WorldCoordRoomLights  D_dryfield_motel_room_5_8017E56C[1];
+static WorldCollisionGrid    _gDryfieldMotelRoom5CollisionGrid;
+static WorldCollisionTrigger _gDryfieldMotelRoom5ViewBoundaryTriggers[8];
+static WorldCollisionTrigger _gDryfieldMotelRoom5ActionTriggers[1];
+static WorldCoordRoomLights  _gDryfieldMotelRoom5RoomLights;
 
-TaskMessageEntry D_dryfield_motel_room_5_8017D6B4[5] = {
+/// Motel room 5's synchronous room-message dispatch table.
+///
+/// Allows transitions unchanged, refuses key items and ignores room actions
+/// and commands. The final marker makes unsupported IDs return zero. The live
+/// room task borrows this read-only table and its callbacks while the overlay
+/// is loaded. Its authored storage remains in the overlay's data section.
+static const TaskMessageEntry _gDryfieldMotelRoom5RoomMessages[] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom5ResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom5RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom5IgnoreRoomAction },
@@ -39,52 +56,93 @@ TaskMessageEntry D_dryfield_motel_room_5_8017D6B4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_motel_room_5_8017D6DC[1] = {
-    { D_dryfield_motel_room_5_8017DC9C, D_dryfield_motel_room_5_8017DE40, D_dryfield_motel_room_5_8017E0A0, NULL },
+WorldCollisionRoomResources gDryfieldMotelRoom5RoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldMotelRoom5CollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldMotelRoom5ViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldMotelRoom5ActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-u8* D_dryfield_motel_room_5_8017D6EC[1] = {
+u8* gDryfieldMotelRoom5RoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_motel_room_5_8017D6F0[1] = { 6 };
+ViewCount gDryfieldMotelRoom5RoomViewCounts[1] = { ARRAY_SIZE(gDryfieldMotelRoom5ViewCameras) };
 
-WorldCoordRoomLighting D_dryfield_motel_room_5_8017D6F4[1] = {
-    { D_dryfield_motel_room_5_8017E56C, NULL },
+WorldCoordRoomLighting gDryfieldMotelRoom5RoomLighting[1] = {
+    { .lights = &_gDryfieldMotelRoom5RoomLights, .ambientTable = NULL },
 };
 
-DirectionWarpEntry D_dryfield_motel_room_5_8017D6FC[1] = {
-    { { { .word = 3072 }, 4350, 0, 2426 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 2426 }, { 0, 0, 0, 0 }, 0x521C0002, 0x521C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 464 },
+DirectionWarpEntry gDryfieldMotelRoom5WarpEntries[1] = {
+    {
+        .player         = { { .word = 3 * ONE / 4 }, 4350, 0, 2426 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3 * ONE / 4 }, 4350, 0, 2426 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_MOTEL_ROOM_5_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_MOTEL_ROOM_5_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_MOTEL_ROOM_5_MAP_FLAG,
+    },
 };
 
-static SVECTOR _gDryfieldMotelRoom5Collision006DCNormals[12] = {
+/// Grid-local unit normals, with 4096 units per unit length.
+static SVECTOR _gDryfieldMotelRoom5CollisionGridNormals[12] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_normals.inc"
 };
 
-static SVECTOR _gDryfieldMotelRoom5Collision006DCVerts[85] = {
+/// Collision-mesh vertices in signed grid-local world units.
+static SVECTOR _gDryfieldMotelRoom5CollisionGridVerts[85] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldMotelRoom5Collision006DCFaces[38] = {
+/// Room triangles/quads, indexing the vertex/normal pools and surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldMotelRoom5CollisionGridFaces[38] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_faces.inc"
 };
 
-static s16 _gDryfieldMotelRoom5Collision006DCCells[68] = {
+/// Four terminated face-index lists and the asset's retained final halfword.
+///
+/// Lists begin at elements 0, 30, 52 and 60 and end at 29, 50, 59 and 66.
+/// Element 51 is outside those scans; element 67 is retained from the asset.
+static s16 _gDryfieldMotelRoom5CollisionGridCells[68] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldMotelRoom5Collision006DCCells[i])
-static s16* _gDryfieldMotelRoom5Collision006DCTable[4] = {
+// Generated cell-table initializers use element offsets into the face-index pool.
+#define GRID_CELL(i) (&_gDryfieldMotelRoom5CollisionGridCells[i])
+/// X-major 2-by-2 table borrowing the grid's terminated face-index lists.
+static s16* _gDryfieldMotelRoom5CollisionGridTable[4] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_motel_room_5_8017DC9C[1] = {
-    { NULL, _gDryfieldMotelRoom5Collision006DCNormals, _gDryfieldMotelRoom5Collision006DCVerts, _gDryfieldMotelRoom5Collision006DCFaces, _gDryfieldMotelRoom5Collision006DCTable, -150, 0, 2, 2, 4000, 38 },
+/// Motel room 5's collision mesh and 2-by-2 XZ cell index.
+///
+/// Cells span 4000 world units, starting at X=150 and Z=0. Setup binds the
+/// writable descriptor to the current view; its pools remain borrowed until
+/// the grid is retired. The complete authored asset contains twelve normals,
+/// 85 vertices and 38 faces; cells index only these faces.
+static WorldCollisionGrid _gDryfieldMotelRoom5CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldMotelRoom5CollisionGridNormals,
+    .vertices    = _gDryfieldMotelRoom5CollisionGridVerts,
+    .faces       = _gDryfieldMotelRoom5CollisionGridFaces,
+    .cellFaceIds = _gDryfieldMotelRoom5CollisionGridTable,
+    .xBias       = -150,
+    .zBias       = 0,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldMotelRoom5CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_motel_room_5_8017DCC0[6] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x2C10, -3000 } }, 289 },
+ViewCamera gDryfieldMotelRoom5ViewCameras[DRYFIELD_MOTEL_ROOM_5_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -2500, 0x2C10, -3000 } }, 289 },
     { { { { 828, 0, -4011 }, { -323, 4082, -66 }, { 3998, 330, 825 } }, { -300, 1280, -900 } }, 235 },
     { { { { 725, 0, 4031 }, { 300, 4084, -54 }, { -4019, 305, 723 } }, { -4800, 1280, -900 } }, 235 },
     { { { { 4029, 0, 732 }, { 75, 4074, -415 }, { -728, 422, 4008 } }, { -4100, 1380, -500 } }, 246 },
@@ -92,46 +150,57 @@ ViewCamera D_dryfield_motel_room_5_8017DCC0[6] = {
     { { { { -4048, 0, 622 }, { 335, 3452, 2178 }, { -524, 2204, -3411 } }, { -1600, 2280, -5800 } }, 246 },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DD98[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 1's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View1SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DDA8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 2's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View2SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DDB8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 3's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View3SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DDC8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 4's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View4SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DDD8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 5's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View5SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_motel_room_5_8017DDE8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 6's empty sprite list: keeps image strips, then terminates without source access.
+static SpriteBatch _gDryfieldMotelRoom5View6SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_dryfield_motel_room_5_8017DDF8[6] = {
-    { { .empty = D_dryfield_motel_room_5_8017DD98 }, D_dryfield_motel_room_5_8017DD98, NULL },
-    { { .empty = D_dryfield_motel_room_5_8017DDA8 }, D_dryfield_motel_room_5_8017DDA8, NULL },
-    { { .empty = D_dryfield_motel_room_5_8017DDB8 }, D_dryfield_motel_room_5_8017DDB8, NULL },
-    { { .empty = D_dryfield_motel_room_5_8017DDC8 }, D_dryfield_motel_room_5_8017DDC8, NULL },
-    { { .empty = D_dryfield_motel_room_5_8017DDD8 }, D_dryfield_motel_room_5_8017DDD8, NULL },
-    { { .empty = D_dryfield_motel_room_5_8017DDE8 }, D_dryfield_motel_room_5_8017DDE8, NULL },
+SpriteView gDryfieldMotelRoom5SpriteViews[DRYFIELD_MOTEL_ROOM_5_VIEW_COUNT] = {
+    { { .empty = _gDryfieldMotelRoom5View1SpriteBatches }, _gDryfieldMotelRoom5View1SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom5View2SpriteBatches }, _gDryfieldMotelRoom5View2SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom5View3SpriteBatches }, _gDryfieldMotelRoom5View3SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom5View4SpriteBatches }, _gDryfieldMotelRoom5View4SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom5View5SpriteBatches }, _gDryfieldMotelRoom5View5SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom5View6SpriteBatches }, _gDryfieldMotelRoom5View6SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_5_8017DE40[8] = {
+/// Directed camera boundaries joining views 2/3, 2/4, 4/5 and 5/6 in both directions.
+///
+/// Views use 1-based IDs; view 1 has no boundary. Setup binds coordinates and
+/// links/enables all eight records, including the LAST-marked final entry.
+/// Keep this mutable array loaded until its runtime links are cleared.
+static WorldCollisionTrigger _gDryfieldMotelRoom5ViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 2384, -1296, 1392, 0 }, { { 112, -1936, -1360, 0 }, { -112, -1936, 1360, 0 }, { 112, 1936, -1360, 0 }, { -112, 1936, 1360, 0 } }, { 4092, 0, 335, 0 }, { 0, 0, 4096, 0 }, 2360, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2496, -1120, 1408, 0 }, { { -112, -2144, 1360, 0 }, { 112, -2144, -1360, 0 }, { -112, 2144, 1360, 0 }, { 112, 2144, -1360, 0 } }, { -4092, 0, -338, 0 }, { 0, 0, 4096, 0 }, 2534, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3663, -1120, 3199, 0 }, { { 1449, -2144, 275, 0 }, { -1451, -2144, -277, 0 }, { 1449, 2144, 275, 0 }, { -1451, 2144, -277, 0 } }, { -768, 0, 4032, 0 }, { 0, 0, 4096, 0 }, 2598, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -142,8 +211,27 @@ WorldCollisionTrigger D_dryfield_motel_room_5_8017DE40[8] = {
     { NULL, NULL, NULL, { 1184, -1072, 4320, 0 }, { { 1093, -2096, -109, 0 }, { -1093, -2096, 109, 0 }, { 1093, 2096, -109, 0 }, { -1093, 2096, 109, 0 } }, { 406, 0, 4078, 0 }, { 0, 0, 4096, 0 }, 2360, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_5_8017E0A0[1] = {
-    { NULL, NULL, NULL, { 4368, 0, 2272, 0 }, { { -432, 0, -800, 0 }, { 432, 0, -800, 0 }, { -432, 0, 800, 0 }, { 432, 0, 800, 0 } }, { 0, 4112, 0, 0 }, { -4096, 0, 0, 0 }, 907, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Motel room 5's facing-tested warp to the balcony in Dryfield area 29.
+///
+/// Departure uses endpoint 1; destination is balcony endpoint 2. The sole
+/// LAST-marked record is linked and enabled by room setup, which also binds
+/// its coordinate. Keep the mutable list loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldMotelRoom5ActionTriggers[1] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4368, 0, 2272, 0 },
+        .vertices     = { { -432, 0, -800, 0 }, { 432, 0, -800, 0 }, { -432, 0, 800, 0 }, { 432, 0, 800, 0 } },
+        .normal       = { 0, 4112, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 907,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_MOTEL_BALCONY,
+        .parameter1   = DRYFIELD_MOTEL_ROOM_5_BALCONY_WARP_ENDPOINTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 /// Twelve point lights for motel room 5, contributing in every view.
@@ -325,47 +413,83 @@ static WorldCoordPointLight _gDryfieldMotelRoom5PointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_motel_room_5_8017E56C[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldMotelRoom5PointLights), _gDryfieldMotelRoom5PointLights, 0, NULL },
+/// Room light collection containing twelve point lights and no directional or cone lights.
+///
+/// The borrowed point-light array remains writable for composition and shading.
+/// Collection and lights belong to this overlay and must stay loaded while used.
+static WorldCoordRoomLights _gDryfieldMotelRoom5RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldMotelRoom5PointLights),
+    .pointLights           = _gDryfieldMotelRoom5PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_dryfield_motel_room_5_8017E584 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Surface class 1's paired walking, running and scripted-jump cue bases.
+///
+/// Requests the loaded type-1 bank: walking/jumping use entries 0x35/0x36,
+/// running 0x37/0x38. Read-only authored storage remains in the data section.
+static const WorldCollisionFootstepSounds _gDryfieldMotelRoom5Class1FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = DRYFIELD_MOTEL_ROOM_5_CLASS_1_WALK_CUE_BASE,
+    .run          = DRYFIELD_MOTEL_ROOM_5_CLASS_1_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_MOTEL_ROOM_5_CLASS_1_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_dryfield_motel_room_5_8017E590 = {
-    0x10000001,
-    0x10000003,
-    0x10000001,
+/// Surface class 2's configured walking, running and scripted-jump cue bases.
+///
+/// Requests the loaded type-1 bank: walking/jumping use entries 1/2, running
+/// 3/4. These entries are absent from this daytime room's bank, so the sound
+/// driver rejects the requests. Read-only authored storage stays in the data section.
+static const WorldCollisionFootstepSounds _gDryfieldMotelRoom5Class2FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = DRYFIELD_MOTEL_ROOM_5_CLASS_2_WALK_CUE_BASE,
+    .run          = DRYFIELD_MOTEL_ROOM_5_CLASS_2_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_MOTEL_ROOM_5_CLASS_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E59C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Classes 0 and 4..7 block probes, allow weapon impacts and apply pushback without footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldMotelRoom5DefaultSurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5A4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_5_8017E584 },
+/// Class 1 blocks probes, allows weapon impacts and applies pushback with its footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldMotelRoom5Class1SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMotelRoom5Class1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5AC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_5_8017E590 },
+/// Class 2 blocks probes, allows weapon impacts and applies pushback with configured footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldMotelRoom5Class2SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMotelRoom5Class2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5B4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3 passes probes and ignores weapon impacts, but applies pushback without footsteps.
+///
+/// Retained surface-directory entry; the authored mesh has no class-3 face.
+static WorldCollisionSurfaceProperties _gDryfieldMotelRoom5Class3SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_motel_room_5_8017E5BC[8] = {
-    D_dryfield_motel_room_5_8017E59C,
-    D_dryfield_motel_room_5_8017E5A4,
-    D_dryfield_motel_room_5_8017E5AC,
-    D_dryfield_motel_room_5_8017E5B4,
-    D_dryfield_motel_room_5_8017E59C,
-    D_dryfield_motel_room_5_8017E59C,
-    D_dryfield_motel_room_5_8017E59C,
-    D_dryfield_motel_room_5_8017E59C,
+WorldCollisionSurfaceProperties* gDryfieldMotelRoom5SurfacePropertiesByClass[DRYFIELD_MOTEL_ROOM_5_SURFACE_CLASS_COUNT] = {
+    &_gDryfieldMotelRoom5DefaultSurfaceProperties,
+    &_gDryfieldMotelRoom5Class1SurfaceProperties,
+    &_gDryfieldMotelRoom5Class2SurfaceProperties,
+    &_gDryfieldMotelRoom5Class3SurfaceProperties,
+    &_gDryfieldMotelRoom5DefaultSurfaceProperties,
+    &_gDryfieldMotelRoom5DefaultSurfaceProperties,
+    &_gDryfieldMotelRoom5DefaultSurfaceProperties,
+    &_gDryfieldMotelRoom5DefaultSurfaceProperties,
 };
 
 static void _dryfieldMotelRoom5InitRoomTask(Task* task);
@@ -418,7 +542,7 @@ static s32 _dryfieldMotelRoom5IgnoreRoomAction(Task* unusedTask, s32 unusedMessa
 /// receive messages. Registration does not retain the task or clear on teardown.
 static void _dryfieldMotelRoom5InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_motel_room_5_8017D6B4;
+    task->msgTable = _gDryfieldMotelRoom5RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -431,8 +555,11 @@ static void _dryfieldMotelRoom5IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_motel_room_5_8017D5C4 = {
+/// Motel room 5 receiver states: 0 installs messages, 1 idles, 2 releases the task.
+///
+/// The dispatcher copies the full three-callback value before unchecked state
+/// indexing. Both the borrowed task and this overlay must remain live through dispatch.
+static const TaskFuncTable3 _gDryfieldMotelRoom5RoomStateHandlers = {
     { _dryfieldMotelRoom5InitRoomTask, _dryfieldMotelRoom5IdleRoomTask, taskKill },
 };
 
@@ -440,6 +567,6 @@ void dryfieldMotelRoom5Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_motel_room_5_8017D5C4;
+    stateHandlers = _gDryfieldMotelRoom5RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
