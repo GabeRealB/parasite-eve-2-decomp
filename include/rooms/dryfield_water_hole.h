@@ -16,11 +16,26 @@ extern AreaVariant D_dryfield_water_hole_801827BC[13];
 // dryfield_water_hole
 extern WorldCollisionRoomResources D_dryfield_water_hole_8017FD2C[];
 
-extern u8* D_dryfield_water_hole_8017FD84[];
+/// Logical-view maps for the four daytime water-hole room variants.
+///
+/// Indexed by room - 1: switch on, switch off, alternate switch on, alternate
+/// switch off. Flag 0x53 selects the alternate resources for logical views
+/// 7 and 8. Each room's reverse search covers views 1..8;
+/// the three local maps contain eight bytes, while room 1 borrows
+/// `gViewIdentityMap`. Local-map lookups require logical views in 1..8;
+/// entries are 1-based camera/image/sprite indices.
+/// The directory and local maps remain valid while this room overlay is loaded.
+extern u8* gDryfieldWaterHoleRoomViewMaps[4];
 
 extern ViewCount D_dryfield_water_hole_8017FD94[];
 
-extern WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[];
+/// Model lighting for the four daytime water-hole room variants.
+///
+/// Indexed by room - 1. Rooms 1 and 3 use the switch-on light collection and
+/// per-view ambient minima; rooms 2 and 4 use the switch-off collection and
+/// gameplay's default ambient minima. Borrowed lights remain writable for
+/// composition and attenuation; all room pointers expire when the overlay unloads.
+extern WorldCoordRoomLighting gDryfieldWaterHoleRoomLighting[4];
 
 extern DirectionWarpEntry D_dryfield_water_hole_8017FDBC[];
 
@@ -28,7 +43,13 @@ extern ViewCamera D_dryfield_water_hole_80180284[];
 
 extern SpriteView D_dryfield_water_hole_80181634[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[];
+/// Collision and footstep profiles indexed directly by surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Classes
+/// 4 and 6 supply footstep pairs; classes 0, 1, 5 and 7 share the default silent
+/// profile, and classes 2 and 3 have distinct silent records. Grid contacts and
+/// scripted stair steps supply the class. Pointers expire when this overlay unloads.
+extern WorldCollisionSurfaceProperties* gDryfieldWaterHoleSurfacePropertiesByClass[8];
 
 /// Advances and draws one expanding, fading water-surface ripple in this room.
 ///

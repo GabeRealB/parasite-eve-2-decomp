@@ -88,14 +88,14 @@ extern SVECTOR D_dryfield_water_hole_8017FD1C[];
 /// Frame counter the water surface's wave is phased by.
 
 // Indexed views below share one contiguous table.
-extern WorldCollisionGrid         D_dryfield_water_hole_80180260[1];
+static WorldCollisionGrid         _gDryfieldWaterHoleCollisionGrid;
 extern WorldCollisionOccluder     D_dryfield_water_hole_80181F28[2];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181724[14];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181B4C[7];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181D60[6];
-extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
-extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
-extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
+static WorldCoordRoomAmbientEntry _gDryfieldWaterHoleLitAmbientByView[9];
+static WorldCoordRoomLights       _gDryfieldWaterHoleLitLights;
+static WorldCoordRoomLights       _gDryfieldWaterHoleUnlitLights;
 
 static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldWaterHoleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
@@ -105,9 +105,6 @@ static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId,
 enum {
     DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
 };
-
-extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
-extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
@@ -146,13 +143,17 @@ SVECTOR D_dryfield_water_hole_8017FCBC[12] = {
 SVECTOR D_dryfield_water_hole_8017FD1C[2] = { 0 };
 
 WorldCollisionRoomResources D_dryfield_water_hole_8017FD2C[4] = {
-    { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },
-    { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181D60, D_dryfield_water_hole_80181F28 },
-    { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },
-    { D_dryfield_water_hole_80180260, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181D60, D_dryfield_water_hole_80181F28 },
+    { &_gDryfieldWaterHoleCollisionGrid, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },
+    { &_gDryfieldWaterHoleCollisionGrid, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181D60, D_dryfield_water_hole_80181F28 },
+    { &_gDryfieldWaterHoleCollisionGrid, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181B4C, D_dryfield_water_hole_80181F28 },
+    { &_gDryfieldWaterHoleCollisionGrid, D_dryfield_water_hole_80181724, D_dryfield_water_hole_80181D60, D_dryfield_water_hole_80181F28 },
 };
 
-u8 D_dryfield_water_hole_8017FD6C[8] = {
+/// Room 2's eight logical-view resource indices with underpass switch 1 off.
+///
+/// Index by logical view - 1; view 1 shares the plan resource, views 2..8 use
+/// the switch-off images, cameras and sprite lists. No terminator is stored.
+static u8 _gDryfieldWaterHoleUnlitViewMap[8] = {
     1,
     12,
     13,
@@ -163,7 +164,11 @@ u8 D_dryfield_water_hole_8017FD6C[8] = {
     18,
 };
 
-u8 D_dryfield_water_hole_8017FD74[8] = {
+/// Room 3's eight logical-view resource indices with switch 1 and flag 0x53 set.
+///
+/// Index by logical view - 1; views 7/8 select resources 10/9 instead of 7/8.
+/// The other entries retain the switch-on mapping. No terminator is stored.
+static u8 _gDryfieldWaterHoleAlternateLitViewMap[8] = {
     1,
     2,
     3,
@@ -174,7 +179,11 @@ u8 D_dryfield_water_hole_8017FD74[8] = {
     9,
 };
 
-u8 D_dryfield_water_hole_8017FD7C[8] = {
+/// Room 4's eight logical-view resource indices with switch 1 off and flag 0x53 set.
+///
+/// Index by logical view - 1; views 7/8 select resources 20/19 instead of 17/18.
+/// The other entries retain the switch-off mapping. No terminator is stored.
+static u8 _gDryfieldWaterHoleAlternateUnlitViewMap[8] = {
     1,
     12,
     13,
@@ -185,20 +194,20 @@ u8 D_dryfield_water_hole_8017FD7C[8] = {
     19,
 };
 
-u8* D_dryfield_water_hole_8017FD84[4] = {
+u8* gDryfieldWaterHoleRoomViewMaps[4] = {
     gViewIdentityMap,
-    D_dryfield_water_hole_8017FD6C,
-    D_dryfield_water_hole_8017FD74,
-    D_dryfield_water_hole_8017FD7C,
+    _gDryfieldWaterHoleUnlitViewMap,
+    _gDryfieldWaterHoleAlternateLitViewMap,
+    _gDryfieldWaterHoleAlternateUnlitViewMap,
 };
 
 ViewCount D_dryfield_water_hole_8017FD94[4] = { 8, 8, 8, 8 };
 
-WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[4] = {
-    { D_dryfield_water_hole_80182468, D_dryfield_water_hole_80182824 },
-    { D_dryfield_water_hole_8018278C, NULL },
-    { D_dryfield_water_hole_80182468, D_dryfield_water_hole_80182824 },
-    { D_dryfield_water_hole_8018278C, NULL },
+WorldCoordRoomLighting gDryfieldWaterHoleRoomLighting[4] = {
+    { &_gDryfieldWaterHoleLitLights, _gDryfieldWaterHoleLitAmbientByView },
+    { &_gDryfieldWaterHoleUnlitLights, NULL },
+    { &_gDryfieldWaterHoleLitLights, _gDryfieldWaterHoleLitAmbientByView },
+    { &_gDryfieldWaterHoleUnlitLights, NULL },
 };
 
 DirectionWarpEntry D_dryfield_water_hole_8017FDBC[3] = {
@@ -207,30 +216,50 @@ DirectionWarpEntry D_dryfield_water_hole_8017FDBC[3] = {
     { { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
 };
 
-static SVECTOR _gDryfieldWaterHoleCollision02CA0Normals[10] = {
+/// Room-axis normals for the water-hole collision grid, with unit length 4096.
+static SVECTOR _gDryfieldWaterHoleCollisionGridNormals[10] = {
 #include "assets/dryfield_water_hole_collision_02CA0_normals.inc"
 };
 
-static SVECTOR _gDryfieldWaterHoleCollision02CA0Verts[54] = {
+/// Room-space vertices for the water-hole collision grid, in signed game units.
+static SVECTOR _gDryfieldWaterHoleCollisionGridVerts[54] = {
 #include "assets/dryfield_water_hole_collision_02CA0_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldWaterHoleCollision02CA0Faces[23] = {
+/// Indexed collision faces carrying this room's surface classes 0, 2, 3 and 4.
+static WorldCollisionGridFace _gDryfieldWaterHoleCollisionGridFaces[23] = {
 #include "assets/dryfield_water_hole_collision_02CA0_faces.inc"
 };
 
-static s16 _gDryfieldWaterHoleCollision02CA0Cells[92] = {
+/// Packed signed face-index lists; each cell list ends at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gDryfieldWaterHoleCollisionGridCells[92] = {
 #include "assets/dryfield_water_hole_collision_02CA0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWaterHoleCollision02CA0Cells[i])
-static s16* _gDryfieldWaterHoleCollision02CA0Table[12] = {
+#define GRID_CELL(i) (&_gDryfieldWaterHoleCollisionGridCells[i])
+/// Twelve cell-list pointers in X-major order, with two Z cells per X row.
+static s16* _gDryfieldWaterHoleCollisionGridTable[12] = {
 #include "assets/dryfield_water_hole_collision_02CA0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_water_hole_80180260[1] = {
-    { NULL, _gDryfieldWaterHoleCollision02CA0Normals, _gDryfieldWaterHoleCollision02CA0Verts, _gDryfieldWaterHoleCollision02CA0Faces, _gDryfieldWaterHoleCollision02CA0Table, -4000, 5000, 6, 2, 4000, 23 },
+/// The collision mesh and cell partition shared by all four water-hole room variants.
+///
+/// Six X cells by two Z cells, each 4000 game units wide, start at room-space
+/// (4000, -5000). The view coordinate is bound on room setup; the record and
+/// mesh pools remain writable and live only while this room overlay is loaded.
+static WorldCollisionGrid _gDryfieldWaterHoleCollisionGrid = {
+    NULL,
+    _gDryfieldWaterHoleCollisionGridNormals,
+    _gDryfieldWaterHoleCollisionGridVerts,
+    _gDryfieldWaterHoleCollisionGridFaces,
+    _gDryfieldWaterHoleCollisionGridTable,
+    -4000,
+    5000,
+    6,
+    2,
+    4000,
+    ARRAY_SIZE(_gDryfieldWaterHoleCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_water_hole_80180284[26] = {
@@ -262,88 +291,127 @@ ViewCamera D_dryfield_water_hole_80180284[26] = {
     { { { { -2395, 0, -3322 }, { -237, 4085, 171 }, { 3313, 293, -2389 } }, { -9120, 1360, 430 } }, 246 },
 };
 
-SpriteBatch D_dryfield_water_hole_8018062C[2] = {
+/// Texture encodings and neutral RGB shared by mapped views 3 and 4's sprites.
+enum {
+    DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_DEPTH_8BIT = 1,
+    DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960   = getTPage(DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_DEPTH_8BIT, 0, 960, 0),
+    DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896   = getTPage(DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_DEPTH_8BIT, 0, 896, 0),
+    DRYFIELD_WATER_HOLE_SPRITE_CLUT               = getClut(0, 255),
+    DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR      = 128,
+};
+
+/// Mapped view 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record selects image strips; SPRITE_BATCH_END stops
+/// the next record. The source slot borrows this list but selects no sprites.
+static SpriteBatch _gDryfieldWaterHoleView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_water_hole_8018063C[2] = {
+/// Mapped view 2's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record selects image strips; SPRITE_BATCH_END stops
+/// the next record. The source slot borrows this list but selects no sprites.
+static SpriteBatch _gDryfieldWaterHoleView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_hole_8018064C[21] = {
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -88, -24, 2000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -80, -72, 2000, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -72, 2000, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, -72, 2000, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, -72, 2000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -72, 2000, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, -24, 2000, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -24, 2000, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -72, 1375, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -48, -72, 1375, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -72, 1375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -24, 1375, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -24, 1375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 1375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -24, 1375, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -72, 1375, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, -120, 875, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 0, -120, 875, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, -120, 875, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -80, 875, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -80, 875, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+/// Mapped view 3's 21 textured foreground rectangles at three sorting depths.
+///
+/// Positions and dimensions are pixels relative to the view origin, UVs are
+/// texels, and depth is an unscaled OT sorting value. Neutral RGB and zero
+/// command flags select opaque modulation. Room sprite packets borrow these
+/// mutable sources while this overlay is loaded.
+static SpriteSource _gDryfieldWaterHoleView3SpriteSources[21] = {
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 40 } }, -88, -24, 2000, { .fields = { 64, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -80, -72, 2000, { .fields = { 80, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, -72, 2000, { .fields = { 88, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, -16, -72, 2000, { .fields = { 72, 232 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, -72, 2000, { .fields = { 40, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -56, -72, 2000, { .fields = { 88, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, -56, -24, 2000, { .fields = { 64, 40 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -24, 2000, { .fields = { 56, 160 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, -24, -72, 1375, { .fields = { 56, 200 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, -48, -72, 1375, { .fields = { 48, 232 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 8, -72, 1375, { .fields = { 104, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 8, -24, 1375, { .fields = { 104, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -24, 1375, { .fields = { 96, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -72, 1375, { .fields = { 80, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -24, 1375, { .fields = { 112, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -72, 1375, { .fields = { 112, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, -16, -120, 875, { .fields = { 72, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 0, -120, 875, { .fields = { 64, 120 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 16, -120, 875, { .fields = { 64, 80 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, -80, 875, { .fields = { 112, 240 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 0, -80, 875, { .fields = { 96, 240 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_water_hole_801807F0[5] = {
+/// Mapped view 3's three sprite ranges following decoded background strips.
+///
+/// Ranges [0,8), [8,16) and [16,21) cover its source array, followed by
+/// SPRITE_BATCH_END. All start visible and included in cached packet processing;
+/// the final serialized byte pair in each record has an unproven role.
+static SpriteBatch _gDryfieldWaterHoleView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 8, 0, 0, { 2, 0 } },
-    { 16, 5, 0, 0, { 1, 0 } },
+    { 16, ARRAY_SIZE(_gDryfieldWaterHoleView3SpriteSources) - 16, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_hole_80180818[33] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 625, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 625, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 625, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -120, 625, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -120, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 16, -120, 625, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -120, 625, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -72, 625, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -24, 625, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 24, 625, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -72, 625, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -24, 625, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, 24, 625, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -120, 1250, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -72, 1250, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -24, 1250, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -72, -120, 1250, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -72, -72, 1250, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -72, -24, 1250, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -72, 24, 1250, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -120, 1250, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, -72, 1250, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -24, 1250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -120, 24, 1250, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 24, 1250, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -8, -120, 1250, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 8, -120, 1250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -8, -72, 1250, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 24, -112, 1250, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 40, -112, 1250, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 56, -112, 1250, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+/// Mapped view 4's 33 textured foreground rectangles at two sorting depths.
+///
+/// Positions and dimensions are pixels relative to the view origin, UVs are
+/// texels, and depth is an unscaled OT sorting value. Rectangles sample two
+/// adjacent 8-bit texture pages with neutral RGB and opaque modulation. Room
+/// sprite packets borrow these mutable sources while this overlay is loaded.
+static SpriteSource _gDryfieldWaterHoleView4SpriteSources[33] = {
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -120, 625, { .fields = { 80, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -72, 625, { .fields = { 32, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -24, 625, { .fields = { 32, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 625, { .fields = { 80, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -120, 625, { .fields = { 88, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -120, 625, { .fields = { 88, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 32, -120, 625, { .fields = { 112, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, 16, -120, 625, { .fields = { 80, 120 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 0, -120, 625, { .fields = { 88, 240 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -72, 625, { .fields = { 32, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -24, 625, { .fields = { 72, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, 24, 625, { .fields = { 48, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -72, 625, { .fields = { 64, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -24, 625, { .fields = { 40, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, 24, 625, { .fields = { 24, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -120, 1250, { .fields = { 120, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -72, 1250, { .fields = { 112, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -24, 1250, { .fields = { 112, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -120, 1250, { .fields = { 112, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -72, 1250, { .fields = { 64, 48 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -24, 1250, { .fields = { 88, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 24 } }, -72, 24, 1250, { .fields = { 56, 224 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -120, 1250, { .fields = { 104, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -72, 1250, { .fields = { 112, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -24, 1250, { .fields = { 96, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 24 } }, -120, 24, 1250, { .fields = { 48, 168 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 24, 1250, { .fields = { 104, 240 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -120, 1250, { .fields = { 96, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 8, -120, 1250, { .fields = { 8, 0 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, -8, -72, 1250, { .fields = { 80, 144 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, -112, 1250, { .fields = { 88, 192 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_896, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, 40, -112, 1250, { .fields = { 80, 96 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WATER_HOLE_SPRITE_TEXTURE_PAGE_960, DRYFIELD_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 16 } }, 56, -112, 1250, { .fields = { 48, 240 } }, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_water_hole_80180AAC[4] = {
+/// Mapped view 4's two sprite ranges following decoded background strips.
+///
+/// Ranges [0,15) and [15,33) cover its source array, followed by SPRITE_BATCH_END.
+/// Both start visible and included in cached packet processing; the final
+/// serialized byte pair in each record has an unproven role.
+static SpriteBatch _gDryfieldWaterHoleView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 1, 0 } },
-    { 15, 18, 0, 0, { 0, 0 } },
+    { 15, ARRAY_SIZE(_gDryfieldWaterHoleView4SpriteSources) - 15, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -587,10 +655,10 @@ SpriteBatch D_dryfield_water_hole_80181624[2] = {
 };
 
 SpriteView D_dryfield_water_hole_80181634[20] = {
-    { { .empty = D_dryfield_water_hole_8018062C }, D_dryfield_water_hole_8018062C, NULL },
-    { { .empty = D_dryfield_water_hole_8018063C }, D_dryfield_water_hole_8018063C, NULL },
-    { { .elements = D_dryfield_water_hole_8018064C }, D_dryfield_water_hole_801807F0, NULL },
-    { { .elements = D_dryfield_water_hole_80180818 }, D_dryfield_water_hole_80180AAC, NULL },
+    { { .empty = _gDryfieldWaterHoleView1SpriteBatches }, _gDryfieldWaterHoleView1SpriteBatches, NULL },
+    { { .empty = _gDryfieldWaterHoleView2SpriteBatches }, _gDryfieldWaterHoleView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterHoleView3SpriteSources }, _gDryfieldWaterHoleView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterHoleView4SpriteSources }, _gDryfieldWaterHoleView4SpriteBatches, NULL },
     { { .elements = D_dryfield_water_hole_80180ACC }, D_dryfield_water_hole_80180C34, NULL },
     { { .elements = D_dryfield_water_hole_80180C4C }, D_dryfield_water_hole_80180DC8, NULL },
     { { .empty = D_dryfield_water_hole_80180DF0 }, D_dryfield_water_hole_80180DF0, NULL },
@@ -650,18 +718,30 @@ WorldCollisionOccluder D_dryfield_water_hole_80181F28[2] = {
     { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, 3308, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_water_hole_80181FA0[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9250, -1650, -600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, 1500, 2700 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x374A, -1650, -3400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, 1664, 3367 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A12, -1650, -2600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3622, 3423, 3247 }, { 0, 0 } }, 1518, 3158 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x57C0, -4125, -2264 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 3000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -1290, -663 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B64, -1277, -2296 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
+/// Six switch-on point lights shared by room variants 1 and 3 in every view.
+///
+/// Positions and falloff distances are room game units; RGB uses 12 fractional
+/// bits. Coordinate composition and attenuation queries mutate the entries;
+/// their borrowed addresses expire with this overlay.
+static WorldCoordPointLight _gDryfieldWaterHoleLitPointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9250, -1650, -600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3604, 2867 }, { 0, 0 } }, 1500, 2700 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x374A, -1650, -3400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3604, 2867 }, { 0, 0 } }, 1664, 3367 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4A12, -1650, -2600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3622, 3423, 3247 }, { 0, 0 } }, 1518, 3158 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x57C0, -4125, -2264 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 3000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -1290, -663 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2B64, -1277, -2296 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
 };
 
-_DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
+/// Switch-on cone-light storage shared by room variants 1 and 3.
+///
+/// Only the leading cone light is published. Its position and falloff distances
+/// are room game units, RGB and the axis are Q12, and the full opening is 113
+/// in 4096 units per turn. Composition and attenuation mutate the light; its
+/// address expires with this overlay. The following 540 bytes have no established
+/// runtime consumer, internal layout or containing-object relationship.
+static _DryfieldWaterHoleSpotLightStorage _gDryfieldWaterHoleLitSpotLightStorage = {
     {
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4096, 0, 0 }, { 0, 0, 4096 }, { 0, 4096, 0 } }, { 7394, -3968, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 3000, 6000, 113 },
+        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -ONE, 0, 0 }, { 0, 0, ONE }, { 0, ONE, 0 } }, { 7394, -3968, -1496 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3604, 2867 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 3000, 6000, 113 },
     },
     {
         0x00,
@@ -1207,26 +1287,53 @@ _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_water_hole_80182468[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.coneLights), D_dryfield_water_hole_801821E0.coneLights },
+/// Switch-on model-light collection: six points, one cone and no directional lights.
+///
+/// Rooms 1 and 3 borrow this single descriptor and its mutable light arrays.
+/// The opaque tail of the cone-light storage is outside the published count.
+static WorldCoordRoomLights _gDryfieldWaterHoleLitLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gDryfieldWaterHoleLitPointLights),
+    _gDryfieldWaterHoleLitPointLights,
+    ARRAY_SIZE(_gDryfieldWaterHoleLitSpotLightStorage.coneLights),
+    _gDryfieldWaterHoleLitSpotLightStorage.coneLights,
 };
 
-WorldCoordPointLight D_dryfield_water_hole_80182480[7] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8650, -1650, -1100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A06, -1650, -3100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x48A2, -1650, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5FE1, -4206, -2344 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1638 }, { 0, 0 } }, 0, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5500, -1650, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2A9C, -1277, -2296 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5208, -1277, -2996 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+/// Seven switch-off point lights shared by room variants 2 and 4 in every view.
+///
+/// Positions and falloff distances are room game units; RGB uses 12 fractional
+/// bits. All inner radii are zero. Composition and attenuation mutate these
+/// entries; their borrowed addresses expire with this overlay.
+static WorldCoordPointLight _gDryfieldWaterHoleUnlitPointLights[7] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8650, -1650, -1100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3A06, -1650, -3100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x48A2, -1650, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x5FE1, -4206, -2344 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1638 }, { 0, 0 } }, 0, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5500, -1650, -1003 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2A9C, -1277, -2296 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x5208, -1277, -2996 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
 };
 
-WorldCoordSpotLight D_dryfield_water_hole_80182720[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7444, -3447, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3014, 2621 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 2500, 5000, 113 },
+/// The switch-off cone light shared by room variants 2 and 4 in every view.
+///
+/// Position and falloff distances are room game units, RGB and the axis are
+/// Q12, and the full opening is 113 in 4096 units per turn. The counted light
+/// remains writable for composition and attenuation while the overlay is loaded.
+static WorldCoordSpotLight _gDryfieldWaterHoleUnlitSpotLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7444, -3447, -1496 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3014, 2621 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 2500, 5000, 113 },
 };
 
-WorldCoordRoomLights D_dryfield_water_hole_8018278C[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80182480), D_dryfield_water_hole_80182480, ARRAY_SIZE(D_dryfield_water_hole_80182720), D_dryfield_water_hole_80182720 },
+/// Switch-off model-light collection: seven points, one cone and no directional lights.
+///
+/// Rooms 2 and 4 borrow this single descriptor and its mutable light arrays.
+static WorldCoordRoomLights _gDryfieldWaterHoleUnlitLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gDryfieldWaterHoleUnlitPointLights),
+    _gDryfieldWaterHoleUnlitPointLights,
+    ARRAY_SIZE(_gDryfieldWaterHoleUnlitSpotLights),
+    _gDryfieldWaterHoleUnlitSpotLights,
 };
 
 AreaResource D_dryfield_water_hole_801827A4[2] = {
@@ -1250,8 +1357,13 @@ AreaVariant D_dryfield_water_hole_801827BC[13] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_water_hole_80182824) - 1 },
+/// Minimum ambient colours for logical views 1..8 in switch-on rooms 1 and 3.
+///
+/// Entry zero counts the following view entries. RGB levels use 16 units per
+/// 8-bit colour level; luma stores (3*r + 4*g + b)/8. The brighter minima in
+/// views 6 and 7 are selected by logical view, independently of resource mapping.
+static WorldCoordRoomAmbientEntry _gDryfieldWaterHoleLitAmbientByView[9] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldWaterHoleLitAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -1262,47 +1374,103 @@ WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_water_hole_8018286C = {
-    0x10000025,
-    0x10000027,
-    0x10000029,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 selects each base plus one.
+enum {
+    DRYFIELD_WATER_HOLE_SURFACE_4_WALK_REQUEST = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    DRYFIELD_WATER_HOLE_SURFACE_4_RUN_REQUEST  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    DRYFIELD_WATER_HOLE_SURFACE_4_JUMP_REQUEST = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x29,
+    DRYFIELD_WATER_HOLE_SURFACE_6_WALK_REQUEST = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    DRYFIELD_WATER_HOLE_SURFACE_6_RUN_REQUEST  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
 };
 
-WorldCollisionFootstepSounds D_dryfield_water_hole_80182878 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Footstep pairs for class 4's grid floors and lower scripted stair steps.
+///
+/// Walk, run and scripted-jump bases select distinct type-1 script pairs;
+/// cue 2 uses the base and cue 1 uses base + 1. The surface profile borrows
+/// this room-owned record for the overlay's loaded lifetime.
+static WorldCollisionFootstepSounds _gDryfieldWaterHoleSurface4FootstepSounds = {
+    .walk         = DRYFIELD_WATER_HOLE_SURFACE_4_WALK_REQUEST,
+    .run          = DRYFIELD_WATER_HOLE_SURFACE_4_RUN_REQUEST,
+    .scriptedJump = DRYFIELD_WATER_HOLE_SURFACE_4_JUMP_REQUEST,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_hole_80182884[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep pairs for class 6, selected by the upper scripted stair steps.
+///
+/// Scripted jumps share the walk pair; running has a distinct type-1 pair.
+/// Cue 2 uses the base and cue 1 uses base + 1. No grid face carries class 6;
+/// the surface profile borrows this record while the overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldWaterHoleSurface6FootstepSounds = {
+    .walk         = DRYFIELD_WATER_HOLE_SURFACE_6_WALK_REQUEST,
+    .run          = DRYFIELD_WATER_HOLE_SURFACE_6_RUN_REQUEST,
+    .scriptedJump = DRYFIELD_WATER_HOLE_SURFACE_6_WALK_REQUEST,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_hole_8018288C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_hole_8018286C },
+/// Silent blocking profile shared by surface classes 0, 1, 5 and 7.
+///
+/// Allows weapon impacts and applies grid pushback; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldWaterHoleDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_hole_80182894[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 4's blocking profile with footstep cues, used by floors and lower stair steps.
+///
+/// Allows weapon impacts and applies grid pushback. Grid walls also carry this
+/// class; the first byte's role is unproven. The footstep record is borrowed.
+static WorldCollisionSurfaceProperties _gDryfieldWaterHoleSurface4Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldWaterHoleSurface4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_hole_8018289C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 2's silent blocking profile, selected by a room grid wall face.
+///
+/// Allows weapon impacts and applies grid pushback; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldWaterHoleSurface2Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_hole_801828A4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_hole_80182878 },
+/// Class 3's silent blocking profile, selected by a room grid wall face.
+///
+/// Allows weapon impacts and applies grid pushback; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldWaterHoleSurface3Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[8] = {
-    D_dryfield_water_hole_80182884,
-    D_dryfield_water_hole_80182884,
-    D_dryfield_water_hole_80182894,
-    D_dryfield_water_hole_8018289C,
-    D_dryfield_water_hole_8018288C,
-    D_dryfield_water_hole_80182884,
-    D_dryfield_water_hole_801828A4,
-    D_dryfield_water_hole_80182884,
+/// Class 6's blocking profile with footstep cues for the upper scripted stair steps.
+///
+/// Allows weapon impacts and applies grid pushback; no grid face carries this
+/// class. The first byte's role is unproven. The footstep record is borrowed.
+static WorldCollisionSurfaceProperties _gDryfieldWaterHoleSurface6Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldWaterHoleSurface6FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldWaterHoleSurfacePropertiesByClass[8] = {
+    &_gDryfieldWaterHoleDefaultSurfaceProperties,
+    &_gDryfieldWaterHoleDefaultSurfaceProperties,
+    &_gDryfieldWaterHoleSurface2Properties,
+    &_gDryfieldWaterHoleSurface3Properties,
+    &_gDryfieldWaterHoleSurface4Properties,
+    &_gDryfieldWaterHoleDefaultSurfaceProperties,
+    &_gDryfieldWaterHoleSurface6Properties,
+    &_gDryfieldWaterHoleDefaultSurfaceProperties,
 };
 
 u8* gWaterHolePrimCursor = NULL;
