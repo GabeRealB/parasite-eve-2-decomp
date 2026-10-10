@@ -19,7 +19,12 @@ extern AreaVariant D_dryfield_night_driveway_80181F4C[22];
 /// ambient table. Keep this overlay loaded throughout lighting updates.
 extern WorldCoordRoomLighting gDryfieldNightDrivewayRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_driveway_801805F0[];
+/// Collision resources for nighttime driveway room IDs 1 and 2.
+///
+/// Both rooms borrow the same mesh, six view boundaries, four action triggers
+/// and two sight occluders. Keep this overlay loaded while its grid is active
+/// or any mutable trigger/occluder records remain linked.
+extern WorldCollisionRoomResources gDryfieldNightDrivewayRoomCollisionResources[2];
 
 /// Logical-view maps for room IDs 1 and 2 of the nighttime driveway.
 ///
@@ -28,11 +33,29 @@ extern WorldCollisionRoomResources D_dryfield_night_driveway_801805F0[];
 /// Each room searches ten entries; borrowed room storage requires this overlay.
 extern u8* gDryfieldNightDrivewayViewMaps[2];
 
-extern ViewCount D_dryfield_night_driveway_80180624[];
+/// Logical-view search counts for driveway room IDs 1 and 2: ten entries each.
+///
+/// Signed halfword counts bound reverse searches in `gDryfieldNightDrivewayViewMaps`;
+/// they are independent of the maps' storage capacity. The stage directory
+/// borrows this array while the room overlay is loaded.
+extern ViewCount gDryfieldNightDrivewayViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_driveway_80180628[];
+/// Four arrival/departure endpoints for nighttime driveway warp IDs 1..4.
+///
+/// Indexed by warp minus one, without a terminator. XYZ uses world units and
+/// yaw uses 4096 units per turn or the named transition-facing sentinels.
+/// Initial logical views are 4,4,2,4; endpoint 4 starts the companion arrival
+/// scene when a companion is present. The stage directory borrows this
+/// overlay; transition handlers copy a complete endpoint before using it.
+extern DirectionWarpEntry gDryfieldNightDrivewayWarpEntries[4];
 
-extern ViewCamera D_dryfield_night_driveway_80180C30[];
+/// Ten cameras indexed by the driveway's mapped view minus one.
+///
+/// Room 1 uses the identity map; room 2 selects these through its logical-view
+/// map. Rotation coefficients use Q12, translation is the negated world
+/// camera origin, and projection distance is in screen pixels. Keep this
+/// overlay loaded while the stage camera directory borrows the array.
+extern ViewCamera gDryfieldNightDrivewayViewCameras[10];
 
 /// Sprite resources indexed by the driveway's mapped view minus one (views 1..10).
 ///
