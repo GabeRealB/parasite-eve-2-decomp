@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_dilapidated_house_80189938[13];
+/// Placement layouts for the dilapidated-house encounter, indexed by variant 0..12.
+///
+/// Only slot 1 supplies No. 9 and the ANMC woman; all other slots contain two
+/// NULL pointers. There is no terminator. Gameplay selects this directory for
+/// Dryfield area 9. The room, Dryfield map and actor overlays must remain loaded
+/// while loaders and spawners borrow its records and referenced tables.
+extern AreaVariant gDryfieldDilapidatedHouseAreaVariants[13];
 
 /// Room 1's collision grid, view/action triggers and sight-blocking quad.
 ///

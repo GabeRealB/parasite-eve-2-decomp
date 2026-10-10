@@ -1417,7 +1417,7 @@ D_acropolis_roof_garden_80185934 = 0x80185934; // absolute:True owner=acropolis_
 
 D_acropolis_sanctuary_8018402C = 0x8018402C; // absolute:True owner=acropolis_sanctuary shared=rooms
 
-D_acropolis_security_room_80184088 = 0x80184088; // absolute:True owner=acropolis_security_room shared=rooms
+D_acropolis_security_room_80184088 = 0x80184088; // absolute:True owner=acropolis_security_room
 
 D_acropolis_square_80185E50 = 0x80185E50; // absolute:True owner=acropolis_square
 
@@ -1427,7 +1427,7 @@ D_dryfield_breezeway_801842F8 = 0x801842F8; // absolute:True owner=dryfield_bree
 
 D_dryfield_cellar_80180ACC = 0x80180ACC; // absolute:True owner=dryfield_cellar
 
-D_dryfield_dilapidated_house_80189938 = 0x80189938; // absolute:True owner=dryfield_dilapidated_house
+gDryfieldDilapidatedHouseAreaVariants = 0x80189938; // absolute:True owner=dryfield_dilapidated_house
 
 D_dryfield_driveway_8017EDD4 = 0x8017EDD4; // absolute:True owner=dryfield_driveway
 

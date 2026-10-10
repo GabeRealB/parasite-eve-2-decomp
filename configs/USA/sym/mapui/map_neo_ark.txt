@@ -272,7 +272,7 @@ gShelter1fTentSpriteViews = 0x801838E4; // absolute:True owner=shelter_1f_tent s
 gShelter1fTentRoomLights = 0x80183A7C; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80183A94 = 0x80183A94; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80183CF4 = 0x80183CF4; // absolute:True owner=shelter_1f_tent
-gShelter1fTentSurfacePropertiesByClass = 0x801842B4; // absolute:True owner=shelter_1f_tent shared=rooms
+gShelter1fTentSurfacePropertiesByClass = 0x801842B4; // absolute:True owner=shelter_1f_tent
 neoArkWoodlandPathRoomTask = 0x8017E9B0; // type:func absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathViewMaps = 0x80181694; // absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathViewCounts = 0x80181698; // absolute:True owner=neo_ark_woodland_path

@@ -141,7 +141,7 @@ gShelterB1SleepingQuartersRoomLights = 0x80183234; // absolute:True owner=shelte
 gShelterB1SleepingQuartersViewBoundaryTriggers = 0x8018324C; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersOccluders = 0x801837A4; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersActionTriggers = 0x801838D0; // absolute:True owner=shelter_b1_sleeping_quarters
-gShelterB1SleepingQuartersSurfacePropertiesByClass = 0x801840B0; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+gShelterB1SleepingQuartersSurfacePropertiesByClass = 0x801840B0; // absolute:True owner=shelter_b1_sleeping_quarters
 shelterB1MainCorridorRoomTask = 0x8017DD98; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
 gShelterB1MainCorridorRoomViewMaps = 0x801831F8; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorRoomViewCounts = 0x801831FC; // absolute:True owner=shelter_b1_main_corridor
@@ -450,7 +450,7 @@ gShelterB3ElevatorHallRoomViewCounts = 0x80182B58; // absolute:True owner=shelte
 gShelterB3ElevatorHallWarpEntries = 0x80182B5C; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 gShelterB3ElevatorHallCollisionGrid = 0x801834C8; // absolute:True owner=shelter_b3_elevator_hall
 gShelterB3ElevatorHallViewCameras = 0x801834EC; // absolute:True owner=shelter_b3_elevator_hall
-gShelterB3ElevatorHallSpriteViews = 0x801841DC; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
+gShelterB3ElevatorHallSpriteViews = 0x801841DC; // absolute:True owner=shelter_b3_elevator_hall
 gShelterB3ElevatorHallRoomLights = 0x80184410; // absolute:True owner=shelter_b3_elevator_hall
 gShelterB3ElevatorHallViewBoundaryTriggers = 0x80184428; // absolute:True owner=shelter_b3_elevator_hall
 gShelterB3ElevatorHallActionTriggers = 0x801847DC; // absolute:True owner=shelter_b3_elevator_hall
