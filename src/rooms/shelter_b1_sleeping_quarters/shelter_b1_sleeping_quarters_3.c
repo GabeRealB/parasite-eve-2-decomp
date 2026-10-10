@@ -21,6 +21,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -46,11 +47,34 @@ u8* gShelterB1SleepingQuartersRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_sleeping_quarters_8018065C[1] = { 11 };
+enum { SHELTER_B1_SLEEPING_QUARTERS_REVERSE_VIEW_SEARCH_COUNT = 11 };
 
-DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[2] = {
-    { { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B3 },
+ViewCount gShelterB1SleepingQuartersRoomViewCounts[1] = { SHELTER_B1_SLEEPING_QUARTERS_REVERSE_VIEW_SEARCH_COUNT };
+
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 4),
+    SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 3),
+    SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_ARRIVAL_SOUND    = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 2),
+    SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_DEPARTURE_SOUND  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 1),
+};
+
+DirectionWarpEntry gShelterB1SleepingQuartersWarpEntries[2] = {
+    { .player         = { .yaw = { .word = 1024 }, .x = 0, .y = 0, .z = -860 },
+      .companion      = { .yaw = { .word = 1024 }, .x = 0, .y = 0, .z = -860 },
+      .arrivalSound   = SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_ARRIVAL_SOUND,
+      .departureSound = SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_DEPARTURE_SOUND,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { .yaw = { .word = 2048 }, .x = 0x2E2C, .y = 0, .z = 5980 },
+      .companion      = { .yaw = { .word = 2048 }, .x = 0x2E2C, .y = 0, .z = 5980 },
+      .arrivalSound   = SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_ARRIVAL_SOUND,
+      .departureSound = SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_DEPARTURE_SOUND,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 9,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1B3 },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.
@@ -101,8 +125,8 @@ WorldCollisionGrid gShelterB1SleepingQuartersCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB1SleepingQuartersCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b1_sleeping_quarters_801810F8[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
+ViewCamera gShelterB1SleepingQuartersViewCameras[10] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { -1996, 0, 3576 }, { -1019, 3925, -569 }, { -3427, -1167, -1913 } }, { -2791, 356, -744 } }, 230 },
     { { { { -4054, 0, 582 }, { 17, 4094, 123 }, { -582, 124, -4052 } }, { -2265, 1531, -3824 } }, 230 },
     { { { { 4060, 0, 540 }, { 37, 4086, -282 }, { -538, 285, 4050 } }, { -2734, 1706, 1550 } }, 230 },
@@ -548,12 +572,20 @@ static SpriteBatch _gShelterB1SleepingQuartersView8SpriteBatches[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_801829A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite batches retaining decoded background strips for mapped view 9.
+///
+/// The zero-count first record selects the image; the second ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView9SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_801829B4[57] = {
+/// Texture rectangles and sorting depths for mapped view 10's 57 room sprites.
+///
+/// Positions/sizes are pixels, UVs are texels and depth is an unscaled OT value.
+/// The view's five nonempty batches cover every element. Cached packet creation
+/// snapshots geometry and texture data; linking reads depths from this live array.
+static SpriteSource _gShelterB1SleepingQuartersView10SpriteSources[57] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 64, 504, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 72, 503, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 80, 502, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
@@ -613,33 +645,41 @@ SpriteSource D_shelter_b1_sleeping_quarters_801829B4[57] = {
     { 143, 0x4040, { .fields = { 8, 48 } }, -8, -56, 517, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80182E28[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 26, 0, 0, { 3, 0 } },
-    { 26, 6, 0, 0, { 4, 0 } },
-    { 32, 6, 0, 0, { 2, 0 } },
-    { 38, 17, 0, 0, { 1, 0 } },
-    { 55, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Five contiguous sprite ranges layered over mapped view 10's background.
+///
+/// Ranges [0,26), [26,32), [32,38), [38,55) and [55,57) cover the sources.
+/// The first zero-count record retains image strips and the final record ends
+/// the list. The serialized `field_6` bytes are retained; their role is unproven.
+static SpriteBatch _gShelterB1SleepingQuartersView10SpriteBatches[7] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 26, .field_6 = { 3, 0 } },
+    { .firstSprite = 26, .spriteCount = 6, .field_6 = { 4, 0 } },
+    { .firstSprite = 32, .spriteCount = 6, .field_6 = { 2, 0 } },
+    { .firstSprite = 38, .spriteCount = 17, .field_6 = { 1, 0 } },
+    { .firstSprite = 55, .spriteCount = ARRAY_SIZE(_gShelterB1SleepingQuartersView10SpriteSources) - 55 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80182E60[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite batches retaining decoded background strips for mapped view 11.
+///
+/// The zero-count first record selects the image; the second ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView11SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_b1_sleeping_quarters_80182E70[11] = {
-    { { .empty = _gShelterB1SleepingQuartersView1SpriteBatches }, _gShelterB1SleepingQuartersView1SpriteBatches, NULL },
-    { { .empty = _gShelterB1SleepingQuartersView2SpriteBatches }, _gShelterB1SleepingQuartersView2SpriteBatches, NULL },
-    { { .elements = _gShelterB1SleepingQuartersView3SpriteSources }, _gShelterB1SleepingQuartersView3SpriteBatches, NULL },
-    { { .elements = _gShelterB1SleepingQuartersView4SpriteSources }, _gShelterB1SleepingQuartersView4SpriteBatches, NULL },
-    { { .elements = _gShelterB1SleepingQuartersView5SpriteSources }, _gShelterB1SleepingQuartersView5SpriteBatches, _gShelterB1SleepingQuartersView5SpriteDrawAreas },
-    { { .elements = _gShelterB1SleepingQuartersView6SpriteSources }, _gShelterB1SleepingQuartersView6SpriteBatches, _gShelterB1SleepingQuartersView6SpriteDrawAreas },
-    { { .elements = _gShelterB1SleepingQuartersView7SpriteSources }, _gShelterB1SleepingQuartersView7SpriteBatches, _gShelterB1SleepingQuartersView7SpriteDrawAreas },
-    { { .elements = _gShelterB1SleepingQuartersView8SpriteSources }, _gShelterB1SleepingQuartersView8SpriteBatches, NULL },
-    { { .empty = D_shelter_b1_sleeping_quarters_801829A4 }, D_shelter_b1_sleeping_quarters_801829A4, NULL },
-    { { .elements = D_shelter_b1_sleeping_quarters_801829B4 }, D_shelter_b1_sleeping_quarters_80182E28, NULL },
-    { { .empty = D_shelter_b1_sleeping_quarters_80182E60 }, D_shelter_b1_sleeping_quarters_80182E60, NULL },
+SpriteView gShelterB1SleepingQuartersSpriteViews[11] = {
+    { .sources = { .empty = _gShelterB1SleepingQuartersView1SpriteBatches }, .batches = _gShelterB1SleepingQuartersView1SpriteBatches, .drawAreas = NULL },
+    { .sources = { .empty = _gShelterB1SleepingQuartersView2SpriteBatches }, .batches = _gShelterB1SleepingQuartersView2SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView3SpriteSources }, .batches = _gShelterB1SleepingQuartersView3SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView4SpriteSources }, .batches = _gShelterB1SleepingQuartersView4SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView5SpriteSources }, .batches = _gShelterB1SleepingQuartersView5SpriteBatches, .drawAreas = _gShelterB1SleepingQuartersView5SpriteDrawAreas },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView6SpriteSources }, .batches = _gShelterB1SleepingQuartersView6SpriteBatches, .drawAreas = _gShelterB1SleepingQuartersView6SpriteDrawAreas },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView7SpriteSources }, .batches = _gShelterB1SleepingQuartersView7SpriteBatches, .drawAreas = _gShelterB1SleepingQuartersView7SpriteDrawAreas },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView8SpriteSources }, .batches = _gShelterB1SleepingQuartersView8SpriteBatches, .drawAreas = NULL },
+    { .sources = { .empty = _gShelterB1SleepingQuartersView9SpriteBatches }, .batches = _gShelterB1SleepingQuartersView9SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gShelterB1SleepingQuartersView10SpriteSources }, .batches = _gShelterB1SleepingQuartersView10SpriteBatches, .drawAreas = NULL },
+    { .sources = { .empty = _gShelterB1SleepingQuartersView11SpriteBatches }, .batches = _gShelterB1SleepingQuartersView11SpriteBatches, .drawAreas = NULL },
 };
 
 /// Four directional model-shading sources active in every room view.
@@ -674,28 +714,28 @@ WorldCoordRoomLights gShelterB1SleepingQuartersRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[18] = {
-    { NULL, NULL, NULL, { 1936, -2000, 1200, 0 }, { { 2224, -3360, -256, 0 }, { -2224, -3360, 256, 0 }, { 2224, 3360, -256, 0 }, { -2224, 3360, 256, 0 } }, { 469, 0, 4076, 0 }, { 0, 0, 4096, 0 }, 4031, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1983, -1728, 1280, 0 }, { { -2480, -3360, 288, 0 }, { 2480, -3360, -288, 0 }, { -2480, 3360, 288, 0 }, { 2480, 3360, -288, 0 } }, { -473, 0, -4069, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3921, -1792, 3296, 0 }, { { 0, -3360, -2080, 0 }, { 0, -3360, 2080, 0 }, { 0, 3360, -2080, 0 }, { 0, 3360, 2080, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3949, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4000, -1760, 3344, 0 }, { { 0, -3360, 2032, 0 }, { 0, -3360, -2032, 0 }, { 0, 3360, 2032, 0 }, { 0, 3360, -2032, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3924, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7424, -1793, 4176, 0 }, { { 0, -3360, -1232, 0 }, { 0, -3360, 1232, 0 }, { 0, 3360, -1232, 0 }, { 0, 3360, 1232, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3574, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7552, -1760, 4192, 0 }, { { 0, -3360, 1232, 0 }, { 0, -3360, -1232, 0 }, { 0, 3360, 1232, 0 }, { 0, 3360, -1232, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3574, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9856, -1792, 4624, 0 }, { { 0, -3360, 1760, 0 }, { 0, -3360, -1760, 0 }, { 0, 3360, 1760, 0 }, { 0, 3360, -1760, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3788, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9760, -1793, 4560, 0 }, { { 0, -3360, -1760, 0 }, { 0, -3360, 1760, 0 }, { 0, 3360, -1760, 0 }, { 0, 3360, 1760, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3788, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2CA0, -1792, 5792, 0 }, { { -1088, -3360, 288, 0 }, { 1088, -3360, -288, 0 }, { -1088, 3360, 288, 0 }, { 1088, 3360, -288, 0 } }, { -1049, 0, -3961, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2C71, -1761, 5744, 0 }, { { 1104, -3360, -304, 0 }, { -1104, -3360, 304, 0 }, { 1104, 3360, -304, 0 }, { -1104, 3360, 304, 0 } }, { 1087, 0, 3950, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 545, -1792, -784, 0 }, { { 0, -3360, -1792, 0 }, { 0, -3360, 1792, 0 }, { 0, 3360, -1792, 0 }, { 0, 3360, 1792, 0 } }, { 4108, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3805, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -64, -1888, -2641, 0 }, { { -704, -3360, -128, 0 }, { 704, -3360, 128, 0 }, { -704, 3360, -128, 0 }, { 704, 3360, 128, 0 } }, { 733, 0, -4033, 0 }, { 0, 0, 4096, 0 }, 3434, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 48, -1952, -2768, 0 }, { { 816, -3360, 176, 0 }, { -816, -3360, -176, 0 }, { 816, 3360, 176, 0 }, { -816, 3360, -176, 0 } }, { -867, 0, 4011, 0 }, { 0, 0, 4096, 0 }, 3453, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 720, -1856, -832, 0 }, { { 0, -3360, 1840, 0 }, { 0, -3360, -1840, 0 }, { 0, 3360, 1840, 0 }, { 0, 3360, -1840, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5760, -1568, 1920, 0 }, { { -704, -3360, 0, 0 }, { 704, -3360, 0, 0 }, { -704, 3360, 0, 0 }, { 704, 3360, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 3425, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5776, -1536, 1792, 0 }, { { 816, -3360, 0, 0 }, { -816, -3360, 0, 0 }, { 816, 3360, 0, 0 }, { -816, 3360, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3453, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8864, -1600, 2848, 0 }, { { -864, -3360, 0, 0 }, { 864, -3360, 0, 0 }, { -864, 3360, 0, 0 }, { 864, 3360, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 3463, 0, 10, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8880, -1632, 2752, 0 }, { { 896, -3360, 0, 0 }, { -896, -3360, 0, 0 }, { 896, 3360, 0, 0 }, { -896, 3360, 0, 0 } }, { 0, 0, 4108, 0 }, { 0, 0, 4096, 0 }, 3472, 0, 7, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1SleepingQuartersViewBoundaryTriggers[18] = {
+    { NULL, NULL, NULL, { 1936, -2000, 1200, 0 }, { { 2224, -3360, -256, 0 }, { -2224, -3360, 256, 0 }, { 2224, 3360, -256, 0 }, { -2224, 3360, 256, 0 } }, { 469, 0, 4076, 0 }, { 0, 0, ONE, 0 }, 4031, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1983, -1728, 1280, 0 }, { { -2480, -3360, 288, 0 }, { 2480, -3360, -288, 0 }, { -2480, 3360, 288, 0 }, { 2480, 3360, -288, 0 } }, { -473, 0, -4069, 0 }, { 0, 0, ONE, 0 }, 4159, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3921, -1792, 3296, 0 }, { { 0, -3360, -2080, 0 }, { 0, -3360, 2080, 0 }, { 0, 3360, -2080, 0 }, { 0, 3360, 2080, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3949, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4000, -1760, 3344, 0 }, { { 0, -3360, 2032, 0 }, { 0, -3360, -2032, 0 }, { 0, 3360, 2032, 0 }, { 0, 3360, -2032, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3924, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7424, -1793, 4176, 0 }, { { 0, -3360, -1232, 0 }, { 0, -3360, 1232, 0 }, { 0, 3360, -1232, 0 }, { 0, 3360, 1232, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3574, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7552, -1760, 4192, 0 }, { { 0, -3360, 1232, 0 }, { 0, -3360, -1232, 0 }, { 0, 3360, 1232, 0 }, { 0, 3360, -1232, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3574, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9856, -1792, 4624, 0 }, { { 0, -3360, 1760, 0 }, { 0, -3360, -1760, 0 }, { 0, 3360, 1760, 0 }, { 0, 3360, -1760, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3788, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9760, -1793, 4560, 0 }, { { 0, -3360, -1760, 0 }, { 0, -3360, 1760, 0 }, { 0, 3360, -1760, 0 }, { 0, 3360, 1760, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3788, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2CA0, -1792, 5792, 0 }, { { -1088, -3360, 288, 0 }, { 1088, -3360, -288, 0 }, { -1088, 3360, 288, 0 }, { 1088, 3360, -288, 0 } }, { -1049, 0, -3961, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2C71, -1761, 5744, 0 }, { { 1104, -3360, -304, 0 }, { -1104, -3360, 304, 0 }, { 1104, 3360, -304, 0 }, { -1104, 3360, 304, 0 } }, { 1087, 0, 3950, 0 }, { 0, 0, ONE, 0 }, 3547, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 545, -1792, -784, 0 }, { { 0, -3360, -1792, 0 }, { 0, -3360, 1792, 0 }, { 0, 3360, -1792, 0 }, { 0, 3360, 1792, 0 } }, { 4108, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3805, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -64, -1888, -2641, 0 }, { { -704, -3360, -128, 0 }, { 704, -3360, 128, 0 }, { -704, 3360, -128, 0 }, { 704, 3360, 128, 0 } }, { 733, 0, -4033, 0 }, { 0, 0, ONE, 0 }, 3434, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 48, -1952, -2768, 0 }, { { 816, -3360, 176, 0 }, { -816, -3360, -176, 0 }, { 816, 3360, 176, 0 }, { -816, 3360, -176, 0 } }, { -867, 0, 4011, 0 }, { 0, 0, ONE, 0 }, 3453, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 720, -1856, -832, 0 }, { { 0, -3360, 1840, 0 }, { 0, -3360, -1840, 0 }, { 0, 3360, 1840, 0 }, { 0, 3360, -1840, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5760, -1568, 1920, 0 }, { { -704, -3360, 0, 0 }, { 704, -3360, 0, 0 }, { -704, 3360, 0, 0 }, { 704, 3360, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, ONE, 0 }, 3425, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5776, -1536, 1792, 0 }, { { 816, -3360, 0, 0 }, { -816, -3360, 0, 0 }, { 816, 3360, 0, 0 }, { -816, 3360, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, ONE, 0 }, 3453, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8864, -1600, 2848, 0 }, { { -864, -3360, 0, 0 }, { 864, -3360, 0, 0 }, { -864, 3360, 0, 0 }, { 864, 3360, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, ONE, 0 }, 3463, 0, 10, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8880, -1632, 2752, 0 }, { { 896, -3360, 0, 0 }, { -896, -3360, 0, 0 }, { 896, 3360, 0, 0 }, { -896, 3360, 0, 0 } }, { 0, 0, 4108, 0 }, { 0, 0, ONE, 0 }, 3472, 0, 7, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[5] = {
+WorldCollisionOccluder gShelterB1SleepingQuartersOccluders[5] = {
     { NULL, NULL, { 4944, -2240, -1152, 0 }, { { -16, 3264, 3008, 0 }, { 16, 3264, -3008, 0 }, { -16, -3264, 3008, 0 }, { 16, -3264, -3008, 0 } }, { 4111, 0, 21, 0 }, 4434, 1, 0 },
     { NULL, NULL, { 6848, -2176, -128, 0 }, { { -16, 3200, 3008, 0 }, { 16, 3200, -3008, 0 }, { -16, -3200, 3008, 0 }, { 16, -3200, -3008, 0 } }, { 4102, 0, 21, 0 }, 4374, 1, 0 },
     { NULL, NULL, { 0x2D00, -2112, 2528, 0 }, { { -1968, 3136, 0, 0 }, { 1968, 3136, 0, 0 }, { -1968, -3136, 0, 0 }, { 1968, -3136, 0, 0 } }, { 0, 0, 4103, 0 }, 3700, 1, 0 },
@@ -703,114 +743,168 @@ WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[5] = {
     { NULL, NULL, { 7262, -2048, 2949, 0 }, { { -1008, 3264, 0, 0 }, { 1008, 3264, 0, 0 }, { -1008, -3264, 0, 0 }, { 1008, -3264, 0, 0 } }, { 0, 0, 4102, 0 }, 3415, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[17] = {
-    { NULL, NULL, NULL, { -96, -48, -992, 0 }, { { -512, 0, -960, 0 }, { 512, 0, -960, 0 }, { -512, 0, 960, 0 }, { 512, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2DD0, -48, 6288, 0 }, { { 720, 0, -352, 0 }, { 720, 0, 352, 0 }, { -720, 0, -352, 0 }, { -720, 0, 352, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 799, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1008, -64, 2848, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 960, -64, 5024, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -64, 4704, 0 }, { { -1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { 1024, 0, -400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5152, -64, 4720, 0 }, { { -1024, 0, 416, 0 }, { -1024, 0, -416, 0 }, { 1024, 0, 416, 0 }, { 1024, 0, -416, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2432, -64, -1664, 0 }, { { -384, 0, 1392, 0 }, { -384, 0, -1392, 0 }, { 384, 0, 1392, 0 }, { 384, 0, -1392, 0 } }, { 0, 4111, 0, 0 }, { -4096, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1072, -64, -2752, 0 }, { { -1552, 0, 368, 0 }, { -1552, 0, -368, 0 }, { 1552, 0, 368, 0 }, { 1552, 0, -368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9216, -64, 5632, 0 }, { { -1264, 0, 336, 0 }, { -1264, 0, -336, 0 }, { 1264, 0, 336, 0 }, { 1264, 0, -336, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2F90, -64, 3792, 0 }, { { -512, 0, 832, 0 }, { -512, 0, -832, 0 }, { 512, 0, 832, 0 }, { 512, 0, -832, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 976, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2F80, -64, 5168, 0 }, { { -496, 0, 480, 0 }, { -496, 0, -480, 0 }, { 496, 0, 480, 0 }, { 496, 0, -480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 689, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2C60, -64, 1776, 0 }, { { -1264, 0, 320, 0 }, { -1264, 0, -320, 0 }, { 1264, 0, 320, 0 }, { 1264, 0, -320, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2F60, -64, 6080, 0 }, { { -512, 0, 416, 0 }, { -512, 0, -416, 0 }, { 512, 0, 416, 0 }, { 512, 0, -416, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3440, -64, 544, 0 }, { { -400, 0, -800, 0 }, { 400, 0, -800, 0 }, { -400, 0, 800, 0 }, { 400, 0, 800, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5776, -64, 848, 0 }, { { -576, 0, -368, 0 }, { 576, 0, -368, 0 }, { -576, 0, 368, 0 }, { 576, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2780, -64, 224, 0 }, { { -2656, 0, -368, 0 }, { 2656, 0, -368, 0 }, { -2656, 0, 368, 0 }, { 2656, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 2672, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9984, -64, 3296, 0 }, { { -480, 0, -368, 0 }, { 480, 0, -368, 0 }, { -480, 0, 368, 0 }, { 480, 0, 368, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 603, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed warp slots: current-area departure in bits 4..7, destination arrival in 0..3.
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_WARP_SLOTS = (1 << 4) | 5,
+    SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_WARP_SLOTS  = (2 << 4) | 1,
 };
 
-AreaResource D_shelter_b1_sleeping_quarters_80183DDC[3] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Room-message selectors for flag-dependent playback and the alternate CAP file.
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_CAP_FLAG_EVENT     = 3,
+    SHELTER_B1_SLEEPING_QUARTERS_CAP_ALTERNATE_FILE = 8,
 };
 
-AreaResource D_shelter_b1_sleeping_quarters_80183E00[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+WorldCollisionTrigger gShelterB1SleepingQuartersActionTriggers[17] = {
+    { NULL, NULL, NULL, { -96, -48, -992, 0 }, { { -512, 0, -960, 0 }, { 512, 0, -960, 0 }, { -512, 0, 960, 0 }, { 512, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_SLEEPING_QUARTERS_CORRIDOR_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2DD0, -48, 6288, 0 }, { { 720, 0, -352, 0 }, { 720, 0, 352, 0 }, { -720, 0, -352, 0 }, { -720, 0, 352, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 799, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1008, -64, 2848, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_SLEEPING_QUARTERS_CAP_FLAG_EVENT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 960, -64, 5024, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -64, 4704, 0 }, { { -1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { 1024, 0, -400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5152, -64, 4720, 0 }, { { -1024, 0, 416, 0 }, { -1024, 0, -416, 0 }, { 1024, 0, 416, 0 }, { 1024, 0, -416, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2432, -64, -1664, 0 }, { { -384, 0, 1392, 0 }, { -384, 0, -1392, 0 }, { 384, 0, 1392, 0 }, { 384, 0, -1392, 0 } }, { 0, 4111, 0, 0 }, { -ONE, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1072, -64, -2752, 0 }, { { -1552, 0, 368, 0 }, { -1552, 0, -368, 0 }, { 1552, 0, 368, 0 }, { 1552, 0, -368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, ONE, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9216, -64, 5632, 0 }, { { -1264, 0, 336, 0 }, { -1264, 0, -336, 0 }, { 1264, 0, 336, 0 }, { 1264, 0, -336, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2F90, -64, 3792, 0 }, { { -512, 0, 832, 0 }, { -512, 0, -832, 0 }, { 512, 0, 832, 0 }, { 512, 0, -832, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 976, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2F80, -64, 5168, 0 }, { { -496, 0, 480, 0 }, { -496, 0, -480, 0 }, { 496, 0, 480, 0 }, { 496, 0, -480, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 689, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_SLEEPING_QUARTERS_CAP_ALTERNATE_FILE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2C60, -64, 1776, 0 }, { { -1264, 0, 320, 0 }, { -1264, 0, -320, 0 }, { 1264, 0, 320, 0 }, { 1264, 0, -320, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2F60, -64, 6080, 0 }, { { -512, 0, 416, 0 }, { -512, 0, -416, 0 }, { 512, 0, 416, 0 }, { 512, 0, -416, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3440, -64, 544, 0 }, { { -400, 0, -800, 0 }, { 400, 0, -800, 0 }, { -400, 0, 800, 0 }, { 400, 0, 800, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5776, -64, 848, 0 }, { { -576, 0, -368, 0 }, { 576, 0, -368, 0 }, { -576, 0, 368, 0 }, { 576, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, ONE, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2780, -64, 224, 0 }, { { -2656, 0, -368, 0 }, { 2656, 0, -368, 0 }, { -2656, 0, 368, 0 }, { 2656, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, ONE, 0 }, 2672, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9984, -64, 3296, 0 }, { { -480, 0, -368, 0 }, { 480, 0, -368, 0 }, { -480, 0, 368, 0 }, { 480, 0, 368, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 603, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_sleeping_quarters_80183E18[3] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-to-resource keys shared by this room's layout tables.
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT               = 7,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_ODD_STRANGER      = 18,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_KNIGHT      = 22,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA            = 24,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_BISHOP      = 39,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_MAD_CHASER        = 44,
+    SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_CREEPING_STRANGER = 72,
 };
 
-AreaResource D_shelter_b1_sleeping_quarters_80183E3C[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Odd Stranger and rat file/task recipes, ending with AREA_PLACEMENT_END.
+///
+/// Resource keys match the placements; task descriptors are borrowed from loaded
+/// actor packages. File-group bases 40 and 30 select their base files.
+static AreaResource _gShelterB1SleepingQuartersVariant1Resources[3] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_ODD_STRANGER, .fileNumber = 18, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401800OddStrangerTaskDesc },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor300700RatTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_sleeping_quarters_80183E54[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's amoeba file and body-task recipe, followed by AREA_PLACEMENT_END.
+///
+/// Base 10/file 24 loads actor_102400, an instance of the amoeba implementation;
+/// descriptor 0 selects its body. The loaded actor package owns the task table.
+static AreaResource _gShelterB1SleepingQuartersVariant2Resources[2] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .fileNumber = 24, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_sleeping_quarters_80183E6C[6] = {
-    { 18, 16, 1, 1950, 0, -100, 0, 0, 0, 2, 0 },
-    { 7, 0, 0, 1100, 0, 4700, 2750, 0, 2, 4, 4 },
-    { 7, 0, 0, 1200, 0, 4300, 3072, 0, 2, 4, 4 },
-    { 7, 0, 0, 1100, 0, 3900, 2500, 0, 2, 4, 4 },
-    { 7, 0, 0, 1350, 0, 3650, 3400, 0, 2, 4, 4 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 3's Mad Chaser and Creeping Stranger file/task recipes and terminator.
+///
+/// Placement keys select base-10/file-44 and base-20/file-72 recipes respectively.
+/// Task descriptors are borrowed from the loaded actor packages.
+static AreaResource _gShelterB1SleepingQuartersVariant3Resources[3] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_MAD_CHASER, .fileNumber = 44, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_04400_MAD_CHASER_TASK_ORDINARY, .taskTable = gActor04400MadChaserTaskDescs },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_CREEPING_STRANGER, .fileNumber = 72, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor207200CreepingStrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_sleeping_quarters_80183ECC[8] = {
-    { 24, 0, 0, 3450, 0, 50, 3400, 0, 0, 2, 0 },
-    { 24, 0, 0, -250, 0, 500, 1600, 0, 0, 2, 0 },
-    { 24, 0, 0, 7950, 0, 550, 2048, 0, 0, 2, 0 },
-    { 24, 0, 0, 9350, 0, 440, 2048, 0, 0, 2, 0 },
-    { 24, 0, 0, 0x29FE, 0, 550, 2048, 0, 0, 2, 0 },
-    { 24, 0, 1, 0x300C, 0, 400, 2048, 0, 0, 2, 0 },
-    { 24, 0, 1, 5750, 0, 1100, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 11's GOLEM Knight file/task recipe, followed by AREA_PLACEMENT_END.
+///
+/// Base 40/file 22 selects actor_402200; the live actor package owns descriptor 0.
+static AreaResource _gShelterB1SleepingQuartersVariant11Resources[2] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_KNIGHT, .fileNumber = 22, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor402200GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_sleeping_quarters_80183F4C[5] = {
-    { 44, 0, 1, 0x2904, -3400, 4000, 1024, 0, 0, 2, 0 },
-    { 44, 0, 1, 1800, -3000, 2200, 0, 0, 0, 2, 0 },
-    { 72, 0, 0, 9200, 0, 500, -100, 0, 2, 4, 0 },
-    { 72, 0, 0, 7650, 0, 4150, 2048, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 17's GOLEM Bishop file/task recipe, followed by AREA_PLACEMENT_END.
+///
+/// Base 40/file 39 selects actor_403900; the live actor package owns descriptor 0.
+static AreaResource _gShelterB1SleepingQuartersVariant17Resources[2] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_BISHOP, .fileNumber = 39, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor403900GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_sleeping_quarters_80183F9C[2] = {
-    { 22, 0, 0, 3000, 0, 3600, 2048, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Odd Stranger spawn selectors: stalking behaviour and the third tuning record.
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_ODD_STRANGER_STALK        = 0x10,
+    SHELTER_B1_SLEEPING_QUARTERS_ODD_STRANGER_TUNING_THIRD = 1,
 };
 
-AreaPlacement D_shelter_b1_sleeping_quarters_80183FBC[2] = {
-    { 39, 0, 0, 3000, 0, 3600, 2048, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 1's Odd Stranger and four rats in world units, yaw 4096 per turn.
+///
+/// Entries use base files only; rats select tuning row 4 and texture offsets
+/// (page +2, CLUT row +4). AREA_PLACEMENT_END stops the walk. Live actors borrow
+/// their records until teardown, requiring the room to remain loaded.
+static AreaPlacement _gShelterB1SleepingQuartersVariant1Placements[6] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_ODD_STRANGER, .variant = SHELTER_B1_SLEEPING_QUARTERS_ODD_STRANGER_STALK, .mode = SHELTER_B1_SLEEPING_QUARTERS_ODD_STRANGER_TUNING_THIRD, .x = 1950, .y = 0, .z = -100, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT, .variant = 0, .mode = 0, .x = 1100, .y = 0, .z = 4700, .yaw = 2750, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT, .variant = 0, .mode = 0, .x = 1200, .y = 0, .z = 4300, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT, .variant = 0, .mode = 0, .x = 1100, .y = 0, .z = 3900, .yaw = 2500, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_RAT, .variant = 0, .mode = 0, .x = 1350, .y = 0, .z = 3650, .yaw = 3400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {
-    { NULL, NULL },
-    { D_shelter_b1_sleeping_quarters_80183E6C, D_shelter_b1_sleeping_quarters_80183DDC },
-    { D_shelter_b1_sleeping_quarters_80183ECC, D_shelter_b1_sleeping_quarters_80183E00 },
-    { D_shelter_b1_sleeping_quarters_80183F4C, D_shelter_b1_sleeping_quarters_80183E18 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_sleeping_quarters_80183F9C, D_shelter_b1_sleeping_quarters_80183E3C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_sleeping_quarters_80183FBC, D_shelter_b1_sleeping_quarters_80183E54 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+/// Variant 2's seven amoebae in world units, yaw 4096 per turn, and terminator.
+///
+/// Uses the base file with texture page unchanged and CLUT row +2. The first
+/// five placements select parameter set 0; the last two select set 1, which
+/// also adds one CLUT row during actor initialization.
+/// Live actors borrow their records until teardown; keep the room loaded.
+static AreaPlacement _gShelterB1SleepingQuartersVariant2Placements[8] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 3450, .y = 0, .z = 50, .yaw = 3400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = -250, .y = 0, .z = 500, .yaw = 1600, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 7950, .y = 0, .z = 550, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 9350, .y = 0, .z = 440, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 0x29FE, .y = 0, .z = 550, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 1, .x = 0x300C, .y = 0, .z = 400, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_AMOEBA, .variant = 0, .mode = 1, .x = 5750, .y = 0, .z = 1100, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 3's two Mad Chasers and two Creeping Strangers, followed by a terminator.
+///
+/// Positions use world units and yaw uses 4096 per turn. Base-file placements
+/// relocate Chaser CLUTs by two rows; Strangers use page +2 and CLUT row +4.
+/// Live actors borrow their records until teardown; keep the room loaded.
+static AreaPlacement _gShelterB1SleepingQuartersVariant3Placements[5] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_MAD_CHASER, .variant = 0, .mode = 1, .x = 0x2904, .y = -3400, .z = 4000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_MAD_CHASER, .variant = 0, .mode = 1, .x = 1800, .y = -3000, .z = 2200, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_CREEPING_STRANGER, .variant = 0, .mode = 0, .x = 9200, .y = 0, .z = 500, .yaw = -100, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_CREEPING_STRANGER, .variant = 0, .mode = 0, .x = 7650, .y = 0, .z = 4150, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 11's single GOLEM Knight at world (3000, 0, 3600), yaw half a turn.
+///
+/// Base-file placement with CLUT row +2; AREA_PLACEMENT_END ends the list.
+/// The actor borrows its placement until teardown, so keep the room loaded.
+static AreaPlacement _gShelterB1SleepingQuartersVariant11Placements[2] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_KNIGHT, .variant = 0, .mode = 0, .x = 3000, .y = 0, .z = 3600, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 17's single GOLEM Bishop at world (3000, 0, 3600), yaw half a turn.
+///
+/// Base-file placement with CLUT row +2; AREA_PLACEMENT_END ends the list.
+/// The actor borrows its placement until teardown, so keep the room loaded.
+static AreaPlacement _gShelterB1SleepingQuartersVariant17Placements[2] = {
+    { .entryId = SHELTER_B1_SLEEPING_QUARTERS_RESOURCE_GOLEM_BISHOP, .variant = 0, .mode = 0, .x = 3000, .y = 0, .z = 3600, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gShelterB1SleepingQuartersAreaVariants[22] = {
+    [1]  = { .placements = _gShelterB1SleepingQuartersVariant1Placements, .resources = _gShelterB1SleepingQuartersVariant1Resources },
+    [2]  = { .placements = _gShelterB1SleepingQuartersVariant2Placements, .resources = _gShelterB1SleepingQuartersVariant2Resources },
+    [3]  = { .placements = _gShelterB1SleepingQuartersVariant3Placements, .resources = _gShelterB1SleepingQuartersVariant3Resources },
+    [11] = { .placements = _gShelterB1SleepingQuartersVariant11Placements, .resources = _gShelterB1SleepingQuartersVariant11Resources },
+    [17] = { .placements = _gShelterB1SleepingQuartersVariant17Placements, .resources = _gShelterB1SleepingQuartersVariant17Resources },
 };
 
 enum {

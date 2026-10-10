@@ -15,7 +15,15 @@
 
 extern TmdSource gShelterB1SleepingQuartersModel02DFC;
 
-extern AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
+/// Actor layouts indexed by the sleeping quarters' placement variant, 0..21.
+///
+/// Slots 1, 2, 3, 11 and 17 contain layouts; all others are absent. Variant 1
+/// has an Odd Stranger and four rats, 2 has seven amoebae, 3 has two Mad Chasers
+/// and two Creeping Strangers, 11 has a GOLEM Knight and 17 has a GOLEM Bishop.
+/// Each populated slot borrows sentinel-terminated placements and resources.
+/// Spawning and loading require the room overlay to remain loaded; actors
+/// retain placement pointers until teardown. This directory has no terminator.
+extern AreaVariant gShelterB1SleepingQuartersAreaVariants[22];
 
 /// The sleeping quarters' one-room directory of logical-view maps.
 ///
@@ -25,9 +33,24 @@ extern AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
 /// valid only while this overlay is loaded; the byte map belongs to gameplay.
 extern u8* gShelterB1SleepingQuartersRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_sleeping_quarters_8018065C[];
+/// Reverse-lookup search counts for the sleeping quarters' single room.
+///
+/// Room 1's signed 16-bit count searches 11 entries of `gViewIdentityMap`.
+/// Indexed by room minus one, with no terminator. This count is independent
+/// of the ten-camera array and eleven sprite descriptors. The room overlay
+/// must remain loaded while the Shelter map directory borrows this array.
+extern ViewCount gShelterB1SleepingQuartersRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[];
+/// Door endpoints for the main corridor and north maintenance walkway.
+///
+/// Slots 1 and 2 are indexed by warp ID minus one, without a terminator.
+/// Both place player and companion at the same world position, facing yaw
+/// 1024 or 2048 (4096 units per turn), and select room views 2 or 9.
+/// Arrival/departure sounds use the room bank; blocked sounds and option flags
+/// are absent. Slot 2 marks the walkway door on the map after arrival.
+/// The Shelter map borrows these records while the room overlay is loaded;
+/// transition code copies each complete entry before using it.
+extern DirectionWarpEntry gShelterB1SleepingQuartersWarpEntries[2];
 
 /// The sleeping quarters' room-space collision mesh and XZ cell index.
 ///
@@ -37,9 +60,24 @@ extern DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[];
 /// mutable and must stay loaded while active.
 extern WorldCollisionGrid gShelterB1SleepingQuartersCollisionGrid;
 
-extern ViewCamera D_shelter_b1_sleeping_quarters_801810F8[];
+/// Ten authored cameras for the sleeping quarters' mapped views 1..10.
+///
+/// Indexed by mapped view minus one, without a terminator. Transforms use
+/// Q12 rotation and negated world origins; projection distances are pixels.
+/// View 11 has image/sprite resources but no camera record in this array;
+/// requests using this camera directory must stay within views 1..10.
+/// Queued camera tasks borrow a record until application, so keep the room loaded.
+extern ViewCamera gShelterB1SleepingQuartersViewCameras[10];
 
-extern SpriteView D_shelter_b1_sleeping_quarters_80182E70[];
+/// Sprite and background descriptors for the sleeping quarters' mapped views 1..11.
+///
+/// Indexed by mapped view minus one, without a descriptor terminator. Views
+/// 3..8 and 10 select source sprites; 1, 2, 9 and 11 retain empty batch addresses
+/// in the source slot. Every view requests decoded background strips. Views
+/// 5..7 also supply clipping lists. Sources, batches and clips borrow mutable
+/// room-overlay storage throughout packet allocation and drawing. The camera
+/// directory has its own ten-record extent.
+extern SpriteView gShelterB1SleepingQuartersSpriteViews[11];
 
 /// The sleeping quarters' four directional and five point model-shading lights.
 ///
@@ -48,11 +86,30 @@ extern SpriteView D_shelter_b1_sleeping_quarters_80182E70[];
 /// this overlay is loaded.
 extern WorldCoordRoomLights gShelterB1SleepingQuartersRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[];
+/// Eighteen directed quads requesting transitions among room views 2..10.
+///
+/// Opposing pairs join 2/3 (twice), 3/4, 4/5, 5/6, 5/7, 7/8, 8/9 and 7/10.
+/// Positions and radii use game units; normals use 4096 per unit. LAST marks
+/// the final live record. Room setup binds the view coordinate, links and
+/// enables these mutable records; keep their overlay loaded until unlinked.
+extern WorldCollisionTrigger gShelterB1SleepingQuartersViewBoundaryTriggers[18];
 
-extern WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[];
+/// Five room-space quads blocking line of sight in the sleeping quarters.
+///
+/// Origins and corners use game units; normals use 4096 per unit. The final
+/// live quad carries LAST. Binding mutates links and enable flags; these records
+/// must remain loaded until the room's occluder list is cleared.
+extern WorldCollisionOccluder gShelterB1SleepingQuartersOccluders[5];
 
-extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
+/// Two door-warp quads and fifteen facing-gated CAP interaction quads.
+///
+/// The doors request main-corridor arrival slot 5 from room warp slot 1, and
+/// north-walkway arrival slot 1 from room warp slot 2. Interactions select CAP
+/// commands 1..13; selectors 3 and 8 route through the room-message handler.
+/// Positions/radii use game units and normals use 4096 per unit. LAST marks
+/// the final live record. Setup mutates links, coordinate and enable flags;
+/// collision updates hit latches. Keep the room overlay loaded until unlinked.
+extern WorldCollisionTrigger gShelterB1SleepingQuartersActionTriggers[17];
 
 /// Collision and footstep policies indexed by room surface class 0..7.
 ///

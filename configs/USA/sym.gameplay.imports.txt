@@ -1621,7 +1621,7 @@ D_shelter_b1_pod_access_tunnel_80184C00 = 0x80184C00; // absolute:True owner=she
 
 D_shelter_b1_pod_service_gantry_8017FBF8 = 0x8017FBF8; // absolute:True owner=shelter_b1_pod_service_gantry
 
-D_shelter_b1_sleeping_quarters_80183FDC = 0x80183FDC; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersAreaVariants = 0x80183FDC; // absolute:True owner=shelter_b1_sleeping_quarters
 
 gShelterB1SouthMaintenanceWalkwayAreaVariants = 0x80183598; // absolute:True owner=shelter_b1_south_maintenance_walkway
 

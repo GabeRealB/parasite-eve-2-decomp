@@ -132,15 +132,15 @@ shelterB1SleepingQuartersAreaObjectTask = 0x8017D608; // type:func absolute:True
 shelterB1SleepingQuartersRoomTask = 0x8017D888; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 gShelterB1SleepingQuartersModel02DFC = 0x801804F4; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersRoomViewMaps = 0x80180658; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_8018065C = 0x8018065C; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_80180660 = 0x80180660; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+gShelterB1SleepingQuartersRoomViewCounts = 0x8018065C; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersWarpEntries = 0x80180660; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 gShelterB1SleepingQuartersCollisionGrid = 0x801810D4; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_801810F8 = 0x801810F8; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_80182E70 = 0x80182E70; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersViewCameras = 0x801810F8; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersSpriteViews = 0x80182E70; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersRoomLights = 0x80183234; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_8018324C = 0x8018324C; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_801837A4 = 0x801837A4; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_801838D0 = 0x801838D0; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersViewBoundaryTriggers = 0x8018324C; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersOccluders = 0x801837A4; // absolute:True owner=shelter_b1_sleeping_quarters
+gShelterB1SleepingQuartersActionTriggers = 0x801838D0; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersSurfacePropertiesByClass = 0x801840B0; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 shelterB1MainCorridorRoomTask = 0x8017DD98; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
 gShelterB1MainCorridorRoomViewMaps = 0x801831F8; // absolute:True owner=shelter_b1_main_corridor

@@ -929,7 +929,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b1_storeroom_80184B70,
     D_shelter_b1_north_maintenance_walkway_80184B88,
     D_shelter_b1_armory_80182588,
-    D_shelter_b1_sleeping_quarters_80180660,
+    gShelterB1SleepingQuartersWarpEntries,
     gShelterB1MainCorridorWarpEntries,
     gShelterB1SterilizationRoomWarpEntries,
     gShelterB1PodAccessTunnelWarpEntries,
@@ -981,7 +981,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b1_storeroom_80184B6C,
     D_shelter_b1_north_maintenance_walkway_80184B84,
     D_shelter_b1_armory_80182584,
-    D_shelter_b1_sleeping_quarters_8018065C,
+    gShelterB1SleepingQuartersRoomViewCounts,
     gShelterB1MainCorridorRoomViewCounts,
     gShelterB1SterilizationRoomViewCounts,
     gShelterB1PodAccessTunnelRoomViewCounts,
@@ -1030,7 +1030,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B124[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B134[1] = {
-    { &gShelterB1SleepingQuartersCollisionGrid, D_shelter_b1_sleeping_quarters_8018324C, D_shelter_b1_sleeping_quarters_801838D0, D_shelter_b1_sleeping_quarters_801837A4 },
+    { &gShelterB1SleepingQuartersCollisionGrid, gShelterB1SleepingQuartersViewBoundaryTriggers, gShelterB1SleepingQuartersActionTriggers, gShelterB1SleepingQuartersOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B144[1] = {
@@ -1206,7 +1206,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b1_storeroom_801850FC,
     gShelterB1NorthMaintenanceWalkwayViewCameras,
     D_shelter_b1_armory_80182EF4,
-    D_shelter_b1_sleeping_quarters_801810F8,
+    gShelterB1SleepingQuartersViewCameras,
     gShelterB1MainCorridorViewCameras,
     gShelterB1SterilizationRoomViewCameras,
     gShelterB1PodAccessTunnelViewCameras,
@@ -1322,7 +1322,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB1StoreroomSpriteViews,
     gShelterB1NorthMaintenanceWalkwaySpriteViews,
     gShelterB1ArmorySpriteViews,
-    D_shelter_b1_sleeping_quarters_80182E70,
+    gShelterB1SleepingQuartersSpriteViews,
     gShelterB1MainCorridorSpriteViews,
     gShelterB1SterilizationRoomSpriteViews,
     gShelterB1PodAccessTunnelSpriteViews,
