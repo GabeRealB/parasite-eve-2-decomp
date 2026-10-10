@@ -71,7 +71,7 @@ _gDryfieldUnderpassSurfaceClass2Properties = 0x80181154; // size:0x8 defined:Tru
 _gDryfieldUnderpassSurfaceClass3Properties = 0x8018115C; // size:0x8 defined:True
 gDryfieldUnderpassSurfacePropertiesByClass = 0x80181164; // size:0x20 defined:True
 gActor400500TaskDesc = 0x80153D60; // absolute:True owner=actor_400500
-D_map_dryfield_8017BCC4 = 0x8017BCC4; // absolute:True owner=map_dryfield
+gMapDryfieldUnderpassGrayStalkerPlacements = 0x8017BCC4; // absolute:True owner=map_dryfield
 D_dryfield_underpass_8017E8C0 = 0x8017E8C0; // size:0x18 defined:True
 D_dryfield_underpass_8017E8D8 = 0x8017E8D8; // size:0x1F8 defined:True
 D_dryfield_underpass_8017E89C = 0x8017E89C; // size:0x4 defined:True

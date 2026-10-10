@@ -119,14 +119,14 @@ static u8 gStageMusicRow = 0;
 static u8               gStageCurrentSong   = 0;
 static StageMusicEntry* Stage_MusicTables[] = {
     D_map_akropolis_8017C1B4,
-    D_map_dryfield_8017BDE0,
+    gMapDryfieldAreaMusicEntries,
     gMapDryfieldFullAreaMusicEntries,
     D_map_shelter_8017BE28,
     D_map_neo_ark_8017CB54,
 };
 static StageMusicEntry* Stage_CountdownMusicTables[] = {
     D_map_akropolis_8017C304,
-    D_map_dryfield_8017C004,
+    gMapDryfieldCountdownMusicEntries,
     gMapDryfieldFullCountdownMusicEntries,
     D_map_shelter_8017C2D8,
     D_map_neo_ark_8017CDFC,

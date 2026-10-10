@@ -362,3 +362,4 @@ gMapDryfieldParkingLotVariant3Placements = 0x8017b204;
 gMapDryfieldParkingLotVariant7Placements = 0x8017b284;
 gMapDryfieldToiletEncounterPlacements = 0x8017b2a4;
 gMapDryfieldToiletBoneSucklerPlacements = 0x8017b2d4;
+gMapDryfieldUnderpassGrayStalkerPlacements = 0x8017bcc4;

@@ -429,7 +429,7 @@ static AreaResource _gDryfieldUnderpassGrayStalkerResources[2] = {
 
 AreaVariant D_dryfield_underpass_8017F868[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BCC4, _gDryfieldUnderpassGrayStalkerResources },
+    { gMapDryfieldUnderpassGrayStalkerPlacements, _gDryfieldUnderpassGrayStalkerResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

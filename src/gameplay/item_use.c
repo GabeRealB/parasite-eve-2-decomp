@@ -111,7 +111,7 @@ s32 gWorldTargetCursorYFixed8 = WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8;
 InventoryBattleReward* D_8010F9F4[6] = {
     NULL,
     D_map_akropolis_8017C0DC,
-    D_map_dryfield_8017BCE4,
+    gMapDryfieldBattleRewards,
     gMapDryfieldFullBattleRewards,
     D_map_shelter_8017BB58,
     D_map_neo_ark_8017C9B0,
@@ -120,7 +120,7 @@ InventoryBattleReward* D_8010F9F4[6] = {
 InventoryBattleReward* D_8010FA0C[6] = {
     NULL,
     D_map_akropolis_8017C16C,
-    D_map_dryfield_8017BD80,
+    gMapDryfieldHardBattleRewards,
     gMapDryfieldFullHardBattleRewards,
     D_map_shelter_8017BD8C,
     D_map_neo_ark_8017CB0C,
