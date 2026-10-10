@@ -2164,7 +2164,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkGardenWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0, 0):
             taskSpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);

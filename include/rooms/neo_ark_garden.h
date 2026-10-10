@@ -11,24 +11,56 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_neo_ark_garden_80181398;
+/// Number of logical views and identity-mapped camera/sprite slots in the garden.
+enum { NEO_ARK_GARDEN_VIEW_COUNT = 7 };
+
+/// Bodyless, priority-192 water-refraction task started when the garden is entered.
+///
+/// Both spawn payloads are ignored. The callback draws only in logical view 2;
+/// its room code must remain loaded for the task's lifetime.
+extern TaskDesc gNeoArkGardenWaterRefractionTaskDesc;
 
 extern AreaVariant D_neo_ark_garden_80182B54[13];
 
-// neo_ark_garden
-extern WorldCollisionRoomResources D_neo_ark_garden_8018140C[];
+/// Collision resources for garden room 1, borrowed while its overlay is loaded.
+///
+/// Supplies one grid, directed view boundaries and interaction triggers;
+/// no sight occluders are supplied. Linked resources remain writable and live
+/// until gameplay unlinks them before unloading the room.
+extern WorldCollisionRoomResources gNeoArkGardenCollisionRooms[1];
 
-extern WorldCoordRoomLighting D_neo_ark_garden_8018141C[];
+/// Lighting for garden room 1: four directional lights and default ambient minima.
+///
+/// The room-owned light coordinates remain writable while the overlay is loaded.
+extern WorldCoordRoomLighting gNeoArkGardenRoomLighting[1];
 
-extern u8* D_neo_ark_garden_80181424[];
+/// Room-1 logical views 1..7 mapped to the same camera, image and sprite slots.
+///
+/// Borrows gameplay's `gViewIdentityMap`; the directory remains room-owned.
+extern u8* gNeoArkGardenViewMaps[1];
 
-extern ViewCount D_neo_ark_garden_80181428[];
+/// Logical view count for garden room 1, limiting reverse view-map searches.
+extern ViewCount gNeoArkGardenViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_garden_8018142C[];
+/// Three 1-based garden warp endpoints with player/companion placement and cues.
+///
+/// Selected by warp ID minus one, with no terminator; the overlay must be loaded.
+/// Arrival views are 2, 4 and 3. Endpoint 2 carries the altar map marker and a
+/// blocked-departure cue; endpoint 3 has no sounds and carries map flag 0x1B5.
+extern DirectionWarpEntry gNeoArkGardenWarpEntries[3];
 
-extern ViewCamera D_neo_ark_garden_801816E8[];
+/// Camera transforms and perspective distances for garden mapped views 1..7.
+///
+/// Indexed by mapped view minus one; queued camera requests borrow these records
+/// until application and require the room overlay to remain loaded.
+extern ViewCamera gNeoArkGardenViewCameras[NEO_ARK_GARDEN_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_garden_80182540[];
+/// Garden mapped views 1..7, combining decoded backgrounds with depth-sorted sprites.
+///
+/// Views 2..4 have mutable source/batch arrays; views 1 and 5..7 have empty lists.
+/// No view supplies clipping commands. Indexed by mapped view minus one;
+/// all borrowed arrays require the garden overlay to remain loaded.
+extern SpriteView gNeoArkGardenSpriteViews[NEO_ARK_GARDEN_VIEW_COUNT];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
 

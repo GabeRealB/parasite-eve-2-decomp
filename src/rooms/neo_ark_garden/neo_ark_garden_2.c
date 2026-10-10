@@ -13,6 +13,7 @@
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -45,20 +46,25 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/glow_draw.h"
 
-extern SVECTOR D_neo_ark_garden_801813D8;
-
 static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre);
 
-extern WorldCollisionGrid    D_neo_ark_garden_801816C4[1];
-extern WorldCollisionTrigger D_neo_ark_garden_8018270C[6];
-extern WorldCollisionTrigger D_neo_ark_garden_801828D4[7];
-extern WorldCoordRoomLights  D_neo_ark_garden_801826F4[1];
+static WorldCollisionGrid    _gNeoArkGardenCollisionGrid;
+static WorldCollisionTrigger _gNeoArkGardenViewBoundaries[6];
+static WorldCollisionTrigger _gNeoArkGardenActionTriggers[7];
+static WorldCoordRoomLights  _gNeoArkGardenRoomLights;
 
-TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+/// Execution priority of the garden's framebuffer water tasks.
+enum { NEO_ARK_GARDEN_WATER_TASK_PRIORITY = 192 };
 
-TaskDesc D_neo_ark_garden_801813A4 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+TaskDesc gNeoArkGardenWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_GARDEN_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_garden_801813B0[5] = {
+/// Retained bodyless water-band spawn recipe with no garden caller.
+///
+/// Priority matches refraction. The callback ignores both spawn payloads and
+/// returns without drawing in the garden; it supports tunnel/gallery views.
+static TaskDesc _gNeoArkGardenWaterDistortionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_GARDEN_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
+
+TaskMessageEntry gNeoArkGardenRoomMessageTable[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkGardenResolveTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkGardenRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkGardenIgnoreActionMessage },
@@ -66,145 +72,191 @@ TaskMessageEntry D_neo_ark_garden_801813B0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_neo_ark_garden_801813D8 = { -6360, -1370, -0x4A24, 0 };
+/// Fixed world-coordinate centre of the pulsing star drawn in mapped view 3.
+static SVECTOR _gNeoArkGardenStarPosition = { -6360, -1370, -0x4A24, 0 };
 
-// Indexed views below share one contiguous table.
-SVECTOR D_neo_ark_garden_801813E0[4] = {
-    { 1000, -1800, -20900, 0 },
-    { 1000, -2100, -22600, 0 },
-    { 2010, -1980, -15510, 0 },
-    { 2010, -1980, -19500, 0 },
+/// Fixed world positions for smoke in mapped views 2/4 and squares in view 4.
+///
+/// Smoke spawn copies XYZ and stores the emitter address; puff motion uses the
+/// copied placement. Spawning requires this room-owned storage to be loaded.
+static struct {
+    SVECTOR smokeEmitters[2];         // World-coordinate smoke origins, attempted in array order
+    SVECTOR rotatingSquareCentres[2]; // World-coordinate centres of the rotating textured squares
+} _gNeoArkGardenAmbiencePositions = {
+    { { 1000, -1800, -20900, 0 }, { 1000, -2100, -22600, 0 } },
+    { { 2010, -1980, -15510, 0 }, { 2010, -1980, -19500, 0 } },
 };
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_garden_8018140C[1] = {
-    { D_neo_ark_garden_801816C4, D_neo_ark_garden_8018270C, D_neo_ark_garden_801828D4, NULL },
+WorldCollisionRoomResources gNeoArkGardenCollisionRooms[1] = {
+    { &_gNeoArkGardenCollisionGrid, _gNeoArkGardenViewBoundaries, _gNeoArkGardenActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_garden_8018141C[1] = {
-    { D_neo_ark_garden_801826F4, NULL },
+WorldCoordRoomLighting gNeoArkGardenRoomLighting[1] = {
+    { &_gNeoArkGardenRoomLights, NULL },
 };
 
-u8* D_neo_ark_garden_80181424[1] = {
+u8* gNeoArkGardenViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_garden_80181428[1] = { 7 };
+ViewCount gNeoArkGardenViewCounts[1] = { NEO_ARK_GARDEN_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_garden_8018142C[3] = {
-    { { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, 0x550F0006, 0x550F0005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, { { .word = 3072 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, 0x550F0002, 0x550F0001, 0x550F0009, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
-    { { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 437 },
+/// Sound requests and optional marker of the garden's authored warp endpoints.
+enum {
+    NEO_ARK_GARDEN_WARP_1_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 6),
+    NEO_ARK_GARDEN_WARP_1_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 5),
+    NEO_ARK_GARDEN_WARP_2_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 2),
+    NEO_ARK_GARDEN_WARP_2_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 1),
+    NEO_ARK_GARDEN_WARP_2_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 9),
+    NEO_ARK_GARDEN_WARP_3_MAP_FLAG        = 0x1B5,
 };
 
-static SVECTOR _gNeoArkGardenCollision04104Normals[5] = {
+DirectionWarpEntry gNeoArkGardenWarpEntries[3] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3040, 0, -0x319C }, { 0, 0, 0, 0 }, NEO_ARK_GARDEN_WARP_1_ARRIVAL_SOUND, NEO_ARK_GARDEN_WARP_1_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 1500, 0, -0x445C }, { 0, 0, 0, 0 }, NEO_ARK_GARDEN_WARP_2_ARRIVAL_SOUND, NEO_ARK_GARDEN_WARP_2_DEPARTURE_SOUND, NEO_ARK_GARDEN_WARP_2_BLOCKED_SOUND, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
+    { { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7543, 0, -0x4876 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, NEO_ARK_GARDEN_WARP_3_MAP_FLAG },
+};
+
+/// Unit-length room-space normals indexed by the garden collision faces.
+static SVECTOR _gNeoArkGardenCollisionGridNormals[5] = {
 #include "assets/neo_ark_garden_collision_04104_normals.inc"
 };
 
-static SVECTOR _gNeoArkGardenCollision04104Verts[22] = {
+/// Signed-halfword room-space vertices indexed by the garden collision faces.
+static SVECTOR _gNeoArkGardenCollisionGridVerts[22] = {
 #include "assets/neo_ark_garden_collision_04104_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkGardenCollision04104Faces[9] = {
+/// Nine wall/floor quads with room-local collision surface classes.
+static WorldCollisionGridFace _gNeoArkGardenCollisionGridFaces[9] = {
 #include "assets/neo_ark_garden_collision_04104_faces.inc"
 };
 
-static s16 _gNeoArkGardenCollision04104Cells[62] = {
+/// Contiguous signed face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkGardenCollisionGridCells[62] = {
 #include "assets/neo_ark_garden_collision_04104_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkGardenCollision04104Cells[i])
-static s16* _gNeoArkGardenCollision04104Table[12] = {
+#define GRID_CELL(i) (&_gNeoArkGardenCollisionGridCells[i])
+/// X-major directory of twelve cell lists for the garden's four-by-three grid.
+static s16* _gNeoArkGardenCollisionGridTable[12] = {
 #include "assets/neo_ark_garden_collision_04104_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_garden_801816C4[1] = {
-    { NULL, _gNeoArkGardenCollision04104Normals, _gNeoArkGardenCollision04104Verts, _gNeoArkGardenCollision04104Faces, _gNeoArkGardenCollision04104Table, 0x2710, 0x4E20, 4, 3, 4000, 9 },
+/// Garden wall/floor mesh and 4000-world-unit XZ cells, bound to the active view.
+static WorldCollisionGrid _gNeoArkGardenCollisionGrid = {
+    NULL,
+    _gNeoArkGardenCollisionGridNormals,
+    _gNeoArkGardenCollisionGridVerts,
+    _gNeoArkGardenCollisionGridFaces,
+    _gNeoArkGardenCollisionGridTable,
+    10000,
+    20000,
+    4,
+    3,
+    4000,
+    ARRAY_SIZE(_gNeoArkGardenCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_garden_801816E8[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x61A8, 0x4A38 } }, 329 },
+ViewCamera gNeoArkGardenViewCameras[NEO_ARK_GARDEN_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x61A8, 0x4A38 } }, 329 },
     { { { { -3663, 0, -1832 }, { -716, 3770, 1431 }, { 1687, 1601, -3371 } }, { 4920, 2785, 9295 } }, 257 },
     { { { { -3518, 0, 2096 }, { 457, 3997, 768 }, { -2045, 894, -3433 } }, { 5020, 1660, 0x2DB9 } }, 243 },
     { { { { -2502, 0, -3242 }, { -329, 4074, 253 }, { 3226, 415, -2489 } }, { 2000, 1500, 0x3A98 } }, 230 },
-    { { { { -2755, 0, 3030 }, { 0, 4096, 0 }, { -3030, 0, -2755 } }, { 4825, 1200, 0x3C14 } }, 541 },
+    { { { { -2755, 0, 3030 }, { 0, ONE, 0 }, { -3030, 0, -2755 } }, { 4825, 1200, 0x3C14 } }, 541 },
     { { { { 2204, 0, -3451 }, { -1390, 3749, -887 }, { 3159, 1649, 2018 } }, { 8900, 2385, 0x474F } }, 329 },
-    { { { { -4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, -4096 } }, { 0, 817, 0x45F1 } }, 329 },
+    { { { { -ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, -ONE } }, { 0, 817, 0x45F1 } }, 329 },
 };
 
-SpriteBatch D_neo_ark_garden_801817E4[2] = {
+/// Texture bindings shared by the garden's 8-bit view sprites.
+enum {
+    NEO_ARK_GARDEN_SPRITE_TEXTURE_8_BIT = 1,
+    NEO_ARK_GARDEN_SPRITE_LEFT_PAGE     = getTPage(NEO_ARK_GARDEN_SPRITE_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, 896, 0),
+    NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE    = getTPage(NEO_ARK_GARDEN_SPRITE_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, 960, 0),
+    NEO_ARK_GARDEN_SPRITE_PALETTE       = getClut(0, 255),
+};
+
+/// View-1 empty sprite list: keep the decoded background, then terminate.
+static SpriteBatch _gNeoArkGardenView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_garden_801817F4[62] = {
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 56, 1187, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 48, 1250, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 40, 1312, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 32, 1375, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -96, 24, 1437, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, 16, 1500, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 8, 1750, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, 88, 250, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -144, 80, 250, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -128, 64, 250, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -112, 56, 250, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -96, 48, 250, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, 64, 250, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -136, -8, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -120, -8, 750, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -104, 0, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -88, 0, 750, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -72, 8, 750, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -56, 16, 750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -40, 16, 750, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, 24, 750, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -8, 24, 750, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 8, 32, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 24, 32, 750, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 40, 32, 750, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 56, 48, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 72, 48, 750, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, 40, 750, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 104, 40, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -128, -16, 1375, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, -120, -24, 1375, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -112, -24, 1375, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -104, -24, 1375, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -96, -24, 1375, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -88, -16, 1375, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -16, 1400, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -24, 1437, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -64, -24, 1437, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -24, 1437, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, -40, 1625, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -40, 1625, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -104, -40, 1625, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -88, -32, 1625, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -72, -32, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -56, -40, 1625, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 88, 48, 1000, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, 104, -8, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, 120, -8, 1000, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 136, 0, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, 8, 1000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, -32, 750, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -144, -32, 750, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -128, -32, 1625, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -112, -32, 1625, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -96, -32, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -80, -32, 1625, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 0, 1625, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 40, 750, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -144, 40, 750, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -128, 40, 750, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -112, 40, 750, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -96, 40, 1625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+/// View-2 texture rectangles in screen pixels with per-sprite sorting depths.
+///
+/// Seven nonempty batches partition all 62 elements; sources have no terminator.
+static SpriteSource _gNeoArkGardenView2SpriteSources[62] = {
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 56, 8 } }, -112, 56, 1187, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 56, 8 } }, -112, 48, 1250, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 56, 8 } }, -112, 40, 1312, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 56, 8 } }, -112, 32, 1375, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 40, 8 } }, -96, 24, 1437, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 24, 8 } }, -80, 16, 1500, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, -72, 8, 1750, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -160, 88, 250, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -144, 80, 250, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -128, 64, 250, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 64 } }, -112, 56, 250, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -96, 48, 250, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 56 } }, -80, 64, 250, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -136, -8, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 64 } }, -120, -8, 750, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -104, 0, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 64 } }, -88, 0, 750, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -72, 8, 750, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -56, 16, 750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -40, 16, 750, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -24, 24, 750, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -8, 24, 750, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, 8, 32, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, 24, 32, 750, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 88 } }, 40, 32, 750, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 56, 48, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 72, 48, 750, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 80 } }, 88, 40, 750, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 80 } }, 104, 40, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, -128, -16, 1375, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 56 } }, -120, -24, 1375, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 72 } }, -112, -24, 1375, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 80 } }, -104, -24, 1375, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 80 } }, -96, -24, 1375, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -88, -16, 1375, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, -80, -16, 1400, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, -72, -24, 1437, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, -64, -24, 1437, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, -56, -24, 1437, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -136, -40, 1625, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -120, -40, 1625, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -104, -40, 1625, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -88, -32, 1625, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -72, -32, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -56, -40, 1625, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 88, 48, 1000, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 104 } }, 104, -8, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 104 } }, 120, -8, 1000, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 88 } }, 136, 0, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 72 } }, 152, 8, 1000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -160, -32, 750, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -144, -32, 750, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -128, -32, 1625, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -112, -32, 1625, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -96, -32, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 64 } }, -80, -32, 1625, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, -64, 0, 1625, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -160, 40, 750, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -144, 40, 750, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -128, 40, 750, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -112, 40, 750, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -96, 40, 1625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_garden_80181CCC[9] = {
+/// View-2 background-preserving header, seven sprite ranges and terminal record.
+///
+/// Ranges cover source elements 0..61 exactly; visibility bytes remain writable.
+static SpriteBatch _gNeoArkGardenView2SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 6, 0, 0, { 4, 0 } },
@@ -212,182 +264,230 @@ SpriteBatch D_neo_ark_garden_80181CCC[9] = {
     { 29, 10, 0, 0, { 5, 0 } },
     { 39, 6, 0, 0, { 0, 0 } },
     { 45, 5, 0, 0, { 6, 0 } },
-    { 50, 12, 0, 0, { 2, 0 } },
+    { 50, ARRAY_SIZE(_gNeoArkGardenView2SpriteSources) - 50, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_garden_80181D14[68] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 24, 600, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 112, 600, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -128, 72, 600, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, 64, 600, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 32, 600, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -96, 32, 600, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -80, 24, 600, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 32, 600, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 48, 600, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, 72, 600, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, 72, 625, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -40, 48, 625, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -24, 56, 625, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -16, 64, 625, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -8, 56, 625, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 0, 64, 625, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 48, 650, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 24, 48, 650, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 8, 56, 650, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 48, 650, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 48, 650, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 24, 650, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 88, 24, 650, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 104, 24, 650, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 64, 650, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 72, 650, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, 72, 650, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 72, 650, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 40, 675, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -56, 88, 575, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -112, 104, 575, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, 24, 575, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -128, 24, 575, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -160, 8, 575, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, 24, 575, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, 80, 575, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -112, 72, 575, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -96, 24, 575, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -96, 40, 575, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 72, 575, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 64, 575, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 16, 575, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, 16, 575, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 56, 575, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -48, 16, 575, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 80, 675, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 64, 675, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 48, 675, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -32, 8, 675, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, 8, 675, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, 8, 750, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 48, 675, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 0, 48, 750, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 16, 8, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 32, 0, 750, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 40, 32, 750, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 40, 0, 750, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 0, 800, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 32, 800, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 48, 800, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 72, 0, 812, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 80, -8, 825, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -8, 850, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 88, 24, 850, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, -24, 875, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 104, -8, 850, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 112, -24, 875, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 120, -24, 875, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+/// View-3 texture rectangles in screen pixels with per-sprite sorting depths.
+///
+/// Two nonempty batches partition all 68 elements; sources have no terminator.
+static SpriteSource _gNeoArkGardenView3SpriteSources[68] = {
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -64, 24, 600, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -136, 112, 600, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -128, 72, 600, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 56 } }, -112, 64, 600, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, -104, 32, 600, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 88 } }, -96, 32, 600, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 96 } }, -80, 24, 600, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -64, 32, 600, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, -64, 48, 600, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, -64, 72, 600, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -48, 72, 625, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, -40, 48, 625, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 64 } }, -24, 56, 625, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 56 } }, -16, 64, 625, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 64 } }, -8, 56, 625, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 56 } }, 0, 64, 625, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, 40, 48, 650, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, 24, 48, 650, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, 8, 56, 650, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, 56, 48, 650, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 48 } }, 72, 48, 650, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 80, 24, 650, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 88, 24, 650, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 104, 24, 650, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, 120, 64, 650, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 136, 72, 650, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 144, 72, 650, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 152, 72, 650, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -32, 40, 675, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -56, 88, 575, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, -112, 104, 575, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -112, 24, 575, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 96 } }, -128, 24, 575, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 112 } }, -160, 8, 575, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 56 } }, -144, 24, 575, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 40 } }, -144, 80, 575, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, -112, 72, 575, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, -96, 24, 575, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, -96, 40, 575, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, -96, 72, 575, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -80, 64, 575, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -80, 16, 575, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -64, 16, 575, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -64, 56, 575, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 80 } }, -48, 16, 575, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -32, 80, 675, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, -32, 64, 675, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -32, 48, 675, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 32 } }, -32, 8, 675, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 24 } }, -16, 8, 675, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 24 } }, 0, 8, 750, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, -16, 48, 675, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, 0, 48, 750, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 72 } }, 16, 8, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 72 } }, 32, 0, 750, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 16 } }, 40, 32, 750, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 24 } }, 40, 0, 750, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 24 } }, 56, 0, 800, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, 56, 32, 800, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 16 } }, 64, 48, 800, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 64 } }, 72, 0, 812, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 64 } }, 80, -8, 825, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 24 } }, 88, -8, 850, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_LEFT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 16, 8 } }, 88, 24, 850, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, 128, -24, 875, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 64 } }, 104, -8, 850, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 80 } }, 112, -24, 875, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 80 } }, 120, -24, 875, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_garden_80182264[4] = {
+/// View-3 background-preserving header, two sprite ranges and terminal record.
+///
+/// Ranges cover source elements 0..67 exactly; visibility bytes remain writable.
+static SpriteBatch _gNeoArkGardenView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 28, 0, 0, { 1, 0 } },
-    { 28, 40, 0, 0, { 0, 0 } },
+    { 28, ARRAY_SIZE(_gNeoArkGardenView3SpriteSources) - 28, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_garden_80182284[31] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -40, 795, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, -40, 795, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -40, 795, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, -40, 795, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, -40, 795, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -40, 795, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -32, 1432, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -32, 1477, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -32, 1524, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -32, 1575, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -88, 793, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, -88, 793, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, -88, 793, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, -88, 793, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, -88, 793, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -144, -88, 793, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, -88, 793, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, -72, 1375, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -72, 1375, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -72, 1375, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -72, 1375, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -32, 1504, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -48, 1468, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, -48, 1405, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -48, 1376, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, -48, 1358, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, -56, 1716, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, -56, 1656, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -56, 1626, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -56, 1465, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -56, 1459, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+/// View-4 texture rectangles in screen pixels with per-sprite sorting depths.
+///
+/// Two nonempty batches partition all 31 elements; sources have no terminator.
+static SpriteSource _gNeoArkGardenView4SpriteSources[31] = {
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -160, -40, 795, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -152, -40, 795, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -144, -40, 795, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -136, -40, 795, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -128, -40, 795, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, -120, -40, 795, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, 32, -32, 1432, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, 40, -32, 1477, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, 48, -32, 1524, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, 56, -32, 1575, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -112, -88, 793, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -160, -88, 793, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -120, -88, 793, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -128, -88, 793, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -136, -88, 793, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -144, -88, 793, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 48 } }, -152, -88, 793, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, 32, -72, 1375, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, 40, -72, 1375, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, 48, -72, 1375, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 40 } }, 56, -72, 1375, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 8 } }, 80, -32, 1504, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 88, -48, 1468, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 96, -48, 1405, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 104, -48, 1376, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 24 } }, 112, -48, 1358, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 32 } }, 120, -56, 1716, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 32 } }, 128, -56, 1656, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 32 } }, 136, -56, 1626, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 32 } }, 144, -56, 1465, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { NEO_ARK_GARDEN_SPRITE_RIGHT_PAGE, NEO_ARK_GARDEN_SPRITE_PALETTE, { .fields = { 8, 32 } }, 152, -56, 1459, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_garden_801824F0[4] = {
+/// View-4 background-preserving header, two sprite ranges and terminal record.
+///
+/// Ranges cover source elements 0..30 exactly; visibility bytes remain writable.
+static SpriteBatch _gNeoArkGardenView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
-    { 21, 10, 0, 0, { 0, 0 } },
+    { 21, ARRAY_SIZE(_gNeoArkGardenView4SpriteSources) - 21, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_garden_80182510[2] = {
+/// View-5 empty sprite list: keep the decoded background, then terminate.
+static SpriteBatch _gNeoArkGardenView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_garden_80182520[2] = {
+/// View-6 empty sprite list: keep the decoded background, then terminate.
+static SpriteBatch _gNeoArkGardenView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_garden_80182530[2] = {
+/// View-7 empty sprite list: keep the decoded background, then terminate.
+static SpriteBatch _gNeoArkGardenView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_garden_80182540[7] = {
-    { { .empty = D_neo_ark_garden_801817E4 }, D_neo_ark_garden_801817E4, NULL },
-    { { .elements = D_neo_ark_garden_801817F4 }, D_neo_ark_garden_80181CCC, NULL },
-    { { .elements = D_neo_ark_garden_80181D14 }, D_neo_ark_garden_80182264, NULL },
-    { { .elements = D_neo_ark_garden_80182284 }, D_neo_ark_garden_801824F0, NULL },
-    { { .empty = D_neo_ark_garden_80182510 }, D_neo_ark_garden_80182510, NULL },
-    { { .empty = D_neo_ark_garden_80182520 }, D_neo_ark_garden_80182520, NULL },
-    { { .empty = D_neo_ark_garden_80182530 }, D_neo_ark_garden_80182530, NULL },
+SpriteView gNeoArkGardenSpriteViews[NEO_ARK_GARDEN_VIEW_COUNT] = {
+    { { .empty = _gNeoArkGardenView1SpriteBatches }, _gNeoArkGardenView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkGardenView2SpriteSources }, _gNeoArkGardenView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkGardenView3SpriteSources }, _gNeoArkGardenView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkGardenView4SpriteSources }, _gNeoArkGardenView4SpriteBatches, NULL },
+    { { .empty = _gNeoArkGardenView5SpriteBatches }, _gNeoArkGardenView5SpriteBatches, NULL },
+    { { .empty = _gNeoArkGardenView6SpriteBatches }, _gNeoArkGardenView6SpriteBatches, NULL },
+    { { .empty = _gNeoArkGardenView7SpriteBatches }, _gNeoArkGardenView7SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_garden_80182594[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+/// Four view-independent directional lights, with mutable placement/attenuation.
+///
+/// Local translations are direction vectors in world axes; RGB uses Q12 levels.
+/// Gameplay parents their coordinates to the active view before composition.
+static WorldCoordLight _gNeoArkGardenDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_garden_801826F4[1] = {
-    { ARRAY_SIZE(D_neo_ark_garden_80182594), D_neo_ark_garden_80182594, 0, NULL, 0, NULL },
+/// Garden directional-light collection; no point or cone lights are authored.
+static WorldCoordRoomLights _gNeoArkGardenRoomLights = {
+    ARRAY_SIZE(_gNeoArkGardenDirectionalLights),
+    _gNeoArkGardenDirectionalLights,
+    0,
+    NULL,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_garden_8018270C[6] = {
-    { NULL, NULL, NULL, { -5313, -1089, -0x3FC1, 0 }, { { -171, -1904, -3345, 0 }, { 158, -1904, 3331, 0 }, { -171, 1904, -3345, 0 }, { 158, 1904, 3331, 0 } }, { 4093, 0, -202, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5185, -993, -0x3EE1, 0 }, { { 180, -1904, 3750, 0 }, { -190, -1904, -3760, 0 }, { 180, 1904, 3750, 0 }, { -190, 1904, -3760, 0 } }, { -4095, 0, 201, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -353, -800, -0x4671, 0 }, { { -460, -1904, -2051, 0 }, { 461, -1904, 2052, 0 }, { -460, 1904, -2051, 0 }, { 461, 1904, 2052, 0 } }, { 3996, 0, -899, 0 }, { 0, 0, 4096, 0 }, 2827, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -225, -928, -0x46C2, 0 }, { { 425, -1904, 1829, 0 }, { -424, -1904, -1828, 0 }, { 425, 1904, 1829, 0 }, { -424, 1904, -1828, 0 } }, { -4000, 0, 928, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1663, -1024, -0x3BE1, 0 }, { { -1640, -1904, -913, 0 }, { 1640, -1904, 914, 0 }, { -1640, 1904, -913, 0 }, { 1640, 1904, 914, 0 } }, { 1997, 0, -3588, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1696, -1024, -0x3C81, 0 }, { { 1640, -1904, 914, 0 }, { -1640, -1904, -913, 0 }, { 1640, 1904, 914, 0 }, { -1640, 1904, -913, 0 } }, { -1999, 0, 3586, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries 2<->3 and two pairs of 2<->4 crossings.
+///
+/// The final boundary is included and marked LAST; gameplay links and enables
+/// all six records, binding their world-coordinate quads to the active view.
+static WorldCollisionTrigger _gNeoArkGardenViewBoundaries[6] = {
+    { NULL, NULL, NULL, { -5313, -1089, -0x3FC1, 0 }, { { -171, -1904, -3345, 0 }, { 158, -1904, 3331, 0 }, { -171, 1904, -3345, 0 }, { 158, 1904, 3331, 0 } }, { 4093, 0, -202, 0 }, { 0, 0, ONE, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5185, -993, -0x3EE1, 0 }, { { 180, -1904, 3750, 0 }, { -190, -1904, -3760, 0 }, { 180, 1904, 3750, 0 }, { -190, 1904, -3760, 0 } }, { -4095, 0, 201, 0 }, { 0, 0, ONE, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -353, -800, -0x4671, 0 }, { { -460, -1904, -2051, 0 }, { 461, -1904, 2052, 0 }, { -460, 1904, -2051, 0 }, { 461, 1904, 2052, 0 } }, { 3996, 0, -899, 0 }, { 0, 0, ONE, 0 }, 2827, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -225, -928, -0x46C2, 0 }, { { 425, -1904, 1829, 0 }, { -424, -1904, -1828, 0 }, { 425, 1904, 1829, 0 }, { -424, 1904, -1828, 0 } }, { -4000, 0, 928, 0 }, { 0, 0, ONE, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1663, -1024, -0x3BE1, 0 }, { { -1640, -1904, -913, 0 }, { 1640, -1904, 914, 0 }, { -1640, 1904, -913, 0 }, { 1640, 1904, 914, 0 } }, { 1997, 0, -3588, 0 }, { 0, 0, ONE, 0 }, 2672, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1696, -1024, -0x3C81, 0 }, { { 1640, -1904, 914, 0 }, { -1640, -1904, -913, 0 }, { 1640, 1904, 914, 0 }, { -1640, 1904, -913, 0 } }, { -1999, 0, 3586, 0 }, { 0, 0, ONE, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
-    { NULL, NULL, NULL, { -2928, -48, -0x3130, 0 }, { { -1392, 0, -560, 0 }, { 1392, 0, -560, 0 }, { -1392, 0, 560, 0 }, { 1392, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1360, -59, -0x44A1, 0 }, { { 432, 0, -688, 0 }, { 432, 0, 688, 0 }, { -432, 0, -688, 0 }, { -432, 0, 688, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_WARP, 33, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -736, -64, -0x48A0, 0 }, { { -1520, 0, -832, 0 }, { 1520, 0, -832, 0 }, { -1520, 0, 832, 0 }, { 1520, 0, 832, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1731, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7456, -64, -0x48E0, 0 }, { { -1520, 0, -704, 0 }, { 1520, 0, -704, 0 }, { -1520, 0, 704, 0 }, { 1520, 0, 704, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8304, -64, -0x42C0, 0 }, { { -896, 0, -1280, 0 }, { 896, 0, -1280, 0 }, { -896, 0, 1280, 0 }, { 896, 0, 1280, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1376, -64, -0x3FC0, 0 }, { { 432, 0, -464, 0 }, { 432, 0, 592, 0 }, { -432, 0, -464, 0 }, { -432, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads authored into the garden's interaction quads.
+///
+/// Warp bytes pack the current endpoint in the high nibble and the destination
+/// arrival endpoint in the low nibble. Command IDs select the room handler;
+/// direct CAP IDs instead index the loaded dialogue file.
+enum {
+    NEO_ARK_GARDEN_BRIDGE_WARP_SLOTS           = (1 << 4) | 2,
+    NEO_ARK_GARDEN_SUBSTATION_WARP_SLOTS       = (2 << 4) | 1,
+    NEO_ARK_GARDEN_TRIGGER_AREA_UPDATE_COMMAND = 4,
+    NEO_ARK_GARDEN_TRIGGER_COMMAND_5           = 5,
+    NEO_ARK_GARDEN_TRIGGER_COMMAND_7           = 7,
+    NEO_ARK_GARDEN_TRIGGER_DIRECT_CAP_3        = 3,
+    NEO_ARK_GARDEN_TRIGGER_DIRECT_CAP_8        = 8,
+};
+
+/// Garden interactions: two warps, three room commands and two direct CAP entries.
+///
+/// All seven world-coordinate quads require opposing facing. The final trigger
+/// is included and marked LAST; gameplay mutates links, enable flags and hits.
+static WorldCollisionTrigger _gNeoArkGardenActionTriggers[7] = {
+    { NULL, NULL, NULL, { -2928, -48, -0x3130, 0 }, { { -1392, 0, -560, 0 }, { 1392, 0, -560, 0 }, { -1392, 0, 560, 0 }, { 1392, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_BRIDGE, NEO_ARK_GARDEN_BRIDGE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1360, -59, -0x44A1, 0 }, { { 432, 0, -688, 0 }, { 432, 0, 688, 0 }, { -432, 0, -688, 0 }, { -432, 0, 688, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SUBSTATION, NEO_ARK_GARDEN_SUBSTATION_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -736, -64, -0x48A0, 0 }, { { -1520, 0, -832, 0 }, { 1520, 0, -832, 0 }, { -1520, 0, 832, 0 }, { 1520, 0, 832, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1731, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_GARDEN_TRIGGER_AREA_UPDATE_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7456, -64, -0x48E0, 0 }, { { -1520, 0, -704, 0 }, { 1520, 0, -704, 0 }, { -1520, 0, 704, 0 }, { 1520, 0, 704, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, ONE, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_GARDEN_TRIGGER_COMMAND_5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8304, -64, -0x42C0, 0 }, { { -896, 0, -1280, 0 }, { 896, 0, -1280, 0 }, { -896, 0, 1280, 0 }, { 896, 0, 1280, 0 } }, { 0, 4110, 0, 0 }, { ONE, 0, 0, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_GARDEN_TRIGGER_DIRECT_CAP_3, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1376, -64, -0x3FC0, 0 }, { { 432, 0, -464, 0 }, { 432, 0, 592, 0 }, { -432, 0, -464, 0 }, { -432, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_GARDEN_TRIGGER_DIRECT_CAP_8, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, ONE, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_GARDEN_TRIGGER_COMMAND_7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Attempts ambient smoke at both fixed emitters, in their table order.
@@ -425,8 +525,8 @@ static __inline__ void _neoArkGardenSpawnAmbientSmoke(void)
         }                                                                                                             \
     }
 
-    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_garden_801813E0[0]);
-    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_garden_801813E0[1]);
+    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkGardenAmbiencePositions.smokeEmitters[0]);
+    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkGardenAmbiencePositions.smokeEmitters[1]);
 #undef NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE
 }
 
@@ -502,7 +602,7 @@ void neoArkGardenAmbienceTask(Task* task)
             } else {
                 ambienceWork->scale--;
             }
-            glowDrawPulsingStar(&D_neo_ark_garden_801813D8, NEO_ARK_GARDEN_MARKER_PULSE_RATE, NEO_ARK_GARDEN_MARKER_RADIUS_SCALE);
+            glowDrawPulsingStar(&_gNeoArkGardenStarPosition, NEO_ARK_GARDEN_MARKER_PULSE_RATE, NEO_ARK_GARDEN_MARKER_RADIUS_SCALE);
             break;
         case NEO_ARK_GARDEN_AMBIENCE_VIEW_4:
             if (ambienceWork->scale == 0) {
@@ -516,8 +616,8 @@ void neoArkGardenAmbienceTask(Task* task)
             } else {
                 ambienceWork->scale--;
             }
-            _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[2]);
-            _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[3]);
+            _neoArkGardenDrawRotatingSquare(&_gNeoArkGardenAmbiencePositions.rotatingSquareCentres[0]);
+            _neoArkGardenDrawRotatingSquare(&_gNeoArkGardenAmbiencePositions.rotatingSquareCentres[1]);
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 _neoArkGardenSpawnAmbientSmoke();
             }

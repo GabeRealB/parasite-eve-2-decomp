@@ -8,7 +8,11 @@
 
 #include "main/task_types.h"
 
-extern TaskMessageEntry D_neo_ark_garden_801813B0[5];
+/// Garden room receiver's transition, key-item, direction-action and command handlers.
+///
+/// Four message entries precede `TASK_MESSAGE_TABLE_END`, so unsupported IDs
+/// return zero. The room task borrows this table while the overlay is loaded.
+extern TaskMessageEntry gNeoArkGardenRoomMessageTable[5];
 
 // Callbacks referenced by the overlay's shared data tables.
 

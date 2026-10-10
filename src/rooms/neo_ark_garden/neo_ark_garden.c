@@ -217,7 +217,7 @@ static void _neoArkGardenInitializeRoom(Task* task)
         NEO_ARK_GARDEN_ARRIVAL_OBJECTIVE = 0x34,
     };
 
-    task->msgTable = D_neo_ark_garden_801813B0;
+    task->msgTable = gNeoArkGardenRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Match arrival warp 3 and placement variant 2 as one halfword.
     if (*(u16*)&gGameSession->location.loc.warp == NEO_ARK_GARDEN_ARRIVAL_KEY) {
