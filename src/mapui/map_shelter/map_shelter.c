@@ -918,7 +918,7 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
 DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gMineMesaWarpEntries,
     gMineCavernWarpEntries,
-    D_mine_tunnel_entrance_8017DB78,
+    gMineTunnelEntranceWarpEntries,
     D_mine_tunnel_8017E174,
     gMineGorgeWarpEntries,
     D_mine_refuge_80181910,
@@ -970,7 +970,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
 static ViewCount* D_map_shelter_8017B04C[49] = {
     gMineMesaRoomViewCounts,
     gMineCavernRoomViewCounts,
-    D_mine_tunnel_entrance_8017DB74,
+    gMineTunnelEntranceRoomViewCounts,
     D_mine_tunnel_8017E170,
     gMineGorgeRoomViewCounts,
     gMineRefugeRoomViewCounts,
@@ -1141,7 +1141,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
 static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
     gMineMesaRoomCollisionResources,
     gMineCavernRoomCollisionResources,
-    D_mine_tunnel_entrance_8017DB60,
+    gMineTunnelEntranceRoomCollisionResources,
     D_mine_tunnel_8017E15C,
     gMineGorgeRoomCollisionResources,
     D_mine_refuge_801818F8,

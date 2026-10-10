@@ -11,7 +11,14 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_tunnel_entrance_8017F32C[12];
+/// Mine/Shelter area 3's encounter layouts, indexed by placement variant 0..11.
+///
+/// Variants 1, 2, 3, 4 and 11 contain paired placement/resource tables; slots
+/// 0 and 5..10 are absent. Variant 1 is the default. The tables end at
+/// `AREA_PLACEMENT_END`; their indices and entry IDs have different roles.
+/// Keep this room overlay and each recipe's actor overlay loaded while loading,
+/// spawning or using actors that borrow placements or task descriptors.
+extern AreaVariant gMineTunnelEntranceAreaVariants[12];
 
 /// Room 1's authored lights and per-view minimum ambient colours.
 ///
@@ -19,7 +26,13 @@ extern AreaVariant D_mine_tunnel_entrance_8017F32C[12];
 /// is loaded. Light transforms and attenuation remain writable at runtime.
 extern WorldCoordRoomLighting gMineTunnelEntranceRoomLighting[1];
 
-extern WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[];
+/// Room 1's collision grid, eight view boundaries and four action quads.
+///
+/// The Shelter map borrows this one-room directory at room ID minus one.
+/// There are no sight occluders. Each trigger list includes its LAST-marked
+/// final record; the grid and triggers stay writable and loaded while active,
+/// and trigger storage must remain live until unlinked.
+extern WorldCollisionRoomResources gMineTunnelEntranceRoomCollisionResources[1];
 
 /// Room 1's logical-view mapping, borrowing gameplay's identity map.
 ///
@@ -27,9 +40,21 @@ extern WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[];
 /// This room directory lives in the tunnel overlay; the byte map lives in gameplay.
 extern u8* gMineTunnelEntranceRoomViewMaps[1];
 
-extern ViewCount D_mine_tunnel_entrance_8017DB74[];
+/// Room 1's six-entry logical-view reverse-search limit.
+///
+/// The Shelter map borrows this signed-halfword count at room ID minus one
+/// while the room overlay is loaded. It covers logical views 1..6 of the
+/// borrowed identity map, independently of that map's 50-entry capacity.
+extern ViewCount gMineTunnelEntranceRoomViewCounts[1];
 
-extern DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[];
+/// Three player/companion warp endpoints, indexed by one-based warp ID minus one.
+///
+/// Endpoints 1, 2 and 3 serve the Mesa, Forked Tunnel and Tunnel connections
+/// and select arrival views 2, 6 and 4. Positions use world units and yaw uses
+/// 4096 units per turn. Each has arrival/departure sounds, no blocked sound,
+/// no spawn/fade flags and no map marker. The Shelter map borrows the complete
+/// records while this overlay is loaded; there is no terminator.
+extern DirectionWarpEntry gMineTunnelEntranceWarpEntries[3];
 
 /// Six cameras selected by mapped view index minus one.
 ///

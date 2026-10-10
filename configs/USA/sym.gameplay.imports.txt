@@ -1547,7 +1547,7 @@ gMineSecretPassageAreaVariants = 0x80183340; // absolute:True owner=mine_secret_
 
 D_mine_tunnel_801801CC = 0x801801CC; // absolute:True owner=mine_tunnel shared=rooms
 
-D_mine_tunnel_entrance_8017F32C = 0x8017F32C; // absolute:True owner=mine_tunnel_entrance
+gMineTunnelEntranceAreaVariants = 0x8017F32C; // absolute:True owner=mine_tunnel_entrance
 
 D_mist_r18_80186BFC = 0x80186BFC; // absolute:True owner=mist_r18
 

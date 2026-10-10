@@ -48,7 +48,7 @@ gShelter1fAirlockViewMaps = 0x8017E5B4; // absolute:True owner=shelter_1f_airloc
 gShelter1fAirlockViewCounts = 0x8017E5B8; // absolute:True owner=shelter_1f_airlock
 D_shelter_1f_airlock_8017E5BC = 0x8017E5BC; // absolute:True owner=shelter_1f_airlock shared=rooms
 gShelter1fAirlockViewCameras = 0x8017E85C; // absolute:True owner=shelter_1f_airlock
-gShelter1fAirlockSpriteViews = 0x8017F07C; // absolute:True owner=shelter_1f_airlock shared=rooms
+gShelter1fAirlockSpriteViews = 0x8017F07C; // absolute:True owner=shelter_1f_airlock
 gShelter1fAirlockSurfaceProperties = 0x8017F84C; // absolute:True owner=shelter_1f_airlock shared=rooms
 shelter1fGuardroomRoomTask = 0x8017D880; // type:func absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomRoomCollisionResources = 0x8017DA78; // absolute:True owner=shelter_1f_guardroom shared=rooms

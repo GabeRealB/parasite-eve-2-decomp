@@ -23,6 +23,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -42,20 +43,21 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
-/// The room's message table, which the room task answers messages with.
-extern TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[];
-
 static void _mineTunnelEntranceInitRoomTask(Task* task);
 static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
 static void _mineTunnelEntranceIdle(Task* unusedTask);
 
-/// State handlers of the room task `mineTunnelEntranceRoomTask` runs:
-/// set-up, the scene-event state, an idle state and `taskKill`.
-static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
-    _mineTunnelEntranceInitRoomTask,
-    _mineTunnelEntranceAdvanceSceneEvent,
-    _mineTunnelEntranceIdle,
-    taskKill,
+/// Four room-task states: initialization, arrival-event update, idle and release.
+///
+/// Indexed by unchecked task state 0..3 after a complete value copy. The room
+/// overlay must remain loaded until the task reaches its release state.
+static const TaskFuncTable4 _gMineTunnelEntranceRoomStateHandlers = {
+    .funcs = {
+        _mineTunnelEntranceInitRoomTask,
+        _mineTunnelEntranceAdvanceSceneEvent,
+        _mineTunnelEntranceIdle,
+        taskKill,
+    },
 };
 
 static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -67,12 +69,18 @@ static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const Dire
 enum { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static WorldCollisionGrid         _gMineTunnelEntranceCollisionGrid;
-extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017ECEC[8];
-extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017EF4C[4];
+static WorldCollisionTrigger      _gMineTunnelEntranceViewBoundaryTriggers[8];
+static WorldCollisionTrigger      _gMineTunnelEntranceActionTriggers[4];
 static WorldCoordRoomAmbientEntry _gMineTunnelEntranceViewAmbientTable[7];
 static WorldCoordRoomLights       _gMineTunnelEntranceRoomLights;
 
-TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
+/// Room messages for transition resolution, key-item use, actions and commands.
+///
+/// Transition requests borrow request/reply records and permit direct departure
+/// after stage resolution. Key items are rejected; actions and commands return
+/// zero without effects. Unsupported IDs return zero at `TASK_MESSAGE_TABLE_END`.
+/// The registered room task borrows this table and its callbacks while loaded.
+static TaskMessageEntry _gMineTunnelEntranceRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelEntranceResolveRoomTransition },
     { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM, _mineTunnelEntranceRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelEntranceIgnoreAction },
@@ -99,20 +107,76 @@ WorldCoordRoomLighting gMineTunnelEntranceRoomLighting[1] = {
     { .lights = &_gMineTunnelEntranceRoomLights, .ambientTable = _gMineTunnelEntranceViewAmbientTable },
 };
 
-WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[1] = {
-    { &_gMineTunnelEntranceCollisionGrid, D_mine_tunnel_entrance_8017ECEC, D_mine_tunnel_entrance_8017EF4C, NULL },
+WorldCollisionRoomResources gMineTunnelEntranceRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gMineTunnelEntranceCollisionGrid,
+        .viewBoundaryTriggers = _gMineTunnelEntranceViewBoundaryTriggers,
+        .actionTriggers       = _gMineTunnelEntranceActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gMineTunnelEntranceRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mine_tunnel_entrance_8017DB74[1] = { 6 };
+ViewCount gMineTunnelEntranceRoomViewCounts[1] = { ARRAY_SIZE(gMineTunnelEntranceViewCameras) };
 
-DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[3] = {
-    { { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44C0, 0, 1750 }, { 0, 0, 0, 0 }, 0x54030002, 0x54030001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2873, 0, -448 }, { 0, 0, 0, 0 }, 0x54030004, 0x54030003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, 0x54030006, 0x54030005, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// One-based endpoint IDs shared by warp records and the outgoing action quads.
+enum {
+    MINE_TUNNEL_ENTRANCE_WARP_MESA           = 1,
+    MINE_TUNNEL_ENTRANCE_WARP_FORKED_TUNNEL  = 2,
+    MINE_TUNNEL_ENTRANCE_WARP_TUNNEL         = 3,
+    MINE_TUNNEL_ENTRANCE_WARP_ENDPOINT_SHIFT = 4,
+};
+
+/// Authored sound requests for arriving at and departing from each endpoint.
+enum {
+    MINE_TUNNEL_ENTRANCE_MESA_ARRIVAL_SOUND            = 0x54030002,
+    MINE_TUNNEL_ENTRANCE_MESA_DEPARTURE_SOUND          = 0x54030001,
+    MINE_TUNNEL_ENTRANCE_FORKED_TUNNEL_ARRIVAL_SOUND   = 0x54030004,
+    MINE_TUNNEL_ENTRANCE_FORKED_TUNNEL_DEPARTURE_SOUND = 0x54030003,
+    MINE_TUNNEL_ENTRANCE_TUNNEL_ARRIVAL_SOUND          = 0x54030006,
+    MINE_TUNNEL_ENTRANCE_TUNNEL_DEPARTURE_SOUND        = 0x54030005,
+};
+
+DirectionWarpEntry gMineTunnelEntranceWarpEntries[3] = {
+    [MINE_TUNNEL_ENTRANCE_WARP_MESA - 1] = {
+        .player         = { { .word = 3072 }, 0x44C0, 0, 1750 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 0x44C0, 0, 1750 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = MINE_TUNNEL_ENTRANCE_MESA_ARRIVAL_SOUND,
+        .departureSound = MINE_TUNNEL_ENTRANCE_MESA_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    [MINE_TUNNEL_ENTRANCE_WARP_FORKED_TUNNEL - 1] = {
+        .player         = { { .word = 0 }, 2873, 0, -448 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2873, 0, -448 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = MINE_TUNNEL_ENTRANCE_FORKED_TUNNEL_ARRIVAL_SOUND,
+        .departureSound = MINE_TUNNEL_ENTRANCE_FORKED_TUNNEL_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    [MINE_TUNNEL_ENTRANCE_WARP_TUNNEL - 1] = {
+        .player         = { { .word = 1024 }, 417, 0, 1571 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 417, 0, 1571 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = MINE_TUNNEL_ENTRANCE_TUNNEL_ARRIVAL_SOUND,
+        .departureSound = MINE_TUNNEL_ENTRANCE_TUNNEL_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 enum {
@@ -377,7 +441,13 @@ static WorldCoordRoomLights _gMineTunnelEntranceRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_mine_tunnel_entrance_8017ECEC[8] = {
+/// Eight directed view boundaries joining views 2/3, 3/4 and 4/6.
+///
+/// The final quad is live and carries `WORLD_COLLISION_TRIGGER_LAST`.
+/// Room setup binds view coordinates and mutable list/contact state in place;
+/// keep the overlay loaded until all records are unlinked. Origins, vertices
+/// and radii use world units; normals use ONE (4096) per unit.
+static WorldCollisionTrigger _gMineTunnelEntranceViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 0x3500, -1632, 1441, 0 }, { { 0, -2368, 3424, 0 }, { 0, -2368, -3424, 0 }, { 0, 2368, 3424, 0 }, { 0, 2368, -3424, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3461, -1697, 1504, 0 }, { { 0, -2368, -3456, 0 }, { 0, -2368, 3456, 0 }, { 0, 2368, -3456, 0 }, { 0, 2368, 3456, 0 } }, { 4101, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 7361, -1665, 1376, 0 }, { { -339, -2368, 3402, 0 }, { 331, -2368, -3412, 0 }, { -339, 2368, 3402, 0 }, { 331, 2368, -3412, 0 } }, { -4077, 0, -401, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -388,102 +458,167 @@ WorldCollisionTrigger D_mine_tunnel_entrance_8017ECEC[8] = {
     { NULL, NULL, NULL, { 1182, -1696, -66, 0 }, { { 1927, -2368, 190, 0 }, { -1926, -2368, -189, 0 }, { 1927, 2368, 190, 0 }, { -1926, 2368, -189, 0 } }, { -403, 0, 4087, 0 }, { 0, 0, 4096, 0 }, 3050, 0, 4, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_tunnel_entrance_8017EF4C[4] = {
-    { NULL, NULL, NULL, { 0x44A0, -48, 2112, 0 }, { { -512, 0, -1792, 0 }, { 512, 0, -1792, 0 }, { -512, 0, 1792, 0 }, { 512, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1863, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 544, -48, 1088, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2992, -48, -624, 0 }, { { 816, 0, -336, 0 }, { 816, 0, 336, 0 }, { -816, 0, -336, 0 }, { -816, 0, 336, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, 4096, 0 }, 882, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6496, -64, 3840, 0 }, { { -864, 0, -1024, 0 }, { 864, 0, -1024, 0 }, { -864, 0, 1024, 0 }, { 864, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 201, 0, -4091, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum { MINE_TUNNEL_ENTRANCE_CAP_COMMAND_1 = 1 };
+
+/// Facing-gated warps to Mesa, Tunnel and Forked Tunnel, followed by CAP command 1.
+///
+/// Warp parameter1 packs this area's departure endpoint above the destination's
+/// arrival endpoint; the room resolver may redirect the requested destination.
+/// No automatic or battle gate is set. The CAP quad is the live LAST record.
+/// Geometry uses world units and ONE (4096) per normal unit; room setup mutates
+/// links, view coordinates, enable flags and contacts until the records unlink.
+static WorldCollisionTrigger _gMineTunnelEntranceActionTriggers[4] = {
+    { NULL, NULL, NULL, { 0x44A0, -48, 2112, 0 }, { { -512, 0, -1792, 0 }, { 512, 0, -1792, 0 }, { -512, 0, 1792, 0 }, { 512, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1863, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_MESA, (MINE_TUNNEL_ENTRANCE_WARP_MESA << MINE_TUNNEL_ENTRANCE_WARP_ENDPOINT_SHIFT) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 544, -48, 1088, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_TUNNEL, (MINE_TUNNEL_ENTRANCE_WARP_TUNNEL << MINE_TUNNEL_ENTRANCE_WARP_ENDPOINT_SHIFT) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2992, -48, -624, 0 }, { { 816, 0, -336, 0 }, { 816, 0, 336, 0 }, { -816, 0, -336, 0 }, { -816, 0, 336, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, ONE, 0 }, 882, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_FORKED_TUNNEL, (MINE_TUNNEL_ENTRANCE_WARP_FORKED_TUNNEL << MINE_TUNNEL_ENTRANCE_WARP_ENDPOINT_SHIFT) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6496, -64, 3840, 0 }, { { -864, 0, -1024, 0 }, { 864, 0, -1024, 0 }, { -864, 0, 1024, 0 }, { 864, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 201, 0, -4091, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_TUNNEL_ENTRANCE_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_tunnel_entrance_8017F07C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
+/// Resource-entry IDs joining this room's placement lists to their task recipes.
+enum {
+    MINE_TUNNEL_ENTRANCE_RESOURCE_DESERT_CHASER = 1,
+    MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER = 6,
+    MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH          = 8,
+    MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER     = 16,
+    MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION      = 25,
+};
+
+/// Variant 1's Desert Chaser and slot-3 Moth loading and spawn recipes.
+///
+/// Entry IDs match placements; `AREA_PLACEMENT_END` ends the list. Every live
+/// recipe selects task descriptor zero and borrows its actor overlay.
+static AreaResource _gMineTunnelEntranceVariant1Resources[3] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_DESERT_CHASER, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_entrance_8017F0A0[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
+/// Variant 2's Scavenger loading and spawn recipe, ending at `AREA_PLACEMENT_END`.
+///
+/// Entry ID matches its placements; descriptor zero borrows the loaded actor.
+static AreaResource _gMineTunnelEntranceVariant2Resources[2] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_entrance_8017F0B8[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
+/// Variant 3's Zebra Stalker recipe, ending at `AREA_PLACEMENT_END`.
+///
+/// Entry ID matches its placements; descriptor zero borrows the loaded actor.
+static AreaResource _gMineTunnelEntranceVariant3Resources[2] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_entrance_8017F0D0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
+/// Variant 4's Scorpion and slot-2 Moth loading and spawn recipes.
+///
+/// Entry IDs match placements; `AREA_PLACEMENT_END` ends the list. Descriptor
+/// zero selects the live Scorpion, rather than its corpse-poison task.
+static AreaResource _gMineTunnelEntranceVariant4Resources[3] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_entrance_8017F0F4[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
+/// Variant 11's separate Zebra Stalker recipe, ending at `AREA_PLACEMENT_END`.
+///
+/// Entry ID matches its placements; descriptor zero borrows the loaded actor.
+static AreaResource _gMineTunnelEntranceVariant11Resources[2] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_tunnel_entrance_8017F10C[8] = {
-    { 1, 0, 1, 0x2710, 0, 1050, 1024, 0, 0, 2, 0 },
-    { 1, 0, 1, 6650, 0, 2500, 2950, 0, 0, 2, 0 },
-    { 8, 0, 0, 0x2CEC, -2000, 800, 1650, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x2DB4, -2200, 900, 2048, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x2E4A, -1900, 800, 2250, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x3AFC, -1700, 3350, 400, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x3DB8, -2000, 3400, 3800, 0, 2, 4, 3 },
+/// Actor-specific choices carried by the room's authored placements.
+enum {
+    MINE_TUNNEL_ENTRANCE_CHASER_TUNING_ROW_2   = 1,
+    MINE_TUNNEL_ENTRANCE_SCORPION_ROAM         = 0,
+    MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW = 2,
+    MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW        = 3,
+};
+
+/// Variant 1's two Desert Chasers and five Moths, followed by `AREA_PLACEMENT_END`.
+///
+/// Chasers approach with tuning row 2; Moths use speed row 3. Positions use
+/// world units, yaw uses 4096 per turn, and all placements use base files.
+/// Actors borrow these records from the room overlay for their lifetime.
+static AreaPlacement _gMineTunnelEntranceVariant1Placements[8] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_DESERT_CHASER, 0, MINE_TUNNEL_ENTRANCE_CHASER_TUNING_ROW_2, 0x2710, 0, 1050, 1024, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_DESERT_CHASER, 0, MINE_TUNNEL_ENTRANCE_CHASER_TUNING_ROW_2, 6650, 0, 2500, 2950, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x2CEC, -2000, 800, 1650, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x2DB4, -2200, 900, 2048, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x2E4A, -1900, 800, 2250, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x3AFC, -1700, 3350, 400, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x3DB8, -2000, 3400, 3800, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_tunnel_entrance_8017F18C[6] = {
-    { 16, 0, 0, 4000, 0, 2300, 2500, 0, 0, 2, 0 },
-    { 16, 0, 0, 5450, 0, 350, 3500, 0, 0, 2, 0 },
-    { 16, 0, 0, 6550, 0, 600, 4000, 0, 0, 2, 0 },
-    { 16, 0, 0, 8950, 0, 600, 2600, 0, 0, 2, 0 },
-    { 16, 0, 0, 0x2CBA, 0, 3100, 2050, 0, 0, 2, 0 },
+/// Variant 2's five Scavengers, followed by `AREA_PLACEMENT_END`.
+///
+/// Positions use world units and yaw uses 4096 per turn. All use base files
+/// and borrow their placement records while the actors remain live.
+static AreaPlacement _gMineTunnelEntranceVariant2Placements[6] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 0, 0, 4000, 0, 2300, 2500, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 0, 0, 5450, 0, 350, 3500, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 0, 0, 6550, 0, 600, 4000, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 0, 0, 8950, 0, 600, 2600, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCAVENGER, 0, 0, 0x2CBA, 0, 3100, 2050, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_tunnel_entrance_8017F1EC[4] = {
-    { 6, 0, 0, 8100, 0, 2500, 2750, 0, 0, 2, 0 },
-    { 6, 0, 0, 8050, 0, 900, 3250, 0, 0, 2, 0 },
-    { 6, 0, 0, 0x30D4, 0, 1400, 950, 0, 0, 2, 0 },
+/// Variant 3's three Zebra Stalkers, followed by `AREA_PLACEMENT_END`.
+///
+/// Uses their plain entrance, base files, world positions and yaw in 4096
+/// units per turn. These room records remain borrowed while the actors live.
+static AreaPlacement _gMineTunnelEntranceVariant3Placements[4] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 0, 0, 8100, 0, 2500, 2750, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 0, 0, 8050, 0, 900, 3250, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 0, 0, 0x30D4, 0, 1400, 950, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_tunnel_entrance_8017F22C[13] = {
-    { 25, 0, 0, 2900, 0, 2500, 2850, 0, 0, 2, 2 },
-    { 25, 0, 0, 5550, 0, 450, 3350, 0, 0, 2, 2 },
-    { 25, 0, 0, 6850, 0, 2950, 2200, 0, 0, 2, 2 },
-    { 25, 0, 0, 8250, 0, 1500, 2900, 0, 0, 2, 2 },
-    { 25, 0, 0, 0x2CEC, 0, 3000, 1400, 0, 0, 2, 2 },
-    { 25, 0, 0, 0x3552, 0, 900, 450, 0, 0, 2, 2 },
-    { 8, 0, 0, 6250, -1800, 3200, 300, 0, 2, 4, 3 },
-    { 8, 0, 0, 6900, -1500, 2950, 50, 0, 2, 4, 3 },
-    { 8, 0, 0, 7250, -1600, 3100, 3550, 0, 2, 4, 3 },
-    { 8, 0, 0, 9800, -2000, 600, 1500, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x29FE, -1800, 800, 2050, 0, 2, 4, 3 },
-    { 8, 0, 0, 0x3C8C, -1600, 3400, 200, 0, 2, 4, 3 },
+/// Variant 4's six roaming Scorpions and six Moths, then `AREA_PLACEMENT_END`.
+///
+/// Scorpions use movement row 2 and Moths speed row 3. All use base files;
+/// positions are world units and yaw is 4096 per turn. The room records
+/// remain borrowed until their actors are released.
+static AreaPlacement _gMineTunnelEntranceVariant4Placements[13] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 2900, 0, 2500, 2850, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 5550, 0, 450, 3350, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 6850, 0, 2950, 2200, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 8250, 0, 1500, 2900, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 0x2CEC, 0, 3000, 1400, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_SCORPION, 0, MINE_TUNNEL_ENTRANCE_SCORPION_ROAM, 0x3552, 0, 900, 450, 0, 0, 2, MINE_TUNNEL_ENTRANCE_SCORPION_MOVEMENT_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 6250, -1800, 3200, 300, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 6900, -1500, 2950, 50, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 7250, -1600, 3100, 3550, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 9800, -2000, 600, 1500, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x29FE, -1800, 800, 2050, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_MOTH, 0, 0, 0x3C8C, -1600, 3400, 200, 0, 2, 4, MINE_TUNNEL_ENTRANCE_MOTH_SPEED_ROW },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_tunnel_entrance_8017F2FC[3] = {
-    { 6, 0, 0, 0x2710, 0, 1600, 1024, 0, 0, 2, 0 },
-    { 6, 0, 0, 6000, 0, 2500, 3072, 0, 0, 2, 0 },
+/// Variant 11's two Zebra Stalkers, followed by `AREA_PLACEMENT_END`.
+///
+/// Uses their plain entrance, base files, world positions and yaw in 4096
+/// units per turn. These room records remain borrowed while the actors live.
+static AreaPlacement _gMineTunnelEntranceVariant11Placements[3] = {
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 0, 0, 0x2710, 0, 1600, 1024, 0, 0, 2, 0 },
+    { MINE_TUNNEL_ENTRANCE_RESOURCE_ZEBRA_STALKER, 0, 0, 6000, 0, 2500, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_tunnel_entrance_8017F32C[12] = {
+AreaVariant gMineTunnelEntranceAreaVariants[12] = {
     { NULL, NULL },
-    { D_mine_tunnel_entrance_8017F10C, D_mine_tunnel_entrance_8017F07C },
-    { D_mine_tunnel_entrance_8017F18C, D_mine_tunnel_entrance_8017F0A0 },
-    { D_mine_tunnel_entrance_8017F1EC, D_mine_tunnel_entrance_8017F0B8 },
-    { D_mine_tunnel_entrance_8017F22C, D_mine_tunnel_entrance_8017F0D0 },
-    { NULL, NULL },
-    { NULL, NULL },
+    { _gMineTunnelEntranceVariant1Placements, _gMineTunnelEntranceVariant1Resources },
+    { _gMineTunnelEntranceVariant2Placements, _gMineTunnelEntranceVariant2Resources },
+    { _gMineTunnelEntranceVariant3Placements, _gMineTunnelEntranceVariant3Resources },
+    { _gMineTunnelEntranceVariant4Placements, _gMineTunnelEntranceVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_mine_tunnel_entrance_8017F2FC, D_mine_tunnel_entrance_8017F0F4 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gMineTunnelEntranceVariant11Placements, _gMineTunnelEntranceVariant11Resources },
 };
 
 /// Six per-view minimum ambient colours following their count header.
@@ -603,7 +738,7 @@ static void _mineTunnelEntranceInitRoomTask(Task* task)
 {
     enum { MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY = 1 };
 
-    task->msgTable = D_mine_tunnel_entrance_8017DAF0;
+    task->msgTable = _gMineTunnelEntranceRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     gStageSceneMusicEntry = MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY;
@@ -632,7 +767,7 @@ static void _mineTunnelEntranceIdle(Task* unusedTask)
 
 void mineTunnelEntranceRoomTask(Task* task)
 {
-    TaskFuncTable4 stateHandlers = D_mine_tunnel_entrance_8017D5C4;
+    TaskFuncTable4 stateHandlers = _gMineTunnelEntranceRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

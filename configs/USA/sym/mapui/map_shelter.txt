@@ -24,10 +24,10 @@ gMineCavernSpriteViews = 0x8018CD10; // absolute:True owner=mine_cavern
 gMineCavernSurfacePropertiesByClass = 0x8018E30C; // absolute:True owner=mine_cavern
 mineTunnelEntranceRoomTask = 0x8017D6BC; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
 gMineTunnelEntranceRoomLighting = 0x8017DB58; // absolute:True owner=mine_tunnel_entrance
-D_mine_tunnel_entrance_8017DB60 = 0x8017DB60; // absolute:True owner=mine_tunnel_entrance
+gMineTunnelEntranceRoomCollisionResources = 0x8017DB60; // absolute:True owner=mine_tunnel_entrance
 gMineTunnelEntranceRoomViewMaps = 0x8017DB70; // absolute:True owner=mine_tunnel_entrance
-D_mine_tunnel_entrance_8017DB74 = 0x8017DB74; // absolute:True owner=mine_tunnel_entrance
-D_mine_tunnel_entrance_8017DB78 = 0x8017DB78; // absolute:True owner=mine_tunnel_entrance
+gMineTunnelEntranceRoomViewCounts = 0x8017DB74; // absolute:True owner=mine_tunnel_entrance
+gMineTunnelEntranceWarpEntries = 0x8017DB78; // absolute:True owner=mine_tunnel_entrance
 gMineTunnelEntranceViewCameras = 0x8017E0E4; // absolute:True owner=mine_tunnel_entrance shared=rooms
 gMineTunnelEntranceSpriteViews = 0x8017EA4C; // absolute:True owner=mine_tunnel_entrance
 gMineTunnelEntranceSurfacePropertiesByClass = 0x8017F3E8; // absolute:True owner=mine_tunnel_entrance

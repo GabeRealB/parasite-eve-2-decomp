@@ -524,7 +524,7 @@ AreaRecord D_8010CF14[50] = {
     { NULL, NULL },
     { gMineMesaAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     { D_mine_cavern_8018E238, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { D_mine_tunnel_entrance_8017F32C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    { gMineTunnelEntranceAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     { D_mine_tunnel_801801CC, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     { gMineGorgeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     { D_mine_refuge_80182A00, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
