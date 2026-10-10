@@ -5863,7 +5863,7 @@ u8* title;
 SCHED_BARRIER();
 a0tmp = (s32)arg1;
 TOUCH_REG(a0tmp);
-title = D_options_801D5B90;
+title = _gOptionsCursorLabel;
 TOUCH_REG(title);
 i = 0;
 p = labels;

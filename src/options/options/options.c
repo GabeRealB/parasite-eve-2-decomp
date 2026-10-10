@@ -30,19 +30,32 @@ static const u8 _gOptionsVibrationOffLabel[] __attribute__((section(".data"), al
 static const u8 _gOptionsSoundLabel[] __attribute__((section(".data"), aligned(4))) = "Sound";
 /// Sound-output choice label for saved value 0 (stereo).
 static const u8 _gOptionsSoundStereoLabel[] __attribute__((section(".data"), aligned(4))) = "Stereo";
-static u8       D_options_801D5B70[8]                                                     = "Mono";
-static u8       D_options_801D5B78[8]                                                     = "Music";
-static u8       D_options_801D5B80[4]                                                     = "3";
-static u8       D_options_801D5B84[4]                                                     = "2";
-static u8       D_options_801D5B88[4]                                                     = "1";
-static u8       D_options_801D5B8C[4]                                                     = "Off";
-static u8       D_options_801D5B90[8]                                                     = "Cursor";
-static u8       D_options_801D5B98[12]                                                    = "Standard";
-static u8       D_options_801D5BA4[8]                                                     = "Memory";
-static u8       D_options_801D5BAC[12]                                                    = "Key Config";
-static u8       D_options_801D5BB8[12]                                                    = "Movement";
-static u8       D_options_801D5BC4[8]                                                     = "Walk";
-static u8       D_options_801D5BCC[4]                                                     = "Run";
+/// Sound-output choice label for saved value 1 (mono).
+static const u8 _gOptionsSoundMonoLabel[] __attribute__((section(".data"), aligned(4))) = "Mono";
+/// Options-list label for the music-volume setting.
+static const u8 _gOptionsMusicLabel[] __attribute__((section(".data"), aligned(4))) = "Music";
+/// Music-volume choice label for saved value 0 (level 3, gain 100).
+static const u8 _gOptionsMusicVolume3Label[] __attribute__((section(".data"), aligned(4))) = "3";
+/// Music-volume choice label for saved value 1 (level 2, gain 64).
+static const u8 _gOptionsMusicVolume2Label[] __attribute__((section(".data"), aligned(4))) = "2";
+/// Music-volume choice label for saved value 2 (level 1, gain 32).
+static const u8 _gOptionsMusicVolume1Label[] __attribute__((section(".data"), aligned(4))) = "1";
+/// Music-volume choice label for saved value 3 (muted).
+static const u8 _gOptionsMusicVolumeOffLabel[] __attribute__((section(".data"), aligned(4))) = "Off";
+/// Options-list label for the menu-cursor preference.
+static const u8 _gOptionsCursorLabel[] __attribute__((section(".data"), aligned(4))) = "Cursor";
+/// Cursor choice label for saved value 1 (reset selection when opening a list).
+static const u8 _gOptionsCursorStandardLabel[] __attribute__((section(".data"), aligned(4))) = "Standard";
+/// Cursor choice label for saved value 0 (remember the previous selection).
+static const u8 _gOptionsCursorMemoryLabel[] __attribute__((section(".data"), aligned(4))) = "Memory";
+/// Options-list label for opening the controller-layout editor.
+static const u8 _gOptionsKeyConfigurationLabel[] __attribute__((section(".data"), aligned(4))) = "Key Config";
+/// Options-list label for Aya's default movement setting.
+static const u8 _gOptionsMovementLabel[] __attribute__((section(".data"), aligned(4))) = "Movement";
+/// Default-movement choice label for saved value 0 (walk).
+static const u8 _gOptionsMovementWalkLabel[] __attribute__((section(".data"), aligned(4))) = "Walk";
+/// Default-movement choice label for saved value 1 (run).
+static const u8 _gOptionsMovementRunLabel[] __attribute__((section(".data"), aligned(4))) = "Run";
 /// Menu-column label for the confirm action in the button-assignment chart.
 static const u8 _gOptionsKeyConfirmLabel[] __attribute__((section(".data"), aligned(4))) = "OK";
 /// Cancel-action label shared by the menu and battle assignment columns.
@@ -81,16 +94,34 @@ static const u8 _gOptionsKeyLayoutALabel[] __attribute__((section(".data"), alig
 static const u8 _gOptionsKeyLayoutBLabel[] __attribute__((section(".data"), aligned(4))) = "Type B";
 /// Controller-layout selector label for saved layout 2 (C).
 static const u8 _gOptionsKeyLayoutCLabel[] __attribute__((section(".data"), aligned(4))) = "Type C";
-static u8       D_options_801D5C7C[44]                                                   = "Set sound output to match\nyour television.";
-static u8       D_options_801D5CA8[60]                                                   = "Set music volume level.\nSet low for clearer sound effects.";
-static u8       D_options_801D5CE4[68]                                                   = "Set menu cursor. You can have it\nremember the last position used.";
+/// Help text for the selected sound-output row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsSoundPrompt[] __attribute__((section(".data"), aligned(4))) = "Set sound output to match\nyour television.";
+/// Help text for the selected music-volume row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsMusicVolumePrompt[] __attribute__((section(".data"), aligned(4))) = "Set music volume level.\nSet low for clearer sound effects.";
+/// Help text for the selected menu-cursor row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsCursorPrompt[] __attribute__((section(".data"), aligned(4))) = "Set menu cursor. You can have it\nremember the last position used.";
 /// Help text for the selected vibration-setting row.
 ///
 /// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
 static const u8 _gOptionsVibrationPrompt[] __attribute__((section(".data"), aligned(4))) = "Set vibration mode ON/OFF.\nSelect ON for more realistic play.";
-static u8       D_options_801D5D68[60]                                                   = "Set Aya's default movement.\nBeginners should use \"Walk.\"";
-static u8       D_options_801D5DA4[56]                                                   = "Open key settings menu.\nPress the } button to proceed.";
-static u8       D_options_801D5DDC[48]                                                   = "Restore default settings.\nPress the } button.";
+/// Help text for the selected default-movement row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsMovementPrompt[] __attribute__((section(".data"), aligned(4))) = "Set Aya's default movement.\nBeginners should use \"Walk.\"";
+/// Help text for opening the controller-layout editor from the selected row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsKeyConfigurationPrompt[] __attribute__((section(".data"), aligned(4))) = "Open key settings menu.\nPress the } button to proceed.";
+/// Help text for restoring live option defaults from the selected row.
+///
+/// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
+static const u8 _gOptionsRestoreDefaultsPrompt[] __attribute__((section(".data"), aligned(4))) = "Restore default settings.\nPress the } button.";
 /// Help text for controller layout A, the default assignment.
 ///
 /// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
@@ -138,26 +169,64 @@ static UiListRowCallback _gOptionsMenuRowCallbacks[] = {
     _optionsUpdateRestoreDefaultsRow,
 };
 
-/// The main options list: seven rows of 0x12 pixels.
-static UiList D_options_801D5EB0 = { _gOptionsMenuRowCallbacks, ARRAY_SIZE(_gOptionsMenuRowCallbacks), ARRAY_SIZE(_gOptionsMenuRowCallbacks), 0x00, 0x12 };
+/// Options-list navigation, pixel spacing and key-editor task seeds.
+enum {
+    OPTIONS_LIST_CLAMP_NAVIGATION           = 0,
+    OPTIONS_MENU_ROW_HEIGHT_PIXELS          = 18,
+    OPTIONS_VIBRATION_ROW_HEIGHT_PIXELS     = 15,
+    OPTIONS_KEY_CONFIGURATION_OT_INDEX      = 52,
+    OPTIONS_KEY_CONFIGURATION_TASK_PRIORITY = 192
+};
 
-/// The key-config sub-list renders every row with the same function.
-static UiListRowCallback D_options_801D5ED4[1] = { _optionsUpdateVibrationRow };
+/// Mutable list state for the full seven-setting options panel.
+///
+/// Starts at row zero, requests every row at 18-pixel spacing and clamps
+/// navigation at either end. Fitting and drawing update its viewport, input
+/// and selection state; reopening preserves selection in Memory cursor mode.
+/// Only one full options panel may use this overlay-owned list at a time.
+static UiList _gOptionsMenuList = {
+    _gOptionsMenuRowCallbacks,
+    ARRAY_SIZE(_gOptionsMenuRowCallbacks),
+    ARRAY_SIZE(_gOptionsMenuRowCallbacks),
+    OPTIONS_LIST_CLAMP_NAVIGATION,
+    OPTIONS_MENU_ROW_HEIGHT_PIXELS
+};
 
-/// That sub-list: one row of 0x0F pixels.
-static UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F };
+/// Callback table for the vibration-only panel's sole row.
+///
+/// Entry zero follows `UiListRowCallback`'s input and borrowing contract.
+/// The list borrows this overlay's storage; its entries are never replaced.
+static UiListRowCallback _gOptionsVibrationRowCallbacks[] = { _optionsUpdateVibrationRow };
 
-/// The options screen's own UI object, spawned by `uiSpawnObject`.
-static UiObjectDesc D_options_801D5EFC = {
+/// Mutable list state for the vibration-only options panel.
+///
+/// Requests its sole row at 15-pixel spacing with clamped navigation. Fitting
+/// and drawing update its viewport, input and selection state. Only one
+/// vibration-only panel may use this overlay-owned list at a time.
+static UiList _gOptionsVibrationList = {
+    _gOptionsVibrationRowCallbacks,
+    ARRAY_SIZE(_gOptionsVibrationRowCallbacks),
+    ARRAY_SIZE(_gOptionsVibrationRowCallbacks),
+    OPTIONS_LIST_CLAMP_NAVIGATION,
+    OPTIONS_VIBRATION_ROW_HEIGHT_PIXELS
+};
+
+/// Read-only spawn recipe for the options panel's key-configuration child.
+///
+/// Initial bounds are (-140, -96, 280, 144) screen-centered pixels; the editor
+/// fits its content height on its first update. Uses OT tag base 52 and a
+/// bodyless task at priority 192. `uiSpawnObject` copies the recipe; the
+/// callback code must remain loaded until the parent closes the child.
+static const UiObjectDesc _gOptionsKeyConfigurationDesc __attribute__((section(".data"), aligned(4))) = {
     USER_INTERFACE_PANEL_TITLE_STYLE,
     { -140,
       -96,
-      0x0118,
-      0x0090 },
-    0x0034,
+      280,
+      144 },
+    OPTIONS_KEY_CONFIGURATION_OT_INDEX,
     0x0000,
     TASK_BODY_NONE,
-    0x00C0,
+    OPTIONS_KEY_CONFIGURATION_TASK_PRIORITY,
     _optionsUpdateKeyConfigurationTask,
     0,
 };
@@ -198,7 +267,7 @@ static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
 {
     enum { OPTIONS_SOUND_STEREO = 0,
            OPTIONS_SOUND_MONO   = 1 };
-    const u8*  labels[] = { _gOptionsSoundStereoLabel, D_options_801D5B70 };
+    const u8*  labels[] = { _gOptionsSoundStereoLabel, _gOptionsSoundMonoLabel };
     const u8** labelCursor;
     s32        choiceIndex;
     s32        choiceOffsetNumerator;
@@ -265,7 +334,7 @@ static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
     }
     controlMode = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5C7C, 0, 0);
+        uiSetPromptText(_gOptionsSoundPrompt, 0, 0);
     }
 }
 
@@ -279,10 +348,10 @@ static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object)
 {
     enum { OPTIONS_MUSIC_FULL_VOLUME = 0 };
     const u8* labels[] = {
-        D_options_801D5B80,
-        D_options_801D5B84,
-        D_options_801D5B88,
-        D_options_801D5B8C,
+        _gOptionsMusicVolume3Label,
+        _gOptionsMusicVolume2Label,
+        _gOptionsMusicVolume1Label,
+        _gOptionsMusicVolumeOffLabel,
     };
     const u8** labelCursor;
     s32        choiceIndex;
@@ -297,7 +366,7 @@ static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object)
     s32        controlMode;
 
     choiceCount = ARRAY_SIZE(labels);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B78, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, _gOptionsMusicLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     choiceIndex           = 0;
     labelCursor           = labels;
     previousMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
@@ -340,7 +409,7 @@ static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object)
     }
     controlMode = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5CA8, 0, 0);
+        uiSetPromptText(_gOptionsMusicVolumePrompt, 0, 0);
     }
 }
 
@@ -352,7 +421,7 @@ static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object)
 static void _optionsUpdateCursorRow(UiList* list, UiObject* object)
 {
     enum { OPTIONS_CURSOR_MEMORY = 0 };
-    const u8*  labels[] = { D_options_801D5BA4, D_options_801D5B98 };
+    const u8*  labels[] = { _gOptionsCursorMemoryLabel, _gOptionsCursorStandardLabel };
     const u8** labelCursor;
     s32        choiceIndex;
     s32        choiceOffsetNumerator;
@@ -363,7 +432,7 @@ static void _optionsUpdateCursorRow(UiList* list, UiObject* object)
     u32        textColorRgb;
     s32        choiceCount;
     s32        controlMode;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B90, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, _gOptionsCursorLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     choiceIndex           = 0;
     labelCursor           = labels;
     choiceOffsetNumerator = 0;
@@ -403,7 +472,7 @@ static void _optionsUpdateCursorRow(UiList* list, UiObject* object)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selectedMode;
     controlMode                                         = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5CE4, 0, 0);
+        uiSetPromptText(_gOptionsCursorPrompt, 0, 0);
     }
 }
 
@@ -478,7 +547,7 @@ static void _optionsUpdateVibrationRow(UiList* list, UiObject* object)
 /// selected row publishes help with active or suspended active control.
 static void _optionsUpdateMovementRow(UiList* list, UiObject* object)
 {
-    const u8*  labels[] = { D_options_801D5BC4, D_options_801D5BCC };
+    const u8*  labels[] = { _gOptionsMovementWalkLabel, _gOptionsMovementRunLabel };
     const u8** labelCursor;
     s32        choiceIndex;
     s32        choiceOffsetNumerator;
@@ -489,7 +558,7 @@ static void _optionsUpdateMovementRow(UiList* list, UiObject* object)
     u32        textColorRgb;
     s32        choiceCount;
     s32        controlMode;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5BB8, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, _gOptionsMovementLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     choiceIndex           = 0;
     labelCursor           = labels;
     choiceOffsetNumerator = 0;
@@ -529,7 +598,7 @@ static void _optionsUpdateMovementRow(UiList* list, UiObject* object)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selectedMode;
     controlMode                                       = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5D68, 0, 0);
+        uiSetPromptText(_gOptionsMovementPrompt, 0, 0);
     }
 }
 
@@ -558,10 +627,10 @@ void optionsUpdateMenuTask(Task* owningTask)
     s32       controlMode;
     s32       childResult;
 
-    list   = &D_options_801D5EB0;
+    list   = &_gOptionsMenuList;
     object = owningTask->spawnArg2.pointer;
     if (owningTask->spawnArg1.value == OPTIONS_MENU_VIBRATION_ONLY) {
-        list = &D_options_801D5ED8;
+        list = &_gOptionsVibrationList;
     }
     // Fit once; only the vibration layout explicitly centers the outer bounds.
     if (owningTask->state == OPTIONS_MENU_TASK_INITIAL) {
@@ -963,14 +1032,14 @@ static const _OptionsKeyIconUv _gOptionsKeyIconUvs[8] = {
 static void _optionsUpdateKeyConfigurationRow(UiList* list, UiObject* object)
 {
     s32 controlMode;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5BAC, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, _gOptionsKeyConfigurationLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     controlMode = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5DA4, 0, 0);
+        uiSetPromptText(_gOptionsKeyConfigurationPrompt, 0, 0);
     }
     if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        uiSpawnObject(&D_options_801D5EFC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        uiSpawnObject(&_gOptionsKeyConfigurationDesc, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -987,7 +1056,7 @@ static void _optionsUpdateRestoreDefaultsRow(UiList* list, UiObject* object)
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, _gOptionsRestoreDefaultsLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     controlMode = object->panel.control.word;
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
-        uiSetPromptText(D_options_801D5DDC, 0, 0);
+        uiSetPromptText(_gOptionsRestoreDefaultsPrompt, 0, 0);
     }
     if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
