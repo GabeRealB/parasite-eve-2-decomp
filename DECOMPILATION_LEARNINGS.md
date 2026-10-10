@@ -70545,7 +70545,7 @@ three `li v0,2` where the ROM has two. The branch that tests the query-only
 request byte targets the shared `return 2` tail, and our build filled its
 delay slot from *that* thread — `reorg` copied `li v0,2` in and redirected the
 branch past it, leaving the original tail as a second copy. The ROM instead
-moves the fall-through's `lui %hi(D_actor_215100_8015E678)` into the slot and
+moves the fall-through's `lui %hi(_gActor215100GalleryPendingExitRequest)` into the slot and
 leaves the branch pointing at the shared tail.
 
 Which thread wins is decided by `prediction` in `fill_eager_delay_slots`

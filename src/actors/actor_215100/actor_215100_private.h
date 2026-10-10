@@ -35,7 +35,14 @@ extern AnimationSet gActor215100Animation042F4;
 
 extern EvsCommand D_actor_215100_8014EB98[3];
 
-extern EvsCommand D_actor_215100_8014EBE0[18];
+/// Refusal dialogue and room restoration after declining gallery training.
+///
+/// Shared by the introduction and repeat-offer menu. Requires live gallery,
+/// actor, player and CAP resources, with the refusal caption already selected.
+/// Eighteen commands include the END sentinel; keep the script and its borrowed
+/// requests loaded until completion. Installs the gallery player extension,
+/// waits for CAP cues, returns to view 8, then restores HUD and player control.
+extern EvsCommand gActor215100GalleryDeclineTrainingScript[18];
 
 extern EvsCommand D_actor_215100_8014ED90[9];
 

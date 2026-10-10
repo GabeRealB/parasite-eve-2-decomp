@@ -306,7 +306,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
                 captionSlot = ACTOR_215100_MENU_FIRST_DECLINE_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
-            evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(gActor215100GalleryDeclineTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
         case ACTOR_215100_MENU_ACCEPT:
