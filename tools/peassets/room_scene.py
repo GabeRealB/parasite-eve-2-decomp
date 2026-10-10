@@ -83,7 +83,7 @@ CONVENTIONS = {
 
 # --------------------------------------------------------------------------- C text
 
-DEF = re.compile(r"^(?:static\s+)?(?:const\s+)?(?:struct\s+)?([A-Za-z_]\w*)\s*(\*+)?\s*(?:const\s+)?([A-Za-z_]\w*)\s*((?:\[[^\]\n]*\])*)\s*=\s*", re.M)
+DEF = re.compile(r"^(?:static\s+)?(?:const\s+)?(?:struct\s+)?([A-Za-z_]\w*)\s*(\*+)?\s*(?:const\s+)?([A-Za-z_]\w*)\s*((?:\[[^\]\n]*\])*)\s*(?:(?:__attribute__\s*\(\(.*?\)\)|[A-Z][A-Z0-9_]*\s*\([^()\n]*\))\s*)*=\s*", re.M)
 DESIGNATOR = re.compile(r"\s*((?:\.\w+|\[[^\]]*\])+)\s*=\s*")
 ADDR_SUFFIX = re.compile(r"_([0-9A-F]{8})$")
 SYMLINE = re.compile(r"^\s*(\w+)\s*=\s*0x([0-9A-Fa-f]+)\s*;", re.M)
@@ -166,6 +166,59 @@ class Def:
 
     def where(self) -> dict:
         return {"symbol": self.symbol, "file": self.path, "line": self.line}
+
+
+# Function-like macros of the project's headers (`SOUND_AREA(stage, area, entry)`), name -> (parameters, body):
+# a table cell written through one is expanded before it is evaluated.
+MACROS: dict[str, tuple[list[str], str]] = {}
+MACRO_DEF = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)\(([^()\n]*)\)[ \t]+((?:[^\n\\]|\\\n|\\.)+)$", re.M)
+MACRO_CALL = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+
+
+def expand(text: str, depth: int = 0) -> str:
+    """`text` with every call of a known function-like macro replaced by its body."""
+    if depth > 8 or not MACROS:
+        return text
+    out, at = [], 0
+    for call in MACRO_CALL.finditer(text):
+        if call.start() < at or call[1] not in MACROS:
+            continue
+        level, end = 0, None
+        for i in range(call.end() - 1, len(text)):
+            level += text[i] == "("
+            level -= text[i] == ")"
+            if level == 0:
+                end = i
+                break
+        if end is None:
+            continue
+        params, body = MACROS[call[1]]
+        args = asset_journal.split_args(text[call.end():end]) if text[call.end():end].strip() else []
+        if len(args) != len(params):
+            continue
+        for name, arg in zip(params, args):
+            body = re.sub(rf"\b{re.escape(name)}\b", f"({arg.strip()})", body)
+        out.append(text[at:call.start()] + "(" + expand(body, depth + 1) + ")")
+        at = end + 1
+    out.append(text[at:])
+    return "".join(out)
+
+
+ARRAY_SIZE = re.compile(r"\bARRAY_SIZE\s*\(\s*(\w+)\s*\)")
+LENGTHS = None      # set by Project: symbol -> the number of elements its definition declares, or None
+
+
+def evaluate(expr: str, known) -> int | None:
+    # `ARRAY_SIZE(table)` is how a naming pass writes a count that is another table's length.
+    if LENGTHS is not None and "ARRAY_SIZE" in expr:
+        def length(match: re.Match) -> str:
+            n = LENGTHS(match[1], known)
+            return match[0] if n is None else str(n)
+        expr = ARRAY_SIZE.sub(length, expr)
+    return asset_journal.evaluate(expand(expr), known)
+
+
+UNFOLDED: Counter = Counter()     # C expressions the evaluator could not fold, by shape; the report lists the commonest
 
 
 class Unres(str):
@@ -296,7 +349,7 @@ def from_c(t, cur: Cursor, consts) -> object:
         if item.startswith("#include"):
             raise ValueError("generated include")
         text = CAST.sub("", item).strip()
-        value = asset_journal.evaluate(text, consts)
+        value = evaluate(text, consts)
         if t in ("ptr", "pint"):
             if value is not None:
                 return None if value == 0 else (wrap("s32", value) if t == "pint" else Unres(item))
@@ -311,12 +364,23 @@ def from_c(t, cur: Cursor, consts) -> object:
         return from_c(t[1], cur, consts)
     src = Cursor(cur.take()) if isinstance(cur.peek(), list) else cur
     if t[0] == "arr":
-        out = []
-        for index in range(t[2]):
-            if isinstance(src.items, Items) and src.items.desig.get(src.i, "").startswith("["):
-                raise ValueError("array designator")
-            out.append(from_c(t[1], src, consts))
-        return out
+        # Positional, except that `[index] = value` moves to that element (the ones left out stay zero).
+        out, at = [None] * t[2], 0
+        while True:
+            designator = src.items.desig.get(src.i, "") if isinstance(src.items, Items) else ""
+            if designator.startswith("["):
+                close = designator.index("]")
+                if designator[close + 1:]:
+                    raise ValueError(f"array designator {designator} reaches into an element")
+                index = evaluate(designator[1:close], consts)
+                if index is None or not 0 <= index < t[2]:
+                    raise ValueError(f"array designator {designator} not evaluable")
+                at = index
+            elif at >= t[2] or src.peek() is None:
+                break
+            out[at] = from_c(t[1], src, consts)
+            at += 1
+        return [zero(t[1]) if value is None else value for value in out]
     # A record: positional, except that `.field = value` moves to the field of that name (the rest stay zero).
     names = [name for name, _ft in t[1]]
     out, at = {}, 0
@@ -371,6 +435,8 @@ class Project:
                 self.models_of[package].append(key)
                 self.model_at[package, r["vram"]] = key
         self.defs: dict[str, list[Def]] = defaultdict(list)
+        global LENGTHS
+        LENGTHS = self.array_length
         self.texts: dict[str, str] = {}
         self.owner_files: dict[str, list[str]] = defaultdict(list)
         self.file_consts: dict[str, dict] = {}
@@ -389,13 +455,24 @@ class Project:
             self._scan(ROOT / "src/gameplay" / name, "gameplay")
         self.stages = self._stage_directories()
 
+    def array_length(self, symbol: str, known) -> int | None:
+        """How many elements the one definition of `symbol` declares: its stated length, or its initialiser's."""
+        found = self.defs.get(symbol) or ()
+        if len(found) != 1 or not found[0].dims_text:
+            return None
+        first = re.match(r"\[([^\]]*)\]", found[0].dims_text)[1].strip()
+        if first:
+            return asset_journal.evaluate(expand(first), ChainMap(self.file_consts.get(found[0].path, {}), self.globals))
+        init = found[0].init
+        return len(init) if isinstance(init, list) else None
+
     # ---- constants
 
     def _collect(self, text: str, base) -> dict[str, int]:
         local: dict[str, int] = {}
         env = ChainMap(local, base)
         for m in asset_journal.DEFINE.finditer(text):
-            value = asset_journal.evaluate(m[2], env)
+            value = evaluate(m[2], env)
             if value is not None:
                 local[m[1]] = value
         for m in asset_journal.ENUM.finditer(text):
@@ -404,7 +481,7 @@ class Project:
                 item = asset_journal.ITEM_WHOLE.match(piece)
                 if item is None:
                     continue
-                value = asset_journal.evaluate(item[2], env) if item[2] else nxt
+                value = evaluate(item[2], env) if item[2] else nxt
                 if value is None:
                     nxt = None
                     continue
@@ -415,6 +492,11 @@ class Project:
     def _load_constants(self) -> None:
         headers = [p for p in sorted((ROOT / "include").rglob("*.h")) if "psyq" not in p.parts]
         texts = [asset_journal.code_of(p) for p in headers]
+        # Psy-Q's fixed-point one, which rotation matrices and unit normals are written with (libgte.h).
+        self.globals.setdefault("ONE", 4096)
+        for text in texts:
+            for m in MACRO_DEF.finditer(text):
+                MACROS.setdefault(m[1], ([p.strip() for p in m[2].split(",") if p.strip()], m[3].replace("\\\n", " ")))
         for _ in range(3):
             seen: dict[str, set[int]] = defaultdict(set)
             for text in texts:
@@ -581,8 +663,8 @@ class Project:
                         for back in lines[max(0, n - 30):n]:
                             s = re.search(r"\b" + re.escape(key) + r"\.stage\s*=\s*([^;]+);", back)
                             a = re.search(r"\b" + re.escape(key) + r"\.area\s*=\s*([^;]+);", back)
-                            stage = asset_journal.evaluate(s[1], consts) if s else stage
-                            area = asset_journal.evaluate(a[1], consts) if a else area
+                            stage = evaluate(s[1], consts) if s else stage
+                            area = evaluate(a[1], consts) if a else area
                         target = self.room_at.get((stage, area))
                 else:
                     m = write.search(line)
@@ -590,7 +672,7 @@ class Project:
                         kind, value, target = "direct write of location.loc.variant", m[1], "current"
                 if kind is None:
                     continue
-                number = asset_journal.evaluate(value, consts)
+                number = evaluate(value, consts)
                 entry = {"kind": kind, "variant": number if number is not None else value.strip(), "by": overlay, "file": rel, "line": n}
                 if target == "current":
                     (by_room if overlay in self.place_of else by_actor)[overlay].append(entry)
@@ -645,7 +727,7 @@ class Scene:
             m = re.fullmatch(r"(\w+)\s*\+\s*(\w+)", text.strip())
         if m is None:
             return None, 0
-        index = asset_journal.evaluate(m[2], {}) if m[2] else 0
+        index = evaluate(m[2], {}) if m[2] else 0
         return m[1], index or 0
 
     def _merge(self, c, b, path: str, t):
@@ -657,6 +739,7 @@ class Scene:
                 if t in ("ptr", "pint") or b is None:
                     return c
                 self.byte_filled += 1
+                UNFOLDED[re.sub(r"\d+", "N", str(c))[:60]] += 1
                 return b
             if t in ("ptr", "pint") and isinstance(c, str):
                 sym, index = self.ref(c)
@@ -702,7 +785,7 @@ class Scene:
             n = 1
             if d.is_array:
                 first = re.match(r"\[([^\]]*)\]", d.dims_text)[1].strip()
-                n = asset_journal.evaluate(first, consts) if first else len(d.init)
+                n = evaluate(first, consts) if first else len(d.init)
             try:
                 if n is None:
                     raise ValueError(f"array length {d.dims_text} not evaluable")
@@ -826,7 +909,7 @@ class Scene:
             d = self.p.find(symbol, self.room) if symbol else None
             if d is not None:
                 init = d.init if isinstance(d.init, list) else [d.init]
-                counts = [asset_journal.evaluate(x, self.p.consts_for(d.path)) for x in init]
+                counts = [evaluate(x, self.p.consts_for(d.path)) for x in init]
                 self.cite("views", d)
             else:
                 self.miss("views", counts_entry, "view-count table not defined in C")
@@ -956,7 +1039,7 @@ class Scene:
                 consts = self.p.consts_for(d.path)
                 for rel, text in code.items():
                     for m in re.finditer(r"memCopyBytes\s*\(\s*" + re.escape(symbol) + r"\s*,\s*&?\s*(\w+)\s*(?:\[([^\]]+)\])?", text):
-                        piece["copiedTo"].append({"pool": m[1], "index": asset_journal.evaluate(m[2], consts) if m[2] else 0,
+                        piece["copiedTo"].append({"pool": m[1], "index": evaluate(m[2], consts) if m[2] else 0,
                                                   "file": rel, "line": text.count("\n", 0, m.start()) + 1})
             out.append(piece)
         return {"id": f"{self.room}_collision_patch_{at:05X}", "patch": True, "packageOffset": f"0x{at:X}", "pieces": out,
@@ -1169,7 +1252,7 @@ class Scene:
                 if d is None or not isinstance(d.init, list):
                     self.miss("views", name, "view map not defined in C")
                     continue
-                mapping = [asset_journal.evaluate(x, self.p.consts_for(d.path)) if isinstance(x, str) else None for x in d.init]
+                mapping = [evaluate(x, self.p.consts_for(d.path)) if isinstance(x, str) else None for x in d.init]
                 block["mapSource"] = self.cite("views", d)
                 address, data = self._addr_any(name), self.p.package(self.room)
                 if address and data and list(data[address - self.p.load["rooms"]:][:len(mapping)]) != mapping:
@@ -1217,6 +1300,8 @@ class Scene:
     def camera(row: dict, d: Def | None, index: int) -> dict:
         m, t = row["transform"]["m"], row["transform"]["t"]
         h = row["screenDistance"]
+        if any(not isinstance(c, (int, float)) for c in [*(c for line in m for c in line), *t, h]):
+            return None                 # a cell neither the C nor the package settles; the caller records the view without a camera
         unit = lambda r: [round(c / 4096, 6) for c in r]  # noqa: E731
         return {"index": index, "matrix": m, "translation": t, "position": [-t[0], -t[1], -t[2]], "screenDistance": h,
                 "right": unit(m[0]), "down": unit(m[1]), "forward": unit(m[2]),
