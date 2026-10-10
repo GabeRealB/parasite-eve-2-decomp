@@ -12,9 +12,10 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/enemy.h"
-#include "gameplay/evs.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
@@ -29,8 +30,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 
 #define ACTOR_341300_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
@@ -51,34 +52,6 @@ typedef struct {
     SVECTOR verts[3]; // The triangle's corners in the shard's own XY plane: equilateral about the origin at radius 20, each nonzero coordinate randomly pushed 2 further out
 } _Actor341300ShardWork;
 STATIC_ASSERT_SIZEOF(_Actor341300ShardWork, 0x30);
-
-/// Spawn positions `_actor341300Emitter0ShardTask`'s shards start from, indexed
-/// by `Task::spawnArg1`.
-extern SVECTOR D_actor_341300_80165A38[];
-
-/// Spawn positions `_actor341300Emitter2ShardTask`'s shards start from, indexed
-/// by `Task::spawnArg1`.
-extern SVECTOR D_actor_341300_80165A58[];
-
-/// Placement record the overlay's data table points at, read here only as the
-/// target position's x/z pair.
-extern ActorTransform D_actor_341300_80165330;
-
-/// Task handles of the debris emitters the event scripts start and stop by
-/// index.
-///
-/// Only slot 0 is ever written or read: the start and stop callbacks act on
-/// index 0 alone and ignore the others. The scripts pass indices 0 to 2 and the
-/// storage is three pointers long, which is why it is declared as one slot per
-/// index; that the two words after slot 0 are the slots of indices 1 and 2 is
-/// inferred from that, not from an access.
-extern Task* D_actor_341300_80165A2C[3];
-
-extern TaskDesc D_actor_341300_80165A68[];
-
-extern TaskDesc D_actor_341300_80165208[];
-
-extern Task* D_actor_341300_80165AA4;
 
 /// Scene-event value written at the end of either event-script path.
 enum { ACTOR_341300_SCENE_EVENT_AFTER_SCRIPT = 12 };
@@ -128,28 +101,17 @@ static void _actor341300Emitter0Task(Task* task);
 static void _actor341300Emitter2Task(Task* task);
 static void _actor341300PairedDebrisEmitterTask(Task* task);
 
-extern AnimationPlayRequest     D_actor_341300_80165260;
-extern AnimationPlayRequest     D_actor_341300_80165274;
-extern AnimationPlayRequest     D_actor_341300_80165288;
-extern AnimationPlayRequest     D_actor_341300_8016529C;
-extern AnimationPlayRequest     D_actor_341300_801652B0;
-extern AnimationPlayRequest     D_actor_341300_801652F4;
-extern AnimationPlayRequest     D_actor_341300_80165308;
-extern AnimationPlayRequest     D_actor_341300_8016531C;
-extern AnimationBankCopyRequest D_actor_341300_80165244;
-extern ActorTransform           D_actor_341300_801652C4;
-extern ActorTransform           D_actor_341300_801652DC;
-static void                     _actor341300StageSceneAudioStart(void);
-static void                     _actor341300EnqueueScenePlayback(void);
-static void                     _actor341300FinishSceneStream(void);
-static void                     _actor341300CancelScene(void);
-static void                     _actor341300StartTexturedQuads(void);
-static void                     _actor341300RequestTexturedQuadsExit(void);
-static void                     _actor341300StartPlayerFacingTask(void);
-static void                     _actor341300StartDebrisEmitterCallback(s16 emitterIndex);
-static void                     _actor341300StopDebrisEmitterCallback(s16 emitterIndex);
-static void                     _actor341300SpawnPlayerHitPuffs(void);
-static void                     _actor341300SetSceneEvent(s8 sceneEvent);
+static void _actor341300StageSceneAudioStart(void);
+static void _actor341300EnqueueScenePlayback(void);
+static void _actor341300FinishSceneStream(void);
+static void _actor341300CancelScene(void);
+static void _actor341300StartTexturedQuads(void);
+static void _actor341300RequestTexturedQuadsExit(void);
+static void _actor341300StartPlayerFacingTask(void);
+static void _actor341300StartDebrisEmitterCallback(s16 emitterIndex);
+static void _actor341300StopDebrisEmitterCallback(s16 emitterIndex);
+static void _actor341300SpawnPlayerHitPuffs(void);
+static void _actor341300SetSceneEvent(s8 sceneEvent);
 
 static void _actor341300TurnPlayerTowardScenePlacementTask(Task* task);
 static void _actor341300TexturedQuadsTask(Task* task);
@@ -264,14 +226,30 @@ static AnimationSet _gActor341300Animation033C0 = {
     { NULL, _gActor341300Animation033C0Bank1, NULL, NULL, _gActor341300Animation033C0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_341300_80165208[2] = {
-    { { { TASK_BODY_COORD, 192 } }, _actor341300TexturedQuadsTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor341300TurnPlayerTowardScenePlacementTask, { .value = 0 } },
+/// Priority of the scene's temporary tasks and placed-resource exit recipe.
+enum { ACTOR_341300_TASK_PRIORITY = 192 };
+
+/// Scene-local script choices; music durations count audio updates.
+enum {
+    ACTOR_341300_SCENE_VIEW               = 4,
+    ACTOR_341300_SCENE_CAP_COMMAND        = 2,
+    ACTOR_341300_MUSIC_FADE_TICKS         = 60,
+    ACTOR_341300_SCENE_ACTOR_DRAW_HIDE    = 0,
+    ACTOR_341300_SCENE_ACTOR_DRAW_SHOW    = 1,
+    ACTOR_341300_SCENE_ACTOR_EXIT_COMMAND = 1
 };
 
-TaskDesc D_actor_341300_80165220 = { { { TASK_BODY_NONE, 192 } }, enemyTaskExit, { .value = 0 } };
+TaskDesc gActor341300ScriptTaskDescriptors[3] = {
+    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300TexturedQuadsTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300TurnPlayerTowardScenePlacementTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, enemyTaskExit, { .value = 0 } },
+};
 
-AnimationSet* D_actor_341300_8016522C[6] = {
+/// Player weapon-bank extension: NULL at index 47, then scene sets at 48..52.
+///
+/// The six pointers are copied synchronously; their animation data remains
+/// borrowed by playback, so this actor package must remain loaded while used.
+static AnimationSet* _gActor341300PlayerAnimationExtensionSets[6] = {
     NULL,
     &_gActor341300Animation01FAC,
     &_gActor341300Animation02810,
@@ -280,108 +258,194 @@ AnimationSet* D_actor_341300_8016522C[6] = {
     &_gActor341300Animation033C0,
 };
 
-AnimationBankCopyRequest D_actor_341300_80165244 = { { .sets = D_actor_341300_8016522C }, ARRAY_SIZE(D_actor_341300_8016522C) };
+/// Six-word copy request installing the scene sets in the equipped player bank.
+///
+/// Both script paths borrow this request through dispatch; copied set pointers
+/// require the actor package to stay loaded through playback.
+static AnimationBankCopyRequest _gActor341300PlayerAnimationExtensionCopy = {
+    { .sets = _gActor341300PlayerAnimationExtensionSets }, ARRAY_SIZE(_gActor341300PlayerAnimationExtensionSets)
+};
 
-AnimationPlayRequest D_actor_341300_8016524C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced bank-1, animation-1 reset request with world collision enabled.
+///
+/// No dispatch path establishes its intended receiver.
+static AnimationPlayRequest _gActor341300UnusedBank1Animation1Request = {
+    .source = { .index = 1 }, .animationId = 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-AnimationPlayRequest D_actor_341300_80165260 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// First appended player set, played before resuming control on either scene path.
+///
+/// Weapon-animation dispatch replaces source.index with the equipped bank;
+/// clip data is borrowed from this actor package through playback.
+static AnimationPlayRequest _gActor341300PlayerSceneAnimation1Request = {
+    .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-AnimationPlayRequest D_actor_341300_80165274 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Second appended player set, reset before the scene's player-hit phase.
+///
+/// Weapon-animation dispatch replaces source.index with the equipped bank;
+/// clip data is borrowed from this actor package through playback.
+static AnimationPlayRequest _gActor341300PlayerSceneAnimation2Request = {
+    .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 2, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-AnimationPlayRequest D_actor_341300_80165288 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Third appended player set, reset after debris emitter 0 is stopped.
+///
+/// Weapon-animation dispatch replaces source.index with the equipped bank;
+/// clip data is borrowed from this actor package through playback.
+static AnimationPlayRequest _gActor341300PlayerSceneAnimation3Request = {
+    .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 3, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-AnimationPlayRequest D_actor_341300_8016529C = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Fourth appended player set, reset while the scene's textured quads run.
+///
+/// Weapon-animation dispatch replaces source.index with the equipped bank;
+/// clip data is borrowed from this actor package through playback.
+static AnimationPlayRequest _gActor341300PlayerSceneAnimation4Request = {
+    .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 4, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-AnimationPlayRequest D_actor_341300_801652B0 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Fifth appended player set, blended over ten frames during the opening turn.
+///
+/// Weapon-animation dispatch replaces source.index with the equipped bank;
+/// clip data is borrowed from this actor package through playback.
+static AnimationPlayRequest _gActor341300PlayerSceneAnimation5Request = {
+    .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 5, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 10, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-ActorTransform D_actor_341300_801652C4 = { { 2000, 0, 2250, 0 }, { 0, 2047, 0, 0 } };
+/// Player placement before the hit phase, in world units and 4096-unit-turn angles.
+static ActorTransform _gActor341300PlayerScenePlacement = {
+    .pos = { 2000, 0, 2250, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1, 0, 0 }
+};
 
-ActorTransform D_actor_341300_801652DC = { { 2000, 0, 4000, 0 }, { 0, 2047, 0, 0 } };
+/// Common end placement for normal and skipped paths, in world/4096-turn units.
+static ActorTransform _gActor341300PlayerEndPlacement = {
+    .pos = { 2000, 0, 4000, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1, 0, 0 }
+};
 
-AnimationPlayRequest D_actor_341300_801652F4 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Scene Brain Stinger's opening event animation (event 0, package clip 19).
+///
+/// The receiver ignores bank and collision fields; the reset request is read
+/// synchronously and does not retain this record.
+static AnimationPlayRequest _gActor341300SceneActorAnimation0Request = {
+    .source = { .index = 0 }, .animationId = 0, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_341300_80165308 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Scene Brain Stinger's player-hit event animation (event 1, package clip 20).
+///
+/// The receiver ignores bank and collision fields; the reset request is read
+/// synchronously and does not retain this record.
+static AnimationPlayRequest _gActor341300SceneActorAnimation1Request = {
+    .source = { .index = 0 }, .animationId = 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_341300_8016531C = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Scene Brain Stinger's debris-phase event animation (event 2, package clip 21).
+///
+/// The receiver ignores bank and collision fields; the reset request is read
+/// synchronously and does not retain this record.
+static AnimationPlayRequest _gActor341300SceneActorAnimation2Request = {
+    .source = { .index = 0 }, .animationId = 2, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-ActorTransform D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 2047, 0 } };
+/// Fixed scene-actor placement, also supplying the player's facing target X/Z.
+///
+/// Position is world units; rotation uses 4096 units per turn. The placement
+/// message reads the complete record synchronously; the facing task borrows pos.
+static ActorTransform _gActor341300SceneActorPlacement = {
+    .pos = { 2090, -3480, 1440, 0 }, .rot = { 0, 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1, 0 }
+};
 
-ActorCommand D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
+/// Removes the scene Brain Stinger on either completion path.
+///
+/// The receiver removes itself for every nonzero command and ignores context;
+/// this record supplies the walkway's stage/area namespace and is read at dispatch.
+static ActorCommand _gActor341300SceneActorExitCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY } },
+    .command = ACTOR_341300_SCENE_ACTOR_EXIT_COMMAND
+};
 
-EvsSceneKey D_actor_341300_8016534C = { 4, 13, 11 };
+/// Scene/audio key for group 4, stream 13 and qualifier 11 (second qualifier zero).
+///
+/// Event playback retains the key until replacement or script end.
+static EvsSceneKey _gActor341300SceneStreamKey = { .group = 4, .streamId = 13, .subId = 11 };
 
-EvsCommand D_actor_341300_80165354[52] = {
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_341300_80165330 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_341300_801652F4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_801652B0 }, { .value = 0 } },
+EvsCommand gActor341300WalkwaySceneScript[] = {
+    // Install player scene sets and stage the actor before CAP-controlled phases.
+    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = ACTOR_341300_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor341300PlayerAnimationExtensionCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_341300_SCENE_ACTOR_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_341300_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor341300SceneActorPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor341300SceneActorAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation5Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300StartPlayerFacingTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StartDebrisEmitterCallback }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541E0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 6) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_341300_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_341300_8016534C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Select the stream after the opening CAP cues, then stage the hit phase.
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor341300SceneStreamKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_341300_801652C4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165274 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_341300_80165308 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor341300PlayerScenePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation2Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor341300SceneActorAnimation1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300SpawnPlayerHitPuffs }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_341300_8016531C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor341300SceneActorAnimation2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StartDebrisEmitterCallback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165288 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation3Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_341300_SCENE_ACTOR_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StartDebrisEmitterCallback }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300StartTexturedQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_8016529C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation4Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300RequestTexturedQuadsExit }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Fade out the staged scene before restoring player placement and control.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165260 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_341300_801652DC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_341300_80165348 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation1Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor341300PlayerEndPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor341300SceneActorExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300FinishSceneStream }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACTOR_341300_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor341300SetSceneEvent }, { .value = ACTOR_341300_SCENE_EVENT_AFTER_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_341300_80165834[21] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gActor341300WalkwaySceneSkipScript[] = {
+    // Hide cleanup under a fade and restore the common player end state.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_341300_801652DC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_341300_80165244 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_341300_80165260 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_341300_80165348 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor341300PlayerEndPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor341300PlayerAnimationExtensionCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor341300PlayerSceneAnimation1Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor341300SceneActorExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300RequestTexturedQuadsExit }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Cancel streaming, apply the end view/event and release the event presentation.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = ACTOR_341300_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACTOR_341300_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor341300SetSceneEvent }, { .value = ACTOR_341300_SCENE_EVENT_AFTER_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -389,16 +453,29 @@ EvsCommand D_actor_341300_80165834[21] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-Task* D_actor_341300_80165A2C[3] = { NULL };
+/// Saved debris-emitter handle storage; only entry 0 has an established role.
+///
+/// Start overwrites entry 0 without stopping an earlier emitter. Stop requires
+/// NULL or a live task, tears down its child shards, and clears the entry.
+/// The other two words are never accessed; their roles and index mapping are unproven.
+static Task* _gActor341300DebrisEmitterHandles[3] = { NULL };
 
-SVECTOR D_actor_341300_80165A38[4] = {
+/// World-space shard origins selected by emitter 0's unchecked spawnArg1 index.
+///
+/// Valid indices are 0..3. The package emitters use 0, 1 and 3; initialized
+/// index 2 has no spawn use. XYZ become a view-parented coordinate's translation.
+static SVECTOR _gActor341300Emitter0ShardSpawnPositions[4] = {
     { 2090, -2500, 1440, 0 },
     { 2390, -2500, 1140, 0 },
     { 1900, -2500, 1100, 0 },
     { 1900, -2500, 1000, 0 },
 };
 
-SVECTOR D_actor_341300_80165A58[2] = {
+/// World-space shard origins for the unstarted descriptor-slot-2 emitter.
+///
+/// The shard's unchecked spawnArg1 index must be 0 or 1; it also selects the
+/// initial X-velocity sign. The package has no start path for this emitter.
+static SVECTOR _gActor341300Emitter2ShardSpawnPositions[2] = {
     { 1800, -2300, 900, 0 },
     { 2450, -2300, 900, 0 },
 };
@@ -406,16 +483,31 @@ SVECTOR D_actor_341300_80165A58[2] = {
 static void _actor341300Emitter0ShardTask(Task* task);
 static void _actor341300Emitter2ShardTask(Task* task);
 
-TaskDesc D_actor_341300_80165A68[4] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor341300Emitter0Task, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, _actor341300Emitter0ShardTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor341300Emitter2Task, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, _actor341300Emitter2ShardTask, { .value = 0 } },
+/// Debris task recipes: emitter/shard pairs at indices 0/1 and 2/3.
+///
+/// Only emitter 0 is started by the package. Shard index 1 takes a position
+/// index 0..3; shard index 3 takes 0..1. Both borrow their emitter in spawnArg2
+/// until their first update joins its teardown tree. Emitters have no body;
+/// shards own coordinate bodies. All callbacks require this package loaded.
+static TaskDesc _gActor341300DebrisTaskDescriptors[4] = {
+    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter0Task, { .value = 0 } },
+    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter0ShardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter2Task, { .value = 0 } },
+    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter2ShardTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_341300_80165A98 = { { { TASK_BODY_NONE, 192 } }, _actor341300PairedDebrisEmitterTask, { .value = 0 } };
+/// Unspawned bodyless emitter recipe for two delayed ten-pair shard bursts.
+///
+/// Its callback uses shard descriptor 1 at positions 0/1. No package spawn
+/// path reaches this recipe; ignored script indices do not establish a mapping.
+static TaskDesc _gActor341300PairedDebrisEmitterTaskDescriptor = { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300PairedDebrisEmitterTask, { .value = 0 } };
 
-Task* D_actor_341300_80165AA4 = NULL;
+/// Borrowed task handle shared by the player-facing and textured-quad script phases.
+///
+/// Spawning replaces it without stopping the previous task. Reset only forgets
+/// it; facing-task teardown does not clear it. Exit requests require NULL or a
+/// still-live task, then clear the slot. This handle does not extend task lifetime.
+static Task* _gActor341300ScriptTaskHandle = NULL;
 
 /// Fills a three-corner POLY_G3 packet with the shard's dark-to-light grey ramp.
 ///
@@ -568,7 +660,7 @@ static void _actor341300TurnPlayerTowardScenePlacementTask(Task* task)
     areaActor   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((areaActor != NULL) && (gGameSession->eventState != 0)) {
         playerCoord    = playerTask->extra.tmd->coords;
-        targetPosition = &D_actor_341300_80165330.pos;
+        targetPosition = &_gActor341300SceneActorPlacement.pos;
         targetYaw      = ratan2(targetPosition->vx - playerCoord->coord.t[0], targetPosition->vz - playerCoord->coord.t[2]);
         yawDelta       = targetYaw - playerActor->rotation.vy;
         ACTOR_341300_UNWRAP_YAW_DELTA(yawDelta, absoluteYawDelta, wrappedYawDelta);
@@ -627,7 +719,7 @@ static void _actor341300StartTexturedQuads(void)
 {
     enum { ACTOR_341300_QUADS_TASK_INDEX = 0 };
 
-    D_actor_341300_80165AA4 = taskSpawnFromTable(D_actor_341300_80165208, ACTOR_341300_QUADS_TASK_INDEX, 0, NULL);
+    _gActor341300ScriptTaskHandle = taskSpawnFromTable(gActor341300ScriptTaskDescriptors, ACTOR_341300_QUADS_TASK_INDEX, 0, NULL);
 }
 
 /// Requests immediate exit of the saved quad task and forgets its handle.
@@ -636,10 +728,10 @@ static void _actor341300StartTexturedQuads(void)
 /// The shared slot may be NULL and must otherwise hold a live task.
 static void _actor341300RequestTexturedQuadsExit(void)
 {
-    if (D_actor_341300_80165AA4 != NULL) {
-        D_actor_341300_80165AA4->state         = ACTOR_341300_QUADS_EXIT;
-        D_actor_341300_80165AA4->killCountdown = 0;
-        D_actor_341300_80165AA4                = NULL;
+    if (_gActor341300ScriptTaskHandle != NULL) {
+        _gActor341300ScriptTaskHandle->state         = ACTOR_341300_QUADS_EXIT;
+        _gActor341300ScriptTaskHandle->killCountdown = 0;
+        _gActor341300ScriptTaskHandle                = NULL;
     }
 }
 
@@ -686,7 +778,7 @@ static void _actor341300StartPlayerFacingTask(void)
 {
     enum { ACTOR_341300_PLAYER_FACING_TASK_INDEX = 1 };
 
-    D_actor_341300_80165AA4 = taskSpawnFromTable(D_actor_341300_80165208, ACTOR_341300_PLAYER_FACING_TASK_INDEX, 0, NULL);
+    _gActor341300ScriptTaskHandle = taskSpawnFromTable(gActor341300ScriptTaskDescriptors, ACTOR_341300_PLAYER_FACING_TASK_INDEX, 0, NULL);
 }
 
 /// Event callback that starts debris emitter 0; other signed-halfword indices are ignored.
@@ -701,9 +793,10 @@ static void _actor341300StopDebrisEmitterCallback(s16 emitterIndex)
     _actor341300StopDebrisEmitter(emitterIndex);
 }
 
-/// Offset from the player's third coordinate that `_actor341300SpawnPlayerHitPuffs`
-/// spawns its four effects at.
-static const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
+/// Part-local offset (100, -200, -100) sampled for the scene's four player hit puffs.
+///
+/// Relative to player model part 2; copied to stack storage used only during spawn.
+static const SVECTOR _gActor341300PlayerHitPuffOffset = { 100, -200, -100, 0 };
 
 /// Emits the scene's four hit puffs from the player's model part 2.
 ///
@@ -724,7 +817,7 @@ static void _actor341300SpawnPlayerHitPuffs(void)
         ACTOR_341300_MAIN_HIT_PUFF_ARG  = (ACTOR_341300_HIT_PALETTE | (GPU_BLEND_ADD << ACTOR_341300_HIT_BLEND_SHIFT) | (3 << ACTOR_341300_HIT_PERIOD_SHIFT) | 768),
         ACTOR_341300_SMALL_HIT_PUFF_ARG = (ACTOR_341300_HIT_PALETTE | ACTOR_341300_HIT_RANDOM_VELOCITY | (GPU_BLEND_ADD << ACTOR_341300_HIT_BLEND_SHIFT) | (2 << ACTOR_341300_HIT_PERIOD_SHIFT) | 640)
     };
-    SVECTOR   hitOffset       = D_actor_341300_80161E64;
+    SVECTOR   hitOffset       = _gActor341300PlayerHitPuffOffset;
     GfxCoord* playerPartCoord = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[ACTOR_341300_HIT_PART];
 
     effectSpawn(EFFECT_HIT_PUFF, playerPartCoord, ACTOR_341300_MAIN_HIT_PUFF_ARG, &hitOffset);
@@ -741,7 +834,7 @@ static void _actor341300SetSceneEvent(s8 sceneEvent)
 
 void actor341300ResetScriptTaskHandle(void)
 {
-    D_actor_341300_80165AA4 = NULL;
+    _gActor341300ScriptTaskHandle = NULL;
 }
 
 /// Attempts ten falling debris shards at one of emitter 0's four positions.
@@ -755,7 +848,7 @@ static inline void _actor341300SpawnShardBatch(Task* emitter, s32 spawnIndex)
     s16 shardIndex;
 
     for (shardIndex = 0; shardIndex < ACTOR_341300_EMITTER_SHARD_BATCH_SIZE; shardIndex++) {
-        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, spawnIndex, emitter);
+        taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, spawnIndex, emitter);
     }
 }
 
@@ -771,8 +864,8 @@ static inline void _actor341300SpawnShardPairs(Task* emitter, s32 firstSpawnInde
     s16 pairIndex;
 
     for (pairIndex = 0; pairIndex < ACTOR_341300_EMITTER_SHARD_BATCH_SIZE; pairIndex++) {
-        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, firstSpawnIndex, emitter);
-        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, secondSpawnIndex, emitter);
+        taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, firstSpawnIndex, emitter);
+        taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, secondSpawnIndex, emitter);
     }
 }
 
@@ -868,9 +961,9 @@ static void _actor341300Emitter0ShardTask(Task* task)
             coord->parent = &gGfxViewCoord;
             memFillBytes(task->work, 0, sizeof(*work));
             taskReparent(task->spawnArg2.pointer, task);
-            coord->coord.t[0] = D_actor_341300_80165A38[task->spawnArg1.value].vx;
-            coord->coord.t[1] = D_actor_341300_80165A38[task->spawnArg1.value].vy;
-            coord->coord.t[2] = D_actor_341300_80165A38[task->spawnArg1.value].vz;
+            coord->coord.t[0] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vx;
+            coord->coord.t[1] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vy;
+            coord->coord.t[2] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vz;
             work->vel.vx      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
             work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
             work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
@@ -960,9 +1053,9 @@ static void _actor341300Emitter0ShardTask(Task* task)
 /// independently, preserving all three spawn attempts and their order.
 static inline void _actor341300SpawnEmitter2Burst(Task* emitter, s32 middleSpawnIndex)
 {
-    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 0, emitter);
-    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, middleSpawnIndex, emitter);
-    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 1, emitter);
+    taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 0, emitter);
+    taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, middleSpawnIndex, emitter);
+    taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 1, emitter);
 }
 
 /// Emits alternating three-shard bursts from descriptor slot 2, then stays idle.
@@ -1050,9 +1143,9 @@ static void _actor341300Emitter2ShardTask(Task* task)
             coord->parent = &gGfxViewCoord;
             memFillBytes(task->work, 0, sizeof(*work));
             taskReparent(task->spawnArg2.pointer, task);
-            coord->coord.t[0] = D_actor_341300_80165A58[task->spawnArg1.value].vx;
-            coord->coord.t[1] = D_actor_341300_80165A58[task->spawnArg1.value].vy;
-            coord->coord.t[2] = D_actor_341300_80165A58[task->spawnArg1.value].vz;
+            coord->coord.t[0] = _gActor341300Emitter2ShardSpawnPositions[task->spawnArg1.value].vx;
+            coord->coord.t[1] = _gActor341300Emitter2ShardSpawnPositions[task->spawnArg1.value].vy;
+            coord->coord.t[2] = _gActor341300Emitter2ShardSpawnPositions[task->spawnArg1.value].vz;
             if (task->spawnArg1.value == 0) {
                 work->vel.vx = ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK;
             } else {
@@ -1147,7 +1240,7 @@ static void _actor341300Emitter2ShardTask(Task* task)
 static void _actor341300StartDebrisEmitter(s16 emitterIndex)
 {
     if (emitterIndex == 0) {
-        D_actor_341300_80165A2C[0] = taskSpawnFromTable(D_actor_341300_80165A68, 0, 0, NULL);
+        _gActor341300DebrisEmitterHandles[0] = taskSpawnFromTable(_gActor341300DebrisTaskDescriptors, 0, 0, NULL);
     }
 }
 
@@ -1157,9 +1250,9 @@ static void _actor341300StartDebrisEmitter(s16 emitterIndex)
 /// Clears the handle after teardown. Other indices do nothing.
 static void _actor341300StopDebrisEmitter(s16 emitterIndex)
 {
-    if ((emitterIndex == 0) && (D_actor_341300_80165A2C[0] != NULL)) {
-        taskKill(D_actor_341300_80165A2C[0]);
-        D_actor_341300_80165A2C[0] = NULL;
+    if ((emitterIndex == 0) && (_gActor341300DebrisEmitterHandles[0] != NULL)) {
+        taskKill(_gActor341300DebrisEmitterHandles[0]);
+        _gActor341300DebrisEmitterHandles[0] = NULL;
     }
 }
 

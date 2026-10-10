@@ -602,10 +602,10 @@ D_actor_341900_80164190 = 0x80164190; // absolute:True owner=actor_341900
 gActor342100EncounterBlazeTaskDescriptors = 0x80164B78; // absolute:True owner=actor_342100
 D_actor_342000_80164FF8 = 0x80164FF8; // absolute:True owner=actor_342000
 D_actor_335800_80165060 = 0x80165060; // absolute:True owner=actor_335800
-D_actor_341300_80165354 = 0x80165354; // absolute:True owner=actor_341300
+gActor341300WalkwaySceneScript = 0x80165354; // absolute:True owner=actor_341300
 D_actor_335800_80165720 = 0x80165720; // absolute:True owner=actor_335800
 D_actor_335800_80165798 = 0x80165798; // absolute:True owner=actor_335800
-D_actor_341300_80165834 = 0x80165834; // absolute:True owner=actor_341300
+gActor341300WalkwaySceneSkipScript = 0x80165834; // absolute:True owner=actor_341300
 D_actor_361100_80165F48 = 0x80165F48; // absolute:True owner=actor_361100
 D_actor_361100_80166848 = 0x80166848; // absolute:True owner=actor_361100
 gActor342400EncounterTaskDescs = 0x8016BFE0; // absolute:True owner=actor_342400

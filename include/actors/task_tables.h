@@ -743,8 +743,6 @@ extern TaskDesc gActor205600PawnGolemTasks[3];
 /// Its model source and callback must remain loaded for the host's lifetime.
 extern TaskDesc gActor444000GluttonHostTaskDesc;
 
-extern TaskDesc D_actor_341300_80165208[];
-
 /// Moth TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed

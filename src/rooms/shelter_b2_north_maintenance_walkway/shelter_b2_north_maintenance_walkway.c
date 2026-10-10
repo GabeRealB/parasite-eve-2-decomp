@@ -22,7 +22,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -53,10 +52,6 @@
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
-
-/// The pair of cutscene blocks the walkway's scene hands to `evsStartScriptWithSkip`.
-extern EvsCommand D_actor_341300_80165354[];
-extern EvsCommand D_actor_341300_80165834[];
 
 /// Area records applied once the walkway's scene has started.
 extern AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
@@ -643,7 +638,7 @@ WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
 
 AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3] = {
     { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, D_actor_341300_80165208 },
+    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, gActor341300ScriptTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -946,7 +941,7 @@ s32 shelterB2NorthMaintenanceWalkwayHandleRoomAction(Task* unusedTask, s32 unuse
     u8 actionId = request->actionId;
 
     if (actionId == SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ACTION_ENTRY_SCENE && gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
-        evsStartScriptWithSkip(D_actor_341300_80165354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341300_80165834);
+        evsStartScriptWithSkip(gActor341300WalkwaySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor341300WalkwaySceneSkipScript);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_OBJECTIVE_AFTER_SCENE);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCENE_SEEN);
         areaApplySavedUpdates(D_shelter_b2_north_maintenance_walkway_80186380);

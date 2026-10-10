@@ -85144,11 +85144,11 @@ on the function:
 
 ```
 build/USA/src/actors/actor_341300/actor_341300_2.i:(.text+0x194):
-    undefined reference to `D_actor_341300_80161E64'
+    undefined reference to `_gActor341300PlayerHitPuffOffset'
 ```
 
 `migrate_rodata_to_functions` had folded that constant into the reader's own
-`.s` (`D_actor_341300_80161E64` and `_actor341300SpawnPlayerHitPuffs` shared one
+`.s` (`_gActor341300PlayerHitPuffOffset` and `_actor341300SpawnPlayerHitPuffs` shared one
 file). Promoting the reader retires that `.s` - splat stops regenerating it, and
 the copy left on disk is stale and no longer assembled - so nothing carries the
 bytes any more. The symbol is not gone from the config; it is gone from the
@@ -85172,7 +85172,7 @@ line. Getting the position wrong builds cleanly and fails the checksum at the
 overlay's first rodata byte, with `diff.py` reporting every function matching.
 
 ```c
-const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
+static const SVECTOR _gActor341300PlayerHitPuffOffset = { 100, -200, -100, 0 };
 
 static void _actor341300SpawnPlayerHitPuffs(void) { ... }
 ```
