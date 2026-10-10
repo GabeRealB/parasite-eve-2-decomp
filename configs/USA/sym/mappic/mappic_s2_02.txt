@@ -1,1 +1,2 @@
 // Overlay-local symbols for mappic_s2_02 (file 30202).
+gMappicS202WarehouseShape = 0x8012f2a8;

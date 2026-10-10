@@ -303,7 +303,7 @@ gMappicS302MainStreetShape = 0x8012F04C; // absolute:True owner=mappic_s3_02 sha
 gMappicS302GeneralStoreShape = 0x8012F0DC; // absolute:True owner=mappic_s3_02 shared=mappic
 gMappicS302BackStreetShape = 0x8012F188; // absolute:True owner=mappic_s3_02 shared=mappic
 gMappicS302SouvenirShopShape = 0x8012F218; // absolute:True owner=mappic_s3_02 shared=mappic
-D_mappic_s3_02_8012F2A8 = 0x8012F2A8; // absolute:True owner=mappic_s3_02 shared=mappic
+gMappicS302WarehouseShape = 0x8012F2A8; // absolute:True owner=mappic_s3_02 shared=mappic
 D_mappic_s3_02_8012F36C = 0x8012F36C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F3FC = 0x8012F3FC; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F48C = 0x8012F48C; // absolute:True owner=mappic_s3_02

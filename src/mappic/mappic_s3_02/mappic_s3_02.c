@@ -163,32 +163,37 @@ TmdSource gMappicS302SouvenirShopShape = {
     .stream           = _gMappicS302SouvenirShopShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800378Skeleton[1] = {
+/// Identity transform and self-parented root for the Warehouse shape.
+static TmdBone _gMappicS302WarehouseShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800378PartVerts[1] = {
+/// Vertex count of the Warehouse shape's sole part (four vertices).
+static u32 _gMappicS302WarehouseShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800378Verts[4] = {
+/// Warehouse's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302WarehouseShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800378Stream[9] = {
+/// Packed command stream for the Warehouse shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS302WarehouseShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F2A8 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800378PartVerts,
-    _gMappicS302MappicS202Model00C4800378Verts,
-    &_gMappicS302MappicS202Model00C4800378Verts[4],
-    _gMappicS302MappicS202Model00C4800378Skeleton,
-    _gMappicS302MappicS202Model00C4800378Stream,
+TmdSource gMappicS302WarehouseShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302WarehouseShapeSkeleton),
+    .partVertexCounts = _gMappicS302WarehouseShapePartVerts,
+    .verts            = _gMappicS302WarehouseShapeVerts,
+    .normals          = &_gMappicS302WarehouseShapeVerts[ARRAY_SIZE(_gMappicS302WarehouseShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302WarehouseShapeSkeleton,
+    .stream           = _gMappicS302WarehouseShapeStream,
 };
 
 static TmdBone _gMappicS302Model003F4Skeleton[1] = {
