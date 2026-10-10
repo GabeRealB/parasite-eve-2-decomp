@@ -625,7 +625,7 @@ DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
     D_neo_ark_south_promenade_8017F70C,
     D_neo_ark_altar_8017F0FC,
     gNeoArkShrineWarpEntries,
-    D_shelter_b6_nursery_8018530C,
+    gShelterB6NurseryWarpEntries,
     D_shelter_b6_growth_room_8017F380,
     gShelterB6CorridorWarpEntries,
     D_shelter_b6_training_room_80184420,
@@ -661,7 +661,7 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
     gNeoArkSouthPromenadeViewCounts,
     gNeoArkAltarViewCounts,
     gNeoArkShrineViewCounts,
-    D_shelter_b6_nursery_80185308,
+    gShelterB6NurseryViewCounts,
     gShelterB6GrowthRoomViewCounts,
     gShelterB6CorridorViewCounts,
     D_shelter_b6_training_room_8018441C,
@@ -678,7 +678,7 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
 ViewCountTable D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017AB8C[1] = {
-    { &gShelterB6NurseryCollisionGrid, D_shelter_b6_nursery_801872AC, D_shelter_b6_nursery_8018750C, NULL },
+    { &gShelterB6NurseryCollisionGrid, gShelterB6NurseryViewBoundaryTriggers, gShelterB6NurseryActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017AB9C[1] = {
@@ -773,7 +773,7 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     gNeoArkSouthPromenadeViewCameras,
     gNeoArkAltarViewCameras,
     gNeoArkShrineViewCameras,
-    D_shelter_b6_nursery_801858C4,
+    gShelterB6NurseryViewCameras,
     gShelterB6GrowthRoomViewCameras,
     gShelterB6CorridorViewCameras,
     D_shelter_b6_training_room_80184758,
@@ -849,7 +849,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gNeoArkSouthPromenadeSpriteViews,
     gNeoArkAltarSpriteViews,
     gNeoArkShrineSpriteViews,
-    D_shelter_b6_nursery_80186FD0,
+    gShelterB6NurserySpriteViews,
     gShelterB6GrowthRoomSpriteViews,
     gShelterB6CorridorSpriteViews,
     gShelterB6TrainingRoomSpriteViews,

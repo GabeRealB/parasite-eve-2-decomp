@@ -196,14 +196,14 @@ gNeoArkShrineSpriteViews = 0x80185280; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineSurfaceProperties = 0x80186844; // absolute:True owner=neo_ark_shrine
 shelterB6NurseryRoomTask = 0x8017FF9C; // type:func absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryViewMaps = 0x80185304; // absolute:True owner=shelter_b6_nursery shared=rooms
-D_shelter_b6_nursery_80185308 = 0x80185308; // absolute:True owner=shelter_b6_nursery
-D_shelter_b6_nursery_8018530C = 0x8018530C; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryViewCounts = 0x80185308; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryWarpEntries = 0x8018530C; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryCollisionGrid = 0x801858A0; // absolute:True owner=shelter_b6_nursery
-D_shelter_b6_nursery_801858C4 = 0x801858C4; // absolute:True owner=shelter_b6_nursery shared=rooms
-D_shelter_b6_nursery_80186FD0 = 0x80186FD0; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryViewCameras = 0x801858C4; // absolute:True owner=shelter_b6_nursery shared=rooms
+gShelterB6NurserySpriteViews = 0x80186FD0; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryRoomLights = 0x80187294; // absolute:True owner=shelter_b6_nursery shared=rooms
-D_shelter_b6_nursery_801872AC = 0x801872AC; // absolute:True owner=shelter_b6_nursery
-D_shelter_b6_nursery_8018750C = 0x8018750C; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryViewBoundaryTriggers = 0x801872AC; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryActionTriggers = 0x8018750C; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryAmbientByView = 0x8018789C; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurserySurfaceProperties = 0x80187958; // absolute:True owner=shelter_b6_nursery
 shelterB6GrowthRoomTask = 0x8017D7D4; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms

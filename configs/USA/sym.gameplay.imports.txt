@@ -1685,7 +1685,7 @@ D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48
 
 gShelterR49AreaVariants = 0x8017DD74; // absolute:True owner=shelter_r49
 
-D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shooting_gallery shared=rooms
+D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shooting_gallery
 
 acropolisSquareTelephoneMenuTask = 0x80180804; // type:func absolute:True owner=acropolis_square
 

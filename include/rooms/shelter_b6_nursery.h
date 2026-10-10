@@ -24,9 +24,20 @@ extern AreaVariant D_shelter_b6_nursery_801874A4[13];
 /// stays valid while the nursery overlay is loaded.
 extern u8* gShelterB6NurseryViewMaps[1];
 
-extern ViewCount D_shelter_b6_nursery_80185308[];
+/// Logical-view reverse-search length for the nursery's single room.
+///
+/// Room-minus-one indexing selects the signed count 19. This limits search
+/// through the identity map, independently of that map's 50-byte capacity.
+/// The array has no terminator and borrows the loaded nursery overlay's lifetime.
+extern ViewCount gShelterB6NurseryViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b6_nursery_8018530C[];
+/// Two nursery arrival placements and departure-facing recipes.
+///
+/// Warp-minus-one indexing selects matching player/companion placements with
+/// initial views 2 and 6. Coordinates use game units and yaw uses 4096 units
+/// per turn. Neither endpoint plays sounds, sets map flags or requests fade
+/// options. The entries have no terminator and remain live with this overlay.
+extern DirectionWarpEntry gShelterB6NurseryWarpEntries[2];
 
 /// Nursery collision mesh and its four XZ face-index cells.
 ///
@@ -36,9 +47,22 @@ extern DirectionWarpEntry D_shelter_b6_nursery_8018530C[];
 /// The descriptor and its private pools must stay loaded while active.
 extern WorldCollisionGrid gShelterB6NurseryCollisionGrid;
 
-extern ViewCamera D_shelter_b6_nursery_801858C4[];
+/// Camera transforms and perspective distances for mapped nursery views 1..19.
+///
+/// Indexed by mapped view minus one. Rotation is Q12, translation is the
+/// negated camera origin in game units, and projection distance is in pixels.
+/// The array has no terminator; queued camera applications borrow its records
+/// until they are applied, requiring the nursery overlay to remain loaded.
+extern ViewCamera gShelterB6NurseryViewCameras[19];
 
-extern SpriteView D_shelter_b6_nursery_80186FD0[];
+/// Sprite sources and drawing ranges for mapped nursery views 1..19.
+///
+/// Indexed by mapped view minus one, with no directory terminator or clipping
+/// lists. Empty views retain their batch-list address in `sources.empty`;
+/// populated views borrow mutable `sources.elements`. Each batch list ends
+/// with `SPRITE_BATCH_END`; its first zero count keeps decoded background
+/// strips. The descriptors and backing lists stay live with this overlay.
+extern SpriteView gShelterB6NurserySpriteViews[19];
 
 /// The nursery's five point lights for model shading and spatial light queries.
 ///
@@ -47,9 +71,22 @@ extern SpriteView D_shelter_b6_nursery_80186FD0[];
 /// which stays live with this record while the nursery overlay is loaded.
 extern WorldCoordRoomLights gShelterB6NurseryRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b6_nursery_801872AC[];
+/// Six nursery view-boundary quads linking views 2/3, 3/4 and 4/5 in both directions.
+///
+/// Room-space positions use game units and normals use Q12. The last record
+/// carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup binds the current view
+/// coordinate, links and enables these mutable records; this overlay must
+/// remain loaded until they are unlinked.
+extern WorldCollisionTrigger gShelterB6NurseryViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_shelter_b6_nursery_8018750C[];
+/// Twelve nursery interaction quads for room actions, CAP commands and departure.
+///
+/// Includes room actions 1..3, room command 10 and the training-room warp request
+/// (departure slot 1, arrival slot 2). Positions use room game units and normals
+/// use Q12. The final record carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup
+/// links these mutable records to the current view coordinate; their storage
+/// stays loaded until unlinking, and action hits are latched until consumed.
+extern WorldCollisionTrigger gShelterB6NurseryActionTriggers[12];
 
 /// Minimum model ambient colours for nursery views 1..19.
 ///
