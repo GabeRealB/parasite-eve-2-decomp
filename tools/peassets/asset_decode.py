@@ -301,12 +301,23 @@ def encode_bs_from_png_path(content_path: Path) -> bytes | None:
 
 
 def materialize_spk_asset(src: Path, dest_dir: Path) -> Path:
-    """Write SPK bank → ``dest_dir/meta.json`` + ``sample_*.wav``.
+    """Write SPK bank → ``dest_dir/meta.json``, and its samples.
+
+    A bank the manifest knows lists its slots by sample name (``samples``), and
+    each sample is written once as ``<assets>/sample/<name>.wav``; a bank it does
+    not know keeps its samples beside the meta as ``sample_*.wav``.
 
     Returns the meta path. Pack still prefers ``raw/spk/`` (no WAV→SPK encoder).
     """
     from spk_codec import materialize_spk
 
     data = src.read_bytes()
-    meta_path, _info = materialize_spk(data, dest_dir, stem=src.stem)
+    names = None
+    try:
+        import asset_data
+        names = (asset_data.ASSETS.get(src.stem) or {}).get("samples")
+    except Exception:  # noqa: BLE001 - the manifest is optional here
+        names = None
+    meta_path, _info = materialize_spk(data, dest_dir, stem=src.stem, names=names,
+                                       sample_dir=Path(dest_dir).parent.parent / "sample")
     return meta_path

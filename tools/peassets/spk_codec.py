@@ -249,6 +249,16 @@ def _sample_bounds(info: SpkInfo, data_len: int) -> list[tuple[int, int, int]]:
     return bounds
 
 
+def sample_streams(data: bytes, info: SpkInfo | None = None) -> list[bytes]:
+    """The stored SPU-ADPCM bytes of each sample slot, in slot order.
+
+    A sample is identified by these bytes: the same sound sits in many banks.
+    """
+    if info is None:
+        info = parse_spk(data)
+    return [data[off : off + length] for _addr, off, length in _sample_bounds(info, len(data))]
+
+
 def extract_samples(
     data: bytes, info: SpkInfo | None = None
 ) -> list[tuple[int, list[int]]]:
@@ -331,8 +341,15 @@ def materialize_spk(
     *,
     stem: str | None = None,
     rate: int = 22050,
+    names: list[str] | None = None,
+    sample_dir: Path | None = None,
 ) -> tuple[Path, SpkInfo]:
-    """Write ``meta.json`` + ``sample_XX.wav`` under ``dest_dir``.
+    """Write ``meta.json`` under ``dest_dir``, and the bank's samples.
+
+    With ``names`` (the manifest's name for each slot) every sample is written
+    once, as ``sample_dir/<name>.wav``, and the bank's meta lists its slots by
+    name: a sound several banks hold is one file. Without them the samples go
+    beside the meta as ``sample_XX.wav``, as before.
 
     Returns ``(meta_path, info)``.
     """
@@ -345,13 +362,20 @@ def materialize_spk(
         meta["stem"] = stem
     samples = extract_samples(data, info)
     meta["samples"] = []
+    shared = names is not None and sample_dir is not None and len(names) == len(samples)
     for i, (addr, pcm) in enumerate(samples):
-        name = f"sample_{i:02d}.wav"
-        write_wav(dest_dir / name, pcm, rate=rate)
+        if shared:
+            name = f"{names[i]}.wav"
+            if not (Path(sample_dir) / name).is_file():
+                write_wav(Path(sample_dir) / name, pcm, rate=rate)
+        else:
+            name = f"sample_{i:02d}.wav"
+            write_wav(dest_dir / name, pcm, rate=rate)
         meta["samples"].append(
             {
                 "index": i,
-                "file": name,
+                **({"name": names[i]} if shared else {}),
+                "file": f"../../sample/{name}" if shared else name,
                 "wave_addr": addr,
                 "frames": len(pcm),
                 "duration_sec": round(len(pcm) / rate, 4),

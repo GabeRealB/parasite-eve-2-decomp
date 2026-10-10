@@ -64,7 +64,10 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "model": {"payload": ("textures",), "stored": ("parts",)},
     "pe2pkg": {"payload": (), "stored": ("parent",)},
     "bs": {"payload": (), "stored": ()},
-    "spk": {"payload": (), "stored": ("sounds",)},
+    # A bank is a container: `samples` names the sample in each slot, in slot order.
+    "spk": {"payload": ("samples",), "stored": ("sounds",)},
+    # One sound, known by the SHA-1 of its stored SPU-ADPCM bytes; banks list it by name.
+    "sample": {"payload": (), "stored": ()},
     "txt": {"payload": (), "stored": ()},
     "pe2cap2": {"payload": (), "stored": ()},
 }

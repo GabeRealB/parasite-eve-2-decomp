@@ -86,7 +86,7 @@ const link = (kind, name, text) => h("a", { class: "lnk", href: "#" + kind + "."
 let S = 2; try { S = +localStorage.getItem("asset-map-scale") || 2; } catch (e) {}
 const zoom = (node, k) => { const w = node.width || node.naturalWidth, hh = node.height || node.naturalHeight; if (w) { node.style.width = w * (k || S) + "px"; node.style.height = hh * (k || S) + "px"; } return node; };
 const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
-const TYPE = { movie: "movies", stream: "streamed audio", pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2cap2: "captions", image: "embedded images", clut: "embedded palettes" };
+const TYPE = { movie: "movies", stream: "streamed audio", pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2cap2: "captions", sample: "samples", image: "embedded images", clut: "embedded palettes" };
 
 // ---- pixels: each image and palette has its video-memory words in a small script beside the page ----
 const pix = new Map(), waiting = new Map();
@@ -400,7 +400,7 @@ function showNames() {
   const copy = h("button", { text: "copy", onclick: () => { out.select && out.select(); (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(() => { said.textContent = " copied"; }, () => { said.textContent = " selected: copy it with the keyboard"; }); } });
   const take = h("button", { text: "import", onclick: () => { let n = 0, bad = 0; for (const line of inp.value.split("\n")) { const [k, v] = line.split("\t").map(x => (x || "").trim()); if (!k || !v) continue; if (nameProblem(k, v)) { bad++; continue; } setName(k, v); n++; } saveNames(); showNames(); $("subject").append(h("p", { class: "dim", text: `${n} taken` + (bad ? `, ${bad} refused (not a valid name, or taken)` : "") })); } });
   let armed = false; const clear = h("button", { text: "clear all", onclick: () => { if (!armed) { armed = true; clear.textContent = "really clear all?"; return; } for (const k of Object.keys(proposed)) setName(k, ""); saveNames(); showNames(); } });
-  const where = k => k.startsWith("sample:") ? ((D.sampleHomes || {})[k.slice(7)] ? h("span", {}, "sample ", ((D.sampleHomes[k.slice(7)]).slice(0, 3)).map(([b, i], n) => [n ? ", " : "", link("a", b), " #" + i]), D.sampleHomes[k.slice(7)].length > 3 ? ` and ${D.sampleHomes[k.slice(7)].length - 3} more` : "") : h("span", { text: k })) : k.startsWith("file:") ? h("span", { text: k.slice(5) }) : D.overlays[k] ? link("o", k) : link("a", k);
+  const where = k => k.startsWith("file:") ? h("span", { text: k.slice(5) }) : D.overlays[k] ? link("o", k) : link("a", k);
   box.replaceChildren(h("header", {}, h("h2", { text: `Proposed names (${keys.length})` }), h("div", { class: "crumbs", text: `${Object.keys(D.names || {}).length} from tools/peassets/asset_names.tsv, ${Object.keys(edits).length} changed here and kept only in this browser until the export is saved over that file; nothing is renamed until the list is applied` })),
     sec("Export", "One line per name: the current name, a tab, the new name. A disc file is \"file:\" and its path.", out, h("div", { class: "row" }, copy, save, said)),
     sec("Import", "Adds to what is here; a line whose new name is invalid or taken is refused.", inp, h("div", { class: "row" }, take, clear)),
@@ -504,6 +504,10 @@ async function memorySection(name, o, reqs, alive) {
 }
 
 // ---- an asset ----
+// Which script entries of a bank play the sample in a slot, and what the sweep recorded about those entries (a use line names its entries as 0xNN).
+const hex2 = n => "0x" + n.toString(16).padStart(2, "0");
+const samplePlayedBy = (bank, slot) => ((D.scripts[bank] || [0, []])[1]).map((e, n) => e && e.some(v => v[1] === slot) ? n : -1).filter(n => n >= 0);
+const sampleSaid = (bank, ns) => (D.usage[bank] || []).filter(u => (u[1].match(/0x[0-9a-f]{1,2}\b/gi) || []).some(t => ns.includes(parseInt(t, 16)))).slice(0, 3);
 async function showAsset(key) {
   const mine = ++turn, a = D.assets[key], box = $("subject"); if (!a) { box.replaceChildren(h("p", { text: `No asset named ${key}.` })); return; }
   const [type, attrs] = a, files = placedIn.get(key) || [], sections = [];
@@ -531,16 +535,17 @@ async function showAsset(key) {
       : how[0] === "none" ? [h("div", { class: "tile miss" }, h("div", { text: `in ${pkg}` }), h("div", { class: "flag", text: "supplied by nothing in its chain" }))]
       : (how[2].filter(Boolean).slice(0, 3)).map(v => tile(compose([v]), t, c, b, `in ${pkg}`, `from ${how[1]} · ${D.files[v[0]]}`))))));
   } else if (type === "bs" && D.pictures) sections.push(sec("Picture", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("img", { src: `${D.pictures}/bs/${key}.png`, alt: key, onload: e => zoom(e.target) })))));
-  else if (type === "spk" && D.pictures) { const ids = (D.sampleIds || {})[key] || [], entries = (D.scripts[key] || [0, []])[1], uses = D.usage[key] || [];
-    // Which script entries play a sample, and what the sweep recorded about those entries (a use line names its entries as 0xNN).
-    const playedBy = i => entries.map((e, n) => e && e.some(v => v[1] === i) ? n : -1).filter(n => n >= 0);
-    const said = ns => uses.filter(u => (u[1].match(/0x[0-9a-f]{1,2}\b/gi) || []).some(t => ns.includes(parseInt(t, 16)))).slice(0, 3);
-    sections.push(sec(`Sounds (${D.sounds[key] || 0})`, "Each sample of the bank. A sample is known by its content, so one that sits in several banks is named once and shows that name in each. Under it: the script entries that play it, what the uses say about those entries, and the other banks holding the same sound.",
-      h("div", { class: "shots" }, Array.from({ length: D.sounds[key] || 0 }, (_, i) => { const id = ids[i], homes = id ? (D.sampleHomes[id] || []).filter(([b, n]) => b !== key || n !== i) : [], ns = playedBy(i);
-        return h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/spk/${key}/sample_${String(i).padStart(2, "0")}.wav` }), h("div", {}, `sample ${i} `, id ? nameInput("sample:" + id) : null),
-          h("div", { class: "dim", text: ns.length ? "played by entry " + ns.map(n => "0x" + n.toString(16).padStart(2, "0")).join(", ") : "no script entry of this bank plays it" }),
-          said(ns).map(u => h("div", { class: "what", text: `${u[1].slice(0, 80)} — ${u[3].slice(0, 140)}` })),
-          homes.length ? h("div", { class: "dim" }, "same sound: ", homes.slice(0, 6).map(([b, n], k) => [k ? ", " : "", link("a", b), " #" + n]), homes.length > 6 ? ` and ${homes.length - 6} more` : "") : null); })))); }
+  else if (type === "spk" && D.pictures) { const ids = (D.sampleIds || {})[key] || [];
+    sections.push(sec(`Samples (${D.sounds[key] || 0})`, "The bank is a container: each slot names a sample, and a sample that sits in several banks is one asset with one name. Under each: the script entries of this bank that play it, what the uses say about those entries, and the other banks holding it.",
+      h("div", { class: "shots" }, Array.from({ length: D.sounds[key] || 0 }, (_, i) => { const id = ids[i], homes = id ? (D.sampleHomes[id] || []).filter(([b, n]) => b !== key || n !== i) : [], ns = samplePlayedBy(key, i);
+        return h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: id ? `${D.pictures}/sample/${id}.wav` : `${D.pictures}/spk/${key}/sample_${String(i).padStart(2, "0")}.wav` }), h("div", {}, `slot ${i}: `, id ? link("a", id) : "unnamed", proposed[id] ? h("span", { class: "dim", text: " → " + proposed[id] }) : null), id ? h("div", {}, nameInput(id)) : null,
+          h("div", { class: "dim", text: ns.length ? "played by entry " + ns.map(hex2).join(", ") : "no script entry of this bank plays it" }),
+          sampleSaid(key, ns).map(u => h("div", { class: "what", text: `${u[1].slice(0, 80)} — ${u[3].slice(0, 140)}` })),
+          homes.length ? h("div", { class: "dim" }, "also in ", homes.slice(0, 6).map(([b, n], k) => [k ? ", " : "", link("a", b), " slot " + n]), homes.length > 6 ? ` and ${homes.length - 6} more` : "") : null); })))); }
+  else if (type === "sample") { const homes = (D.sampleHomes || {})[key] || [];
+    if (D.pictures) sections.push(sec("Sound", "The sample as decoded: SPU-ADPCM at the SPU's native rate. The pitch, envelope and volume it is played with belong to each bank's slot, not to the sample.", h("div", { class: "shots" }, h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/sample/${key}.wav` })))));
+    sections.push(sec(`In banks (${homes.length})`, "Every bank slot that holds this sample, the script entries of that bank that play it, and what the uses say about those entries.",
+      h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["Bank", "Slot", "Played by entry", "What the uses say"].map(t => h("th", { text: t }))), homes.map(([b, n]) => { const ns = samplePlayedBy(b, n); return h("tr", {}, h("td", {}, link("a", b)), h("td", { text: n }), h("td", { text: ns.map(hex2).join(", ") || "none" }), h("td", {}, sampleSaid(b, ns).map(u => h("div", { text: `${u[1].slice(0, 90)} — ${u[3].slice(0, 200)}` })))); }))))); }
   if (type === "spk" && D.scripts[key]) { const [bank, entries] = D.scripts[key];
     sections.push(sec(`Script entries (${entries.length})`, `What each entry of the bank plays. A sound id in the code is 0x${bank.toString(16).padStart(4, "0")} in its high half and the entry in its low byte.`,
       capped(entries.map((e, i) => [i, e]), 80, part => h("table", {}, h("tr", {}, ["Entry", "Sound id", "Plays"].map(t => h("th", { text: t }))), part.map(([i, e]) => h("tr", {}, h("td", { text: "0x" + i.toString(16).padStart(2, "0") }), h("td", { text: "0x" + ((bank * 65536 + i) >>> 0).toString(16).padStart(8, "0") }),

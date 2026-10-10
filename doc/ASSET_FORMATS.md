@@ -1011,7 +1011,17 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
 - Each serialized `SndBankLayer.waveAddr` is a byte offset into the sample pool
   (16-byte ADPCM frames, ~22050 Hz mono). The game rebases it to an absolute SPU
   byte address after uploading that pool.
-- Extract: `raw/spk/*.spk` → `spk/{stem}/meta.json` + `sample_XX.wav`.
+- **A bank is a container; a sample is an asset.** The distinct runs of the
+  pool, one per `waveAddr` in address order, are the bank's sample slots. A
+  sample is identified by the SHA-1 of its stored ADPCM bytes, and the same
+  sound sits in many banks: 2,932 slots in 472 banks hold 2,289 distinct
+  samples. So `asset_data.ASSETS` has one `sample` entry per distinct sound,
+  and a bank's `samples` field names the sample in each slot, in slot order.
+  Names survive regeneration by SHA-1, as model names do; a new sample is
+  named `<bank>_sample_<slot>` after the first bank holding it. What a slot
+  adds - root key, envelope, volume, pan - is the bank's, in its layer records.
+- Extract: `raw/spk/*.spk` → `spk/{stem}/meta.json`, whose `samples` list the
+  slots by name, and each sample once as `sample/{name}.wav`.
 - Pack always uses `raw/spk/` (no WAV→SPK encoder).
 
 #### What works today

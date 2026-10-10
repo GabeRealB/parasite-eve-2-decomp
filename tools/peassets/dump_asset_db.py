@@ -555,6 +555,47 @@ def collect_models(
     return out, placed
 
 
+def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Every sound of every bank: one ASSETS entry per distinct sample, and each bank's slots by name.
+
+    A bank is a container. A sample is identified by the SHA-1 of its stored
+    SPU-ADPCM bytes, so a sound that sits in several banks (a quarter of all
+    slots do) is one asset, and the bank's `samples` field names the sample in
+    each slot, in slot order. What a slot adds - its pitch, envelope and volume -
+    stays in the bank, in its layer records.
+
+    Names are preserved across regeneration by SHA-1, as for models: a new
+    sample is named after the first bank holding it, `<bank>_sample_<slot>`, and
+    keeps whatever name it is given afterwards.
+    """
+    import spk_codec
+
+    raw = assets_root / "raw" / "spk"
+    known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "sample"}
+    by_file = {rec["sha1"]: aid for aid, rec in assets.items() if rec.get("type") == "spk"}
+    out: dict[str, dict[str, Any]] = {}
+    named: dict[str, str] = {}
+    if not raw.is_dir():
+        return out
+    for path in sorted((p for p in raw.iterdir() if p.is_file()), key=asset_name_key):
+        bank = by_file.get(_sha1_file(path))
+        if bank is None:
+            continue
+        slots = []
+        for slot, stream in enumerate(spk_codec.sample_streams(path.read_bytes())):
+            digest = hashlib.sha1(stream).hexdigest()
+            aid = named.get(digest)
+            if aid is None:
+                aid = known.get(digest) or f"{bank}_sample_{slot:02d}"
+                named[digest] = aid
+                rec = dict(old.get(aid) or {}) if known.get(digest) else {}
+                rec.update({"sha1": digest, "type": "sample"})
+                out[aid] = rec
+            slots.append(aid)
+        assets[bank]["samples"] = slots
+    return out
+
+
 def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Every animation bank the overlay manifest declares, as an embedded asset.
 
@@ -694,6 +735,12 @@ def main(argv: list[str] | None = None) -> int:
     assets = collect_assets(assets_root, old_assets)
     models, placements = collect_models(assets_root, old_assets)
     assets.update(models)
+    samples = collect_samples(assets_root, old_assets, assets)
+    clash = sorted(set(samples) & set(assets))
+    if clash:
+        print(f"sample names already taken by other assets: {clash[:5]}", file=sys.stderr)
+        return 1
+    assets.update(samples)
     embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
     embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
     embedded_geometry(assets_root, embedded)

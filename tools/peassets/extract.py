@@ -642,7 +642,9 @@ class AssetStore:
 
         * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg``
         * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under type dir
-        * ``.spk`` — ``spk/{stem}/meta.json`` + ``sample_*.wav`` (SPU-ADPCM)
+        * ``.spk`` — ``spk/{stem}/meta.json`` listing its slots by sample name, and each
+          sample once as ``sample/{name}.wav`` (SPU-ADPCM); a bank the manifest does
+          not know keeps ``sample_*.wav`` beside its meta
         * ``.txt`` — strip zero pad (text only, no trailing NUL)
         * other — hardlink/copy raw → type dir (same bytes)
 

@@ -573,13 +573,13 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     if (extracted / "spk").is_dir():
         for folder in (extracted / "spk").iterdir():
             if folder.is_dir():
-                waves = sorted(f for f in folder.iterdir() if f.suffix == ".wav")
-                sounds[folder.name] = len(waves)
-                # A sample is known by its content: the same sound sits in many banks, and a name given to it is given once.
-                for n, wave in enumerate(waves):
-                    digest = hashlib.sha1(wave.read_bytes()).hexdigest()[:12]
-                    sample_ids.setdefault(folder.name, []).append(digest)
-                    sample_homes.setdefault(digest, []).append([folder.name, n])
+                sounds[folder.name] = len((assets.get(folder.name) or {}).get("samples") or ()) or sum(1 for f in folder.iterdir() if f.suffix == ".wav")
+    # A bank is a container of samples (tools/peassets/asset_data.py): each slot names one, and one sample can sit in many banks.
+    for key, rec in assets.items():
+        if rec.get("type") == "spk" and rec.get("samples"):
+            sample_ids[key] = rec["samples"]
+            for n, name in enumerate(rec["samples"]):
+                sample_homes.setdefault(name, []).append([key, n])
     catalogue = {}
     for key, rec in assets.items():
         catalogue[key] = [rec["type"], {k: rec[k] for k in SHOWN if k in rec}]
