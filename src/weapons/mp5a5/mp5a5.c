@@ -354,136 +354,208 @@ static AnimationSet _gMp5a5RunAnimation = {
     { NULL, _gMp5a5RunAnimationBank1, NULL, NULL, _gMp5a5RunAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation03A00Bank1[19] = {
+/// Encoding-1 local translations and rotations for MP5A5 left turning.
+static AnimationPackedPose _gMp5a5TurnLeftAnimationBank1[] = {
 #include "assets/mp5a5_animation_03A00_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation03A00Bank4[169] = {
+/// Encoding-4 rotations for MP5A5 left turning, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5TurnLeftAnimationBank4[] = {
 #include "assets/mp5a5_animation_03A00_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation03A00Records[290] = {
+/// Left-turn keyframes and loop controls; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5TurnLeftAnimationRecords[] = {
 #include "assets/mp5a5_animation_03A00_records.inc"
 };
 
-static u16 _gMp5a5Animation03A00Indices[20] = {
+/// Absolute record starts for the left-turn clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5TurnLeftAnimationIndices[] = {
 #include "assets/mp5a5_animation_03A00_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation03A00 = {
-    _gMp5a5Animation03A00Records,
-    _gMp5a5Animation03A00Indices,
-    { NULL, _gMp5a5Animation03A00Bank1, NULL, NULL, _gMp5a5Animation03A00Bank4, NULL, NULL, NULL },
+/// MP5A5 player's stationary left-turn clip in native bank slot 5.
+///
+/// Provides player-rig tracks 0..18; child playback uses tracks 1..18.
+/// Actor control supplies the root yaw separately from these local poses.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5TurnLeftAnimation = {
+    .records           = _gMp5a5TurnLeftAnimationRecords,
+    .trackStartIndices = _gMp5a5TurnLeftAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5TurnLeftAnimationBank1, NULL, NULL, _gMp5a5TurnLeftAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation04264Bank1[19] = {
+/// Encoding-1 local translations and rotations for MP5A5 right turning.
+static AnimationPackedPose _gMp5a5TurnRightAnimationBank1[] = {
 #include "assets/mp5a5_animation_04264_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation04264Bank4[170] = {
+/// Encoding-4 rotations for MP5A5 right turning, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5TurnRightAnimationBank4[] = {
 #include "assets/mp5a5_animation_04264_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation04264Records[290] = {
+/// Right-turn keyframes and loop controls; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5TurnRightAnimationRecords[] = {
 #include "assets/mp5a5_animation_04264_records.inc"
 };
 
-static u16 _gMp5a5Animation04264Indices[20] = {
+/// Absolute record starts for the right-turn clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5TurnRightAnimationIndices[] = {
 #include "assets/mp5a5_animation_04264_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation04264 = {
-    _gMp5a5Animation04264Records,
-    _gMp5a5Animation04264Indices,
-    { NULL, _gMp5a5Animation04264Bank1, NULL, NULL, _gMp5a5Animation04264Bank4, NULL, NULL, NULL },
+/// MP5A5 player's stationary right-turn clip in native bank slot 6.
+///
+/// Provides player-rig tracks 0..18; child playback uses tracks 1..18.
+/// Actor control supplies the root yaw separately from these local poses.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5TurnRightAnimation = {
+    .records           = _gMp5a5TurnRightAnimationRecords,
+    .trackStartIndices = _gMp5a5TurnRightAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5TurnRightAnimationBank1, NULL, NULL, _gMp5a5TurnRightAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation04578Bank1[3] = {
+/// Encoding-1 local translations and rotations for MP5A5 item use.
+static AnimationPackedPose _gMp5a5ItemUseAnimationBank1[] = {
 #include "assets/mp5a5_animation_04578_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation04578Bank4[69] = {
+/// Encoding-4 rotations for MP5A5 item use, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5ItemUseAnimationBank4[] = {
 #include "assets/mp5a5_animation_04578_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation04578Records[99] = {
+/// Item-use keyframes and stop controls; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5ItemUseAnimationRecords[] = {
 #include "assets/mp5a5_animation_04578_records.inc"
 };
 
-static u16 _gMp5a5Animation04578Indices[20] = {
+/// Absolute record starts for the item-use clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5ItemUseAnimationIndices[] = {
 #include "assets/mp5a5_animation_04578_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation04578 = {
-    _gMp5a5Animation04578Records,
-    _gMp5a5Animation04578Indices,
-    { NULL, _gMp5a5Animation04578Bank1, NULL, NULL, _gMp5a5Animation04578Bank4, NULL, NULL, NULL },
+/// MP5A5 player's item-use presentation clip in native bank slot 40.
+///
+/// Provides player-rig tracks 0..18; child playback uses tracks 1..18.
+/// The item effect is applied separately from this presentation.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5ItemUseAnimation = {
+    .records           = _gMp5a5ItemUseAnimationRecords,
+    .trackStartIndices = _gMp5a5ItemUseAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5ItemUseAnimationBank1, NULL, NULL, _gMp5a5ItemUseAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation04CD4Bank1[14] = {
+/// Encoding-1 local translations and rotations for MP5A5 stair ascent.
+static AnimationPackedPose _gMp5a5StairAscentAnimationBank1[] = {
 #include "assets/mp5a5_animation_04CD4_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation04CD4Bank4[156] = {
+/// Encoding-4 rotations for MP5A5 stair ascent, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5StairAscentAnimationBank4[] = {
 #include "assets/mp5a5_animation_04CD4_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation04CD4Records[253] = {
+/// Stair-ascent keyframes and loop controls, with stride cues on player-rig track 1.
+///
+/// Segment durations count normal-rate frames; cue bits gate stair displacement.
+static AnimationRecord _gMp5a5StairAscentAnimationRecords[] = {
 #include "assets/mp5a5_animation_04CD4_records.inc"
 };
 
-static u16 _gMp5a5Animation04CD4Indices[20] = {
+/// Absolute record starts for the stair-ascent clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5StairAscentAnimationIndices[] = {
 #include "assets/mp5a5_animation_04CD4_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation04CD4 = {
-    _gMp5a5Animation04CD4Records,
-    _gMp5a5Animation04CD4Indices,
-    { NULL, _gMp5a5Animation04CD4Bank1, NULL, NULL, _gMp5a5Animation04CD4Bank4, NULL, NULL, NULL },
+/// MP5A5 player's repeating stair-ascent clip in native bank slot 36.
+///
+/// Provides player-rig tracks 0..18; child playback uses tracks 1..18.
+/// Actor control supplies root displacement, timed by the clip's stride cues.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5StairAscentAnimation = {
+    .records           = _gMp5a5StairAscentAnimationRecords,
+    .trackStartIndices = _gMp5a5StairAscentAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5StairAscentAnimationBank1, NULL, NULL, _gMp5a5StairAscentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation0545CBank1[16] = {
+/// Encoding-1 local translations and rotations for MP5A5 stair descent.
+static AnimationPackedPose _gMp5a5StairDescentAnimationBank1[] = {
 #include "assets/mp5a5_animation_0545C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0545CBank4[167] = {
+/// Encoding-4 rotations for MP5A5 stair descent, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5StairDescentAnimationBank4[] = {
 #include "assets/mp5a5_animation_0545C_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0545CRecords[247] = {
+/// Stair-descent keyframes and loop controls, with stride cues on player-rig track 1.
+///
+/// Segment durations count normal-rate frames; cue bits gate stair displacement.
+static AnimationRecord _gMp5a5StairDescentAnimationRecords[] = {
 #include "assets/mp5a5_animation_0545C_records.inc"
 };
 
-static u16 _gMp5a5Animation0545CIndices[20] = {
+/// Absolute record starts for the stair-descent clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5StairDescentAnimationIndices[] = {
 #include "assets/mp5a5_animation_0545C_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0545C = {
-    _gMp5a5Animation0545CRecords,
-    _gMp5a5Animation0545CIndices,
-    { NULL, _gMp5a5Animation0545CBank1, NULL, NULL, _gMp5a5Animation0545CBank4, NULL, NULL, NULL },
+/// MP5A5 player's repeating stair-descent clip in native bank slot 37.
+///
+/// Provides player-rig tracks 0..18; child playback uses tracks 1..18.
+/// Actor control supplies root displacement, timed by the clip's stride cues.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5StairDescentAnimation = {
+    .records           = _gMp5a5StairDescentAnimationRecords,
+    .trackStartIndices = _gMp5a5StairDescentAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5StairDescentAnimationBank1, NULL, NULL, _gMp5a5StairDescentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation05730Bank1[6] = {
+/// Encoding-1 local translations and rotations for MP5A5's odd-count ascent finish.
+static AnimationPackedPose _gMp5a5StairAscentFinishOddAnimationBank1[] = {
 #include "assets/mp5a5_animation_05730_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation05730Bank4[52] = {
+/// Encoding-4 rotations for MP5A5's odd-count ascent finish, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5StairAscentFinishOddAnimationBank4[] = {
 #include "assets/mp5a5_animation_05730_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation05730Records[91] = {
+/// Odd-count ascent-finish keyframes and stop controls, with a track-1 footstep cue.
+///
+/// Segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5StairAscentFinishOddAnimationRecords[] = {
 #include "assets/mp5a5_animation_05730_records.inc"
 };
 
-static u16 _gMp5a5Animation05730Indices[20] = {
+/// Absolute record starts for the odd-count ascent finish's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5StairAscentFinishOddAnimationIndices[] = {
 #include "assets/mp5a5_animation_05730_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation05730 = {
-    _gMp5a5Animation05730Records,
-    _gMp5a5Animation05730Indices,
-    { NULL, _gMp5a5Animation05730Bank1, NULL, NULL, _gMp5a5Animation05730Bank4, NULL, NULL, NULL },
+/// MP5A5 player's stair-ascent finishing stride for an odd initial step count.
+///
+/// Native bank slot 39 provides player-rig tracks 0..18; child playback uses 1..18.
+/// Actor control supplies the final level root displacement separately.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5StairAscentFinishOddAnimation = {
+    .records           = _gMp5a5StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gMp5a5StairAscentFinishOddAnimationIndices,
+    .poseBanks         = { NULL, _gMp5a5StairAscentFinishOddAnimationBank1, NULL, NULL, _gMp5a5StairAscentFinishOddAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gMp5a5Animation05AC0Bank1[7] = {
@@ -1042,8 +1114,8 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5WalkAnimation,
     &_gMp5a5BackwardWalkAnimation,
     &_gMp5a5RunAnimation,
-    &_gMp5a5Animation03A00,
-    &_gMp5a5Animation04264,
+    &_gMp5a5TurnLeftAnimation,
+    &_gMp5a5TurnRightAnimation,
     &_gMp5a5Animation0DC58,
     &_gMp5a5Animation0E1E4,
     &_gMp5a5Animation0BD88,
@@ -1073,11 +1145,11 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5Animation0A530,
     &_gMp5a5Animation0A358,
     &_gMp5a5Animation0A530,
-    &_gMp5a5Animation04CD4,
-    &_gMp5a5Animation0545C,
+    &_gMp5a5StairAscentAnimation,
+    &_gMp5a5StairDescentAnimation,
     &_gMp5a5Animation05AC0,
-    &_gMp5a5Animation05730,
-    &_gMp5a5Animation04578,
+    &_gMp5a5StairAscentFinishOddAnimation,
+    &_gMp5a5ItemUseAnimation,
     &_gMp5a5IdleAnimation,
     &_gMp5a5Animation0AA94,
     &_gMp5a5Animation0AC88,
