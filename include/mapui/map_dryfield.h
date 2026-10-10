@@ -56,7 +56,7 @@ extern StageMusicEntry gMapDryfieldAreaMusicEntries[(GAME_AREA_DRYFIELD_UNDERPAS
 
 /// Scene-indexed countdown music for daytime Dryfield.
 ///
-/// `gStageSceneMusicEntry` selects an entry directly, without a bounds check
+/// `gStageCountdownMusicEntry` selects an entry directly, without a bounds check
 /// or terminator. Entries 0..11 hold the scene selections; entries 12..19
 /// retain sequence zero and start mode zero. Keep this overlay loaded until
 /// the music task finishes using its selection.
