@@ -676,7 +676,7 @@ static void _telephoneUsageTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    list           = &Telephone_Data_80181C6C;
+    list           = &_gTelephoneUsageList;
     if (task->spawnArg1.value == TELEPHONE_USAGE_WEAPONS) {
         uiDrawPanelLabel(&(object)->panel, _gTelephoneWeaponUsageTitle);
     } else {

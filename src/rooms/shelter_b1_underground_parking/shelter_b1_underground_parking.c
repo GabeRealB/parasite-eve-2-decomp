@@ -213,16 +213,6 @@ extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
 
-/// The list the weapon and PE usage panels fill.
-static UiList Telephone_Data_80181C6C;
-
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];

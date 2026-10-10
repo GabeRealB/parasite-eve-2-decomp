@@ -81,31 +81,24 @@ static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// List and descriptor of the remaining usage panel.
-static UiList       Telephone_Data_80181C6C;
-static UiObjectDesc Telephone_Data_80181CC8;
-
-/// Message table of the room's message task.
-extern TaskMessageEntry D_acropolis_fire_escape_80181D3C[];
-
-/// Task table holding the room's ambient-sound task.
-extern TaskDesc D_acropolis_fire_escape_80181D64[];
-
 /// Object whose `field_4A` bit 0x40 the message task clears each frame while
 /// the slot-4 task does not answer message 0x7D6.
 
-/// Level the ambient-sound task last set for sound event 0x510F0005.
-extern s32 D_acropolis_fire_escape_80183040;
+/// Last requested fire-escape ambience level, in whole percent (0, 15, 30 or 100).
+///
+/// Initialized to silence when the ambience task starts. Updated even if the
+/// sound queue rejects a request, so equal levels suppress duplicate requests.
+static s32 _gAcropolisFireEscapeRequestedAmbiencePercent;
 
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Parameters of the cutscene the 0x13F0 message handler starts.
-extern RoomCutsceneRec D_acropolis_fire_escape_80183048;
+/// Persistent playback request for the repeat fire-escape scene in view 9.
+///
+/// A scene command fills all fields before spawning the bodyless runner.
+/// The runner borrows this singleton through completion; keep the overlay
+/// loaded and do not overwrite the request while that scene is live.
+static RoomCutsceneRec _gAcropolisFireEscapeRepeatScene;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\1\0"
 #include "../../shared/telephone.h"
@@ -137,9 +130,9 @@ static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32
 
 static void _acropolisFireEscapeAmbienceTask(Task* task);
 
-extern WorldCollisionGrid     D_acropolis_fire_escape_801822A8[1];
-extern WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2];
-extern WorldCollisionTrigger  D_acropolis_fire_escape_801822CC[8];
+static WorldCollisionGrid     _gAcropolisFireEscapeCollisionGrid;
+static WorldCollisionOccluder _gAcropolisFireEscapeOccluders[2];
+static WorldCollisionTrigger  _gAcropolisFireEscapeViewBoundaryTriggers[8];
 static WorldCoordRoomLights   _gAcropolisFireEscapeRoomLights;
 
 #include "../../shared/telephone_data.inc.c"
@@ -156,7 +149,13 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
+/// Synchronous room handlers for transitions, key-item use, commands and sound.
+///
+/// Installed on the room task as a borrowed, read-only table. The final END
+/// record makes unsupported IDs return zero. Transition payloads borrow a
+/// request/reply pair; the other handlers receive integer words. Keep this
+/// table and its callback code loaded while the room task can receive messages.
+static const TaskMessageEntry _gAcropolisFireEscapeRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFireEscapeResolveRoomTransition },
     { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM, _acropolisFireEscapeRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _acropolisFireEscapeHandleRoomCommand },
@@ -164,9 +163,20 @@ TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_acropolis_fire_escape_80181D64[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _acropolisFireEscapeAmbienceTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+enum { ACROPOLIS_FIRE_ESCAPE_AMBIENCE_TASK_PRIORITY = 32 };
+
+/// Bodyless view-dependent ambience recipe at index 0, followed by END.
+///
+/// Spawning copies the recipe synchronously; both payload words are ignored.
+/// The task uses the room's requested-level singleton and must finish before
+/// its room callback code is unloaded.
+static TaskDesc _gAcropolisFireEscapeAmbienceTaskDescriptors[2] = {
+    {
+        .header   = { .fields = { TASK_BODY_NONE, ACROPOLIS_FIRE_ESCAPE_AMBIENCE_TASK_PRIORITY } },
+        .callback = _acropolisFireEscapeAmbienceTask,
+        .data     = { .value = 0 },
+    },
+    { .header = { .fields = { TASK_DESC_END, 0 } } },
 };
 
 /// Signed Q12 cosine samples for the fire escape's glow and radial flare wedges.
@@ -200,8 +210,13 @@ static s16 _gAcropolisFireEscapeGlowCircleSamples[24] = {
     0,
 };
 
-WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[1] = {
-    { D_acropolis_fire_escape_801822A8, D_acropolis_fire_escape_801822CC, _gAcropolisFireEscapeActionTriggers, D_acropolis_fire_escape_801828BC },
+WorldCollisionRoomResources gAcropolisFireEscapeCollisionRoomResources[1] = {
+    {
+        .grid                 = &_gAcropolisFireEscapeCollisionGrid,
+        .viewBoundaryTriggers = _gAcropolisFireEscapeViewBoundaryTriggers,
+        .actionTriggers       = _gAcropolisFireEscapeActionTriggers,
+        .occluders            = _gAcropolisFireEscapeOccluders,
+    },
 };
 
 u8* gAcropolisFireEscapeViewMaps[1] = {
@@ -214,39 +229,93 @@ WorldCoordRoomLighting gAcropolisFireEscapeRoomLightingTable[1] = {
     { &_gAcropolisFireEscapeRoomLights, NULL },
 };
 
-DirectionWarpEntry D_acropolis_fire_escape_80181DCC[3] = {
-    { { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2628, 1, -183 }, { 0, 0, 0, 0 }, 0x510F0003, 0x510F0002, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 490 },
-    { { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1799, 1240 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -4294, -2450, 340 }, { 0, 0, 0, 0 }, { { .word = 0 }, -4294, -1800, 1240 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+enum { ACROPOLIS_FIRE_ESCAPE_BRIDGE_DOOR_MAP_FLAG = 490 };
+
+DirectionWarpEntry gAcropolisFireEscapeWarpEntries[3] = {
+    {
+        .player         = { { .word = 3072 }, 2628, 1, -183 },
+        .companion      = { { .word = 3072 }, 2628, 1, -183 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 3),
+        .departureSound = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 2),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = ACROPOLIS_FIRE_ESCAPE_BRIDGE_DOOR_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 0 }, -4294, -1799, 1240 },
+        .companion      = { { .word = 0 }, -4294, -1799, 1240 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, -4294, -2450, 340 },
+        .companion      = { { .word = 0 }, -4294, -1800, 1240 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
-SVECTOR gAcropolisFireEscapeCollision04CE8Normals[10] = {
+SVECTOR gAcropolisFireEscapeCollisionGridNormals[10] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_normals.inc"
 };
 
-SVECTOR gAcropolisFireEscapeCollision04CE8Verts[55] = {
+SVECTOR gAcropolisFireEscapeCollisionGridVerts[55] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_verts.inc"
 };
 
-WorldCollisionGridFace gAcropolisFireEscapeCollision04CE8Faces[23] = {
+WorldCollisionGridFace gAcropolisFireEscapeCollisionGridFaces[23] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_faces.inc"
 };
 
-static s16 _gAcropolisFireEscapeCollision04CE8Cells[122] = {
+/// Packed signed face-index lists for the fire escape's nine XZ cells.
+///
+/// Each list ends at WORLD_COLLISION_GRID_CELL_END; trailing serialized zeroes
+/// remain outside the traversed lists. Indices select the 23-face mesh.
+static s16 _gAcropolisFireEscapeCollisionGridCells[122] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisFireEscapeCollision04CE8Cells[i])
-static s16* _gAcropolisFireEscapeCollision04CE8Table[9] = {
+// Bind the generated table's offsets to the matching face-index storage.
+#define GRID_CELL(i) (&_gAcropolisFireEscapeCollisionGridCells[i])
+/// X-major 3-by-3 cell table, borrowing the packed face-index lists.
+static s16* _gAcropolisFireEscapeCollisionGridTable[9] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_fire_escape_801822A8[1] = {
-    { NULL, gAcropolisFireEscapeCollision04CE8Normals, gAcropolisFireEscapeCollision04CE8Verts, gAcropolisFireEscapeCollision04CE8Faces, _gAcropolisFireEscapeCollision04CE8Table, 5000, 3800, 3, 3, 4000, 23 },
+/// Fire escape's collision mesh and 3-by-3 XZ index of 4000-game-unit cells.
+///
+/// The grid origin is (-5000, -3800) in room XZ. Activation binds the current
+/// view transform. The enemy's barrier occupies the first normal, four
+/// vertices and one face; those pools remain writable while the grid is live.
+static WorldCollisionGrid _gAcropolisFireEscapeCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = gAcropolisFireEscapeCollisionGridNormals,
+    .vertices    = gAcropolisFireEscapeCollisionGridVerts,
+    .faces       = gAcropolisFireEscapeCollisionGridFaces,
+    .cellFaceIds = _gAcropolisFireEscapeCollisionGridTable,
+    .xBias       = 5000,
+    .zBias       = 3800,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(gAcropolisFireEscapeCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_fire_escape_801822CC[8] = {
+/// Directed view boundaries for both directions of 2/3, 3/4, 4/5 and 5/6.
+///
+/// Origins, corner offsets and radii use game units; normals use Q12.
+/// Setup binds, links and enables every mutable entry through LAST.
+static WorldCollisionTrigger _gAcropolisFireEscapeViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 2010, -2256, 1376, 0 }, { { -1024, -2352, 0, 0 }, { 1024, -2352, 0, 0 }, { -1024, 2352, 0, 0 }, { 1024, 2352, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2016, -2272, 839, 0 }, { { -1024, 2352, 0, 0 }, { 1024, 2352, 0, 0 }, { -1024, -2352, 0, 0 }, { 1024, -2352, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1862, -2272, 3879, 0 }, { { -1055, -2352, -1086, 0 }, { 1055, -2352, 1086, 0 }, { -1055, 2352, -1086, 0 }, { 1055, 2352, 1086, 0 } }, { 2940, 0, -2859, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -285,21 +354,36 @@ static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12] = {
     { NULL, NULL, NULL, { 2016, -64, -1712, 0 }, { { -686, 0, -384, 0 }, { 686, 0, -384, 0 }, { -686, 0, 384, 0 }, { 686, 0, 384, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2] = {
+/// Two mutable room-space quads that block actor line-of-sight probes.
+///
+/// Origins, corner offsets and radii use game units; normals use Q12.
+/// Setup links and enables both records, including the LAST-marked second one.
+static WorldCollisionOccluder _gAcropolisFireEscapeOccluders[2] = {
     { NULL, NULL, { -944, -2320, 2624, 0 }, { { -1808, -3344, 0, 0 }, { 1808, -3344, 0, 0 }, { -1808, 3344, 0, 0 }, { 1808, 3344, 0, 0 } }, { 0, 0, -4096, 0 }, 3797, 1, 0 },
     { NULL, NULL, { -864, -2272, -448, 0 }, { { 0, -3296, 3088, 0 }, { 0, -3296, -3088, 0 }, { 0, 3296, 3088, 0 }, { 0, 3296, -3088, 0 } }, { -4101, 0, 0, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_acropolis_fire_escape_80182934[2] = {
-    { 10, 115, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor311500StrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry 10's Stranger actor resource, shared by area variants 1..3.
+///
+/// File number 115 under base 30 loads actor package 311500; task index 0
+/// spawns its single descriptor. The second record terminates resource lookup.
+/// Loading and spawning borrow this table while the room overlay is loaded.
+static AreaResource _gAcropolisFireEscapeActorResources[2] = {
+    {
+        .entryId        = 10,
+        .fileNumber     = 115,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30,
+        .taskIndex      = 0,
+        .taskTable      = &gActor311500StrangerTaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_acropolis_fire_escape_8018294C[5] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BD0C, D_acropolis_fire_escape_80182934 },
-    { D_map_akropolis_8017BD0C, D_acropolis_fire_escape_80182934 },
-    { D_map_akropolis_8017BD0C, D_acropolis_fire_escape_80182934 },
+    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
+    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
+    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
     { NULL, NULL },
 };
 
@@ -497,9 +581,13 @@ static SpriteDrawArea _gAcropolisFireEscapeView9SpriteDrawAreas[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182E08[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Retained empty sprite-batch list with no published view or other consumer.
+///
+/// Both live slots 9 and 10 borrow the preceding shared list instead. The
+/// original allocation remains in the room image; its intended use is unproven.
+static SpriteBatch _gAcropolisFireEscapeUnusedSpriteBatches[2] = {
+    { .firstSprite = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteView gAcropolisFireEscapeSpriteViews[10] = {
@@ -613,11 +701,7 @@ WorldCollisionSurfaceProperties* gAcropolisFireEscapeSurfacePropertiesByClass[8]
     &_gAcropolisFireEscapeDefaultSurfaceProperties,
 };
 
-s32 D_acropolis_fire_escape_80183040;
-
 Task* gRoomCutsceneSoundTask;
-
-RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
 #include "../../shared/telephone.inc.c"
 
@@ -632,11 +716,13 @@ void acropolisFireEscapeTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// States of the room's message task, run by `acropolisFireEscapeRoomTask`:
-/// install the message table and spawn the ambient-sound task, run the
-/// per-frame check, die.
-static const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
-    {
+/// Room-task handlers for state 0 initialization, state 1 interaction checks and state 2 teardown.
+///
+/// Dispatch copies these three callback pointers by value before selecting a
+/// state in 0..2, without a bounds check. Keep the room callbacks loaded through
+/// the selected call; teardown may release the task.
+static const TaskFuncTable3 _gAcropolisFireEscapeRoomStateHandlers = {
+    .funcs = {
         _acropolisFireEscapeInitializeRoomTask,
         _acropolisFireEscapeDisableAbsentActorInteraction,
         taskKill,
@@ -662,15 +748,15 @@ static inline void _acropolisFireEscapeStartRepeatScene(void)
         ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND       = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 8),
     };
 
-    D_acropolis_fire_escape_80183048.view            = ACROPOLIS_FIRE_ESCAPE_SCENE_VIEW;
-    D_acropolis_fire_escape_80183048.capSlot         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT;
-    D_acropolis_fire_escape_80183048.capFile         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE;
-    D_acropolis_fire_escape_80183048.skipScene       = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAY;
-    D_acropolis_fire_escape_80183048.startSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND;
-    D_acropolis_fire_escape_80183048.endSound        = ACROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND;
-    D_acropolis_fire_escape_80183048.sceneSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND;
-    D_acropolis_fire_escape_80183048.afterSceneSound = ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, ACROPOLIS_FIRE_ESCAPE_SCENE_TASK, ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &D_acropolis_fire_escape_80183048);
+    _gAcropolisFireEscapeRepeatScene.view            = ACROPOLIS_FIRE_ESCAPE_SCENE_VIEW;
+    _gAcropolisFireEscapeRepeatScene.capSlot         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT;
+    _gAcropolisFireEscapeRepeatScene.capFile         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE;
+    _gAcropolisFireEscapeRepeatScene.skipScene       = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAY;
+    _gAcropolisFireEscapeRepeatScene.startSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND;
+    _gAcropolisFireEscapeRepeatScene.endSound        = ACROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND;
+    _gAcropolisFireEscapeRepeatScene.sceneSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND;
+    _gAcropolisFireEscapeRepeatScene.afterSceneSound = ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, ACROPOLIS_FIRE_ESCAPE_SCENE_TASK, ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &_gAcropolisFireEscapeRepeatScene);
 }
 
 /// Handles the fire escape's scene, story-progress and placed-actor dialogue commands.
@@ -762,8 +848,8 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
 
     switch (task->state) {
         case ACROPOLIS_FIRE_ESCAPE_AMBIENCE_INIT:
-            D_acropolis_fire_escape_80183040 = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
-            task->state                      = task->state + 1;
+            _gAcropolisFireEscapeRequestedAmbiencePercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
+            task->state                                   = task->state + 1;
             return;
         case ACROPOLIS_FIRE_ESCAPE_AMBIENCE_UPDATE:
             break;
@@ -796,7 +882,7 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
             break;
     }
 
-    previousLevelPercent = D_acropolis_fire_escape_80183040;
+    previousLevelPercent = _gAcropolisFireEscapeRequestedAmbiencePercent;
     if (levelPercent == previousLevelPercent) {
         return;
     }
@@ -807,7 +893,7 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
     } else {
         sndEvtRequestScriptMix(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT - levelPercent) * ACROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX) / ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT));
     }
-    D_acropolis_fire_escape_80183040 = levelPercent;
+    _gAcropolisFireEscapeRequestedAmbiencePercent = levelPercent;
 }
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
@@ -870,9 +956,9 @@ static void _acropolisFireEscapeInitializeRoomTask(Task* task)
         ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT     = 5,
     };
 
-    task->msgTable = D_acropolis_fire_escape_80181D3C;
+    task->msgTable = _gAcropolisFireEscapeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_acropolis_fire_escape_80181D64, ACROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK, 0, 0);
+    taskSpawnFromTable(_gAcropolisFireEscapeAmbienceTaskDescriptors, ACROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK, 0, 0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
@@ -899,7 +985,7 @@ static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask)
 
 void acropolisFireEscapeRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_acropolis_fire_escape_8017D6A4;
+    TaskFuncTable3 stateHandlers = _gAcropolisFireEscapeRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

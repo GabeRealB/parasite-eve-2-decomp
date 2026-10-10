@@ -77,16 +77,6 @@ typedef struct {
     s8 placementIndex; // Entry of the room's door placement table the player is placed at
 } _ShelterB1SterilizationRoomDoorDestination;
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// List state of the weapon- and PE-usage panels.
-static UiList Telephone_Data_80181C6C;
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry   D_shelter_b1_sterilization_room_80184E40[6];

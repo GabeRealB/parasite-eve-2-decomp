@@ -57,16 +57,6 @@ static void _roomCutsceneSoundTask(Task* task);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// The usage list shown by `func_dryfield_gas_station_8017E8DC`.
-static UiList Telephone_Data_80181C6C;
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 extern TaskDesc         D_dryfield_gas_station_80181E3C[];
 extern TaskMessageEntry D_dryfield_gas_station_80181E54[5];
 

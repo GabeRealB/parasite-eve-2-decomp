@@ -121,13 +121,6 @@ extern EvsCommand D_actor_450800_8013BA84[];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Remaining usage-menu captions and usage-panel descriptor.
-static u8           Telephone_Data_80181A0C[];
-static u8           Telephone_Data_80181A18[];
-static UiObjectDesc Telephone_Data_80181CC8;
-
-/// Mutable list of the remaining weapon and PE usage panel.
-static UiList   Telephone_Data_80181C6C;
 extern TaskDesc D_shelter_b6_nursery_80185000;
 
 /// The room's message table.

@@ -17,31 +17,11 @@ static const u8 _gTelephoneSaveMenuLabel[8] SECTION(".data") = "Save";
 /// NUL-terminated caption of the telephone menu choice that opens play statistics.
 static const u8 _gTelephonePlayDataMenuLabel[12] SECTION(".data") = "Play Data";
 
-static u8 Telephone_Data_80181A0C[12] = {
-    87,
-    101,
-    97,
-    112,
-    111,
-    110,
-    32,
-    68,
-    97,
-    116,
-    97,
-    0,
-};
+/// NUL-terminated caption of the telephone menu choice that opens weapon usage.
+static const u8 _gTelephoneWeaponDataMenuLabel[12] SECTION(".data") = "Weapon Data";
 
-static u8 Telephone_Data_80181A18[8] = {
-    80,
-    69,
-    32,
-    68,
-    97,
-    116,
-    97,
-    0,
-};
+/// NUL-terminated caption of the telephone menu choice that opens Parasite Energy usage.
+static const u8 _gTelephonePeDataMenuLabel[8] SECTION(".data") = "PE Data";
 
 /// NUL-terminated caption for elapsed play time, formatted from saved minutes.
 static const u8 _gTelephonePlayTimeLabel[8] SECTION(".data") = "Time";
@@ -156,7 +136,20 @@ static UiListRowCallback _gTelephoneUsageRowCallbacks[] = {
     _telephoneDrawUsageRow,
 };
 
-static UiList Telephone_Data_80181C6C = { _gTelephoneUsageRowCallbacks, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+/// Mutable list of recorded weapon or Parasite Energy usage, most used first.
+///
+/// Opening replaces the seeded count with 0..32 weapon rows or 0..12 spell
+/// rows and resets selection and the top index. Layout fits 15-pixel rows,
+/// then enables shared row dispatch and system cursor sound. The panel task
+/// owns the matching usage work; its populated rows remain live through list
+/// drawing and are released at teardown. This overlay-lifetime singleton
+/// serves one usage panel at a time.
+static UiList _gTelephoneUsageList = {
+    .rowCallbacks    = _gTelephoneUsageRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
 enum { TELEPHONE_HELP_PANEL_STYLE = 3 };
 
@@ -190,7 +183,21 @@ static const UiObjectDesc _gTelephonePlayDataPanelDescriptor SECTION(".data") = 
     .contentCallback = _telephonePlayDataTask,
 };
 
-static UiObjectDesc Telephone_Data_80181CC8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 168 }, 40, 0, TASK_BODY_NONE, 192, _telephoneUsageTask, 0 };
+/// Titled weapon or Parasite Energy usage-panel recipe opened by the telephone menu.
+///
+/// The first spawn payload selects weapons (TELEPHONE_USAGE_WEAPONS, 0) or
+/// spells (TELEPHONE_USAGE_PARASITE_ENERGY, 1). The bodyless task populates the
+/// singleton usage list and opens a help child. Spawning reads the recipe
+/// synchronously; the menu owns the panel and its callback code must remain
+/// loaded until teardown. Only one usage panel may use the list at a time.
+static const UiObjectDesc _gTelephoneUsagePanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 288, 168 },
+    .otIndexSeed     = 40,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _telephoneUsageTask,
+};
 
 /// Per-item telephone menu callbacks: Save, Play Data, Weapon Data, then PE Data.
 ///

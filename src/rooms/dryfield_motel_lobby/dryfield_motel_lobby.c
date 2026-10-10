@@ -36,16 +36,6 @@
 
 #include "rooms/room_common.h"
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// The usage panel's row list.
-static UiList Telephone_Data_80181C6C;
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 /// The room's message table, which `_dryfieldMotelLobbyInitRoomTask`
 /// installs on the room task.
 extern TaskMessageEntry D_dryfield_motel_lobby_8017F810[];

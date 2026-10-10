@@ -104,13 +104,6 @@ extern TaskDesc D_actor_143000_80134564;
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// List and descriptor of the remaining usage panel.
-static UiList       Telephone_Data_80181C6C;
-static UiObjectDesc Telephone_Data_80181CC8;
 /// Task tables for the flag-gated exit's transition and the console.
 extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];

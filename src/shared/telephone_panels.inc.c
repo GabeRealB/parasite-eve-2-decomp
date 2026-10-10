@@ -197,10 +197,10 @@ static void _telephonePlayDataMenuRow(UiList* list, UiObject* object)
 /// owner waits for statistics dismissal, which reopens the telephone menu.
 static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A0C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gTelephoneWeaponDataMenuLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_WEAPONS, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        uiSpawnObject(&_gTelephoneUsagePanelDescriptor, TELEPHONE_USAGE_WEAPONS, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;
@@ -214,10 +214,10 @@ static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object)
 /// owner waits for statistics dismissal, which reopens the telephone menu.
 static void _telephonePeDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A18, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gTelephonePeDataMenuLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_PARASITE_ENERGY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        uiSpawnObject(&_gTelephoneUsagePanelDescriptor, TELEPHONE_USAGE_PARASITE_ENERGY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;

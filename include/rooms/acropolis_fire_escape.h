@@ -15,16 +15,32 @@
 
 #include "main/task_types.h"
 
-extern SVECTOR gAcropolisFireEscapeCollision04CE8Normals[10];
+/// Writable Q12 normals of the fire-escape collision mesh.
+///
+/// The placed enemy installs and clears the first normal as part of its barrier.
+/// Keep the room overlay loaded through collision queries and barrier updates.
+extern SVECTOR gAcropolisFireEscapeCollisionGridNormals[10];
 
-extern SVECTOR gAcropolisFireEscapeCollision04CE8Verts[55];
+/// Writable room-space collision vertices in signed game units.
+///
+/// The placed enemy installs and clears the first four vertices of its barrier.
+/// Keep the room overlay loaded through collision queries and barrier updates.
+extern SVECTOR gAcropolisFireEscapeCollisionGridVerts[55];
 
-extern WorldCollisionGridFace gAcropolisFireEscapeCollision04CE8Faces[23];
+/// Writable indexed collision faces, including the placed enemy's first-face barrier.
+///
+/// The enemy installs and clears that face without rebuilding the cell lists.
+/// Keep the room overlay loaded through collision queries and barrier updates.
+extern WorldCollisionGridFace gAcropolisFireEscapeCollisionGridFaces[23];
 
 extern AreaVariant D_acropolis_fire_escape_8018294C[5];
 
-// acropolis_fire_escape
-extern WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[];
+/// Room 1's collision mesh, eight view boundaries, twelve actions and two sight blockers.
+///
+/// The Acropolis stage directory borrows this record while the fire escape is
+/// loaded. Setup binds, links and enables its mutable resources; retain the
+/// overlay until the grid is retired and the trigger/occluder lists unlinked.
+extern WorldCollisionRoomResources gAcropolisFireEscapeCollisionRoomResources[1];
 
 /// Room 1's logical-view map, borrowing gameplay's identity map while loaded.
 ///
@@ -40,7 +56,13 @@ extern ViewCount gAcropolisFireEscapeViewCounts[1];
 /// not survive unloading it.
 extern WorldCoordRoomLighting gAcropolisFireEscapeRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_fire_escape_80181DCC[];
+/// Three fire-escape endpoints, addressed by 1-based warp IDs 1..3.
+///
+/// Endpoint 1 is the bridge door in view 2, with arrival/departure sounds and
+/// map marker 490. Endpoints 2 and 3 are silent view-6 stair arrivals; the
+/// landing-pad exit selects endpoint 3 and starts the player in scripted mode.
+/// The stage directory borrows the loaded overlay's complete records for copying.
+extern DirectionWarpEntry gAcropolisFireEscapeWarpEntries[3];
 
 /// Sprite sources, batches and clipping lists for mapped views 1..10.
 ///

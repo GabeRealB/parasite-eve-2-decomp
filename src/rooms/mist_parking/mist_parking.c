@@ -806,16 +806,6 @@ static UiObjectDesc Shop_Data_80181BF4;
 /// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
 static UiObjectDesc Shop_Data_80181B30;
 
-/// Mutable list of the weapon and Parasite Energy usage panel.
-static UiList Telephone_Data_80181C6C;
-
-/// Remaining usage-menu captions and usage-panel descriptor.
-static u8 Telephone_Data_80181A0C[];
-
-static u8 Telephone_Data_80181A18[];
-
-static UiObjectDesc Telephone_Data_80181CC8;
-
 extern EvsCommand D_mist_parking_80186EFC[];
 
 static void _mistParkingInitializeRoomTask(Task* task);

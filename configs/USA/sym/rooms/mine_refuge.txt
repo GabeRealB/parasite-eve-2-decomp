@@ -4,8 +4,8 @@ _gTelephoneMenuTitle = 0x8017D638; // force_not_migration:True string with non-z
 // Past this room's image. What occupies this address when the code runs is not established.
 _gTelephoneSaveMenuLabel = 0x80181540; // size:0x8 defined:True
 _gTelephonePlayDataMenuLabel = 0x80181548; // size:0xC defined:True
-Telephone_Data_80181A0C = 0x80181554; // size:0xC defined:True
-Telephone_Data_80181A18 = 0x80181560; // size:0x8 defined:True
+_gTelephoneWeaponDataMenuLabel = 0x80181554; // size:0xC defined:True
+_gTelephonePeDataMenuLabel = 0x80181560; // size:0x8 defined:True
 _gTelephonePlayTimeLabel = 0x80181568; // size:0x8 defined:True
 _gTelephoneBattlesWonLabel = 0x80181570; // size:0x4 defined:True
 _gTelephoneBattlesEscapedLabel = 0x80181574; // size:0x8 defined:True
@@ -29,10 +29,10 @@ _gTelephoneMaxBpHelpText = 0x80181750; // size:0x38 defined:True
 _gTelephonePlayDataRowCallbacks = 0x80181788; // size:0x4 defined:True
 _gTelephonePlayDataList = 0x8018178C; // size:0x24 defined:True
 _gTelephoneUsageRowCallbacks = 0x801817B0; // size:0x4 defined:True
-Telephone_Data_80181C6C = 0x801817B4; // size:0x24 defined:True
+_gTelephoneUsageList = 0x801817B4; // size:0x24 defined:True
 _gTelephoneHelpPanelDescriptor = 0x801817D8; // size:0x1C defined:True
 _gTelephonePlayDataPanelDescriptor = 0x801817F4; // size:0x1C defined:True
-Telephone_Data_80181CC8 = 0x80181810; // size:0x1C defined:True
+_gTelephoneUsagePanelDescriptor = 0x80181810; // size:0x1C defined:True
 _gTelephoneMenuRowCallbacks = 0x8018182C; // size:0x10 defined:True
 _gTelephoneMenuList = 0x8018183C; // size:0x24 defined:True
 D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square

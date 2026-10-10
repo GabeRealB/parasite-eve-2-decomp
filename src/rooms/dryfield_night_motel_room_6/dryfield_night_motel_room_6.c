@@ -91,16 +91,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// Area-record patch list applied when the cutscene advances the story flags.
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// The usage panel's list.
-static UiList Telephone_Data_80181C6C;
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 

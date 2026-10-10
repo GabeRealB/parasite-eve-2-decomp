@@ -732,9 +732,9 @@ static void _actor311500Task(Task* actorTask)
             switch (actorTask->state) {
                 case ACTOR_311500_PHASE_INIT:
                     // Install the opening barrier patch into the loaded fire-escape grid.
-                    memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
-                    memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
-                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(D_actor_311500_80169324));
+                    memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollisionGridVerts, sizeof(D_actor_311500_80169304));
+                    memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollisionGridNormals, sizeof(D_actor_311500_801692FC));
+                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollisionGridFaces, sizeof(D_actor_311500_80169324));
                     _actor311500Init(actorTask);
                     work = actorTask->work;
                     _actor311500TickAnim(actorTask);
@@ -764,9 +764,9 @@ static void _actor311500Task(Task* actorTask)
                         break;
                     }
                     if ((s16)_actor311500TickHitReaction(actorTask) < ACTOR_311500_HIT_REACTION_PLAYING) {
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, sizeof(D_actor_311500_80169304));
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, sizeof(D_actor_311500_801692FC));
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(D_actor_311500_80169324));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridVerts, 0, sizeof(D_actor_311500_80169304));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridNormals, 0, sizeof(D_actor_311500_801692FC));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridFaces, 0, sizeof(D_actor_311500_80169324));
                         work->present     = 0;
                         work->step        = ACTOR_311500_DEATH_STEP_CRY;
                         actorTask->state += 1;

@@ -92,16 +92,6 @@ extern Task* D_dryfield_night_gas_station_801907A4;
 /// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
 extern Task* D_dryfield_night_gas_station_801907A8;
 
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// The usage list shown by `func_dryfield_night_gas_station_8017E844`.
-static UiList Telephone_Data_80181C6C;
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry     D_dryfield_night_gas_station_80184034[7];

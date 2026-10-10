@@ -61,16 +61,6 @@ static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
 
-/// The usage panel's row list.
-static UiList Telephone_Data_80181C6C;
-
-/// Captions of the remaining weapon and PE usage menu choices.
-static u8 Telephone_Data_80181A0C[];
-static u8 Telephone_Data_80181A18[];
-
-/// Descriptor of the remaining weapon and PE usage panel.
-static UiObjectDesc Telephone_Data_80181CC8;
-
 /// The room's message table, which `_dryfieldNightMotelLobbyInitializeRoomTask`
 /// installs on its task.
 extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
