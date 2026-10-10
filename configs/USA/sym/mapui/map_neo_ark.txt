@@ -119,7 +119,7 @@ D_neo_ark_pavilion_801838D4 = 0x801838D4; // absolute:True owner=neo_ark_pavilio
 D_neo_ark_pavilion_801838EC = 0x801838EC; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801838F4 = 0x801838F4; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801838F8 = 0x801838F8; // absolute:True owner=neo_ark_pavilion shared=rooms
-D_neo_ark_pavilion_80184208 = 0x80184208; // absolute:True owner=neo_ark_pavilion shared=rooms
+D_neo_ark_pavilion_80184208 = 0x80184208; // absolute:True owner=neo_ark_pavilion
 D_neo_ark_pavilion_801873B8 = 0x801873B8; // absolute:True owner=neo_ark_pavilion
 D_neo_ark_pavilion_801879EC = 0x801879EC; // absolute:True owner=neo_ark_pavilion shared=rooms
 neoArkIslandRoomTask = 0x8017EB10; // type:func absolute:True owner=neo_ark_island

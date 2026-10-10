@@ -499,7 +499,7 @@ u16 D_map_dryfield_8017A824[29] = {
 };
 
 WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
-    D_dryfield_gas_station_80183160,
+    gDryfieldGasStationRoomLighting,
     D_dryfield_main_street_80181BD4,
     D_dryfield_general_store_8017E688,
     NULL,
@@ -714,7 +714,7 @@ ViewCameraTable D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
 /// Indexed by area minus one; rooms and logical views use their own bounds.
 /// NULL entries have no maps. Room pointers stay valid only while that room is loaded.
 static u8** _gMapDryfieldAreaViewMaps[38] = {
-    D_dryfield_gas_station_8018315C,
+    gDryfieldGasStationRoomViewMaps,
     D_dryfield_main_street_80181BCC,
     D_dryfield_general_store_8017E680,
     gDryfieldR04ViewMaps,
@@ -804,7 +804,7 @@ static SpriteView* _gMapDryfieldAreaSpriteViews[38] = {
 SpriteAreaTable gMapDryfieldSpriteAreaTable = { _gMapDryfieldAreaSpriteViews };
 
 WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[38] = {
-    D_dryfield_gas_station_80184BAC,
+    gDryfieldGasStationSurfacePropertiesByClass,
     D_dryfield_main_street_801855EC,
     D_dryfield_general_store_801856D8,
     D_dryfield_r04_8017E2AC,

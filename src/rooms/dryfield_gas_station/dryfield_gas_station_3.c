@@ -125,10 +125,10 @@ extern SVECTOR D_dryfield_gas_station_80183144;
 static void _dryfieldGasStationSuppressPlayerEquipment(void);
 static void _dryfieldGasStationSetCutsceneCommand(s16 command);
 
-extern WorldCollisionGrid    D_dryfield_gas_station_80183EA4[1];
+static WorldCollisionGrid    _gDryfieldGasStationCollisionGrid;
 extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
-extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
+static WorldCoordRoomLights  _gDryfieldGasStationRoomLights;
 static void                  _dryfieldGasStationArrivalCutsceneTask(Task* task);
 static void                  _screenFadeInTask(Task* task);
 static void                  _dryfieldGasStationRestorePlayerAndShow(void);
@@ -286,15 +286,15 @@ TaskDesc D_dryfield_gas_station_8018312C[2] = {
 SVECTOR D_dryfield_gas_station_80183144 = { 4378, -1383, -215, 0 };
 
 WorldCollisionRoomResources D_dryfield_gas_station_8018314C[1] = {
-    { D_dryfield_gas_station_80183EA4, D_dryfield_gas_station_80184350, D_dryfield_gas_station_80184694, NULL },
+    { &_gDryfieldGasStationCollisionGrid, D_dryfield_gas_station_80184350, D_dryfield_gas_station_80184694, NULL },
 };
 
-u8* D_dryfield_gas_station_8018315C[1] = {
+u8* gDryfieldGasStationRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-WorldCoordRoomLighting D_dryfield_gas_station_80183160[1] = {
-    { D_dryfield_gas_station_80184B48, NULL },
+WorldCoordRoomLighting gDryfieldGasStationRoomLighting[1] = {
+    { &_gDryfieldGasStationRoomLights, NULL },
 };
 
 ViewCount D_dryfield_gas_station_80183168[1] = { 14 };
@@ -305,30 +305,59 @@ DirectionWarpEntry D_dryfield_gas_station_8018316C[3] = {
     { { { .word = 2048 }, 3039, 0, -433 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4316, 0, -535 }, { 0, 0, 0, 0 }, 0x52010004, 0x52010003, 0x5201000F, 6, DIRECTION_WARP_FLAG_NONE, 489 },
 };
 
-static SVECTOR _gDryfieldGasStationCollision068E4Normals[32] = {
+/// Dimensions of the collision grid's X-major cell directory.
+enum {
+    DRYFIELD_GAS_STATION_COLLISION_CELLS_X = 8,
+    DRYFIELD_GAS_STATION_COLLISION_CELLS_Z = 6,
+};
+
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldGasStationCollisionGridNormals[32] = {
 #include "assets/dryfield_gas_station_collision_068E4_normals.inc"
 };
 
-static SVECTOR _gDryfieldGasStationCollision068E4Verts[126] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gDryfieldGasStationCollisionGridVerts[126] = {
 #include "assets/dryfield_gas_station_collision_068E4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldGasStationCollision068E4Faces[63] = {
+/// Indexed collision triangles and quads carrying room-local surface classes 0..4.
+static WorldCollisionGridFace _gDryfieldGasStationCollisionGridFaces[63] = {
 #include "assets/dryfield_gas_station_collision_068E4_faces.inc"
 };
 
-static s16 _gDryfieldGasStationCollision068E4Cells[502] = {
+/// Signed face-index lists ending with `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// Retains the complete authored halfword storage, including values beyond
+/// each terminator; the cell directory selects the starts of the live lists.
+static s16 _gDryfieldGasStationCollisionGridCells[502] = {
 #include "assets/dryfield_gas_station_collision_068E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGasStationCollision068E4Cells[i])
-static s16* _gDryfieldGasStationCollision068E4Table[48] = {
+#define GRID_CELL(i) (&_gDryfieldGasStationCollisionGridCells[i])
+/// X-major directory of cell lists, indexed by X * cellCountZ + Z.
+static s16* _gDryfieldGasStationCollisionGridTable[DRYFIELD_GAS_STATION_COLLISION_CELLS_X * DRYFIELD_GAS_STATION_COLLISION_CELLS_Z] = {
 #include "assets/dryfield_gas_station_collision_068E4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_gas_station_80183EA4[1] = {
-    { NULL, _gDryfieldGasStationCollision068E4Normals, _gDryfieldGasStationCollision068E4Verts, _gDryfieldGasStationCollision068E4Faces, _gDryfieldGasStationCollision068E4Table, 5300, 0x3A98, 8, 6, 4000, 63 },
+/// The gas station's collision mesh and 8-by-6 spatial cell directory.
+///
+/// Covers room X/Z from (-5300, -15000) in 4000-unit cells. Activation binds
+/// the mutable view coordinate; the mesh pools and cell lists remain borrowed
+/// from this overlay until the grid is replaced or cleared.
+static WorldCollisionGrid _gDryfieldGasStationCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldGasStationCollisionGridNormals,
+    .vertices    = _gDryfieldGasStationCollisionGridVerts,
+    .faces       = _gDryfieldGasStationCollisionGridFaces,
+    .cellFaceIds = _gDryfieldGasStationCollisionGridTable,
+    .xBias       = 5300,
+    .zBias       = 15000,
+    .cellCountX  = DRYFIELD_GAS_STATION_COLLISION_CELLS_X,
+    .cellCountZ  = DRYFIELD_GAS_STATION_COLLISION_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldGasStationCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_gas_station_80183EC8[14] = {
@@ -348,83 +377,115 @@ ViewCamera D_dryfield_gas_station_80183EC8[14] = {
     { { { { 3432, 0, -2234 }, { -527, 3980, -810 }, { 2171, 967, 3335 } }, { -0x2DBF, 1537, 1164 } }, 230 },
 };
 
-SpriteBatch D_dryfield_gas_station_801840C0[2] = {
+/// Shared GPU settings for the gas station's view sprites.
+enum {
+    DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE  = getTPage(1, 0, 960, 0), // 8-bit indexed texture, blend mode 0
+    DRYFIELD_GAS_STATION_SPRITE_CLUT          = getClut(0, 255),
+    DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR = 128,
+};
+
+/// View 1's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_gas_station_801840D0[6] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, -32, 2362, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, -40, 2329, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -40, 2325, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -40, 2325, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, -40, 2325, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 40, -40, 2325, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+/// Six texture sprites sorted with the decoded backdrop of view 2.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels
+/// and depth is the unscaled OT sorting value. RGB is neutral for direct drawing;
+/// cached packets retain their own colour and sample these depths each frame.
+static SpriteSource _gDryfieldGasStationView2SpriteSources[6] = {
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, -32, 2362, { .fields = { 120, 152 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 32 } }, 0, -40, 2329, { .fields = { 120, 40 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 32 } }, 8, -40, 2325, { .fields = { 120, 72 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 40 } }, 16, -40, 2325, { .fields = { 120, 0 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, -40, 2325, { .fields = { 112, 128 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 48, 24 } }, 40, -40, 2325, { .fields = { 80, 104 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_gas_station_80184148[3] = {
+/// View 2's decoded backdrop followed by all six texture sprites and an end record.
+static SpriteBatch _gDryfieldGasStationView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGasStationView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_gas_station_80184160[6] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, 0, 3701, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 40, -8, 3300, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 0, 3424, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, 0, 2250, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 0, 2250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, 0, 2342, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+/// Six texture sprites sorted with the decoded backdrop of view 3.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels
+/// and depth is the unscaled OT sorting value. RGB is neutral for direct drawing;
+/// cached packets retain their own colour and sample these depths each frame.
+static SpriteSource _gDryfieldGasStationView3SpriteSources[6] = {
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, 0, 3701, { .fields = { 112, 152 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 40, 32 } }, 40, -8, 3300, { .fields = { 88, 120 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, 0, 3424, { .fields = { 104, 176 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 16, 40 } }, -56, 0, 2250, { .fields = { 112, 40 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 40 } }, -40, 0, 2250, { .fields = { 120, 0 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_GAS_STATION_SPRITE_TEXTURE_PAGE, DRYFIELD_GAS_STATION_SPRITE_CLUT, { .fields = { 8, 40 } }, -32, 0, 2342, { .fields = { 120, 80 } }, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, DRYFIELD_GAS_STATION_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_gas_station_801841D8[4] = {
+/// View 3's decoded backdrop followed by two three-sprite ranges and an end record.
+///
+/// The first range retains its authored `SpriteBatch.field_6` bytes { 1, 0 }; their role
+/// is unproven. Both ranges participate in cached packet processing.
+static SpriteBatch _gDryfieldGasStationView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 3, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_801841F8[2] = {
+/// View 4's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184208[2] = {
+/// View 5's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184218[2] = {
+/// View 6's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184228[2] = {
+/// View 7's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184238[2] = {
+/// View 8's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184248[2] = {
+/// View 9's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184258[2] = {
+/// View 10's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184268[2] = {
+/// View 11's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184278[2] = {
+/// View 12's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -440,18 +501,18 @@ SpriteBatch D_dryfield_gas_station_80184298[2] = {
 };
 
 SpriteView D_dryfield_gas_station_801842A8[14] = {
-    { { .empty = D_dryfield_gas_station_801840C0 }, D_dryfield_gas_station_801840C0, NULL },
-    { { .elements = D_dryfield_gas_station_801840D0 }, D_dryfield_gas_station_80184148, NULL },
-    { { .elements = D_dryfield_gas_station_80184160 }, D_dryfield_gas_station_801841D8, NULL },
-    { { .empty = D_dryfield_gas_station_801841F8 }, D_dryfield_gas_station_801841F8, NULL },
-    { { .empty = D_dryfield_gas_station_80184208 }, D_dryfield_gas_station_80184208, NULL },
-    { { .empty = D_dryfield_gas_station_80184218 }, D_dryfield_gas_station_80184218, NULL },
-    { { .empty = D_dryfield_gas_station_80184228 }, D_dryfield_gas_station_80184228, NULL },
-    { { .empty = D_dryfield_gas_station_80184238 }, D_dryfield_gas_station_80184238, NULL },
-    { { .empty = D_dryfield_gas_station_80184248 }, D_dryfield_gas_station_80184248, NULL },
-    { { .empty = D_dryfield_gas_station_80184258 }, D_dryfield_gas_station_80184258, NULL },
-    { { .empty = D_dryfield_gas_station_80184268 }, D_dryfield_gas_station_80184268, NULL },
-    { { .empty = D_dryfield_gas_station_80184278 }, D_dryfield_gas_station_80184278, NULL },
+    { { .empty = _gDryfieldGasStationView1SpriteBatches }, _gDryfieldGasStationView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldGasStationView2SpriteSources }, _gDryfieldGasStationView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldGasStationView3SpriteSources }, _gDryfieldGasStationView3SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView4SpriteBatches }, _gDryfieldGasStationView4SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView5SpriteBatches }, _gDryfieldGasStationView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView6SpriteBatches }, _gDryfieldGasStationView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView7SpriteBatches }, _gDryfieldGasStationView7SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView8SpriteBatches }, _gDryfieldGasStationView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView9SpriteBatches }, _gDryfieldGasStationView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView10SpriteBatches }, _gDryfieldGasStationView10SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView11SpriteBatches }, _gDryfieldGasStationView11SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView12SpriteBatches }, _gDryfieldGasStationView12SpriteBatches, NULL },
     { { .empty = D_dryfield_gas_station_80184288 }, D_dryfield_gas_station_80184288, NULL },
     { { .empty = D_dryfield_gas_station_80184298 }, D_dryfield_gas_station_80184298, NULL },
 };
@@ -564,57 +625,127 @@ static WorldCoordLight _gDryfieldGasStationDirectionalLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_gas_station_80184B48[1] = {
-    { ARRAY_SIZE(_gDryfieldGasStationDirectionalLights), _gDryfieldGasStationDirectionalLights, 0, NULL, 0, NULL },
+/// The gas station's two mutable directional lights, with no point or cone lights.
+///
+/// The room lighting descriptor borrows this single collection. Coordinates
+/// and attenuation are updated during play; all storage lives with the overlay.
+static WorldCoordRoomLights _gDryfieldGasStationRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gDryfieldGasStationDirectionalLights),
+    .directionalLights     = _gDryfieldGasStationDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_dryfield_gas_station_80184B60 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Cue-2 footstep requests in the currently loaded type-1 sound bank.
+enum {
+    DRYFIELD_GAS_STATION_SURFACE_CLASS4_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    DRYFIELD_GAS_STATION_SURFACE_CLASS4_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
+    DRYFIELD_GAS_STATION_SURFACE_CLASS2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1D,
+    DRYFIELD_GAS_STATION_SURFACE_CLASS2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
+    DRYFIELD_GAS_STATION_SURFACE_CLASS3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    DRYFIELD_GAS_STATION_SURFACE_CLASS3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
 };
 
-WorldCollisionFootstepSounds D_dryfield_gas_station_80184B6C = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+/// Walking, running and scripted-jump footstep cue bases for surface class 4.
+///
+/// Walking and scripted jumps share entry 73; running uses 75. Cue 1 adds
+/// one and companion playback adds 100. Requires the current sound bank;
+/// the surface policy borrows this record for the room overlay's lifetime.
+static WorldCollisionFootstepSounds _gDryfieldGasStationSurfaceClass4FootstepSounds = {
+    .walk         = DRYFIELD_GAS_STATION_SURFACE_CLASS4_WALK_SOUND,
+    .run          = DRYFIELD_GAS_STATION_SURFACE_CLASS4_RUN_SOUND,
+    .scriptedJump = DRYFIELD_GAS_STATION_SURFACE_CLASS4_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_dryfield_gas_station_80184B78 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Walking, running and scripted-jump footstep cue bases for surface class 2.
+///
+/// Walking and scripted jumps share entry 29; running uses 31. Cue 1 adds
+/// one and companion playback adds 100. Requires the current sound bank;
+/// the surface policy borrows this record for the room overlay's lifetime.
+static WorldCollisionFootstepSounds _gDryfieldGasStationSurfaceClass2FootstepSounds = {
+    .walk         = DRYFIELD_GAS_STATION_SURFACE_CLASS2_WALK_SOUND,
+    .run          = DRYFIELD_GAS_STATION_SURFACE_CLASS2_RUN_SOUND,
+    .scriptedJump = DRYFIELD_GAS_STATION_SURFACE_CLASS2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_gas_station_80184B84[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump footstep cue bases for surface class 3.
+///
+/// Walking and scripted jumps share entry 21; running uses 23. Cue 1 adds
+/// one and companion playback adds 100. Requires the current sound bank;
+/// the surface policy borrows this record for the room overlay's lifetime.
+static WorldCollisionFootstepSounds _gDryfieldGasStationSurfaceClass3FootstepSounds = {
+    .walk         = DRYFIELD_GAS_STATION_SURFACE_CLASS3_WALK_SOUND,
+    .run          = DRYFIELD_GAS_STATION_SURFACE_CLASS3_RUN_SOUND,
+    .scriptedJump = DRYFIELD_GAS_STATION_SURFACE_CLASS3_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_gas_station_80184B8C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_gas_station_80184B60 },
+/// Classes 0 and 5..7: blocked probes, enabled weapon impacts and no footstep cues.
+///
+/// Applies pushback. The authored first byte remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldGasStationBlockingSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_gas_station_80184B94[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_gas_station_80184B6C },
+/// Class 4: blocked probes, enabled weapon impacts and class-4 footstep cues.
+///
+/// Applies pushback. The authored first byte remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldGasStationSurfaceClass4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldGasStationSurfaceClass4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_gas_station_80184B9C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_gas_station_80184B78 },
+/// Class 2: blocked probes, enabled weapon impacts and class-2 footstep cues.
+///
+/// Applies pushback. The authored first byte remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldGasStationSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldGasStationSurfaceClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_gas_station_80184BA4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3: blocked probes, enabled weapon impacts and class-3 footstep cues.
+///
+/// Applies pushback. The authored first byte remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldGasStationSurfaceClass3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldGasStationSurfaceClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_gas_station_80184BAC[8] = {
-    D_dryfield_gas_station_80184B84,
-    D_dryfield_gas_station_80184BA4,
-    D_dryfield_gas_station_80184B94,
-    D_dryfield_gas_station_80184B9C,
-    D_dryfield_gas_station_80184B8C,
-    D_dryfield_gas_station_80184B84,
-    D_dryfield_gas_station_80184B84,
-    D_dryfield_gas_station_80184B84,
+/// Class 1: probe passage, ignored weapon impacts and no footstep cues.
+///
+/// Applies pushback independently of probe passage. The authored first byte
+/// remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldGasStationPassThroughSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldGasStationSurfacePropertiesByClass[8] = {
+    &_gDryfieldGasStationBlockingSilentSurface,
+    &_gDryfieldGasStationPassThroughSilentSurface,
+    &_gDryfieldGasStationSurfaceClass2Properties,
+    &_gDryfieldGasStationSurfaceClass3Properties,
+    &_gDryfieldGasStationSurfaceClass4Properties,
+    &_gDryfieldGasStationBlockingSilentSurface,
+    &_gDryfieldGasStationBlockingSilentSurface,
+    &_gDryfieldGasStationBlockingSilentSurface,
 };
 
 Task* D_dryfield_gas_station_80184BCC = NULL;

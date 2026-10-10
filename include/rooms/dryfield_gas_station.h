@@ -16,9 +16,20 @@ extern AreaVariant D_dryfield_gas_station_80184A38[12];
 // dryfield_gas_station
 extern WorldCollisionRoomResources D_dryfield_gas_station_8018314C[];
 
-extern u8* D_dryfield_gas_station_8018315C[];
+/// The gas station's one-room directory of logical-to-resource view maps.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..14 select the same
+/// camera, image and sprite indices. Index the directory by room minus one
+/// and the map by view minus one. Keep this room overlay loaded while using
+/// the directory; the shared map lives with gameplay and has no terminator.
+extern u8* gDryfieldGasStationRoomViewMaps[1];
 
-extern WorldCoordRoomLighting D_dryfield_gas_station_80183160[];
+/// The gas station's one-room lighting directory, indexed by room minus one.
+///
+/// Room 1 supplies two directional lights and uses the default ambient
+/// minima, with no point or cone lights. The descriptor and mutable light
+/// coordinates stay valid only while this room overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldGasStationRoomLighting[1];
 
 extern ViewCount D_dryfield_gas_station_80183168[];
 
@@ -28,7 +39,14 @@ extern ViewCamera D_dryfield_gas_station_80183EC8[];
 
 extern SpriteView D_dryfield_gas_station_801842A8[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_gas_station_80184BAC[];
+/// The gas station's eight collision and footstep policies, indexed by surface class.
+///
+/// Classes 0 and 5..7 block probes, allow weapon impacts and have no footstep
+/// cues. Class 1 passes probes, ignores weapon impacts and has no cues;
+/// classes 2..4 block probes, allow impacts and select distinct footstep cues.
+/// All classes apply pushback. Classes 0 and 5..7 share one policy record.
+/// Keep this overlay loaded while borrowing the directory or its records.
+extern WorldCollisionSurfaceProperties* gDryfieldGasStationSurfacePropertiesByClass[8];
 
 /// Draws the gas station's pulsing cyan glow and permits footstep dust.
 ///

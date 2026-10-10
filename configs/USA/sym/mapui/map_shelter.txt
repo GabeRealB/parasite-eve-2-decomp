@@ -100,14 +100,14 @@ shelterB1StoreroomTask = 0x8017D794; // type:func absolute:True owner=shelter_b1
 D_shelter_b1_storeroom_80184B50 = 0x80184B50; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80184B60 = 0x80184B60; // absolute:True owner=shelter_b1_storeroom shared=rooms
 D_shelter_b1_storeroom_80184B68 = 0x80184B68; // absolute:True owner=shelter_b1_storeroom shared=rooms
-D_shelter_b1_storeroom_80184B6C = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom shared=rooms
+D_shelter_b1_storeroom_80184B6C = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80184B70 = 0x80184B70; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_801850FC = 0x801850FC; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80186090 = 0x80186090; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80186DEC = 0x80186DEC; // absolute:True owner=shelter_b1_storeroom
 shelterB1NorthMaintenanceWalkwayRoomTask = 0x8017DAFC; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway
 D_shelter_b1_north_maintenance_walkway_80184B80 = 0x80184B80; // absolute:True owner=shelter_b1_north_maintenance_walkway
-D_shelter_b1_north_maintenance_walkway_80184B84 = 0x80184B84; // absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
+D_shelter_b1_north_maintenance_walkway_80184B84 = 0x80184B84; // absolute:True owner=shelter_b1_north_maintenance_walkway
 D_shelter_b1_north_maintenance_walkway_80184B88 = 0x80184B88; // absolute:True owner=shelter_b1_north_maintenance_walkway
 D_shelter_b1_north_maintenance_walkway_80184F40 = 0x80184F40; // absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
 D_shelter_b1_north_maintenance_walkway_80184F64 = 0x80184F64; // absolute:True owner=shelter_b1_north_maintenance_walkway
@@ -376,7 +376,7 @@ D_shelter_b2_pod_access_tunnel_80183E0C = 0x80183E0C; // absolute:True owner=she
 D_shelter_b2_pod_access_tunnel_80183E24 = 0x80183E24; // absolute:True owner=shelter_b2_pod_access_tunnel
 D_shelter_b2_pod_access_tunnel_80183E2C = 0x80183E2C; // absolute:True owner=shelter_b2_pod_access_tunnel
 D_shelter_b2_pod_access_tunnel_80183E30 = 0x80183E30; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
-D_shelter_b2_pod_access_tunnel_801841D8 = 0x801841D8; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+D_shelter_b2_pod_access_tunnel_801841D8 = 0x801841D8; // absolute:True owner=shelter_b2_pod_access_tunnel
 D_shelter_b2_pod_access_tunnel_80184C6C = 0x80184C6C; // absolute:True owner=shelter_b2_pod_access_tunnel
 D_shelter_b2_pod_access_tunnel_801856D8 = 0x801856D8; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 shelterR36RoomTask = 0x8017D9DC; // type:func absolute:True owner=shelter_r36
