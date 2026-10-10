@@ -13,22 +13,54 @@
 
 extern AreaVariant D_dryfield_motel_room_2_80180410[12];
 
-// dryfield_motel_room_2
-extern u8* D_dryfield_motel_room_2_8017D6E4[];
+/// Motel Room 2's room directory of logical-view maps.
+///
+/// The sole room entry borrows gameplay's `gViewIdentityMap`: views 1..6
+/// select camera, image and sprite slots 1..6. Index by room minus one.
+/// The directory lives with this overlay; the shared byte map lives with gameplay.
+extern u8* gDryfieldMotelRoom2RoomViewMaps[1];
 
 extern WorldCollisionRoomResources D_dryfield_motel_room_2_8017D6E8[];
 
-extern ViewCount D_dryfield_motel_room_2_8017D6F8[];
+/// Motel Room 2's six-view reverse-search limit for room 1.
+///
+/// Counts are signed halfwords indexed by room minus one. The second stored
+/// count is zero; it supplies no additional room mapping or lighting record.
+/// Keep this overlay loaded while the stage directory borrows the array.
+extern ViewCount gDryfieldMotelRoom2RoomViewCounts[2];
 
-extern WorldCoordRoomLighting D_dryfield_motel_room_2_8017D6FC[];
+/// Motel Room 2's room-1 light collection with default ambient minima.
+///
+/// Index by room minus one. Five point lights contribute in all views, with
+/// writable transforms and attenuation; no directional or cone lights exist.
+/// The record and its collection remain borrowed while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldMotelRoom2RoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_motel_room_2_8017D704[];
 
-extern ViewCamera D_dryfield_motel_room_2_8017DE30[];
+/// Motel Room 2's six cameras, indexed by the mapped view minus one.
+///
+/// Rotations have 12 fractional bits; translations are negated camera origins
+/// in world units, and projection distances are pixels. Keep the overlay loaded
+/// until any queued camera application has copied the selected record.
+extern ViewCamera gDryfieldMotelRoom2ViewCameras[6];
 
-extern SpriteView D_dryfield_motel_room_2_8017FCD0[];
+/// Motel Room 2's six sprite descriptors, indexed by the mapped view minus one.
+///
+/// View 1 has no source sprites; views 2..6 select 72, 84, 47, 83 and 79
+/// rectangles. Every view retains decoded background strips. Only view 5 clips
+/// drawing, restoring the full buffer at sorting depth 800. Descriptors and
+/// their mutable source/batch arrays remain borrowed while this overlay is loaded.
+extern SpriteView gDryfieldMotelRoom2SpriteViews[6];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_2_801804B0[];
+/// Motel Room 2's collision and footstep policies for surface classes 0..7.
+///
+/// Classes 0, 5, 6 and 7 share blocking, impact-enabled, silent properties.
+/// Classes 1/2 also have footstep cues; class 3 passes probes and ignores weapon
+/// impacts without cues; class 4 passes probes with impacts and class 2's cues.
+/// Every class applies pushback. The grid uses classes 0..3, but setup reads
+/// all eight entries. Borrow these records only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldMotelRoom2SurfacePropertiesByClass[8];
 
 /// Inert room-effect callback for bank 6, slot 0xCA, selected for daytime Motel Room 2.
 ///
