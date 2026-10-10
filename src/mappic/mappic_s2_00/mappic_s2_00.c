@@ -67,32 +67,37 @@ TmdSource gMappicS200MotelBalconyShape = {
     .stream           = _gMappicS200MotelBalconyShapeStream,
 };
 
-static TmdBone _gMappicS200MappicS202Model00C4800218Skeleton[1] = {
+/// Identity transform and self-parented root for the Motel loft shape.
+static TmdBone _gMappicS200MotelLoftShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00218_skeleton.inc"
 };
 
-static u32 _gMappicS200MappicS202Model00C4800218PartVerts[1] = {
+/// Vertex count of the Motel loft shape's sole part (four vertices).
+static u32 _gMappicS200MotelLoftShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00218_partVerts.inc"
 };
 
-static SVECTOR _gMappicS200MappicS202Model00C4800218Verts[4] = {
+/// Motel loft fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS200MotelLoftShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00218_verts.inc"
 };
 
-static u32 _gMappicS200MappicS202Model00C4800218Stream[9] = {
+/// One unlit quad, followed by two group ends and the stream end.
+///
+/// The face stores packed u16 vertex byte offsets and a colour word. The map
+/// uses the geometry to draw a textured fill and ignores the stored colour.
+static u32 _gMappicS200MotelLoftShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00218_stream.inc"
 };
 
-TmdSource D_mappic_s2_00_8012F148 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS200MappicS202Model00C4800218PartVerts,
-    _gMappicS200MappicS202Model00C4800218Verts,
-    &_gMappicS200MappicS202Model00C4800218Verts[4],
-    _gMappicS200MappicS202Model00C4800218Skeleton,
-    _gMappicS200MappicS202Model00C4800218Stream,
+TmdSource gMappicS200MotelLoftShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS200MotelLoftShapeSkeleton),
+    .partVertexCounts = _gMappicS200MotelLoftShapePartVerts,
+    .verts            = _gMappicS200MotelLoftShapeVerts,
+    .normals          = &_gMappicS200MotelLoftShapeVerts[ARRAY_SIZE(_gMappicS200MotelLoftShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS200MotelLoftShapeSkeleton,
+    .stream           = _gMappicS200MotelLoftShapeStream,
 };
 
 static TmdBone _gMappicS200MappicS202Model00C48002A8Skeleton[1] = {

@@ -302,7 +302,7 @@ D_dryfield_underpass_80180250 = 0x80180250; // absolute:True owner=dryfield_unde
 gDryfieldUnderpassSurfacePropertiesByClass = 0x80181164; // absolute:True owner=dryfield_underpass
 gMappicS200MotelRoom6Shape = 0x8012EFA0; // absolute:True owner=mappic_s2_00 shared=mappic
 gMappicS200MotelBalconyShape = 0x8012F0B8; // absolute:True owner=mappic_s2_00 shared=mappic
-D_mappic_s2_00_8012F148 = 0x8012F148; // absolute:True owner=mappic_s2_00
+gMappicS200MotelLoftShape = 0x8012F148; // absolute:True owner=mappic_s2_00
 D_mappic_s2_00_8012F1D8 = 0x8012F1D8; // absolute:True owner=mappic_s2_00
 D_mappic_s2_00_8012F2BC = 0x8012F2BC; // absolute:True owner=mappic_s2_00 shared=mappic
 gMappicS202GasStationShape = 0x8012EFBC; // absolute:True owner=mappic_s2_02 shared=mappic
