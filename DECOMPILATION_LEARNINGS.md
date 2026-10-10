@@ -145427,9 +145427,10 @@ heldButtons = tmp; ... heldButtons = tmp | 0x80` compiled the same as `heldButto
 suggests.
 ## String literals in a pointer table's initializer are emitted last-first (nmc_names, 2026-09-26)
 
-`char* table[] = { "a", "b", ... };` puts its literals in `.rodata` in reverse:
+`const char* table[] = { "a", "b", ... };` puts its literals in `.rodata` in reverse:
 the last entry's string lands at the lowest address. A string pool that sits in
-table order is therefore a run of named arrays, `static char s0[] = "...";`
+table order is therefore a run of named arrays,
+`static const char s0[] __attribute__((section(".data"))) = "...";`
 defined in order before the table, each word-aligned like the original pool.
 In a union member of an initializer, GCC 2.8 accepts a designator
 (`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer metadata
