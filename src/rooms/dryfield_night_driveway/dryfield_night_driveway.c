@@ -76,11 +76,6 @@ extern TaskDesc gDrivewayCutsceneTasks[];
 extern EvsCommand gDrivewayCutsceneScript[];
 extern EvsCommand gDrivewayBlackoutScript[];
 extern EvsCommand gDrivewayBlackoutTail[];
-extern EvsCommand D_dryfield_night_driveway_8017F998[];
-extern EvsCommand D_dryfield_night_driveway_8017FB00[];
-
-/// Message table the room task installs at `Task::msgTable`.
-extern TaskMessageEntry D_dryfield_night_driveway_8017F7A4[];
 
 /// Spawn argument of the helper task 0x31 the event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -106,15 +101,14 @@ static WorldCollisionTrigger      _gDryfieldNightDrivewayActionTriggers[4];
 static WorldCoordRoomAmbientEntry _gDryfieldNightDrivewayAmbientByView[11];
 static WorldCoordRoomLights       _gDryfieldNightDrivewayRoomLights;
 
-extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01870;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01A84;
-static AnimationSet         _gDryfieldNightDrivewayAnimation01D64;
-static s32                  _dryfieldNightDrivewayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32                  _dryfieldNightDrivewayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
-static s32                  _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
-static void                 _dryfieldNightDrivewaySetEncounterWave(s32 waveStage);
-static void                 _dryfieldNightDrivewaySetPlayerStateHold(u8 hold);
+static AnimationSet _gDryfieldNightDrivewayAnimation01870;
+static AnimationSet _gDryfieldNightDrivewayAnimation01A84;
+static AnimationSet _gDryfieldNightDrivewayAnimation01D64;
+static s32          _dryfieldNightDrivewayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32          _dryfieldNightDrivewayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
+static s32          _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static void         _dryfieldNightDrivewaySetEncounterWave(s32 waveStage);
+static void         _dryfieldNightDrivewaySetPlayerStateHold(u8 hold);
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -242,16 +236,38 @@ static AnimationPlayRequest _gDryfieldNightDrivewayEncounterPlayerAnimation47 = 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_driveway_8017F394 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced request-shaped record for clip 48; its intended receiver is unproven.
+static AnimationPlayRequest D_dryfield_night_driveway_8017F394 = {
+    .source               = { .index = 1 },
+    .animationId          = 48,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 7,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_driveway_8017F3A8 = { { .index = 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the encounter scene's player into clip 32 over five frames, dropping grid participation.
+///
+/// The event interpreter copies this request and substitutes the equipped
+/// weapon's bank selector before dispatch. The stored selector is not used.
+/// This retained daytime sequence's controller is spawned only in stage 2.
+static AnimationPlayRequest _gDryfieldNightDrivewayEncounterPlayerAnimation32 = {
+    .source               = { .index = 1 },
+    .animationId          = 32,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 5,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_dryfield_night_driveway_8017F3BC = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
+/// Unreferenced transform-shaped record; its intended actor and placement role are unproven.
+static ActorTransform D_dryfield_night_driveway_8017F3BC = {
+    .pos = { -1067, 0, 1407, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
 EvsCommand gDrivewayCutsceneScript[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDrivewayEncounterAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F3A8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayEncounterPlayerAnimation32 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightDrivewaySetEncounterWave }, { .value = DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -277,7 +293,18 @@ static AnimationPlayRequest _gDryfieldNightDrivewayPlayerAnimation1 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_driveway_8017F538 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts player clip 24 at the blackout scene's final CAP cue, without grid participation.
+///
+/// The event interpreter copies this request and substitutes the equipped
+/// weapon's bank selector before dispatch. The stored selector is not used.
+/// The nighttime room has no path that spawns this retained blackout controller.
+static AnimationPlayRequest _gDryfieldNightDrivewayBlackoutPlayerAnimation24 = {
+    .source               = { .index = 1 },
+    .animationId          = 24,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 EvsCommand gDrivewayBlackoutScript[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -292,7 +319,7 @@ EvsCommand gDrivewayBlackoutScript[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F538 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayBlackoutPlayerAnimation24 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -310,7 +337,11 @@ EvsCommand gDrivewayBlackoutTail[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
+/// Night-driveway room receiver: departure resolution, refused item use, ignored actions and sound cues.
+///
+/// Installed for the room task's lifetime. The final sentinel makes other
+/// message IDs return zero; payload meanings belong to the selected handler.
+static TaskMessageEntry _gDryfieldNightDrivewayRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDriveway },
     { DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightDrivewayIgnoreDirectionAction },
@@ -319,7 +350,14 @@ TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorTransform D_dryfield_night_driveway_8017F7D4 = { { -700, 0, 1320, 0 }, { 0, 1365, 0, 0 } };
+/// Initial player placement for the warp-4 companion arrival scene.
+///
+/// World XYZ and Euler angles in 4096 units per turn; placement consumes both
+/// vectors synchronously. The final player placement retains XYZ and changes yaw.
+static ActorTransform _gDryfieldNightDrivewayCompanionArrivalPlayerInitialTransform = {
+    .pos = { -700, 0, 1320, 0 },
+    .rot = { 0, 1365, 0, 0 },
+};
 
 /// Final player placement and yaw for the view-4 companion arrival scene.
 ///
@@ -331,9 +369,23 @@ static ActorTransform _gDryfieldNightDrivewayCompanionArrivalPlayerFinalTransfor
     .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0 },
 };
 
-ActorTransform D_dryfield_night_driveway_8017F804 = { { 3300, 0, 790, 0 }, { 0, 3072, 0, 0 } };
+/// Initial companion placement for the warp-4 arrival scene, before the first run.
+///
+/// Placement consumes world XYZ and Euler angles in 4096 units per turn
+/// synchronously; it retains no pointer to this record.
+static ActorTransform _gDryfieldNightDrivewayCompanionArrivalCompanionInitialTransform = {
+    .pos = { 3300, 0, 790, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_driveway_8017F81C = { { 100, 0, 790, 0 }, { 0, 3413, 0, 0 } };
+/// Companion's first run destination and subsequent target yaw in the arrival scene.
+///
+/// Running copies world XYZ; the later turn copies yaw in 4096 units per turn.
+/// Both messages consume their borrowed values synchronously.
+static ActorTransform _gDryfieldNightDrivewayCompanionArrivalCompanionFirstStopTransform = {
+    .pos = { 100, 0, 790, 0 },
+    .rot = { 0, 3413, 0, 0 },
+};
 
 /// Companion's final run destination and skip placement for the view-4 arrival scene.
 ///
@@ -345,20 +397,55 @@ static ActorTransform _gDryfieldNightDrivewayCompanionArrivalCompanionFinalTrans
     .rot = { 0, 3413, 0, 0 },
 };
 
-ActorTransform D_dryfield_night_driveway_8017F84C = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
+/// Initial player placement in the unstarted view-2 companion scene.
+///
+/// Placement consumes world XYZ and Euler angles in 4096 units per turn
+/// synchronously. This is a separate record from the equal final placement.
+static ActorTransform _gDryfieldNightDrivewayCompanionView2PlayerInitialTransform = {
+    .pos = { -9527, 0, -1500, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_driveway_8017F864 = { { -9527, 0, -1500, 0 }, { 0, 1024, 0, 0 } };
+/// Final player yaw and skip placement for the unstarted view-2 companion scene.
+///
+/// Normal playback copies only yaw; the skip stream places world XYZ and all
+/// Euler angles. Angles use 4096 units per turn; neither message retains this record.
+static ActorTransform _gDryfieldNightDrivewayCompanionView2PlayerFinalTransform = {
+    .pos = { -9527, 0, -1500, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_driveway_8017F87C = { { -3800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
+/// Initial companion placement in the unstarted view-2 scene, facing the player.
+///
+/// Placement consumes world XYZ and Euler angles in 4096 units per turn
+/// synchronously; it retains no pointer to this record.
+static ActorTransform _gDryfieldNightDrivewayCompanionView2CompanionInitialTransform = {
+    .pos = { -3800, 0, -1500, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 0, 3072, 0, 0 } };
+/// Companion's first run destination and subsequent target yaw in the view-2 scene.
+///
+/// Running copies world XYZ; the later turn copies yaw in 4096 units per turn.
+/// Both messages consume their borrowed values synchronously.
+static ActorTransform _gDryfieldNightDrivewayCompanionView2CompanionFirstStopTransform = {
+    .pos = { -8800, 0, -1500, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
+/// Companion's final run destination and skip placement in the view-2 scene.
+///
+/// Running copies world XYZ and ignores rotation; the skip placement also
+/// consumes Euler angles in 4096 units per turn. Dispatch retains no record pointer.
+static ActorTransform _gDryfieldNightDrivewayCompanionView2CompanionFinalTransform = {
+    .pos = { -3800, 0, -1500, 0 },
+    .rot = { 0, 3413, 0, 0 },
+};
 
 /// Player extension clips 47..49 for the two companion scenes, followed by null.
 ///
 /// The ten-word bank copy reads six words beyond this four-entry table:
-/// all five words of the neighbouring unused play request and the stored
+/// all five words of the neighbouring undispatched play request and the stored
 /// bank selector of `_gDryfieldNightDrivewayCompanionScenePlayerAnimation47`.
 /// Preserve that source order and copied span. Only entries 47..49 contain
 /// playable clip pointers; their data stays borrowed from the loaded room.
@@ -369,8 +456,19 @@ static AnimationSet* _gDryfieldNightDrivewayCompanionSceneAnimationBankExtension
     NULL,
 };
 
-// Same request as the next one; nothing refers to it.
-AnimationPlayRequest D_dryfield_night_driveway_8017F8D4 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Undispatched clip-47 request whose five words are copied into the player bank.
+///
+/// The companion-scene copy reads this entire neighbouring record into bank
+/// words 51..55, then the following request's selector into word 56. These
+/// values are not clip pointers. Preserve the separate records and their order:
+/// the ten-word transfer crosses the four-entry source table's established end.
+static AnimationPlayRequest _gDryfieldNightDrivewayCompanionSceneCopiedAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// First player extension clip in both companion scenes: clip 47, with grid participation.
 ///
@@ -489,8 +587,23 @@ static GameActorMoveAnim _gDryfieldNightDrivewayCompanionSceneRunAnimations = {
     .arrivalAnimId  = 9,
 };
 
-EvsCommand D_dryfield_night_driveway_8017F998[15] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_CAP_COMMAND  = 5,
+    DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_SCENE_VIEW = 8,
+    DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_FINAL_VIEW = 4,
+    DRYFIELD_NIGHT_DRIVEWAY_COMPANION_VIEW2_SCENE_VIEW   = 2,
+    DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_SOUND      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_DRIVEWAY, 13),
+    DRYFIELD_NIGHT_DRIVEWAY_FADE_DEFAULT_FRAMES          = 0, // Start with the interpreter's seven-frame ramp
+    DRYFIELD_NIGHT_DRIVEWAY_FADE_KEEP_FRAMES             = 0, // Return without replacing the current ramp duration
+    DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE             = 0, // A zero WAIT_FRAMES still yields before the next command
+};
+
+/// Skip stream for the warp-4 companion arrival: places both actors and restores view 4 and control.
+///
+/// Fifteen commands including END. Borrowed by the interpreter through script
+/// completion; the loaded room also owns every referenced placement and request.
+static EvsCommand _gDryfieldNightDrivewayCompanionArrivalSkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = DRYFIELD_NIGHT_DRIVEWAY_FADE_DEFAULT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalPlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalCompanionFinalTransform } }, { .value = 0 } },
@@ -498,135 +611,157 @@ EvsCommand D_dryfield_night_driveway_8017F998[15] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayPlayerAnimation1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_FINAL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_driveway_8017FB00[51] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+/// Warp-4 companion arrival scene: CAP command 5, two companion runs and player clips 47..49.
+///
+/// Fifty-one commands including END. The room starts this only with a live
+/// companion; playback uses view 8 and returns to view 4. The interpreter borrows
+/// this stream and its room resources through normal or skip completion.
+/// Normal area scheduling supplies the family-2 companion, which implements
+/// the required run and motion-pending messages.
+static EvsCommand _gDryfieldNightDrivewayCompanionArrivalScript[] = {
+    // Start CAP and install the player clips before staging the hidden actors.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDrivewayCompanionSceneAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F7D4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F804 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5319000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalPlayerInitialTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalCompanionInitialTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_dryfield_night_driveway_8017F81C } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // The first run and turn are synchronized with CAP and player playback.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalCompanionFirstStopTransform } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation47 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation48 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F81C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalCompanionFirstStopTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation38 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalCompanionFinalTransform } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation49 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionArrivalPlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Hide the final staging while restoring the view, weapons and actor control.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_ARRIVAL_FINAL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = DRYFIELD_NIGHT_DRIVEWAY_FADE_KEEP_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_driveway_8017FFC8[14] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Unstarted skip-style stream placing both actors at the view-2 scene's final transforms.
+///
+/// Fourteen commands including END restore view 2 and scripted control. Nothing
+/// installs this stream as a skip target; its intended start condition is unproven.
+static EvsCommand _gDryfieldNightDrivewayCompanionView2SkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = DRYFIELD_NIGHT_DRIVEWAY_FADE_DEFAULT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F864 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F8AC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2PlayerFinalTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2CompanionFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_VIEW2_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_driveway_80180118[49] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+/// Unstarted view-2 companion scene: CAP command 5, two companion runs and player clips 47..49.
+///
+/// Forty-nine commands including END restore view 2, weapons and scripted control.
+/// Nothing starts this stream; its intended trigger and pairing with the adjacent
+/// skip-style stream are unproven. Its payloads borrow this room's resources.
+static EvsCommand _gDryfieldNightDrivewayCompanionView2Script[] = {
+    // Start CAP and install the player clips before staging the hidden actors.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDrivewayCompanionSceneAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F84C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F87C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_VIEW2_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = DRYFIELD_NIGHT_DRIVEWAY_FADE_KEEP_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2PlayerInitialTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2CompanionInitialTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_dryfield_night_driveway_8017F894 } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F894 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // The first run and turn are synchronized with CAP and player playback.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2CompanionFirstStopTransform } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2CompanionFirstStopTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation47 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation38 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionSceneCompanionAnimation8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_dryfield_night_driveway_8017F8AC } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2CompanionFinalTransform } }, { .message = { .moveAnimation = &_gDryfieldNightDrivewayCompanionSceneRunAnimations } } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayCompanionScenePlayerAnimation49 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F864 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_DRIVEWAY_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldNightDrivewayCompanionView2PlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Hide the final staging while restoring the view, weapons and actor control.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_VIEW2_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = DRYFIELD_NIGHT_DRIVEWAY_FADE_KEEP_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1237,19 +1372,25 @@ RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 gDrivewayEventSpawned = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_dryfield_night_driveway_80182121 = 2;
+/// Unreferenced stored byte 2 after the event flag; its role is unproven.
+static u8 D_dryfield_night_driveway_80182121 = 2;
 
-u8 D_dryfield_night_driveway_80182122 = 0;
+/// Unreferenced stored zero byte; its role is unproven.
+static u8 D_dryfield_night_driveway_80182122 = 0;
 
-u8 D_dryfield_night_driveway_80182123 = 0;
+/// Unreferenced stored zero byte; its role is unproven.
+static u8 D_dryfield_night_driveway_80182123 = 0;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// The room task's three states: set up, idle, kill.
-static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
+/// Night-driveway room states: initialize (0), idle (1), release (2).
+///
+/// Copied as three callback pointers before dispatch by `Task::state`, which
+/// must be in 0..2. There is no terminator or bounds check; the last state kills
+/// the task. Keep the table and room callbacks loaded through dispatch.
+static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
     { _dryfieldNightDrivewayInitializeRoom, _dryfieldNightDrivewayRoomIdle, taskKill },
 };
 
@@ -1323,10 +1464,10 @@ static void _dryfieldNightDrivewayInitializeRoom(Task* task)
 {
     enum { COMPANION_SCENE_ARRIVAL_WARP = 4 };
 
-    task->msgTable = D_dryfield_night_driveway_8017F7A4;
+    task->msgTable = _gDryfieldNightDrivewayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == COMPANION_SCENE_ARRIVAL_WARP)) {
-        evsStartScriptWithSkip(D_dryfield_night_driveway_8017FB00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_driveway_8017F998);
+        evsStartScriptWithSkip(_gDryfieldNightDrivewayCompanionArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightDrivewayCompanionArrivalSkipScript);
     }
     task->state = task->state + 1;
 }
@@ -1344,7 +1485,7 @@ void dryfieldNightDrivewayRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_driveway_8017D5D8;
+    stateHandlers = _gDryfieldNightDrivewayRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 
