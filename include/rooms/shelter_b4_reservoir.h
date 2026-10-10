@@ -27,22 +27,47 @@ extern u8 D_shelter_b4_reservoir_801850C8[16];
 
 extern u8 D_shelter_b4_reservoir_801850D8[16];
 
-// shelter_b4_reservoir
-extern WorldCoordRoomLighting D_shelter_b4_reservoir_801850E8[];
+/// Lighting selections for reservoir room IDs 1 and 2, indexed by room minus one.
+///
+/// Both borrow the same eight-point-light collection and use the resident
+/// default ambient minima. Records and lights stay live while the room is loaded.
+extern WorldCoordRoomLighting gShelterB4ReservoirRoomLighting[2];
 
 extern WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[];
 
-extern u8* D_shelter_b4_reservoir_80185118[];
+/// Logical-view maps for reservoir room IDs 1 and 2, indexed by room minus one.
+///
+/// Both borrow `gViewIdentityMap`: logical views 1..10 select camera, image
+/// and sprite entries 1..10. The maps have no terminator; the room directory
+/// requires the reservoir overlay to stay loaded and the maps require gameplay.
+extern u8* gShelterB4ReservoirViewMaps[2];
 
 extern ViewCount D_shelter_b4_reservoir_80185120[];
 
 extern DirectionWarpEntry D_shelter_b4_reservoir_80185124[];
 
-extern ViewCamera D_shelter_b4_reservoir_80185ADC[];
+/// Cameras for mapped reservoir views 1..10, indexed by mapped view minus one.
+///
+/// Each record supplies world-to-camera placement and perspective distance in
+/// pixels. Queued camera application borrows its record until dispatch, so the
+/// reservoir overlay must stay loaded through application.
+extern ViewCamera gShelterB4ReservoirViewCameras[10];
 
-extern SpriteView D_shelter_b4_reservoir_80186730[];
+/// Foreground sprite resources for mapped reservoir views 1..10.
+///
+/// Indexed by mapped view minus one; views 1, 2, 6 and 10 have no sprites.
+/// Every view retains decoded-image background strips and has no clipping list.
+/// Batch lists end with `SPRITE_BATCH_END`; source ranges count elements.
+/// Descriptors and their mutable arrays belong to the loaded reservoir overlay.
+extern SpriteView gShelterB4ReservoirSpriteViews[10];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[];
+/// Collision policies and footstep requests for reservoir surface classes 0..7.
+///
+/// Class 1 passes probes and ignores weapon impacts; the others block probes
+/// and allow impacts. Every class applies pushback. Classes 2, 3 and 5 have
+/// footstep cues; 0, 4, 6 and 7 share the silent default record. The directory
+/// and borrowed records remain live only while the reservoir overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB4ReservoirSurfacePropertiesByClass[8];
 
 /// Runs the reservoir room's initialization, update or teardown state.
 ///

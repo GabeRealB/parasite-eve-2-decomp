@@ -1587,7 +1587,7 @@ D_neo_ark_south_promenade_801808E4 = 0x801808E4; // absolute:True owner=neo_ark_
 
 D_neo_ark_submarine_gallery_80185860 = 0x80185860; // absolute:True owner=neo_ark_submarine_gallery
 
-D_neo_ark_submarine_tunnel_80187470 = 0x80187470; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
+D_neo_ark_submarine_tunnel_80187470 = 0x80187470; // absolute:True owner=neo_ark_submarine_tunnel
 
 D_neo_ark_woodland_path_8018471C = 0x8018471C; // absolute:True owner=neo_ark_woodland_path
 

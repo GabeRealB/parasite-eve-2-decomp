@@ -197,7 +197,6 @@ extern AreaApplyRec                   D_shelter_b4_reservoir_801874A0[];
 extern ScreenFade                     D_shelter_b4_reservoir_80187500;
 extern RoomEventMsg                   D_shelter_b4_reservoir_80187508;
 extern s32                            D_shelter_b4_reservoir_80187510;
-extern u8*                            D_shelter_b4_reservoir_80187630;
 extern SVECTOR                        D_shelter_b4_reservoir_80187634[];
 extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
 
@@ -235,7 +234,7 @@ extern WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
-extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
+static WorldCoordRoomLights   _gShelterB4ReservoirRoomLights;
 static s32                    _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32                    _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                    _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
@@ -500,9 +499,9 @@ u8 D_shelter_b4_reservoir_801850D8[16] = {
     0,
 };
 
-WorldCoordRoomLighting D_shelter_b4_reservoir_801850E8[2] = {
-    { D_shelter_b4_reservoir_80186AA8, NULL },
-    { D_shelter_b4_reservoir_80186AA8, NULL },
+WorldCoordRoomLighting gShelterB4ReservoirRoomLighting[2] = {
+    { &_gShelterB4ReservoirRoomLights, NULL },
+    { &_gShelterB4ReservoirRoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[2] = {
@@ -510,7 +509,7 @@ WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[2] = {
     { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186F34, D_shelter_b4_reservoir_801873B0 },
 };
 
-u8* D_shelter_b4_reservoir_80185118[2] = {
+u8* gShelterB4ReservoirViewMaps[2] = {
     gViewIdentityMap,
     gViewIdentityMap,
 };
@@ -574,7 +573,7 @@ WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1] = {
     { NULL, _gShelterB4ReservoirCollision084F8Normals, _gShelterB4ReservoirCollision084F8Verts, _gShelterB4ReservoirCollision084F8Faces, _gShelterB4ReservoirCollision084F8Table, 0x2AC6, 6000, 5, 5, 4000, 45 },
 };
 
-ViewCamera D_shelter_b4_reservoir_80185ADC[10] = {
+ViewCamera gShelterB4ReservoirViewCameras[10] = {
     { { { { 4095, 0, -20 }, { -20, 35, -4095 }, { 0, 4095, 35 } }, { 151, 0x7530, -115 } }, 447 },
     { { { { -1356, 0, -3864 }, { 134, 4093, -47 }, { 3862, -142, -1355 } }, { -836, 880, 2121 } }, 230 },
     { { { { -4037, 0, 688 }, { 118, 4034, 695 }, { -678, 705, -3977 } }, { -1560, 2040, -2150 } }, 257 },
@@ -587,17 +586,20 @@ ViewCamera D_shelter_b4_reservoir_80185ADC[10] = {
     { { { { -3991, 0, -921 }, { -208, 3989, 902 }, { 897, 925, -3887 } }, { 360, 2120, -7690 } }, 257 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80185C44[2] = {
+/// Empty foreground list for mapped view 1; the zero first count retains image strips.
+static SpriteBatch _gShelterB4ReservoirView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80185C54[2] = {
+/// Empty foreground list for mapped view 2; the zero first count retains image strips.
+static SpriteBatch _gShelterB4ReservoirView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_80185C64[11] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 3.
+static SpriteSource _gShelterB4ReservoirView3SpriteSources[11] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, -96, 1050, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, -104, 1000, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, -112, 975, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
@@ -611,26 +613,30 @@ SpriteSource D_shelter_b4_reservoir_80185C64[11] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -136, 40, 1000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80185D40[3] = {
+/// View-3 foreground range, preceded by the zero-count image-strip selection.
+static SpriteBatch _gShelterB4ReservoirView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4ReservoirView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_80185D58[4] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 4.
+static SpriteSource _gShelterB4ReservoirView4SpriteSources[4] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, -64, 2000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, 8, -8, 1500, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 88 } }, 16, -32, 1525, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 24, -64, 1750, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80185DA8[3] = {
+/// View-4 foreground range, preceded by the zero-count image-strip selection.
+static SpriteBatch _gShelterB4ReservoirView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4ReservoirView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_80185DC0[58] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 5.
+static SpriteSource _gShelterB4ReservoirView5SpriteSources[58] = {
     { 143, 0x3FC0, { .fields = { 64, 8 } }, 80, 112, 1338, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 8 } }, 80, 104, 1347, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, 96, 1384, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
@@ -691,19 +697,26 @@ SpriteSource D_shelter_b4_reservoir_80185DC0[58] = {
     { 143, 0x3FC0, { .fields = { 72, 8 } }, -8, 112, 750, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80186248[4] = {
+enum { SHELTER_B4_RESERVOIR_VIEW5_SECOND_BATCH_FIRST_SPRITE = 45 };
+
+/// Two adjacent view-5 foreground ranges after the zero-count image-strip selection.
+///
+/// The first range retains serialized bytes {1, 0}; their role is unproven.
+static SpriteBatch _gShelterB4ReservoirView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 45, 0, 0, { 1, 0 } },
-    { 45, 13, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B4_RESERVOIR_VIEW5_SECOND_BATCH_FIRST_SPRITE, 0, 0, { 1, 0 } },
+    { SHELTER_B4_RESERVOIR_VIEW5_SECOND_BATCH_FIRST_SPRITE, ARRAY_SIZE(_gShelterB4ReservoirView5SpriteSources) - SHELTER_B4_RESERVOIR_VIEW5_SECOND_BATCH_FIRST_SPRITE, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80186268[2] = {
+/// Empty foreground list for mapped view 6; the zero first count retains image strips.
+static SpriteBatch _gShelterB4ReservoirView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_80186278[9] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 7.
+static SpriteSource _gShelterB4ReservoirView7SpriteSources[9] = {
     { 143, 0x3FC0, { .fields = { 64, 8 } }, -72, 48, 1912, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 8 } }, -72, 56, 1908, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 8 } }, -80, 64, 1570, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
@@ -715,13 +728,15 @@ SpriteSource D_shelter_b4_reservoir_80186278[9] = {
     { 143, 0x3FC0, { .fields = { 80, 8 } }, -88, 112, 925, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_8018632C[3] = {
+/// View-7 foreground range, preceded by the zero-count image-strip selection.
+static SpriteBatch _gShelterB4ReservoirView7SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4ReservoirView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_80186344[36] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 8.
+static SpriteSource _gShelterB4ReservoirView8SpriteSources[36] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 24, 750, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 72 } }, -112, -120, 750, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 72 } }, -112, -48, 750, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
@@ -760,13 +775,15 @@ SpriteSource D_shelter_b4_reservoir_80186344[36] = {
     { 141, 0x3FC0, { .fields = { 72, 8 } }, -56, -8, 750, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80186614[3] = {
+/// View-8 foreground range, preceded by the zero-count image-strip selection.
+static SpriteBatch _gShelterB4ReservoirView8SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 36, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4ReservoirView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_reservoir_8018662C[11] = {
+/// Foreground texture rectangles in pixels and sorting depths for mapped view 9.
+static SpriteSource _gShelterB4ReservoirView9SpriteSources[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, -72, 1274, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 825, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, -80, 942, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
@@ -780,43 +797,55 @@ SpriteSource D_shelter_b4_reservoir_8018662C[11] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -64, 1013, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80186708[3] = {
+/// View-9 foreground range, preceded by the zero-count image-strip selection.
+static SpriteBatch _gShelterB4ReservoirView9SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4ReservoirView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_reservoir_80186720[2] = {
+/// Empty foreground list for mapped view 10; the zero first count retains image strips.
+static SpriteBatch _gShelterB4ReservoirView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b4_reservoir_80186730[10] = {
-    { { .empty = D_shelter_b4_reservoir_80185C44 }, D_shelter_b4_reservoir_80185C44, NULL },
-    { { .empty = D_shelter_b4_reservoir_80185C54 }, D_shelter_b4_reservoir_80185C54, NULL },
-    { { .elements = D_shelter_b4_reservoir_80185C64 }, D_shelter_b4_reservoir_80185D40, NULL },
-    { { .elements = D_shelter_b4_reservoir_80185D58 }, D_shelter_b4_reservoir_80185DA8, NULL },
-    { { .elements = D_shelter_b4_reservoir_80185DC0 }, D_shelter_b4_reservoir_80186248, NULL },
-    { { .empty = D_shelter_b4_reservoir_80186268 }, D_shelter_b4_reservoir_80186268, NULL },
-    { { .elements = D_shelter_b4_reservoir_80186278 }, D_shelter_b4_reservoir_8018632C, NULL },
-    { { .elements = D_shelter_b4_reservoir_80186344 }, D_shelter_b4_reservoir_80186614, NULL },
-    { { .elements = D_shelter_b4_reservoir_8018662C }, D_shelter_b4_reservoir_80186708, NULL },
-    { { .empty = D_shelter_b4_reservoir_80186720 }, D_shelter_b4_reservoir_80186720, NULL },
+SpriteView gShelterB4ReservoirSpriteViews[10] = {
+    { { .empty = _gShelterB4ReservoirView1SpriteBatches }, _gShelterB4ReservoirView1SpriteBatches, NULL },
+    { { .empty = _gShelterB4ReservoirView2SpriteBatches }, _gShelterB4ReservoirView2SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView3SpriteSources }, _gShelterB4ReservoirView3SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView4SpriteSources }, _gShelterB4ReservoirView4SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView5SpriteSources }, _gShelterB4ReservoirView5SpriteBatches, NULL },
+    { { .empty = _gShelterB4ReservoirView6SpriteBatches }, _gShelterB4ReservoirView6SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView7SpriteSources }, _gShelterB4ReservoirView7SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView8SpriteSources }, _gShelterB4ReservoirView8SpriteBatches, NULL },
+    { { .elements = _gShelterB4ReservoirView9SpriteSources }, _gShelterB4ReservoirView9SpriteBatches, NULL },
+    { { .empty = _gShelterB4ReservoirView10SpriteBatches }, _gShelterB4ReservoirView10SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b4_reservoir_801867A8[8] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -4450, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -4450, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2520, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2520, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2581, 4061 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2520, 4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -4450, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 5367, 6365 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -3000, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1228, 1228 }, { 0, 0 } }, 5000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -2000, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1500, 2500 },
+/// Eight world-space point lights shared by both reservoir room selections.
+///
+/// All views use these lights. RGB intensity has 12 fractional bits and falloff
+/// radii use world units. Coordinate composition and attenuation keep them mutable.
+static WorldCoordPointLight _gShelterB4ReservoirPointLights[8] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -4450, 5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -4450, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2520, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2520, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2581, 4061 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2520, 4000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -4450, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 5367, 6365 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -3000, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1228, 1228 }, { 0, 0 } }, 5000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4500, -2000, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1500, 2500 },
 };
 
-WorldCoordRoomLights D_shelter_b4_reservoir_80186AA8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b4_reservoir_801867A8), D_shelter_b4_reservoir_801867A8, 0, NULL },
+/// Reservoir light collection: eight point lights, with no directional or cone lights.
+static WorldCoordRoomLights _gShelterB4ReservoirRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB4ReservoirPointLights),
+    .pointLights           = _gShelterB4ReservoirPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_shelter_b4_reservoir_80186AC0[8] = {
@@ -928,53 +957,100 @@ s32 D_shelter_b4_reservoir_80187428[3] = {
     0x1000003D,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_reservoir_80187434 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+enum {
+    SHELTER_B4_RESERVOIR_SURFACE5_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_B4_RESERVOIR_SURFACE5_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SHELTER_B4_RESERVOIR_SURFACE3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B4_RESERVOIR_SURFACE3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    SHELTER_B4_RESERVOIR_SURFACE2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    SHELTER_B4_RESERVOIR_SURFACE2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    SHELTER_B4_RESERVOIR_SURFACE2_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x29,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_reservoir_80187440 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Type-1 footstep cue bases for reservoir surface class 5.
+///
+/// Cue 1 adds one; companion playback adds 100 to each nonzero request.
+/// Walking and scripted jumps share a pair; running selects the other pair.
+static WorldCollisionFootstepSounds _gShelterB4ReservoirSurface5FootstepSounds = {
+    .walk         = SHELTER_B4_RESERVOIR_SURFACE5_WALK_CUE_BASE,
+    .run          = SHELTER_B4_RESERVOIR_SURFACE5_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_RESERVOIR_SURFACE5_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_reservoir_8018744C = {
-    0x10000025,
-    0x10000027,
-    0x10000029,
+/// Type-1 footstep cue bases for reservoir surface class 3.
+///
+/// Cue 1 adds one; companion playback adds 100 to each nonzero request.
+/// Walking and scripted jumps share a pair; running selects the other pair.
+static WorldCollisionFootstepSounds _gShelterB4ReservoirSurface3FootstepSounds = {
+    .walk         = SHELTER_B4_RESERVOIR_SURFACE3_WALK_CUE_BASE,
+    .run          = SHELTER_B4_RESERVOIR_SURFACE3_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_RESERVOIR_SURFACE3_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_reservoir_80187458[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Type-1 footstep cue bases for reservoir surface class 2.
+///
+/// Cue 1 adds one; companion playback adds 100 to each nonzero request.
+/// Walking, running and scripted jumps each select a distinct pair.
+static WorldCollisionFootstepSounds _gShelterB4ReservoirSurface2FootstepSounds = {
+    .walk         = SHELTER_B4_RESERVOIR_SURFACE2_WALK_CUE_BASE,
+    .run          = SHELTER_B4_RESERVOIR_SURFACE2_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_RESERVOIR_SURFACE2_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_reservoir_80187460[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy without footstep cues, shared by surface classes 0, 4, 6 and 7.
+static WorldCollisionSurfaceProperties _gShelterB4ReservoirDefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_reservoir_80187468[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_reservoir_8018744C },
+/// Class-1 collision policy: pass probes, ignore weapon impacts, apply pushback, no footsteps.
+static WorldCollisionSurfaceProperties _gShelterB4ReservoirSurface1 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_reservoir_80187470[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_reservoir_80187440 },
+/// Class-2 collision policy: block probes, allow weapon impacts and apply pushback, with footsteps.
+static WorldCollisionSurfaceProperties _gShelterB4ReservoirSurface2 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4ReservoirSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_reservoir_80187478[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_reservoir_80187434 },
+/// Class-3 collision policy: block probes, allow weapon impacts and apply pushback, with footsteps.
+static WorldCollisionSurfaceProperties _gShelterB4ReservoirSurface3 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4ReservoirSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[8] = {
-    D_shelter_b4_reservoir_80187458,
-    D_shelter_b4_reservoir_80187460,
-    D_shelter_b4_reservoir_80187468,
-    D_shelter_b4_reservoir_80187470,
-    D_shelter_b4_reservoir_80187458,
-    D_shelter_b4_reservoir_80187478,
-    D_shelter_b4_reservoir_80187458,
-    D_shelter_b4_reservoir_80187458,
+/// Class-5 collision policy: block probes, allow weapon impacts and apply pushback, with footsteps.
+static WorldCollisionSurfaceProperties _gShelterB4ReservoirSurface5 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4ReservoirSurface5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB4ReservoirSurfacePropertiesByClass[8] = {
+    &_gShelterB4ReservoirDefaultSurface,
+    &_gShelterB4ReservoirSurface1,
+    &_gShelterB4ReservoirSurface2,
+    &_gShelterB4ReservoirSurface3,
+    &_gShelterB4ReservoirDefaultSurface,
+    &_gShelterB4ReservoirSurface5,
+    &_gShelterB4ReservoirDefaultSurface,
+    &_gShelterB4ReservoirDefaultSurface,
 };
 
 AreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
@@ -1018,7 +1094,14 @@ ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
 ScreenWaveCtx gScreenWaveSpawnCtx = { 0 };
 
-u8* D_shelter_b4_reservoir_80187630 = NULL;
+/// Next free byte in the frame's borrowed reservoir water packet half.
+///
+/// Each draw resets it to an unused actor arena's 0xC000-byte otBuffer half.
+/// Valid projections append a 24-byte POLY_F4 and a 12-byte DR_MODE; their casts
+/// select successive packet formats in the same word-aligned byte arena.
+/// The largest pass set uses 6336 bytes. This cursor owns no allocation, and
+/// packet storage must remain intact through GPU DMA before actor loading or reuse.
+static u8* _gShelterB4ReservoirWaterPrimCursor = NULL;
 
 SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
 
@@ -1557,9 +1640,9 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
 
     // Borrow one half of the actor arena unused by the current companion setup.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
+        _gShelterB4ReservoirWaterPrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
+        _gShelterB4ReservoirWaterPrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     }
     if (gGameSession->location.loc.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
         surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((D_shelter_b4_reservoir_80184F80 - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);
@@ -1596,8 +1679,8 @@ static void _shelterB4ReservoirDrawMainWaterStrip(Task* task)
     /// only its first word. Call as a statement inside braces after projection;
     /// expands to a statement list, repeats no side effects, and links both packets.
 #define SHELTER_B4_RESERVOIR_EMIT_MAIN_WATER_STRIP_QUAD()                                                                                                                                        \
-    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
     setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
     setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
     GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
@@ -1609,8 +1692,8 @@ static void _shelterB4ReservoirDrawMainWaterStrip(Task* task)
     waterQuad->b0                       = 0;                                                                                                                                                     \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             waterQuad);                                                                                                                                                                          \
-    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
     setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
     drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
@@ -1689,8 +1772,8 @@ static void _shelterB4ReservoirDrawZWaterStrips(Task* task)
     /// only its first word. Call as a statement inside braces after projection;
     /// expands to a statement list, repeats no side effects, and links both packets.
 #define SHELTER_B4_RESERVOIR_EMIT_Z_WATER_STRIPS_QUAD()                                                                                                                                          \
-    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
     setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
     setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
     GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
@@ -1702,8 +1785,8 @@ static void _shelterB4ReservoirDrawZWaterStrips(Task* task)
     waterQuad->b0                       = 0;                                                                                                                                                     \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             waterQuad);                                                                                                                                                                          \
-    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
     setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
     drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
@@ -1781,8 +1864,8 @@ static void _shelterB4ReservoirDrawXWaterStrips(Task* task)
     /// only its first word. Call as a statement inside braces after projection;
     /// expands to a statement list, repeats no side effects, and links both packets.
 #define SHELTER_B4_RESERVOIR_EMIT_X_WATER_STRIPS_QUAD()                                                                                                                                          \
-    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
     setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
     setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
     GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
@@ -1794,8 +1877,8 @@ static void _shelterB4ReservoirDrawXWaterStrips(Task* task)
     waterQuad->b0                       = 0;                                                                                                                                                     \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             waterQuad);                                                                                                                                                                          \
-    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
     setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
     drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
@@ -1872,8 +1955,8 @@ static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
     /// only its first word. Call as a statement inside braces after projection;
     /// expands to a statement list, repeats no side effects, and links both packets.
 #define SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD()                                                                                                                                     \
-    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
     setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
     setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
     GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
@@ -1885,8 +1968,8 @@ static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
     waterQuad->b0                       = blueIntensity;                                                                                                                                         \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             waterQuad);                                                                                                                                                                          \
-    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
-    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
     setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
     drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
