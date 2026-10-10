@@ -64,6 +64,8 @@
 
 #include "weapons/m4a1_pyke.h"
 
+#include "weapons/m93r.h"
+
 #include "weapons/tonfa_baton.h"
 
 #include "weapons/weapon.h"
@@ -307,7 +309,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_p08_8011D924 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m93r_8011DA74 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM93rWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m950_8011DA9C } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_p08_8011D924 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_p229_8011E5E4 } },

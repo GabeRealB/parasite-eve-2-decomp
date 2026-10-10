@@ -1,6 +1,9 @@
 #include "weapons/m93r.h"
 
-#include "types.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/items.h"
@@ -16,9 +19,209 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
+
+/// Initial identity transform and self-parented root of the weapon's sole part.
+///
+/// Read-only skeleton and count data retain their serialized positions in .data.
+static const TmdBone _gM93rWeaponModelSkeleton[] __attribute__((section(".data"))) = {
+#include "assets/m93r_model_00520_skeleton.inc"
+};
+
+/// Vertex count of the weapon's sole part: all 32 vertices.
+static const u32 _gM93rWeaponModelPartVerts[ARRAY_SIZE(_gM93rWeaponModelSkeleton)] __attribute__((section(".data"))) = {
+#include "assets/m93r_model_00520_partVerts.inc"
+};
+
+/// Writable weapon vertices in integer coordinates local to the hand anchor.
+static SVECTOR _gM93rWeaponModelVerts[] = {
+#include "assets/m93r_model_00520_verts.inc"
+};
+
+/// Writable weapon lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gM93rWeaponModelNormals[] = {
+#include "assets/m93r_model_00520_normals.inc"
+};
+
+/// Writable commands for four textured triangles and 28 textured quads, ending in `TMD_STREAM_END`.
+///
+/// First model creation resolves the commands' draw-handler slots in place.
+static u32 _gM93rWeaponModelStream[] = {
+#include "assets/m93r_model_00520_stream.inc"
+};
+
+TmdSource gM93rWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (28 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM93rWeaponModelSkeleton),
+    .partVertexCounts    = _gM93rWeaponModelPartVerts,
+    .verts               = _gM93rWeaponModelVerts,
+    .normals             = _gM93rWeaponModelNormals,
+    .skeleton            = _gM93rWeaponModelSkeleton,
+    .stream              = _gM93rWeaponModelStream,
+};
+
+/// Idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only animation tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM93rPlayerIdleAnimationBank1[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_00A68_bank1.inc"
+};
+
+/// Idle Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerIdleAnimationBank4[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_00A68_bank4.inc"
+};
+
+/// Idle keyframes and controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerIdleAnimationRecords[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_00A68_records.inc"
+};
+
+/// Absolute idle record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerIdleAnimationIndices[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_00A68_indices.inc"
+};
+
+/// Standing idle for the player using the M93R animation bank.
+///
+/// Native clip 1; bank entries 11, 15, 21, 22 and 41 also select this pose.
+/// Contains 19 player-part tracks, with translation/rotation for tracks 0 and 1
+/// and packed rotation for tracks 2..18. Playback borrows the set and tables;
+/// the M93R package must remain loaded while any slot refers to them.
+static AnimationSet _gM93rPlayerIdleAnimation = {
+    .records           = _gM93rPlayerIdleAnimationRecords,
+    .trackStartIndices = _gM93rPlayerIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM93rPlayerIdleAnimationBank1, NULL, NULL, _gM93rPlayerIdleAnimationBank4, NULL, NULL, NULL },
+};
+
+/// Unarmed-walk translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerUnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0110C_bank1.inc"
+};
+
+/// Unarmed-walk Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerUnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0110C_bank4.inc"
+};
+
+/// Unarmed-walk keyframes and controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerUnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0110C_records.inc"
+};
+
+/// Absolute unarmed-walk record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerUnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0110C_indices.inc"
+};
+
+/// Forward walk while the player has no attached weapon model, in the M93R bank.
+///
+/// Native clip 19. Contains 19 player-part tracks, with translation/rotation
+/// for tracks 0 and 1 and packed rotation for tracks 2..18. Playback borrows
+/// the set and tables; the M93R package must remain loaded during those uses.
+static AnimationSet _gM93rPlayerUnarmedWalkAnimation = {
+    .records           = _gM93rPlayerUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM93rPlayerUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM93rPlayerUnarmedWalkAnimationBank1, NULL, NULL, _gM93rPlayerUnarmedWalkAnimationBank4, NULL, NULL, NULL },
+};
+
+/// Left-turn translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerTurnLeftAnimationBank1[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0196C_bank1.inc"
+};
+
+/// Left-turn Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerTurnLeftAnimationBank4[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0196C_bank4.inc"
+};
+
+/// Left-turn keyframes and controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerTurnLeftAnimationRecords[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0196C_records.inc"
+};
+
+/// Absolute left-turn record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerTurnLeftAnimationIndices[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_0196C_indices.inc"
+};
+
+/// Stationary left turn for the player using the M93R animation bank.
+///
+/// Native clip 5, also used for a scripted turn toward a negative yaw delta.
+/// Contains 19 player-part tracks, with translation/rotation for tracks 0 and 1
+/// and packed rotation for tracks 2..18. Playback borrows the set and tables;
+/// the M93R package must remain loaded while any slot refers to them.
+static AnimationSet _gM93rPlayerTurnLeftAnimation = {
+    .records           = _gM93rPlayerTurnLeftAnimationRecords,
+    .trackStartIndices = _gM93rPlayerTurnLeftAnimationIndices,
+    .poseBanks         = { NULL, _gM93rPlayerTurnLeftAnimationBank1, NULL, NULL, _gM93rPlayerTurnLeftAnimationBank4, NULL, NULL, NULL },
+};
+
+/// Right-turn translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerTurnRightAnimationBank1[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_021D0_bank1.inc"
+};
+
+/// Right-turn Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerTurnRightAnimationBank4[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_021D0_bank4.inc"
+};
+
+/// Right-turn keyframes and controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerTurnRightAnimationRecords[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_021D0_records.inc"
+};
+
+/// Absolute right-turn record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerTurnRightAnimationIndices[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_021D0_indices.inc"
+};
+
+/// Stationary right turn for the player using the M93R animation bank.
+///
+/// Native clip 6, also used for a scripted turn toward a nonnegative yaw delta.
+/// Contains 19 player-part tracks, with translation/rotation for tracks 0 and 1
+/// and packed rotation for tracks 2..18. Playback borrows the set and tables;
+/// the M93R package must remain loaded while any slot refers to them.
+static AnimationSet _gM93rPlayerTurnRightAnimation = {
+    .records           = _gM93rPlayerTurnRightAnimationRecords,
+    .trackStartIndices = _gM93rPlayerTurnRightAnimationIndices,
+    .poseBanks         = { NULL, _gM93rPlayerTurnRightAnimationBank1, NULL, NULL, _gM93rPlayerTurnRightAnimationBank4, NULL, NULL, NULL },
+};
+
+/// Item-use translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerItemUseAnimationBank1[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_024E4_bank1.inc"
+};
+
+/// Item-use Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerItemUseAnimationBank4[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_024E4_bank4.inc"
+};
+
+/// Item-use keyframes and controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerItemUseAnimationRecords[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_024E4_records.inc"
+};
+
+/// Absolute item-use record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerItemUseAnimationIndices[] __attribute__((section(".data"))) = {
+#include "assets/m93r_animation_024E4_indices.inc"
+};
+
+/// Item-use presentation for the player using the M93R animation bank.
+///
+/// Native clip 40. Contains 19 player-part tracks, with translation/rotation
+/// for tracks 0 and 1 and packed rotation for tracks 2..18. Playback borrows
+/// the set and tables; the M93R package must remain loaded during those uses.
+static AnimationSet _gM93rPlayerItemUseAnimation = {
+    .records           = _gM93rPlayerItemUseAnimationRecords,
+    .trackStartIndices = _gM93rPlayerItemUseAnimationIndices,
+    .poseBanks         = { NULL, _gM93rPlayerItemUseAnimationBank1, NULL, NULL, _gM93rPlayerItemUseAnimationBank4, NULL, NULL, NULL },
+};
 
 void m93rAttackState(Task* playerTask)
 {
@@ -137,148 +340,6 @@ void m93rAttackState(Task* playerTask)
     }
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
-
-static TmdBone _gM93rModel00520Skeleton[1] = {
-#include "assets/m93r_model_00520_skeleton.inc"
-};
-
-static u32 _gM93rModel00520PartVerts[1] = {
-#include "assets/m93r_model_00520_partVerts.inc"
-};
-
-static SVECTOR _gM93rModel00520Verts[32] = {
-#include "assets/m93r_model_00520_verts.inc"
-};
-
-static SVECTOR _gM93rModel00520Normals[32] = {
-#include "assets/m93r_model_00520_normals.inc"
-};
-
-static u32 _gM93rModel00520Stream[229] = {
-#include "assets/m93r_model_00520_stream.inc"
-};
-
-TmdSource D_m93r_8011DA74 = {
-    0,
-    1616,
-    0,
-    1,
-    _gM93rModel00520PartVerts,
-    _gM93rModel00520Verts,
-    _gM93rModel00520Normals,
-    _gM93rModel00520Skeleton,
-    _gM93rModel00520Stream,
-};
-
-static AnimationPackedPose _gM93rAnimation00A68Bank1[2] = {
-#include "assets/m93r_animation_00A68_bank1.inc"
-};
-
-static AnimationPackedRotation _gM93rAnimation00A68Bank4[8] = {
-#include "assets/m93r_animation_00A68_bank4.inc"
-};
-
-static AnimationRecord _gM93rAnimation00A68Records[76] = {
-#include "assets/m93r_animation_00A68_records.inc"
-};
-
-static u16 _gM93rAnimation00A68Indices[20] = {
-#include "assets/m93r_animation_00A68_indices.inc"
-};
-
-static AnimationSet _gM93rAnimation00A68 = {
-    _gM93rAnimation00A68Records,
-    _gM93rAnimation00A68Indices,
-    { NULL, _gM93rAnimation00A68Bank1, NULL, NULL, _gM93rAnimation00A68Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gM93rAnimation0110CBank1[12] = {
-#include "assets/m93r_animation_0110C_bank1.inc"
-};
-
-static AnimationPackedRotation _gM93rAnimation0110CBank4[151] = {
-#include "assets/m93r_animation_0110C_bank4.inc"
-};
-
-static AnimationRecord _gM93rAnimation0110CRecords[218] = {
-#include "assets/m93r_animation_0110C_records.inc"
-};
-
-static u16 _gM93rAnimation0110CIndices[20] = {
-#include "assets/m93r_animation_0110C_indices.inc"
-};
-
-static AnimationSet _gM93rAnimation0110C = {
-    _gM93rAnimation0110CRecords,
-    _gM93rAnimation0110CIndices,
-    { NULL, _gM93rAnimation0110CBank1, NULL, NULL, _gM93rAnimation0110CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gM93rAnimation0196CBank1[19] = {
-#include "assets/m93r_animation_0196C_bank1.inc"
-};
-
-static AnimationPackedRotation _gM93rAnimation0196CBank4[169] = {
-#include "assets/m93r_animation_0196C_bank4.inc"
-};
-
-static AnimationRecord _gM93rAnimation0196CRecords[290] = {
-#include "assets/m93r_animation_0196C_records.inc"
-};
-
-static u16 _gM93rAnimation0196CIndices[20] = {
-#include "assets/m93r_animation_0196C_indices.inc"
-};
-
-static AnimationSet _gM93rAnimation0196C = {
-    _gM93rAnimation0196CRecords,
-    _gM93rAnimation0196CIndices,
-    { NULL, _gM93rAnimation0196CBank1, NULL, NULL, _gM93rAnimation0196CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gM93rAnimation021D0Bank1[19] = {
-#include "assets/m93r_animation_021D0_bank1.inc"
-};
-
-static AnimationPackedRotation _gM93rAnimation021D0Bank4[170] = {
-#include "assets/m93r_animation_021D0_bank4.inc"
-};
-
-static AnimationRecord _gM93rAnimation021D0Records[290] = {
-#include "assets/m93r_animation_021D0_records.inc"
-};
-
-static u16 _gM93rAnimation021D0Indices[20] = {
-#include "assets/m93r_animation_021D0_indices.inc"
-};
-
-static AnimationSet _gM93rAnimation021D0 = {
-    _gM93rAnimation021D0Records,
-    _gM93rAnimation021D0Indices,
-    { NULL, _gM93rAnimation021D0Bank1, NULL, NULL, _gM93rAnimation021D0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gM93rAnimation024E4Bank1[3] = {
-#include "assets/m93r_animation_024E4_bank1.inc"
-};
-
-static AnimationPackedRotation _gM93rAnimation024E4Bank4[69] = {
-#include "assets/m93r_animation_024E4_bank4.inc"
-};
-
-static AnimationRecord _gM93rAnimation024E4Records[99] = {
-#include "assets/m93r_animation_024E4_records.inc"
-};
-
-static u16 _gM93rAnimation024E4Indices[20] = {
-#include "assets/m93r_animation_024E4_indices.inc"
-};
-
-static AnimationSet _gM93rAnimation024E4 = {
-    _gM93rAnimation024E4Records,
-    _gM93rAnimation024E4Indices,
-    { NULL, _gM93rAnimation024E4Bank1, NULL, NULL, _gM93rAnimation024E4Bank4, NULL, NULL, NULL },
-};
 
 static AnimationPackedPose _gM93rAnimation02C40Bank1[14] = {
 #include "assets/m93r_animation_02C40_bank1.inc"
@@ -964,28 +1025,28 @@ static AnimationSet _gM93rAnimation0DC10 = {
 
 AnimationBank D_m93r_8012ADF8 = { { {
     NULL,
-    &_gM93rAnimation00A68,
+    &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation0CC04,
     &_gM93rAnimation0D4DC,
     &_gM93rAnimation0DC10,
-    &_gM93rAnimation0196C,
-    &_gM93rAnimation021D0,
+    &_gM93rPlayerTurnLeftAnimation,
+    &_gM93rPlayerTurnRightAnimation,
     &_gM93rAnimation0BBE8,
     &_gM93rAnimation0C2B8,
     &_gM93rAnimation09250,
     &_gM93rAnimation0B4D4,
-    &_gM93rAnimation00A68,
+    &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation0A4EC,
     &_gM93rAnimation09900,
     &_gM93rAnimation0AF84,
-    &_gM93rAnimation00A68,
+    &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation04E34,
     &_gM93rAnimation05154,
     &_gM93rAnimation05918,
-    &_gM93rAnimation0110C,
+    &_gM93rPlayerUnarmedWalkAnimation,
     &_gM93rAnimation0AF84,
-    &_gM93rAnimation00A68,
-    &_gM93rAnimation00A68,
+    &_gM93rPlayerIdleAnimation,
+    &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation06BB0,
     &_gM93rAnimation07E44,
     &_gM93rAnimation07728,
@@ -1003,8 +1064,8 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rAnimation033C8,
     &_gM93rAnimation03A2C,
     &_gM93rAnimation0369C,
-    &_gM93rAnimation024E4,
-    &_gM93rAnimation00A68,
+    &_gM93rPlayerItemUseAnimation,
+    &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation08A00,
     &_gM93rAnimation08BF4,
     &_gM93rAnimation09074,

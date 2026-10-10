@@ -2,6 +2,16 @@
 #define INCLUDE_WEAPONS_M93R_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Held M93R model attached to the player's weapon-hand anchor.
+///
+/// One rigid part with 32 vertices and 32 lighting normals. Each primitive-buffer
+/// half holds four Gouraud textured triangles and 28 Gouraud textured quads.
+/// Objects borrow the geometry and writable command stream; the M93R package
+/// must remain loaded until those objects are released. First creation resolves
+/// the source's draw-handler slots in place.
+extern TmdSource gM93rWeaponModel;
 
 /// Runs the M93R player attack, selecting a single round or a three-round burst.
 ///
