@@ -30,6 +30,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -44,8 +45,8 @@ extern WorldCollisionGrid         D_dryfield_night_general_store_8017F484[1];
 extern WorldCollisionOccluder     D_dryfield_night_general_store_801855C4[4];
 extern WorldCollisionTrigger      D_dryfield_night_general_store_801847D0[28];
 extern WorldCollisionTrigger      D_dryfield_night_general_store_80185020[19];
-extern WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17];
-extern WorldCoordRoomLights       D_dryfield_night_general_store_801847B8[1];
+static WorldCoordRoomAmbientEntry _gDryfieldNightGeneralStoreAmbientByView[17];
+static WorldCoordRoomLights       _gDryfieldNightGeneralStoreRoomLights;
 
 SVECTOR D_dryfield_night_general_store_8017E7EC[4] = {
     { 3240, -2820, 1750, 0 },
@@ -64,15 +65,15 @@ SVECTOR D_dryfield_night_general_store_8017E81C[2] = {
     { 6800, -2820, 7000, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_general_store_8017E82C[1] = {
-    { D_dryfield_night_general_store_801847B8, D_dryfield_night_general_store_801857DC },
+WorldCoordRoomLighting gDryfieldNightGeneralStoreRoomLighting[1] = {
+    { .lights = &_gDryfieldNightGeneralStoreRoomLights, .ambientTable = _gDryfieldNightGeneralStoreAmbientByView },
 };
 
 WorldCollisionRoomResources D_dryfield_night_general_store_8017E834[1] = {
     { D_dryfield_night_general_store_8017F484, D_dryfield_night_general_store_801847D0, D_dryfield_night_general_store_80185020, D_dryfield_night_general_store_801855C4 },
 };
 
-u8* D_dryfield_night_general_store_8017E844[1] = {
+u8* gDryfieldNightGeneralStoreViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -129,12 +130,23 @@ ViewCamera D_dryfield_night_general_store_8017F4A8[16] = {
     { { { { 1350, 0, -3866 }, { -3231, 2250, -1128 }, { 2124, 3422, 741 } }, { -8560, 2030, -7190 } }, 257 },
 };
 
-SpriteBatch D_dryfield_night_general_store_8017F6E8[2] = {
+/// View 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first batch precedes the terminator; the same list
+/// address fills the view's empty source slot. Storage lives with this overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_8017F6F8[100] = {
+/// View 2's 100 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView2SpriteSources[100] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 16, 1348, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 16 } }, -64, -48, 1300, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, -32, 1350, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
@@ -237,7 +249,14 @@ SpriteSource D_dryfield_night_general_store_8017F6F8[100] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, 48, 56, 1000, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_8017FEC8[11] = {
+/// View 2's background-strip selector and 9 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 100 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView2SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 0, 0 } },
     { 22, 9, 0, 0, { 5, 0 } },
@@ -247,11 +266,18 @@ SpriteBatch D_dryfield_night_general_store_8017FEC8[11] = {
     { 56, 4, 0, 0, { 7, 0 } },
     { 60, 14, 0, 0, { 3, 0 } },
     { 74, 5, 0, 0, { 8, 0 } },
-    { 79, 21, 0, 0, { 2, 0 } },
+    { 79, ARRAY_SIZE(_gDryfieldNightGeneralStoreView2SpriteSources) - 79, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_8017FF20[105] = {
+/// View 3's 105 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView3SpriteSources[105] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 112, 481, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 112, 388, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -16, 112, 487, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
@@ -359,17 +385,31 @@ SpriteSource D_dryfield_night_general_store_8017FF20[105] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, 96, 8, 1075, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80180754[7] = {
+/// View 3's background-strip selector and 5 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 105 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
     { 14, 7, 0, 0, { 3, 0 } },
     { 21, 51, 0, 0, { 2, 0 } },
     { 72, 10, 0, 0, { 4, 0 } },
-    { 82, 23, 0, 0, { 1, 0 } },
+    { 82, ARRAY_SIZE(_gDryfieldNightGeneralStoreView3SpriteSources) - 82, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_8018078C[85] = {
+/// View 4's 85 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView4SpriteSources[85] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, -48, 1602, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, -40, 1553, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -40, -40, 1603, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
@@ -457,7 +497,14 @@ SpriteSource D_dryfield_night_general_store_8018078C[85] = {
     { 143, 0x3FC0, { .fields = { 56, 32 } }, 104, -112, 847, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80180E30[9] = {
+/// View 4's background-strip selector and 7 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 85 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 3, 0 } },
     { 10, 3, 0, 0, { 4, 0 } },
@@ -465,11 +512,18 @@ SpriteBatch D_dryfield_night_general_store_80180E30[9] = {
     { 21, 34, 0, 0, { 5, 0 } },
     { 55, 8, 0, 0, { 0, 0 } },
     { 63, 17, 0, 0, { 6, 0 } },
-    { 80, 5, 0, 0, { 2, 0 } },
+    { 80, ARRAY_SIZE(_gDryfieldNightGeneralStoreView4SpriteSources) - 80, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80180E78[71] = {
+/// View 5's 71 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView5SpriteSources[71] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -88, 1276, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, -88, 1356, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -64, 1275, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
@@ -543,17 +597,31 @@ SpriteSource D_dryfield_night_general_store_80180E78[71] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -64, 1648, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80181404[7] = {
+/// View 5's background-strip selector and 5 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 71 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView5SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 6, 0, 0, { 3, 0 } },
     { 14, 39, 0, 0, { 2, 0 } },
     { 53, 11, 0, 0, { 4, 0 } },
-    { 64, 7, 0, 0, { 1, 0 } },
+    { 64, ARRAY_SIZE(_gDryfieldNightGeneralStoreView5SpriteSources) - 64, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_8018143C[77] = {
+/// View 6's 77 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView6SpriteSources[77] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -16, 1327, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, -64, 1350, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, -40, 1350, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
@@ -633,15 +701,29 @@ SpriteSource D_dryfield_night_general_store_8018143C[77] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 88, 775, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80181A40[5] = {
+/// View 6's background-strip selector and 3 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 77 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView6SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 1, 0 } },
     { 12, 39, 0, 0, { 2, 0 } },
-    { 51, 26, 0, 0, { 0, 0 } },
+    { 51, ARRAY_SIZE(_gDryfieldNightGeneralStoreView6SpriteSources) - 51, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80181A68[77] = {
+/// View 7's 77 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView7SpriteSources[77] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 72, 96, 475, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 104, 32, 387, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 120, 32, 312, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
@@ -721,15 +803,29 @@ SpriteSource D_dryfield_night_general_store_80181A68[77] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, -16, 930, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_8018206C[5] = {
+/// View 7's background-strip selector and 3 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 77 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView7SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 1, 0 } },
     { 22, 33, 0, 0, { 2, 0 } },
-    { 55, 22, 0, 0, { 0, 0 } },
+    { 55, ARRAY_SIZE(_gDryfieldNightGeneralStoreView7SpriteSources) - 55, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80182094[99] = {
+/// View 8's 99 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView8SpriteSources[99] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -24, 1600, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, -40, 1525, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, -24, 1542, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
@@ -831,17 +927,31 @@ SpriteSource D_dryfield_night_general_store_80182094[99] = {
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, -56, 986, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80182850[7] = {
+/// View 8's background-strip selector and 5 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 99 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView8SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 7, 0, 0, { 3, 0 } },
     { 15, 34, 0, 0, { 2, 0 } },
     { 49, 34, 0, 0, { 4, 0 } },
-    { 83, 16, 0, 0, { 1, 0 } },
+    { 83, ARRAY_SIZE(_gDryfieldNightGeneralStoreView8SpriteSources) - 83, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80182888[92] = {
+/// View 9's 92 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView9SpriteSources[92] = {
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -64, 1437, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 24, -64, 1362, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -40, 1450, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -936,16 +1046,30 @@ SpriteSource D_dryfield_night_general_store_80182888[92] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -72, 1256, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80182FB8[6] = {
+/// View 9's background-strip selector and 4 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 92 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView9SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 32, 0, 0, { 0, 0 } },
     { 40, 40, 0, 0, { 2, 0 } },
-    { 80, 12, 0, 0, { 1, 0 } },
+    { 80, ARRAY_SIZE(_gDryfieldNightGeneralStoreView9SpriteSources) - 80, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80182FE8[81] = {
+/// View 10's 81 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView10SpriteSources[81] = {
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -88, 1291, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -64, 1371, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, -40, 1435, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
@@ -1029,16 +1153,30 @@ SpriteSource D_dryfield_night_general_store_80182FE8[81] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 8, 8, 1125, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_8018363C[6] = {
+/// View 10's background-strip selector and 4 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 81 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView10SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 3, 0 } },
     { 13, 33, 0, 0, { 0, 0 } },
     { 46, 8, 0, 0, { 2, 0 } },
-    { 54, 27, 0, 0, { 1, 0 } },
+    { 54, ARRAY_SIZE(_gDryfieldNightGeneralStoreView10SpriteSources) - 54, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_8018366C[50] = {
+/// View 11's 50 textured foreground rectangles and sorting depths.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// UVs are texels and depths use the renderer's unscaled sorting domain.
+/// Authored RGB 128 is neutral modulation and code flags zero are opaque;
+/// cached packets enable raw texture. Batches cover every source element.
+/// Writable source storage remains borrowed while this overlay is loaded.
+static SpriteSource _gDryfieldNightGeneralStoreView11SpriteSources[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, -56, 725, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -56, 810, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 80, -64, 767, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
@@ -1091,10 +1229,17 @@ SpriteSource D_dryfield_night_general_store_8018366C[50] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, -8, 963, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_general_store_80183A54[4] = {
+/// View 11's background-strip selector and 2 foreground-sprite ranges.
+///
+/// The zero-count first record retains decoded image strips. The following
+/// ranges partition all 50 source elements, then `SPRITE_BATCH_END` ends
+/// the list. Hidden and exclusion flags start clear. The two serialized
+/// trailing bytes are retained; their role is unproven. Writable storage
+/// lives with this room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView11SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 1, 0 } },
-    { 34, 16, 0, 0, { 0, 0 } },
+    { 34, ARRAY_SIZE(_gDryfieldNightGeneralStoreView11SpriteSources) - 34, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -1234,17 +1379,17 @@ SpriteBatch D_dryfield_night_general_store_80184268[2] = {
 };
 
 SpriteView D_dryfield_night_general_store_80184278[16] = {
-    { { .empty = D_dryfield_night_general_store_8017F6E8 }, D_dryfield_night_general_store_8017F6E8, NULL },
-    { { .elements = D_dryfield_night_general_store_8017F6F8 }, D_dryfield_night_general_store_8017FEC8, NULL },
-    { { .elements = D_dryfield_night_general_store_8017FF20 }, D_dryfield_night_general_store_80180754, NULL },
-    { { .elements = D_dryfield_night_general_store_8018078C }, D_dryfield_night_general_store_80180E30, NULL },
-    { { .elements = D_dryfield_night_general_store_80180E78 }, D_dryfield_night_general_store_80181404, NULL },
-    { { .elements = D_dryfield_night_general_store_8018143C }, D_dryfield_night_general_store_80181A40, NULL },
-    { { .elements = D_dryfield_night_general_store_80181A68 }, D_dryfield_night_general_store_8018206C, NULL },
-    { { .elements = D_dryfield_night_general_store_80182094 }, D_dryfield_night_general_store_80182850, NULL },
-    { { .elements = D_dryfield_night_general_store_80182888 }, D_dryfield_night_general_store_80182FB8, NULL },
-    { { .elements = D_dryfield_night_general_store_80182FE8 }, D_dryfield_night_general_store_8018363C, NULL },
-    { { .elements = D_dryfield_night_general_store_8018366C }, D_dryfield_night_general_store_80183A54, NULL },
+    { { .empty = _gDryfieldNightGeneralStoreView1SpriteBatches }, _gDryfieldNightGeneralStoreView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView2SpriteSources }, _gDryfieldNightGeneralStoreView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView3SpriteSources }, _gDryfieldNightGeneralStoreView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView4SpriteSources }, _gDryfieldNightGeneralStoreView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView5SpriteSources }, _gDryfieldNightGeneralStoreView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView6SpriteSources }, _gDryfieldNightGeneralStoreView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView7SpriteSources }, _gDryfieldNightGeneralStoreView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView8SpriteSources }, _gDryfieldNightGeneralStoreView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView9SpriteSources }, _gDryfieldNightGeneralStoreView9SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView10SpriteSources }, _gDryfieldNightGeneralStoreView10SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView11SpriteSources }, _gDryfieldNightGeneralStoreView11SpriteBatches, NULL },
     { { .elements = D_dryfield_night_general_store_80183A74 }, D_dryfield_night_general_store_80183D1C, NULL },
     { { .elements = D_dryfield_night_general_store_80183D34 }, D_dryfield_night_general_store_80184068, NULL },
     { { .elements = D_dryfield_night_general_store_80184088 }, D_dryfield_night_general_store_80184240, NULL },
@@ -1252,23 +1397,39 @@ SpriteView D_dryfield_night_general_store_80184278[16] = {
     { { .empty = D_dryfield_night_general_store_80184268 }, D_dryfield_night_general_store_80184268, NULL },
 };
 
-WorldCoordPointLight D_dryfield_night_general_store_80184338[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7250, -2500, 1750 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7250, -2500, 4250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 1146, 1556 }, { 0, 0 } }, 2500, 3400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2750, -2500, 4250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2750, -2000, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7250, -2000, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2750, -2500, 1750 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
+/// Twelve point lights contributing in every logical view of the night general store.
+///
+/// Local translations and inner/outer falloff radii use integer world units;
+/// rotation and RGB intensities use Q12 (`ONE` is 1.0). Runtime room lighting
+/// parents these nodes to the view, composes their transforms and overwrites
+/// attenuation. Storage and borrowed parents must remain live during use.
+static WorldCoordPointLight _gDryfieldNightGeneralStorePointLights[12] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7250, -2500, 1750 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7250, -2500, 4250 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 1146, 1556 }, { 0, 0 } }, 2500, 3400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2750, -2500, 4250 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2750, -2000, 7000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7250, -2000, 7000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2750, -2500, 1750 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3031, 2539 }, { 0, 0 } }, 2500, 3400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, 7000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
 };
 
-WorldCoordRoomLights D_dryfield_night_general_store_801847B8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_general_store_80184338), D_dryfield_night_general_store_80184338, 0, NULL },
+/// The room's twelve point lights, with no directional or cone lights.
+///
+/// Model lighting borrows this collection independently of the view. Its
+/// light coordinates and attenuation are writable; all storage lives with
+/// this room overlay.
+static WorldCoordRoomLights _gDryfieldNightGeneralStoreRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightGeneralStorePointLights),
+    .pointLights           = _gDryfieldNightGeneralStorePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_general_store_801847D0[28] = {
@@ -1378,8 +1539,13 @@ AreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { D_map_dryfield_full_8017AFE8, D_dryfield_night_general_store_80185708 },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_night_general_store_801857DC) - 1 },
+/// Minimum model ambient colours for logical views 1..16, following a count header.
+///
+/// Entry zero counts the following view entries, indexed directly by the
+/// 1-based logical view. RGB uses 16 units per 8-bit colour level; the fourth
+/// halfword retains authored luma. Lighting only reads this overlay-owned table.
+static WorldCoordRoomAmbientEntry _gDryfieldNightGeneralStoreAmbientByView[17] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldNightGeneralStoreAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 499, 580, 618, 554 } },
     { .color = { 512, 598, 612, 567 } },
@@ -1398,39 +1564,84 @@ WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_general_store_80185864 = {
-    0x10000051,
-    0x10000053,
-    0x10000054,
+/// Type-1 sound-script cue-2 bases in the currently loaded room sound bank.
+enum {
+    DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_WALK_FOOTSTEP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_RUN_FOOTSTEP_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
+    DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_JUMP_FOOTSTEP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x54,
+    DRYFIELD_NIGHT_GENERAL_STORE_CLASS2_WALK_FOOTSTEP_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x31,
+    DRYFIELD_NIGHT_GENERAL_STORE_CLASS2_RUN_FOOTSTEP_SOUND   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x33,
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_general_store_80185870 = {
-    0x10000031,
-    0x10000033,
-    0x10000031,
+/// Walking, running and scripted-jump cue bases for classes 0, 1 and 3..7.
+///
+/// Animation cue 1 adds one to each base; companion playback adds 100.
+/// The authored jump base is the running pair's second entry; the next entry
+/// is absent in the room bank. This room supplies no stair-climb trigger.
+/// Surface records borrow this table while the room overlay is loaded;
+/// playback requires its sound bank to be loaded too.
+static WorldCollisionFootstepSounds _gDryfieldNightGeneralStoreDefaultFootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_GENERAL_STORE_DEFAULT_JUMP_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_general_store_8018587C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185864 },
+/// Surface class 2's walking, running and scripted-jump cue bases.
+///
+/// Scripted jumps use the walking base. Animation cue 1 adds one and
+/// companion playback adds 100. Surface records borrow this table while
+/// the room overlay and the current sound bank remain loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightGeneralStoreClass2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_GENERAL_STORE_CLASS2_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_NIGHT_GENERAL_STORE_CLASS2_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_GENERAL_STORE_CLASS2_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_general_store_80185884[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185864 },
+/// Classes 0 and 3..7: blocking collision with weapon impacts, pushback and default footsteps.
+///
+/// The first byte retains its authored zero; its role is unproven. The
+/// class directory borrows this record and its sounds while the room is loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightGeneralStoreDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightGeneralStoreDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_general_store_8018588C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185870 },
+/// Class 1's separate blocking record, with the same impacts, pushback and footsteps as class 0.
+///
+/// Retains separate writable storage. The first byte's role is unproven;
+/// the class directory borrows the record and sounds while the room is loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightGeneralStoreClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightGeneralStoreDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[8] = {
-    D_dryfield_night_general_store_8018587C,
-    D_dryfield_night_general_store_80185884,
-    D_dryfield_night_general_store_8018588C,
-    D_dryfield_night_general_store_8018587C,
-    D_dryfield_night_general_store_8018587C,
-    D_dryfield_night_general_store_8018587C,
-    D_dryfield_night_general_store_8018587C,
-    D_dryfield_night_general_store_8018587C,
+/// Class 2's blocking collision, with weapon impacts, pushback and its own footsteps.
+///
+/// The first byte retains its authored zero; its role is unproven. The
+/// class directory borrows this record and its sounds while the room is loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightGeneralStoreClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightGeneralStoreClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightGeneralStoreSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
+    &_gDryfieldNightGeneralStoreClass1SurfaceProperties,
+    &_gDryfieldNightGeneralStoreClass2SurfaceProperties,
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
+    &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
 };
 
 u8 gStoreSavedView = 0;

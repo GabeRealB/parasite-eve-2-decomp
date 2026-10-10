@@ -13,12 +13,22 @@
 
 extern AreaVariant D_dryfield_night_general_store_8018572C[22];
 
-// dryfield_night_general_store
-extern WorldCoordRoomLighting D_dryfield_night_general_store_8017E82C[];
+/// The night general store's single room: twelve point lights and ambient minima by view.
+///
+/// Room 1 selects element zero; ambient entries cover logical views 1..16.
+/// The stage map borrows this array and its resources while the room overlay
+/// is loaded. Light transforms and attenuation remain writable during use.
+extern WorldCoordRoomLighting gDryfieldNightGeneralStoreRoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_general_store_8017E834[];
 
-extern u8* D_dryfield_night_general_store_8017E844[];
+/// Room 1's logical-view map directory, borrowing gameplay's identity mapping.
+///
+/// Index by room - 1, then logical view - 1. Views 1..16 map to the same
+/// 1-based camera, image and sprite indices. The shared map has its own
+/// capacity, `VIEW_IDENTITY_MAP_LENGTH`, and no terminator. Keep the room
+/// overlay and gameplay loaded while following the directory and map.
+extern u8* gDryfieldNightGeneralStoreViewMaps[1];
 
 extern ViewCount D_dryfield_night_general_store_8017E848[];
 
@@ -28,7 +38,13 @@ extern ViewCamera D_dryfield_night_general_store_8017F4A8[];
 
 extern SpriteView D_dryfield_night_general_store_80184278[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[];
+/// The night general store's collision and footstep policies for surface classes 0..7.
+///
+/// Every class blocks probes, enables weapon impacts and applies pushback.
+/// Classes 0 and 3..7 share one record; class 1 retains a distinct record with
+/// the same values. Class 2 selects different footstep cues. The stage map
+/// borrows the directory, records and sounds while the room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightGeneralStoreSurfacePropertiesByClass[8];
 
 /// Draws the nighttime general store's grey light shafts visible in the current view.
 ///
