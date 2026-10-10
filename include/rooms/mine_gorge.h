@@ -13,12 +13,22 @@
 
 extern AreaVariant D_mine_gorge_80183544[12];
 
-// mine_gorge
-extern WorldCoordRoomLighting D_mine_gorge_8017E7A8[];
+/// Lighting for the gorge's two room states, indexed by room ID minus one.
+///
+/// Both states borrow the same six mutable point lights and ambient table.
+/// Ambient entries use logical views 1..11, independently of camera remapping.
+/// These descriptors and their resources remain valid while the gorge is loaded.
+extern WorldCoordRoomLighting gMineGorgeRoomLighting[2];
 
 extern WorldCollisionRoomResources D_mine_gorge_8017E7B8[];
 
-extern u8* D_mine_gorge_8017E7E4[];
+/// Logical-view maps for the gorge before and after the oak board is laid.
+///
+/// Indexed by room ID minus one: room 1 borrows `gViewIdentityMap`; room 2
+/// exchanges resource views 3..5 with 7..9. Logical views 1..11 select 1-based
+/// camera, image and sprite indices. The directory and room-2 map belong to the
+/// loaded gorge; the identity map belongs to gameplay. Neither has a terminator.
+extern u8* gMineGorgeRoomViewMaps[2];
 
 extern ViewCount D_mine_gorge_8017E7EC[];
 
@@ -28,7 +38,14 @@ extern ViewCamera D_mine_gorge_8017FA14[];
 
 extern SpriteView D_mine_gorge_801827F8[];
 
-extern WorldCollisionSurfaceProperties* D_mine_gorge_80183644[];
+/// Collision policies and footstep cues for the gorge's surface classes 0..7.
+///
+/// Classes 1 and 4 pass probes and ignore weapon impacts; the others block
+/// probes and permit impacts. All apply pushback. Classes 2 and 4 share one
+/// footstep set, class 3 uses another, and the remaining classes have no cues.
+/// Classes 0 and 5..7 share one record. Pointers borrow gorge-owned records
+/// for the loaded overlay's lifetime; neither level has a terminator.
+extern WorldCollisionSurfaceProperties* gMineGorgeSurfacePropertiesByClass[8];
 
 /// Updates the gorge's ambient-effect gate and draws the current view's fixed flares.
 ///

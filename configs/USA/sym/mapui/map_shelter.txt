@@ -41,14 +41,14 @@ D_mine_tunnel_8017E890 = 0x8017E890; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017F9A4 = 0x8017F9A4; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8018032C = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
 mineGorgeRoomTask = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shared=rooms
-D_mine_gorge_8017E7A8 = 0x8017E7A8; // absolute:True owner=mine_gorge
+gMineGorgeRoomLighting = 0x8017E7A8; // absolute:True owner=mine_gorge
 D_mine_gorge_8017E7B8 = 0x8017E7B8; // absolute:True owner=mine_gorge shared=rooms
-D_mine_gorge_8017E7E4 = 0x8017E7E4; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeRoomViewMaps = 0x8017E7E4; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7EC = 0x8017E7EC; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7F0 = 0x8017E7F0; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017FA14 = 0x8017FA14; // absolute:True owner=mine_gorge
 D_mine_gorge_801827F8 = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
-D_mine_gorge_80183644 = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
 mineRefugeRoomTask = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
 D_mine_refuge_801818F0 = 0x801818F0; // absolute:True owner=mine_refuge
 D_mine_refuge_801818F8 = 0x801818F8; // absolute:True owner=mine_refuge shared=rooms
