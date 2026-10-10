@@ -16,19 +16,48 @@ extern AreaVariant D_dryfield_parking_lot_8017FA74[13];
 // dryfield_parking_lot
 extern WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[];
 
-extern u8* D_dryfield_parking_lot_8017DC54[];
+/// Number of mapped camera and sprite views in the daytime parking lot.
+enum { DRYFIELD_PARKING_LOT_VIEW_COUNT = 7 };
+
+/// Number of entries indexed by the room-local collision surface class.
+enum { DRYFIELD_PARKING_LOT_SURFACE_CLASS_COUNT = 8 };
+
+/// Room 1's logical-view map, borrowing the gameplay identity mapping.
+///
+/// Views 1..7 select the same mapped camera, image and sprite index. The room
+/// directory has one entry; both this overlay and gameplay must remain loaded.
+extern u8* gDryfieldParkingLotRoomViewMaps[1];
 
 extern ViewCount D_dryfield_parking_lot_8017DC58[];
 
-extern WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[];
+/// Room 1's authored point-light collection, with default ambient minima.
+///
+/// The stage table indexes this one-entry array by room minus one. Its mutable
+/// light storage is borrowed only while the daytime parking lot overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldParkingLotRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_parking_lot_8017DC64[];
 
-extern ViewCamera D_dryfield_parking_lot_8017E900[];
+/// Cameras for mapped daytime parking-lot views 1..7, indexed by view minus one.
+///
+/// View 1 looks straight down; the remaining views use perspective distance
+/// 230 pixels. Transforms use Q12 rotations and negated camera origins in world units.
+/// Queued camera application requires the overlay to remain loaded.
+extern ViewCamera gDryfieldParkingLotViewCameras[DRYFIELD_PARKING_LOT_VIEW_COUNT];
 
-extern SpriteView D_dryfield_parking_lot_8017F054[];
+/// Sprite sources, batches and clipping for mapped daytime parking-lot views 1..7.
+///
+/// Indexed by mapped view minus one. Every view keeps image strips; views 1 and
+/// 7 have no source sprites, and only view 2 supplies a clipping list. Descriptors
+/// and their mutable arrays are borrowed while this room overlay remains loaded.
+extern SpriteView gDryfieldParkingLotSpriteViews[DRYFIELD_PARKING_LOT_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[];
+/// Collision policies and footstep cues indexed by surface class 0..7.
+///
+/// All classes apply pushback. Class 1 passes probes and ignores weapon impacts;
+/// the others block probes and allow impacts. Classes 2, 3, 5 and 6 have footstep
+/// cues; classes 0, 4 and 7 share a silent record. Pointers borrow this loaded overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldParkingLotSurfacePropertiesByClass[DRYFIELD_PARKING_LOT_SURFACE_CLASS_COUNT];
 
 /// Updates the daytime parking lot's view gate for dust and related effects.
 ///

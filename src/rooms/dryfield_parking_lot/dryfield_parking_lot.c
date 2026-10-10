@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "common.h"
 
@@ -59,10 +60,6 @@ extern TaskDesc gRoomEventTaskDesc;
 /// (ids 0x13EE-0x13F2).
 extern TaskMessageEntry D_dryfield_parking_lot_8017DC04[];
 
-/// Per-view values `dryfieldParkingLotUpdateViewEffectGateTask` publishes, indexed by
-/// camera view index minus one.
-extern u16 D_dryfield_parking_lot_8017DC34[];
-
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
@@ -74,7 +71,7 @@ extern WorldCollisionGrid     D_dryfield_parking_lot_8017E8DC[1];
 extern WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
-extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
+static WorldCoordRoomLights   _gDryfieldParkingLotRoomLights;
 static s32                    _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                    _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32                    _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -91,14 +88,19 @@ TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u16 D_dryfield_parking_lot_8017DC34[8] = {
-    0,
-    2,
-    2,
-    2,
-    2,
-    0,
-    0,
+/// Effect gates for mapped views 1..7, followed by a halfword of unproven role.
+///
+/// Indexed by mapped view minus one: views 2..5 enable footstep dust and related
+/// effects. The final halfword has no established consumer or object boundary;
+/// it is retained verbatim and does not establish an eighth view.
+static u16 _gDryfieldParkingLotViewEffectGates[8] = {
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
     0xE5E6,
 };
 
@@ -106,14 +108,14 @@ WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[1] = {
     { D_dryfield_parking_lot_8017E8DC, D_dryfield_parking_lot_8017F0A8, D_dryfield_parking_lot_8017F3A0, D_dryfield_parking_lot_8017F6E4 },
 };
 
-u8* D_dryfield_parking_lot_8017DC54[1] = {
+u8* gDryfieldParkingLotRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_parking_lot_8017DC58[1] = { 7 };
 
-WorldCoordRoomLighting D_dryfield_parking_lot_8017DC5C[1] = {
-    { D_dryfield_parking_lot_8017F9FC, NULL },
+WorldCoordRoomLighting gDryfieldParkingLotRoomLighting[1] = {
+    { &_gDryfieldParkingLotRoomLights, NULL },
 };
 
 DirectionWarpEntry D_dryfield_parking_lot_8017DC64[5] = {
@@ -150,8 +152,8 @@ WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1] = {
     { NULL, _gDryfieldParkingLotCollision0131CNormals, _gDryfieldParkingLotCollision0131CVerts, _gDryfieldParkingLotCollision0131CFaces, _gDryfieldParkingLotCollision0131CTable, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 
-ViewCamera D_dryfield_parking_lot_8017E900[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 380 },
+ViewCamera gDryfieldParkingLotViewCameras[DRYFIELD_PARKING_LOT_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x7530, 0 } }, 380 },
     { { { { 2636, 0, -3134 }, { -93, 4094, -78 }, { 3133, 122, 2635 } }, { 0x27F9, 2236, 6567 } }, 230 },
     { { { { 2646, 0, -3126 }, { -3085, 656, -2612 }, { 501, 4043, 424 } }, { 3012, 5975, 537 } }, 230 },
     { { { { 456, 0, 4070 }, { -262, 4087, 29 }, { -4062, -264, 455 } }, { -3566, 1036, -1232 } }, 230 },
@@ -160,149 +162,182 @@ ViewCamera D_dryfield_parking_lot_8017E900[7] = {
     { { { { 814, 0, -4014 }, { 596, 4050, 121 }, { 3969, -609, 805 } }, { -6266, 636, -2232 } }, 230 },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017E9FC[2] = {
+/// View 1's empty sprite list: keep decoded image strips, then end the list.
+static SpriteBatch _gDryfieldParkingLotView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_parking_lot_8017EA0C[10] = {
-    { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+/// Encoded atlas pages, palette and neutral RGB modulation for the room sprites.
+///
+/// The two 8-bit texture pages start at VRAM X 896 and 960, Y 0; the CLUT
+/// starts at X 0, Y 255. RGB 128 leaves sampled colours at their authored level.
+enum {
+    DRYFIELD_PARKING_LOT_SPRITE_TEXTURE_8BIT  = 1,
+    DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE     = getTPage(DRYFIELD_PARKING_LOT_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0),
+    DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE    = getTPage(DRYFIELD_PARKING_LOT_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0),
+    DRYFIELD_PARKING_LOT_SPRITE_CLUT          = getClut(0, 255),
+    DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_dryfield_parking_lot_8017EAD4[4] = {
+/// View 2's ten texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gDryfieldParkingLotView2SpriteSources[10] = {
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// View 2's image strips, seven-sprite batch and final three-sprite batch.
+///
+/// Source ranges cover the full view-2 array and end at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldParkingLotView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 3, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gDryfieldParkingLotView2SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_parking_lot_8017EAF4[2] = {
+/// View 2's pixel clip, restored to full-screen drawing at sorting depth 2250.
+///
+/// The rectangle is relative to the draw buffer; the final record ends the list.
+static SpriteDrawArea _gDryfieldParkingLotView2SpriteDrawAreas[2] = {
     { { 136, 0, 183, 238 }, 2250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_parking_lot_8017EB08[24] = {
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, -80, 625, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, -88, 625, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -64, -104, 625, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -32, 1350, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -40, 1125, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -40, 925, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, -56, 925, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -80, 925, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -96, 925, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 40, -112, 925, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, 16, 925, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -96, -40, 750, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -120, 625, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -112, -120, 625, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -120, 925, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -64, 925, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -64, 925, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -120, 925, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 64, -8, 925, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, -8, 925, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+/// View 3's 24 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gDryfieldParkingLotView3SpriteSources[24] = {
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 32, 112 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 120, 248 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 64, 120 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, 0, -80, 625, { .fields = { 16, 72 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 24 } }, -32, -88, 625, { .fields = { 8, 24 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 24 } }, -64, -104, 625, { .fields = { 80, 56 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, 8, -32, 1350, { .fields = { 40, 24 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, -40, 1125, { .fields = { 40, 48 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -40, 925, { .fields = { 16, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 16 } }, 0, -56, 925, { .fields = { 120, 168 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 24 } }, 16, -80, 925, { .fields = { 8, 48 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -96, 925, { .fields = { 16, 184 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 96 } }, 40, -112, 925, { .fields = { 112, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 40 } }, 104, 16, 925, { .fields = { 72, 208 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, -96, -40, 750, { .fields = { 32, 56 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, -120, 625, { .fields = { 8, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 32 } }, -112, -120, 625, { .fields = { 32, 168 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 56 } }, 56, -120, 925, { .fields = { 24, 112 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 56 } }, 56, -64, 925, { .fields = { 56, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, 112, -64, 925, { .fields = { 80, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, 112, -120, 925, { .fields = { 80, 152 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, 64, -8, 925, { .fields = { 24, 200 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, -8, 925, { .fields = { 24, 224 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 88, 80 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017ECE8[3] = {
+/// View 3's image strips and one batch covering every source sprite, then the end marker.
+static SpriteBatch _gDryfieldParkingLotView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldParkingLotView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_parking_lot_8017ED00[9] = {
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, 48, -88, 925, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, -72, 925, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -80, -32, 1250, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -96, -32, 1250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 144 } }, -128, -32, 1000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 152 } }, -160, -32, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -88, -48, 1975, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+/// View 4's nine texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gDryfieldParkingLotView4SpriteSources[9] = {
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 0, 144 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 80, 16 } }, 48, -88, 925, { .fields = { 104, 192 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, -72, 925, { .fields = { 112, 168 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 8, 96 } }, -80, -32, 1250, { .fields = { 96, 152 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 112 } }, -96, -32, 1250, { .fields = { 56, 144 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 144 } }, -128, -32, 1000, { .fields = { 40, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 152 } }, -160, -32, 1000, { .fields = { 72, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 96 } }, -88, -48, 1975, { .fields = { 80, 152 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 104, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017EDB4[5] = {
+/// View 4's image strips and three source ranges of three, four and two sprites.
+///
+/// Source ranges cover the full view-4 array and end at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldParkingLotView4SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 4, 0, 0, { 2, 0 } },
-    { 7, 2, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gDryfieldParkingLotView4SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_parking_lot_8017EDDC[7] = {
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 88, 750, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -144, -112, 650, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+/// View 5's seven texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gDryfieldParkingLotView5SpriteSources[7] = {
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 200 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 136 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, 88, 750, { .fields = { 72, 184 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 64 } }, -144, -112, 650, { .fields = { 112, 136 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017EE68[3] = {
+/// View 5's image strips and one batch covering every source sprite, then the end marker.
+static SpriteBatch _gDryfieldParkingLotView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldParkingLotView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_parking_lot_8017EE80[21] = {
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 120, -80, 528, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -56, 531, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 993, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -16, 525, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -16, 751, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 24, 518, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 24, 510, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 64, 515, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 64, 507, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 16, -120, 1012, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, -72, 1012, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, -24, 1012, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, 24, 1012, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 1012, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -24, 1012, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -72, 1012, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -120, 1012, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1012, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1012, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1012, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 925, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+/// View 6's 21 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gDryfieldParkingLotView6SpriteSources[21] = {
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, -80, 528, { .fields = { 72, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -56, 531, { .fields = { 120, 176 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -56, 993, { .fields = { 120, 216 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -16, 525, { .fields = { 120, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -16, 751, { .fields = { 120, 136 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 24, 518, { .fields = { 80, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 24, 510, { .fields = { 80, 216 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 64, 515, { .fields = { 80, 176 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 64, 507, { .fields = { 80, 136 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -120, 1012, { .fields = { 112, 48 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -72, 1012, { .fields = { 80, 144 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -24, 1012, { .fields = { 80, 192 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, 24, 1012, { .fields = { 80, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, 24, 1012, { .fields = { 80, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -24, 1012, { .fields = { 80, 48 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -72, 1012, { .fields = { 32, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -120, 1012, { .fields = { 32, 192 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_LEFT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -120, 1012, { .fields = { 112, 0 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -72, 1012, { .fields = { 32, 144 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -24, 1012, { .fields = { 32, 48 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_PARKING_LOT_SPRITE_RIGHT_PAGE, DRYFIELD_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 925, { .fields = { 32, 96 } }, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, DRYFIELD_PARKING_LOT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017F024[4] = {
+/// View 6's image strips, nine-sprite batch and final twelve-sprite batch.
+///
+/// Source ranges cover the full view-6 array and end at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldParkingLotView6SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 12, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldParkingLotView6SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_parking_lot_8017F044[2] = {
+/// View 7's empty sprite list: keep decoded image strips, then end the list.
+static SpriteBatch _gDryfieldParkingLotView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_parking_lot_8017F054[7] = {
-    { { .empty = D_dryfield_parking_lot_8017E9FC }, D_dryfield_parking_lot_8017E9FC, NULL },
-    { { .elements = D_dryfield_parking_lot_8017EA0C }, D_dryfield_parking_lot_8017EAD4, D_dryfield_parking_lot_8017EAF4 },
-    { { .elements = D_dryfield_parking_lot_8017EB08 }, D_dryfield_parking_lot_8017ECE8, NULL },
-    { { .elements = D_dryfield_parking_lot_8017ED00 }, D_dryfield_parking_lot_8017EDB4, NULL },
-    { { .elements = D_dryfield_parking_lot_8017EDDC }, D_dryfield_parking_lot_8017EE68, NULL },
-    { { .elements = D_dryfield_parking_lot_8017EE80 }, D_dryfield_parking_lot_8017F024, NULL },
-    { { .empty = D_dryfield_parking_lot_8017F044 }, D_dryfield_parking_lot_8017F044, NULL },
+SpriteView gDryfieldParkingLotSpriteViews[DRYFIELD_PARKING_LOT_VIEW_COUNT] = {
+    { { .empty = _gDryfieldParkingLotView1SpriteBatches }, _gDryfieldParkingLotView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldParkingLotView2SpriteSources }, _gDryfieldParkingLotView2SpriteBatches, _gDryfieldParkingLotView2SpriteDrawAreas },
+    { { .elements = _gDryfieldParkingLotView3SpriteSources }, _gDryfieldParkingLotView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldParkingLotView4SpriteSources }, _gDryfieldParkingLotView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldParkingLotView5SpriteSources }, _gDryfieldParkingLotView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldParkingLotView6SpriteSources }, _gDryfieldParkingLotView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldParkingLotView7SpriteBatches }, _gDryfieldParkingLotView7SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_parking_lot_8017F0A8[10] = {
@@ -337,27 +372,57 @@ WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2] = {
     { NULL, NULL, { -6544, -1728, 2800, 0 }, { { 2064, 2896, -2704, 0 }, { 2064, -2896, -2704, 0 }, { -2064, 2896, 2704, 0 }, { -2064, -2896, 2704, 0 } }, { 3260, 0, 2488, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_parking_lot_8017F75C[7] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -6980, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 2949, 2785 }, { 0, 0 } }, 0x186A0, 0x186A0 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7480, -2210, -4200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } }, 4500, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1520, -980, 2900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3220, -980, 2900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2980, -980, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -180, -980, 2900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4180, -980, -100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
+/// Seven writable point lights admitted in every logical room view.
+///
+/// Translations and falloff radii use world units; RGB intensities use Q12.
+/// The lighting task parents and composes these nodes and overwrites attenuation.
+static WorldCoordPointLight _gDryfieldParkingLotPointLights[7] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -6980, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 2949, 2785 }, { 0, 0 } }, 100000, 100000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7480, -2210, -4200 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } }, 4500, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1520, -980, 2900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3220, -980, 2900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2980, -980, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -180, -980, 2900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4180, -980, -100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
 };
 
-WorldCoordRoomLights D_dryfield_parking_lot_8017F9FC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_parking_lot_8017F75C), D_dryfield_parking_lot_8017F75C, 0, NULL },
+/// Room 1's seven point lights, with no directional or cone lights.
+///
+/// The descriptor and its mutable lights remain live only while this overlay is loaded.
+static WorldCoordRoomLights _gDryfieldParkingLotRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldParkingLotPointLights),
+    .pointLights           = _gDryfieldParkingLotPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_parking_lot_8017FA14[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// The resource key and global-library file number of variant 2's Desert Chasers.
+enum {
+    DRYFIELD_PARKING_LOT_DESERT_CHASER_ENTRY_ID    = 1,
+    DRYFIELD_PARKING_LOT_DESERT_CHASER_FILE_NUMBER = 1,
 };
 
-AreaResource D_dryfield_parking_lot_8017FA20[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's empty actor-resource list, containing only its terminator.
+static AreaResource _gDryfieldParkingLotVariant1Resources[1] = {
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 2's Desert Chaser resource for placement entry 1, followed by the terminator.
+///
+/// Group base 40 and file number 1 load actor file 400100. Task index 0 borrows
+/// the loaded Desert Chaser descriptor; the variant's two placements share it.
+static AreaResource _gDryfieldParkingLotVariant2Resources[2] = {
+    {
+        .entryId        = DRYFIELD_PARKING_LOT_DESERT_CHASER_ENTRY_ID,
+        .fileNumber     = DRYFIELD_PARKING_LOT_DESERT_CHASER_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor00100DesertChaserTaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_dryfield_parking_lot_8017FA38[3] = {
@@ -373,8 +438,8 @@ AreaResource D_dryfield_parking_lot_8017FA5C[2] = {
 
 AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B1C4, D_dryfield_parking_lot_8017FA14 },
-    { D_map_dryfield_8017B1D4, D_dryfield_parking_lot_8017FA20 },
+    { D_map_dryfield_8017B1C4, _gDryfieldParkingLotVariant1Resources },
+    { D_map_dryfield_8017B1D4, _gDryfieldParkingLotVariant2Resources },
     { D_map_dryfield_8017B204, D_dryfield_parking_lot_8017FA38 },
     { NULL, NULL },
     { NULL, NULL },
@@ -387,57 +452,122 @@ AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FADC = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Cue-2 footstep bases in the loaded type-1 bank; cue 1 selects base plus one.
+enum {
+    DRYFIELD_PARKING_LOT_CLASSES_5_AND_6_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    DRYFIELD_PARKING_LOT_CLASSES_5_AND_6_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
+    DRYFIELD_PARKING_LOT_CLASS_2_WALK_CUE_BASE         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    DRYFIELD_PARKING_LOT_CLASS_2_RUN_CUE_BASE          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
+    DRYFIELD_PARKING_LOT_CLASS_3_WALK_CUE_BASE         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_PARKING_LOT_CLASS_3_RUN_CUE_BASE          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
+    DRYFIELD_PARKING_LOT_CLASS_3_JUMP_CUE_BASE         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x55,
 };
 
-WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FAE8 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Footstep cue bases shared by surface classes 5 and 6.
+///
+/// Walking and scripted jumps share entries 0x49/0x4A; running uses 0x4B/0x4C.
+/// The surface records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldParkingLotClasses5And6FootstepSounds = {
+    .walk         = DRYFIELD_PARKING_LOT_CLASSES_5_AND_6_WALK_CUE_BASE,
+    .run          = DRYFIELD_PARKING_LOT_CLASSES_5_AND_6_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_PARKING_LOT_CLASSES_5_AND_6_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FAF4 = {
-    0x10000051,
-    0x10000053,
-    0x10000055,
+/// Class 2's footstep cue bases, with walking and scripted jumps sharing a pair.
+///
+/// The loaded type-1 bank supplies entries 0x3D/0x3E for walking and scripted
+/// jumps, and 0x3F/0x40 for running. Each animation cue selects one of the pair.
+static WorldCollisionFootstepSounds _gDryfieldParkingLotClass2FootstepSounds = {
+    .walk         = DRYFIELD_PARKING_LOT_CLASS_2_WALK_CUE_BASE,
+    .run          = DRYFIELD_PARKING_LOT_CLASS_2_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_PARKING_LOT_CLASS_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB00[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3's separate walking, running and scripted-jump footstep cue bases.
+///
+/// Entries 0x51/0x52, 0x53/0x54 and 0x55/0x56 come from the loaded type-1 bank.
+/// Scripted stairs select the jump pair independently of the grid's surface class.
+static WorldCollisionFootstepSounds _gDryfieldParkingLotClass3FootstepSounds = {
+    .walk         = DRYFIELD_PARKING_LOT_CLASS_3_WALK_CUE_BASE,
+    .run          = DRYFIELD_PARKING_LOT_CLASS_3_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_PARKING_LOT_CLASS_3_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB08[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FADC },
+/// Shared silent, probe-blocking surface for classes 0, 4 and 7.
+///
+/// Weapon impacts and pushback are enabled. All three directory slots borrow this record.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotSilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB10[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FAE8 },
+/// Class 5's blocking, impact-enabled surface, with the cues shared by class 6.
+///
+/// Applies pushback and borrows the cue record for this overlay's loaded lifetime.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotClass5SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldParkingLotClasses5And6FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB18[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FAF4 },
+/// Class 2's blocking, impact-enabled surface with its own footstep cue bases.
+///
+/// Applies pushback and borrows the cue record for this overlay's loaded lifetime.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldParkingLotClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3's blocking, impact-enabled surface with separate scripted-jump cues.
+///
+/// Applies pushback and borrows the cue record for this overlay's loaded lifetime.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotClass3SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldParkingLotClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FADC },
+/// Class 1's silent surface, passing probes and suppressing weapon impacts.
+///
+/// Pushback stays enabled independently of probe and impact policy.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[8] = {
-    D_dryfield_parking_lot_8017FB00,
-    D_dryfield_parking_lot_8017FB20,
-    D_dryfield_parking_lot_8017FB10,
-    D_dryfield_parking_lot_8017FB18,
-    D_dryfield_parking_lot_8017FB00,
-    D_dryfield_parking_lot_8017FB08,
-    D_dryfield_parking_lot_8017FB28,
-    D_dryfield_parking_lot_8017FB00,
+/// Class 6's blocking, impact-enabled surface, with the cues shared by class 5.
+///
+/// Applies pushback and borrows the cue record for this overlay's loaded lifetime.
+static WorldCollisionSurfaceProperties _gDryfieldParkingLotClass6SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldParkingLotClasses5And6FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldParkingLotSurfacePropertiesByClass[DRYFIELD_PARKING_LOT_SURFACE_CLASS_COUNT] = {
+    &_gDryfieldParkingLotSilentBlockingSurface,
+    &_gDryfieldParkingLotClass1SurfaceProperties,
+    &_gDryfieldParkingLotClass2SurfaceProperties,
+    &_gDryfieldParkingLotClass3SurfaceProperties,
+    &_gDryfieldParkingLotSilentBlockingSurface,
+    &_gDryfieldParkingLotClass5SurfaceProperties,
+    &_gDryfieldParkingLotClass6SurfaceProperties,
+    &_gDryfieldParkingLotSilentBlockingSurface,
 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
@@ -520,5 +650,5 @@ void dryfieldParkingLotUpdateViewEffectGateTask(Task* task)
     u8 mappedViewIndex;
 
     mappedViewIndex                  = viewGetMappedIndex();
-    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[mappedViewIndex - 1];
+    gRoomEffectState->roomEffectMode = _gDryfieldParkingLotViewEffectGates[mappedViewIndex - 1];
 }
