@@ -99,7 +99,14 @@ extern TmdSource D_p229_8011E5E4;
 
 extern TmdSource D_tonfa_baton_8011E5EC;
 
-extern TmdSource D_m4a1_bayonet_8011E9FC;
+/// Single-part held M4A1 rifle and bayonet model attached through the resident weapon-task bank.
+///
+/// Instances borrow the package's 63 vertices, 63 lighting normals and writable
+/// command stream. Model creation resolves draw handlers and copies the identity
+/// root pose. Each primitive-buffer half holds 3256 bytes of directly transformed
+/// primitives. Keep the M4A1 Bayonet package loaded until all instances are released;
+/// the player's nineteen-track animation bank is a separate resource.
+extern TmdSource gM4a1BayonetWeaponModel;
 
 /// Single-part equipped MP5A5 model used by the base weapon and both upgrades.
 ///

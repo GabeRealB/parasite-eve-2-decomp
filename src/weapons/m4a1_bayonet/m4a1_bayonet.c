@@ -10,6 +10,7 @@
 #include "gte.h"
 
 #include "m4a1_bayonet_private.h"
+#include "weapons/weapon.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
@@ -28,16 +29,16 @@
 #include "../../shared/blade_trail.h"
 #include "gameplay/animation.h"
 
-/// The blade tip's translation inside the muzzle frame, `(0, 0x300, 0x40)`. The
-/// hilt's translation follows it directly, and state 0 reaches that as element 1
-/// of this array.
-static SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
+/// Far ribbon endpoint in integer weapon-part coordinates, `(0, 0x300, 0x40)`.
+///
+/// The trail's persistent endpoint uses this translation relative to the held weapon.
+static SVECTOR _gM4a1BayonetTrailTipOffset[1] = { { 0, 0x0300, 0x0040, 0 } };
 
-/// The hilt's translation inside the muzzle frame, `(0, 0x180, 0x40)`, directly
-/// after the tip. State 0 reaches it as `D_m4a1_bayonet_8011DEC8[1]` and the
-/// sweep state names it directly; the two compile to different address
-/// arithmetic, so it is an object of its own rather than element 1.
-static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
+/// Near ribbon endpoint translation, `(0, 0x180, 0x40)`, in integer coordinate units.
+///
+/// Recording applies it in the weapon-part frame; seeding applies the same offset
+/// relative to the far endpoint, preserving the trail's initial pose.
+static const SVECTOR _gM4a1BayonetTrailNearOffset __attribute__((section(".data"))) = { 0, 0x0180, 0x0040, 0 };
 
 /// Stores a composed endpoint as a world-space trail pose independent of the weapon.
 ///
@@ -93,17 +94,19 @@ void m4a1BayonetTrailTask(Task* task)
         switch (task->state) {
             case M4A1_BAYONET_TRAIL_SEED:
                 tipCoord->parent       = effectWork->parent;
-                tipCoord->coord.t[0]   = D_m4a1_bayonet_8011DEC8[0].vx;
-                tipCoord->coord.t[1]   = D_m4a1_bayonet_8011DEC8[0].vy;
-                tipCoord->coord.t[2]   = D_m4a1_bayonet_8011DEC8[0].vz;
+                tipCoord->coord.t[0]   = _gM4a1BayonetTrailTipOffset[0].vx;
+                tipCoord->coord.t[1]   = _gM4a1BayonetTrailTipOffset[0].vy;
+                tipCoord->coord.t[2]   = _gM4a1BayonetTrailTipOffset[0].vz;
                 tipCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(tipCoord);
                 task->state = M4A1_BAYONET_TRAIL_RECORD;
 
                 // Only endpoint translations feed the ribbon; the temporary rotation is left uninitialized.
                 // The seed chains the second endpoint beneath the tip; recording uses the weapon parent.
-                offsetX                   = D_m4a1_bayonet_8011DEC8[1].vx;
-                nearOffset                = &D_m4a1_bayonet_8011DEC8[1];
+                // This retained one-past access reads the adjacent near-offset bytes in the image,
+                // but is outside the C array's bounds. A bounded pair still needs rematching.
+                offsetX                   = _gM4a1BayonetTrailTipOffset[1].vx;
+                nearOffset                = &_gM4a1BayonetTrailTipOffset[1];
                 offsetY                   = nearOffset->vy;
                 offsetZ                   = nearOffset->vz;
                 nearEndpoint.parent       = tipCoord;
@@ -128,9 +131,9 @@ void m4a1BayonetTrailTask(Task* task)
 
                 nearEndpoint.parent       = effectWork->parent;
                 nearEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
-                nearEndpoint.coord.t[0]   = D_m4a1_bayonet_8011DED0.vx;
-                nearEndpoint.coord.t[1]   = D_m4a1_bayonet_8011DED0.vy;
-                nearEndpoint.coord.t[2]   = D_m4a1_bayonet_8011DED0.vz;
+                nearEndpoint.coord.t[0]   = _gM4a1BayonetTrailNearOffset.vx;
+                nearEndpoint.coord.t[1]   = _gM4a1BayonetTrailNearOffset.vy;
+                nearEndpoint.coord.t[2]   = _gM4a1BayonetTrailNearOffset.vz;
                 actorRenderComposeCoord(&nearEndpoint);
 
                 historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
@@ -166,124 +169,167 @@ void m4a1BayonetTrailTask(Task* task)
 #undef BLADE_TRAIL_BASE_HISTORY
 #undef BLADE_TRAIL_TIP_HISTORY
 
-static TmdBone _gM4a1BayonetModel01130Skeleton[1] = {
+/// Identity root pose for the held rifle and bayonet; model instances copy this transform.
+static const TmdBone _gM4a1BayonetWeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_model_01130_skeleton.inc"
 };
 
-static u32 _gM4a1BayonetModel01130PartVerts[1] = {
+/// Vertex count of the held weapon's single rigid part.
+static const u32 _gM4a1BayonetWeaponModelPartVerts[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_model_01130_partVerts.inc"
 };
 
-static SVECTOR _gM4a1BayonetModel01130Verts[63] = {
+/// Held rifle and bayonet vertices in integer coordinates local to the weapon part.
+static SVECTOR _gM4a1BayonetWeaponModelVerts[] = {
 #include "assets/m4a1_bayonet_model_01130_verts.inc"
 };
 
-static SVECTOR _gM4a1BayonetModel01130Normals[63] = {
+/// Part-local lighting normals, indexed independently of the held weapon's vertices.
+static SVECTOR _gM4a1BayonetWeaponModelNormals[] = {
 #include "assets/m4a1_bayonet_model_01130_normals.inc"
 };
 
-static u32 _gM4a1BayonetModel01130Stream[451] = {
+/// Writable commands for six textured Gouraud triangles and 58 quads, then group and stream markers.
+///
+/// Model creation resolves the draw-handler slots in place.
+static u32 _gM4a1BayonetWeaponModelStream[] = {
 #include "assets/m4a1_bayonet_model_01130_stream.inc"
 };
 
-TmdSource D_m4a1_bayonet_8011E9FC = {
-    0,
-    3256,
-    0,
-    1,
-    _gM4a1BayonetModel01130PartVerts,
-    _gM4a1BayonetModel01130Verts,
-    _gM4a1BayonetModel01130Normals,
-    _gM4a1BayonetModel01130Skeleton,
-    _gM4a1BayonetModel01130Stream,
+TmdSource gM4a1BayonetWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (6 * sizeof(POLY_GT3)) + (58 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1BayonetWeaponModelSkeleton),
+    .partVertexCounts    = _gM4a1BayonetWeaponModelPartVerts,
+    .verts               = _gM4a1BayonetWeaponModelVerts,
+    .normals             = _gM4a1BayonetWeaponModelNormals,
+    .skeleton            = _gM4a1BayonetWeaponModelSkeleton,
+    .stream              = _gM4a1BayonetWeaponModelStream,
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation019F0Bank1[2] = {
+/// Idle translation and Euler poses in encoding-1 three-word entries, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_019F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation019F0Bank4[8] = {
+/// Idle packed Euler poses in encoding-4 words, with each angle step equal to 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_019F0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation019F0Records[76] = {
+/// Idle keyframe durations in normal-rate frames, pose-word offsets and track controls.
+static const AnimationRecord _gM4a1BayonetIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_019F0_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation019F0Indices[20] = {
+/// Nineteen idle track starts as absolute record indices, plus the exporter's trailing halfword.
+static const u16 _gM4a1BayonetIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_019F0_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation019F0 = {
-    _gM4a1BayonetAnimation019F0Records,
-    _gM4a1BayonetAnimation019F0Indices,
-    { NULL, _gM4a1BayonetAnimation019F0Bank1, NULL, NULL, _gM4a1BayonetAnimation019F0Bank4, NULL, NULL, NULL },
+/// Standing-idle pose for the M4A1 Bayonet player animation bank.
+///
+/// Nineteen tracks repeat their held poses; bank slots 1, 21, 22 and 41 share this set.
+/// Records, indices and pose banks are read-only in their serialized data positions
+/// and must stay loaded while any playback slot borrows the clip.
+static AnimationSet _gM4a1BayonetIdleAnimation = {
+    .records           = _gM4a1BayonetIdleAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1BayonetIdleAnimationBank1, NULL, NULL, _gM4a1BayonetIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation02094Bank1[12] = {
+/// Unarmed-walk translation and Euler poses in encoding-1 entries, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetUnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_02094_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation02094Bank4[151] = {
+/// Unarmed-walk packed Euler poses in encoding-4 words, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetUnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_02094_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation02094Records[218] = {
+/// Unarmed-walk keyframe durations in normal-rate frames, pose-word offsets and track controls.
+static const AnimationRecord _gM4a1BayonetUnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_02094_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation02094Indices[20] = {
+/// Nineteen unarmed-walk track starts as absolute record indices, plus the exporter's trailing halfword.
+static const u16 _gM4a1BayonetUnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_02094_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation02094 = {
-    _gM4a1BayonetAnimation02094Records,
-    _gM4a1BayonetAnimation02094Indices,
-    { NULL, _gM4a1BayonetAnimation02094Bank1, NULL, NULL, _gM4a1BayonetAnimation02094Bank4, NULL, NULL, NULL },
+/// Forward walking clip while the player's held weapon model is absent.
+///
+/// Bank slot 19 selects nineteen looping tracks from the M4A1 Bayonet package.
+/// Records, indices and pose banks are read-only in their serialized data positions
+/// and must stay loaded while any playback slot borrows the clip.
+static AnimationSet _gM4a1BayonetUnarmedWalkAnimation = {
+    .records           = _gM4a1BayonetUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1BayonetUnarmedWalkAnimationBank1, NULL, NULL, _gM4a1BayonetUnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation028F4Bank1[19] = {
+/// Negative-turn translation and Euler poses in encoding-1 entries, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetNegativeTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_028F4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation028F4Bank4[169] = {
+/// Negative-turn packed Euler poses in encoding-4 words, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetNegativeTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_028F4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation028F4Records[290] = {
+/// Negative-turn keyframe durations in normal-rate frames, pose-word offsets and track controls.
+static const AnimationRecord _gM4a1BayonetNegativeTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_028F4_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation028F4Indices[20] = {
+/// Nineteen negative-turn track starts as absolute record indices, plus the exporter's trailing halfword.
+static const u16 _gM4a1BayonetNegativeTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_028F4_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation028F4 = {
-    _gM4a1BayonetAnimation028F4Records,
-    _gM4a1BayonetAnimation028F4Indices,
-    { NULL, _gM4a1BayonetAnimation028F4Bank1, NULL, NULL, _gM4a1BayonetAnimation028F4Bank4, NULL, NULL, NULL },
+/// Stationary turn toward decreasing yaw for the M4A1 Bayonet player animation bank.
+///
+/// Manual and scripted negative turns select bank slot 5 and its nineteen looping tracks.
+/// Records, indices and pose banks are read-only in their serialized data positions
+/// and must stay loaded while any playback slot borrows the clip.
+static AnimationSet _gM4a1BayonetNegativeTurnAnimation = {
+    .records           = _gM4a1BayonetNegativeTurnAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetNegativeTurnAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1BayonetNegativeTurnAnimationBank1, NULL, NULL, _gM4a1BayonetNegativeTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation03158Bank1[19] = {
+/// Positive-turn translation and Euler poses in encoding-1 entries, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetPositiveTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03158_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation03158Bank4[170] = {
+/// Positive-turn packed Euler poses in encoding-4 words, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetPositiveTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03158_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation03158Records[290] = {
+/// Positive-turn keyframe durations in normal-rate frames, pose-word offsets and track controls.
+static const AnimationRecord _gM4a1BayonetPositiveTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03158_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation03158Indices[20] = {
+/// Nineteen positive-turn track starts as absolute record indices, plus the exporter's trailing halfword.
+static const u16 _gM4a1BayonetPositiveTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03158_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation03158 = {
-    _gM4a1BayonetAnimation03158Records,
-    _gM4a1BayonetAnimation03158Indices,
-    { NULL, _gM4a1BayonetAnimation03158Bank1, NULL, NULL, _gM4a1BayonetAnimation03158Bank4, NULL, NULL, NULL },
+/// Stationary turn toward increasing yaw for the M4A1 Bayonet player animation bank.
+///
+/// Manual positive and scripted nonnegative turns select bank slot 6 and its nineteen looping tracks.
+/// Records, indices and pose banks are read-only in their serialized data positions
+/// and must stay loaded while any playback slot borrows the clip.
+static AnimationSet _gM4a1BayonetPositiveTurnAnimation = {
+    .records           = _gM4a1BayonetPositiveTurnAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetPositiveTurnAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1BayonetPositiveTurnAnimationBank1, NULL, NULL, _gM4a1BayonetPositiveTurnAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1BayonetAnimation0346CBank1[3] = {
@@ -1014,12 +1060,12 @@ static AnimationSet _gM4a1BayonetAnimation10074 = {
 
 AnimationBank D_m4a1_bayonet_8012D25C = { { {
     NULL,
-    &_gM4a1BayonetAnimation019F0,
+    &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetAnimation0EF00,
     &_gM4a1BayonetAnimation0F6A0,
     &_gM4a1BayonetAnimation10074,
-    &_gM4a1BayonetAnimation028F4,
-    &_gM4a1BayonetAnimation03158,
+    &_gM4a1BayonetNegativeTurnAnimation,
+    &_gM4a1BayonetPositiveTurnAnimation,
     &_gM4a1BayonetAnimation0DC18,
     &_gM4a1BayonetAnimation0E648,
     &_gM4a1BayonetAnimation0A1D8,
@@ -1032,10 +1078,10 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation05DBC,
     &_gM4a1BayonetAnimation060DC,
     &_gM4a1BayonetAnimation068A0,
-    &_gM4a1BayonetAnimation02094,
+    &_gM4a1BayonetUnarmedWalkAnimation,
     &_gM4a1BayonetAnimation0C3CC,
-    &_gM4a1BayonetAnimation019F0,
-    &_gM4a1BayonetAnimation019F0,
+    &_gM4a1BayonetIdleAnimation,
+    &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetAnimation07B38,
     &_gM4a1BayonetAnimation08DCC,
     &_gM4a1BayonetAnimation086B0,
@@ -1054,7 +1100,7 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation049B4,
     &_gM4a1BayonetAnimation04624,
     &_gM4a1BayonetAnimation0346C,
-    &_gM4a1BayonetAnimation019F0,
+    &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetAnimation09988,
     &_gM4a1BayonetAnimation09B7C,
     &_gM4a1BayonetAnimation09FFC,

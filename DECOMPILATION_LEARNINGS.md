@@ -56270,8 +56270,8 @@ cases that merge must have been written alike.
 ## `sym[1].field` and a separate `sym+8` label are different addressing modes
 
 Splat labels every data address the code references, so a two-element `SVECTOR`
-array shows up as *two* symbols: `D_m4a1_bayonet_8011DEC8` and
-`D_m4a1_bayonet_8011DED0` at `+8`. Which of the two names a given access uses is
+array shows up as *two* symbols: `_gM4a1BayonetTrailTipOffset` and
+`_gM4a1BayonetTrailNearOffset` at `+8`. Which of the two names a given access uses is
 not cosmetic — GCC 2.8.1 addresses "offset 0 of a symbol" and "constant offset
 into a symbol" with different instruction shapes, and the ROM tells you which
 one the original source wrote.
@@ -56281,20 +56281,20 @@ register form: the zero-offset load folds into the `lui` result and only the
 other two use the materialised address.
 
 ```c
-tmp.coord.t[0] = D_m4a1_bayonet_8011DED0.vx;
-tmp.coord.t[1] = D_m4a1_bayonet_8011DED0.vy;
-tmp.coord.t[2] = D_m4a1_bayonet_8011DED0.vz;
+tmp.coord.t[0] = _gM4a1BayonetTrailNearOffset.vx;
+tmp.coord.t[1] = _gM4a1BayonetTrailNearOffset.vy;
+tmp.coord.t[2] = _gM4a1BayonetTrailNearOffset.vz;
 ```
 
 ```
-lui   v0, %hi(D_m4a1_bayonet_8011DED0)
-addiu v1, v0, %lo(D_m4a1_bayonet_8011DED0)
-lh    v0, %lo(D_m4a1_bayonet_8011DED0)(v0)
+lui   v0, %hi(_gM4a1BayonetTrailNearOffset)
+addiu v1, v0, %lo(_gM4a1BayonetTrailNearOffset)
+lh    v0, %lo(_gM4a1BayonetTrailNearOffset)(v0)
 lh    a2, 2(v1)
 lh    v1, 4(v1)
 ```
 
-Writing the same three loads as `D_m4a1_bayonet_8011DEC8[1].vx` instead keeps
+Writing the same three loads as `_gM4a1BayonetTrailTipOffset[1].vx` instead keeps
 the array symbol as the base and folds the element offset into every
 displacement — `lh a1, 8(v0)`, `lh a2, 0xa(v0)`, `lh v0, 0xc(v0)` — which is a
 different instruction count and a different register assignment. `mips.h`'s
@@ -56306,25 +56306,25 @@ To get an element *base* you need a pointer, and then CSE rewrites the address
 against a register that already holds the array:
 
 ```c
-vx  = D_m4a1_bayonet_8011DEC8[1].vx;
-vec = &D_m4a1_bayonet_8011DEC8[1];
+vx  = _gM4a1BayonetTrailTipOffset[1].vx;
+vec = &_gM4a1BayonetTrailTipOffset[1];
 vy  = vec->vy;
 vz  = vec->vz;
 ```
 
 ```
-addiu v0, s0, 8        # s0 already holds &D_m4a1_bayonet_8011DEC8
+addiu v0, s0, 8        # s0 already holds &_gM4a1BayonetTrailTipOffset
 lh    v1, 8(s0)
 lh    a1, 2(v0)
 lh    v0, 4(v0)
 ```
 
 That `addiu` is `use_related_value` in `cse.c`: the `REG_EQUAL` note on the
-pointer is `(const (plus (symbol_ref …DEC8) 8))`, and CSE links a constant to
+pointer is `(const (plus (symbol_ref _gM4a1BayonetTrailTipOffset) 8))`, and CSE links a constant to
 the symbol it is an offset of, so the `lui`/`addiu` pair collapses onto the live
 register. It only works between a symbol and that same symbol plus a constant —
 two independent `symbol_ref`s are never related, which is why the same function
-can need `…DEC8[1]` in one arm and `…DED0` in the other.
+can need `_gM4a1BayonetTrailTipOffset[1]` in one arm and `_gM4a1BayonetTrailNearOffset` in the other.
 
 The knock-on effect is worth knowing: those three loads only group ahead of the
 stores that consume them if they go through scalar temps. Assigning
