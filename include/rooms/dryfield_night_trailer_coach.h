@@ -12,7 +12,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TaskDesc D_dryfield_night_trailer_coach_801846D0;
+/// Entry recipe for the nighttime trailer coach's bodyless shop-session task.
+///
+/// Gameplay queues this descriptor when the saved location selects this room.
+/// `spawnArg1` supplies the packed stock profile/category selector; the second
+/// argument is unused on entry. The callback owns the UI tree and stage primitive
+/// buffer until closure, so this room's image must stay loaded throughout.
+extern TaskDesc gDryfieldNightTrailerCoachShopSessionTaskDesc;
 
 extern AreaVariant D_dryfield_night_trailer_coach_8018C15C[13];
 

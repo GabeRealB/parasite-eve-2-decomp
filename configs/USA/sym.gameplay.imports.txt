@@ -1383,7 +1383,7 @@ gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acro
 
 D_dryfield_night_garage_80181C2C = 0x80181C2C; // absolute:True owner=dryfield_night_garage
 
-D_dryfield_night_trailer_coach_801846D0 = 0x801846D0; // absolute:True owner=dryfield_night_trailer_coach
+gDryfieldNightTrailerCoachShopSessionTaskDesc = 0x801846D0; // absolute:True owner=dryfield_night_trailer_coach
 
 gDryfieldTrailerCoachShopSessionTaskDesc = 0x80183F84; // absolute:True owner=dryfield_trailer_coach shared=rooms
 

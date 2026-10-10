@@ -51,8 +51,11 @@ enum {
     SHOP_STOCK_ITEM_EOD_SUIT         = 102,
     SHOP_STOCK_ITEM_TURTLE_VEST      = 103,
     SHOP_STOCK_ITEM_AYA_SPECIAL      = 107,
+    SHOP_STOCK_ITEM_NBC_SUIT         = 105,
+    SHOP_STOCK_ITEM_PSY_SUIT         = 106,
     SHOP_STOCK_ITEM_SHOULDER_HOLSTER = 108,
     SHOP_STOCK_ITEM_P08              = 131,
+    SHOP_STOCK_ITEM_P229             = 132,
     SHOP_ITEM_GRENADE_PISTOL         = 138,
     SHOP_STOCK_ITEM_MM1              = 139,
     SHOP_STOCK_ITEM_PA3              = 140,
@@ -61,6 +64,7 @@ enum {
     SHOP_STOCK_ITEM_M249             = 144,
     SHOP_ITEM_MP5A5_FIRST            = 157,
     SHOP_STOCK_ITEM_9MM_PB           = 160,
+    SHOP_STOCK_ITEM_9MM_HYDRA        = 161,
     SHOP_STOCK_ITEM_9MM_SPARTAN      = 162,
     SHOP_STOCK_ITEM_44_MAGNUM        = 166,
     SHOP_STOCK_ITEM_GRENADE          = 169,
@@ -124,113 +128,164 @@ static const u16 _gShopStandardDefaultItemsStock[8] SECTION(".data") = {
     0,
 };
 
-static u16 Shop_Data_80181620[8] = {
-    131,
-    140,
-    143,
-    10,
-    70,
-    138,
-    0xFFFF,
+/// Weapons stock for Dryfield in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldWeaponsStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_P08,
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181630[8] = {
-    160,
-    172,
-    171,
-    169,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for Dryfield in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// Includes the Batteries/Fuel recharge service.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldAmmunitionStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_BUCKSHOT,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_GRENADE,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181640[4] = {
-    108,
-    100,
-    0xFFFF,
+/// Armor stock for Dryfield in standard modes (save modes 0 and 1).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldArmorStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181648[8] = {
-    65,
-    59,
-    1,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for Dryfield in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldItemsStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181658[8] = {
-    132,
-    140,
-    143,
-    10,
-    70,
-    66,
-    138,
-    0xFFFF,
+/// Weapons stock for the armory in standard modes (save modes 0 and 1).
+///
+/// 7 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopStandardArmoryWeaponsStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_P229,
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_HAMMER,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181668[8] = {
-    160,
-    172,
-    171,
-    169,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for the armory in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// Includes the Batteries/Fuel recharge service.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardArmoryAmmunitionStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_BUCKSHOT,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_GRENADE,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181678[4] = {
-    98,
-    105,
-    106,
-    0xFFFF,
+/// Armor stock for the armory in standard modes (save modes 0 and 1).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopStandardArmoryArmorStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_NBC_SUIT,
+    SHOP_STOCK_ITEM_PSY_SUIT,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181680[10] = {
-    65,
-    59,
-    58,
-    1,
-    2,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for the armory in standard modes (save modes 0 and 1).
+///
+/// 8 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardArmoryItemsStock[10] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_RECOVERY_2,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181694[12] = {
-    131,
-    157,
-    140,
-    142,
-    143,
-    10,
-    70,
-    69,
-    67,
-    138,
-    0xFFFF,
+/// Weapons stock for late Dryfield in standard modes (save modes 0 and 1).
+///
+/// 10 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldLateWeaponsStock[12] SECTION(".data") = {
+    SHOP_STOCK_ITEM_P08,
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_AS12,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_M203,
+    SHOP_ITEM_PYKE,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801816AC[10] = {
-    160,
-    161,
-    172,
-    173,
-    171,
-    169,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for late Dryfield in standard modes (save modes 0 and 1).
+///
+/// 8 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// Includes the Batteries/Fuel recharge service.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopStandardDryfieldLateAmmunitionStock[10] SECTION(".data") = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_9MM_HYDRA,
+    SHOP_STOCK_ITEM_BUCKSHOT,
+    SHOP_STOCK_ITEM_FIREFLY,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_GRENADE,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
@@ -699,61 +754,92 @@ static u16 _gShopRestrictedDryfieldLateWeaponsStock[6] = {
     0,
 };
 
-static u16 Shop_Data_80181888[4] = {
-    160,
-    171,
-    175,
-    0xFFFF,
+/// Ammunition stock for late Dryfield in restricted modes (save modes 2 and above).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedDryfieldLateAmmunitionStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181890[4] = {
-    108,
-    100,
-    13,
-    0xFFFF,
+/// Armor stock for late Dryfield in restricted modes (save modes 2 and above).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedDryfieldLateArmorStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181898[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for late Dryfield in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedDryfieldLateItemsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801818A4[6] = {
-    140,
-    138,
-    143,
-    70,
-    0xFFFF,
+/// Weapons stock for the base Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterWeaponsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_M9,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801818B0[4] = {
-    171,
-    175,
-    0xFFFF,
+/// Ammunition stock for the base Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterAmmunitionStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801818B8[6] = {
-    108,
-    100,
-    98,
-    13,
-    0xFFFF,
+/// Armor stock for the base Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterArmorStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801818C4[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for the base Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterItemsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
 static u16 Shop_Data_801818D0[6] = {
@@ -1026,20 +1112,8 @@ static const u8 _gShopInventoryFullText[16] SECTION(".data") = "Inventory full."
 /// NUL-terminated purchase notice shown when an existing consumable stack cannot accept another pack.
 static const u8 _gShopAmmunitionCapacityText[32] SECTION(".data") = "Ammunition capacity reached.";
 
-static u8 Shop_Data_80181AC4[12] = {
-    65,
-    109,
-    111,
-    117,
-    110,
-    116,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated Amount caption beside the selected item's carried-unit count.
+static const u8 _gShopCarriedAmountLabel[12] SECTION(".data") = "Amount";
 
 /// NUL-terminated multiplication marker beside the number of packs to purchase.
 static const u8 _gShopPackMultiplierText[4] SECTION(".data") = "x";
@@ -1072,7 +1146,20 @@ static UiListRowCallback _gShopPurchasePromptRowCallbacks[] = {
     _shopDrawPassRow,
 };
 
-static UiList Shop_Data_80181B0C = { _gShopPurchasePromptRowCallbacks, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+/// Mutable two-row Purchase/Pass list shared by successive prompts in this room image.
+///
+/// Rows 0 and 1 dispatch their own callbacks, with wrapped navigation and
+/// ten-pixel spacing. Fitting each prompt clears flags and scrolling; the
+/// controller enables system cursor sound without the shared-callback flag.
+/// Selection survives prompt closure unless the saved cursor preference resets
+/// it when the next prompt is fitted. Only one purchase prompt may use it at once.
+static UiList _gShopPurchasePromptList = {
+    .rowCallbacks    = _gShopPurchasePromptRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gShopPurchasePromptRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gShopPurchasePromptRowCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT,
+};
 
 static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, _shopCategoryListTask, 0 };
 
@@ -1082,7 +1169,22 @@ static UiObjectDesc Shop_Data_80181B68 = { 0, { 48, 4, 96, 60 }, 52, 0, TASK_BOD
 
 static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BODY_NONE, 192, _shopPurchasePromptTask, 0 };
 
-static UiObjectDesc Shop_Data_80181BA0 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -48, 192, 96 }, 8, 0, TASK_BODY_NONE, 192, _shopNoticeTask, 0 };
+/// Bodyless panel recipe for purchase-failure notices.
+///
+/// The caller supplies notice 0 (insufficient BP), 1 (inventory full), or
+/// 2 (ammunition capacity) and the purchase prompt as parent. The content task
+/// fits the title-style panel to its message and dismisses it on input or expiry.
+/// Spawning copies the recipe; its callback requires the room image to stay loaded.
+static const UiObjectDesc _gShopNoticeDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -96, -48, 192, 96 },
+    .otIndexSeed     = 8,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopNoticeTask,
+    .taskDataValue   = 0,
+};
 
 /// Unused item-list panel recipe with a 160-by-92-pixel initial rectangle.
 ///

@@ -12,7 +12,13 @@
 
 #include "rooms/room.h"
 
-extern ActorTransform D_dryfield_night_trailer_coach_80187988;
+/// Player placement shared by arrival dialogue and its skip restoration.
+///
+/// Position (4870, 0, -900) is in the model root's room-coordinate frame;
+/// yaw -1536 uses 4096 units per turn, with zero pitch and roll. Placement
+/// copies both vectors synchronously; the event instruction borrows this record
+/// until dispatch and requires the room image to remain loaded.
+extern ActorTransform gDryfieldNightTrailerCoachPlayerDialogueTransform;
 
 /// Equipped-bank player idle request used by the nighttime trailer dialogue scripts.
 ///
@@ -34,27 +40,76 @@ extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187AAC;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187AD4;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B10;
+/// Gary's reset base-bank clip 4 between the closing lead-in and talk rest.
+///
+/// Closing scripts wait nineteen frames before the rest request. The receiver
+/// resets immediately and ignores blend duration and collision participation.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B24;
+/// Gary's reset base-bank clip 5 used to finish or skip nighttime dialogue.
+///
+/// Shared by arrival restoration and the talk scripts' final phase. The receiver
+/// resets immediately and ignores blend duration and collision participation.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkRestAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B60;
+/// Gary's blended base-bank clip 8 held during the ordinary talk phase.
+///
+/// Used after the opening sequence and at the start of repeat dialogue. The
+/// receiver blends for eight frames and ignores the collision setting.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkHoldAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B74;
+/// Gary's blended base-bank clip 9 leading into the talk-closing sequence.
+///
+/// Scripts wait nine frames before the closing request. The receiver blends
+/// for eight frames and ignores the collision setting.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B88;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187BC4;
+/// Gary's reset bank-1 clip 1 leading into arrival and story dialogue.
+///
+/// Followed by bank-1 clip 2 after a script-controlled wait. The receiver
+/// resets immediately and ignores blend duration and collision participation.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187BD8;
+/// Gary's reset bank-1 clip 2 held between arrival and story dialogue cues.
+///
+/// The receiver maps this request to local set 12, resets immediately and
+/// ignores blend duration and collision participation.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueHoldAnimation;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187BEC;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187C3C;
+/// Gary's blended bank-1 clip 7 for the next phase of arrival and story dialogue.
+///
+/// Follows the clip-1/clip-2 sequence. The receiver maps it to local set 17
+/// and uses an eight-frame blend despite the request's zero blend duration.
+/// Collision participation is ignored.
+/// Event scripts borrow the request through synchronous placement-0 dispatch;
+/// the room image must remain loaded until the instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0;
 
-extern AnimationBankCopyRequest D_dryfield_night_trailer_coach_80187CE4;
+/// Installs eleven room-owned dialogue clips into the equipped player's bank extension.
+///
+/// Copies set-pointer words to indices 47..57 without starting playback. The
+/// request is borrowed through synchronous dispatch; copied descriptors and
+/// tracks remain borrowed from this room image until the player stops using them.
+/// The source table's trailing NULL is excluded from the copy.
+extern const AnimationBankCopyRequest gDryfieldNightTrailerCoachPlayerDialogueBankCopyRequest;
 
 extern EvsCommand D_dryfield_night_trailer_coach_80188708[14];
 

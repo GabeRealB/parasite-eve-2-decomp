@@ -231,23 +231,6 @@ static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
-static u16       Shop_Data_80181620[];
-static u16       Shop_Data_80181630[];
-static u16       Shop_Data_80181640[];
-static u16       Shop_Data_80181648[];
-static u16       Shop_Data_80181658[];
-static u16       Shop_Data_80181668[];
-static u16       Shop_Data_80181678[];
-static u16       Shop_Data_80181680[];
-static u16       Shop_Data_80181694[];
-static u16       Shop_Data_801816AC[];
-static u16       Shop_Data_80181888[];
-static u16       Shop_Data_80181890[];
-static u16       Shop_Data_80181898[];
-static u16       Shop_Data_801818A4[];
-static u16       Shop_Data_801818B0[];
-static u16       Shop_Data_801818B8[];
-static u16       Shop_Data_801818C4[];
 static u16       Shop_Data_801818D0[];
 static u16       Shop_Data_801818DC[];
 static u16       Shop_Data_801818E0[];
@@ -291,18 +274,14 @@ static UiList       Shop_Data_80181AE0;
 static UiObjectDesc Shop_Data_80181B68;
 
 /// Remaining panel descriptors of the purchase confirmation.
-static UiObjectDesc Shop_Data_80181BA0;
-static UiObjectDesc Shop_Data_80181C10;
 
 /// The quantity and supply of the slot the charge panel is animating.
 static s32                          _gShopRefillDisplayQuantityFixed;
 static const EquipmentWeaponSupply* _gShopRefillSupply;
 
 /// Label of the held-quantity line.
-static u8 Shop_Data_80181AC4[];
 
 /// The list `func_shelter_b1_underground_parking_80181D88` drives.
-static UiList Shop_Data_80181B0C;
 
 /// The descriptor of the modal panel `func_shelter_b1_underground_parking_80181EB0`
 /// runs.

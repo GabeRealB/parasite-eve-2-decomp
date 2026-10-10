@@ -70,23 +70,6 @@ static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
-static u16       Shop_Data_80181620[];
-static u16       Shop_Data_80181630[];
-static u16       Shop_Data_80181640[];
-static u16       Shop_Data_80181648[];
-static u16       Shop_Data_80181658[];
-static u16       Shop_Data_80181668[];
-static u16       Shop_Data_80181678[];
-static u16       Shop_Data_80181680[];
-static u16       Shop_Data_80181694[];
-static u16       Shop_Data_801816AC[];
-static u16       Shop_Data_80181888[];
-static u16       Shop_Data_80181890[];
-static u16       Shop_Data_80181898[];
-static u16       Shop_Data_801818A4[];
-static u16       Shop_Data_801818B0[];
-static u16       Shop_Data_801818B8[];
-static u16       Shop_Data_801818C4[];
 static u16       Shop_Data_801818D0[];
 static u16       Shop_Data_801818DC[];
 static u16       Shop_Data_801818E0[];
@@ -806,24 +789,16 @@ static u8 Shop_Data_80181A70[];
 
 static u8 Shop_Data_80181A78[];
 
-static u8 Shop_Data_80181AC4[];
-
 /// Row handlers, lists and panel descriptors of the shop's panels.
 static UiListRowCallback Shop_Data_80181AD8[];
 
 static UiList Shop_Data_80181AE0;
 
-static UiList Shop_Data_80181B0C;
-
 static UiObjectDesc Shop_Data_80181B4C;
 
 static UiObjectDesc Shop_Data_80181B68;
 
-static UiObjectDesc Shop_Data_80181BA0;
-
 static UiObjectDesc Shop_Data_80181BF4;
-
-static UiObjectDesc Shop_Data_80181C10;
 
 /// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
 static UiObjectDesc Shop_Data_80181B30;

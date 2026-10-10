@@ -182,21 +182,21 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_DRYFIELD:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181620;
+                        return _gShopStandardDryfieldWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181630;
+                        return _gShopStandardDryfieldAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181640;
+                        return _gShopStandardDryfieldArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181648;
+                        return _gShopStandardDryfieldItemsStock;
                 }
                 break;
             case SHOP_STOCK_DRYFIELD_LATE:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181694;
+                        return _gShopStandardDryfieldLateWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_801816AC;
+                        return _gShopStandardDryfieldLateAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
                         return _gShopStandardDryfieldLateArmorStock;
                     case SHOP_CATEGORY_ITEMS:
@@ -206,13 +206,13 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_ARMORY:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181658;
+                        return _gShopStandardArmoryWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181668;
+                        return _gShopStandardArmoryAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181678;
+                        return _gShopStandardArmoryArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181680;
+                        return _gShopStandardArmoryItemsStock;
                 }
                 break;
             default:
@@ -233,13 +233,13 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_SHELTER:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801818A4;
+                        return _gShopRestrictedShelterWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_801818B0;
+                        return _gShopRestrictedShelterAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_801818B8;
+                        return _gShopRestrictedShelterArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_801818C4;
+                        return _gShopRestrictedShelterItemsStock;
                 }
             case SHOP_STOCK_SHELTER_ALTERNATE:
                 switch ((u32)stockSelector >> 16) {
@@ -291,11 +291,11 @@ static const u16* _shopSelectStockList(s32 stockSelector)
                     case SHOP_CATEGORY_WEAPONS:
                         return _gShopRestrictedDryfieldLateWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181888;
+                        return _gShopRestrictedDryfieldLateAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181890;
+                        return _gShopRestrictedDryfieldLateArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181898;
+                        return _gShopRestrictedDryfieldLateItemsStock;
                 }
                 break;
             case SHOP_STOCK_ARMORY:
@@ -944,13 +944,13 @@ static void _shopDrawPurchaseRow(UiList* list, UiObject* object)
         if (playerStatus->bp >= packPrice) {
             if (inventoryCanAddItem(carriedItems, itemId) == 0) {
                 if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT && inventoryGetItemQuantity(carriedItems, itemId) != 0) {
-                    uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_AMMUNITION_CAPACITY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                    uiSpawnObject(&_gShopNoticeDescriptor, SHOP_NOTICE_AMMUNITION_CAPACITY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 } else {
-                    uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_INVENTORY_FULL, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                    uiSpawnObject(&_gShopNoticeDescriptor, SHOP_NOTICE_INVENTORY_FULL, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 }
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else if ((object->owner->parent->spawnArg1.value >> 16) == SHOP_CATEGORY_AMMUNITION) {
-                quantityObject = uiSpawnObject(&Shop_Data_80181C10, itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                quantityObject = uiSpawnObject(&_gShopPurchaseQuantityDescriptor, itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 if (quantityObject != NULL) {
                     uiPositionRowDialog(&quantityObject->panel, list, &object->panel);
                     object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -961,7 +961,7 @@ static void _shopDrawPurchaseRow(UiList* list, UiObject* object)
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
-            uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_INSUFFICIENT_BP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&_gShopNoticeDescriptor, SHOP_NOTICE_INSUFFICIENT_BP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -1169,7 +1169,7 @@ static void _shopItemPreviewTask(Task* task)
         amountRequest.colorRgb   = SHOP_TEXT_COLOR_RGB;
         amountRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         amountRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&amountRequest, Shop_Data_80181AC4);
+        textDrawString(&amountRequest, _gShopCarriedAmountLabel);
         heldCount = 0;
         heldCount = _shopAddCarriedItemCount(rowId, heldCount);
         textDrawUiLine(object, object->panel.contentRight.signedValue - 2, amountTop + 0xA, textItoaSigned(quantityText, heldCount), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED,
@@ -1331,7 +1331,7 @@ static void _shopPurchasePromptTask(Task* task)
     UiObject* childObject;
     s16       childResult;
 
-    list           = &Shop_Data_80181B0C;
+    list           = &_gShopPurchasePromptList;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == SHOP_PANEL_INITIAL) {
