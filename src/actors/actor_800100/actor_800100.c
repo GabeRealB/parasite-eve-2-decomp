@@ -134,19 +134,10 @@ typedef struct {
 } _Actor800100AimBeamQuadScratch;
 STATIC_ASSERT_SIZEOF(_Actor800100AimBeamQuadScratch, 0x44);
 
-/// NULL-terminated `GpuImageUpload*` frame lists for `_actor800100TickTextureSequences`,
-/// indexed `table[textureSequenceA - 1][textureFrameA]`; `D_actor_800100_80167210` is
-/// the `textureSequenceB` sequence.
-extern GpuImageUpload** D_actor_800100_80167200[];
-extern GpuImageUpload** D_actor_800100_80167210[];
-
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
 
 extern TaskMessageEntry D_actor_800100_80167130[26];
-extern s16              D_actor_800100_80167218[];
-extern s16              D_actor_800100_80167224[];
-extern u8               D_actor_800100_80167230[];
 
 static void _actor800100InitTask(Task* task);
 static void _actor800100Teardown(Task* task);
@@ -226,16 +217,46 @@ enum {
     ACTOR_800100_FLASH_SUPPRESS_BURST    = 1 << 16,
 };
 
-extern u8* D_actor_800100_801672F8[];
-extern u8  D_actor_800100_80167308[];
-extern u8  D_actor_800100_80167310[];
+/// Byte choices and distribution extents for this companion's combat decisions.
+///
+/// Behavior distributions store byte choices, with rows in companion HP-band order.
+enum {
+    ACTOR_800100_COMBAT_CHOICE_WAIT          = 0,
+    ACTOR_800100_COMBAT_CHOICE_ATTACK        = 1,
+    ACTOR_800100_COMBAT_CHOICE_RETREAT       = 2,
+    ACTOR_800100_COMBAT_CHOICE_APPROACH      = 3,
+    ACTOR_800100_COMBAT_CHOICE_SCAN          = 4,
+    ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES  = 16,
+    ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES = 8,
+    ACTOR_800100_COMBAT_HEALTH_BANDS         = 3,
+};
 
-extern GpuImageUpload* D_actor_800100_80167A18[2];
-extern GpuImageUpload* D_actor_800100_80167A20[4];
-extern GpuImageUpload* D_actor_800100_80167A30[4];
-extern GpuImageUpload* D_actor_800100_80167A40[6];
-extern GpuImageUpload* D_actor_800100_80167A58[2];
-extern GpuImageUpload* D_actor_800100_80167A60[2];
+/// Embedded facial-frame widths in 16-bit VRAM words and heights in rows.
+enum {
+    ACTOR_800100_TEXTURE_A_WIDTH_WORDS = 21,
+    ACTOR_800100_TEXTURE_A_HEIGHT_ROWS = 8,
+    ACTOR_800100_TEXTURE_B_WIDTH_WORDS = 13,
+    ACTOR_800100_TEXTURE_B_HEIGHT_ROWS = 12,
+};
+
+/// Resident weapon IDs and attack rows selected by the companion resource variant.
+enum {
+    ACTOR_800100_WEAPON_NONE            = 0,
+    ACTOR_800100_WEAPON_P229            = 5,
+    ACTOR_800100_WEAPON_MM1             = 12,
+    ACTOR_800100_WEAPON_M950            = 3,
+    ACTOR_800100_WEAPON_M4A1_PYKE       = 28,
+    ACTOR_800100_ATTACK_ROW_EMPTY       = 0,
+    ACTOR_800100_ATTACK_ROW_9MM_SPARTAN = 3,
+    ACTOR_800100_ATTACK_ROW_556MM       = 16,
+};
+
+static GpuImageUpload* _gActor800100EyesOpenFrames[2];
+static GpuImageUpload* _gActor800100EyesClosingFrames[4];
+static GpuImageUpload* _gActor800100EyesOpeningFrames[4];
+static GpuImageUpload* _gActor800100BlinkFrames[6];
+static GpuImageUpload* _gActor800100MouthClosedFrames[2];
+static GpuImageUpload* _gActor800100MouthOpenFrames[2];
 
 SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
 
@@ -268,37 +289,48 @@ TaskMessageEntry D_actor_800100_80167130[26] = {
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
 };
 
-GpuImageUpload** D_actor_800100_80167200[4] = {
-    D_actor_800100_80167A18,
-    D_actor_800100_80167A20,
-    D_actor_800100_80167A30,
-    D_actor_800100_80167A40,
+/// Eye frame lists selected by textureSequenceA - 1 (selectors 1..4; zero off).
+///
+/// Sequences restore open eyes, close them, open them, or blink. Frame indices
+/// start at zero and reach each list's NULL terminator; uploads are four ticks
+/// apart. Lists and writable uploads belong to this overlay; pixel buffers
+/// must remain loaded until queued GPU transfers complete.
+static GpuImageUpload** _gActor800100EyeTextureSequences[4] = {
+    _gActor800100EyesOpenFrames,
+    _gActor800100EyesClosingFrames,
+    _gActor800100EyesOpeningFrames,
+    _gActor800100BlinkFrames,
 };
 
-GpuImageUpload** D_actor_800100_80167210[2] = {
-    D_actor_800100_80167A60,
-    D_actor_800100_80167A58,
+/// Mouth frame lists selected by textureSequenceB - 1 (1 open, 2 closed; zero off).
+///
+/// Each list has one frame and a NULL terminator. Uploads reload an eight-tick
+/// delay before the terminator disables playback. Lists and writable uploads
+/// belong to this overlay; pixels must stay loaded until GPU transfers complete.
+static GpuImageUpload** _gActor800100MouthTextureSequences[2] = {
+    _gActor800100MouthOpenFrames,
+    _gActor800100MouthClosedFrames,
 };
 
-s16 D_actor_800100_80167218[6] = {
-    0,
-    5,
-    12,
-    3,
-    28,
-    0,
+s16 gActor800100WeaponIdsByResourceVariant[6] = {
+    ACTOR_800100_WEAPON_NONE,
+    ACTOR_800100_WEAPON_P229,
+    ACTOR_800100_WEAPON_MM1,
+    ACTOR_800100_WEAPON_M950,
+    ACTOR_800100_WEAPON_M4A1_PYKE,
+    ACTOR_800100_WEAPON_NONE,
 };
 
-s16 D_actor_800100_80167224[6] = {
-    0,
-    3,
-    0,
-    3,
-    16,
-    0,
+s16 gActor800100AttackRowsByResourceVariant[6] = {
+    ACTOR_800100_ATTACK_ROW_EMPTY,
+    ACTOR_800100_ATTACK_ROW_9MM_SPARTAN,
+    ACTOR_800100_ATTACK_ROW_EMPTY,
+    ACTOR_800100_ATTACK_ROW_9MM_SPARTAN,
+    ACTOR_800100_ATTACK_ROW_556MM,
+    ACTOR_800100_ATTACK_ROW_EMPTY,
 };
 
-u8 D_actor_800100_80167230[8] = {
+u8 gActor800100AttackAllowancesByResourceVariant[8] = {
     12,
     12,
     12,
@@ -309,319 +341,400 @@ u8 D_actor_800100_80167230[8] = {
     0,
 };
 
-u8 D_actor_800100_80167238[48] = {
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted combat choices at planar target distance 897..1023 game units.
+///
+/// Rows are HP above half, above a quarter through half, and at most a quarter.
+/// Each row has sixteen equally likely outcomes: attack/retreat.
+static u8 _gActor800100NearCombatOutcomes[ACTOR_800100_COMBAT_HEALTH_BANDS][ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES] = {
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
 };
 
-u8 D_actor_800100_80167268[48] = {
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted combat choices at planar target distance 1024..2047 game units.
+///
+/// Rows are HP above half, above a quarter through half, and at most a quarter.
+/// Each row has sixteen equally likely outcomes: attack/retreat.
+static u8 _gActor800100MidCombatOutcomes[ACTOR_800100_COMBAT_HEALTH_BANDS][ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES] = {
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
 };
 
-u8 D_actor_800100_80167298[48] = {
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted combat choices at planar target distance 2048..3071 game units.
+///
+/// Rows are HP above half, above a quarter through half, and at most a quarter.
+/// Each row has sixteen equally likely outcomes: attack/retreat.
+static u8 _gActor800100FarCombatOutcomes[ACTOR_800100_COMBAT_HEALTH_BANDS][ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES] = {
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
 };
 
-u8 D_actor_800100_801672C8[48] = {
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
+/// Weighted combat choices at planar target distance 3072..5119 game units.
+///
+/// Rows are HP above half, above a quarter through half, and at most a quarter.
+/// Each row has sixteen equally likely outcomes: approach/attack/retreat.
+static u8 _gActor800100DistantCombatOutcomes[ACTOR_800100_COMBAT_HEALTH_BANDS][ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES] = {
+    {
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+    },
+    {
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_APPROACH,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_ATTACK,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+        ACTOR_800100_COMBAT_CHOICE_RETREAT,
+    },
+};
+
+/// Health-conditioned combat distributions selected by planar distance / 1024.
+///
+/// Only distances 897..5119 use the table; bands 3 and 4 share the final
+/// distribution. Distances at most 896 retreat, and at least 5120 approach.
+/// Each pointer addresses three sixteen-byte HP rows in companion health order.
+static u8 (*_gActor800100CombatOutcomesByDistanceBand[4])[ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES] = {
+    _gActor800100NearCombatOutcomes,
+    _gActor800100MidCombatOutcomes,
+    _gActor800100FarCombatOutcomes,
+    _gActor800100DistantCombatOutcomes,
+};
+
+/// Eight equally likely decisions with no lock target: four wait, one approach, three scan.
+static u8 _gActor800100NoTargetCombatOutcomes[ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES] = {
+    ACTOR_800100_COMBAT_CHOICE_WAIT,
+    ACTOR_800100_COMBAT_CHOICE_WAIT,
+    ACTOR_800100_COMBAT_CHOICE_WAIT,
+    ACTOR_800100_COMBAT_CHOICE_WAIT,
+    ACTOR_800100_COMBAT_CHOICE_APPROACH,
+    ACTOR_800100_COMBAT_CHOICE_SCAN,
+    ACTOR_800100_COMBAT_CHOICE_SCAN,
+    ACTOR_800100_COMBAT_CHOICE_SCAN,
+};
+
+/// Eight equally likely initial attack-repeat counts, giving 1..4 equal weight.
+///
+/// Selected when an attack decision has firing allowance. Single-shot/MM1 and
+/// rifle playback consume repeats; M950 replaces the count with its burst size.
+static u8 _gActor800100AttackRepeatCounts[ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES] = {
     1,
     1,
     2,
     2,
-};
-
-u8* D_actor_800100_801672F8[4] = {
-    D_actor_800100_80167238,
-    D_actor_800100_80167268,
-    D_actor_800100_80167298,
-    D_actor_800100_801672C8,
-};
-
-u8 D_actor_800100_80167308[8] = {
-    0,
-    0,
-    0,
-    0,
+    3,
     3,
     4,
     4,
-    4,
 };
 
-u8 D_actor_800100_80167310[8] = {
-    1,
-    1,
-    2,
-    2,
-    3,
-    3,
-    4,
-    4,
-};
-
-u_long D_actor_800100_80167318[84] = {
+/// Open-eye 8-bit texels, packed as 84 RAM words for a 21-VRAM-word by 8-row upload.
+static u_long _gActor800100EyesOpenPixels[ACTOR_800100_TEXTURE_A_WIDTH_WORDS * ACTOR_800100_TEXTURE_A_HEIGHT_ROWS / 2] = {
 #include "assets/actor_800100_image_054F8.inc"
 };
 
-GpuImageUpload D_actor_800100_80167468[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_80167318 },
+/// Terminated open-eye upload; its first destination is rewritten for the live model.
+///
+/// Covers body texture texels (0, 40)..(41, 47). Pixels stay borrowed until the
+/// GPU transfer completes, so the overlay must remain loaded through completion.
+static GpuImageUpload _gActor800100EyesOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesOpenPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800100_80167488[84] = {
+/// Half-closed-eye 8-bit texels, packed as 84 RAM words for a 21-word by 8-row upload.
+static u_long _gActor800100EyesHalfClosedPixels[ACTOR_800100_TEXTURE_A_WIDTH_WORDS * ACTOR_800100_TEXTURE_A_HEIGHT_ROWS / 2] = {
 #include "assets/actor_800100_image_05668.inc"
 };
 
-GpuImageUpload D_actor_800100_801675D8[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_80167488 },
+/// Terminated half-closed-eye upload to body texture texels (0, 40)..(41, 47).
+///
+/// The live model rewrites the first destination. Keep this overlay's pixels
+/// loaded until the queued GPU transfer completes.
+static GpuImageUpload _gActor800100EyesHalfClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesHalfClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800100_801675F8[84] = {
+/// Closed-eye 8-bit texels, packed as 84 RAM words for a 21-word by 8-row upload.
+static u_long _gActor800100EyesClosedPixels[ACTOR_800100_TEXTURE_A_WIDTH_WORDS * ACTOR_800100_TEXTURE_A_HEIGHT_ROWS / 2] = {
 #include "assets/actor_800100_image_057D8.inc"
 };
 
-GpuImageUpload D_actor_800100_80167748[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 21, 8 }, D_actor_800100_801675F8 },
+/// Terminated closed-eye upload to body texture texels (0, 40)..(41, 47).
+///
+/// The live model rewrites the first destination. Keep this overlay's pixels
+/// loaded until the queued GPU transfer completes.
+static GpuImageUpload _gActor800100EyesClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800100_80167768[78] = {
+/// Closed-mouth 8-bit texels, packed as 78 RAM words for a 13-word by 12-row upload.
+static u_long _gActor800100MouthClosedPixels[ACTOR_800100_TEXTURE_B_WIDTH_WORDS * ACTOR_800100_TEXTURE_B_HEIGHT_ROWS / 2] = {
 #include "assets/actor_800100_image_05948.inc"
 };
 
-GpuImageUpload D_actor_800100_801678A0[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 13, 12 }, D_actor_800100_80167768 },
+/// Terminated closed-mouth upload to body texture texels (8, 64)..(33, 75).
+///
+/// The live model rewrites the first destination. Keep this overlay's pixels
+/// loaded until the queued GPU transfer completes.
+static GpuImageUpload _gActor800100MouthClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_B_WIDTH_WORDS, ACTOR_800100_TEXTURE_B_HEIGHT_ROWS }, _gActor800100MouthClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800100_801678C0[78] = {
+/// Open-mouth 8-bit texels, packed as 78 RAM words for a 13-word by 12-row upload.
+static u_long _gActor800100MouthOpenPixels[ACTOR_800100_TEXTURE_B_WIDTH_WORDS * ACTOR_800100_TEXTURE_B_HEIGHT_ROWS / 2] = {
 #include "assets/actor_800100_image_05AA0.inc"
 };
 
-GpuImageUpload D_actor_800100_801679F8[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 13, 12 }, D_actor_800100_801678C0 },
+/// Terminated open-mouth upload to body texture texels (8, 64)..(33, 75).
+///
+/// The live model rewrites the first destination. Keep this overlay's pixels
+/// loaded until the queued GPU transfer completes.
+static GpuImageUpload _gActor800100MouthOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_B_WIDTH_WORDS, ACTOR_800100_TEXTURE_B_HEIGHT_ROWS }, _gActor800100MouthOpenPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpuImageUpload* D_actor_800100_80167A18[2] = {
-    D_actor_800100_80167468,
+/// Restores open eyes in one frame; NULL ends the sequence.
+static GpuImageUpload* _gActor800100EyesOpenFrames[2] = {
+    _gActor800100EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800100_80167A20[4] = {
-    D_actor_800100_80167468,
-    D_actor_800100_801675D8,
-    D_actor_800100_80167748,
+/// Three eye-closing frames, open through half-closed to closed, then NULL.
+static GpuImageUpload* _gActor800100EyesClosingFrames[4] = {
+    _gActor800100EyesOpenUploads,
+    _gActor800100EyesHalfClosedUploads,
+    _gActor800100EyesClosedUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800100_80167A30[4] = {
-    D_actor_800100_80167748,
-    D_actor_800100_801675D8,
-    D_actor_800100_80167468,
+/// Three eye-opening frames, closed through half-closed to open, then NULL.
+static GpuImageUpload* _gActor800100EyesOpeningFrames[4] = {
+    _gActor800100EyesClosedUploads,
+    _gActor800100EyesHalfClosedUploads,
+    _gActor800100EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800100_80167A40[6] = {
-    D_actor_800100_80167468,
-    D_actor_800100_801675D8,
-    D_actor_800100_80167748,
-    D_actor_800100_801675D8,
-    D_actor_800100_80167468,
+/// Five blink frames, open/half-closed/closed/half-closed/open, then NULL.
+static GpuImageUpload* _gActor800100BlinkFrames[6] = {
+    _gActor800100EyesOpenUploads,
+    _gActor800100EyesHalfClosedUploads,
+    _gActor800100EyesClosedUploads,
+    _gActor800100EyesHalfClosedUploads,
+    _gActor800100EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800100_80167A58[2] = {
-    D_actor_800100_801678A0,
+/// Restores the closed mouth in one frame; NULL ends the sequence.
+static GpuImageUpload* _gActor800100MouthClosedFrames[2] = {
+    _gActor800100MouthClosedUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800100_80167A60[2] = {
-    D_actor_800100_801679F8,
+/// Opens the mouth in one frame; NULL ends the sequence.
+static GpuImageUpload* _gActor800100MouthOpenFrames[2] = {
+    _gActor800100MouthOpenUploads,
     NULL,
 };
 
@@ -901,10 +1014,10 @@ static void _actor800100InitTask(Task* task)
         actor->equipmentTasks[1] = weaponTask;
         if (weaponTask != NULL) {
             companion = actor->companionWork;
-            weaponId  = D_actor_800100_80167218[liveSave->state.companionVariant];
-            playerActorInitWeaponCollision(task, weaponId, D_actor_800100_80167224[liveSave->state.companionVariant]);
+            weaponId  = gActor800100WeaponIdsByResourceVariant[liveSave->state.companionVariant];
+            playerActorInitWeaponCollision(task, weaponId, gActor800100AttackRowsByResourceVariant[liveSave->state.companionVariant]);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= ACTOR_800100_COMPANION_KEY_BIT;
-            companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[liveSave->state.companionVariant];
+            companion->activity.combat.attacksRemaining         = gActor800100AttackAllowancesByResourceVariant[liveSave->state.companionVariant];
             if ((u8)liveSave->state.companionVariant == ACTOR_800100_PYKE_RESOURCE_VARIANT) {
                 flareWork = effectSpawn((EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, weaponId, 0);
                 if (flareWork != NULL) {
@@ -1103,12 +1216,8 @@ static void _actor800100TickTextureSequences(Task* task)
         ACTOR_800100_TEXTURE_B_DELAY_TICKS  = 8,
         ACTOR_800100_TEXTURE_A_X_HALF_WORDS = 0,
         ACTOR_800100_TEXTURE_A_Y_ROWS       = 40,
-        ACTOR_800100_TEXTURE_A_WIDTH_WORDS  = 21,
-        ACTOR_800100_TEXTURE_A_HEIGHT_ROWS  = 8,
         ACTOR_800100_TEXTURE_B_X_HALF_WORDS = 8,
         ACTOR_800100_TEXTURE_B_Y_ROWS       = 64,
-        ACTOR_800100_TEXTURE_B_WIDTH_WORDS  = 13,
-        ACTOR_800100_TEXTURE_B_HEIGHT_ROWS  = 12,
     };
     void**            scratchCursor;
     RECT*             previousHead;
@@ -1130,7 +1239,7 @@ static void _actor800100TickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceA != ACTOR_800100_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            frameLists    = D_actor_800100_80167200;
+            frameLists    = _gActor800100EyeTextureSequences;
             sequenceIndex = (s8)actor->textureSequenceA - 1;
             frameUploads  = frameLists[sequenceIndex][(s8)actor->textureFrameA];
             if (frameUploads != NULL) {
@@ -1146,7 +1255,7 @@ static void _actor800100TickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceB != ACTOR_800100_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            frameLists   = D_actor_800100_80167210;
+            frameLists   = _gActor800100MouthTextureSequences;
             sequenceRow  = (s8)actor->textureSequenceB - 1;
             frameUploads = frameLists[sequenceRow][(s8)actor->textureFrameB];
             if (frameUploads != NULL) {
@@ -1299,8 +1408,11 @@ static void _actor800100DecideIdleBehavior(Task* task)
     playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
 }
 
-/// Handlers `_actor800100TickBehavior` runs, indexed by `mode`.
-static const TaskFuncTable3 D_actor_800100_80161E4C = { {
+/// Companion mode handlers: 0 native behavior, 1 damage playback, 2 scripted control.
+///
+/// Copied as a complete value before dispatch by GameActor.mode; every entry
+/// is a void callback receiving the live task. There is no terminator.
+static const TaskFuncTable3 _gActor800100ModeHandlers = { {
     _actor800100TickNativeMode,
     _actor800100DamageMode,
     _actor800100TickScriptedMode,
@@ -1726,7 +1838,7 @@ static void _actor800100AttackLoopState(Task* task)
                 actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == ACTOR_800100_VARIANT_PYKE) {
-                    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+                    playerActorResetWeaponAttack(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
                 }
                 finishedAttackActor = task->work;
                 _actor800100ResetAttackDecision(task, finishedAttackActor);
@@ -1990,7 +2102,7 @@ static void _actor800100ReloadState(Task* task)
     companion    = actor->companionWork;
     reloadRecord = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + ACTOR_800100_RELOAD_SLOT);
     weaponCoord  = actor->equipmentTasks[1]->extra.tmd->coords;
-    weaponId     = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    weaponId     = gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
 
     switch (weaponId) {
         case ACTOR_800100_RELOAD_WEAPON_M950:
@@ -2029,7 +2141,7 @@ static void _actor800100ReloadState(Task* task)
             break;
     }
 
-    companion->activity.combat.attacksRemaining = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    companion->activity.combat.attacksRemaining = gActor800100AttackAllowancesByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
     if (reloadRecord != NULL && playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_RELOAD_SLOT, 0, 0) == 0) {
         decisionActor = task->work;
         _actor800100ResetAttackDecision(task, decisionActor);
@@ -2296,7 +2408,7 @@ static void _actor800100TickBehavior(Task* task)
     GameActor*     actor;
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_800100_80161E4C;
+    handlers = _gActor800100ModeHandlers;
     actor    = task->work;
     if (actor->attackControl.cooldownTicks > 0) {
         actor->attackControl.cooldownTicks--;
@@ -2499,8 +2611,11 @@ static void _actor800100CombatExitState(Task* task)
     }
 }
 
-/// Handlers `_actor800100DamageMode` runs, indexed by `hitRegion`.
-static const TaskFuncTable4 D_actor_800100_80161E88 = { {
+/// Damage-mode handlers: hit selectors 0..2 recover, selector 3 keeps the stopped pose.
+///
+/// Copied as a complete value before dispatch by the unsigned halfword of
+/// GameActor.hitRegion. Each callback receives the live task; no terminator.
+static const TaskFuncTable4 _gActor800100DamageHandlers = { {
     _actor800100DamageRecoveryState,
     _actor800100DamageRecoveryState,
     _actor800100DamageRecoveryState,
@@ -2517,7 +2632,7 @@ static void _actor800100DamageMode(Task* task)
     GameActor*     actor;
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_800100_80161E88;
+    handlers = _gActor800100DamageHandlers;
     actor    = task->work;
     playerActorTickAnimationState(task);
     playerActorTickChildSlots(task);
@@ -2602,19 +2717,12 @@ static void _actor800100TickScriptedMode(Task* task)
 static void _actor800100DecideCombatBehavior(Task* task)
 {
     enum {
-        ACTOR_800100_COMBAT_CHOICE_WAIT          = 0,
-        ACTOR_800100_COMBAT_CHOICE_ATTACK        = 1,
-        ACTOR_800100_COMBAT_CHOICE_RETREAT       = 2,
-        ACTOR_800100_COMBAT_CHOICE_APPROACH      = 3,
-        ACTOR_800100_COMBAT_CHOICE_SCAN          = 4,
         ACTOR_800100_COMBAT_RETREAT_DISTANCE     = 896,
         ACTOR_800100_COMBAT_DISTANCE_ROUND_MASK  = 0x3FF,
         ACTOR_800100_COMBAT_DISTANCE_SHIFT       = 10,
         ACTOR_800100_COMBAT_LAST_TABLE_BAND      = 3,
         ACTOR_800100_COMBAT_APPROACH_BAND        = 5,
         ACTOR_800100_COMBAT_TABLE_BAND_COUNT     = 4,
-        ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES  = 16,
-        ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES = 8,
         ACTOR_800100_COMBAT_COOLDOWN_RANDOM_MASK = 0x1F,
         ACTOR_800100_COMBAT_COOLDOWN_MIN_TICKS   = 15,
         ACTOR_800100_COMBAT_DECISION_BASE_TICKS  = 20,
@@ -2625,13 +2733,13 @@ static void _actor800100DecideCombatBehavior(Task* task)
     WorldTargetNode* node;
     GfxCoord*        coord;
     VECTOR3*         targetDelta;
-    const u8*        rangeOutcomes;
-    const u8*        healthOutcomes;
-    s32              targetDistance;
-    s32              distanceBand;
-    s32              distanceForShift;
-    s32              hasOutcomeTable;
-    s32              behavior;
+    const u8(*rangeOutcomes)[ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES];
+    const u8* healthOutcomes;
+    s32       targetDistance;
+    s32       distanceBand;
+    s32       distanceForShift;
+    s32       hasOutcomeTable;
+    s32       behavior;
 
     targetDelta       = SCRATCH_STACK_RESERVE_BYTES(sizeof(VECTOR));
     actor             = task->work;
@@ -2659,8 +2767,8 @@ static void _actor800100DecideCombatBehavior(Task* task)
             }
             hasOutcomeTable = distanceBand < ACTOR_800100_COMBAT_TABLE_BAND_COUNT;
             if (hasOutcomeTable != 0) {
-                rangeOutcomes  = D_actor_800100_801672F8[distanceBand];
-                healthOutcomes = rangeOutcomes + (companionGetHealthBand() * ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES);
+                rangeOutcomes  = _gActor800100CombatOutcomesByDistanceBand[distanceBand];
+                healthOutcomes = rangeOutcomes[companionGetHealthBand()];
                 behavior       = healthOutcomes[rand() & (ACTOR_800100_COMBAT_HEALTH_ROW_OUTCOMES - 1)];
             } else {
                 behavior = ACTOR_800100_COMBAT_CHOICE_APPROACH;
@@ -2672,7 +2780,7 @@ static void _actor800100DecideCombatBehavior(Task* task)
         if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
             actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         }
-        behavior = D_actor_800100_80167308[rand() & (ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES - 1)];
+        behavior = _gActor800100NoTargetCombatOutcomes[rand() & (ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES - 1)];
         if (behavior == ACTOR_800100_COMBAT_CHOICE_APPROACH) {
             actor->targetNode = NULL;
         }
@@ -2687,7 +2795,7 @@ static void _actor800100DecideCombatBehavior(Task* task)
             } else {
                 actor->aimTrackingState                     = GAME_ACTOR_AIM_TRACKING_TARGET;
                 actor->attackControl.cooldownTicks          = (rand() & ACTOR_800100_COMBAT_COOLDOWN_RANDOM_MASK) + ACTOR_800100_COMBAT_COOLDOWN_MIN_TICKS;
-                companion->activity.combat.repeatsRemaining = D_actor_800100_80167310[rand() & (ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES - 1)];
+                companion->activity.combat.repeatsRemaining = _gActor800100AttackRepeatCounts[rand() & (ACTOR_800100_COMBAT_SHORT_TABLE_OUTCOMES - 1)];
                 _actor800100EnterAttackLoop(task);
             }
             break;
@@ -2818,7 +2926,7 @@ static void _actor800100TickMm1Attack(Task* task)
                                                          (ACTOR_800100_MM1_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT) | GRENADE_ROUND_FRAGMENTATION,
                 };
                 actor->attackControl.cooldownTicks = ACTOR_800100_MM1_PROJECTILE_COOLDOWN_TICKS;
-                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, weaponCoord, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
                 // The projectile task owns flight and blast after this launch.
                 playerActorSpawnGrenadeProjectile(task, PLAYER_ACTOR_GRENADE_COMPANION, PLAYER_ACTOR_GRENADE_MM1, ACTOR_800100_MM1_FRAGMENTATION_ARG);
             }
@@ -2833,8 +2941,12 @@ static void _actor800100TickMm1Attack(Task* task)
     }
 }
 
-/// Handlers `_actor800100TickWeaponAttack` runs, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`.
-static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
+/// Weapon attack handlers indexed by saved companion resource variant 0..4.
+///
+/// Variants 0/1 share single-shot playback, 2 uses MM1, 3 M950, and 4 M4A1/Pyke.
+/// Copied as a complete value before dispatch; each void callback receives the
+/// live task and requires the variant's equipped weapon and native animation.
+static const TaskFuncTable5 _gActor800100WeaponAttackHandlers = { {
     _actor800100TickSingleShotAttack,
     _actor800100TickSingleShotAttack,
     _actor800100TickMm1Attack,
@@ -2904,7 +3016,7 @@ static void _actor800100TickM950Attack(Task* task)
                 companion->activity.combat.attacksRemaining          -= 1;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 worldCoordPlaySound(task->extra.tmd->coords, ACTOR_800100_M950_SOUND, true);
-                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, weaponCoord, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
                 playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 1, ACTOR_800100_M950_BLEND_FRAMES);
             }
             break;
@@ -3047,7 +3159,7 @@ static void _actor800100TickM4a1PykeAttack(Task* task)
                         actor->actionValue = 0;
                     }
                     worldCoordPlaySound(weaponCoord, ACTOR_800100_RIFLE_SOUND, true);
-                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, weaponCoord, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
                     playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 0, ACTOR_800100_RIFLE_FIRE_BLEND_FRAMES);
                     break;
                 } else {
@@ -3220,11 +3332,12 @@ static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDi
     SCRATCH_POP_AT(scratchCursor, _Actor800100AimBeamLineScratch);
 }
 
-/// The four (y, z) corners of the quad `_actor800100DrawAimBeamQuad` draws,
-/// offset off the placed coordinate's world translation. The table sits in the
-/// unit's .rodata right after the jump tables, so it is written here rather
-/// than left to the split: nothing else refers to it.
-static const _Actor800100AimBeamQuadCorner D_actor_800100_80161F10[4] = {
+/// Y/Z offsets of the aim beam's fixed-orientation end square in GPU strip order.
+///
+/// X is zero; Y spans -62..62 and Z spans 0..124 game-coordinate units. The
+/// drawer adds these directly to the beam's composed/view translation without
+/// rotating them, narrows to signed halfwords, then projects through GsWSMATRIX.
+static const _Actor800100AimBeamQuadCorner _gActor800100AimBeamQuadCorners[4] = {
     { -62, 0 },
     { -62, 124 },
     { 62, 0 },
@@ -3261,9 +3374,9 @@ static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord)
     scratchCursor     = SCRATCH_HEAD_ADDR;
     projectionScratch = SCRATCH_PUSH_AT(scratchCursor, _Actor800100AimBeamQuadScratch);
 
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_actor_800100_80161F10); cornerIndex++) {
-        cornerY                                         = D_actor_800100_80161F10[cornerIndex].vy;
-        cornerZ                                         = D_actor_800100_80161F10[cornerIndex].vz;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(_gActor800100AimBeamQuadCorners); cornerIndex++) {
+        cornerY                                         = _gActor800100AimBeamQuadCorners[cornerIndex].vy;
+        cornerZ                                         = _gActor800100AimBeamQuadCorners[cornerIndex].vz;
         projectionScratch->cornerOffset.vx              = 0;
         projectionScratch->cornerOffset.vy              = cornerY;
         projectionScratch->cornerOffset.vz              = cornerZ;
@@ -3439,7 +3552,7 @@ static void _actor800100EnterCombatExit(Task* task)
     actor->statePhase       = 0;
     actor->targetNode       = NULL;
     actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_COMBAT_EXIT, 1, ACTOR_800100_COMBAT_BLEND_FRAMES);
 }
 
@@ -3475,7 +3588,7 @@ static void _actor800100TickWeaponAttack(Task* task)
 {
     TaskFuncTable5 handlers;
 
-    handlers = D_actor_800100_80161EC8;
+    handlers = _gActor800100WeaponAttackHandlers;
     handlers.funcs[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant](task);
 }
 

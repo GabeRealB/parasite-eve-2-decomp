@@ -5,17 +5,30 @@
 
 #include "main/task_types.h"
 
-/// Overlay-imported s16 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and passed
-/// to `playerActorResetWeaponAttack` (`_companionBeginScriptedControl` / `companionPlayScriptedAnimation` / `companionAwaitButtonPresses`).
-extern s16 D_actor_800100_80167218[];
+/// Native weapon IDs for the armed companion's saved resource variant.
+///
+/// Variants 0..4 select no weapon, P229, MM1, M950 and M4A1 Pyke respectively;
+/// entry 5 is also zero, but does not establish another supported variant.
+/// IDs select resident weapon collision/reach and effect profiles, independently
+/// of the variant-indexed equipped model. Keep actor_800100 loaded while reading.
+extern s16 gActor800100WeaponIdsByResourceVariant[6];
 
-/// Overlay-imported s16 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and passed
-/// as the third argument of `playerActorInitWeaponCollision` (`companionRestoreEquipment`).
-extern s16 D_actor_800100_80167224[];
+/// Initial weapon-attack catalogue rows for saved companion resource variants 0..4.
+///
+/// Variants 1/3 use 9mm Spartan row 3, variant 4 uses 5.56mm row 16, and
+/// variants 0/2 and the inactive sixth entry use empty row 0. These form the
+/// collision key's low attack-row bits, rather than its weapon ID.
+/// Keep actor_800100 loaded while reading.
+extern s16 gActor800100AttackRowsByResourceVariant[6];
 
-/// Overlay-imported u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and stored
-/// at `CompanionWork.activity.combat.attacksRemaining` (`companionRestoreEquipment`).
-extern u8 D_actor_800100_80167230[];
+/// Replenished firing allowances for saved companion resource variants 0..4.
+///
+/// Equipment setup and reload restore 12/12/12/100/40 to the companion's
+/// signed-byte-tested attack budget. Gunfire spends one per shot; this is
+/// separate from the randomized attack-repeat count and Pyke flame duration.
+/// Entries 5..7 are zero storage, not additional supported variants.
+/// Keep actor_800100 loaded while reading.
+extern u8 gActor800100AttackAllowancesByResourceVariant[8];
 
 /// Starts the armed companion's reload behavior and stops its movement and turning.
 ///

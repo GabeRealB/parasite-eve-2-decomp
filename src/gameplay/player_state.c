@@ -1483,11 +1483,11 @@ Task* companionRestoreEquipment(void)
         actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT] = equipmentTask;
         if (equipmentTask != NULL) {
             companion = actor->companionWork;
-            weaponId  = D_actor_800100_80167218[save->state.companionVariant];
-            attackRow = D_actor_800100_80167224[save->state.companionVariant];
+            weaponId  = gActor800100WeaponIdsByResourceVariant[save->state.companionVariant];
+            attackRow = gActor800100AttackRowsByResourceVariant[save->state.companionVariant];
             playerActorInitWeaponCollision(companionTask, weaponId, attackRow);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= COMPANION_RESTORE_ATTACK_KEY_BIT;
-            companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
+            companion->activity.combat.attacksRemaining         = gActor800100AttackAllowancesByResourceVariant[save->state.companionVariant];
             if ((u8)save->state.companionVariant == COMPANION_RESTORE_PYKE_VARIANT && actor->weaponEffectTask == NULL) {
                 flareWork = effectSpawn(
                     (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT]->extra.tmd->coords, (s32)weaponId, 0);
@@ -1578,7 +1578,7 @@ void companionEnterDamageReaction(Task* task)
     if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     }
-    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     animationSet = COMPANION_DAMAGE_OTHER_BODY_SET;
     if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
         animationSet = COMPANION_DAMAGE_PART4_SET;
@@ -1833,7 +1833,7 @@ void companionTrackLockTarget(Task* task, s32 trackingAxes)
             if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
                 playerActorAimPitchToLock(task);
             } else {
-                playerActorAimPart6PitchToLock(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], COMPANION_LOCK_MIN_GROUND_DISTANCE);
+                playerActorAimPart6PitchToLock(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], COMPANION_LOCK_MIN_GROUND_DISTANCE);
             }
         }
     }
@@ -1964,7 +1964,7 @@ static inline void _companionEnterScriptedMode(Task* task, GameActor* actor)
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = PLAYER_ACTOR_HIT_REGION_NONE;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
 /// Stops a companion's native weapon and motion for scripted dispatch.

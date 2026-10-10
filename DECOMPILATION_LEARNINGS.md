@@ -76431,7 +76431,7 @@ fragment:
 
 ```
 .section .rodata
-dlabel D_actor_800100_80161E88
+dlabel _gActor800100DamageHandlers
     .word _actor800100DamageRecoveryState
     ...
 .section .text
@@ -76445,7 +76445,7 @@ Replacing the `INCLUDE_ASM` with the C body therefore deletes those bytes, and
 nothing says so: the function itself scores 100.00% in the scratch, and the
 overlay links, just N bytes short with every later table and the whole `.text`
 shifted. `_actor800100DamageMode` lost exactly its 16-byte 4-entry table and
-the ld error (`undefined reference to D_actor_800100_80161E88`) was the only
+the ld error (`undefined reference to _gActor800100DamageHandlers`) was the only
 signal.
 
 Emit the words from C **at the stub's old position**, so the `.rodata` stream
@@ -76454,15 +76454,15 @@ which also supplies the `nonmatching`/`dlabel`/`enddlabel` markers, is
 `src/actors/actor_400500/actor_400500.c`:
 
 ```c
-extern TaskFuncTable4 D_actor_800100_80161E88;
+extern TaskFuncTable4 _gActor800100DamageHandlers;
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
-        "nonmatching D_actor_800100_80161E88\n"
-        "dlabel D_actor_800100_80161E88\n"
+        "nonmatching _gActor800100DamageHandlers\n"
+        "dlabel _gActor800100DamageHandlers\n"
         "    .word _actor800100DamageRecoveryState\n"
         "    .word _actor800100StoppedDamageState\n"
-        "enddlabel D_actor_800100_80161E88\n"
+        "enddlabel _gActor800100DamageHandlers\n"
         ".section .text");
 #endif
 ```
@@ -76484,7 +76484,7 @@ calls through it, exactly like its matched sibling `_actor800100DamageMode`:
 ```c
 TaskFuncTable5 sp;
 
-sp = D_actor_800100_80161EC8;
+sp = _gActor800100WeaponAttackHandlers;
 sp.funcs[D_8007272F](arg0);      /* arg0 is what moves the scratches */
 ```
 
@@ -110168,7 +110168,7 @@ stays in address order. Point the words at the overlay's own symbols:
 
 When the table is plain scalars rather than symbol words, a `const` array in the
 `.c` is the shorter re-emission - and it is what the table would have been had
-it been written in C. `_actor800100DrawAimBeamQuad`'s `D_actor_800100_80161F10`
+it been written in C. `_actor800100DrawAimBeamQuad`'s `_gActor800100AimBeamQuadCorners`
 (4 x `{s16 vy, vz}`) came back that way: define it at the matched function's
 position in the file, after every `INCLUDE_RODATA` and `INCLUDE_ASM` above it,
 and GCC emits its `.rodata` in source order, so the table still lands last in
