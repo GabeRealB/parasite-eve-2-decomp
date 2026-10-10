@@ -5,7 +5,7 @@
 // stage, and marker models in the map pictures. Each lives in a package loaded
 // at a slot of its own, so each is absolute.
 mineMesaRoomTask = 0x8017DD98; // type:func absolute:True owner=mine_mesa shared=rooms
-gMineMesaRoomCollisionResources = 0x80186538; // absolute:True owner=mine_mesa shared=rooms
+gMineMesaRoomCollisionResources = 0x80186538; // absolute:True owner=mine_mesa
 gMineMesaRoomViewMaps = 0x80186548; // absolute:True owner=mine_mesa
 gMineMesaRoomLighting = 0x8018654C; // absolute:True owner=mine_mesa
 gMineMesaRoomViewCounts = 0x80186554; // absolute:True owner=mine_mesa

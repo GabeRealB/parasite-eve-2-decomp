@@ -90039,14 +90039,14 @@ Inputs: `base.c` (listing order, 77.778%)
 
 ## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (dryfieldWaterTowerUpdateViewEffectGateTask, 2026-09-15)
 
-`gRoomEffectState->roomEffectMode = D_..._801827A0[(u8)viewGetMappedIndex() - 1]` - one
+`gRoomEffectState->roomEffectMode = _gDryfieldWaterTowerViewEffectModes[(u8)viewGetMappedIndex() - 1]` - one
 call, one table read, one halfword store. The target keeps the subtraction on
 the *index*:
 
 ```
 lui   a0,%hi(gRoomEffectState)
-lui   v1,%hi(D_..._801827A0)
-addiu v1,v1,%lo(D_..._801827A0)     # symbol unbias
+lui   v1,%hi(_gDryfieldWaterTowerViewEffectModes)
+addiu v1,v1,%lo(_gDryfieldWaterTowerViewEffectModes)     # symbol unbias
 andi  v0,v0,0xff
 addiu v0,v0,-0x1                    # the -1 sits before the scale
 sll   v0,v0,0x1
@@ -97505,14 +97505,14 @@ The second shape is why the flag branch must re-read the *coordinate*. The
 record read is a struct member, so `MEM_IN_STRUCT_P` is set on its `MEM`, and
 `cse`'s `invalidate_memory` removes such an entry from the table as soon as a
 store sets `nonscalar` -- which `note_mem_written` does for any varying address
-that is not a plain scalar. A second textual read of `D_..._80181A40.pos.vy`
+that is not a plain scalar. A second textual read of `_gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_HOME].pos.vy`
 therefore becomes a second `lw`, while the target's `addiu $v0,$v1,5` shows the
 first load's *register* carrying into the branch:
 
 ```c
-coord->coord.t[1] = D_..._80181A40.pos.vy;
+coord->coord.t[1] = _gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_HOME].pos.vy;
 if (D_80070F6C[0] & 4) {
-    coord->coord.t[1] += 5;        /* not: = D_..._80181A40.pos.vy + 5; */
+    coord->coord.t[1] += 5;        /* not: = _gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_HOME].pos.vy + 5; */
 }
 ```
 

@@ -39,7 +39,12 @@ extern WorldCollisionRoomResources D_dryfield_water_tower_801827CC[];
 /// The directory requires the room overlay loaded; the map requires gameplay.
 extern u8* gDryfieldWaterTowerRoomViewMaps[1];
 
-extern ViewCount D_dryfield_water_tower_801827E0[];
+/// Reverse-lookup length for the water tower's sole room, indexed by room minus one.
+///
+/// Searches 21 logical entries of `gViewIdentityMap`. This count is independent
+/// of the 20 camera records and 21 sprite/background slots. The room overlay
+/// owns the array; its map-directory import requires this overlay loaded.
+extern ViewCount gDryfieldWaterTowerRoomViewCounts[1];
 
 /// Authored model lighting for the water tower's sole room, indexed by room minus one.
 ///
@@ -50,9 +55,22 @@ extern WorldCoordRoomLighting gDryfieldWaterTowerRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_water_tower_801827EC[];
 
-extern ViewCamera D_dryfield_water_tower_801835E8[];
+/// Cameras for mapped water-tower views 1..20, indexed by view minus one.
+///
+/// World-to-view rotations use Q12; translations are negated room-coordinate
+/// camera origins. Perspective distances are pixels.
+/// The room overlay owns the records. View 21 has a background and sprite slot
+/// but no camera record; it must not be selected for camera application.
+extern ViewCamera gDryfieldWaterTowerViewCameras[20];
 
-extern SpriteView D_dryfield_water_tower_80186560[];
+/// Foreground sources, batches and clip lists for mapped water-tower views 1..21.
+///
+/// Indexed by view minus one, with no terminator. Empty foreground lists retain
+/// the decoded background; every batch list ends with SPRITE_BATCH_END.
+/// View 19's single mechanism sprite changes visibility with the mechanism state.
+/// The room owns this array and its writable lists while the overlay is loaded.
+/// The retained view-21 slot does not supply a camera.
+extern SpriteView gDryfieldWaterTowerSpriteViews[21];
 
 /// Collision policies and footstep cues indexed by the water tower's surface class (0..7).
 ///

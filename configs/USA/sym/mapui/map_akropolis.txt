@@ -18,7 +18,7 @@ gAcropolisSquareSurfacePropertiesByClass = 0x80188868; // absolute:True owner=ac
 acropolisEastElevatorHallRoomTask = 0x8017F55C; // type:func absolute:True owner=acropolis_east_elevator_hall
 gAcropolisEastElevatorHallRoomCollisionResources = 0x80186320; // absolute:True owner=acropolis_east_elevator_hall shared=rooms
 gAcropolisEastElevatorHallViewMaps = 0x80186330; // absolute:True owner=acropolis_east_elevator_hall
-gAcropolisEastElevatorHallViewCounts = 0x80186334; // absolute:True owner=acropolis_east_elevator_hall shared=rooms
+gAcropolisEastElevatorHallViewCounts = 0x80186334; // absolute:True owner=acropolis_east_elevator_hall
 gAcropolisEastElevatorHallRoomLightingTable = 0x80186338; // absolute:True owner=acropolis_east_elevator_hall
 gAcropolisEastElevatorHallWarpEntries = 0x80186340; // absolute:True owner=acropolis_east_elevator_hall shared=rooms
 gAcropolisEastElevatorHallSpriteViews = 0x80187870; // absolute:True owner=acropolis_east_elevator_hall shared=rooms
