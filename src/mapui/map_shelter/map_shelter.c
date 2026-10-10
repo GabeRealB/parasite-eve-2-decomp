@@ -846,7 +846,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
 };
 
 static ViewCount* D_map_shelter_8017B04C[49] = {
-    D_mine_mesa_80186554,
+    gMineMesaRoomViewCounts,
     gMineCavernRoomViewCounts,
     D_mine_tunnel_entrance_8017DB74,
     D_mine_tunnel_8017E170,
@@ -1071,7 +1071,7 @@ static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
 WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
 
 static ViewCamera* D_map_shelter_8017B3BC[49] = {
-    D_mine_mesa_80187030,
+    gMineMesaViewCameras,
     gMineCavernViewCameras,
     D_mine_tunnel_entrance_8017E0E4,
     D_mine_tunnel_8017E890,
@@ -1187,7 +1187,7 @@ ViewIndexTable gMapShelterViewIndexTable = { _gMapShelterAreaViewMaps };
 /// Indexed by area minus one, then the mapped view minus one. Room pointers
 /// must stay loaded; an area entry supplies no sprite-view count or sentinel.
 static SpriteView* _gMapShelterAreaSpriteViews[49] = {
-    D_mine_mesa_80188744,
+    gMineMesaSpriteViews,
     gMineCavernSpriteViews,
     D_mine_tunnel_entrance_8017EA4C,
     D_mine_tunnel_8017F9A4,

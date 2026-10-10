@@ -88903,7 +88903,7 @@ $a0,.Lkill` - over six blocks. The m2c seed's condition,
 
 ```c
 if ((mode < 2) && (mode >= 0)) {
-    D_mine_mesa_80189B58->spawnArg1.value = mode;
+    _gMineMesaCompanionHeadAimTask->spawnArg1.value = mode;
     return;
 }
 ```
@@ -88928,15 +88928,15 @@ falls out directly:
 ```c
 void _mineMesaSetCompanionHeadAimMode(s32 mode)
 {
-    if (D_mine_mesa_80189B58 != NULL) {
+    if (_gMineMesaCompanionHeadAimTask != NULL) {
         if (mode < 2) {
             if (mode >= 0) {
-                D_mine_mesa_80189B58->spawnArg1.value = mode;
+                _gMineMesaCompanionHeadAimTask->spawnArg1.value = mode;
                 return;
             }
         }
-        taskKill(D_mine_mesa_80189B58);
-        D_mine_mesa_80189B58 = NULL;
+        taskKill(_gMineMesaCompanionHeadAimTask);
+        _gMineMesaCompanionHeadAimTask = NULL;
     }
 }
 ```
@@ -88945,7 +88945,7 @@ void _mineMesaSetCompanionHeadAimMode(s32 mode)
 is the same body in the actors family, already matched with this exact nesting,
 which is what makes the shape the original's rather than a matching trick - the
 two bodies differ only in the global they guard (`_gActor361100HeadAimTask`
-against `D_mine_mesa_80189B58`), both storing `index` into `spawnArg1` and killing
+against `_gMineMesaCompanionHeadAimTask`), both storing `index` into `spawnArg1` and killing
 the task otherwise.
 (`overlay_dup_index.py find` reports the pair as `~` and `promote` refuses it:
 one copy per family, and the body names its own overlay's data.)

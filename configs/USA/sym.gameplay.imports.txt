@@ -1539,7 +1539,7 @@ D_mine_forked_tunnel_80185504 = 0x80185504; // absolute:True owner=mine_forked_t
 
 D_mine_gorge_80183544 = 0x80183544; // absolute:True owner=mine_gorge
 
-D_mine_mesa_801898F4 = 0x801898F4; // absolute:True owner=mine_mesa
+gMineMesaAreaVariants = 0x801898F4; // absolute:True owner=mine_mesa
 
 D_mine_refuge_80182A00 = 0x80182A00; // absolute:True owner=mine_refuge shared=rooms
 

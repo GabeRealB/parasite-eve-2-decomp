@@ -104,7 +104,7 @@ enum {
 
 extern WorldCollisionGrid D_mine_mesa_801864A4;
 
-extern WorldCollisionGrid D_mine_mesa_8018700C;
+static WorldCollisionGrid _gMineMesaCollisionGrid;
 
 extern RoomEventMsg gRoomEventStagedMsg;
 
@@ -112,14 +112,20 @@ extern s8 D_mine_mesa_80189B48;
 
 extern RoomLatchedEvent gRoomEventLatched;
 
-/// The room's task descriptor table; its spawners pick an entry by index.
-extern TaskDesc D_mine_mesa_801842F4[];
+// Descriptor indices shared by the room's scene-task launchers.
+enum {
+    MINE_MESA_SCENE_TASK_PLAYER_PATH = 0,
+    MINE_MESA_SCENE_TASK_PLAYER_HEAD_AIM,
+    MINE_MESA_SCENE_TASK_COMPANION_HEAD_AIM,
+    MINE_MESA_SCENE_TASK_PLAYER_HEAD_BLEND,
+    MINE_MESA_SCENE_TASK_FADE_FROM_BLACK,
+    MINE_MESA_SCENE_TASK_RUN_SOUND_CUES,
+    MINE_MESA_SCENE_TASK_COUNT,
+    MINE_MESA_SCENE_TASK_PRIORITY = 192,
+};
+static Task* _gMineMesaPlayerHeadTask;
 
-/// Handle of the task spawned from entry 1 or 3 of `D_mine_mesa_801842F4`, or
-/// NULL while none runs.
-extern Task* D_mine_mesa_80189B54;
-
-/// Handle of the task spawned from entry 4 of `D_mine_mesa_801842F4`, or NULL
+/// Handle of the task spawned from entry 4 of `_gMineMesaSceneTaskDescriptors`, or NULL
 /// while none runs.
 extern Task* D_mine_mesa_80189B5C;
 
@@ -160,9 +166,6 @@ extern TaskDesc         D_mine_mesa_801818F8;
 extern TaskMessageEntry D_mine_mesa_80181904[];
 extern TaskDesc         D_mine_mesa_80181990[];
 
-/// The mesa's run: one `SVECTOR` position per frame, sent as an `ActorTransform`.
-extern SVECTOR D_mine_mesa_80184184[];
-
 extern EvsCommand D_mine_mesa_80184664[];
 extern EvsCommand D_mine_mesa_80184BA4[];
 extern EvsCommand D_mine_mesa_80184D9C[];
@@ -173,16 +176,6 @@ extern EvsCommand D_mine_mesa_801856B4[];
 extern EvsCommand D_mine_mesa_8018578C[];
 extern EvsCommand D_mine_mesa_801861DC[];
 
-/// The mesa's emitter placements, one `SVECTOR` per position, 8 bytes apart.
-/// The runs overlap: `864F0`'s fourth and seventh positions are `864F0` itself
-/// plus 0x18 and 0x30, which lie inside the `86508` run, and view 8's single
-/// position is `864F0[0]` while view 4 draws the same base's 0x30.
-extern SVECTOR D_mine_mesa_801864C8[];
-extern SVECTOR D_mine_mesa_801864D0[];
-extern SVECTOR D_mine_mesa_801864D8[];
-extern SVECTOR D_mine_mesa_801864F0[];
-extern SVECTOR D_mine_mesa_80186508[];
-
 extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
 extern TaskMessageEntry    D_mine_mesa_80189B1C[2];
@@ -190,7 +183,7 @@ extern TaskDesc            D_mine_mesa_80189B2C;
 extern RoomFadeStorage     gRoomEventFade;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
-extern Task*               D_mine_mesa_80189B58;
+static Task*               _gMineMesaCompanionHeadAimTask;
 extern Enemy*              D_mine_mesa_80189B74[2];
 
 static void _mineMesaUnlinkBattleTriggers(void);
@@ -269,7 +262,7 @@ extern WorldCollisionOccluder     D_mine_mesa_801899B4[2];
 extern WorldCollisionTrigger      D_mine_mesa_80188E40[8];
 static WorldCoordRoomAmbientEntry _gMineMesaViewAmbientTable[12];
 static WorldCoordRoomLights       _gMineMesaRoomLights;
-extern ActorTransform             D_mine_mesa_801843F4;
+static ActorTransform             _gMineMesaPlayerSceneRestoreTransform;
 extern ActorTransform             D_mine_mesa_80184424;
 extern ActorTransform             D_mine_mesa_8018443C;
 extern ActorTransform             D_mine_mesa_801845F0;
@@ -557,7 +550,12 @@ static AnimationSet _gMineMesaAnimation06B9C = {
     { NULL, _gMineMesaAnimation06B9CBank1, NULL, NULL, _gMineMesaAnimation06B9CBank4, NULL, NULL, NULL },
 };
 
-SVECTOR D_mine_mesa_80184184[46] = {
+/// World-position samples for the player's scripted run across Mine Mesa.
+///
+/// One signed XYZ sample per task tick, in game-coordinate units; all 46 are
+/// consumed unless the scene is skipped. Playback adds (-100, 0, 200) and
+/// supplies yaw separately. Borrowed only while this room overlay is loaded.
+static SVECTOR _gMineMesaPlayerRunPath[46] = {
 #include "assets/mine_mesa_motion_06BC4.inc"
 };
 
@@ -566,13 +564,19 @@ static void _mineMesaFadeFromBlackTask(Task* task);
 static void _mineMesaPlayerHeadBlendTask(Task* task);
 static void _mineMesaRunSoundCuesTask(Task* task);
 
-TaskDesc D_mine_mesa_801842F4[6] = {
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerPathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerHeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaCompanionHeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerHeadBlendTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
+/// Bodyless tasks for Mine Mesa's scripted scenes.
+///
+/// Entries select player path, retained player head aim, retained companion
+/// head aim, direct player head blend, fade from black and run sound cues.
+/// All run at priority 192, start at state zero and receive both launcher
+/// arguments unchanged. Callbacks and borrowed scene resources must stay loaded.
+static TaskDesc _gMineMesaSceneTaskDescriptors[MINE_MESA_SCENE_TASK_COUNT] = {
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerPathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaCompanionHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerHeadBlendTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
 };
 
 AnimationSet* D_mine_mesa_8018433C[2] = {
@@ -610,7 +614,11 @@ ActorTransform D_mine_mesa_801843C4 = { { 8780, 0, 2700, 0 }, { 0, 785, 0, 0 } }
 
 ActorTransform D_mine_mesa_801843DC = { { 7670, 0, 2200, 0 }, { 0, 785, 0, 0 } };
 
-ActorTransform D_mine_mesa_801843F4 = { { 9550, 0, 1700, 0 }, { 0, -774, 0, 0 } };
+/// Player placement restored when the countdown or arrival scene finishes or is skipped.
+///
+/// Position uses whole world units; yaw is -774 in 4096 units per turn.
+/// Placement messages borrow this record synchronously while Mine Mesa is loaded.
+static ActorTransform _gMineMesaPlayerSceneRestoreTransform = { { 9550, 0, 1700, 0 }, { 0, -774, 0, 0 } };
 
 // Retained parameter record; layout follows the adjacent script arguments.
 ActorTransform D_mine_mesa_8018440C = { { 7770, 0, 2000, 0 }, { 0, 685, 0, 0 } };
@@ -848,7 +856,7 @@ EvsCommand D_mine_mesa_801852F4[19] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineMesaPlayerSceneRestoreTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
@@ -997,7 +1005,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineMesaPlayerSceneRestoreTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1019,7 +1027,7 @@ EvsCommand D_mine_mesa_801861DC[24] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineMesaPlayerSceneRestoreTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
@@ -1061,27 +1069,20 @@ static s16* _gMineMesaCollision08EE4Table[1] = {
 
 WorldCollisionGrid D_mine_mesa_801864A4 = { NULL, _gMineMesaCollision08EE4Normals, _gMineMesaCollision08EE4Verts, _gMineMesaCollision08EE4Faces, _gMineMesaCollision08EE4Table, 250, 150, 1, 1, 4000, 3 };
 
-SVECTOR D_mine_mesa_801864C8[1] = {
+/// Fixed world positions for Mine Mesa's view-dependent lamp flares.
+///
+/// Twelve signed XYZ positions in game-coordinate units. Views select overlapping
+/// slices beginning at indices 0, 1, 2, 5 and 8; each slice and every selected
+/// element stays within this array. Texture size is selected by the view drawer.
+static SVECTOR _gMineMesaFlarePositions[12] = {
     { 4000, -650, 4780, 0 },
-};
-
-SVECTOR D_mine_mesa_801864D0[1] = {
     { 4000, -650, 3270, 0 },
-};
-
-SVECTOR D_mine_mesa_801864D8[3] = {
     { 0x71DE, -3310, 0x3C82, 0 },
     { 0x3A7A, -3350, 2270, 0 },
     { 0x2C4C, -3320, 6720, 0 },
-};
-
-SVECTOR D_mine_mesa_801864F0[3] = {
     { 6170, -1710, 7860, 0 },
     { 2550, -3190, 6380, 0 },
     { 5050, -3350, 540, 0 },
-};
-
-SVECTOR D_mine_mesa_80186508[4] = {
     { 560, -1930, 380, 0 },
     { -2210, -1890, 5620, 0 },
     { -6860, -1920, 5390, 0 },
@@ -1091,7 +1092,7 @@ SVECTOR D_mine_mesa_80186508[4] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_mine_mesa_80186538[1] = {
-    { &D_mine_mesa_8018700C, D_mine_mesa_80188E40, D_mine_mesa_801890A0, D_mine_mesa_801899B4 },
+    { &_gMineMesaCollisionGrid, D_mine_mesa_80188E40, D_mine_mesa_801890A0, D_mine_mesa_801899B4 },
 };
 
 u8* gMineMesaRoomViewMaps[1] = {
@@ -1102,39 +1103,55 @@ WorldCoordRoomLighting gMineMesaRoomLighting[1] = {
     { &_gMineMesaRoomLights, _gMineMesaViewAmbientTable },
 };
 
-ViewCount D_mine_mesa_80186554[1] = { 11 };
+ViewCount gMineMesaRoomViewCounts[1] = { ARRAY_SIZE(gMineMesaViewCameras) };
 
 DirectionWarpEntry D_mine_mesa_80186558[2] = {
     { { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 7060, 0, 2570 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 315, 0, 3562 }, { 0, 0, 0, 0 }, 0x54010002, 0x54010001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineMesaCollision09A4CNormals[37] = {
+enum {
+    MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT = 4,
+    MINE_MESA_COLLISION_GRID_CELL_SIZE       = 4000,
+};
+
+/// Writable Q12 unit normals for Mine Mesa's live collision grid.
+static SVECTOR _gMineMesaCollisionGridNormals[37] = {
 #include "assets/mine_mesa_collision_09A4C_normals.inc"
 };
 
-static SVECTOR _gMineMesaCollision09A4CVerts[117] = {
+/// Writable room-space vertices for Mine Mesa's live collision grid.
+static SVECTOR _gMineMesaCollisionGridVerts[117] = {
 #include "assets/mine_mesa_collision_09A4C_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineMesaCollision09A4CFaces[53] = {
+/// Writable indexed faces for Mine Mesa's live collision grid.
+static WorldCollisionGridFace _gMineMesaCollisionGridFaces[53] = {
 #include "assets/mine_mesa_collision_09A4C_faces.inc"
 };
 
-static s16 _gMineMesaCollision09A4CCells[348] = {
+/// Sentinel-terminated face-index lists for Mine Mesa's sixteen collision cells.
+static s16 _gMineMesaCollisionGridCells[348] = {
 #include "assets/mine_mesa_collision_09A4C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineMesaCollision09A4CCells[i])
-static s16* _gMineMesaCollision09A4CTable[16] = {
+#define GRID_CELL(i) (&_gMineMesaCollisionGridCells[i])
+/// X-major directory of Mine Mesa's 4 by 4 collision-cell face lists.
+static s16* _gMineMesaCollisionGridTable[MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT * MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT] = {
 #include "assets/mine_mesa_collision_09A4C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_mesa_8018700C = { NULL, _gMineMesaCollision09A4CNormals, _gMineMesaCollision09A4CVerts, _gMineMesaCollision09A4CFaces, _gMineMesaCollision09A4CTable, 800, 4070, 4, 4, 4000, 53 };
+/// Mine Mesa's mutable room collision grid and mesh pools.
+///
+/// Sixteen 4000-unit cells cover X/Z with biases (800, 4070). Faces 0..2 and
+/// vertices 0..7 hold movable scene collision; faces/normals 3..6 and vertices
+/// 12..27 hold rebuilt walls. The remaining mesh is loaded from the room asset.
+/// Activation binds the view transform. All pools stay live while the room is active.
+static WorldCollisionGrid _gMineMesaCollisionGrid = { NULL, _gMineMesaCollisionGridNormals, _gMineMesaCollisionGridVerts, _gMineMesaCollisionGridFaces, _gMineMesaCollisionGridTable, 800, 4070, MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT, MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT, MINE_MESA_COLLISION_GRID_CELL_SIZE, ARRAY_SIZE(_gMineMesaCollisionGridFaces) };
 
-ViewCamera D_mine_mesa_80187030[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },
+ViewCamera gMineMesaViewCameras[11] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },
     { { { { 1615, 0, -3764 }, { -1626, 3693, -698 }, { 3394, 1769, 1456 } }, { -1831, 3462, 352 } }, 230 },
     { { { { 4051, 0, -602 }, { -488, 2401, -3281 }, { 353, 3317, 2375 } }, { -0x286F, 4490, -1950 } }, 230 },
     { { { { -1260, 0, 3897 }, { 246, 4087, 79 }, { -3889, 258, -1258 } }, { -0x2E41, 1458, -7495 } }, 230 },
@@ -1598,7 +1615,7 @@ static SpriteBatch _gMineMesaView11SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_mesa_80188744[11] = {
+SpriteView gMineMesaSpriteViews[11] = {
     { { .empty = _gMineMesaView1SpriteBatches }, _gMineMesaView1SpriteBatches, NULL },
     { { .elements = _gMineMesaView2SpriteSources }, _gMineMesaView2SpriteBatches, NULL },
     { { .elements = _gMineMesaView3SpriteSources }, _gMineMesaView3SpriteBatches, NULL },
@@ -2441,102 +2458,161 @@ WorldCollisionTrigger D_mine_mesa_801890A0[19] = {
     { NULL, NULL, NULL, { 3328, 0, 4032, 0 }, { { -272, 0, 1440, 0 }, { -272, 0, -1440, 0 }, { 272, 0, 1440, 0 }, { 272, 0, -1440, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1465, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_mesa_80189644[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+// Keys joining this room's placements to its actor resource recipes.
+enum {
+    MINE_MESA_RESOURCE_DESERT_CHASER = 1,
+    MINE_MESA_RESOURCE_MIND_SUCKLER  = 15,
+    MINE_MESA_RESOURCE_SCAVENGER     = 16,
+    MINE_MESA_RESOURCE_PAWN_GOLEM    = 20,
+    MINE_MESA_RESOURCE_SCORPION      = 25,
+    MINE_MESA_RESOURCE_BAT           = 37,
+    MINE_MESA_RESOURCE_ROOK_GOLEM    = 57,
+};
+
+/// Desert Chaser resource recipes for Mine Mesa area variant 1.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant1Resources[2] = {
+    { MINE_MESA_RESOURCE_DESERT_CHASER, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_mesa_8018965C[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
+/// Scavenger resource recipes for Mine Mesa area variant 2.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant2Resources[2] = {
+    { MINE_MESA_RESOURCE_SCAVENGER, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_mesa_80189674[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Scorpion and Mind Suckler resource recipes for Mine Mesa area variant 3.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant3Resources[3] = {
+    { MINE_MESA_RESOURCE_SCORPION, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_mesa_80189698[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Scorpion and Mind Suckler resource recipes for Mine Mesa area variant 4.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant4Resources[3] = {
+    { MINE_MESA_RESOURCE_SCORPION, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_mesa_801896BC[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
+/// Pawn and Rook GOLEM resource recipes for Mine Mesa area variant 7.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant7Resources[3] = {
+    { MINE_MESA_RESOURCE_PAWN_GOLEM, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
+    { MINE_MESA_RESOURCE_ROOK_GOLEM, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_mesa_801896E0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
+/// Scorpion and Bat resource recipes for Mine Mesa area variant 11.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Entry IDs join the variant's placement and resource lists.
+static AreaResource _gMineMesaVariant11Resources[3] = {
+    { MINE_MESA_RESOURCE_SCORPION, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_MESA_RESOURCE_BAT, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_mesa_80189704[2] = {
-    { 1, 1, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
+/// Desert Chaser placement for Mine Mesa area variant 1.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant1Placements[2] = {
+    { MINE_MESA_RESOURCE_DESERT_CHASER, 1, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_mesa_80189724[5] = {
-    { 16, 0, 0, 5900, -1670, 3600, 400, 0, 0, 2, 0 },
-    { 16, 0, 0, 6700, -1300, 4600, 1200, 0, 0, 2, 0 },
-    { 16, 0, 0, 7800, -1300, 3550, 2600, 0, 0, 2, 0 },
-    { 16, 0, 0, 9000, 0, 4200, 1024, 0, 0, 2, 0 },
+/// Four Scavenger placements for Mine Mesa area variant 2.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant2Placements[5] = {
+    { MINE_MESA_RESOURCE_SCAVENGER, 0, 0, 5900, -1670, 3600, 400, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCAVENGER, 0, 0, 6700, -1300, 4600, 1200, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCAVENGER, 0, 0, 7800, -1300, 3550, 2600, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCAVENGER, 0, 0, 9000, 0, 4200, 1024, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_mesa_80189774[7] = {
-    { 25, 0, 2, 9200, 0, 6800, 2800, 0, 0, 2, 2 },
-    { 25, 0, 2, 9700, 0, 1200, 3300, 0, 0, 2, 2 },
-    { 15, 0, 2, 2200, -3000, 7800, 3950, 0, 2, 4, 0 },
-    { 15, 0, 2, 0x2EE0, -2500, 7800, 500, 0, 2, 4, 0 },
-    { 15, 0, 2, 6300, -1800, 8350, -200, 0, 2, 4, 0 },
-    { 15, 0, 2, 0x2EE0, -1500, 200, 700, 0, 2, 4, 0 },
+/// Two Scorpions and four Mind Suckler placements for Mine Mesa area variant 3.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant3Placements[7] = {
+    { MINE_MESA_RESOURCE_SCORPION, 0, 2, 9200, 0, 6800, 2800, 0, 0, 2, 2 },
+    { MINE_MESA_RESOURCE_SCORPION, 0, 2, 9700, 0, 1200, 3300, 0, 0, 2, 2 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 2200, -3000, 7800, 3950, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 0x2EE0, -2500, 7800, 500, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 6300, -1800, 8350, -200, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 0x2EE0, -1500, 200, 700, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_mesa_801897E4[7] = {
-    { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
-    { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
-    { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
-    { 15, 0, 2, 8700, -2000, 8000, 0, 0, 2, 4, 0 },
-    { 15, 0, 2, 5000, -3000, 0, 2048, 0, 2, 4, 0 },
-    { 15, 0, 2, 0x2EE0, -2000, 500, 1024, 0, 2, 4, 0 },
+/// Three Scorpions and three Mind Suckler placements for Mine Mesa area variant 4.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant4Placements[7] = {
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 8700, -2000, 8000, 0, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 5000, -3000, 0, 2048, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_MIND_SUCKLER, 0, 2, 0x2EE0, -2000, 500, 1024, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_mesa_80189854[3] = {
-    { 20, 3, 1, 7000, 0, 6500, 1024, 0, 0, 2, 0 },
-    { 57, 4, 1, 6000, 0, 2000, 1024, 0, 3, 5, 0 },
+/// Pawn and Rook GOLEM placements for Mine Mesa area variant 7.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant7Placements[3] = {
+    { MINE_MESA_RESOURCE_PAWN_GOLEM, 3, 1, 7000, 0, 6500, 1024, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_ROOK_GOLEM, 4, 1, 6000, 0, 2000, 1024, 0, 3, 5, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_mesa_80189884[7] = {
-    { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
-    { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
-    { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
-    { 37, 0, 0, 1600, -1800, 3500, 0, 0, 2, 4, 0 },
-    { 37, 0, 0, 2800, -1800, 1400, 0, 0, 2, 4, 0 },
-    { 37, 0, 0, 5000, -1800, 6500, 0, 0, 2, 4, 0 },
+/// Three Scorpions and three Bat placements for Mine Mesa area variant 11.
+///
+/// Ends at `AREA_PLACEMENT_END`; borrowed from the loaded room by area loading
+/// and spawning. Positions use world units and yaw uses 4096 units per turn.
+static AreaPlacement _gMineMesaVariant11Placements[7] = {
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_SCORPION, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
+    { MINE_MESA_RESOURCE_BAT, 0, 0, 1600, -1800, 3500, 0, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_BAT, 0, 0, 2800, -1800, 1400, 0, 0, 2, 4, 0 },
+    { MINE_MESA_RESOURCE_BAT, 0, 0, 5000, -1800, 6500, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_mesa_801898F4[12] = {
+AreaVariant gMineMesaAreaVariants[12] = {
     { NULL, NULL },
-    { D_mine_mesa_80189704, D_mine_mesa_80189644 },
-    { D_mine_mesa_80189724, D_mine_mesa_8018965C },
-    { D_mine_mesa_80189774, D_mine_mesa_80189674 },
-    { D_mine_mesa_801897E4, D_mine_mesa_80189698 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_mine_mesa_80189854, D_mine_mesa_801896BC },
+    { _gMineMesaVariant1Placements, _gMineMesaVariant1Resources },
+    { _gMineMesaVariant2Placements, _gMineMesaVariant2Resources },
+    { _gMineMesaVariant3Placements, _gMineMesaVariant3Resources },
+    { _gMineMesaVariant4Placements, _gMineMesaVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
+    { _gMineMesaVariant7Placements, _gMineMesaVariant7Resources },
     { NULL, NULL },
-    { D_mine_mesa_80189884, D_mine_mesa_801896E0 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gMineMesaVariant11Placements, _gMineMesaVariant11Resources },
 };
 
 /// Minimum ambient levels for Mine Mesa's eleven views, after a count header.
@@ -2674,9 +2750,20 @@ Task* D_mine_mesa_80189B4C = NULL;
 
 s32 D_mine_mesa_80189B50 = 0;
 
-Task* D_mine_mesa_80189B54 = NULL;
+/// Borrowed task controlling the player's head toward the companion, or NULL.
+///
+/// Holds retained head aim or direct head blend. Start requires no earlier
+/// tracked task, except that the blend launcher cancels its predecessor.
+/// Cancellation and task exit clear the handle; room entry resets it without
+/// killing a task, so old room tasks must already be retired.
+static Task* _gMineMesaPlayerHeadTask = NULL;
 
-Task* D_mine_mesa_80189B58 = NULL;
+/// Borrowed retained companion-head-aim task, or NULL while none is tracked.
+///
+/// The launcher requires no earlier tracked task. Cancellation and task exit
+/// clear the handle; room entry resets it after previous room tasks retire.
+/// Owned aim work belongs to the task, not to this handle.
+static Task* _gMineMesaCompanionHeadAimTask = NULL;
 
 Task* D_mine_mesa_80189B5C = NULL;
 
@@ -3031,13 +3118,13 @@ static void _mineMesaPlayerPathTask(Task* task)
            PATH_YAW      = 785 };
     ActorTransform placement;
 
-    if (task->killCountdown >= (s32)ARRAY_SIZE(D_mine_mesa_80184184) || gGameSession->evtSkipped != 0) {
+    if (task->killCountdown >= (s32)ARRAY_SIZE(_gMineMesaPlayerRunPath) || gGameSession->evtSkipped != 0) {
         taskKill(task);
         return;
     }
-    placement.pos.vx  = D_mine_mesa_80184184[task->killCountdown].vx;
-    placement.pos.vy  = D_mine_mesa_80184184[task->killCountdown].vy;
-    placement.pos.vz  = D_mine_mesa_80184184[task->killCountdown].vz;
+    placement.pos.vx  = _gMineMesaPlayerRunPath[task->killCountdown].vx;
+    placement.pos.vy  = _gMineMesaPlayerRunPath[task->killCountdown].vy;
+    placement.pos.vz  = _gMineMesaPlayerRunPath[task->killCountdown].vz;
     placement.pos.vx += PATH_X_OFFSET;
     placement.pos.vz += PATH_Z_OFFSET;
     placement.rot.vx  = 0;
@@ -3113,7 +3200,7 @@ static void _mineMesaPlayerHeadAimTask(Task* task)
                 /* fallthrough */
             default:
                 taskKill(task);
-                D_mine_mesa_80189B54 = NULL;
+                _gMineMesaPlayerHeadTask = NULL;
                 break;
         }
     }
@@ -3156,7 +3243,7 @@ static void _mineMesaCompanionHeadAimTask(Task* task)
                 /* fallthrough */
             default:
                 taskKill(task);
-                D_mine_mesa_80189B58 = NULL;
+                _gMineMesaCompanionHeadAimTask = NULL;
                 break;
         }
     }
@@ -3275,8 +3362,7 @@ static void _mineMesaCancelScene(void)
 /// or event skip. The bodyless path task owns no work; no handle is retained.
 static void _mineMesaStartPlayerPath(void)
 {
-    enum { PLAYER_PATH_ENTRY = 0 };
-    taskSpawnFromTable(D_mine_mesa_801842F4, PLAYER_PATH_ENTRY, 0, 0);
+    taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_PLAYER_PATH, 0, 0);
 }
 
 /// Starts and tracks the player's retained head aim toward the companion.
@@ -3287,8 +3373,7 @@ static void _mineMesaStartPlayerPath(void)
 /// borrowed handle without releasing an earlier task.
 static void _mineMesaStartPlayerHeadAim(void)
 {
-    enum { PLAYER_HEAD_AIM_ENTRY = 1 };
-    D_mine_mesa_80189B54 = taskSpawnFromTable(D_mine_mesa_801842F4, PLAYER_HEAD_AIM_ENTRY, 0, 0);
+    _gMineMesaPlayerHeadTask = taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_PLAYER_HEAD_AIM, 0, 0);
 }
 
 /// Controls the tracked player head-aim task, if one is live.
@@ -3298,7 +3383,7 @@ static void _mineMesaStartPlayerHeadAim(void)
 /// head-blend task. Killing a retained-aim task releases its owned work.
 static void _mineMesaSetPlayerHeadAimMode(s32 mode)
 {
-    Task* headAimTask = D_mine_mesa_80189B54;
+    Task* headAimTask = _gMineMesaPlayerHeadTask;
 
     if (headAimTask == NULL) {
         return;
@@ -3309,8 +3394,8 @@ static void _mineMesaSetPlayerHeadAimMode(s32 mode)
             return;
         }
     }
-    taskKill(D_mine_mesa_80189B54);
-    D_mine_mesa_80189B54 = NULL;
+    taskKill(_gMineMesaPlayerHeadTask);
+    _gMineMesaPlayerHeadTask = NULL;
 }
 
 /// Starts and tracks the companion's retained head aim toward the player.
@@ -3321,8 +3406,7 @@ static void _mineMesaSetPlayerHeadAimMode(s32 mode)
 /// borrowed handle without releasing an earlier task.
 static void _mineMesaStartCompanionHeadAim(void)
 {
-    enum { COMPANION_HEAD_AIM_ENTRY = 2 };
-    D_mine_mesa_80189B58 = taskSpawnFromTable(D_mine_mesa_801842F4, COMPANION_HEAD_AIM_ENTRY, 0, 0);
+    _gMineMesaCompanionHeadAimTask = taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_COMPANION_HEAD_AIM, 0, 0);
 }
 
 /// Controls the tracked companion head-aim task, if one is live.
@@ -3331,15 +3415,15 @@ static void _mineMesaStartCompanionHeadAim(void)
 /// the task and clears its handle. Killing a retained-aim task releases its owned work.
 static void _mineMesaSetCompanionHeadAimMode(s32 mode)
 {
-    if (D_mine_mesa_80189B58 != NULL) {
+    if (_gMineMesaCompanionHeadAimTask != NULL) {
         if (mode < MINE_MESA_HEAD_AIM_MODE_COUNT) {
             if (mode >= MINE_MESA_HEAD_AIM_RELEASE) {
-                D_mine_mesa_80189B58->spawnArg1.value = mode;
+                _gMineMesaCompanionHeadAimTask->spawnArg1.value = mode;
                 return;
             }
         }
-        taskKill(D_mine_mesa_80189B58);
-        D_mine_mesa_80189B58 = NULL;
+        taskKill(_gMineMesaCompanionHeadAimTask);
+        _gMineMesaCompanionHeadAimTask = NULL;
     }
 }
 
@@ -3350,11 +3434,10 @@ static void _mineMesaSetCompanionHeadAimMode(s32 mode)
 /// models must have live head coordinates; the new task owns no work.
 static void _mineMesaStartPlayerHeadBlend(void)
 {
-    enum { PLAYER_HEAD_BLEND_ENTRY = 3 };
-    if (D_mine_mesa_80189B54 != NULL) {
-        taskKill(D_mine_mesa_80189B54);
+    if (_gMineMesaPlayerHeadTask != NULL) {
+        taskKill(_gMineMesaPlayerHeadTask);
     }
-    D_mine_mesa_80189B54 = taskSpawnFromTable(D_mine_mesa_801842F4, PLAYER_HEAD_BLEND_ENTRY, 0, 0);
+    _gMineMesaPlayerHeadTask = taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_PLAYER_HEAD_BLEND, 0, 0);
 }
 
 /// Fades direct head aiming in or out by 256 Q12 units per call.
@@ -3408,7 +3491,7 @@ static void _mineMesaPlayerHeadBlendTask(Task* task)
             return;
         }
         taskKill(task);
-        D_mine_mesa_80189B54 = NULL;
+        _gMineMesaPlayerHeadTask = NULL;
     }
 }
 
@@ -3421,9 +3504,8 @@ static void _mineMesaPlayerHeadBlendTask(Task* task)
 /// The bodyless task owns no work; allocation failure still draws this overlay.
 static void _mineMesaStartFadeFromBlack(s32 holdTicks)
 {
-    enum { FADE_FROM_BLACK_ENTRY = 4,
-           BLACK_LEVEL           = 255 };
-    D_mine_mesa_80189B5C = taskSpawnFromTable(D_mine_mesa_801842F4, FADE_FROM_BLACK_ENTRY, holdTicks, 0);
+    enum { BLACK_LEVEL = 255 };
+    D_mine_mesa_80189B5C = taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_FADE_FROM_BLACK, holdTicks, 0);
     fadeDrawOverlay(BLACK_LEVEL, BLACK_LEVEL, BLACK_LEVEL, GPU_BLEND_SUBTRACT);
 }
 
@@ -3464,8 +3546,7 @@ static void _mineMesaSelectCountdownMusicEntry(u8 countdownEntry)
 /// end it early. The bodyless task owns no work and no handle is retained.
 static void _mineMesaStartRunSoundCues(void)
 {
-    enum { RUN_SOUND_CUES_ENTRY = 5 };
-    taskSpawnFromTable(D_mine_mesa_801842F4, RUN_SOUND_CUES_ENTRY, 0, 0);
+    taskSpawnFromTable(_gMineMesaSceneTaskDescriptors, MINE_MESA_SCENE_TASK_RUN_SOUND_CUES, 0, 0);
 }
 
 /// Plays the run scene's two sound cues on ticks 47 and 57, then releases the task.
@@ -3564,9 +3645,9 @@ static void _mineMesaHaltVibrationScript(void)
 /// must already be retired before entry initialization.
 static void _mineMesaResetSceneTaskHandles(void)
 {
-    D_mine_mesa_80189B54 = NULL;
-    D_mine_mesa_80189B58 = NULL;
-    D_mine_mesa_80189B5C = NULL;
+    _gMineMesaPlayerHeadTask       = NULL;
+    _gMineMesaCompanionHeadAimTask = NULL;
+    D_mine_mesa_80189B5C           = NULL;
 }
 
 /// Restores the live grid's reserved three-face mesh from its template.
@@ -3605,7 +3686,7 @@ static void _mineMesaSetSceneCollisionLowered(s32 lowered)
            SCENE_COLLISION_Z         = 2550,
            SCENE_COLLISION_NORMAL_Y  = -180,
            SCENE_COLLISION_LOWERED_Y = 2000 };
-    WorldCollisionGrid* liveGrid     = &D_mine_mesa_8018700C;
+    WorldCollisionGrid* liveGrid     = &_gMineMesaCollisionGrid;
     WorldCollisionGrid* templateGrid = &D_mine_mesa_801864A4;
     SVECTOR             translation;
     s32                 elementIndex;
@@ -3647,10 +3728,10 @@ void mineMesaDrawViewFlaresTask(Task* task)
         task->state                      = FLARES_DRAW;
     }
 
-    // Camera subsets share overlapping runs through the consecutive position records.
+    // Camera subsets use overlapping slices of the world-position table.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
-            const SVECTOR* positions = D_mine_mesa_801864D0;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[1];
             _glowDrawFlare(&positions[0], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
@@ -3658,7 +3739,7 @@ void mineMesaDrawViewFlaresTask(Task* task)
             break;
         }
         case 4: {
-            const SVECTOR* positions = D_mine_mesa_801864F0;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[5];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
@@ -3667,7 +3748,7 @@ void mineMesaDrawViewFlaresTask(Task* task)
             break;
         }
         case 5: {
-            const SVECTOR* positions = D_mine_mesa_801864C8;
+            const SVECTOR* positions = _gMineMesaFlarePositions;
             _glowDrawFlare(&positions[0], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
             _glowDrawFlare(&positions[5], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
@@ -3677,7 +3758,7 @@ void mineMesaDrawViewFlaresTask(Task* task)
             break;
         }
         case 6: {
-            const SVECTOR* positions = D_mine_mesa_801864F0;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[5];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[4], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
@@ -3685,25 +3766,25 @@ void mineMesaDrawViewFlaresTask(Task* task)
             break;
         }
         case 8: {
-            const SVECTOR* positions = D_mine_mesa_801864F0;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[5];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 9: {
-            const SVECTOR* positions = D_mine_mesa_80186508;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[8];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 10: {
-            const SVECTOR* positions = D_mine_mesa_801864D8;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[2];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 11: {
-            const SVECTOR* positions = D_mine_mesa_801864F0;
+            const SVECTOR* positions = &_gMineMesaFlarePositions[5];
             _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);

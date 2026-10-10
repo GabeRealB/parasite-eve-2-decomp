@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_mesa_801898F4[12];
+/// Actor layouts for Mine Mesa (stage 4, area 1), indexed by placement variant.
+///
+/// Slots 1, 2, 3, 4, 7 and 11 contain sentinel-terminated placement/resource
+/// pairs; slots 0, 5, 6 and 8..10 are empty. Variant 1 is the default layout.
+/// Gameplay borrows the directory and lists while this room overlay is loaded;
+/// spawned actors may retain placement pointers until they are released.
+extern AreaVariant gMineMesaAreaVariants[12];
 
 // mine_mesa
 extern WorldCollisionRoomResources D_mine_mesa_80186538[];
@@ -30,13 +36,27 @@ extern u8* gMineMesaRoomViewMaps[1];
 /// The records and their light arrays stay valid only while this overlay is loaded.
 extern WorldCoordRoomLighting gMineMesaRoomLighting[1];
 
-extern ViewCount D_mine_mesa_80186554[];
+/// Logical-view count for Mine Mesa's single room.
+///
+/// Indexed by room minus one (room 1 only). The identity map has eleven valid
+/// views; the stage map borrows this signed count while the room is loaded.
+extern ViewCount gMineMesaRoomViewCounts[1];
 
 extern DirectionWarpEntry D_mine_mesa_80186558[];
 
-extern ViewCamera D_mine_mesa_80187030[];
+/// Cameras for Mine Mesa's eleven mapped views, indexed by mapped view minus one.
+///
+/// Rotation uses Q12 coefficients, translation is the negated world origin,
+/// and projection distance is in pixels. The stage map borrows these records;
+/// a queued camera application requires the room to remain loaded until dispatch.
+extern ViewCamera gMineMesaViewCameras[11];
 
-extern SpriteView D_mine_mesa_80188744[];
+/// Sprite resources for Mine Mesa's eleven mapped views, indexed by view minus one.
+///
+/// Views 1, 7, 10 and 11 have background batches only. Other views borrow mutable
+/// sprite sources; each batch list ends at `SPRITE_BATCH_END`. The stage map
+/// borrows this directory and its lists while the room overlay is loaded.
+extern SpriteView gMineMesaSpriteViews[11];
 
 /// Mine Mesa's collision and footstep records, indexed by surface class 0..7.
 ///
