@@ -455,7 +455,7 @@ AreaRecord D_8010CC94[39] = {
     { NULL, NULL },
     { D_dryfield_saloon_g_r_80181B1C, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
     { D_dryfield_g_r_kitchen_8017F4B8, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { D_dryfield_water_tower_8018757C, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    { gDryfieldWaterTowerAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
     { gDryfieldWaterTankAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
     { D_dryfield_breezeway_801842F8, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
     { NULL, NULL },

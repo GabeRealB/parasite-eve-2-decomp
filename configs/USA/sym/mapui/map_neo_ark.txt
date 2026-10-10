@@ -20,7 +20,7 @@ gShelter1fVehicularAirlockRoomLighting = 0x8018210C; // absolute:True owner=shel
 gShelter1fVehicularAirlockViewMaps = 0x80182114; // absolute:True owner=shelter_1f_vehicular_airlock
 gShelter1fVehicularAirlockViewCounts = 0x80182118; // absolute:True owner=shelter_1f_vehicular_airlock
 gShelter1fVehicularAirlockWarpEntries = 0x8018211C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-gShelter1fVehicularAirlockViewCameras = 0x8018245C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+gShelter1fVehicularAirlockViewCameras = 0x8018245C; // absolute:True owner=shelter_1f_vehicular_airlock
 gShelter1fVehicularAirlockSpriteViews = 0x801824F8; // absolute:True owner=shelter_1f_vehicular_airlock
 gShelter1fVehicularAirlockSurfaceProperties = 0x80182A80; // absolute:True owner=shelter_1f_vehicular_airlock
 shelter1fBulwarkRoomTask = 0x8017DC20; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
@@ -291,7 +291,7 @@ gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // absolute:True owner=neo_ark_sub
 gNeoArkSubmarineGalleryViewCounts = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryWarpEntries = 0x80181A10; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryCollisionGrid = 0x8018239C; // absolute:True owner=neo_ark_submarine_gallery
-gNeoArkSubmarineGalleryViewCameras = 0x801823C0; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
+gNeoArkSubmarineGalleryViewCameras = 0x801823C0; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGallerySpriteViews = 0x80184D10; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 gNeoArkSubmarineGalleryRoomLights = 0x80185284; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewBoundaryTriggers = 0x8018529C; // absolute:True owner=neo_ark_submarine_gallery

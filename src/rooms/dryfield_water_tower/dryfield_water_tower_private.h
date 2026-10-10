@@ -1,34 +1,20 @@
 #ifndef SRC_ROOMS_DRYFIELD_WATER_TOWER_DRYFIELD_WATER_TOWER_PRIVATE_H
 #define SRC_ROOMS_DRYFIELD_WATER_TOWER_DRYFIELD_WATER_TOWER_PRIVATE_H
 
-#include "common.h"
+#include "types.h"
 
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
 
-/// View slot the water-tower mechanism scene started on, plus the zero word
-/// that follows it.
-///
-/// A CAP command can move the room to another view. The scene task copies the
-/// live save's `location.loc.view` here before starting its command, and
-/// writes it back when the command ends without the event key that advances
-/// the mechanism; with that key the view the command left is kept. The slot is
-/// a byte stored as a word, so only the low byte carries it. The following
-/// word is zero in the room's image and has no recovered access; its role, and
-/// whether it belongs to this object at all, is unproven.
-typedef struct {
-    u32 view;       // 1-based view slot saved at the scene's start (a `u8` stored as a word)
-    u8  field_4[4]; // Zero bytes with no accesses; role unproven
-} DryfieldWaterTowerSavedView;
-STATIC_ASSERT_SIZEOF(DryfieldWaterTowerSavedView, 8);
-
 /// Prop-scene tasks: the driver, sliding prop and falling prop, in slots 0..2.
 ///
-/// The room entry spawns `_dryfieldWaterTowerPropSceneTask`; that driver spawns
-/// `_dryfieldWaterTowerSlidingPropTask` and `_dryfieldWaterTowerFallingPropTask`.
-extern TaskDesc D_dryfield_water_tower_80182384[];
+/// All use priority 192; the props use TMD bodies and allocate their primitive
+/// buffers themselves. Slot 2 also spawns the free-falling copy with argument 1.
+/// No TASK_DESC_END is stored: callers must select a slot in 0..2. The room
+/// owns the recipes and models and must remain loaded through task teardown.
+extern TaskDesc gDryfieldWaterTowerPropSceneTasks[3];
 
 extern Task* D_dryfield_water_tower_801876A4;
 
@@ -36,14 +22,18 @@ extern Task* D_dryfield_water_tower_801876AC;
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskDesc D_dryfield_water_tower_801803D8[2];
+/// Bodyless mechanism-prompt task at priority 32, followed by TASK_DESC_END.
+///
+/// CAP room command 7 spawns slot 0 with zero arguments. The room owns the
+/// descriptor and callback and must remain loaded until the prompt task ends.
+extern TaskDesc gDryfieldWaterTowerMechanismPromptTasks[2];
 
-extern DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C;
-
-/// The room's message table, `(messageId, handler)` pairs ending at
-/// `TASK_MESSAGE_TABLE_END`, which the entry task installs as its own
-/// `Task::msgTable`.
-extern TaskMessageEntry D_dryfield_water_tower_801803A0[7];
+/// Water-tower room receivers for transitions, key items, actions, CAP commands and events.
+///
+/// Six live entries precede TASK_MESSAGE_TABLE_END. Installed on the room task
+/// and borrowed for its lifetime. Actor events forward to the prop-scene driver
+/// and define no usable reply; never dispatch the end marker itself.
+extern TaskMessageEntry gDryfieldWaterTowerRoomMessages[7];
 
 /// Requests a timed mechanism run from the room's prop-scene driver.
 ///
@@ -63,7 +53,7 @@ void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible);
 ///
 /// Start in state 0 with the player, prop-scene driver and room CAP resources
 /// live. Initial/restored mechanism states hold player presentation and save
-/// `DryfieldWaterTowerSavedView::view`; reply key 10 marks the tower operated,
+/// the starting view; reply key 10 marks the tower operated,
 /// requests the timed run and plays its sound. Other replies restore the view,
 /// HUD and player control. Operated states only start transition CAP playback.
 /// Finished paths release the task; the accepted run owns subsequent restoration.

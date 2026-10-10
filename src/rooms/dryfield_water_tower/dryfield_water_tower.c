@@ -1,4 +1,4 @@
-#include "types.h"
+#include "common.h"
 
 #include "main/task_types.h"
 
@@ -49,6 +49,23 @@ static void _dryfieldWaterTowerIdleRoomTask(Task* task);
 
 static void _dryfieldWaterTowerRestoreMechanismSpriteVisibility(void);
 
+/// Mechanism-prompt view snapshot and the following unaccessed storage.
+///
+/// The prompt saves the live location's view before waiting for its CAP reply;
+/// cancellation restores its low byte. The following four zero bytes have no
+/// recovered access and their membership in this object remains unproven.
+typedef struct {
+    u32 view;       // 1-based logical view slot, a saved u8 held in a word
+    u8  field_4[4]; // Retained zero bytes; role and object boundary unproven
+} _DryfieldWaterTowerSavedView;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerSavedView, 8);
+
+/// Starting view restored when the player declines the mechanism prompt.
+///
+/// A later prompt replaces the snapshot. Accepted runs keep the view selected
+/// by CAP. Only the view word is accessed; the trailing four bytes are retained.
+static _DryfieldWaterTowerSavedView _gDryfieldWaterTowerMechanismPromptSavedView = { 0 };
+
 /// Snapshot of the accepted transition for the deferred room event.
 ///
 /// The gate copies all eight bytes before spawning; another accepted start
@@ -84,7 +101,7 @@ static inline void _dryfieldWaterTowerCancelMechanismPrompt(void)
     gGameSession->eventState                                   = DRYFIELD_WATER_TOWER_EVENT_IDLE;
     gGameSession->hideHud                                      = 0;
     gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldWaterTowerMechanismPromptSavedView.view;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
 }
@@ -110,10 +127,10 @@ void dryfieldWaterTowerMechanismPromptTask(Task* task)
                 capRunCommand(DRYFIELD_WATER_TOWER_CAP_MECHANISM_COMMAND, CAP_PLAYBACK_IN_PLACE);
                 gGameSession->eventState = DRYFIELD_WATER_TOWER_EVENT_ACTIVE;
                 {
-                    u32 savedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-                    s32 promptState                      = task->state;
-                    D_dryfield_water_tower_8018768C.view = savedView;
-                    task->state                          = promptState + 1;
+                    u32 savedView                                     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                    s32 promptState                                   = task->state;
+                    _gDryfieldWaterTowerMechanismPromptSavedView.view = savedView;
+                    task->state                                       = promptState + 1;
                 }
                 return;
             }
@@ -181,7 +198,7 @@ s32 dryfieldWaterTowerCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 
     };
 
     if (commandId == DRYFIELD_WATER_TOWER_COMMAND_MECHANISM) {
-        taskSpawnFromTable(D_dryfield_water_tower_801803D8, DRYFIELD_WATER_TOWER_MECHANISM_PROMPT_DESCRIPTOR, 0, 0);
+        taskSpawnFromTable(gDryfieldWaterTowerMechanismPromptTasks, DRYFIELD_WATER_TOWER_MECHANISM_PROMPT_DESCRIPTOR, 0, 0);
     }
     return 0;
 }
@@ -205,9 +222,9 @@ static void _dryfieldWaterTowerInitializeRoomTask(Task* task)
 {
     Task* propSceneTask;
 
-    task->msgTable = D_dryfield_water_tower_801803A0;
+    task->msgTable = gDryfieldWaterTowerRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    propSceneTask                   = taskSpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
+    propSceneTask                   = taskSpawnFromTable(gDryfieldWaterTowerPropSceneTasks, 0, 0, 0);
     task->state                     = task->state + 1;
     D_dryfield_water_tower_801876A0 = propSceneTask;
 }

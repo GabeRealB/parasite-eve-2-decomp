@@ -27,10 +27,22 @@ extern u16 D_dryfield_water_tower_801876A8;
 
 extern u16 D_dryfield_water_tower_801876AA;
 
-extern AreaVariant D_dryfield_water_tower_8018757C[13];
+/// Placement/resource variants of the daytime water-tower area, indexed by variant 0..12.
+///
+/// Slots 1/2/3 use map-owned placements for two scripted chasers, seven scorpions
+/// and five scorpions respectively. Slot 10 uses a room-owned regular chaser
+/// placement; other slots are NULL pairs. There is no terminator or bounds check.
+/// The room owns the resource tables; variants 1..3 also require map_dryfield
+/// loaded. Placement/resource pointers are borrowed through loading and spawning.
+extern AreaVariant gDryfieldWaterTowerAreaVariants[13];
 
-// dryfield_water_tower
-extern WorldCollisionRoomResources D_dryfield_water_tower_801827CC[];
+/// Collision mesh and trigger collections for the water tower's sole room.
+///
+/// Indexed by room minus one, with no directory terminator. Supplies the mutable
+/// mesh, 14 view boundaries and 24 action triggers, with no occluders. Each
+/// trigger array includes its LAST record. The prop scene patches the mesh;
+/// gameplay borrows the resources while this room overlay remains loaded.
+extern WorldCollisionRoomResources gDryfieldWaterTowerRoomCollisionResources[1];
 
 /// Logical-view map directory for the water tower's sole room.
 ///
@@ -53,7 +65,14 @@ extern ViewCount gDryfieldWaterTowerRoomViewCounts[1];
 /// overlay owns the descriptor and writable light arrays throughout their use.
 extern WorldCoordRoomLighting gDryfieldWaterTowerRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_water_tower_801827EC[];
+/// Four water-tower warp endpoints, indexed by warp ID 1..4 minus one.
+///
+/// In order: G&R kitchen, breezeway, water tank and motel room 6. No terminator
+/// is stored. Player and companion share each arrival mark in room units and
+/// yaw in 4096 units per turn; initial logical views are 4/20/9/3. The first
+/// two update map markers, the last two fade departure. Direction code copies
+/// a complete entry; the map directory borrows the array from this loaded room.
+extern DirectionWarpEntry gDryfieldWaterTowerWarpEntries[4];
 
 /// Cameras for mapped water-tower views 1..20, indexed by view minus one.
 ///

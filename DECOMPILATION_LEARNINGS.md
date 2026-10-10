@@ -90182,21 +90182,21 @@ decode as one. Declaring the payloads as that type and indexing them reproduces
 the displacement while keeping the base symbol:
 
 ```c
-extern ActorTransform D_dryfield_water_tower_801823A8;
-extern ActorTransform D_dryfield_water_tower_801823C0[4];
+static ActorTransform _gDryfieldWaterTowerActorScenePlayerPlacement;
+static ActorTransform _gDryfieldWaterTowerActorScenePlacements[4];
 
-TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[1], 0);
-TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[2], 0);
+TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerActorScenePlacements[1], 0);
+TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerActorScenePlacements[2], 0);
 ```
 
-CSE keeps `&D_dryfield_water_tower_801823C0[1]` in one register, so the second call is the single
+CSE keeps `&_gDryfieldWaterTowerActorScenePlacements[1]` in one register, so the second call is the single
 `addiu a2,s0,0x18` the target has. 100.000%.
 
 **Do not fold the displacement into a neighbouring symbol instead.** The records
-are consecutive, so `&D_..._801823A8[2]` denotes the same address (base +
+are consecutive, so a combined table's `&_gDryfieldWaterTowerActorScenePlayerPlacement[2]` denotes the same address (base +
 2*0x18) and reads as the truer table. It fails: the differ compares the `.o`,
-before any linker collapses the addend, so the object's `%lo(D_..._801823A8+0x30)`
-must match splat's text for *that address*, which is the bare `D_..._801823D8`.
+before any linker collapses the addend, so the object's `%lo(_gDryfieldWaterTowerActorScenePlayerPlacement+0x30)`
+must match splat's text for *that address*, which names `_gDryfieldWaterTowerActorScenePlacements[1]`.
 Measured 97.391% (`regs=4 delete=1`) - and the 0x3E9 payload, now sharing the
 same base register, degraded further to `addiu a2,s0,-0x30` where the target
 emits its own `lui`/`addiu` pair. Keep the symbol each reference names and let
@@ -122743,10 +122743,10 @@ decrement:
 
 ```c
 limitIndex = 0;
-if (D_dryfield_water_tower_8018767C[0].maxTimeouts < work->timeouts) {
+if (_gDryfieldWaterTowerRunTimeLimits[0].maxTimeouts < work->timeouts) {
     do {
         limitIndex += 1;
-    } while (D_dryfield_water_tower_8018767C[limitIndex].maxTimeouts < work->timeouts);
+    } while (_gDryfieldWaterTowerRunTimeLimits[limitIndex].maxTimeouts < work->timeouts);
 }
 ```
 

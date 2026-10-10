@@ -178,7 +178,7 @@ gShelterB1PodAccessTunnelSurfacePropertiesByClass = 0x80184CDC; // absolute:True
 shelterB1ControlRoomRoomTask = 0x8017EECC; // type:func absolute:True owner=shelter_b1_control_room
 gShelterB1ControlRoomRoomViewMaps = 0x80181C70; // absolute:True owner=shelter_b1_control_room
 D_shelter_b1_control_room_80181C74 = 0x80181C74; // absolute:True owner=shelter_b1_control_room
-D_shelter_b1_control_room_80181C78 = 0x80181C78; // absolute:True owner=shelter_b1_control_room shared=rooms
+D_shelter_b1_control_room_80181C78 = 0x80181C78; // absolute:True owner=shelter_b1_control_room
 gShelterB1ControlRoomRoomCollision = 0x801820F8; // absolute:True owner=shelter_b1_control_room
 gShelterB1ControlRoomViewCameras = 0x8018211C; // absolute:True owner=shelter_b1_control_room shared=rooms
 gShelterB1ControlRoomSpriteViews = 0x801833BC; // absolute:True owner=shelter_b1_control_room

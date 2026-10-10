@@ -1640,7 +1640,7 @@ objects = [
 id = 324
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x4", text = "0xB4", data = "0xA0D4", bss = "0xA0E0" },
+  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x4", text = "0xB4", data = "0xA0CC", bss = "0xA0E0" },
   { unit = "dryfield_water_tower/dryfield_water_tower_2", rodata = "0x28", text = "0x870", data = "0x2DD4" },
   { kind = "model", at = "0x2E30", in_c = true },
   { kind = "modelSource", at = "0x3808", in_c = true },
