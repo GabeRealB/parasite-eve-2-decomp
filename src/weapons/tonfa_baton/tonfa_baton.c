@@ -65,16 +65,21 @@ typedef struct {
 } _TonfaBatonAttackScratch;
 STATIC_ASSERT_SIZEOF(_TonfaBatonAttackScratch, 0x18);
 
-/// The near end of the baton trail inside the weapon frame; the task's own
-/// coordinate starts there. The far end follows it directly, and state 0 reaches
-/// that as element 1 of this array.
-static SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
+enum {
+    TONFA_BATON_TRAIL_ENDPOINT_BASE  = 0,
+    TONFA_BATON_TRAIL_ENDPOINT_TIP   = 1,
+    TONFA_BATON_TRAIL_ENDPOINT_COUNT = 2
+};
 
-/// The far end of that pair, immediately after it. Both forms appear in
-/// the original: one path reaches it as `D_tonfa_baton_8011E0F0[1]`, which compiles to the
-/// array's address plus 8, and another names it directly, which compiles
-/// to its own address - so it has to be a separate object, not element 1.
-static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
+/// Base and tip translations for the baton swing ribbon, in integer game coordinates.
+///
+/// The base is (0, 128, 0) in the weapon frame. Seeding chains the tip's
+/// (0, -512, 0) translation below that base; subsequent samples apply it in
+/// the weapon frame directly. Only XYZ are read; each vector retains its pad.
+static SVECTOR _gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_COUNT] = {
+    { 0, 0x0080, 0, 0 },
+    { 0, -0x0200, 0, 0 },
+};
 
 // Pose requests shared by the argument reset and the angle step.
 enum {
@@ -128,7 +133,8 @@ void tonfaBatonSwingTrailTask(Task* task)
     GfxCoord*      baseCoord;
     GfxCoord*      historyFrame;
     EffectWork*    effectWork;
-    const SVECTOR* tipOffset;
+    const SVECTOR* seedTipOffset;
+    const SVECTOR* recordTipOffset;
     s32            historyIndex;
     s32            packedTint;
 
@@ -143,20 +149,20 @@ void tonfaBatonSwingTrailTask(Task* task)
         switch (task->state) {
             case TONFA_BATON_TRAIL_SEED:
                 baseCoord->parent       = effectWork->parent;
-                baseCoord->coord.t[0]   = D_tonfa_baton_8011E0F0[0].vx;
-                baseCoord->coord.t[1]   = D_tonfa_baton_8011E0F0[0].vy;
-                baseCoord->coord.t[2]   = D_tonfa_baton_8011E0F0[0].vz;
+                baseCoord->coord.t[0]   = _gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_BASE].vx;
+                baseCoord->coord.t[1]   = _gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_BASE].vy;
+                baseCoord->coord.t[2]   = _gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_BASE].vz;
                 baseCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(baseCoord);
                 task->state = TONFA_BATON_TRAIL_RECORD;
 
                 // The seed chains the tip below the base; later samples use the weapon parent.
                 // Only translations feed the ribbon; the temporary rotation is left uninitialized.
-                tipOffset                = &D_tonfa_baton_8011E0F0[1];
+                seedTipOffset            = &_gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_TIP];
                 tipEndpoint.parent       = baseCoord;
-                tipEndpoint.coord.t[0]   = tipOffset->vx;
-                tipEndpoint.coord.t[1]   = tipOffset->vy;
-                tipEndpoint.coord.t[2]   = tipOffset->vz;
+                tipEndpoint.coord.t[0]   = seedTipOffset->vx;
+                tipEndpoint.coord.t[1]   = seedTipOffset->vy;
+                tipEndpoint.coord.t[2]   = seedTipOffset->vz;
                 tipEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&tipEndpoint);
 
@@ -177,9 +183,10 @@ void tonfaBatonSwingTrailTask(Task* task)
                 baseCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(baseCoord);
                 tipEndpoint.parent       = effectWork->parent;
-                tipEndpoint.coord.t[0]   = D_tonfa_baton_8011E0F8.vx;
-                tipEndpoint.coord.t[1]   = D_tonfa_baton_8011E0F8.vy;
-                tipEndpoint.coord.t[2]   = D_tonfa_baton_8011E0F8.vz;
+                recordTipOffset          = &_gTonfaBatonTrailEndpointOffsets[TONFA_BATON_TRAIL_ENDPOINT_TIP];
+                tipEndpoint.coord.t[0]   = recordTipOffset->vx;
+                tipEndpoint.coord.t[1]   = recordTipOffset->vy;
+                tipEndpoint.coord.t[2]   = recordTipOffset->vz;
                 tipEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&tipEndpoint);
                 historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
@@ -502,134 +509,183 @@ void tonfaBatonAttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(_TonfaBatonAttackScratch);
 }
 
-static TmdBone _gTonfaBatonModel010C8Skeleton[1] = {
+enum {
+    TONFA_BATON_WEAPON_MODEL_QUAD_COUNT = 16,
+    TONFA_BATON_SHAFT_MODEL_QUAD_COUNT  = 6
+};
+
+/// Initial identity transform and self-parented root for the weapon model.
+static TmdBone _gTonfaBatonWeaponModelSkeleton[1] = {
 #include "assets/tonfa_baton_model_010C8_skeleton.inc"
 };
 
-static u32 _gTonfaBatonModel010C8PartVerts[1] = {
+/// Vertex count of the model's sole part: 24.
+static u32 _gTonfaBatonWeaponModelPartVerts[ARRAY_SIZE(_gTonfaBatonWeaponModelSkeleton)] = {
 #include "assets/tonfa_baton_model_010C8_partVerts.inc"
 };
 
-static SVECTOR _gTonfaBatonModel010C8Verts[24] = {
+/// Writable weapon vertices in integer part-local coordinates.
+static SVECTOR _gTonfaBatonWeaponModelVerts[24] = {
 #include "assets/tonfa_baton_model_010C8_verts.inc"
 };
 
-static SVECTOR _gTonfaBatonModel010C8Normals[20] = {
+/// Writable lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gTonfaBatonWeaponModelNormals[20] = {
 #include "assets/tonfa_baton_model_010C8_normals.inc"
 };
 
-static u32 _gTonfaBatonModel010C8Stream[118] = {
+/// Writable commands for 16 gouraud textured quads; creation resolves their handler slot.
+///
+/// One skeletal group is followed by an empty final group and `TMD_STREAM_END`.
+static u32 _gTonfaBatonWeaponModelStream[118] = {
 #include "assets/tonfa_baton_model_010C8_stream.inc"
 };
 
-TmdSource D_tonfa_baton_8011E460 = {
-    0,
-    832,
-    0,
-    1,
-    _gTonfaBatonModel010C8PartVerts,
-    _gTonfaBatonModel010C8Verts,
-    _gTonfaBatonModel010C8Normals,
-    _gTonfaBatonModel010C8Skeleton,
-    _gTonfaBatonModel010C8Stream,
+TmdSource gTonfaBatonWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = TONFA_BATON_WEAPON_MODEL_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gTonfaBatonWeaponModelSkeleton),
+    .partVertexCounts    = _gTonfaBatonWeaponModelPartVerts,
+    .verts               = _gTonfaBatonWeaponModelVerts,
+    .normals             = _gTonfaBatonWeaponModelNormals,
+    .skeleton            = _gTonfaBatonWeaponModelSkeleton,
+    .stream              = _gTonfaBatonWeaponModelStream,
 };
 
-static TmdBone _gTonfaBatonModel0136CSkeleton[1] = {
+/// Initial identity transform and self-parented root for the shaft model.
+static TmdBone _gTonfaBatonShaftModelSkeleton[1] = {
 #include "assets/tonfa_baton_model_0136C_skeleton.inc"
 };
 
-static u32 _gTonfaBatonModel0136CPartVerts[1] = {
+/// Vertex count of the model's sole part: 8.
+static u32 _gTonfaBatonShaftModelPartVerts[ARRAY_SIZE(_gTonfaBatonShaftModelSkeleton)] = {
 #include "assets/tonfa_baton_model_0136C_partVerts.inc"
 };
 
-static SVECTOR _gTonfaBatonModel0136CVerts[8] = {
+/// Writable shaft vertices in integer part-local coordinates.
+static SVECTOR _gTonfaBatonShaftModelVerts[8] = {
 #include "assets/tonfa_baton_model_0136C_verts.inc"
 };
 
-static SVECTOR _gTonfaBatonModel0136CNormals[8] = {
+/// Writable lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gTonfaBatonShaftModelNormals[8] = {
 #include "assets/tonfa_baton_model_0136C_normals.inc"
 };
 
-static u32 _gTonfaBatonModel0136CStream[48] = {
+/// Writable commands for 6 gouraud textured quads; creation resolves their handler slot.
+///
+/// One skeletal group is followed by an empty final group and `TMD_STREAM_END`.
+static u32 _gTonfaBatonShaftModelStream[48] = {
 #include "assets/tonfa_baton_model_0136C_stream.inc"
 };
 
-TmdSource D_tonfa_baton_8011E5EC = {
-    0,
-    312,
-    0,
-    1,
-    _gTonfaBatonModel0136CPartVerts,
-    _gTonfaBatonModel0136CVerts,
-    _gTonfaBatonModel0136CNormals,
-    _gTonfaBatonModel0136CSkeleton,
-    _gTonfaBatonModel0136CStream,
+TmdSource gTonfaBatonShaftModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = TONFA_BATON_SHAFT_MODEL_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gTonfaBatonShaftModelSkeleton),
+    .partVertexCounts    = _gTonfaBatonShaftModelPartVerts,
+    .verts               = _gTonfaBatonShaftModelVerts,
+    .normals             = _gTonfaBatonShaftModelNormals,
+    .skeleton            = _gTonfaBatonShaftModelSkeleton,
+    .stream              = _gTonfaBatonShaftModelStream,
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation015E0Bank1[2] = {
+/// Encoding-1 poses: integer local XYZ and Euler angles in 1/4096 turns.
+///
+/// Each pose spans three four-byte words addressed by the animation records.
+static AnimationPackedPose _gTonfaBatonIdleAnimationBank1[2] = {
 #include "assets/tonfa_baton_animation_015E0_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation015E0Bank4[8] = {
+/// Encoding-4 Euler rotations, eight angle units per packed step (4096 per turn).
+static AnimationPackedRotation _gTonfaBatonIdleAnimationBank4[8] = {
 #include "assets/tonfa_baton_animation_015E0_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation015E0Records[76] = {
+/// Whole-frame keyframe durations and absolute record-index jumps for 19 tracks.
+static AnimationRecord _gTonfaBatonIdleAnimationRecords[76] = {
 #include "assets/tonfa_baton_animation_015E0_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation015E0Indices[20] = {
+/// Record starts for model-part tracks 0..18; the final halfword is retained serialized data.
+static u16 _gTonfaBatonIdleAnimationIndices[20] = {
 #include "assets/tonfa_baton_animation_015E0_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation015E0 = {
-    _gTonfaBatonAnimation015E0Records,
-    _gTonfaBatonAnimation015E0Indices,
-    { NULL, _gTonfaBatonAnimation015E0Bank1, NULL, NULL, _gTonfaBatonAnimation015E0Bank4, NULL, NULL, NULL },
+/// Standing idle clip for the player while the tonfa baton bank is installed.
+///
+/// Native bank slots 1, 21, 22 and 41. Loops the same standing pose on all 19 model-part tracks.
+/// Borrows read-only, word-aligned pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonIdleAnimation = {
+    .records           = _gTonfaBatonIdleAnimationRecords,
+    .trackStartIndices = _gTonfaBatonIdleAnimationIndices,
+    .poseBanks         = { NULL, _gTonfaBatonIdleAnimationBank1, NULL, NULL, _gTonfaBatonIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation01C84Bank1[12] = {
+/// Encoding-1 poses: integer local XYZ and Euler angles in 1/4096 turns.
+///
+/// Each pose spans three four-byte words addressed by the animation records.
+static AnimationPackedPose _gTonfaBatonWalkAnimationBank1[12] = {
 #include "assets/tonfa_baton_animation_01C84_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation01C84Bank4[151] = {
+/// Encoding-4 Euler rotations, eight angle units per packed step (4096 per turn).
+static AnimationPackedRotation _gTonfaBatonWalkAnimationBank4[151] = {
 #include "assets/tonfa_baton_animation_01C84_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation01C84Records[218] = {
+/// Whole-frame keyframe durations and absolute record-index jumps for 19 tracks.
+static AnimationRecord _gTonfaBatonWalkAnimationRecords[218] = {
 #include "assets/tonfa_baton_animation_01C84_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation01C84Indices[20] = {
+/// Record starts for model-part tracks 0..18; the final halfword is retained serialized data.
+static u16 _gTonfaBatonWalkAnimationIndices[20] = {
 #include "assets/tonfa_baton_animation_01C84_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation01C84 = {
-    _gTonfaBatonAnimation01C84Records,
-    _gTonfaBatonAnimation01C84Indices,
-    { NULL, _gTonfaBatonAnimation01C84Bank1, NULL, NULL, _gTonfaBatonAnimation01C84Bank4, NULL, NULL, NULL },
+/// Forward-walk clip for the player while the tonfa baton bank is installed.
+///
+/// Native bank slots 2 and 19. Used for forward walking with or without an attached weapon model.
+/// Borrows read-only, word-aligned pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonWalkAnimation = {
+    .records           = _gTonfaBatonWalkAnimationRecords,
+    .trackStartIndices = _gTonfaBatonWalkAnimationIndices,
+    .poseBanks         = { NULL, _gTonfaBatonWalkAnimationBank1, NULL, NULL, _gTonfaBatonWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation024E4Bank1[19] = {
+/// Encoding-1 poses: integer local XYZ and Euler angles in 1/4096 turns.
+///
+/// Each pose spans three four-byte words addressed by the animation records.
+static AnimationPackedPose _gTonfaBatonTurnNegativeAnimationBank1[19] = {
 #include "assets/tonfa_baton_animation_024E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation024E4Bank4[169] = {
+/// Encoding-4 Euler rotations, eight angle units per packed step (4096 per turn).
+static AnimationPackedRotation _gTonfaBatonTurnNegativeAnimationBank4[169] = {
 #include "assets/tonfa_baton_animation_024E4_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation024E4Records[290] = {
+/// Whole-frame keyframe durations and absolute record-index jumps for 19 tracks.
+static AnimationRecord _gTonfaBatonTurnNegativeAnimationRecords[290] = {
 #include "assets/tonfa_baton_animation_024E4_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation024E4Indices[20] = {
+/// Record starts for model-part tracks 0..18; the final halfword is retained serialized data.
+static u16 _gTonfaBatonTurnNegativeAnimationIndices[20] = {
 #include "assets/tonfa_baton_animation_024E4_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation024E4 = {
-    _gTonfaBatonAnimation024E4Records,
-    _gTonfaBatonAnimation024E4Indices,
-    { NULL, _gTonfaBatonAnimation024E4Bank1, NULL, NULL, _gTonfaBatonAnimation024E4Bank4, NULL, NULL, NULL },
+/// Negative-direction stationary-turn clip for the player while the tonfa baton bank is installed.
+///
+/// Native bank slot 5 selects this when stationary turning has a negative sign.
+/// Borrows read-only, word-aligned pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonTurnNegativeAnimation = {
+    .records           = _gTonfaBatonTurnNegativeAnimationRecords,
+    .trackStartIndices = _gTonfaBatonTurnNegativeAnimationIndices,
+    .poseBanks         = { NULL, _gTonfaBatonTurnNegativeAnimationBank1, NULL, NULL, _gTonfaBatonTurnNegativeAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gTonfaBatonAnimation02D48Bank1[19] = {
@@ -1382,11 +1438,11 @@ static AnimationSet _gTonfaBatonAnimation0E8C8 = {
 
 AnimationBank D_tonfa_baton_8012BAB0 = { { {
     NULL,
-    &_gTonfaBatonAnimation015E0,
-    &_gTonfaBatonAnimation01C84,
+    &_gTonfaBatonIdleAnimation,
+    &_gTonfaBatonWalkAnimation,
     &_gTonfaBatonAnimation0E194,
     &_gTonfaBatonAnimation0E8C8,
-    &_gTonfaBatonAnimation024E4,
+    &_gTonfaBatonTurnNegativeAnimation,
     &_gTonfaBatonAnimation02D48,
     &_gTonfaBatonAnimation0D6F4,
     &_gTonfaBatonAnimation0D8BC,
@@ -1400,10 +1456,10 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation059AC,
     &_gTonfaBatonAnimation05CCC,
     &_gTonfaBatonAnimation06490,
-    &_gTonfaBatonAnimation01C84,
+    &_gTonfaBatonWalkAnimation,
     &_gTonfaBatonAnimation0B5C8,
-    &_gTonfaBatonAnimation015E0,
-    &_gTonfaBatonAnimation015E0,
+    &_gTonfaBatonIdleAnimation,
+    &_gTonfaBatonIdleAnimation,
     &_gTonfaBatonAnimation07728,
     &_gTonfaBatonAnimation089BC,
     &_gTonfaBatonAnimation082A0,
@@ -1422,7 +1478,7 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation045A4,
     &_gTonfaBatonAnimation04214,
     &_gTonfaBatonAnimation0305C,
-    &_gTonfaBatonAnimation015E0,
+    &_gTonfaBatonIdleAnimation,
     &_gTonfaBatonAnimation09578,
     &_gTonfaBatonAnimation0976C,
     &_gTonfaBatonAnimation09BEC,

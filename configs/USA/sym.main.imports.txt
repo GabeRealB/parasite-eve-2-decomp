@@ -179,10 +179,10 @@ m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 gM249WeaponModel = 0x8011DE74; // absolute:True owner=m249
 gM4a1RifleModel = 0x8011DEC4; // absolute:True owner=m4a1
 gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True owner=grenade_pistol
-D_tonfa_baton_8011E460 = 0x8011E460; // absolute:True owner=tonfa_baton
+gTonfaBatonWeaponModel = 0x8011E460; // absolute:True owner=tonfa_baton
 gMm1WeaponModel = 0x8011E494; // absolute:True owner=mm1
 gP229WeaponModel = 0x8011E5E4; // absolute:True owner=p229
-D_tonfa_baton_8011E5EC = 0x8011E5EC; // absolute:True owner=tonfa_baton
+gTonfaBatonShaftModel = 0x8011E5EC; // absolute:True owner=tonfa_baton
 gM4a1BayonetWeaponModel = 0x8011E9FC; // absolute:True owner=m4a1_bayonet
 gM4a1GrenadeWeaponModel = 0x8011EA2C; // absolute:True owner=m4a1_grenade
 gMp5a5WeaponModel = 0x8011EAFC; // absolute:True owner=mp5a5

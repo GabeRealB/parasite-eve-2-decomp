@@ -93,7 +93,13 @@ extern TmdSource D_pa3_8011DA04;
 /// resolves its writable command stream and copies the initial root transform.
 extern TmdSource gSp12Model;
 
-extern TmdSource D_tonfa_baton_8011E460;
+/// Single-part held tonfa baton, including its shaft and side grip.
+///
+/// Instances borrow the loaded package's 24 vertices, 20 normals and writable
+/// command stream. Each buffer half holds 16 gouraud textured quads. Release
+/// all instances before unloading the package; creation resolves stream handlers
+/// in place and copies the initial root transform.
+extern TmdSource gTonfaBatonWeaponModel;
 
 /// Rigid P229 pistol model attached to the player's weapon hand.
 ///
@@ -103,7 +109,13 @@ extern TmdSource D_tonfa_baton_8011E460;
 /// resolves draw handlers in place and copies the initial root transform.
 extern TmdSource gP229WeaponModel;
 
-extern TmdSource D_tonfa_baton_8011E5EC;
+/// Single-part tonfa baton shaft without the side grip, in model-task slot 111.
+///
+/// Eight vertices and eight normals define six gouraud textured quads. Instances
+/// borrow the loaded package's geometry and writable stream through teardown;
+/// creation resolves stream handlers in place. Runtime use of this resident
+/// descriptor is unproven.
+extern TmdSource gTonfaBatonShaftModel;
 
 /// Single-part held M4A1 rifle and bayonet model attached through the resident weapon-task bank.
 ///
