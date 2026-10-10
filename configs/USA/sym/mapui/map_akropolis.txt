@@ -26,13 +26,13 @@ D_acropolis_east_elevator_hall_80187A5C = 0x80187A5C; // absolute:True owner=acr
 D_acropolis_east_elevator_hall_80187B74 = 0x80187B74; // absolute:True owner=acropolis_east_elevator_hall shared=rooms
 acropolisPatioRoomTask = 0x8017DF8C; // type:func absolute:True owner=acropolis_patio
 D_acropolis_patio_80182E68 = 0x80182E68; // absolute:True owner=acropolis_patio shared=rooms
-D_acropolis_patio_80182EC0 = 0x80182EC0; // absolute:True owner=acropolis_patio
+gAcropolisPatioViewMaps = 0x80182EC0; // absolute:True owner=acropolis_patio
 D_acropolis_patio_80182ECC = 0x80182ECC; // absolute:True owner=acropolis_patio
-D_acropolis_patio_80182ED4 = 0x80182ED4; // absolute:True owner=acropolis_patio
+gAcropolisPatioRoomLightingTable = 0x80182ED4; // absolute:True owner=acropolis_patio
 D_acropolis_patio_80182EEC = 0x80182EEC; // absolute:True owner=acropolis_patio shared=rooms
 D_acropolis_patio_80186360 = 0x80186360; // absolute:True owner=acropolis_patio shared=rooms
 D_acropolis_patio_80186D5C = 0x80186D5C; // absolute:True owner=acropolis_patio
-D_acropolis_patio_8018703C = 0x8018703C; // absolute:True owner=acropolis_patio shared=rooms
+gAcropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=acropolis_patio shared=rooms
 acropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 acropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
 acropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria
@@ -194,7 +194,7 @@ D_mist_parking_8019399C = 0x8019399C; // absolute:True owner=mist_parking
 D_mist_parking_801952F0 = 0x801952F0; // absolute:True owner=mist_parking
 mistShootingGalleryRoomTask = 0x8018018C; // type:func absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853A8 = 0x801853A8; // absolute:True owner=mist_shooting_gallery
-D_mist_shooting_gallery_801853B8 = 0x801853B8; // absolute:True owner=mist_shooting_gallery shared=rooms
+D_mist_shooting_gallery_801853B8 = 0x801853B8; // absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853BC = 0x801853BC; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryRoomLightingTable = 0x801853C0; // absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853C8 = 0x801853C8; // absolute:True owner=mist_shooting_gallery

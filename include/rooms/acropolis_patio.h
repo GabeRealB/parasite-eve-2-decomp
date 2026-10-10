@@ -11,16 +11,35 @@
 
 #include "main/task_types.h"
 
+/// Room selectors and collision class indices published by the patio resource tables.
+enum {
+    ACROPOLIS_PATIO_ROOM_COUNT          = 3,
+    ACROPOLIS_PATIO_SURFACE_CLASS_COUNT = 8,
+};
+
 extern AreaVariant D_acropolis_patio_80184A90[12];
 
 // acropolis_patio
 extern WorldCollisionRoomResources D_acropolis_patio_80182E68[];
 
-extern u8* D_acropolis_patio_80182EC0[];
+/// Logical-view maps for patio rooms 1..3, indexed by room - 1.
+///
+/// Each map has 19 logical views, addressed at view - 1, with 1-based
+/// camera/image/sprite indices. Room 1 borrows `gViewIdentityMap`; rooms 2 and 3
+/// map logical view 4 to index 17, and room 3 also maps view 7 to index 13.
+/// Other entries are identity mappings. Map directories and private byte maps
+/// live with the loaded patio overlay; the gameplay-owned identity map must
+/// also remain loaded. Maps remain writable through the shared view interface.
+extern u8* gAcropolisPatioViewMaps[ACROPOLIS_PATIO_ROOM_COUNT];
 
 extern ViewCount D_acropolis_patio_80182ECC[];
 
-extern WorldCoordRoomLighting D_acropolis_patio_80182ED4[];
+/// Lighting descriptors for patio rooms 1..3, indexed by room - 1.
+///
+/// All entries borrow the same 24-point-light collection and use the gameplay
+/// default ambient minima. The patio overlay owns the descriptors and mutable
+/// lights; borrowed pointers must not outlive the loaded overlay.
+extern WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COUNT];
 
 extern DirectionWarpEntry D_acropolis_patio_80182EEC[];
 
@@ -28,7 +47,15 @@ extern SpriteView D_acropolis_patio_80186360[];
 
 extern ViewCamera D_acropolis_patio_80186D5C[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_patio_8018703C[];
+/// Patio collision policies selected by surface class 0..7.
+///
+/// Classes 0 and 5..7 share a blocking policy with weapon impacts; classes 1
+/// and 2 pass probes without impacts, and class 3 blocks without impacts.
+/// Class 4 blocks, allows impacts and supplies walk/run/scripted-jump cues.
+/// Every class applies grid pushback. Entry 8 is a retained NULL outside the
+/// indexed class domain; consumers do not scan it as a terminator. The loaded
+/// patio overlay owns the directory and all borrowed policy/sound records.
+extern WorldCollisionSurfaceProperties* gAcropolisPatioSurfacePropertiesByClass[ACROPOLIS_PATIO_SURFACE_CLASS_COUNT + 1];
 
 /// Seeds the patio's fourteen fixed light glows and nine nearby moving light points.
 ///

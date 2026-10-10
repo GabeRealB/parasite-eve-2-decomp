@@ -133,7 +133,7 @@ extern WorldCollisionOccluder D_acropolis_patio_80184964[2];
 extern WorldCollisionTrigger  D_acropolis_patio_80183E1C[14];
 extern WorldCollisionTrigger  D_acropolis_patio_80184244[12];
 extern WorldCollisionTrigger  D_acropolis_patio_801845D4[12];
-extern WorldCoordRoomLights   D_acropolis_patio_80186D44[1];
+static WorldCoordRoomLights   _gAcropolisPatioRoomLights;
 
 extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
@@ -149,28 +149,9 @@ extern ActorTransform           D_acropolis_patio_80182678;
 static void                     _acropolisPatioSpawnPlayerTurnLeft(void);
 static void                     _acropolisPatioPlayerTurnLeftTask(Task* task);
 
-extern SpriteBatch  D_acropolis_patio_80184AF0[2];
-extern SpriteBatch  D_acropolis_patio_80184D1C[7];
-extern SpriteBatch  D_acropolis_patio_801850D8[15];
-extern SpriteBatch  D_acropolis_patio_8018527C[5];
-extern SpriteBatch  D_acropolis_patio_801852A4[2];
-extern SpriteBatch  D_acropolis_patio_801853B8[4];
-extern SpriteBatch  D_acropolis_patio_8018557C[5];
-extern SpriteBatch  D_acropolis_patio_80185A04[20];
-extern SpriteBatch  D_acropolis_patio_80185E50[15];
-extern SpriteBatch  D_acropolis_patio_80185EC8[2];
-extern SpriteBatch  D_acropolis_patio_80185ED8[2];
-extern SpriteBatch  D_acropolis_patio_80185EE8[2];
-extern SpriteBatch  D_acropolis_patio_80185F08[2];
-extern SpriteBatch  D_acropolis_patio_80185F18[2];
-extern SpriteBatch  D_acropolis_patio_80185F28[2];
-extern SpriteSource D_acropolis_patio_80184B00[27];
-extern SpriteSource D_acropolis_patio_80184D54[45];
-extern SpriteSource D_acropolis_patio_80185150[15];
-extern SpriteSource D_acropolis_patio_801852B4[13];
-extern SpriteSource D_acropolis_patio_801853D8[21];
-extern SpriteSource D_acropolis_patio_801855A4[56];
-extern SpriteSource D_acropolis_patio_80185AA4[47];
+extern SpriteBatch D_acropolis_patio_80185F08[2];
+extern SpriteBatch D_acropolis_patio_80185F18[2];
+extern SpriteBatch D_acropolis_patio_80185F28[2];
 
 extern AnimationPlayRequest D_acropolis_patio_8018037C;
 extern AnimationSet*        D_acropolis_patio_80180364[6];
@@ -380,7 +361,21 @@ AnimationPlayRequest D_acropolis_patio_801803E0 = { { .index = 1 }, 52, ANIMATIO
 
 AnimationBankCopyRequest D_acropolis_patio_801803F4 = { { .sets = D_acropolis_patio_80180364 }, ARRAY_SIZE(D_acropolis_patio_80180364) };
 
-AnimationPlayRequest D_acropolis_patio_801803FC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Equipped-weapon idle clip selected when the patio scripts take player control.
+enum { ACROPOLIS_PATIO_PLAYER_IDLE_ANIMATION = 1 };
+
+/// Resets the player to the equipped weapon's idle clip without grid participation.
+///
+/// Event dispatch copies this request and overwrites `source.index` with the
+/// equipped weapon's bank; the stored index is unused. Reset ignores blendFrames.
+/// The request lives with the patio overlay and is consumed synchronously.
+static AnimationPlayRequest _gAcropolisPatioPlayerIdleAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_PATIO_PLAYER_IDLE_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 ActorTransform D_acropolis_patio_80180410 = { { -7960, 0, 320, 0 }, { 0, 2048, 0, 0 } };
 
@@ -402,7 +397,7 @@ ActorTransform D_acropolis_patio_8018046C = { { -7720, 0, 290, 0 }, { 0, 0, 0, 0
 
 EvsCommand D_acropolis_patio_80180484[23] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51030009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
@@ -429,7 +424,7 @@ EvsCommand D_acropolis_patio_80180484[23] = {
 EvsCommand D_acropolis_patio_801806AC[16] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_80180428 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_80180450 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_patio_8018034C } }, { .value = 0 } },
@@ -446,7 +441,7 @@ EvsCommand D_acropolis_patio_801806AC[16] = {
 };
 
 EvsCommand D_acropolis_patio_8018082C[45] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -496,7 +491,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
 EvsCommand D_acropolis_patio_80180C64[16] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_patio_80180334 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -515,7 +510,7 @@ EvsCommand D_acropolis_patio_80180C64[16] = {
 EvsSceneKey D_acropolis_patio_80180DE4 = { 1, 29, 11 };
 
 EvsCommand D_acropolis_patio_80180DEC[10] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_patio_80180DE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -530,7 +525,7 @@ EvsCommand D_acropolis_patio_80180DEC[10] = {
 EvsCommand D_acropolis_patio_80180EDC[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -804,7 +799,13 @@ WorldCollisionRoomResources D_acropolis_patio_80182E68[3] = {
     { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
 };
 
-u8 D_acropolis_patio_80182E98[20] = {
+/// Logical-view to camera/image/sprite mapping for patio room 2.
+///
+/// Views 1..19 index bytes at view - 1. Logical view 4 uses index 17.
+/// Other entries are identity mappings. The final zero lies outside the room's
+/// reverse-search count and is retained storage, not a map terminator.
+/// The loaded patio overlay owns these writable bytes.
+static u8 _gAcropolisPatioRoom2ViewMap[20] = {
     1,
     2,
     3,
@@ -827,7 +828,13 @@ u8 D_acropolis_patio_80182E98[20] = {
     0,
 };
 
-u8 D_acropolis_patio_80182EAC[20] = {
+/// Logical-view to camera/image/sprite mapping for patio room 3.
+///
+/// Views 1..19 index bytes at view - 1. Logical view 4 uses index 17, and logical view 7 uses index 13.
+/// Other entries are identity mappings. The final zero lies outside the room's
+/// reverse-search count and is retained storage, not a map terminator.
+/// The loaded patio overlay owns these writable bytes.
+static u8 _gAcropolisPatioRoom3ViewMap[20] = {
     1,
     2,
     3,
@@ -850,18 +857,18 @@ u8 D_acropolis_patio_80182EAC[20] = {
     0,
 };
 
-u8* D_acropolis_patio_80182EC0[3] = {
+u8* gAcropolisPatioViewMaps[ACROPOLIS_PATIO_ROOM_COUNT] = {
     gViewIdentityMap,
-    D_acropolis_patio_80182E98,
-    D_acropolis_patio_80182EAC,
+    _gAcropolisPatioRoom2ViewMap,
+    _gAcropolisPatioRoom3ViewMap,
 };
 
 ViewCount D_acropolis_patio_80182ECC[3] = { 19, 19, 19 };
 
-WorldCoordRoomLighting D_acropolis_patio_80182ED4[3] = {
-    { D_acropolis_patio_80186D44, NULL },
-    { D_acropolis_patio_80186D44, NULL },
-    { D_acropolis_patio_80186D44, NULL },
+WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COUNT] = {
+    { &_gAcropolisPatioRoomLights, NULL },
+    { &_gAcropolisPatioRoomLights, NULL },
+    { &_gAcropolisPatioRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_patio_80182EEC[4] = {
@@ -997,42 +1004,67 @@ AreaVariant D_acropolis_patio_80184A90[12] = {
     { NULL, NULL },
 };
 
-SpriteBatch D_acropolis_patio_80184AF0[2] = {
+/// Sprite-atlas pages: opaque 8-bit textures at VRAM Y 0, sharing CLUT (0, 255).
+enum {
+    ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_0 = getTPage(1, 0, 832, 0),
+    ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1 = getTPage(1, 0, 896, 0),
+    ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2 = getTPage(1, 0, 960, 0),
+    ACROPOLIS_PATIO_SPRITE_CLUT           = getClut(0, 255),
+    ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB    = 128,
+    ACROPOLIS_PATIO_SPRITE_OPAQUE         = 0,
+};
+
+/// Background-only sprite batches for mapped patio view 1.
+///
+/// The zero first count keeps decoded image strips enabled; the next record
+/// ends the list. The view retains this address in its empty source slot,
+/// which supplies no source sprites. Storage lives with the patio overlay.
+static SpriteBatch _gAcropolisPatioView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_80184B00[27] = {
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -88, -40, 1275, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -120, -40, 1200, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 112 } }, -160, -40, 1150, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -104, -104, 1200, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, -96, 1175, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, -96, 1150, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -96, 1125, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -160, -112, 1075, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -112, 1100, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1150, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 32, 1125, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 56, 1125, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 64, 1100, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, 72, 1075, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 32, 1125, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 32, 1125, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 72, 1050, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 56, 1075, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 40, 1100, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, 112, -48, 1100, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, 112, -120, 1100, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 136, -16, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 144, -16, 975, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 152, -16, 950, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -88, 1250, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, -80, 1275, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -88, 1300, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio view 2.
+///
+/// The 27 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView2SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView2SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 96 } }, -88, -40, 1275, { .fields = { 72, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 104 } }, -120, -40, 1200, { .fields = { 88, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 112 } }, -160, -40, 1150, { .fields = { 88, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 72 } }, -104, -104, 1200, { .fields = { 48, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 48 } }, -120, -96, 1175, { .fields = { 16, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 48 } }, -136, -96, 1150, { .fields = { 24, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -96, 1125, { .fields = { 16, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 56 } }, -160, -112, 1075, { .fields = { 40, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 80 } }, -152, -112, 1100, { .fields = { 64, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 32, 1150, { .fields = { 24, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 48 } }, 88, 32, 1125, { .fields = { 16, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, 56, 1125, { .fields = { 32, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 64, 1100, { .fields = { 16, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 112, 72, 1075, { .fields = { 24, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 96, 32, 1125, { .fields = { 40, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, 104, 32, 1125, { .fields = { 16, 168 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, 120, 72, 1050, { .fields = { 32, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 56, 1075, { .fields = { 104, 224 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 40, 1100, { .fields = { 104, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 88 } }, 112, -48, 1100, { .fields = { 32, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 72 } }, 112, -120, 1100, { .fields = { 24, 168 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 88 } }, 136, -16, 1000, { .fields = { 72, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 96 } }, 144, -16, 975, { .fields = { 80, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 104 } }, 152, -16, 950, { .fields = { 120, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -128, -88, 1250, { .fields = { 88, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 32 } }, -144, -80, 1275, { .fields = { 16, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 64 } }, -160, -88, 1300, { .fields = { 72, 192 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_80184D1C[7] = {
+/// Sprite ranges for mapped patio view 2.
+///
+/// Ranges index `_gAcropolisPatioView2SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 0, 0 } },
     { 3, 6, 0, 0, { 3, 0 } },
@@ -1042,55 +1074,65 @@ SpriteBatch D_acropolis_patio_80184D1C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_80184D54[45] = {
-    { 142, 0x3FC0, { .fields = { 120, 144 } }, -160, -120, 2625, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 48 } }, -112, -24, 2625, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -24, 2700, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -8, -24, 2750, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -48, -56, 2625, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -24, -48, 2700, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -48, -48, 2725, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 104 } }, -72, -120, 2650, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 64, -88, 1650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 72, -112, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 80, -120, 1375, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, -120, 1250, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 96, -120, 1250, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, -104, 1375, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 16 } }, 80, -96, 1500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 88, 16 } }, 72, -80, 1625, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 96, 8 } }, 64, -64, 1650, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 72, -64, 1650, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 64, 8, 2500, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, 8, 1650, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, 88, -80, 1450, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 72, 16, 1625, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 80, 32, 1600, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, 32, 1425, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 80, 16, 1600, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, 16, 1450, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 160 } }, 128, -120, 1050, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 120, 40, 1050, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 88, 48, 1150, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 104, 64, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 80, 1075, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 120, 88, 1050, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, 104, 48, 1050, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 64, 1200, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 80, 1100, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 128, 88, 1050, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -16, 1550, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -16, 1525, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -16, 1500, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, -8, 1300, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 104, -8, 1300, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, 112, -8, 1250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, -8, 1200, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, 96, -16, 2500, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 152, 8, 1500, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio view 3.
+///
+/// The 45 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView3SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView3SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 120, 144 } }, -160, -120, 2625, { .fields = { 104, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 88, 48 } }, -112, -24, 2625, { .fields = { 32, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -24, 2700, { .fields = { 120, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 48 } }, -8, -24, 2750, { .fields = { 8, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 32 } }, -48, -56, 2625, { .fields = { 72, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, -48, 2700, { .fields = { 72, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 32 } }, -48, -48, 2725, { .fields = { 64, 104 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 104 } }, -72, -120, 2650, { .fields = { 56, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, -88, 1650, { .fields = { 80, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, 72, -112, 1625, { .fields = { 88, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, -120, 1375, { .fields = { 88, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, -120, 1250, { .fields = { 56, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 64, 16 } }, 96, -120, 1250, { .fields = { 0, 104 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 72, 8 } }, 88, -104, 1375, { .fields = { 48, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 80, 16 } }, 80, -96, 1500, { .fields = { 112, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 88, 16 } }, 72, -80, 1625, { .fields = { 112, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 96, 8 } }, 64, -64, 1650, { .fields = { 104, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 72 } }, 72, -64, 1650, { .fields = { 24, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, 8, 2500, { .fields = { 64, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 24 } }, 72, 8, 1650, { .fields = { 64, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 96 } }, 88, -80, 1450, { .fields = { 96, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, 72, 16, 1625, { .fields = { 96, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 32, 1600, { .fields = { 64, 56 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 88, 32, 1425, { .fields = { 16, 56 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 16, 1600, { .fields = { 56, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 88, 16, 1450, { .fields = { 16, 72 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 160 } }, 128, -120, 1050, { .fields = { 96, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 8 } }, 120, 40, 1050, { .fields = { 24, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 40 } }, 88, 48, 1150, { .fields = { 96, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 64, 1100, { .fields = { 96, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 80, 1075, { .fields = { 48, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 120, 88, 1050, { .fields = { 104, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 16 } }, 104, 48, 1050, { .fields = { 48, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 64, 1200, { .fields = { 24, 24 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 8 } }, 120, 80, 1100, { .fields = { 56, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 24 } }, 128, 88, 1050, { .fields = { 48, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, -16, 1550, { .fields = { 32, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 88, -16, 1525, { .fields = { 24, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 96, -16, 1500, { .fields = { 40, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 48 } }, 96, -8, 1300, { .fields = { 16, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, -8, 1300, { .fields = { 112, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 64 } }, 112, -8, 1250, { .fields = { 120, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 64 } }, 128, -8, 1200, { .fields = { 8, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 32 } }, 96, -16, 2500, { .fields = { 64, 72 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 88 } }, 152, 8, 1500, { .fields = { 48, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_801850D8[15] = {
+/// Sprite ranges for mapped patio view 3.
+///
+/// Ranges index `_gAcropolisPatioView3SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 2, 0 } },
     { 1, 5, 0, 0, { 7, 0 } },
@@ -1108,25 +1150,35 @@ SpriteBatch D_acropolis_patio_801850D8[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_80185150[15] = {
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -152, -104, 1250, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -136, -72, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 24, 1450, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 40, 1425, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -152, 24, 1250, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 32, 1200, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 40, 1175, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 48, 1350, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, -8, 1150, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 24, 1150, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -136, -8, 1100, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -8, 1050, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -8, 1000, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, 0, 950, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 32, 1375, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio views 4 and 17.
+///
+/// The 15 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView4SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView4SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 32 } }, -152, -104, 1250, { .fields = { 72, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 96 } }, -136, -72, 1250, { .fields = { 104, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, 24, 1450, { .fields = { 104, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 40, 1425, { .fields = { 104, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 8 } }, -152, 24, 1250, { .fields = { 56, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 64, 8 } }, -160, 32, 1200, { .fields = { 48, 224 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 8 } }, -160, 40, 1175, { .fields = { 56, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 48, 1350, { .fields = { 56, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -128, -8, 1150, { .fields = { 104, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, 24, 1150, { .fields = { 104, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 64 } }, -136, -8, 1100, { .fields = { 112, 168 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 72 } }, -144, -8, 1050, { .fields = { 112, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 80 } }, -152, -8, 1000, { .fields = { 120, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 80 } }, -160, 0, 950, { .fields = { 120, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, 32, 1375, { .fields = { 112, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_8018527C[5] = {
+/// Sprite ranges for mapped patio views 4 and 17.
+///
+/// Ranges index `_gAcropolisPatioView4SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 6, 0, 0, { 2, 0 } },
@@ -1134,59 +1186,84 @@ SpriteBatch D_acropolis_patio_8018527C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_801852A4[2] = {
+/// Background-only sprite batches for mapped patio view 5.
+///
+/// The zero first count keeps decoded image strips enabled; the next record
+/// ends the list. The view retains this address in its empty source slot,
+/// which supplies no source sprites. Storage lives with the patio overlay.
+static SpriteBatch _gAcropolisPatioView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_801852B4[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 24, 1325, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -120, 1300, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 128, -96, 1300, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 120, -32, 1300, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 8, 1325, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 24, 1250, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, 8, 1250, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 24, 1225, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -24, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 0, 1200, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 136, -24, 1175, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 144, -24, 1150, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, -24, 1125, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio view 6.
+///
+/// The 13 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView6SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView6SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, 24, 1325, { .fields = { 112, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, -120, 1300, { .fields = { 80, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 64 } }, 128, -96, 1300, { .fields = { 96, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 40 } }, 120, -32, 1300, { .fields = { 96, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 8, 1325, { .fields = { 112, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 24, 1250, { .fields = { 112, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 8, 1250, { .fields = { 64, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, 24, 1225, { .fields = { 80, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, -24, 1200, { .fields = { 120, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, 128, 0, 1200, { .fields = { 112, 104 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 64 } }, 136, -24, 1175, { .fields = { 120, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 72 } }, 144, -24, 1150, { .fields = { 120, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 72 } }, 152, -24, 1125, { .fields = { 120, 72 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_801853B8[4] = {
+/// Sprite ranges for mapped patio view 6.
+///
+/// Ranges index `_gAcropolisPatioView6SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 5, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_801853D8[21] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 32, 837, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 48, 920, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 862, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 72, 887, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, 56, 912, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, 16, 920, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 56, 912, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 72, 887, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -128, 88, 862, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -88, 88, 862, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 72, 887, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 56, 912, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 40, 925, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -24, 920, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -64, 920, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -104, 920, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -136, -120, 920, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 40, 950, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 950, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 40, 968, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, 24, 968, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio views 7 and 13.
+///
+/// The 21 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView7SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView7SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, 32, 837, { .fields = { 88, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -136, 48, 920, { .fields = { 80, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 88, 862, { .fields = { 80, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 72, 887, { .fields = { 80, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -152, 56, 912, { .fields = { 64, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -128, 16, 920, { .fields = { 88, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, 56, 912, { .fields = { 48, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, 72, 887, { .fields = { 48, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 32 } }, -128, 88, 862, { .fields = { 56, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 32 } }, -88, 88, 862, { .fields = { 80, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 72, 887, { .fields = { 56, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 56, 912, { .fields = { 56, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 40, 925, { .fields = { 56, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -128, -24, 920, { .fields = { 88, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -128, -64, 920, { .fields = { 88, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -104, 920, { .fields = { 96, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -136, -120, 920, { .fields = { 88, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 40, 950, { .fields = { 112, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 0, 950, { .fields = { 112, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -160, 40, 968, { .fields = { 48, 16 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -152, 24, 968, { .fields = { 64, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_8018557C[5] = {
+/// Sprite ranges for mapped patio views 7 and 13.
+///
+/// Ranges index `_gAcropolisPatioView7SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 1, 0 } },
     { 17, 2, 0, 0, { 2, 0 } },
@@ -1194,66 +1271,76 @@ SpriteBatch D_acropolis_patio_8018557C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_801855A4[56] = {
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -120, 725, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, -152, -80, 725, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -144, 8, 725, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 64, 775, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 88, 725, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, 80, 725, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 96, 700, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -152, 64, 775, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 72, 750, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 16 } }, -160, 80, 725, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, -160, 96, 700, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -96, -104, 1375, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -88, -80, 1375, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 32, 1375, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -96, 16, 1400, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -112, 24, 1375, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -112, 40, 1350, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, -80, 2250, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -64, 2250, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -48, 2250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -80, 0, 2250, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -80, 8, 2250, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -64, -64, 3125, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -72, -8, 3125, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, -8, 1200, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -88, -8, 1150, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -96, -8, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -120, 0, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, -24, 1950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, -24, 1825, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, -16, 1700, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, -24, 2350, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -24, 2325, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -16, -64, 3125, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, -56, 3125, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -8, -24, 3125, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -24, -8, 3125, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, -24, 3125, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -56, 40, 850, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -80, 32, 900, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -56, 8, 950, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 24, 975, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 16, 1000, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 32, 1025, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, 8, 1025, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -72, 40, 1025, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 0, 1625, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, -16, 1775, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 0, 1775, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 16, 1775, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -8, -8, 1950, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, -8, 2200, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 2375, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -48, -24, 2375, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 0, 2375, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -16, 2375, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio view 8.
+///
+/// The 56 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView8SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView8SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -152, -120, 725, { .fields = { 16, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 88 } }, -152, -80, 725, { .fields = { 80, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 56 } }, -144, 8, 725, { .fields = { 48, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 64, 775, { .fields = { 80, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, 88, 725, { .fields = { 40, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, -72, 80, 725, { .fields = { 56, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, -80, 96, 700, { .fields = { 24, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 88, 8 } }, -152, 64, 775, { .fields = { 64, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 96, 8 } }, -160, 72, 750, { .fields = { 48, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 88, 16 } }, -160, 80, 725, { .fields = { 64, 232 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 80, 24 } }, -160, 96, 700, { .fields = { 80, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 24 } }, -96, -104, 1375, { .fields = { 0, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 96 } }, -88, -80, 1375, { .fields = { 104, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 32, 1375, { .fields = { 32, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 8 } }, -96, 16, 1400, { .fields = { 88, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 64, 16 } }, -112, 24, 1375, { .fields = { 72, 16 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 64, 16 } }, -112, 40, 1350, { .fields = { 72, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -72, -80, 2250, { .fields = { 96, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, -64, 2250, { .fields = { 56, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 48 } }, -72, -48, 2250, { .fields = { 40, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 8 } }, -80, 0, 2250, { .fields = { 88, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -80, 8, 2250, { .fields = { 104, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 56 } }, -64, -64, 3125, { .fields = { 104, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -72, -8, 3125, { .fields = { 104, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 56 } }, -80, -8, 1200, { .fields = { 72, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 72 } }, -88, -8, 1150, { .fields = { 120, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 88 } }, -96, -8, 1100, { .fields = { 96, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 80 } }, -120, 0, 1000, { .fields = { 72, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 48 } }, -64, -24, 1950, { .fields = { 64, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 56 } }, -72, -24, 1825, { .fields = { 96, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 48 } }, -80, -16, 1700, { .fields = { 64, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, -56, -24, 2350, { .fields = { 32, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, -24, 2325, { .fields = { 32, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 8 } }, -16, -64, 3125, { .fields = { 8, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, -56, 3125, { .fields = { 40, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, -24, 3125, { .fields = { 120, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -24, -8, 3125, { .fields = { 96, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, -24, 3125, { .fields = { 8, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 32 } }, -56, 40, 850, { .fields = { 16, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 40 } }, -80, 32, 900, { .fields = { 48, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 48 } }, -56, 8, 950, { .fields = { 48, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 24, 975, { .fields = { 48, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, 16, 1000, { .fields = { 32, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, 32, 1025, { .fields = { 96, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 24 } }, -72, 8, 1025, { .fields = { 8, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 8 } }, -72, 40, 1025, { .fields = { 104, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 0, 1625, { .fields = { 24, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, -16, 1775, { .fields = { 72, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, 8, 0, 1775, { .fields = { 88, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 16, 1775, { .fields = { 112, 192 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 24 } }, -8, -8, 1950, { .fields = { 0, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -56, -8, 2200, { .fields = { 120, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -40, -8, 2375, { .fields = { 40, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -48, -24, 2375, { .fields = { 120, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 0, 2375, { .fields = { 48, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, -16, 2375, { .fields = { 8, 24 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_80185A04[20] = {
+/// Sprite ranges for mapped patio view 8.
+///
+/// Ranges index `_gAcropolisPatioView8SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 17, 0 } },
     { 11, 6, 0, 0, { 2, 0 } },
@@ -1276,57 +1363,67 @@ SpriteBatch D_acropolis_patio_80185A04[20] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_80185AA4[47] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -88, 300, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -48, 300, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 0, 300, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -160, 40, 300, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 96, 300, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -120, -120, 1000, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -112, -112, 1000, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, -96, 1000, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -104, -72, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -104, 8, 1000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 24, 980, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -88, -104, 1575, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -80, -88, 1575, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -96, -8, 1575, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, -104, 1612, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 0, -80, 1612, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, -16, -8, 1712, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -88, -8, 850, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -96, -8, 825, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -104, -8, 700, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -112, 0, 625, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -128, 16, 475, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -152, 24, 325, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -72, -32, 1500, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -80, -32, 1375, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, -24, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -48, -32, 1575, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 88, 80, 600, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 88, 64, 675, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 64, 675, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 56, 725, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 64, 725, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 48, 8, 875, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 48, 16, 825, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 48, 24, 725, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 40, 825, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 56, 64, 875, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 56, 72, 750, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 32, 16, 950, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 32, 875, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 0, 1200, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 0, 1250, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -32, 1350, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -64, -24, 1350, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -8, 1350, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, 8, 1350, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -56, -16, 1500, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped patio view 9.
+///
+/// The 47 source elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisPatioView9SpriteBatches` selects their ranges.
+/// Storage belongs to the loaded patio overlay and remains writable.
+static SpriteSource _gAcropolisPatioView9SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, -88, 300, { .fields = { 112, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, -48, 300, { .fields = { 40, 56 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 0, 300, { .fields = { 32, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 80 } }, -160, 40, 300, { .fields = { 64, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, 96, 300, { .fields = { 40, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 8 } }, -120, -120, 1000, { .fields = { 80, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -112, -112, 1000, { .fields = { 104, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 24 } }, -104, -96, 1000, { .fields = { 0, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 80 } }, -104, -72, 1000, { .fields = { 56, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -104, 8, 1000, { .fields = { 112, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 32 } }, -88, 24, 980, { .fields = { 24, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, -104, 1575, { .fields = { 104, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 80 } }, -80, -88, 1575, { .fields = { 72, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 32 } }, -96, -8, 1575, { .fields = { 0, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, -104, 1612, { .fields = { 112, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 72 } }, 0, -80, 1612, { .fields = { 56, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 24 } }, -16, -8, 1712, { .fields = { 80, 24 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 88 } }, -88, -8, 850, { .fields = { 96, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 112 } }, -96, -8, 825, { .fields = { 112, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 128 } }, -104, -8, 700, { .fields = { 120, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 120 } }, -112, 0, 625, { .fields = { 120, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 104 } }, -128, 16, 475, { .fields = { 104, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 96 } }, -152, 24, 325, { .fields = { 88, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 64 } }, -72, -32, 1500, { .fields = { 56, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 64 } }, -80, -32, 1375, { .fields = { 96, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 56 } }, -88, -24, 1250, { .fields = { 48, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -48, -32, 1575, { .fields = { 24, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 40 } }, 88, 80, 600, { .fields = { 8, 104 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, 88, 64, 675, { .fields = { 104, 104 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 64, 675, { .fields = { 104, 216 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 8 } }, 72, 56, 725, { .fields = { 0, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, 64, 725, { .fields = { 8, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 8 } }, 48, 8, 875, { .fields = { 80, 184 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 56, 8 } }, 48, 16, 825, { .fields = { 72, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 64, 16 } }, 48, 24, 725, { .fields = { 64, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 40, 825, { .fields = { 64, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 8 } }, 56, 64, 875, { .fields = { 96, 192 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, 56, 72, 750, { .fields = { 88, 152 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, 32, 16, 950, { .fields = { 112, 88 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 32, 875, { .fields = { 0, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 32 } }, -72, 0, 1200, { .fields = { 16, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, 0, 1250, { .fields = { 0, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, -32, 1350, { .fields = { 120, 248 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -64, -24, 1350, { .fields = { 88, 168 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, -8, 1350, { .fields = { 104, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 24, 16 } }, -56, 8, 1350, { .fields = { 104, 136 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 32 } }, -56, -16, 1500, { .fields = { 8, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_80185E50[15] = {
+/// Sprite ranges for mapped patio view 9.
+///
+/// Ranges index `_gAcropolisPatioView9SpriteSources` in elements. The
+/// zero first count keeps decoded image strips enabled; `SPRITE_BATCH_END`
+/// ends the list. The loaded patio overlay owns these writable records.
+static SpriteBatch _gAcropolisPatioView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 2, 0 } },
     { 5, 6, 0, 0, { 7, 0 } },
@@ -1344,17 +1441,32 @@ SpriteBatch D_acropolis_patio_80185E50[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185EC8[2] = {
+/// Background-only sprite batches for mapped patio view 10.
+///
+/// The zero first count keeps decoded image strips enabled; the next record
+/// ends the list. The view retains this address in its empty source slot,
+/// which supplies no source sprites. Storage lives with the patio overlay.
+static SpriteBatch _gAcropolisPatioView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185ED8[2] = {
+/// Background-only sprite batches for mapped patio view 11.
+///
+/// The zero first count keeps decoded image strips enabled; the next record
+/// ends the list. The view retains this address in its empty source slot,
+/// which supplies no source sprites. Storage lives with the patio overlay.
+static SpriteBatch _gAcropolisPatioView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185EE8[2] = {
+/// Background-only sprite batches for mapped patio view 12.
+///
+/// The zero first count keeps decoded image strips enabled; the next record
+/// ends the list. The view retains this address in its empty source slot,
+/// which supplies no source sprites. Storage lives with the patio overlay.
+static SpriteBatch _gAcropolisPatioView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1453,23 +1565,23 @@ SpriteBatch D_acropolis_patio_80186348[3] = {
 };
 
 SpriteView D_acropolis_patio_80186360[19] = {
-    { { .empty = D_acropolis_patio_80184AF0 }, D_acropolis_patio_80184AF0, NULL },
-    { { .elements = D_acropolis_patio_80184B00 }, D_acropolis_patio_80184D1C, NULL },
-    { { .elements = D_acropolis_patio_80184D54 }, D_acropolis_patio_801850D8, NULL },
-    { { .elements = D_acropolis_patio_80185150 }, D_acropolis_patio_8018527C, NULL },
-    { { .empty = D_acropolis_patio_801852A4 }, D_acropolis_patio_801852A4, NULL },
-    { { .elements = D_acropolis_patio_801852B4 }, D_acropolis_patio_801853B8, NULL },
-    { { .elements = D_acropolis_patio_801853D8 }, D_acropolis_patio_8018557C, NULL },
-    { { .elements = D_acropolis_patio_801855A4 }, D_acropolis_patio_80185A04, NULL },
-    { { .elements = D_acropolis_patio_80185AA4 }, D_acropolis_patio_80185E50, NULL },
-    { { .empty = D_acropolis_patio_80185EC8 }, D_acropolis_patio_80185EC8, NULL },
-    { { .empty = D_acropolis_patio_80185ED8 }, D_acropolis_patio_80185ED8, NULL },
-    { { .empty = D_acropolis_patio_80185EE8 }, D_acropolis_patio_80185EE8, NULL },
-    { { .elements = D_acropolis_patio_801853D8 }, D_acropolis_patio_8018557C, NULL },
+    { { .empty = _gAcropolisPatioView1SpriteBatches }, _gAcropolisPatioView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView2SpriteSources }, _gAcropolisPatioView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView3SpriteSources }, _gAcropolisPatioView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView4SpriteSources }, _gAcropolisPatioView4SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView5SpriteBatches }, _gAcropolisPatioView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView6SpriteSources }, _gAcropolisPatioView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView7SpriteSources }, _gAcropolisPatioView7SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView8SpriteSources }, _gAcropolisPatioView8SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView9SpriteSources }, _gAcropolisPatioView9SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView10SpriteBatches }, _gAcropolisPatioView10SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView11SpriteBatches }, _gAcropolisPatioView11SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView12SpriteBatches }, _gAcropolisPatioView12SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView7SpriteSources }, _gAcropolisPatioView7SpriteBatches, NULL },
     { { .empty = D_acropolis_patio_80185F08 }, D_acropolis_patio_80185F08, NULL },
     { { .empty = D_acropolis_patio_80185F18 }, D_acropolis_patio_80185F18, NULL },
     { { .empty = D_acropolis_patio_80185F28 }, D_acropolis_patio_80185F28, NULL },
-    { { .elements = D_acropolis_patio_80185150 }, D_acropolis_patio_8018527C, NULL },
+    { { .elements = _gAcropolisPatioView4SpriteSources }, _gAcropolisPatioView4SpriteBatches, NULL },
     { { .elements = D_acropolis_patio_80185F48 }, D_acropolis_patio_801860D8, NULL },
     { { .elements = D_acropolis_patio_801860F0 }, D_acropolis_patio_80186348, NULL },
 };
@@ -1674,8 +1786,18 @@ static WorldCoordPointLight _gAcropolisPatioPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_patio_80186D44[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisPatioPointLights), _gAcropolisPatioPointLights, 0, NULL },
+/// Point-light collection shared by all three patio rooms.
+///
+/// Borrows the patio's 24 mutable point lights, whose view filters apply during
+/// shading; there are no directional or cone lights. The record and light array
+/// remain live only while the patio overlay is loaded.
+static WorldCoordRoomLights _gAcropolisPatioRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisPatioPointLights),
+    .pointLights           = _gAcropolisPatioPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 ViewCamera D_acropolis_patio_80186D5C[19] = {
@@ -1700,39 +1822,87 @@ ViewCamera D_acropolis_patio_80186D5C[19] = {
     { { { { 362, 0, 4079 }, { -1549, 3789, 137 }, { -3774, -1555, 335 } }, { 220, 450, 460 } }, 216 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_patio_80187008 = {
-    0x10000001,
-    0x10000003,
-    0x10000011,
+/// Cue-2 footstep bases in the loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    ACROPOLIS_PATIO_CLASS4_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
+    ACROPOLIS_PATIO_CLASS4_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
+    ACROPOLIS_PATIO_CLASS4_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_patio_80187014[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walk, run and scripted-jump footstep pairs for patio surface class 4.
+///
+/// Player animation cues select the base or base + 1; companions add 100.
+/// The surface policy borrows this record only while the patio overlay is loaded.
+static WorldCollisionFootstepSounds _gAcropolisPatioClass4FootstepSounds = {
+    .walk         = ACROPOLIS_PATIO_CLASS4_WALK_SOUND,
+    .run          = ACROPOLIS_PATIO_CLASS4_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_PATIO_CLASS4_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_patio_8018701C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for patio surface classes 0 and 5..7.
+///
+/// Blocks probes, allows weapon impacts and applies grid pushback, without footstep cues.
+/// The class directory borrows this record for the loaded patio overlay.
+static WorldCollisionSurfaceProperties _gAcropolisPatioDefaultSurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_patio_80187024[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for patio surface class 1.
+///
+/// Passes probes, ignores weapon impacts and applies grid pushback, without footstep cues.
+/// The class directory borrows this record for the loaded patio overlay.
+static WorldCollisionSurfaceProperties _gAcropolisPatioClass1SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_patio_8018702C[1] = { 0 };
-
-WorldCollisionSurfaceProperties D_acropolis_patio_80187034[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_patio_80187008 },
+/// Collision policy for patio surface class 2.
+///
+/// Passes probes, ignores weapon impacts and applies grid pushback, without footstep cues.
+/// The class directory borrows this record for the loaded patio overlay.
+static WorldCollisionSurfaceProperties _gAcropolisPatioClass2SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_patio_8018703C[9] = {
-    D_acropolis_patio_80187014,
-    D_acropolis_patio_8018701C,
-    D_acropolis_patio_80187024,
-    D_acropolis_patio_8018702C,
-    D_acropolis_patio_80187034,
-    D_acropolis_patio_80187014,
-    D_acropolis_patio_80187014,
-    D_acropolis_patio_80187014,
+/// Collision policy for patio surface class 3.
+///
+/// Blocks probes, ignores weapon impacts and applies grid pushback, without footstep cues.
+/// The class directory borrows this record for the loaded patio overlay.
+static WorldCollisionSurfaceProperties _gAcropolisPatioClass3SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+/// Collision policy for patio surface class 4.
+///
+/// Blocks probes, allows weapon impacts and applies grid pushback, with footstep cues.
+/// The class directory borrows this record for the loaded patio overlay.
+static WorldCollisionSurfaceProperties _gAcropolisPatioClass4SurfaceProperties = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPatioClass4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisPatioSurfacePropertiesByClass[ACROPOLIS_PATIO_SURFACE_CLASS_COUNT + 1] = {
+    &_gAcropolisPatioDefaultSurfaceProperties,
+    &_gAcropolisPatioClass1SurfaceProperties,
+    &_gAcropolisPatioClass2SurfaceProperties,
+    &_gAcropolisPatioClass3SurfaceProperties,
+    &_gAcropolisPatioClass4SurfaceProperties,
+    &_gAcropolisPatioDefaultSurfaceProperties,
+    &_gAcropolisPatioDefaultSurfaceProperties,
+    &_gAcropolisPatioDefaultSurfaceProperties,
     NULL,
 };
 

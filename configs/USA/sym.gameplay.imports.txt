@@ -1419,7 +1419,7 @@ D_acropolis_sanctuary_8018402C = 0x8018402C; // absolute:True owner=acropolis_sa
 
 D_acropolis_security_room_80184088 = 0x80184088; // absolute:True owner=acropolis_security_room shared=rooms
 
-D_acropolis_square_80185E50 = 0x80185E50; // absolute:True owner=acropolis_square shared=rooms
+D_acropolis_square_80185E50 = 0x80185E50; // absolute:True owner=acropolis_square
 
 D_dryfield_back_street_80180A50 = 0x80180A50; // absolute:True owner=dryfield_back_street shared=rooms
 
