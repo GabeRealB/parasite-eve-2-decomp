@@ -18,12 +18,25 @@ extern AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2];
 
 extern AreaVariant D_dryfield_night_motel_balcony_8018EA94[13];
 
-// dryfield_night_motel_balcony
-extern WorldCoordRoomLighting D_dryfield_night_motel_balcony_80182E00[];
+/// Lighting descriptors for the balcony's three 1-based room variants.
+///
+/// Indexed by room minus one. Rooms 1 and 3 share their point lights and
+/// ambient table; room 2 uses an alternate collection and ambient minima.
+/// The nighttime Dryfield map borrows this directory and its room-owned data;
+/// keep this overlay loaded while coordinate setup or lighting queries use it.
+extern WorldCoordRoomLighting gDryfieldNightMotelBalconyRoomLighting[3];
 
 extern WorldCollisionRoomResources D_dryfield_night_motel_balcony_80182E18[];
 
-extern u8* D_dryfield_night_motel_balcony_80182E98[];
+/// Per-room logical-view maps for the balcony's three room variants.
+///
+/// Room minus one selects a byte map; logical view minus one selects its
+/// 1-based camera/image/sprite index. Each room searches 39 logical views.
+/// Room 1 borrows gameplay's identity map; rooms 2 and 3 borrow distinct
+/// mutable room-owned maps. Both room maps store a final zero beyond that
+/// domain. The directory and room maps remain live only while this overlay is
+/// loaded; the nighttime Dryfield map borrows them without taking ownership.
+extern u8* gDryfieldNightMotelBalconyViewMaps[3];
 
 extern ViewCount D_dryfield_night_motel_balcony_80182EA4[];
 
@@ -33,7 +46,14 @@ extern ViewCamera D_dryfield_night_motel_balcony_80184004[];
 
 extern SpriteView D_dryfield_night_motel_balcony_8018D078[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_balcony_8018F2AC[];
+/// Collision and footstep records indexed by balcony surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 0 and 4..7 share a record. Classes 1 and 2 select distinct step
+/// requests; class 3 retains its own record with the same requests as the
+/// default. The nighttime Dryfield map borrows the directory, records and
+/// cue tables only while this room overlay is loaded. There is no terminator.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMotelBalconySurfacePropertiesByClass[8];
 
 /// Occasionally emits a slow flame from the live scene actor's model part 3.
 ///

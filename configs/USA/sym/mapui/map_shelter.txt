@@ -136,7 +136,7 @@ D_shelter_b1_sleeping_quarters_8018065C = 0x8018065C; // absolute:True owner=she
 D_shelter_b1_sleeping_quarters_80180660 = 0x80180660; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 D_shelter_b1_sleeping_quarters_801810D4 = 0x801810D4; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_801810F8 = 0x801810F8; // absolute:True owner=shelter_b1_sleeping_quarters
-D_shelter_b1_sleeping_quarters_80182E70 = 0x80182E70; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+D_shelter_b1_sleeping_quarters_80182E70 = 0x80182E70; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_80183234 = 0x80183234; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_8018324C = 0x8018324C; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_801837A4 = 0x801837A4; // absolute:True owner=shelter_b1_sleeping_quarters
