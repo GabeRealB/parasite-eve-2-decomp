@@ -664,7 +664,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE1C[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE24[1] = {
-    { &D_shelter_b2_elevator_hall_801846B4, NULL },
+    { &gShelterB2ElevatorHallRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE2C[1] = {
@@ -948,7 +948,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B1C4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1D4[1] = {
-    { &D_shelter_b2_elevator_hall_80183DB4, D_shelter_b2_elevator_hall_801846CC, D_shelter_b2_elevator_hall_80184968, D_shelter_b2_elevator_hall_8018492C },
+    { &gShelterB2ElevatorHallRoomCollision, D_shelter_b2_elevator_hall_801846CC, D_shelter_b2_elevator_hall_80184968, D_shelter_b2_elevator_hall_8018492C },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
@@ -1155,7 +1155,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB1TransferTunnelRoomViewMaps,
     gShelterB1ControlRoomAccessTunnelRoomViewMaps,
     gShelterB2ElevatorViewMaps,
-    D_shelter_b2_elevator_hall_801838DC,
+    gShelterB2ElevatorHallViewMaps,
     D_shelter_b2_south_maintenance_walkway_8018263C,
     D_shelter_b2_operating_room_80180BC8,
     D_shelter_b2_north_maintenance_walkway_80183C5C,
@@ -1213,7 +1213,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB1TransferTunnelSpriteViews,
     gShelterB1ControlRoomAccessTunnelSpriteViews,
     gShelterB2ElevatorSpriteViews,
-    D_shelter_b2_elevator_hall_80184120,
+    gShelterB2ElevatorHallSpriteViews,
     D_shelter_b2_south_maintenance_walkway_80183018,
     D_shelter_b2_operating_room_80183184,
     D_shelter_b2_north_maintenance_walkway_80185B04,
@@ -1267,7 +1267,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB1TransferTunnelSurfacePropertiesByClass,
     gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass,
     gShelterB2ElevatorSurfacePropertiesByClass,
-    D_shelter_b2_elevator_hall_80184D5C,
+    gShelterB2ElevatorHallSurfacePropertiesByClass,
     D_shelter_b2_south_maintenance_walkway_801838B4,
     D_shelter_b2_operating_room_801841F4,
     D_shelter_b2_north_maintenance_walkway_80186360,

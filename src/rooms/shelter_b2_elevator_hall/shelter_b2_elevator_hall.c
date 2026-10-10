@@ -90,12 +90,6 @@ extern RoomEventReq gRoomEventReq;
 extern RoomEventActiveBytes gRoomEventActive;
 
 extern TaskDesc D_shelter_b2_elevator_hall_8018379C;
-extern SVECTOR  D_shelter_b2_elevator_hall_801837D8[];
-extern SVECTOR  D_shelter_b2_elevator_hall_801837F8[];
-extern SVECTOR  D_shelter_b2_elevator_hall_80183808[];
-extern SVECTOR  D_shelter_b2_elevator_hall_80183868[];
-extern SVECTOR  D_shelter_b2_elevator_hall_801838A8[];
-extern SVECTOR  D_shelter_b2_elevator_hall_801838B0[];
 
 static void _shelterB2ElevatorHallInitRoomTask(Task* task);
 static void _shelterB2ElevatorHallIdleRoomTask(Task* task);
@@ -122,19 +116,17 @@ TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b2_elevator_hall_801837D8[4] = {
+/// World-space endpoint pairs for the hall's lamp glows.
+///
+/// Each even index begins a lamp; the following point ends it. Camera draws
+/// use overlapping ranges of this table. Coordinates are signed game units.
+static SVECTOR _gShelterB2ElevatorHallLampEndpoints[26] = {
     { -8291, -620, -1755, 0 },
     { -7626, -620, -1755, 0 },
     { -5333, -620, -1755, 0 },
     { -4665, -620, -1755, 0 },
-};
-
-SVECTOR D_shelter_b2_elevator_hall_801837F8[2] = {
     { -1331, -620, -1755, 0 },
     { -663, -620, -1755, 0 },
-};
-
-SVECTOR D_shelter_b2_elevator_hall_80183808[12] = {
     { 1669, -620, -1755, 0 },
     { 2328, -620, -1755, 0 },
     { 5664, -620, -1755, 0 },
@@ -147,9 +139,6 @@ SVECTOR D_shelter_b2_elevator_hall_80183808[12] = {
     { 2328, -620, 1757, 0 },
     { -9760, -620, -235, 0 },
     { -9760, -620, 368, 0 },
-};
-
-SVECTOR D_shelter_b2_elevator_hall_80183868[8] = {
     { 0x280E, -620, 2564, 0 },
     { 0x280E, -620, 3170, 0 },
     { 0x2749, -2342, 3789, 0 },
@@ -160,13 +149,15 @@ SVECTOR D_shelter_b2_elevator_hall_80183868[8] = {
     { -5249, -2399, 1652, 0 },
 };
 
-SVECTOR D_shelter_b2_elevator_hall_801838A8[1] = {
-    { 9936, -1250, 3234, 0 },
-};
+/// World-space centre of the south walkway door's blue unlocked indicator.
+///
+/// Coordinates are signed game units, borrowed only during the glow draw.
+static SVECTOR _gShelterB2ElevatorHallUnlockedDoorIndicatorPoint = { 9936, -1250, 3234, 0 };
 
-SVECTOR D_shelter_b2_elevator_hall_801838B0[1] = {
-    { 9901, -1195, 3234, 0 },
-};
+/// World-space centre of the south walkway door's red locked indicator.
+///
+/// Coordinates are signed game units, borrowed only during the glow draw.
+static SVECTOR _gShelterB2ElevatorHallLockedDoorIndicatorPoint = { 9901, -1195, 3234, 0 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { \
     { 0, 1, 2 },                           \
@@ -191,7 +182,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b2_elevator_hall_801838DC[1] = {
+u8* gShelterB2ElevatorHallViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -203,29 +194,46 @@ DirectionWarpEntry D_shelter_b2_elevator_hall_801838E4[3] = {
     { { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9484, 0, 3743 }, { 0, 0, 0, 0 }, 0x541B0004, 0x541B0003, 0x541B0008, 6, DIRECTION_WARP_FLAG_NONE, 457 },
 };
 
-static SVECTOR _gShelterB2ElevatorHallCollision067F4Normals[7] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB2ElevatorHallRoomCollisionNormals[7] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_normals.inc"
 };
 
-static SVECTOR _gShelterB2ElevatorHallCollision067F4Verts[48] = {
+/// Wall and floor mesh vertices in signed room game coordinates.
+static SVECTOR _gShelterB2ElevatorHallRoomCollisionVerts[48] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2ElevatorHallCollision067F4Faces[28] = {
+/// Indexed wall quads (class 0) and floor quads (classes 1 and 2).
+static WorldCollisionGridFace _gShelterB2ElevatorHallRoomCollisionFaces[28] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_faces.inc"
 };
 
-static s16 _gShelterB2ElevatorHallCollision067F4Cells[124] = {
+/// Packed cell face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelterB2ElevatorHallRoomCollisionCells[124] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2ElevatorHallCollision067F4Cells[i])
-static s16* _gShelterB2ElevatorHallCollision067F4Table[10] = {
+#define GRID_CELL(i) (&_gShelterB2ElevatorHallRoomCollisionCells[i])
+/// Face-list starts for the 5-by-2 grid, indexed by X times 2 plus Z.
+static s16* _gShelterB2ElevatorHallRoomCollisionTable[10] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_elevator_hall_80183DB4 = { NULL, _gShelterB2ElevatorHallCollision067F4Normals, _gShelterB2ElevatorHallCollision067F4Verts, _gShelterB2ElevatorHallCollision067F4Faces, _gShelterB2ElevatorHallCollision067F4Table, 9350, 1481, 5, 2, 4000, 28 };
+WorldCollisionGrid gShelterB2ElevatorHallRoomCollision = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2ElevatorHallRoomCollisionNormals,
+    .vertices    = _gShelterB2ElevatorHallRoomCollisionVerts,
+    .faces       = _gShelterB2ElevatorHallRoomCollisionFaces,
+    .cellFaceIds = _gShelterB2ElevatorHallRoomCollisionTable,
+    .xBias       = 9350,
+    .zBias       = 1481,
+    .cellCountX  = 5,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB2ElevatorHallRoomCollisionFaces),
+};
 
 ViewCamera D_shelter_b2_elevator_hall_80183DD8[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -20, 0x7530, -890 } }, 358 },
@@ -237,104 +245,161 @@ ViewCamera D_shelter_b2_elevator_hall_80183DD8[7] = {
     { { { { -1552, 0, -3790 }, { -270, 4085, 110 }, { 3780, 292, -1548 } }, { -8355, 1552, -250 } }, 257 },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80183ED4[2] = {
+/// Empty sprite batches for view 1, retaining decoded background strips.
+///
+/// The zero-count background record precedes the list terminator. This list
+/// also occupies the view's unused source slot and is never read as sprites.
+static SpriteBatch _gShelterB2ElevatorHallView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80183EE4[2] = {
+/// Empty sprite batches for view 2, retaining decoded background strips.
+///
+/// The zero-count background record precedes the list terminator. This list
+/// also occupies the view's unused source slot and is never read as sprites.
+static SpriteBatch _gShelterB2ElevatorHallView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80183EF4[2] = {
+/// Empty sprite batches for view 3, retaining decoded background strips.
+///
+/// The zero-count background record precedes the list terminator. This list
+/// also occupies the view's unused source slot and is never read as sprites.
+static SpriteBatch _gShelterB2ElevatorHallView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_elevator_hall_80183F04[10] = {
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -96, -8, 1410, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -96, -48, 1362, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -64, 0, 1605, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -64, -48, 1559, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -48, 1616, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, 0, 1672, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -8, 1660, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -24, -48, 1646, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -48, 1815, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -8, 1799, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+/// Encoded room-sprite atlas addresses and neutral opaque colour modulation.
+enum {
+    SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE     = getTPage(1, 0, 960, 0),
+    SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT             = getClut(0, 255),
+    SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR    = 128,
+    SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED = 0,
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80183FCC[3] = {
+/// Ten foreground texture rectangles and sorting depths for view 4.
+///
+/// Positions are pixels relative to the view centre; sizes and UVs are texels.
+/// Cached packets snapshot geometry while continuing to read these depths.
+static SpriteSource _gShelterB2ElevatorHallView4SpriteSources[10] = {
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 32, 48 } }, -96, -8, 1410, { .fields = { 96, 200 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 32, 40 } }, -96, -48, 1362, { .fields = { 72, 0 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 24, 56 } }, -64, 0, 1605, { .fields = { 104, 0 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 24, 48 } }, -64, -48, 1559, { .fields = { 96, 104 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, -48, 1616, { .fields = { 112, 56 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, 0, 1672, { .fields = { 112, 152 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, -8, 1660, { .fields = { 120, 104 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 8, 40 } }, -24, -48, 1646, { .fields = { 96, 40 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 8, 40 } }, -16, -48, 1815, { .fields = { 104, 56 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 8, 40 } }, -16, -8, 1799, { .fields = { 104, 152 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+};
+
+/// View 4's background selection, complete foreground range and list terminator.
+///
+/// The zero-count first record keeps decoded image strips behind the sprites.
+static SpriteBatch _gShelterB2ElevatorHallView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2ElevatorHallView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b2_elevator_hall_80183FE4[2] = {
+/// View 4's depth-limited clip rectangle, followed by its list terminator.
+///
+/// Clips scene drawing to (147, 70, 103, 94) draw-buffer pixels until the
+/// full-screen restore at unscaled sorting depth 1850.
+static SpriteDrawArea _gShelterB2ElevatorHallView4DrawAreas[2] = {
     { { 147, 70, 103, 94 }, 1850 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b2_elevator_hall_80183FF8[12] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -88, 72, 822, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -160, -120, 645, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -112, -120, 780, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -64, 809, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -24, 825, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 654, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, -64, 651, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 658, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 667, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 24, 835, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 72, 834, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, 72, 822, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+/// Twelve foreground texture rectangles and sorting depths for view 5.
+///
+/// Positions are pixels relative to the view centre; sizes and UVs are texels.
+/// Cached packets snapshot geometry while continuing to read these depths.
+static SpriteSource _gShelterB2ElevatorHallView5SpriteSources[12] = {
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 16, 48 } }, -88, 72, 822, { .fields = { 104, 160 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 48, 56 } }, -160, -120, 645, { .fields = { 80, 0 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 40, 56 } }, -112, -120, 780, { .fields = { 88, 56 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 40, 40 } }, -112, -64, 809, { .fields = { 40, 208 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, -24, 825, { .fields = { 88, 112 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -24, 654, { .fields = { 80, 208 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 48, 40 } }, -160, -64, 651, { .fields = { 24, 104 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 24, 658, { .fields = { 56, 160 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 72, 667, { .fields = { 40, 56 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, 24, 835, { .fields = { 40, 0 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 8, 48 } }, -112, 72, 834, { .fields = { 120, 160 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B2_ELEVATOR_HALL_SPRITE_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_HALL_SPRITE_CLUT, { .fields = { 16, 48 } }, -104, 72, 822, { .fields = { 72, 104 } }, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_NEUTRAL_COLOR, SHELTER_B2_ELEVATOR_HALL_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_801840E8[3] = {
+/// View 5's background selection, complete foreground range and list terminator.
+///
+/// The zero-count first record keeps decoded image strips behind the sprites.
+static SpriteBatch _gShelterB2ElevatorHallView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2ElevatorHallView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80184100[2] = {
+/// Empty sprite batches for view 6, retaining decoded background strips.
+///
+/// The zero-count background record precedes the list terminator. This list
+/// also occupies the view's unused source slot and is never read as sprites.
+static SpriteBatch _gShelterB2ElevatorHallView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_elevator_hall_80184110[2] = {
+/// Empty sprite batches for view 7, retaining decoded background strips.
+///
+/// The zero-count background record precedes the list terminator. This list
+/// also occupies the view's unused source slot and is never read as sprites.
+static SpriteBatch _gShelterB2ElevatorHallView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_elevator_hall_80184120[7] = {
-    { { .empty = D_shelter_b2_elevator_hall_80183ED4 }, D_shelter_b2_elevator_hall_80183ED4, NULL },
-    { { .empty = D_shelter_b2_elevator_hall_80183EE4 }, D_shelter_b2_elevator_hall_80183EE4, NULL },
-    { { .empty = D_shelter_b2_elevator_hall_80183EF4 }, D_shelter_b2_elevator_hall_80183EF4, NULL },
-    { { .elements = D_shelter_b2_elevator_hall_80183F04 }, D_shelter_b2_elevator_hall_80183FCC, D_shelter_b2_elevator_hall_80183FE4 },
-    { { .elements = D_shelter_b2_elevator_hall_80183FF8 }, D_shelter_b2_elevator_hall_801840E8, NULL },
-    { { .empty = D_shelter_b2_elevator_hall_80184100 }, D_shelter_b2_elevator_hall_80184100, NULL },
-    { { .empty = D_shelter_b2_elevator_hall_80184110 }, D_shelter_b2_elevator_hall_80184110, NULL },
+SpriteView gShelterB2ElevatorHallSpriteViews[7] = {
+    { { .empty = _gShelterB2ElevatorHallView1SpriteBatches }, _gShelterB2ElevatorHallView1SpriteBatches, NULL },
+    { { .empty = _gShelterB2ElevatorHallView2SpriteBatches }, _gShelterB2ElevatorHallView2SpriteBatches, NULL },
+    { { .empty = _gShelterB2ElevatorHallView3SpriteBatches }, _gShelterB2ElevatorHallView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2ElevatorHallView4SpriteSources }, _gShelterB2ElevatorHallView4SpriteBatches, _gShelterB2ElevatorHallView4DrawAreas },
+    { { .elements = _gShelterB2ElevatorHallView5SpriteSources }, _gShelterB2ElevatorHallView5SpriteBatches, NULL },
+    { { .empty = _gShelterB2ElevatorHallView6SpriteBatches }, _gShelterB2ElevatorHallView6SpriteBatches, NULL },
+    { { .empty = _gShelterB2ElevatorHallView7SpriteBatches }, _gShelterB2ElevatorHallView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_elevator_hall_80184174[14] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -681, -659, -1106 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -681, -659, 1137 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1648, -659, 1137 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1047, -659, -1192 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6077, -659, -1034 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8608, -659, -855 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8600, -659, 2166 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4834, -659, 2957 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7805, -6652, 1436 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3279, 3368, 3448 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2330, -6652, -263 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3267, 3308, 3588 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5813, -5652, -97 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3366, 3466, 3708 }, { 0, 0 } }, 2000, 0x2801 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8513, -659, 35 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7513, -659, -1106 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4617, -659, -1134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+/// Fourteen authored point lights contributing in every hall view.
+///
+/// Positions and falloff radii use world units; RGB intensities have twelve
+/// fractional bits. Coordinate composition and attenuation keep entries writable.
+static WorldCoordPointLight _gShelterB2ElevatorHallPointLights[14] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -681, -659, -1106 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -681, -659, 1137 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1648, -659, 1137 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1047, -659, -1192 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6077, -659, -1034 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8608, -659, -855 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8600, -659, 2166 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4834, -659, 2957 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7805, -6652, 1436 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3279, 3368, 3448 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2330, -6652, -263 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3267, 3308, 3588 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5813, -5652, -97 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3366, 3466, 3708 }, { 0, 0 } }, 2000, 0x2801 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8513, -659, 35 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7513, -659, -1106 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4617, -659, -1134 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1900 },
 };
 
-WorldCoordRoomLights D_shelter_b2_elevator_hall_801846B4 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_elevator_hall_80184174), D_shelter_b2_elevator_hall_80184174, 0, NULL };
+WorldCoordRoomLights gShelterB2ElevatorHallRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2ElevatorHallPointLights),
+    .pointLights           = _gShelterB2ElevatorHallPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b2_elevator_hall_801846CC[8] = {
     { NULL, NULL, NULL, { -4678, 64, -197, 0 }, { { 115, -2016, 2533, 0 }, { -124, -2016, -2543, 0 }, { 115, 2016, 2533, 0 }, { -124, 2016, -2543, 0 } }, { -4101, 0, 192, 0 }, { 0, 0, 4096, 0 }, 3238, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -450,39 +515,70 @@ AreaVariant D_shelter_b2_elevator_hall_80184C7C[22] = {
     { D_shelter_b2_elevator_hall_80184C2C, D_shelter_b2_elevator_hall_80184AB8 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_elevator_hall_80184D2C = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 script bases in the loaded room's type-1 footstep bank.
+enum {
+    SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_elevator_hall_80184D38 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Walk, run and scripted-jump cue bases for floor surface class 1.
+///
+/// Animation cue 1 adds one to the base; companion playback adds another 100.
+/// Surface records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gShelterB2ElevatorHallSurfaceClass1FootstepSounds = {
+    .walk         = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_1_WALK_CUE_BASE,
+    .run          = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_1_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_1_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_elevator_hall_80184D44[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walk, run and scripted-jump cue bases for floor surface class 2.
+///
+/// Animation cue 1 adds one to the base; companion playback adds another 100.
+/// Surface records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gShelterB2ElevatorHallSurfaceClass2FootstepSounds = {
+    .walk         = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_2_WALK_CUE_BASE,
+    .run          = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_2_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_ELEVATOR_HALL_SURFACE_CLASS_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_elevator_hall_80184D4C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_elevator_hall_80184D2C },
+/// Blocking, impact-enabled, pushback-applying policy without footsteps for classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gShelterB2ElevatorHallSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_elevator_hall_80184D54[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_elevator_hall_80184D38 },
+/// Blocking, impact-enabled, pushback-applying policy and footsteps for floor class 1.
+static WorldCollisionSurfaceProperties _gShelterB2ElevatorHallSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2ElevatorHallSurfaceClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_elevator_hall_80184D5C[8] = {
-    D_shelter_b2_elevator_hall_80184D44,
-    D_shelter_b2_elevator_hall_80184D4C,
-    D_shelter_b2_elevator_hall_80184D54,
-    D_shelter_b2_elevator_hall_80184D44,
-    D_shelter_b2_elevator_hall_80184D44,
-    D_shelter_b2_elevator_hall_80184D44,
-    D_shelter_b2_elevator_hall_80184D44,
-    D_shelter_b2_elevator_hall_80184D44,
+/// Blocking, impact-enabled, pushback-applying policy and footsteps for floor class 2.
+static WorldCollisionSurfaceProperties _gShelterB2ElevatorHallSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2ElevatorHallSurfaceClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB2ElevatorHallSurfacePropertiesByClass[8] = {
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
+    &_gShelterB2ElevatorHallSurfaceClass1Properties,
+    &_gShelterB2ElevatorHallSurfaceClass2Properties,
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
+    &_gShelterB2ElevatorHallSilentSurfaceProperties,
 };
 
 /// Snapshot of the accepted transition for the deferred room event.
@@ -658,9 +754,9 @@ static inline void _shelterB2ElevatorHallDrawDoorIndicator(void)
     };
 
     if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, DOOR_INDICATOR_RADIUS_SCALE, DOOR_UNLOCKED_COLOR);
+        _glowDrawTintedDisc(&_gShelterB2ElevatorHallUnlockedDoorIndicatorPoint, DOOR_INDICATOR_RADIUS_SCALE, DOOR_UNLOCKED_COLOR);
     } else {
-        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, DOOR_INDICATOR_RADIUS_SCALE, DOOR_LOCKED_COLOR);
+        _glowDrawTintedDisc(&_gShelterB2ElevatorHallLockedDoorIndicatorPoint, DOOR_INDICATOR_RADIUS_SCALE, DOOR_LOCKED_COLOR);
     }
 }
 
@@ -687,11 +783,10 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
     }
 
     // Draw only the world-space lamps visible from the mapped camera.
-    // Views 2..4 span adjacent lamp-point arrays; their containing object is unproven.
     switch (viewGetMappedIndex() & MAPPED_VIEW_MASK) {
         case 2: {
             const SVECTOR* lampEndpoints;
-            lampEndpoints = D_shelter_b2_elevator_hall_801837D8;
+            lampEndpoints = _gShelterB2ElevatorHallLampEndpoints;
             _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[2], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[16], LAMP_RADIUS, LAMP_COLOR);
@@ -700,7 +795,7 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
         }
         case 3: {
             const SVECTOR* lampEndpoints;
-            lampEndpoints = D_shelter_b2_elevator_hall_801837F8;
+            lampEndpoints = &_gShelterB2ElevatorHallLampEndpoints[4];
             _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[8], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[12], LAMP_RADIUS, LAMP_COLOR);
@@ -709,7 +804,7 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
         }
         case 4: {
             const SVECTOR* lampEndpoints;
-            lampEndpoints = D_shelter_b2_elevator_hall_80183808;
+            lampEndpoints = &_gShelterB2ElevatorHallLampEndpoints[6];
             _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[8], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[12], LAMP_RADIUS, LAMP_COLOR);
@@ -719,7 +814,7 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
         case 5: {
             const SVECTOR* lampEndpoints;
             _shelterB2ElevatorHallDrawDoorIndicator();
-            lampEndpoints = D_shelter_b2_elevator_hall_80183868;
+            lampEndpoints = &_gShelterB2ElevatorHallLampEndpoints[18];
             _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[2], ACCENT_RADIUS, ACCENT_COLOR);
             _glowDrawCapsule(&lampEndpoints[4], ACCENT_RADIUS, ACCENT_COLOR);
@@ -728,7 +823,7 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
         case 6: {
             const SVECTOR* lampEndpoints;
             _shelterB2ElevatorHallDrawDoorIndicator();
-            lampEndpoints = D_shelter_b2_elevator_hall_80183868;
+            lampEndpoints = &_gShelterB2ElevatorHallLampEndpoints[18];
             _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
             _glowDrawCapsule(&lampEndpoints[2], ACCENT_RADIUS, ACCENT_COLOR);
             break;

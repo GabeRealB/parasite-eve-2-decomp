@@ -14,20 +14,40 @@
 
 extern AreaVariant D_shelter_b2_elevator_hall_80184C7C[22];
 
-// shelter_b2_elevator_hall
-extern u8* D_shelter_b2_elevator_hall_801838DC[];
+/// Logical-view maps for the hall's single room, indexed by room ID minus one.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..7 select the same camera,
+/// image and sprite indices. The map directory remains live while the room
+/// overlay is loaded; it has no terminator.
+extern u8* gShelterB2ElevatorHallViewMaps[1];
 
 extern ViewCount D_shelter_b2_elevator_hall_801838E0[];
 
 extern DirectionWarpEntry D_shelter_b2_elevator_hall_801838E4[];
 
-extern WorldCollisionGrid D_shelter_b2_elevator_hall_80183DB4;
+/// The hall's wall and floor collision mesh, indexed by a 5-by-2 XZ cell grid.
+///
+/// Owns 7 normals, 48 vertices, 28 quad faces and 10 cell lists. Vertices and
+/// 4000-unit cell sides use room game coordinates; unit normals use 4096.
+/// Floor faces use surface classes 1 and 2, walls class 0. Activation binds
+/// the view transform; mesh pools and lists remain writable and live with
+/// this room overlay.
+extern WorldCollisionGrid gShelterB2ElevatorHallRoomCollision;
 
 extern ViewCamera D_shelter_b2_elevator_hall_80183DD8[];
 
-extern SpriteView D_shelter_b2_elevator_hall_80184120[];
+/// Sprite and clipping resources for mapped hall views 1..7, indexed by view minus one.
+///
+/// Views 4 and 5 add foreground sprites to decoded background strips; view 4
+/// also clips scene drawing. Other views have empty sprite lists. Borrows
+/// mutable room-owned sources and batches for the lifetime of this overlay.
+extern SpriteView gShelterB2ElevatorHallSpriteViews[7];
 
-extern WorldCoordRoomLights D_shelter_b2_elevator_hall_801846B4;
+/// The hall's fourteen point lights, with no directional or cone lights.
+///
+/// Borrows writable room-owned entries for coordinate composition and light
+/// attenuation. All entries contribute in every view; keep the overlay loaded.
+extern WorldCoordRoomLights gShelterB2ElevatorHallRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_elevator_hall_801846CC[];
 
@@ -35,7 +55,13 @@ extern WorldCollisionOccluder D_shelter_b2_elevator_hall_8018492C[];
 
 extern WorldCollisionTrigger D_shelter_b2_elevator_hall_80184968[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_elevator_hall_80184D5C[];
+/// Collision policies and footstep cues indexed by the hall's surface classes 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Floor
+/// classes 1 and 2 use distinct footstep cue sets; 0 and 3..7 are silent.
+/// The first policy byte is zero throughout, with its role unproven. Pointers
+/// borrow scalar records owned by this overlay and expire when it unloads.
+extern WorldCollisionSurfaceProperties* gShelterB2ElevatorHallSurfacePropertiesByClass[8];
 
 /// Runs the elevator hall's room-message receiver through initialization, idle and teardown.
 ///
