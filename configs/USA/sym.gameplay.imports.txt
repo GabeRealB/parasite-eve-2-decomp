@@ -1629,7 +1629,7 @@ gShelterB1SterilizationRoomAreaVariants = 0x8018C14C; // absolute:True owner=she
 
 D_shelter_b1_storeroom_80186C9C = 0x80186C9C; // absolute:True owner=shelter_b1_storeroom
 
-D_shelter_b1_transfer_tunnel_801830B8 = 0x801830B8; // absolute:True owner=shelter_b1_transfer_tunnel
+gShelterB1TransferTunnelAreaVariants = 0x801830B8; // absolute:True owner=shelter_b1_transfer_tunnel
 
 D_shelter_b1_underground_parking_8018B5C4 = 0x8018B5C4; // absolute:True owner=shelter_b1_underground_parking
 

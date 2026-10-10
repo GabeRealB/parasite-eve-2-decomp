@@ -12,28 +12,72 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22];
+/// Transfer Tunnel actor layouts, indexed by the saved area variant (0..21).
+///
+/// Variant 1 places six Watchers and actor_200300; variant 11 replaces that
+/// actor with a Rook GOLEM. Other slots have no placements or resources.
+/// Loading and actors borrow the selected tables while this overlay is loaded.
+extern AreaVariant gShelterB1TransferTunnelAreaVariants[22];
 
-// shelter_b1_transfer_tunnel
-extern u8* D_shelter_b1_transfer_tunnel_80182954[];
+/// Room 1's logical-view map, borrowing gameplay's identity map for views 1..4.
+///
+/// Maps view minus one to a 1-based camera, image and sprite index. Keep the
+/// gameplay and room overlays loaded during lookups; there is no terminator.
+extern u8* gShelterB1TransferTunnelRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_transfer_tunnel_80182958[];
+/// Room 1's four logical views, stored as a signed 16-bit element count.
+extern ViewCount gShelterB1TransferTunnelRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_transfer_tunnel_8018295C[];
+/// Two warp endpoints: 1 toward the B1 Main Corridor, 2 toward the B1 Access Tunnel.
+///
+/// Warp IDs are 1-based; arrivals select views 2 and 4 respectively. Records
+/// supply player/companion world placements and door sounds without a terminator.
+/// The main-corridor endpoint also marks the R47 map flag. Keep this overlay loaded.
+extern DirectionWarpEntry gShelterB1TransferTunnelWarpEntries[2];
 
-extern WorldCollisionGrid D_shelter_b1_transfer_tunnel_80182AEC;
+/// Transfer Tunnel wall, ceiling and floor collision mesh and its 3-by-2 cell index.
+///
+/// Cells span 4000 world units, with grid origin (-642, -1736) in X/Z.
+/// Six quads use surface class 0 for walls/ceiling and class 1 for the floor.
+/// Activation binds the mutable grid to the view; all pools belong to this overlay.
+extern WorldCollisionGrid gShelterB1TransferTunnelRoomCollision;
 
-extern ViewCamera D_shelter_b1_transfer_tunnel_80182B10[];
+/// Four fixed cameras, indexed by the mapped 1-based view minus one.
+///
+/// Translations are negated world origins, rotations have 12 fractional bits,
+/// and projection distances are pixels. View application borrows each record.
+extern ViewCamera gShelterB1TransferTunnelViewCameras[4];
 
-extern SpriteView D_shelter_b1_transfer_tunnel_80182BE0[];
+/// Four sprite-view records selecting decoded image strips without source sprites.
+///
+/// Indexed by the mapped view minus one. Each retains its own empty batch list,
+/// ending at SPRITE_BATCH_END; clipping lists are NULL. Keep this overlay loaded.
+extern SpriteView gShelterB1TransferTunnelSpriteViews[4];
 
-extern WorldCoordRoomLights D_shelter_b1_transfer_tunnel_80182D90;
+/// The room's four point lights, with no directional or cone lights.
+///
+/// All views share the mutable lights; coordinate binding and lighting queries
+/// update their transforms and attenuation. The collection borrows overlay storage.
+extern WorldCoordRoomLights gShelterB1TransferTunnelRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182DA8[];
+/// Four directed camera boundaries implementing 2-to-3, 3-to-2, 4-to-3 and 3-to-4.
+///
+/// The final live record carries WORLD_COLLISION_TRIGGER_LAST. Room setup
+/// parents and links these mutable quads; keep them loaded until unlinked.
+extern WorldCollisionTrigger gShelterB1TransferTunnelViewBoundaryTriggers[4];
 
-extern WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[];
+/// Facing-gated door quads to the B1 Main Corridor and B1 Access Tunnel.
+///
+/// Both arrive at destination endpoint 4, departing through local endpoints
+/// 1 and 2 respectively. The last live record carries WORLD_COLLISION_TRIGGER_LAST.
+/// Room setup parents and links the mutable quads; keep them loaded until unlinked.
+extern WorldCollisionTrigger gShelterB1TransferTunnelWarpTriggers[2];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[];
+/// Collision policies for surface classes 0..7; only floor class 1 has footstep cues.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Entries
+/// borrow two policy records in this overlay, which must stay loaded during use.
+extern WorldCollisionSurfaceProperties* gShelterB1TransferTunnelSurfacePropertiesByClass[8];
 
 /// Runs the Transfer Tunnel room controller for synchronous room messages.
 ///

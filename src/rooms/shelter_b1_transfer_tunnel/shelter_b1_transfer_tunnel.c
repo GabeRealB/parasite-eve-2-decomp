@@ -40,6 +40,8 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -53,25 +55,13 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// The room's message table, installed in `Task::msgTable` by
-/// `_shelterB1TransferTunnelInitializeRoom`.
-extern TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[];
-
-/// World-space points for the capsules and red disc drawn by
-/// `shelterB1TransferTunnelDrawGlowsTask`, chosen by camera view.
-extern SVECTOR D_shelter_b1_transfer_tunnel_801828E8[];
-extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
-
-/// Per-palette right shifts that turn the halo's level into its red, green
-/// and blue channels.
-
 static void _shelterB1TransferTunnelInitializeRoom(Task* task);
 static void _shelterB1TransferTunnelIdle(Task* task);
 
-/// State handlers of the task `shelterB1TransferTunnelRoomTask`
-/// runs, which copies the table to the stack and calls the entry for the
-/// task's state: the room's setup, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
+/// Room-controller handlers for states 0 (register), 1 (idle) and 2 (release).
+///
+/// The controller copies all three entries before dispatch; its state must be 0..2.
+static const TaskFuncTable3 _gShelterB1TransferTunnelRoomTaskStates = {
     { _shelterB1TransferTunnelInitializeRoom, _shelterB1TransferTunnelIdle, taskKill }
 };
 
@@ -80,22 +70,26 @@ static s32 _shelterB1TransferTunnelResolveRoomEvent(Task* task, s32 messageId, R
 static s32 _shelterB1TransferTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
-TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
+/// Synchronous room messages for transitions, key items, actions and commands.
+///
+/// The live room task borrows this table. Unsupported IDs return zero at the
+/// end marker; transition payloads borrow a request and writable reply.
+static TaskMessageEntry _gShelterB1TransferTunnelRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1TransferTunnelResolveRoomEvent },
-    { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1TransferTunnelRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1TransferTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1TransferTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1TransferTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b1_transfer_tunnel_801828E8[2] = {
+/// Four capsule endpoint pairs followed by the red-disc centre, in world units.
+///
+/// Pairs start at indices 0, 2, 4 and 6; index 8 is the disc. Views 2 and 3
+/// use the array base, while view 4 starts at index 2. Drawers borrow points
+/// synchronously and require both endpoints of each capsule to be readable.
+static SVECTOR _gShelterB1TransferTunnelGlowPoints[9] = {
     { 5017, -196, 1184, 0 },
     { 4172, -196, 1184, 0 },
-};
-
-SVECTOR D_shelter_b1_transfer_tunnel_801828F8[7] = {
     { 2313, -196, 1184, 0 },
     { 1527, -196, 1184, 0 },
     { 5017, -196, -1028, 0 },
@@ -121,135 +115,169 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b1_transfer_tunnel_80182954[1] = {
+u8* gShelterB1TransferTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_transfer_tunnel_80182958[1] = { 4 };
+ViewCount gShelterB1TransferTunnelRoomViewCounts[1] = { ARRAY_SIZE(gShelterB1TransferTunnelViewCameras) };
 
-DirectionWarpEntry D_shelter_b1_transfer_tunnel_8018295C[2] = {
-    { { { .word = 3072 }, 6214, 0, 60 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5570, 0, 20 }, { 0, 0, 0, 0 }, 0x54180002, 0x54180001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
-    { { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 971, 0, 18 }, { 0, 0, 0, 0 }, 0x54180004, 0x54180003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    SHELTER_B1_TRANSFER_TUNNEL_MAIN_CORRIDOR_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 2),
+    SHELTER_B1_TRANSFER_TUNNEL_MAIN_CORRIDOR_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 1),
+    SHELTER_B1_TRANSFER_TUNNEL_ACCESS_TUNNEL_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 4),
+    SHELTER_B1_TRANSFER_TUNNEL_ACCESS_TUNNEL_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 3),
 };
 
-static SVECTOR _gShelterB1TransferTunnelCollision0552CNormals[6] = {
+DirectionWarpEntry gShelterB1TransferTunnelWarpEntries[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 6214, 0, 60 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 5570, 0, 20 }, { 0, 0, 0, 0 }, SHELTER_B1_TRANSFER_TUNNEL_MAIN_CORRIDOR_ARRIVAL_SOUND, SHELTER_B1_TRANSFER_TUNNEL_MAIN_CORRIDOR_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 971, 0, 18 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 971, 0, 18 }, { 0, 0, 0, 0 }, SHELTER_B1_TRANSFER_TUNNEL_ACCESS_TUNNEL_ARRIVAL_SOUND, SHELTER_B1_TRANSFER_TUNNEL_ACCESS_TUNNEL_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Room-axis wall, ceiling and floor normals, with 4096 representing unit length.
+static SVECTOR _gShelterB1TransferTunnelRoomCollisionNormals[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_normals.inc"
 };
 
-static SVECTOR _gShelterB1TransferTunnelCollision0552CVerts[12] = {
+/// Collision-mesh vertices in signed world-coordinate units.
+static SVECTOR _gShelterB1TransferTunnelRoomCollisionVerts[12] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1TransferTunnelCollision0552CFaces[6] = {
+/// Six quads: walls and ceiling in surface class 0, floor in class 1.
+static WorldCollisionGridFace _gShelterB1TransferTunnelRoomCollisionFaces[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_faces.inc"
 };
 
-static s16 _gShelterB1TransferTunnelCollision0552CCells[24] = {
+/// Six terminated face-index lists concatenated in X-major cell order.
+static s16 _gShelterB1TransferTunnelRoomCollisionCells[24] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1TransferTunnelCollision0552CCells[i])
-static s16* _gShelterB1TransferTunnelCollision0552CTable[6] = {
+#define GRID_CELL(i) (&_gShelterB1TransferTunnelRoomCollisionCells[i])
+/// The 3-by-2 cell directory; each entry borrows a list ending at -1.
+static s16* _gShelterB1TransferTunnelRoomCollisionTable[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_transfer_tunnel_80182AEC = { NULL, _gShelterB1TransferTunnelCollision0552CNormals, _gShelterB1TransferTunnelCollision0552CVerts, _gShelterB1TransferTunnelCollision0552CFaces, _gShelterB1TransferTunnelCollision0552CTable, 642, 1736, 3, 2, 4000, 6 };
+WorldCollisionGrid gShelterB1TransferTunnelRoomCollision = { NULL, _gShelterB1TransferTunnelRoomCollisionNormals, _gShelterB1TransferTunnelRoomCollisionVerts, _gShelterB1TransferTunnelRoomCollisionFaces, _gShelterB1TransferTunnelRoomCollisionTable, 642, 1736, 3, 2, 4000, ARRAY_SIZE(_gShelterB1TransferTunnelRoomCollisionFaces) };
 
-ViewCamera D_shelter_b1_transfer_tunnel_80182B10[4] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3722, 8164, -144 } }, 235 },
+ViewCamera gShelterB1TransferTunnelViewCameras[4] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -3722, 8164, -144 } }, 235 },
     { { { { 440, 0, -4072 }, { -84, 4095, -9 }, { 4071, 85, 439 } }, { -3438, 1111, 45 } }, 225 },
     { { { { 510, 0, -4064 }, { 176, 4092, 22 }, { 4060, -177, 510 } }, { -982, 799, 335 } }, 235 },
     { { { { 1227, 0, 3907 }, { -265, 4086, 83 }, { -3898, -278, 1224 } }, { -4511, 770, 374 } }, 235 },
 };
 
-SpriteBatch D_shelter_b1_transfer_tunnel_80182BA0[2] = {
+/// View 1's empty sprite list, selecting decoded background image strips.
+static SpriteBatch _gShelterB1TransferTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_transfer_tunnel_80182BB0[2] = {
+/// View 2's empty sprite list, selecting decoded background image strips.
+static SpriteBatch _gShelterB1TransferTunnelView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_transfer_tunnel_80182BC0[2] = {
+/// View 3's empty sprite list, selecting decoded background image strips.
+static SpriteBatch _gShelterB1TransferTunnelView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_transfer_tunnel_80182BD0[2] = {
+/// View 4's empty sprite list, selecting decoded background image strips.
+static SpriteBatch _gShelterB1TransferTunnelView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_transfer_tunnel_80182BE0[4] = {
-    { { .empty = D_shelter_b1_transfer_tunnel_80182BA0 }, D_shelter_b1_transfer_tunnel_80182BA0, NULL },
-    { { .empty = D_shelter_b1_transfer_tunnel_80182BB0 }, D_shelter_b1_transfer_tunnel_80182BB0, NULL },
-    { { .empty = D_shelter_b1_transfer_tunnel_80182BC0 }, D_shelter_b1_transfer_tunnel_80182BC0, NULL },
-    { { .empty = D_shelter_b1_transfer_tunnel_80182BD0 }, D_shelter_b1_transfer_tunnel_80182BD0, NULL },
+SpriteView gShelterB1TransferTunnelSpriteViews[4] = {
+    { { .empty = _gShelterB1TransferTunnelView1SpriteBatches }, _gShelterB1TransferTunnelView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1TransferTunnelView2SpriteBatches }, _gShelterB1TransferTunnelView2SpriteBatches, NULL },
+    { { .empty = _gShelterB1TransferTunnelView3SpriteBatches }, _gShelterB1TransferTunnelView3SpriteBatches, NULL },
+    { { .empty = _gShelterB1TransferTunnelView4SpriteBatches }, _gShelterB1TransferTunnelView4SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_transfer_tunnel_80182C10[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5609, -223, 118 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 799, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3663, -526, 7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2720, 2900, 3122 }, { 0, 0 } }, 1460, 3061 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2537, -85, -1 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2416, 2539, 2560 }, { 0, 0 } }, 1721, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1219, -223, -250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 1101, 2000 },
+/// Four authored point lights, active in every room view.
+///
+/// Positions and falloff radii use world units; RGB intensity has 12 fractional
+/// bits. Room binding and lighting queries update transforms and attenuation.
+static WorldCoordPointLight _gShelterB1TransferTunnelPointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5609, -223, 118 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 799, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3663, -526, 7 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2720, 2900, 3122 }, { 0, 0 } }, 1460, 3061 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2537, -85, -1 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2416, 2539, 2560 }, { 0, 0 } }, 1721, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1219, -223, -250 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 1101, 2000 },
 };
 
-WorldCoordRoomLights D_shelter_b1_transfer_tunnel_80182D90 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_transfer_tunnel_80182C10), D_shelter_b1_transfer_tunnel_80182C10, 0, NULL };
+WorldCoordRoomLights gShelterB1TransferTunnelRoomLights = { 0, NULL, ARRAY_SIZE(_gShelterB1TransferTunnelPointLights), _gShelterB1TransferTunnelPointLights, 0, NULL };
 
-WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182DA8[4] = {
-    { NULL, NULL, NULL, { 5257, -576, 234, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5441, -576, 272, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2784, -512, 160, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2560, -576, 128, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1TransferTunnelViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 5257, -576, 234, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, ONE, 0 }, 3405, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5441, -576, 272, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, ONE, 0 }, 3405, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2784, -512, 160, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, ONE, 0 }, 3405, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2560, -576, 128, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, ONE, 0 }, 3405, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[2] = {
-    { NULL, NULL, NULL, { 6416, -48, 160, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 864, -48, 96, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { 4096, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1TransferTunnelWarpTriggers[2] = {
+    { NULL, NULL, NULL, { 6416, -48, 160, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { -ONE, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, (1 << 4) | 4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 864, -48, 96, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { ONE, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, (2 << 4) | 4, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_transfer_tunnel_80182F70[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor200300Tasks },
+enum {
+    SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER      = 21,
+    SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ACTOR_200300 = 3,
+    SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ROOK_GOLEM   = 23,
+};
+
+/// Watcher and actor-200300 resources for area variant 1, followed by the end marker.
+static AreaResource _gShelterB1TransferTunnelVariant1Resources[3] = {
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ACTOR_200300, 3, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor200300Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_transfer_tunnel_80182F94[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
+/// Watcher and Rook GOLEM resources for area variant 11, followed by the end marker.
+static AreaResource _gShelterB1TransferTunnelVariant11Resources[3] = {
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ROOK_GOLEM, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b1_transfer_tunnel_80182FB8[8] = {
-    { 21, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
-    { 21, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
-    { 21, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
-    { 21, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
-    { 21, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
-    { 3, 0, 0, 4500, 0, 80, 3072, 0, 2, 4, 0 },
+/// Six elevated Watchers and one actor-200300 placement for area variant 1.
+///
+/// The eighth record ends the list. Positions use world units and yaw uses
+/// 4096 units per turn; actor-specific variant, mode and row selectors are retained.
+static AreaPlacement _gShelterB1TransferTunnelVariant1Placements[8] = {
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ACTOR_200300, 0, 0, 4500, 0, 80, 3072, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_transfer_tunnel_80183038[8] = {
-    { 21, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
-    { 21, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
-    { 21, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
-    { 21, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
-    { 21, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
-    { 23, 4, 1, 1500, 0, 0, 1024, 0, 2, 4, 0 },
+/// Six elevated Watchers and one Rook GOLEM placement for area variant 11.
+///
+/// The eighth record ends the list. Positions use world units and yaw uses
+/// 4096 units per turn; actor-specific variant, mode and row selectors are retained.
+static AreaPlacement _gShelterB1TransferTunnelVariant11Placements[8] = {
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
+    { SHELTER_B1_TRANSFER_TUNNEL_RESOURCE_ROOK_GOLEM, 4, 1, 1500, 0, 0, 1024, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
+AreaVariant gShelterB1TransferTunnelAreaVariants[22] = {
     { NULL, NULL },
-    { D_shelter_b1_transfer_tunnel_80182FB8, D_shelter_b1_transfer_tunnel_80182F70 },
-    { NULL, NULL },
-    { NULL, NULL },
+    { _gShelterB1TransferTunnelVariant1Placements, _gShelterB1TransferTunnelVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -257,7 +285,9 @@ AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_transfer_tunnel_80183038, D_shelter_b1_transfer_tunnel_80182F94 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gShelterB1TransferTunnelVariant11Placements, _gShelterB1TransferTunnelVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -270,29 +300,47 @@ AreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_transfer_tunnel_80183168 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+enum {
+    SHELTER_B1_TRANSFER_TUNNEL_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B1_TRANSFER_TUNNEL_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_transfer_tunnel_80183174[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor footstep cue-2 bases in the loaded type-1 bank; cue 1 adds one.
+///
+/// Walking and scripted jumping share a pair; running selects the next pair.
+static WorldCollisionFootstepSounds _gShelterB1TransferTunnelFloorFootstepSounds = {
+    SHELTER_B1_TRANSFER_TUNNEL_FOOTSTEP_WALK,
+    SHELTER_B1_TRANSFER_TUNNEL_FOOTSTEP_RUN,
+    SHELTER_B1_TRANSFER_TUNNEL_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_transfer_tunnel_8018317C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_transfer_tunnel_80183168 },
+/// Blocking surface policy for classes 0 and 2..7, without footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1TransferTunnelDefaultSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[8] = {
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_8018317C,
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_80183174,
-    D_shelter_b1_transfer_tunnel_80183174,
+/// Blocking floor policy for class 1, with walking and running footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1TransferTunnelFloorSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelterB1TransferTunnelFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1TransferTunnelSurfacePropertiesByClass[8] = {
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelFloorSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
+    &_gShelterB1TransferTunnelDefaultSurface,
 };
 
 /// Refuses every key item without changing the room, returning zero to the item menu.
@@ -341,7 +389,7 @@ static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, c
 /// no work; the task and table must remain live while room messages are sent.
 static void _shelterB1TransferTunnelInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b1_transfer_tunnel_801828C0;
+    task->msgTable = _gShelterB1TransferTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state += 1;
 }
@@ -355,7 +403,7 @@ void shelterB1TransferTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_transfer_tunnel_8017D5C4;
+    stateHandlers = _gShelterB1TransferTunnelRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -392,18 +440,18 @@ void shelterB1TransferTunnelDrawGlowsTask(Task* task)
     viewIndex = viewGetMappedIndex();
     switch (viewIndex) {
         case 2: {
-            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828E8;
+            const SVECTOR* glowPoints = _gShelterB1TransferTunnelGlowPoints;
             glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
             glowDrawRedDisc(&glowPoints[8], GLOWS_RADIUS_SCALE);
         } break;
         case 3: {
-            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828E8;
+            const SVECTOR* glowPoints = _gShelterB1TransferTunnelGlowPoints;
             glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[4], GLOWS_RADIUS_SCALE, GLOW_HALF_TURN);
             glowDrawRedDisc(&glowPoints[8], GLOWS_RADIUS_SCALE);
         } break;
         case 4: {
-            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828F8;
+            const SVECTOR* glowPoints = &_gShelterB1TransferTunnelGlowPoints[2];
             glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[4], GLOWS_RADIUS_SCALE, GLOW_HALF_TURN);
         } break;

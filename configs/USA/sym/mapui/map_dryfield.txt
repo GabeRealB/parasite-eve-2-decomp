@@ -7,7 +7,7 @@ dryfieldGasStationRoomTask = 0x8017FF8C; // type:func absolute:True owner=dryfie
 D_dryfield_gas_station_8018314C = 0x8018314C; // absolute:True owner=dryfield_gas_station shared=rooms
 gDryfieldGasStationRoomViewMaps = 0x8018315C; // absolute:True owner=dryfield_gas_station shared=rooms
 gDryfieldGasStationRoomLighting = 0x80183160; // absolute:True owner=dryfield_gas_station
-D_dryfield_gas_station_80183168 = 0x80183168; // absolute:True owner=dryfield_gas_station shared=rooms
+D_dryfield_gas_station_80183168 = 0x80183168; // absolute:True owner=dryfield_gas_station
 D_dryfield_gas_station_8018316C = 0x8018316C; // absolute:True owner=dryfield_gas_station shared=rooms
 D_dryfield_gas_station_80183EC8 = 0x80183EC8; // absolute:True owner=dryfield_gas_station
 D_dryfield_gas_station_801842A8 = 0x801842A8; // absolute:True owner=dryfield_gas_station shared=rooms
@@ -182,7 +182,7 @@ D_dryfield_water_tank_80187F80 = 0x80187F80; // absolute:True owner=dryfield_wat
 gDryfieldWaterTankSurfacePropertiesByClass = 0x80188CFC; // absolute:True owner=dryfield_water_tank shared=rooms
 dryfieldBreezewayMessageTask = 0x8017DE68; // type:func absolute:True owner=dryfield_breezeway
 D_dryfield_breezeway_8018316C = 0x8018316C; // absolute:True owner=dryfield_breezeway shared=rooms
-gDryfieldBreezewayViewMaps = 0x8018317C; // absolute:True owner=dryfield_breezeway shared=rooms
+gDryfieldBreezewayViewMaps = 0x8018317C; // absolute:True owner=dryfield_breezeway
 gDryfieldBreezewayRoomLighting = 0x80183180; // absolute:True owner=dryfield_breezeway
 gDryfieldBreezewayViewCounts = 0x80183188; // absolute:True owner=dryfield_breezeway shared=rooms
 D_dryfield_breezeway_8018318C = 0x8018318C; // absolute:True owner=dryfield_breezeway
