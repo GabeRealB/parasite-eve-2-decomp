@@ -11,16 +11,34 @@
 
 #include "main/task_types.h"
 
+/// Room-directory and surface-class extents exported by the fountain overlay.
+enum {
+    ACROPOLIS_FOUNTAIN_ROOM_COUNT          = 2,
+    ACROPOLIS_FOUNTAIN_SURFACE_CLASS_COUNT = 8
+};
+
 extern AreaVariant D_acropolis_fountain_8017FC9C[11];
 
 // acropolis_fountain
 extern WorldCollisionRoomResources D_acropolis_fountain_8017E814[];
 
-extern u8* D_acropolis_fountain_8017E84C[];
+/// Logical-view maps for the fountain's two room indices, selected at room - 1.
+///
+/// Both maps have 22 active entries, indexed at logical view - 1, returning
+/// 1-based camera/image/sprite indices. Room 1 uses the identity map; room 2
+/// maps logical views 2..6 to indices 10..14 and leaves the others unchanged.
+/// These maps have no terminator. Keep the fountain and gameplay overlays
+/// loaded while borrowing them; mapped indices require corresponding resources.
+extern u8* gAcropolisFountainViewMaps[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
 extern ViewCount D_acropolis_fountain_8017E854[];
 
-extern WorldCoordRoomLighting D_acropolis_fountain_8017E858[];
+/// Lighting descriptors for both fountain room indices, selected at room - 1.
+///
+/// Both borrow the same mutable six-point-light collection and use the default
+/// ambient minima. The descriptors and lights require the fountain overlay
+/// to remain loaded while lighting binds or queries them.
+extern WorldCoordRoomLighting gAcropolisFountainRoomLightingTable[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
 extern DirectionWarpEntry D_acropolis_fountain_8017E868[];
 
@@ -28,7 +46,13 @@ extern SpriteView D_acropolis_fountain_8018375C[];
 
 extern ViewCamera D_acropolis_fountain_80183864[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[];
+/// Collision policies and footstep cues indexed by fountain surface class 0..7.
+///
+/// Every class blocks probes and applies pushback. Class 2 suppresses weapon
+/// impacts; all others allow them. Only classes 4 and 5 have footstep cues.
+/// Both room indices share this directory and its borrowed records, which
+/// remain valid only while the fountain overlay is loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisFountainSurfacePropertiesByClass[ACROPOLIS_FOUNTAIN_SURFACE_CLASS_COUNT];
 
 /// Draws the fountain spray as a flickering, semitransparent textured quad.
 ///

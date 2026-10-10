@@ -133,7 +133,7 @@ gNeoArkIslandSpriteViews = 0x80183B14; // absolute:True owner=neo_ark_island
 gNeoArkIslandSurfaceProperties = 0x80183FE8; // absolute:True owner=neo_ark_island shared=rooms
 neoArkGardenRoomTask = 0x8017EA44; // type:func absolute:True owner=neo_ark_garden
 gNeoArkGardenCollisionRooms = 0x8018140C; // absolute:True owner=neo_ark_garden shared=rooms
-gNeoArkGardenRoomLighting = 0x8018141C; // absolute:True owner=neo_ark_garden shared=rooms
+gNeoArkGardenRoomLighting = 0x8018141C; // absolute:True owner=neo_ark_garden
 gNeoArkGardenViewMaps = 0x80181424; // absolute:True owner=neo_ark_garden
 gNeoArkGardenViewCounts = 0x80181428; // absolute:True owner=neo_ark_garden shared=rooms
 gNeoArkGardenWarpEntries = 0x8018142C; // absolute:True owner=neo_ark_garden shared=rooms

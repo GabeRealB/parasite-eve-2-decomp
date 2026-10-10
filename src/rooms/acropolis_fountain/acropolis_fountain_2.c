@@ -118,30 +118,15 @@ static void _acropolisFountainClimbFinish(Task* task);
 static void _acropolisFountainWaterMovieTask(Task* task);
 static void _acropolisFountainStopWaterMovieTask(Task* task);
 
-extern WorldCollisionGrid    D_acropolis_fountain_8017F60C[1];
+static WorldCollisionGrid    _gAcropolisFountainCollisionGrid;
 extern WorldCollisionTrigger D_acropolis_fountain_8017F630[12];
-extern WorldCoordRoomLights  D_acropolis_fountain_8017FF34[1];
+static WorldCoordRoomLights  _gAcropolisFountainRoomLights;
 
-extern SpriteBatch  D_acropolis_fountain_8017FF4C[2];
-extern SpriteBatch  D_acropolis_fountain_8017FF5C[2];
-extern SpriteBatch  D_acropolis_fountain_801806D8[9];
-extern SpriteBatch  D_acropolis_fountain_80180DB0[15];
-extern SpriteBatch  D_acropolis_fountain_801813DC[8];
-extern SpriteBatch  D_acropolis_fountain_8018155C[3];
-extern SpriteBatch  D_acropolis_fountain_80181B00[9];
-extern SpriteBatch  D_acropolis_fountain_80182304[18];
-extern SpriteBatch  D_acropolis_fountain_80182394[2];
 extern SpriteBatch  D_acropolis_fountain_801823A4[2];
 extern SpriteBatch  D_acropolis_fountain_801827EC[9];
 extern SpriteBatch  D_acropolis_fountain_80182F64[15];
 extern SpriteBatch  D_acropolis_fountain_801832E8[8];
 extern SpriteBatch  D_acropolis_fountain_801833C8[3];
-extern SpriteSource D_acropolis_fountain_8017FF6C[95];
-extern SpriteSource D_acropolis_fountain_80180720[84];
-extern SpriteSource D_acropolis_fountain_80180E28[73];
-extern SpriteSource D_acropolis_fountain_8018141C[16];
-extern SpriteSource D_acropolis_fountain_80181574[71];
-extern SpriteSource D_acropolis_fountain_80181B48[99];
 extern SpriteSource D_acropolis_fountain_801823B4[54];
 extern SpriteSource D_acropolis_fountain_80182834[92];
 extern SpriteSource D_acropolis_fountain_80182FDC[39];
@@ -159,11 +144,15 @@ TaskDesc D_acropolis_fountain_8017E7FC[2] = {
 };
 
 WorldCollisionRoomResources D_acropolis_fountain_8017E814[2] = {
-    { D_acropolis_fountain_8017F60C, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
-    { D_acropolis_fountain_8017F60C, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
+    { &_gAcropolisFountainCollisionGrid, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
+    { &_gAcropolisFountainCollisionGrid, D_acropolis_fountain_8017F630, D_acropolis_fountain_8017F9C0, NULL },
 };
 
-u8 D_acropolis_fountain_8017E834[24] = {
+/// Room 2's logical-view to camera/image/sprite mapping.
+///
+/// The first 22 bytes map views 1..22; two retained zero bytes lie outside that
+/// active extent and have no established use. Zero is not a map terminator.
+static u8 _gAcropolisFountainRoom2ViewMap[] = {
     1,
     10,
     11,
@@ -190,16 +179,16 @@ u8 D_acropolis_fountain_8017E834[24] = {
     0,
 };
 
-u8* D_acropolis_fountain_8017E84C[2] = {
+u8* gAcropolisFountainViewMaps[ACROPOLIS_FOUNTAIN_ROOM_COUNT] = {
     gViewIdentityMap,
-    D_acropolis_fountain_8017E834,
+    _gAcropolisFountainRoom2ViewMap,
 };
 
 ViewCount D_acropolis_fountain_8017E854[2] = { 22, 22 };
 
-WorldCoordRoomLighting D_acropolis_fountain_8017E858[2] = {
-    { D_acropolis_fountain_8017FF34, NULL },
-    { D_acropolis_fountain_8017FF34, NULL },
+WorldCoordRoomLighting gAcropolisFountainRoomLightingTable[ACROPOLIS_FOUNTAIN_ROOM_COUNT] = {
+    { .lights = &_gAcropolisFountainRoomLights, .ambientTable = NULL },
+    { .lights = &_gAcropolisFountainRoomLights, .ambientTable = NULL },
 };
 
 DirectionWarpEntry D_acropolis_fountain_8017E868[5] = {
@@ -210,30 +199,51 @@ DirectionWarpEntry D_acropolis_fountain_8017E868[5] = {
     { { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5162, 66, -5011 }, { 0, 0, 0, 0 }, 0x51080006, 0x51080005, DIRECTION_WARP_SOUND_NONE, 17, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gAcropolisFountainCollision0204CNormals[32] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gAcropolisFountainCollisionGridNormals[] = {
 #include "assets/acropolis_fountain_collision_0204C_normals.inc"
 };
 
-static SVECTOR _gAcropolisFountainCollision0204CVerts[181] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gAcropolisFountainCollisionGridVerts[] = {
 #include "assets/acropolis_fountain_collision_0204C_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisFountainCollision0204CFaces[66] = {
+/// Indexed collision faces carrying room-local surface classes.
+static WorldCollisionGridFace _gAcropolisFountainCollisionGridFaces[] = {
 #include "assets/acropolis_fountain_collision_0204C_faces.inc"
 };
 
-static s16 _gAcropolisFountainCollision0204CCells[326] = {
+/// Signed face-index lists ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gAcropolisFountainCollisionGridCells[] = {
 #include "assets/acropolis_fountain_collision_0204C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisFountainCollision0204CCells[i])
-static s16* _gAcropolisFountainCollision0204CTable[16] = {
+#define GRID_CELL(i) (&_gAcropolisFountainCollisionGridCells[i])
+/// X-major directory of the collision grid's 4-by-4 cell lists.
+static s16* _gAcropolisFountainCollisionGridTable[] = {
 #include "assets/acropolis_fountain_collision_0204C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_fountain_8017F60C[1] = {
-    { NULL, _gAcropolisFountainCollision0204CNormals, _gAcropolisFountainCollision0204CVerts, _gAcropolisFountainCollision0204CFaces, _gAcropolisFountainCollision0204CTable, 6000, 8530, 4, 4, 4000, 66 },
+/// Fountain collision mesh and 4-by-4 cell index, shared by both room indices.
+///
+/// Cells are 4000 game units wide, starting at room (X, Z) = (-6000, -8530).
+/// The 66 faces address 181 vertices and 32 Q12 normals. Cell lists terminate
+/// within the 326 stored halfwords. Activation binds the live view coordinate;
+/// all borrowed mesh and index storage stays in this overlay.
+static WorldCollisionGrid _gAcropolisFountainCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisFountainCollisionGridNormals,
+    .vertices    = _gAcropolisFountainCollisionGridVerts,
+    .faces       = _gAcropolisFountainCollisionGridFaces,
+    .cellFaceIds = _gAcropolisFountainCollisionGridTable,
+    .xBias       = 6000,
+    .zBias       = 8530,
+    .cellCountX  = 4,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisFountainCollisionGridFaces),
 };
 
 WorldCollisionTrigger D_acropolis_fountain_8017F630[12] = {
@@ -391,119 +401,145 @@ static WorldCoordPointLight _gAcropolisFountainPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_fountain_8017FF34[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisFountainPointLights), _gAcropolisFountainPointLights, 0, NULL },
+/// Mutable six-point-light collection shared by both fountain room indices.
+///
+/// There are no directional or cone lights. Coordinate binding and shading
+/// may update the borrowed point lights while the room overlay remains loaded.
+static WorldCoordRoomLights _gAcropolisFountainRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisFountainPointLights),
+    .pointLights           = _gAcropolisFountainPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-SpriteBatch D_acropolis_fountain_8017FF4C[2] = {
+/// Neutral RGB modulation in the GPU sprite's seven-fractional-bit scale.
+enum { ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE = 128 };
+
+/// Sprite ranges for mapped view 1, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fountain_8017FF5C[2] = {
+/// Sprite ranges for mapped view 2, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_8017FF6C[95] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -80, 559, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -112, 602, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -80, 748, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -48, 993, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, -48, 895, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, -80, 570, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, -104, 1193, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -152, 16, 739, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -152, -8, 663, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, -16, 740, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -72, 448, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -16, 1230, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 24, 720, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 32, 588, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 40, 383, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 40, 435, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 40, 454, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 40, 606, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 48, 412, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, 48, 908, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 72, 407, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 80, 403, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 88, 415, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 96, 403, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 104, 403, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -32, 747, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, -32, 745, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -64, 727, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -152, -80, 910, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -120, 598, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -136, -120, 576, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, -80, 553, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, -64, 1185, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -64, 481, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -96, 645, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -72, 480, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, -80, 505, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -48, 519, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, -32, 488, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 16, 736, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 48, 538, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 104, 438, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 72, 395, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 80, 365, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 56, 409, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 40, 513, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 56, 534, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 8, 636, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 24, 380, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -8, 654, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 24, 440, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, 0, 1153, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 56, 650, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 64, 781, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 40, 806, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 32, 881, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -96, 40, 784, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 32, 857, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -96, 88, 454, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 88, 550, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -136, 88, 454, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, 64, 386, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -96, 64, 418, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 64, 670, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 48, 698, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -64, 48, 777, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 8, 1212, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 56, 825, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 56, 850, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, 56, 912, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, 56, 987, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 32, 950, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 32, 925, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 32, 850, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 32, 837, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 16, 900, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 16, 900, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 16, 912, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 16, 925, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 8, 1275, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 0, 1287, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 8, 1250, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 0, 1275, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 8, 1237, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 0, 1237, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 56, 1025, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 32, 1037, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 88, 862, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 88, 775, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 88, 775, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 104, 750, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 32, 850, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 32, 850, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -8, 850, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -24, 850, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 3.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView3SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -120, -80, 559, { .fields = { 8, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, -112, 602, { .fields = { 88, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, -80, 748, { .fields = { 88, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, -48, 993, { .fields = { 88, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -136, -48, 895, { .fields = { 104, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -136, -80, 570, { .fields = { 112, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -136, -104, 1193, { .fields = { 56, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -152, 16, 739, { .fields = { 112, 192 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -152, -8, 663, { .fields = { 56, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, -16, 740, { .fields = { 0, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -104, -72, 448, { .fields = { 16, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -120, -16, 1230, { .fields = { 16, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -120, 24, 720, { .fields = { 16, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 32, 588, { .fields = { 16, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 40, 383, { .fields = { 16, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -152, 40, 435, { .fields = { 16, 192 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -144, 40, 454, { .fields = { 16, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -136, 40, 606, { .fields = { 16, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -136, 48, 412, { .fields = { 16, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -128, 48, 908, { .fields = { 16, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 72, 407, { .fields = { 16, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 80, 403, { .fields = { 16, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 88, 415, { .fields = { 16, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 96, 403, { .fields = { 16, 72 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 104, 403, { .fields = { 32, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -160, -32, 747, { .fields = { 56, 192 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -136, -32, 745, { .fields = { 88, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, -64, 727, { .fields = { 64, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -152, -80, 910, { .fields = { 56, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -160, -120, 598, { .fields = { 104, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -136, -120, 576, { .fields = { 104, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -136, -80, 553, { .fields = { 24, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -136, -64, 1185, { .fields = { 80, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -112, -64, 481, { .fields = { 72, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, -96, 645, { .fields = { 88, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -96, -72, 480, { .fields = { 112, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -80, -80, 505, { .fields = { 72, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -80, -48, 519, { .fields = { 104, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -112, -32, 488, { .fields = { 0, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, 16, 736, { .fields = { 32, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -144, 48, 538, { .fields = { 40, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -144, 104, 438, { .fields = { 56, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, 72, 395, { .fields = { 64, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -136, 80, 365, { .fields = { 40, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -160, 56, 409, { .fields = { 24, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -160, 40, 513, { .fields = { 80, 192 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -136, 56, 534, { .fields = { 96, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -120, 8, 636, { .fields = { 64, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -160, 24, 380, { .fields = { 8, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -160, -8, 654, { .fields = { 88, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -136, 24, 440, { .fields = { 48, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -136, 0, 1153, { .fields = { 56, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -104, 56, 650, { .fields = { 16, 104 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -48, 64, 781, { .fields = { 16, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -64, 40, 806, { .fields = { 24, 56 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -64, 32, 881, { .fields = { 0, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -96, 40, 784, { .fields = { 120, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -80, 32, 857, { .fields = { 24, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -96, 88, 454, { .fields = { 24, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, 88, 550, { .fields = { 72, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -136, 88, 454, { .fields = { 24, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -120, 64, 386, { .fields = { 32, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -96, 64, 418, { .fields = { 24, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -64, 64, 670, { .fields = { 40, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -96, 48, 698, { .fields = { 0, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -64, 48, 777, { .fields = { 0, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 88, 8, 1212, { .fields = { 8, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 128, 56, 825, { .fields = { 48, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 112, 56, 850, { .fields = { 72, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 96, 56, 912, { .fields = { 80, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 88, 56, 987, { .fields = { 96, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 88, 32, 950, { .fields = { 56, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 96, 32, 925, { .fields = { 40, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 112, 32, 850, { .fields = { 48, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 128, 32, 837, { .fields = { 24, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 128, 16, 900, { .fields = { 0, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 112, 16, 900, { .fields = { 24, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 96, 16, 912, { .fields = { 72, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 88, 16, 925, { .fields = { 88, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 8, 1275, { .fields = { 112, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 0, 1287, { .fields = { 112, 72 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 112, 8, 1250, { .fields = { 0, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 112, 0, 1275, { .fields = { 0, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, 8, 1237, { .fields = { 0, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, 0, 1237, { .fields = { 0, 104 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 80, 56, 1025, { .fields = { 64, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 80, 32, 1037, { .fields = { 64, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 96, 88, 862, { .fields = { 24, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 112, 88, 775, { .fields = { 24, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 128, 88, 775, { .fields = { 8, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 104, 750, { .fields = { 112, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 136, 32, 850, { .fields = { 8, 16 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 144, 32, 850, { .fields = { 8, 56 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 144, -8, 850, { .fields = { 112, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 152, -24, 850, { .fields = { 16, 16 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_801806D8[9] = {
+/// Sprite ranges for mapped view 3, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 3, 0 } },
     { 10, 30, 0, 0, { 4, 0 } },
@@ -515,94 +551,102 @@ SpriteBatch D_acropolis_fountain_801806D8[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_80180720[84] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -160, 72, 375, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 375, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 375, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -80, 80, 375, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -40, 80, 375, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -136, 64, 375, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -120, 56, 375, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -80, 56, 375, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 64, 96, 375, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 80, 375, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 120, 72, 375, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 96, 80, 375, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 104, 112, 375, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 375, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -96, 375, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, -16, 375, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, 56, 375, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -96, 375, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -56, 375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 64, -48, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 24, -120, 375, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 56, -120, 375, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 88, -120, 375, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 128, -120, 375, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -160, 0, 500, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 500, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -120, -120, 500, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, -80, 500, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -160, -48, 500, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -96, 24, 1663, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 32, 1875, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -88, 72, 1637, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, 32, 1531, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, 72, 1562, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -40, 32, 1525, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -40, 72, 1500, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, 32, 1625, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, 72, 1562, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 32, 1612, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, 72, 1612, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 32, 72, 1562, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -8, 72, 1500, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -8, 32, 1525, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 32, 32, 1531, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -72, 16, 1625, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -80, 1625, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -48, -80, 1625, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -56, 1625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -16, 1625, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 1625, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -72, 24, 1625, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, -24, 1875, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -16, -16, 1875, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 24, -16, 1875, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -16, -48, 1875, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, -72, 1875, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -16, 24, 1875, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 24, 24, 1875, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 72, -104, 1325, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 112, -104, 1325, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, 40, 1325, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 128, 64, 1325, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 112, 32, 1325, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, 0, 1325, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -40, 1325, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -80, 1325, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 88, -112, 1325, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 24, 1700, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 96, -8, 1700, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -40, 1700, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 88, -72, 1700, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 128, 96, 375, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 88, 104, 375, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 16 } }, 48, 104, 375, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -32, 104, 375, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 8, 104, 375, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -72, 104, 375, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -112, 96, 375, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -144, 88, 375, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 375, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -104, 1250, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 16, 2212, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 16, 2162, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, 24, 2100, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 4.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView4SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 72, 375, { .fields = { 104, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 80, 375, { .fields = { 88, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 80, 375, { .fields = { 96, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, 80, 375, { .fields = { 80, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 24 } }, -40, 80, 375, { .fields = { 56, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -136, 64, 375, { .fields = { 112, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -120, 56, 375, { .fields = { 40, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -80, 56, 375, { .fields = { 40, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 64, 96, 375, { .fields = { 32, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 80, 375, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 120, 72, 375, { .fields = { 40, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 96, 80, 375, { .fields = { 8, 56 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 104, 112, 375, { .fields = { 48, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -56, 375, { .fields = { 120, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -96, 375, { .fields = { 0, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, -16, 375, { .fields = { 32, 56 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 152, 56, 375, { .fields = { 0, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -96, 375, { .fields = { 112, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -56, 375, { .fields = { 112, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, -48, 375, { .fields = { 40, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 24, -120, 375, { .fields = { 32, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 56, -120, 375, { .fields = { 56, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 88, -120, 375, { .fields = { 8, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 128, -120, 375, { .fields = { 80, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 0, 500, { .fields = { 48, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, -120, 500, { .fields = { 64, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -120, -120, 500, { .fields = { 24, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, -80, 500, { .fields = { 48, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -160, -48, 500, { .fields = { 64, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 24, 1663, { .fields = { 8, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -104, 32, 1875, { .fields = { 72, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, -88, 72, 1637, { .fields = { 88, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -72, 32, 1531, { .fields = { 56, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -72, 72, 1562, { .fields = { 40, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -40, 32, 1525, { .fields = { 64, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -40, 72, 1500, { .fields = { 8, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 96, 32, 1625, { .fields = { 96, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, 72, 1562, { .fields = { 16, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 72, 32, 1612, { .fields = { 104, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 72, 72, 1612, { .fields = { 24, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 32, 72, 1562, { .fields = { 0, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -8, 72, 1500, { .fields = { 8, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -8, 32, 1525, { .fields = { 88, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 32, 32, 1531, { .fields = { 72, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -72, 16, 1625, { .fields = { 88, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -72, -80, 1625, { .fields = { 88, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, -80, 1625, { .fields = { 40, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, -56, 1625, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, -16, 1625, { .fields = { 56, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, 8, 1625, { .fields = { 24, 72 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -72, 24, 1625, { .fields = { 48, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, 24, -24, 1875, { .fields = { 80, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -16, -16, 1875, { .fields = { 8, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 24, -16, 1875, { .fields = { 40, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, -16, -48, 1875, { .fields = { 88, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -16, -72, 1875, { .fields = { 72, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -16, 24, 1875, { .fields = { 0, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 24, 24, 1875, { .fields = { 16, 104 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, -104, 1325, { .fields = { 32, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, 112, -104, 1325, { .fields = { 48, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 40, 1325, { .fields = { 0, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, 128, 64, 1325, { .fields = { 72, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 112, 32, 1325, { .fields = { 16, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, 0, 1325, { .fields = { 24, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, -40, 1325, { .fields = { 32, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, -80, 1325, { .fields = { 48, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 32 } }, 88, -112, 1325, { .fields = { 64, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 96, 24, 1700, { .fields = { 40, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 32 } }, 96, -8, 1700, { .fields = { 88, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 96, -40, 1700, { .fields = { 72, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 88, -72, 1700, { .fields = { 56, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 128, 96, 375, { .fields = { 80, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 88, 104, 375, { .fields = { 0, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 16 } }, 48, 104, 375, { .fields = { 120, 16 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -32, 104, 375, { .fields = { 8, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 8, 104, 375, { .fields = { 0, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -72, 104, 375, { .fields = { 0, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -112, 96, 375, { .fields = { 16, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -144, 88, 375, { .fields = { 64, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -160, 80, 375, { .fields = { 48, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -72, -104, 1250, { .fields = { 24, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 72, 16, 2212, { .fields = { 112, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 88, 16, 2162, { .fields = { 112, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 104, 24, 2100, { .fields = { 112, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_80180DB0[15] = {
+/// Sprite ranges for mapped view 4, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 5, 0 } },
     { 8, 5, 0, 0, { 7, 0 } },
@@ -620,83 +664,91 @@ SpriteBatch D_acropolis_fountain_80180DB0[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_80180E28[73] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 56, 750, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -24, 80, 912, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, 80, 881, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 80, 825, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -72, 80, 778, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 48, 875, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 64, 882, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1070, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 48, 937, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 64, 825, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 40, 1033, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -72, 48, 950, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -72, 64, 778, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -104, 64, 750, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 80, 750, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 32, 1050, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 32, 1050, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, 32, 1000, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, 72, 1000, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -120, 72, 1050, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -160, 72, 1050, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 96, 1050, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, 0, 1125, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, -40, 1125, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, -40, 1137, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, -80, 1125, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, -56, 1125, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, -120, 1125, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -64, -120, 1125, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -120, 1125, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -80, 40, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -32, 40, 1150, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, 0, 1137, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -144, -96, 1280, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, -96, 1199, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -120, 1180, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -144, -120, 1233, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -128, -112, 1279, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -128, -96, 1278, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, 16, 1234, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, -16, 1240, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, -48, 1254, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, -64, 1260, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -104, 1456, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -152, 32, 1274, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, -16, 1470, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, -56, 1479, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -144, -96, 1246, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -136, 24, 1343, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -128, 24, 1339, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, -96, 1500, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -96, 1538, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -88, 1135, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -80, 932, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -24, 959, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 32, 1212, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 64, 872, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 32, 921, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 0, 925, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, -40, 506, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, -80, 1179, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, -120, 997, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 0, 922, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -80, 921, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -40, 862, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 80, -40, 1088, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 80, -80, 932, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 64, -40, 851, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 40, -40, 1569, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 64, -64, 1181, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 40, -56, 854, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -120, 1052, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 88, -104, 1196, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 5.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView5SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -80, 56, 750, { .fields = { 72, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -24, 80, 912, { .fields = { 88, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -32, 80, 881, { .fields = { 96, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -48, 80, 825, { .fields = { 88, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -72, 80, 778, { .fields = { 104, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, 48, 875, { .fields = { 88, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, 64, 882, { .fields = { 88, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -48, 40, 1070, { .fields = { 40, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -48, 48, 937, { .fields = { 88, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -48, 64, 825, { .fields = { 80, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -72, 40, 1033, { .fields = { 48, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, -72, 48, 950, { .fields = { 72, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, -72, 64, 778, { .fields = { 72, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -104, 64, 750, { .fields = { 64, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -104, 80, 750, { .fields = { 56, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 32, 1050, { .fields = { 40, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 32, 1050, { .fields = { 32, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -80, 32, 1000, { .fields = { 32, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -80, 72, 1000, { .fields = { 0, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 32 } }, -120, 72, 1050, { .fields = { 96, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -160, 72, 1050, { .fields = { 80, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -136, 96, 1050, { .fields = { 80, 168 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -56, 0, 1125, { .fields = { 32, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -56, -40, 1125, { .fields = { 32, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -32, -40, 1137, { .fields = { 32, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -56, -80, 1125, { .fields = { 8, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, -56, 1125, { .fields = { 96, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -56, -120, 1125, { .fields = { 8, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, -120, 1125, { .fields = { 96, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, -120, 1125, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 48 } }, -80, 40, 1125, { .fields = { 80, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -32, 40, 1150, { .fields = { 104, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -32, 0, 1137, { .fields = { 56, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -144, -96, 1280, { .fields = { 120, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -160, -96, 1199, { .fields = { 120, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -160, -120, 1180, { .fields = { 104, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -144, -120, 1233, { .fields = { 112, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -128, -112, 1279, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -128, -96, 1278, { .fields = { 96, 16 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -160, 16, 1234, { .fields = { 112, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -160, -16, 1240, { .fields = { 120, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -160, -48, 1254, { .fields = { 120, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -160, -64, 1260, { .fields = { 96, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -120, -104, 1456, { .fields = { 96, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -152, 32, 1274, { .fields = { 104, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -128, -16, 1470, { .fields = { 80, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -128, -56, 1479, { .fields = { 32, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -144, -96, 1246, { .fields = { 96, 128 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 32 } }, -136, 24, 1343, { .fields = { 112, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, 24, 1339, { .fields = { 104, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -128, -96, 1500, { .fields = { 8, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -104, -96, 1538, { .fields = { 0, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 80, -88, 1135, { .fields = { 72, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, -80, 932, { .fields = { 40, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, -24, 959, { .fields = { 56, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 128, 32, 1212, { .fields = { 64, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 144, 64, 872, { .fields = { 8, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 136, 32, 921, { .fields = { 8, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 136, 0, 925, { .fields = { 8, 184 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 136, -40, 506, { .fields = { 56, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 136, -80, 1179, { .fields = { 104, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 136, -120, 997, { .fields = { 64, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 128, 0, 922, { .fields = { 24, 152 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 104, -80, 921, { .fields = { 64, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 104, -40, 862, { .fields = { 72, 216 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 24 } }, 80, -40, 1088, { .fields = { 88, 88 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 80, -80, 932, { .fields = { 104, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, 64, -40, 851, { .fields = { 88, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 40, -40, 1569, { .fields = { 72, 16 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, -64, 1181, { .fields = { 96, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 40, -56, 854, { .fields = { 72, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 104, -120, 1052, { .fields = { 96, 136 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 88, -104, 1196, { .fields = { 104, 224 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_801813DC[8] = {
+/// Sprite ranges for mapped view 5, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 3, 0 } },
     { 15, 7, 0, 0, { 0, 0 } },
@@ -707,106 +759,122 @@ SpriteBatch D_acropolis_fountain_801813DC[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_8018141C[16] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 48, 675, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, 80, 665, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -96, 80, 667, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -64, 80, 665, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, 40, 665, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -96, 40, 665, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 40, 675, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 24, 665, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, 0, 665, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, 0, 665, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -40, 665, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -40, 665, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -80, 665, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -80, 665, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -120, 665, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -120, 665, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 6.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView6SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 48, 675, { .fields = { 112, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -128, 80, 665, { .fields = { 96, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -96, 80, 667, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -64, 80, 665, { .fields = { 104, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -128, 40, 665, { .fields = { 96, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -96, 40, 665, { .fields = { 96, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -64, 40, 675, { .fields = { 72, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -120, 24, 665, { .fields = { 120, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, 0, 665, { .fields = { 112, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -96, 0, 665, { .fields = { 80, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, -40, 665, { .fields = { 80, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -96, -40, 665, { .fields = { 72, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, -80, 665, { .fields = { 72, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -96, -80, 665, { .fields = { 88, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, -120, 665, { .fields = { 80, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -96, -120, 665, { .fields = { 72, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_8018155C[3] = {
+/// Sprite ranges for mapped view 6, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisFountainView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_80181574[71] = {
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -160, 48, 875, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -120, 48, 912, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 40, 912, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -160, 8, 875, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -160, -32, 875, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 875, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 875, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -120, -80, 912, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 8, 1000, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, 8, 997, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -80, 8, 1025, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -40, 8, 1037, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, 8, 1037, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -32, 1000, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, -32, 1000, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -80, -32, 1037, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -40, -32, 1037, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -160, -72, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -120, -72, 1000, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -80, -72, 1037, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 40 } }, -40, -72, 1037, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -160, -112, 1000, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -120, -112, 1000, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -80, -112, 1037, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 40 } }, -40, -112, 1037, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 48, -120, 750, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 48, -80, 750, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 48, -40, 750, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 48, 0, 750, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 48, 40, 750, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, 0, 750, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, -40, 750, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, -80, 750, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, -120, 750, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, -80, 750, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, -40, 750, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, 0, 750, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -8, -120, 800, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 32 } }, 0, -80, 800, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, 40, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -8, 0, 812, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, 40, 750, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, 0, 750, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, -40, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 88, -80, 750, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, 0, 750, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, -40, 750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, -80, 750, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, -120, 750, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 40, 750, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, 8, 40, 750, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 32 } }, -16, 40, 800, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 8, 0, 750, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -16, 0, 800, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 8, -40, 750, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 8, -80, 750, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 8, -120, 750, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -32, -120, 800, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -32, -80, 800, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -16, -40, 800, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -40, 800, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 96, 16, 700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 24, 188, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 32, 188, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, -160, 40, 997, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, -120, 40, 997, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, -80, 40, 997, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, -40, 40, 997, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, 0, 40, 997, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 32 } }, 40, 32, 997, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 80, 24, 997, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 7. Shared by mapped views 7 and 15.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView7SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 48, 875, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -120, 48, 912, { .fields = { 32, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -120, 40, 912, { .fields = { 88, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 8, 875, { .fields = { 120, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -160, -32, 875, { .fields = { 16, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -120, 875, { .fields = { 8, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -80, 875, { .fields = { 8, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -80, 912, { .fields = { 104, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 8, 1000, { .fields = { 0, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 8, 997, { .fields = { 48, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, 8, 1025, { .fields = { 48, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -40, 8, 1037, { .fields = { 80, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -24, 8, 1037, { .fields = { 112, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -32, 1000, { .fields = { 16, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -32, 1000, { .fields = { 40, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, -32, 1037, { .fields = { 40, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -40, -32, 1037, { .fields = { 0, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -72, 1000, { .fields = { 56, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -72, 1000, { .fields = { 64, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, -72, 1037, { .fields = { 48, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 40 } }, -40, -72, 1037, { .fields = { 104, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -112, 1000, { .fields = { 96, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -112, 1000, { .fields = { 80, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, -112, 1037, { .fields = { 88, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 40 } }, -40, -112, 1037, { .fields = { 80, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -120, 750, { .fields = { 40, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -80, 750, { .fields = { 40, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -40, 750, { .fields = { 56, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, 0, 750, { .fields = { 48, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, 40, 750, { .fields = { 56, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 0, 750, { .fields = { 56, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, -40, 750, { .fields = { 48, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, -80, 750, { .fields = { 16, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, -120, 750, { .fields = { 32, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, -80, 750, { .fields = { 40, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, -40, 750, { .fields = { 72, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, 0, 750, { .fields = { 96, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -8, -120, 800, { .fields = { 104, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 32 } }, 0, -80, 800, { .fields = { 0, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, 40, 750, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -8, 0, 812, { .fields = { 104, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 40, 750, { .fields = { 64, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 0, 750, { .fields = { 88, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, -40, 750, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, -80, 750, { .fields = { 88, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, 0, 750, { .fields = { 96, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -40, 750, { .fields = { 96, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -80, 750, { .fields = { 80, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 48, -120, 750, { .fields = { 56, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, 40, 750, { .fields = { 104, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, 8, 40, 750, { .fields = { 0, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 32 } }, -16, 40, 800, { .fields = { 0, 64 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 8, 0, 750, { .fields = { 56, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -16, 0, 800, { .fields = { 88, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 8, -40, 750, { .fields = { 96, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 8, -80, 750, { .fields = { 8, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 8, -120, 750, { .fields = { 8, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -32, -120, 800, { .fields = { 16, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -32, -80, 800, { .fields = { 0, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -16, -40, 800, { .fields = { 120, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -32, -40, 800, { .fields = { 72, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 96, 16, 700, { .fields = { 112, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 104, 24, 188, { .fields = { 88, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 104, 32, 188, { .fields = { 96, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, -160, 40, 997, { .fields = { 8, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, -120, 40, 997, { .fields = { 0, 32 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, -80, 40, 997, { .fields = { 16, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, -40, 40, 997, { .fields = { 16, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 24 } }, 0, 40, 997, { .fields = { 8, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 32 } }, 40, 32, 997, { .fields = { 24, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 80, 24, 997, { .fields = { 8, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_80181B00[9] = {
+/// Sprite ranges for mapped view 7, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips. Shared by mapped views 7 and 15.
+static SpriteBatch _gAcropolisFountainView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 17, 0, 0, { 4, 0 } },
@@ -814,113 +882,121 @@ SpriteBatch D_acropolis_fountain_80181B00[9] = {
     { 42, 19, 0, 0, { 5, 0 } },
     { 61, 1, 0, 0, { 0, 0 } },
     { 62, 9, 0, 0, { 6, 0 } },
-    { 71, 0, 0, 0, { 2, 0 } },
+    { ARRAY_SIZE(_gAcropolisFountainView7SpriteSources), 0, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fountain_80181B48[99] = {
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 8, 48, 575, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 40, 48, 575, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 88, 16, 572, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -88, 562, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 40, 500, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 0, 500, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -40, 500, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 24 } }, 96, 16, 562, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -120, 562, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 562, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 88, -40, 562, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 24 } }, 88, 40, 562, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 40, 562, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -80, 562, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 0, 500, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -40, 500, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 500, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 500, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, 0, 500, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -40, 500, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 500, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -120, 500, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, 80, 40, 500, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 48, -80, 500, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 48, 0, 500, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 48, -40, 500, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 48, -120, 500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 16, -80, 500, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 16, -120, 500, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, -16, -80, 808, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, -80, 761, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 24 } }, 56, 40, 500, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 40, -80, 1125, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 40, -40, 1125, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 40, 0, 1125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 24 } }, 80, 0, 1050, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 80, -80, 1050, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 40, -40, 1125, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 40, -80, 1125, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 32 } }, 80, -40, 1125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 1125, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 24, 1225, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 88, 16, 1225, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 24 } }, 56, 16, 1225, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, 64, 96, 250, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, 24, 96, 250, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, -16, 96, 250, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -56, 104, 250, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 104, 250, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -128, 112, 250, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 120, 80, 461, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 120, 40, 455, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 128, 0, 446, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 128, -40, 437, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 128, -80, 432, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 128, -120, 427, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 80, 80, 508, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 80, 40, 498, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 80, 0, 491, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 80, -40, 726, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 40 } }, 88, -80, 474, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 88, -120, 250, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 40, 80, 250, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 40 } }, 48, 40, 250, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 40 } }, 48, 0, 250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -40, 250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -80, 250, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -120, 250, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, 80, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, 40, 250, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, 0, 250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, -40, 250, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, -80, 250, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 8, -120, 250, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, 40, 250, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, 0, 250, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, -40, 250, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, -80, 250, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, -120, 250, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -32, 80, 250, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -72, 80, 250, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -72, 40, 250, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -72, 0, 250, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -72, -80, 250, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -72, -40, 250, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -72, -120, 250, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -112, 80, 250, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -112, 40, 250, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -112, 0, 250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -40, 250, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -80, 250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -120, -120, 250, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, 80, 250, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 40, 250, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -80, 25, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+/// Depth-sorted source rectangles for mapped view 8.
+///
+/// Positions and dimensions are pixels about the view centre; depths are
+/// unscaled OT sorting values. Opaque 8-bit textures use CLUT row 255 and
+/// neutral RGB modulation. The batch list selects every source element.
+static SpriteSource _gAcropolisFountainView8SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 32 } }, 8, 48, 575, { .fields = { 40, 144 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 32 } }, 40, 48, 575, { .fields = { 48, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 88, 16, 572, { .fields = { 88, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, -88, 562, { .fields = { 32, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 40, 500, { .fields = { 48, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 0, 500, { .fields = { 48, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -40, 500, { .fields = { 72, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -80, 500, { .fields = { 80, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -120, 500, { .fields = { 40, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 24 } }, 96, 16, 562, { .fields = { 48, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -120, 562, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -80, 562, { .fields = { 64, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 88, -40, 562, { .fields = { 88, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 24 } }, 88, 40, 562, { .fields = { 16, 232 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 80, 40, 562, { .fields = { 72, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 64, -80, 562, { .fields = { 56, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 0, 500, { .fields = { 24, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -40, 500, { .fields = { 32, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -80, 500, { .fields = { 88, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -120, 500, { .fields = { 88, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, 0, 500, { .fields = { 88, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -40, 500, { .fields = { 88, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -80, 500, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -120, 500, { .fields = { 40, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 24 } }, 80, 40, 500, { .fields = { 8, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 48, -80, 500, { .fields = { 16, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 48, 0, 500, { .fields = { 96, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 48, -40, 500, { .fields = { 104, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 48, -120, 500, { .fields = { 112, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, -80, 500, { .fields = { 0, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, 16, -120, 500, { .fields = { 120, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 40 } }, -16, -80, 808, { .fields = { 56, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -24, -80, 761, { .fields = { 80, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 24 } }, 56, 40, 500, { .fields = { 40, 48 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, -80, 1125, { .fields = { 120, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, -40, 1125, { .fields = { 8, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, 0, 1125, { .fields = { 0, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 24 } }, 80, 0, 1050, { .fields = { 16, 96 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, 80, -80, 1050, { .fields = { 64, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, -40, 1125, { .fields = { 24, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, -80, 1125, { .fields = { 120, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 24, 32 } }, 80, -40, 1125, { .fields = { 48, 112 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -80, 1125, { .fields = { 32, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 24, 1225, { .fields = { 24, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 32 } }, 88, 16, 1225, { .fields = { 40, 176 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 32, 24 } }, 56, 16, 1225, { .fields = { 40, 208 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 24 } }, 64, 96, 250, { .fields = { 24, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 24 } }, 24, 96, 250, { .fields = { 24, 24 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 24 } }, -16, 96, 250, { .fields = { 8, 72 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -56, 104, 250, { .fields = { 88, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -88, 104, 250, { .fields = { 40, 240 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -128, 112, 250, { .fields = { 0, 248 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 120, 80, 461, { .fields = { 40, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 120, 40, 455, { .fields = { 8, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, 128, 0, 446, { .fields = { 16, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 128, -40, 437, { .fields = { 8, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 128, -80, 432, { .fields = { 8, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 128, -120, 427, { .fields = { 0, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 80, 80, 508, { .fields = { 120, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 80, 40, 498, { .fields = { 120, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 80, 0, 491, { .fields = { 120, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 80, -40, 726, { .fields = { 112, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 8, 40 } }, 88, -80, 474, { .fields = { 80, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 88, -120, 250, { .fields = { 88, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 40, 80, 250, { .fields = { 88, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 8, 40 } }, 48, 40, 250, { .fields = { 120, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 8, 40 } }, 48, 0, 250, { .fields = { 112, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 48, -40, 250, { .fields = { 64, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 48, -80, 250, { .fields = { 80, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 48, -120, 250, { .fields = { 64, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, 80, 250, { .fields = { 96, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, 40, 250, { .fields = { 104, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, 0, 250, { .fields = { 64, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, -40, 250, { .fields = { 64, 40 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, -80, 250, { .fields = { 88, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, -120, 250, { .fields = { 80, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, 40, 250, { .fields = { 104, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, 0, 250, { .fields = { 104, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, -40, 250, { .fields = { 72, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, -80, 250, { .fields = { 72, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, -120, 250, { .fields = { 72, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, 80, 250, { .fields = { 88, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -72, 80, 250, { .fields = { 104, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -72, 40, 250, { .fields = { 96, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -72, 0, 250, { .fields = { 0, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -80, 250, { .fields = { 24, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -72, -40, 250, { .fields = { 16, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -120, 250, { .fields = { 32, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, 80, 250, { .fields = { 80, 80 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -112, 40, 250, { .fields = { 24, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -112, 0, 250, { .fields = { 32, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -120, -40, 250, { .fields = { 72, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -120, -80, 250, { .fields = { 32, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -120, -120, 250, { .fields = { 80, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -152, 80, 250, { .fields = { 72, 160 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -160, 40, 250, { .fields = { 40, 120 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -160, 0, 250, { .fields = { 48, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -160, -40, 250, { .fields = { 72, 0 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -160, -80, 25, { .fields = { 120, 200 } }, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, ACROPOLIS_FOUNTAIN_SPRITE_COLOR_ONE, 0 },
 };
 
-SpriteBatch D_acropolis_fountain_80182304[18] = {
+/// Sprite ranges for mapped view 8, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 13, 0 } },
     { 2, 1, 0, 0, { 2, 0 } },
@@ -941,7 +1017,10 @@ SpriteBatch D_acropolis_fountain_80182304[18] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fountain_80182394[2] = {
+/// Sprite ranges for mapped view 9, followed by `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips.
+static SpriteBatch _gAcropolisFountainView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1290,21 +1369,21 @@ SpriteBatch D_acropolis_fountain_8018374C[2] = {
 };
 
 SpriteView D_acropolis_fountain_8018375C[22] = {
-    { { .empty = D_acropolis_fountain_8017FF4C }, D_acropolis_fountain_8017FF4C, NULL },
-    { { .empty = D_acropolis_fountain_8017FF5C }, D_acropolis_fountain_8017FF5C, NULL },
-    { { .elements = D_acropolis_fountain_8017FF6C }, D_acropolis_fountain_801806D8, NULL },
-    { { .elements = D_acropolis_fountain_80180720 }, D_acropolis_fountain_80180DB0, NULL },
-    { { .elements = D_acropolis_fountain_80180E28 }, D_acropolis_fountain_801813DC, NULL },
-    { { .elements = D_acropolis_fountain_8018141C }, D_acropolis_fountain_8018155C, NULL },
-    { { .elements = D_acropolis_fountain_80181574 }, D_acropolis_fountain_80181B00, NULL },
-    { { .elements = D_acropolis_fountain_80181B48 }, D_acropolis_fountain_80182304, NULL },
-    { { .empty = D_acropolis_fountain_80182394 }, D_acropolis_fountain_80182394, NULL },
+    { { .empty = _gAcropolisFountainView1SpriteBatches }, _gAcropolisFountainView1SpriteBatches, NULL },
+    { { .empty = _gAcropolisFountainView2SpriteBatches }, _gAcropolisFountainView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView3SpriteSources }, _gAcropolisFountainView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView4SpriteSources }, _gAcropolisFountainView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView5SpriteSources }, _gAcropolisFountainView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView6SpriteSources }, _gAcropolisFountainView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView7SpriteSources }, _gAcropolisFountainView7SpriteBatches, NULL },
+    { { .elements = _gAcropolisFountainView8SpriteSources }, _gAcropolisFountainView8SpriteBatches, NULL },
+    { { .empty = _gAcropolisFountainView9SpriteBatches }, _gAcropolisFountainView9SpriteBatches, NULL },
     { { .empty = D_acropolis_fountain_801823A4 }, D_acropolis_fountain_801823A4, NULL },
     { { .elements = D_acropolis_fountain_801823B4 }, D_acropolis_fountain_801827EC, NULL },
     { { .elements = D_acropolis_fountain_80182834 }, D_acropolis_fountain_80182F64, NULL },
     { { .elements = D_acropolis_fountain_80182FDC }, D_acropolis_fountain_801832E8, NULL },
     { { .elements = D_acropolis_fountain_80183328 }, D_acropolis_fountain_801833C8, NULL },
-    { { .elements = D_acropolis_fountain_80181574 }, D_acropolis_fountain_80181B00, NULL },
+    { { .elements = _gAcropolisFountainView7SpriteSources }, _gAcropolisFountainView7SpriteBatches, NULL },
     { { .empty = D_acropolis_fountain_801833F0 }, D_acropolis_fountain_801833F0, NULL },
     { { .elements = D_acropolis_fountain_80183400 }, D_acropolis_fountain_80183630, NULL },
     { { .empty = D_acropolis_fountain_80183650 }, D_acropolis_fountain_80183650, NULL },
@@ -1338,41 +1417,77 @@ ViewCamera D_acropolis_fountain_80183864[21] = {
     { { { { 3977, 0, 977 }, { 620, 3162, -2527 }, { -754, 2602, 3071 } }, { -4174, 1018, 7732 } }, 246 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_fountain_80183B58 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Type-1 footstep cue-2 requests in the currently loaded surface-sound bank.
+///
+/// Cue 1 adds one to each base; scripted stair climbing uses the walking pair.
+enum {
+    ACROPOLIS_FOUNTAIN_CLASS4_WALK_SOUND = 0x10000011,
+    ACROPOLIS_FOUNTAIN_CLASS4_RUN_SOUND  = 0x10000013,
+    ACROPOLIS_FOUNTAIN_CLASS5_WALK_SOUND = 0x10000039,
+    ACROPOLIS_FOUNTAIN_CLASS5_RUN_SOUND  = 0x1000003B
 };
 
-WorldCollisionFootstepSounds D_acropolis_fountain_80183B64 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+/// Walking, running and scripted-jump cue bases for fountain surface class 4.
+static WorldCollisionFootstepSounds _gAcropolisFountainClass4FootstepSounds = {
+    .walk         = ACROPOLIS_FOUNTAIN_CLASS4_WALK_SOUND,
+    .run          = ACROPOLIS_FOUNTAIN_CLASS4_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_FOUNTAIN_CLASS4_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fountain_80183B70[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for fountain surface class 5.
+static WorldCollisionFootstepSounds _gAcropolisFountainClass5FootstepSounds = {
+    .walk         = ACROPOLIS_FOUNTAIN_CLASS5_WALK_SOUND,
+    .run          = ACROPOLIS_FOUNTAIN_CLASS5_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_FOUNTAIN_CLASS5_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fountain_80183B78[1] = { 0 };
-
-WorldCollisionSurfaceProperties D_acropolis_fountain_80183B80[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fountain_80183B58 },
+/// Blocking, pushback and weapon-impact policy without footstep cues for classes 0, 1, 3, 6 and 7.
+static WorldCollisionSurfaceProperties _gAcropolisFountainDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fountain_80183B88[1] = {
-    { 1, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fountain_80183B64 },
+/// Blocking and pushback policy without weapon impacts or footstep cues for class 2.
+static WorldCollisionSurfaceProperties _gAcropolisFountainClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[8] = {
-    D_acropolis_fountain_80183B70,
-    D_acropolis_fountain_80183B70,
-    D_acropolis_fountain_80183B78,
-    D_acropolis_fountain_80183B70,
-    D_acropolis_fountain_80183B80,
-    D_acropolis_fountain_80183B88,
-    D_acropolis_fountain_80183B70,
-    D_acropolis_fountain_80183B70,
+/// Blocking, pushback, weapon-impact and footstep policy for class 4.
+static WorldCollisionSurfaceProperties _gAcropolisFountainClass4SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisFountainClass4FootstepSounds,
+};
+
+/// Blocking, pushback, weapon-impact and footstep policy for class 5.
+///
+/// The retained first byte is 1; its role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisFountainClass5SurfaceProperties = {
+    .field_0             = 1,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisFountainClass5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisFountainSurfacePropertiesByClass[ACROPOLIS_FOUNTAIN_SURFACE_CLASS_COUNT] = {
+    &_gAcropolisFountainDefaultSurfaceProperties,
+    &_gAcropolisFountainDefaultSurfaceProperties,
+    &_gAcropolisFountainClass2SurfaceProperties,
+    &_gAcropolisFountainDefaultSurfaceProperties,
+    &_gAcropolisFountainClass4SurfaceProperties,
+    &_gAcropolisFountainClass5SurfaceProperties,
+    &_gAcropolisFountainDefaultSurfaceProperties,
+    &_gAcropolisFountainDefaultSurfaceProperties,
 };
 
 u8 D_acropolis_fountain_80183BB0 = 0;
