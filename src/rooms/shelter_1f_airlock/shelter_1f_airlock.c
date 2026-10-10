@@ -46,11 +46,14 @@ enum {
     SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED    = 0,
 };
 
-/// Ambient effect emitter positions for the airlock, selected by view index.
-/// `D_shelter_1f_airlock_8017E4BC` / `_8017E4C4` / `_8017E4D4` are successive
-/// labels into one contiguous run of `SVECTOR`s, so the per-view lists overlap.
+/// World-space centres and endpoint pairs for the airlock's additive glows.
+typedef struct {
+    SVECTOR greyDiscCentres[3];          // Views 3 and 4 select overlapping pairs of centres
+    SVECTOR redDiscCentre;               // View 5's single disc centre
+    SVECTOR cyanCapsuleEndpoints[12][2]; // Endpoint pairs in world-coordinate units
+} _Shelter1fAirlockGlowWorldPoints;
+STATIC_ASSERT_SIZEOF(_Shelter1fAirlockGlowWorldPoints, 0xE0);
 
-// Indexed views below share one contiguous table.
 static s32  _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32  _shelter1fAirlockResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -58,11 +61,11 @@ static s32  _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMes
 static void _shelter1fAirlockIdle(Task* unusedTask);
 static void _shelter1fAirlockInitRoomTask(Task* task);
 
-extern WorldCollisionGrid     D_shelter_1f_airlock_8017E838[1];
+static WorldCollisionGrid     _gShelter1fAirlockCollisionGrid;
 extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
-extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F430[6];
+static WorldCollisionTrigger  _gShelter1fAirlockViewBoundaryTriggers[6];
 extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F5F8[4];
-extern WorldCoordRoomLights   D_shelter_1f_airlock_8017F418[1];
+static WorldCoordRoomLights   _gShelter1fAirlockRoomLights;
 
 TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fAirlockResolveRoomTransition },
@@ -72,83 +75,134 @@ TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_1f_airlock_8017E4BC[28] = {
-    { -3000, -2240, 5030, 0 },
-    { 0, -2240, 5030, 0 },
-    { 2000, -2240, 4100, 0 },
+/// Authored glow positions, retained while the airlock overlay is loaded.
+///
+/// Disc centres 1..2 serve view 3 and 0..1 serve view 4. View 3 uses capsule
+/// pairs 0..4 and 7; view 4 uses all twelve pairs. View 5 uses the red centre.
+static _Shelter1fAirlockGlowWorldPoints _gShelter1fAirlockGlowWorldPoints = {
+    {
+        { -3000, -2240, 5030, 0 },
+        { 0, -2240, 5030, 0 },
+        { 2000, -2240, 4100, 0 },
+    },
     { -5700, -1340, 3260, 0 },
-    { 220, -2010, 4290, 0 },
-    { 220, -1760, 4120, 0 },
-    { -220, -2010, 4290, 0 },
-    { -220, -1760, 4120, 0 },
-    { 200, -2010, 4280, 0 },
-    { -200, -2010, 4280, 0 },
-    { 200, -1770, 4120, 0 },
-    { -200, -1770, 4120, 0 },
-    { -1210, -2010, 4290, 0 },
-    { -1210, -1760, 4120, 0 },
-    { -1650, -2010, 4290, 0 },
-    { -1650, -1760, 4120, 0 },
-    { -1230, -2010, 4280, 0 },
-    { -1630, -2010, 4280, 0 },
-    { -1230, -1770, 4120, 0 },
-    { -1630, -1770, 4120, 0 },
-    { -2780, -2010, 4290, 0 },
-    { -2780, -1760, 4120, 0 },
-    { -3220, -2010, 4290, 0 },
-    { -3220, -1760, 4120, 0 },
-    { -2800, -2010, 4280, 0 },
-    { -3200, -2010, 4280, 0 },
-    { -2800, -1770, 4120, 0 },
-    { -3200, -1770, 4120, 0 },
+    {
+        {
+            { 220, -2010, 4290, 0 },
+            { 220, -1760, 4120, 0 },
+        },
+        {
+            { -220, -2010, 4290, 0 },
+            { -220, -1760, 4120, 0 },
+        },
+        {
+            { 200, -2010, 4280, 0 },
+            { -200, -2010, 4280, 0 },
+        },
+        {
+            { 200, -1770, 4120, 0 },
+            { -200, -1770, 4120, 0 },
+        },
+        {
+            { -1210, -2010, 4290, 0 },
+            { -1210, -1760, 4120, 0 },
+        },
+        {
+            { -1650, -2010, 4290, 0 },
+            { -1650, -1760, 4120, 0 },
+        },
+        {
+            { -1230, -2010, 4280, 0 },
+            { -1630, -2010, 4280, 0 },
+        },
+        {
+            { -1230, -1770, 4120, 0 },
+            { -1630, -1770, 4120, 0 },
+        },
+        {
+            { -2780, -2010, 4290, 0 },
+            { -2780, -1760, 4120, 0 },
+        },
+        {
+            { -3220, -2010, 4290, 0 },
+            { -3220, -1760, 4120, 0 },
+        },
+        {
+            { -2800, -2010, 4280, 0 },
+            { -3200, -2010, 4280, 0 },
+        },
+        {
+            { -2800, -1770, 4120, 0 },
+            { -3200, -1770, 4120, 0 },
+        },
+    },
 };
 
 WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[1] = {
-    { D_shelter_1f_airlock_8017E838, D_shelter_1f_airlock_8017F430, D_shelter_1f_airlock_8017F5F8, D_shelter_1f_airlock_8017F7B8 },
+    { &_gShelter1fAirlockCollisionGrid, _gShelter1fAirlockViewBoundaryTriggers, D_shelter_1f_airlock_8017F5F8, D_shelter_1f_airlock_8017F7B8 },
 };
 
-WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[1] = {
-    { D_shelter_1f_airlock_8017F418, NULL },
+WorldCoordRoomLighting gShelter1fAirlockRoomLighting[1] = {
+    { &_gShelter1fAirlockRoomLights, NULL },
 };
 
-u8* D_shelter_1f_airlock_8017E5B4[1] = {
+u8* gShelter1fAirlockViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_airlock_8017E5B8[1] = { 5 };
+ViewCount gShelter1fAirlockViewCounts[1] = { SHELTER_1F_AIRLOCK_VIEW_COUNT };
 
 DirectionWarpEntry D_shelter_1f_airlock_8017E5BC[2] = {
     { { { .word = 0 }, 2051, 0, 3070 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2100, 0, 3390 }, { 0, 0, 0, 0 }, 0x55050002, 0x55050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 0 }, -5050, 0, 3070 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5050, 0, 3070 }, { 0, 0, 0, 0 }, 0x55050002, 0x55050001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelter1fAirlockCollision01278Normals[6] = {
+/// Room-axis unit normals (4096 per unit) used by the collision grid's faces.
+static SVECTOR _gShelter1fAirlockCollisionGridNormals[6] = {
 #include "assets/shelter_1f_airlock_collision_01278_normals.inc"
 };
 
-static SVECTOR _gShelter1fAirlockCollision01278Verts[32] = {
+/// Floor, ceiling and wall vertices in room-coordinate units.
+static SVECTOR _gShelter1fAirlockCollisionGridVerts[32] = {
 #include "assets/shelter_1f_airlock_collision_01278_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fAirlockCollision01278Faces[13] = {
+/// Three class-1 floor quads followed by ten class-0 ceiling and wall quads.
+static WorldCollisionGridFace _gShelter1fAirlockCollisionGridFaces[13] = {
 #include "assets/shelter_1f_airlock_collision_01278_faces.inc"
 };
 
-static s16 _gShelter1fAirlockCollision01278Cells[26] = {
+/// Three signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelter1fAirlockCollisionGridCells[26] = {
 #include "assets/shelter_1f_airlock_collision_01278_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fAirlockCollision01278Cells[i])
-static s16* _gShelter1fAirlockCollision01278Table[3] = {
+#define GRID_CELL(i) (&_gShelter1fAirlockCollisionGridCells[i])
+/// X-major pointers to the three collision cells' face-index lists.
+static s16* _gShelter1fAirlockCollisionGridTable[3] = {
 #include "assets/shelter_1f_airlock_collision_01278_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_1f_airlock_8017E838[1] = {
-    { NULL, _gShelter1fAirlockCollision01278Normals, _gShelter1fAirlockCollision01278Verts, _gShelter1fAirlockCollision01278Faces, _gShelter1fAirlockCollision01278Table, 5750, -2500, 3, 1, 4000, 13 },
+/// Airlock floor, ceiling and walls indexed by three 4000-unit X/Z cells.
+///
+/// Room setup binds the view coordinate. The descriptor and its writable pools
+/// stay borrowed by gameplay until collision resources are replaced.
+static WorldCollisionGrid _gShelter1fAirlockCollisionGrid = {
+    NULL,
+    _gShelter1fAirlockCollisionGridNormals,
+    _gShelter1fAirlockCollisionGridVerts,
+    _gShelter1fAirlockCollisionGridFaces,
+    _gShelter1fAirlockCollisionGridTable,
+    5750,
+    -2500,
+    ARRAY_SIZE(_gShelter1fAirlockCollisionGridTable),
+    1,
+    4000,
+    ARRAY_SIZE(_gShelter1fAirlockCollisionGridFaces),
 };
 
-ViewCamera D_shelter_1f_airlock_8017E85C[5] = {
+ViewCamera gShelter1fAirlockViewCameras[SHELTER_1F_AIRLOCK_VIEW_COUNT] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { -3992, 0, 916 }, { 448, 3570, 1955 }, { -799, 2006, -3480 } }, { -2240, 2240, -5400 } }, 230 },
     { { { { -434, 0, -4072 }, { 315, 4083, -33 }, { 4060, -317, -433 } }, { 3460, 700, -5100 } }, 257 },
@@ -156,171 +210,206 @@ ViewCamera D_shelter_1f_airlock_8017E85C[5] = {
     { { { { -4004, 0, 860 }, { 491, 3363, 2285 }, { -706, 2337, -3288 } }, { 4160, 2340, -5400 } }, 207 },
 };
 
-SpriteBatch D_shelter_1f_airlock_8017E910[2] = {
+/// Empty sprite list for mapped view 1, retaining its decoded image background.
+static SpriteBatch _gShelter1fAirlockView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_airlock_8017E920[2] = {
+/// Empty sprite list for mapped view 2, retaining its decoded image background.
+static SpriteBatch _gShelter1fAirlockView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_airlock_8017E930[24] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 24, -96, 1150, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -48, 1163, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -32, 1201, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, 0, 1196, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 24, 1143, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 32, 1157, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 64, 1157, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 40, -96, 1100, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 64, -96, 950, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 96, -96, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 128, -96, 875, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 128, -32, 875, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 875, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 96, -32, 875, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 24, 875, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 64, -32, 950, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 64, 24, 950, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 40, -32, 1100, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 40, 24, 1100, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 56 } }, 128, 64, 875, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 56 } }, 96, 64, 875, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, 72, 64, 950, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, 48, 64, 1100, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 32, 56, 1157, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+enum {
+    SHELTER_1F_AIRLOCK_SPRITE_TPAGE               = getTPage(1, 0, 960, 0), // 8-bit texture page
+    SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT        = getClut(0, 255),
+    SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT      = getClut(0, 256),
+    SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR       = 128,
+    SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED    = 0,
+    SHELTER_1F_AIRLOCK_VIEW3_PRIMARY_SPRITE_COUNT = 19,
+    SHELTER_1F_AIRLOCK_VIEW4_PRIMARY_SPRITE_COUNT = 20,
 };
 
-SpriteBatch D_shelter_1f_airlock_8017EB10[4] = {
+/// View 3's depth-sorted texture rectangles in screen pixels, with unscaled OT depths.
+static SpriteSource _gShelter1fAirlockView3SpriteSources[24] = {
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 48 } }, 24, -96, 1150, { .fields = { 48, 168 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, 24, -48, 1163, { .fields = { 24, 152 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 32 } }, 24, -32, 1201, { .fields = { 40, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, 24, 0, 1196, { .fields = { 24, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, 24, 24, 1143, { .fields = { 48, 104 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 32 } }, 24, 32, 1157, { .fields = { 80, 224 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, 24, 64, 1157, { .fields = { 40, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 64 } }, 40, -96, 1100, { .fields = { 104, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 64 } }, 64, -96, 950, { .fields = { 96, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 64 } }, 96, -96, 875, { .fields = { 96, 128 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 64 } }, 128, -96, 875, { .fields = { 96, 64 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 56 } }, 128, -32, 875, { .fields = { 40, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 48 } }, 128, 24, 875, { .fields = { 16, 168 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 56 } }, 96, -32, 875, { .fields = { 64, 168 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 48 } }, 96, 24, 875, { .fields = { 8, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 56 } }, 64, -32, 950, { .fields = { 40, 112 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 48 } }, 64, 24, 950, { .fields = { 32, 56 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 56 } }, 40, -32, 1100, { .fields = { 72, 112 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 48 } }, 40, 24, 1100, { .fields = { 8, 48 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 32, 56 } }, 128, 64, 875, { .fields = { 72, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 32, 56 } }, 96, 64, 875, { .fields = { 64, 56 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 24, 48 } }, 72, 64, 950, { .fields = { 16, 104 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 24, 32 } }, 48, 64, 1100, { .fields = { 56, 224 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 16, 24 } }, 32, 56, 1157, { .fields = { 8, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+};
+
+/// View 3's image-background marker, 19 primary-palette sprites and five secondary ones.
+static SpriteBatch _gShelter1fAirlockView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 1, 0 } },
-    { 19, 5, 0, 0, { 0, 0 } },
+    { 0, SHELTER_1F_AIRLOCK_VIEW3_PRIMARY_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_1F_AIRLOCK_VIEW3_PRIMARY_SPRITE_COUNT, ARRAY_SIZE(_gShelter1fAirlockView3SpriteSources) - SHELTER_1F_AIRLOCK_VIEW3_PRIMARY_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_1f_airlock_8017EB30[2] = {
+/// View 3's zero-size clip at (117, 161), restored at unscaled OT depth 20000.
+static SpriteDrawArea _gShelter1fAirlockView3DrawAreas[2] = {
     { { 117, 161, 0, 0 }, 0x4E20 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_1f_airlock_8017EB44[26] = {
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -88, 1275, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -120, -88, 1275, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -88, -88, 1275, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -88, 1064, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -72, 1146, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -40, 1430, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -48, 1425, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -56, -88, 1275, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -32, 1418, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -24, 1411, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -16, 1451, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -8, 1448, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 0, 1473, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 8, 1498, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 24, 1498, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -56, -32, 1275, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, -160, -32, 1275, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -120, -32, 1275, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -88, -32, 1275, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 24, 1275, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -32, 16, 1498, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -40, 24, 1250, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 40 } }, -56, 24, 1225, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -80, 24, 1225, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 48 } }, -112, 24, 1225, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 40 } }, -160, 24, 1225, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+/// View 4's depth-sorted texture rectangles in screen pixels, with unscaled OT depths.
+static SpriteSource _gShelter1fAirlockView4SpriteSources[26] = {
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 40, 56 } }, -160, -88, 1275, { .fields = { 56, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 56 } }, -120, -88, 1275, { .fields = { 56, 56 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 56 } }, -88, -88, 1275, { .fields = { 72, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -32, -88, 1064, { .fields = { 72, 112 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, -72, 1146, { .fields = { 40, 64 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -40, 1430, { .fields = { 32, 96 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -48, 1425, { .fields = { 32, 88 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 56 } }, -56, -88, 1275, { .fields = { 72, 128 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -32, 1418, { .fields = { 32, 56 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -24, 1411, { .fields = { 48, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -16, 1451, { .fields = { 64, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, -8, 1448, { .fields = { 80, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, 0, 1473, { .fields = { 96, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -32, 8, 1498, { .fields = { 32, 40 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -32, 24, 1498, { .fields = { 112, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 56 } }, -56, -32, 1275, { .fields = { 104, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 40, 64 } }, -160, -32, 1275, { .fields = { 88, 64 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 64 } }, -120, -32, 1275, { .fields = { 96, 128 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 64 } }, -88, -32, 1275, { .fields = { 96, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 8 } }, -56, 24, 1275, { .fields = { 72, 184 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 8, 24 } }, -32, 16, 1498, { .fields = { 48, 88 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 8, 24 } }, -40, 24, 1250, { .fields = { 48, 40 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 16, 40 } }, -56, 24, 1225, { .fields = { 40, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 24, 48 } }, -80, 24, 1225, { .fields = { 48, 160 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 32, 48 } }, -112, 24, 1225, { .fields = { 40, 112 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_SECONDARY_CLUT, { .fields = { 48, 40 } }, -160, 24, 1225, { .fields = { 24, 208 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_1f_airlock_8017ED4C[4] = {
+/// View 4's image-background marker, 20 primary-palette sprites and six secondary ones.
+static SpriteBatch _gShelter1fAirlockView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 1, 0 } },
-    { 20, 6, 0, 0, { 0, 0 } },
+    { 0, SHELTER_1F_AIRLOCK_VIEW4_PRIMARY_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_1F_AIRLOCK_VIEW4_PRIMARY_SPRITE_COUNT, ARRAY_SIZE(_gShelter1fAirlockView4SpriteSources) - SHELTER_1F_AIRLOCK_VIEW4_PRIMARY_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_1f_airlock_8017ED6C[2] = {
+/// View 4's zero-size clip at (149, 229), restored at unscaled OT depth 13370.
+static SpriteDrawArea _gShelter1fAirlockView4DrawAreas[2] = {
     { { 149, 229, 0, 0 }, 0x343A },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_1f_airlock_8017ED80[36] = {
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, -120, 311, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, -80, 311, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, 0, 435, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -40, 16, 434, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -40, -16, 422, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, -88, 320, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -40, -120, 313, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -120, 338, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -104, 334, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -88, 342, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -64, 313, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -64, 333, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -40, 323, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -24, 341, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 0, 425, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 24, 432, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 48, 434, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 40, 422, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, 56, 519, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 40, 475, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, -40, 307, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, -24, 313, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 56, 521, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 64, 538, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 48, 425, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 72, 540, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 80, 543, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, 96, 589, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 80, 560, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 88, 538, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, 72, 546, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 80, 544, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 88, 549, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 96, 547, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -48, 322, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -32, 308, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+/// View 5's depth-sorted texture rectangles in screen pixels, with unscaled OT depths.
+static SpriteSource _gShelter1fAirlockView5SpriteSources[36] = {
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 40 } }, -72, -120, 311, { .fields = { 96, 80 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 40 } }, -72, -80, 311, { .fields = { 96, 40 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 40 } }, -72, 0, 435, { .fields = { 96, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 32 } }, -40, 16, 434, { .fields = { 120, 184 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 32 } }, -40, -16, 422, { .fields = { 120, 152 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 24 } }, -40, -88, 320, { .fields = { 96, 144 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 32 } }, -40, -120, 313, { .fields = { 120, 120 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -32, -120, 338, { .fields = { 80, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -32, -104, 334, { .fields = { 80, 232 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, -88, 342, { .fields = { 96, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 16 } }, -40, -64, 313, { .fields = { 88, 144 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, -64, 333, { .fields = { 88, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -32, -40, 323, { .fields = { 80, 80 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, -24, 341, { .fields = { 104, 144 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, 0, 425, { .fields = { 104, 120 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 24 } }, -32, 24, 432, { .fields = { 112, 216 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 24 } }, -24, 48, 434, { .fields = { 104, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -56, 40, 422, { .fields = { 80, 96 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 24 } }, -72, 56, 519, { .fields = { 88, 168 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -72, 40, 475, { .fields = { 72, 16 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 16 } }, -72, -40, 307, { .fields = { 56, 32 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 24 } }, -72, -24, 313, { .fields = { 72, 120 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 56, 521, { .fields = { 72, 48 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 64, 538, { .fields = { 80, 248 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 48, 425, { .fields = { 80, 160 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 72, 540, { .fields = { 80, 112 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 16 } }, -48, 80, 543, { .fields = { 96, 240 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 32, 16 } }, -72, 96, 589, { .fields = { 64, 0 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 24, 16 } }, -72, 80, 560, { .fields = { 104, 240 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 24 } }, -24, 88, 538, { .fields = { 112, 192 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 16 } }, -24, 72, 546, { .fields = { 88, 48 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 80, 544, { .fields = { 72, 56 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 8 } }, -40, 88, 549, { .fields = { 72, 144 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 16, 16 } }, -40, 96, 547, { .fields = { 80, 64 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 16 } }, -40, -48, 322, { .fields = { 88, 16 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_1F_AIRLOCK_SPRITE_TPAGE, SHELTER_1F_AIRLOCK_SPRITE_PRIMARY_CLUT, { .fields = { 8, 16 } }, -40, -32, 308, { .fields = { 88, 32 } }, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_NEUTRAL_COLOR, SHELTER_1F_AIRLOCK_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_1f_airlock_8017F050[3] = {
+/// View 5's image-background marker and one batch covering every source sprite.
+static SpriteBatch _gShelter1fAirlockView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 36, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelter1fAirlockView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_1f_airlock_8017F068[2] = {
+/// View 5's zero-size clip at (87, 207), restored at unscaled OT depth 11250.
+static SpriteDrawArea _gShelter1fAirlockView5DrawAreas[2] = {
     { { 87, 207, 0, 0 }, 0x2BF2 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteView D_shelter_1f_airlock_8017F07C[5] = {
-    { { .empty = D_shelter_1f_airlock_8017E910 }, D_shelter_1f_airlock_8017E910, NULL },
-    { { .empty = D_shelter_1f_airlock_8017E920 }, D_shelter_1f_airlock_8017E920, NULL },
-    { { .elements = D_shelter_1f_airlock_8017E930 }, D_shelter_1f_airlock_8017EB10, D_shelter_1f_airlock_8017EB30 },
-    { { .elements = D_shelter_1f_airlock_8017EB44 }, D_shelter_1f_airlock_8017ED4C, D_shelter_1f_airlock_8017ED6C },
-    { { .elements = D_shelter_1f_airlock_8017ED80 }, D_shelter_1f_airlock_8017F050, D_shelter_1f_airlock_8017F068 },
+SpriteView gShelter1fAirlockSpriteViews[SHELTER_1F_AIRLOCK_VIEW_COUNT] = {
+    { { .empty = _gShelter1fAirlockView1SpriteBatches }, _gShelter1fAirlockView1SpriteBatches, NULL },
+    { { .empty = _gShelter1fAirlockView2SpriteBatches }, _gShelter1fAirlockView2SpriteBatches, NULL },
+    { { .elements = _gShelter1fAirlockView3SpriteSources }, _gShelter1fAirlockView3SpriteBatches, _gShelter1fAirlockView3DrawAreas },
+    { { .elements = _gShelter1fAirlockView4SpriteSources }, _gShelter1fAirlockView4SpriteBatches, _gShelter1fAirlockView4DrawAreas },
+    { { .elements = _gShelter1fAirlockView5SpriteSources }, _gShelter1fAirlockView5SpriteBatches, _gShelter1fAirlockView5DrawAreas },
 };
 
-WorldCoordPointLight D_shelter_1f_airlock_8017F0B8[9] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 10, -1730, 4260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1430, -1730, 4260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -1730, 4260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2000, 4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -2000, 4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -2000, 3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5580, -1340, 3255 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 409, 409 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1010, -2099, 4150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 4096, 2457 }, { 0, 0 } }, 100, 200 },
+/// Nine all-view point lights with world positions, Q12 RGB and world-unit falloff radii.
+///
+/// Room-light updates parent and compose these writable transforms; shading
+/// queries replace their attenuation. Storage lasts with the loaded overlay.
+static WorldCoordPointLight _gShelter1fAirlockPointLights[9] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, 3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 10, -1730, 4260 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1430, -1730, 4260 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -1730, 4260 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2000, 4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -2000, 4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -2000, 3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2048, 1638 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5580, -1340, 3255 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 409, 409 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1010, -2099, 4150 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, ONE, 2457 }, { 0, 0 } }, 100, 200 },
 };
 
-WorldCoordRoomLights D_shelter_1f_airlock_8017F418[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_1f_airlock_8017F0B8), D_shelter_1f_airlock_8017F0B8, 0, NULL },
+/// The airlock's nine point lights, with no directional or cone sources.
+static WorldCoordRoomLights _gShelter1fAirlockRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gShelter1fAirlockPointLights),
+    _gShelter1fAirlockPointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_shelter_1f_airlock_8017F430[6] = {
+/// Bidirectional view boundaries 2 <-> 3, 3 <-> 4 and 4 <-> 5.
+///
+/// Six room-space quads, including the LAST-marked final record. Room setup
+/// links them and binds their coordinates; unlink before the overlay unloads.
+static WorldCollisionTrigger _gShelter1fAirlockViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 2083, -1808, 4063, 0 }, { { -1404, -2271, -163, 0 }, { 1400, -2271, 159, 0 }, { -1404, 2272, -163, 0 }, { 1400, 2272, 159, 0 } }, { 467, 0, -4078, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2130, -1856, 3839, 0 }, { { 1444, -2256, 160, 0 }, { -1461, -2256, -177, 0 }, { 1444, 2256, 160, 0 }, { -1461, 2256, -177, 0 } }, { -474, 0, 4071, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -993, -1408, 4785, 0 }, { { -432, -2656, 1520, 0 }, { 432, -2656, -1520, 0 }, { -432, 2656, 1520, 0 }, { 432, 2656, -1520, 0 } }, { -3943, 0, -1121, 0 }, { 0, 0, 4096, 0 }, 3082, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -336,25 +425,35 @@ WorldCollisionTrigger D_shelter_1f_airlock_8017F5F8[4] = {
     { NULL, NULL, NULL, { -1376, -64, 4192, 0 }, { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_1f_airlock_8017F728[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
+enum {
+    SHELTER_1F_AIRLOCK_KNIGHT_ENTRY_ID    = 22,
+    SHELTER_1F_AIRLOCK_KNIGHT_FILE_NUMBER = 22, // Group 40, file 402200
+    SHELTER_1F_AIRLOCK_BISHOP_ENTRY_ID    = 39,
+    SHELTER_1F_AIRLOCK_BISHOP_FILE_NUMBER = 39, // Group 40, file 403900
+    SHELTER_1F_AIRLOCK_GOLEM_TASK_INDEX   = 0,
+};
+
+/// Variant 1's Knight GOLEM load/spawn recipe and its placement-list terminator.
+static AreaResource _gShelter1fAirlockKnightResources[2] = {
+    { SHELTER_1F_AIRLOCK_KNIGHT_ENTRY_ID, SHELTER_1F_AIRLOCK_KNIGHT_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, SHELTER_1F_AIRLOCK_GOLEM_TASK_INDEX, { 0, 0 }, &gActor402200GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_1f_airlock_8017F740[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
+/// Variant 7's Bishop GOLEM load/spawn recipe and its placement-list terminator.
+static AreaResource _gShelter1fAirlockBishopResources[2] = {
+    { SHELTER_1F_AIRLOCK_BISHOP_ENTRY_ID, SHELTER_1F_AIRLOCK_BISHOP_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, SHELTER_1F_AIRLOCK_GOLEM_TASK_INDEX, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_shelter_1f_airlock_8017F758[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AFD0, D_shelter_1f_airlock_8017F728 },
+    { D_map_neo_ark_8017AFD0, _gShelter1fAirlockKnightResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017AFF0, D_shelter_1f_airlock_8017F740 },
+    { D_map_neo_ark_8017AFF0, _gShelter1fAirlockBishopResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -366,29 +465,45 @@ WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2] = {
     { NULL, NULL, { -2801, -1440, 3071, 0 }, { { -1433, 2480, 833, 0 }, { 1434, 2480, -832, 0 }, { -1433, -2480, 833, 0 }, { 1434, -2480, -832, 0 } }, { 2060, 0, 3547, 0 }, 2974, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_airlock_8017F830 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+enum {
+    SHELTER_1F_AIRLOCK_WALK_FOOTSTEP_CUE2 = 0x10000059,
+    SHELTER_1F_AIRLOCK_RUN_FOOTSTEP_CUE2  = 0x1000005B,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_airlock_8017F83C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor cue-2 type-1 sound requests; cue 1 uses the following entry in the room bank.
+static WorldCollisionFootstepSounds _gShelter1fAirlockFootstepSounds = {
+    SHELTER_1F_AIRLOCK_WALK_FOOTSTEP_CUE2,
+    SHELTER_1F_AIRLOCK_RUN_FOOTSTEP_CUE2,
+    SHELTER_1F_AIRLOCK_WALK_FOOTSTEP_CUE2,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_airlock_8017F844[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_airlock_8017F830 },
+/// Blocking, impact-enabled, pushback surface with no footstep cues (classes 0 and 2..7).
+static WorldCollisionSurfaceProperties _gShelter1fAirlockDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[8] = {
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F844,
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F83C,
-    D_shelter_1f_airlock_8017F83C,
+/// Class-1 floor's blocking, impact and pushback policy with paired footstep cues.
+static WorldCollisionSurfaceProperties _gShelter1fAirlockFloorSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelter1fAirlockFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelter1fAirlockSurfaceProperties[8] = {
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockFloorSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
+    &_gShelter1fAirlockDefaultSurfaceProperties,
 };
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -509,31 +624,31 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
     // Each view selects its visible discs and pairs of capsule endpoints.
     switch (mappedViewIndex) {
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_3:
-            _shelter1fAirlockDrawDiscPair(&D_shelter_1f_airlock_8017E4BC[1], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _shelter1fAirlockDrawDiscPair(&_gShelter1fAirlockGlowWorldPoints.greyDiscCentres[1], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[0], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[1], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[2], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[3], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[7], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_4:
-            _shelter1fAirlockDrawDiscPair(D_shelter_1f_airlock_8017E4BC, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[14], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[16], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[20], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[22], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[24], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _shelter1fAirlockDrawDiscPair(_gShelter1fAirlockGlowWorldPoints.greyDiscCentres, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[0], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[1], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[2], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[3], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[5], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[6], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[7], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[8], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[9], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[10], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(_gShelter1fAirlockGlowWorldPoints.cyanCapsuleEndpoints[11], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_5:
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[3], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_RED_FACTORS);
+            _glowDrawFactorDisc(&_gShelter1fAirlockGlowWorldPoints.redDiscCentre, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_RED_FACTORS);
             break;
     }
 }

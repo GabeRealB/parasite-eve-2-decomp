@@ -16,19 +16,45 @@ extern AreaVariant D_shelter_1f_airlock_8017F758[12];
 // shelter_1f_airlock
 extern WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[];
 
-extern WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[];
+/// Number of identity-mapped camera, image and sprite views in the airlock.
+enum { SHELTER_1F_AIRLOCK_VIEW_COUNT = 5 };
 
-extern u8* D_shelter_1f_airlock_8017E5B4[];
+/// Lighting for room 1 of Neo Ark area 5, with the default ambient minima.
+///
+/// Borrows the room's mutable point-light collection while this overlay is loaded.
+extern WorldCoordRoomLighting gShelter1fAirlockRoomLighting[1];
 
-extern ViewCount D_shelter_1f_airlock_8017E5B8[];
+/// Room 1's logical-view map, borrowing gameplay's `gViewIdentityMap`.
+///
+/// Views 1..5 select the same 1-based camera, image and sprite indices.
+/// The one-pointer room directory stays valid while this overlay is loaded.
+extern u8* gShelter1fAirlockViewMaps[1];
+
+/// Room 1's five logical views, limiting reverse searches of its view map.
+extern ViewCount gShelter1fAirlockViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_1f_airlock_8017E5BC[];
 
-extern ViewCamera D_shelter_1f_airlock_8017E85C[];
+/// Cameras selected by the airlock's mapped 1-based view index minus one.
+///
+/// Each record holds world-to-camera rotation, the negated world origin and
+/// projection distance in pixels. Borrow only while this overlay is loaded.
+extern ViewCamera gShelter1fAirlockViewCameras[SHELTER_1F_AIRLOCK_VIEW_COUNT];
 
-extern SpriteView D_shelter_1f_airlock_8017F07C[];
+/// Sprite sources, batches and clipping lists for mapped airlock views 1..5.
+///
+/// Views 1 and 2 have no source sprites; views 3..5 select 24, 26 and 36.
+/// All first batches have zero count, retaining the decoded image background.
+/// The descriptors and their mutable lists stay borrowed while this overlay is loaded.
+extern SpriteView gShelter1fAirlockSpriteViews[SHELTER_1F_AIRLOCK_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[];
+/// Collision policies indexed by room surface class 0..7, without a terminator.
+///
+/// Every class blocks probes, enables weapon impacts and applies pushback.
+/// Class 1 is the floor with footstep cues; the others have no footstep table.
+/// Gameplay reads all eight entries when caching pushback flags. Records and
+/// sounds stay borrowed while the airlock overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelter1fAirlockSurfaceProperties[8];
 
 /// Runs the Airlock room controller for synchronous room messages.
 ///
