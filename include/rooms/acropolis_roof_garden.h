@@ -16,8 +16,12 @@ extern AreaVariant D_acropolis_roof_garden_80185934[12];
 
 extern TmdSource gAcropolisRoofGardenModel09868;
 
-// acropolis_roof_garden
-extern WorldCollisionRoomResources D_acropolis_roof_garden_80184C8C[];
+/// Collision resources for roof-garden room 1, indexed by room minus one.
+///
+/// Borrows the room's mesh, six directed view boundaries, seven action triggers
+/// and two sight occluders. Setup mutates their transforms, links and flags;
+/// all storage stays live while the room overlay is loaded and resources are bound.
+extern WorldCollisionRoomResources gAcropolisRoofGardenCollisionRoomResources[1];
 
 /// Number of logical views in the roof garden's single room.
 enum { ACROPOLIS_ROOF_GARDEN_VIEW_COUNT = 7 };
@@ -40,7 +44,13 @@ extern ViewCount gAcropolisRoofGardenViewCounts[1];
 /// The descriptor and its light collection stay live while the overlay is loaded.
 extern WorldCoordRoomLighting gAcropolisRoofGardenRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_roof_garden_80184CAC[];
+/// Two roof-garden warp endpoints, indexed by the 1-based warp ID minus one.
+///
+/// Both place player and companion at (-7458, 0, -9712), yaw zero, in world
+/// units. Endpoint 1 starts view 2 and uses room sound entries 2/1 for arrival/
+/// departure; endpoint 2 starts view 3 and is silent. Neither has flags or a
+/// map marker. The map directory borrows the array while the room is loaded.
+extern DirectionWarpEntry gAcropolisRoofGardenWarpEntries[2];
 
 /// Sprite overlays for mapped roof-garden views 1..7, indexed by view minus one.
 ///
