@@ -16,9 +16,20 @@ extern AreaVariant D_neo_ark_pyramid_80181728[13];
 // neo_ark_pyramid
 extern WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[];
 
-extern WorldCoordRoomLighting D_neo_ark_pyramid_8017FC48[];
+/// Lighting for the pyramid's two room variants, indexed by room - 1.
+///
+/// Both variants borrow the same mutable point lights and use the default
+/// ambient minima. The descriptors and lights stay valid while this overlay
+/// is loaded.
+extern WorldCoordRoomLighting gNeoArkPyramidRoomLighting[2];
 
-extern u8* D_neo_ark_pyramid_8017FC60[];
+/// Logical-view maps for the pyramid's two room variants, indexed by room - 1.
+///
+/// Each map has eight unsigned bytes indexed by logical view - 1, containing
+/// 1-based camera, image and sprite indices. Room 1 uses the identity map;
+/// room 2 exchanges indices 4 and 6 after the altar's second sequence is solved.
+/// The map directory and room-owned map require this overlay to remain loaded.
+extern u8* gNeoArkPyramidViewMaps[2];
 
 extern ViewCount D_neo_ark_pyramid_8017FC68[];
 
@@ -26,9 +37,21 @@ extern DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[];
 
 extern ViewCamera D_neo_ark_pyramid_801802E8[];
 
-extern SpriteView D_neo_ark_pyramid_80180E18[];
+/// Sprite sources and batch lists for the pyramid's eight mapped views.
+///
+/// Indexed by mapped view - 1, independently of the logical-view numbering.
+/// Views 3..6 have source rectangles; views 1, 2, 7 and 8 have empty batches.
+/// Every view retains decoded background strips and has no draw-area list.
+/// These mutable descriptors and their lists require this overlay to stay loaded.
+extern SpriteView gNeoArkPyramidSpriteViews[8];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[];
+/// Collision and footstep policies indexed by the pyramid's surface class (0..7).
+///
+/// Class 2 passes probes and suppresses weapon impacts; every class applies
+/// pushback. Class 3 has walking/running cues and class 4 has stair cues.
+/// Classes 0, 5, 6 and 7 share one silent blocking record; class 1 has its own
+/// silent blocking record. The directory and records live in this room overlay.
+extern WorldCollisionSurfaceProperties* gNeoArkPyramidSurfaceProperties[8];
 
 /// Runs the pyramid's charging pink flash, peak screen tint and fading star.
 ///

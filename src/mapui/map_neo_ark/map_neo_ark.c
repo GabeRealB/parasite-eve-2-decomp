@@ -599,7 +599,7 @@ WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
     D_map_neo_ark_8017A9E4,
     D_map_neo_ark_8017A9EC,
     D_map_neo_ark_8017A9F4,
-    D_neo_ark_pyramid_8017FC48,
+    gNeoArkPyramidRoomLighting,
     D_neo_ark_substation_8017E400,
 };
 
@@ -821,7 +821,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_neo_ark_woodland_path_80181694,
     D_neo_ark_submarine_gallery_80181A08,
     gNeoArkR31ViewMaps,
-    D_neo_ark_pyramid_8017FC60,
+    gNeoArkPyramidViewMaps,
     D_neo_ark_substation_8017E408,
 };
 
@@ -859,7 +859,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_neo_ark_woodland_path_80183C6C,
     D_neo_ark_submarine_gallery_80184D10,
     D_neo_ark_r31_8017DAF8,
-    D_neo_ark_pyramid_80180E18,
+    gNeoArkPyramidSpriteViews,
     D_neo_ark_substation_8017F584,
 };
 
@@ -897,7 +897,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_neo_ark_woodland_path_80184910,
     D_neo_ark_submarine_gallery_801858EC,
     gNeoArkR31SurfacePropertiesByClass,
-    D_neo_ark_pyramid_80181884,
+    gNeoArkPyramidSurfaceProperties,
     D_neo_ark_substation_80180328,
 };
 

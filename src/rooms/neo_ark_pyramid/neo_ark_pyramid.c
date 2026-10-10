@@ -79,11 +79,11 @@ static s32  _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId
 /// Room message carrying the integer item ID selected in the key-item menu.
 enum { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid     D_neo_ark_pyramid_801802C4[1];
+static WorldCollisionGrid     _gNeoArkPyramidCollisionGrid;
 extern WorldCollisionOccluder D_neo_ark_pyramid_80181790[3];
 extern WorldCollisionTrigger  D_neo_ark_pyramid_801812B0[6];
 extern WorldCollisionTrigger  D_neo_ark_pyramid_80181478[7];
-extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
+static WorldCoordRoomLights   _gNeoArkPyramidRoomLights;
 
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPyramidResolveRoomVariant },
@@ -98,16 +98,20 @@ TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, _neoArkPyram
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[2] = {
-    { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
-    { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
+    { &_gNeoArkPyramidCollisionGrid, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
+    { &_gNeoArkPyramidCollisionGrid, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
 };
 
-WorldCoordRoomLighting D_neo_ark_pyramid_8017FC48[2] = {
-    { D_neo_ark_pyramid_80181298, NULL },
-    { D_neo_ark_pyramid_80181298, NULL },
+WorldCoordRoomLighting gNeoArkPyramidRoomLighting[2] = {
+    { &_gNeoArkPyramidRoomLights, NULL },
+    { &_gNeoArkPyramidRoomLights, NULL },
 };
 
-u8 D_neo_ark_pyramid_8017FC58[8] = {
+/// Eight logical-view mappings after the altar's second sequence is solved.
+///
+/// Indexed by logical view - 1; entries are 1-based camera/image/sprite indices.
+/// Swaps 4 and 6 to select the alternate shot. Borrowed by room variant 2.
+static u8 _gNeoArkPyramidAltarSolvedViewMap[8] = {
     1,
     2,
     3,
@@ -118,9 +122,9 @@ u8 D_neo_ark_pyramid_8017FC58[8] = {
     8,
 };
 
-u8* D_neo_ark_pyramid_8017FC60[2] = {
+u8* gNeoArkPyramidViewMaps[2] = {
     gViewIdentityMap,
-    D_neo_ark_pyramid_8017FC58,
+    _gNeoArkPyramidAltarSolvedViewMap,
 };
 
 ViewCount D_neo_ark_pyramid_8017FC68[2] = { 8, 8 };
@@ -130,30 +134,56 @@ DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[2] = {
     { { { .word = 3072 }, 3200, -650, -7490 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4200, -1160, -7500 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkPyramidCollision02D04Normals[13] = {
+/// Room-local collision normals, with ONE representing unit length.
+static SVECTOR _gNeoArkPyramidCollisionGridNormals[13] = {
 #include "assets/neo_ark_pyramid_collision_02D04_normals.inc"
 };
 
-static SVECTOR _gNeoArkPyramidCollision02D04Verts[66] = {
+/// Vertices of the pyramid's collision mesh, in signed room-coordinate units.
+static SVECTOR _gNeoArkPyramidCollisionGridVerts[66] = {
 #include "assets/neo_ark_pyramid_collision_02D04_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkPyramidCollision02D04Faces[36] = {
+/// Indexed collision triangles and quads, carrying room-local surface classes.
+static WorldCollisionGridFace _gNeoArkPyramidCollisionGridFaces[36] = {
 #include "assets/neo_ark_pyramid_collision_02D04_faces.inc"
 };
 
-static s16 _gNeoArkPyramidCollision02D04Cells[194] = {
+/// Packed cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+///
+/// Retains the complete 194-halfword asset span, including values between lists.
+static s16 _gNeoArkPyramidCollisionGridCells[194] = {
 #include "assets/neo_ark_pyramid_collision_02D04_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkPyramidCollision02D04Cells[i])
-static s16* _gNeoArkPyramidCollision02D04Table[15] = {
+/// Generated table binding: i is a halfword index into the packed cell lists.
+///
+/// Evaluates i once; each index must begin a complete sentinel-terminated list.
+/// The generated initializer requires this spelling; it is undefined afterwards.
+#define GRID_CELL(i) (&_gNeoArkPyramidCollisionGridCells[(i)])
+/// X-major 5-by-3 directory of the pyramid's collision cell lists.
+static s16* _gNeoArkPyramidCollisionGridTable[15] = {
 #include "assets/neo_ark_pyramid_collision_02D04_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_pyramid_801802C4[1] = {
-    { NULL, _gNeoArkPyramidCollision02D04Normals, _gNeoArkPyramidCollision02D04Verts, _gNeoArkPyramidCollision02D04Faces, _gNeoArkPyramidCollision02D04Table, 4000, 0x2CEC, 5, 3, 4000, 36 },
+/// Collision mesh shared by both pyramid room variants.
+///
+/// Covers five X cells by three Z cells, each 4000 game units wide, from
+/// room-space origin (-4000, -11500) on X/Z. Activation binds the view transform;
+/// the descriptor and mutable mesh pools remain borrowed while this room is live.
+static WorldCollisionGrid _gNeoArkPyramidCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkPyramidCollisionGridNormals,
+    .vertices    = _gNeoArkPyramidCollisionGridVerts,
+    .faces       = _gNeoArkPyramidCollisionGridFaces,
+    .cellFaceIds = _gNeoArkPyramidCollisionGridTable,
+    .xBias       = 4000,
+    .zBias       = 11500,
+    .cellCountX  = 5,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkPyramidCollisionGridFaces),
 };
 
 ViewCamera D_neo_ark_pyramid_801802E8[8] = {
@@ -167,211 +197,276 @@ ViewCamera D_neo_ark_pyramid_801802E8[8] = {
     { { { { -2878, 0, 2914 }, { 16, 4095, 16 }, { -2914, 23, -2878 } }, { 1595, 667, 6136 } }, 312 },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180408[2] = {
+/// Shared texture encodings and neutral modulation of the mapped-view sprites.
+enum {
+    NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE  = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    NEO_ARK_PYRAMID_SPRITE_PALETTE       = getClut(0, 255),
+    NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR = 128,
+};
+
+/// Boundaries between the two source ranges of mapped views 4 and 6.
+enum {
+    NEO_ARK_PYRAMID_VIEW4_FIRST_RANGE_COUNT = 34,
+    NEO_ARK_PYRAMID_VIEW6_FIRST_RANGE_COUNT = 32,
+};
+
+/// Batch list for mapped view 1; its empty first batch retains background strips.
+///
+/// No source sprites; the second record ends the list.
+static SpriteBatch _gNeoArkPyramidView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180418[2] = {
+/// Batch list for mapped view 2; its empty first batch retains background strips.
+///
+/// No source sprites; the second record ends the list.
+static SpriteBatch _gNeoArkPyramidView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_pyramid_80180428[12] = {
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -112, -48, 1050, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -96, -48, 1075, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -80, -40, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 8, 1606, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 0, 1611, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 0, 1621, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 0, 1588, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -8, 1611, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 96, -8, 1611, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -8, 1611, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 112, -16, 1611, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 40, 1611, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+/// 12 texture rectangles for mapped view 3, in screen pixels with OT depths.
+///
+/// Cached packets snapshot these sources; depth is read again when linking.
+static SpriteSource _gNeoArkPyramidView3SpriteSources[12] = {
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 104 } }, -112, -48, 1050, { .fields = { 112, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 104 } }, -96, -48, 1075, { .fields = { 112, 104 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 88 } }, -80, -40, 1100, { .fields = { 96, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, 56, 8, 1606, { .fields = { 96, 168 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 32 } }, 64, 0, 1611, { .fields = { 104, 176 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 40 } }, 72, 0, 1621, { .fields = { 104, 136 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 40 } }, 80, 0, 1588, { .fields = { 96, 88 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 48 } }, 88, -8, 1611, { .fields = { 104, 88 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 48, 48 } }, 96, -8, 1611, { .fields = { 80, 208 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 40 } }, 144, -8, 1611, { .fields = { 88, 128 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, 112, -16, 1611, { .fields = { 80, 184 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, 104, 40, 1611, { .fields = { 88, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180518[3] = {
+/// Batch list for mapped view 3; its empty first batch retains background strips.
+///
+/// The following range draws the complete source array, then the sentinel ends it.
+static SpriteBatch _gNeoArkPyramidView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkPyramidView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_pyramid_80180530[43] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 16, 1399, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 16, 1399, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 24, 1395, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 24, 1395, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 40, 1425, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
+/// 43 texture rectangles for mapped view 4, in screen pixels with OT depths.
+///
+/// Cached packets snapshot these sources; depth is read again when linking.
+static SpriteSource _gNeoArkPyramidView4SpriteSources[43] = {
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 96, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 40, 16, 1399, { .fields = { 112, 248 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 48, 16, 1399, { .fields = { 96, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 40, 24, 1395, { .fields = { 96, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 48, 24, 1395, { .fields = { 96, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 136 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 96 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 120 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 112 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 104 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 128 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 8 } }, -24, 40, 1425, { .fields = { 24, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 248 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 24 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 176 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 48, 160 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 144 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 16 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 8 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_pyramid_8018088C[4] = {
+/// Batch list for mapped view 4; its empty first batch retains background strips.
+///
+/// Partitions all source elements at index 34; both ranges are visible and cached.
+/// The first range retains serialized metadata bytes { 1, 0 } of unproven role.
+static SpriteBatch _gNeoArkPyramidView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 1, 0 } },
-    { 34, 9, 0, 0, { 0, 0 } },
+    { 0, NEO_ARK_PYRAMID_VIEW4_FIRST_RANGE_COUNT, 0, 0, { 1, 0 } },
+    { NEO_ARK_PYRAMID_VIEW4_FIRST_RANGE_COUNT, ARRAY_SIZE(_gNeoArkPyramidView4SpriteSources) - NEO_ARK_PYRAMID_VIEW4_FIRST_RANGE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_pyramid_801808AC[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 24, 723, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -160, -96, 1184, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -144, -112, 1268, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, -120, 1336, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, -120, 1845, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, -120, 1098, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 0, 772, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 24, 708, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 56, 639, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 606, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 0, 774, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, 24, 713, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 642, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, 80, 589, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 0, 756, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 24, 719, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 56, 645, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 80, 593, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 0, 760, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 24, 711, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 56, 627, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 80, 585, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, 0, 764, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 715, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+/// 24 texture rectangles for mapped view 5, in screen pixels with OT depths.
+///
+/// Cached packets snapshot these sources; depth is read again when linking.
+static SpriteSource _gNeoArkPyramidView5SpriteSources[24] = {
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, -96, 24, 723, { .fields = { 112, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 96 } }, -160, -96, 1184, { .fields = { 80, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 112 } }, -144, -112, 1268, { .fields = { 96, 120 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 120 } }, -128, -120, 1336, { .fields = { 96, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 120 } }, -112, -120, 1845, { .fields = { 112, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 120 } }, -96, -120, 1098, { .fields = { 112, 120 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -160, 0, 772, { .fields = { 64, 120 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 32 } }, -160, 24, 708, { .fields = { 64, 32 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -160, 56, 639, { .fields = { 64, 144 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 40 } }, -160, 80, 606, { .fields = { 80, 96 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -144, 0, 774, { .fields = { 64, 96 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 32 } }, -144, 24, 713, { .fields = { 80, 136 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -144, 56, 642, { .fields = { 56, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 32 } }, -144, 80, 589, { .fields = { 80, 168 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -128, 0, 756, { .fields = { 64, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 32 } }, -128, 24, 719, { .fields = { 72, 200 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -128, 56, 645, { .fields = { 64, 168 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 32 } }, -128, 80, 593, { .fields = { 64, 64 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, -112, 0, 760, { .fields = { 104, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 32 } }, -112, 24, 711, { .fields = { 88, 200 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, -112, 56, 627, { .fields = { 80, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, -112, 80, 585, { .fields = { 120, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 24 } }, -104, 0, 764, { .fields = { 88, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 32 } }, -104, 24, 715, { .fields = { 72, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180A8C[3] = {
+/// Batch list for mapped view 5; its empty first batch retains background strips.
+///
+/// The following range draws the complete source array, then the sentinel ends it.
+static SpriteBatch _gNeoArkPyramidView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkPyramidView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_pyramid_80180AA4[41] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 40, 1426, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 16, 1399, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 24, 1395, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+/// 41 texture rectangles for mapped view 6, in screen pixels with OT depths.
+///
+/// Cached packets snapshot these sources; depth is read again when linking.
+static SpriteSource _gNeoArkPyramidView6SpriteSources[41] = {
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 112, 248 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 128 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 112 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 104 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 96 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 120 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 176 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 40, 8 } }, -24, 40, 1426, { .fields = { 32, 144 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, 40, 16, 1399, { .fields = { 88, 216 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, 40, 24, 1395, { .fields = { 88, 232 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 224 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 0 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 160 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 40, 24 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 136 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 8 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_PYRAMID_SPRITE_TEXTURE_PAGE, NEO_ARK_PYRAMID_SPRITE_PALETTE, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 16 } }, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, NEO_ARK_PYRAMID_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180DD8[4] = {
+/// Batch list for mapped view 6; its empty first batch retains background strips.
+///
+/// Partitions all source elements at index 32; both ranges are visible and cached.
+/// The first range retains serialized metadata bytes { 1, 0 } of unproven role.
+static SpriteBatch _gNeoArkPyramidView6SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 32, 0, 0, { 1, 0 } },
-    { 32, 9, 0, 0, { 0, 0 } },
+    { 0, NEO_ARK_PYRAMID_VIEW6_FIRST_RANGE_COUNT, 0, 0, { 1, 0 } },
+    { NEO_ARK_PYRAMID_VIEW6_FIRST_RANGE_COUNT, ARRAY_SIZE(_gNeoArkPyramidView6SpriteSources) - NEO_ARK_PYRAMID_VIEW6_FIRST_RANGE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180DF8[2] = {
+/// Batch list for mapped view 7; its empty first batch retains background strips.
+///
+/// No source sprites; the second record ends the list.
+static SpriteBatch _gNeoArkPyramidView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_pyramid_80180E08[2] = {
+/// Batch list for mapped view 8; its empty first batch retains background strips.
+///
+/// No source sprites; the second record ends the list.
+static SpriteBatch _gNeoArkPyramidView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_pyramid_80180E18[8] = {
-    { { .empty = D_neo_ark_pyramid_80180408 }, D_neo_ark_pyramid_80180408, NULL },
-    { { .empty = D_neo_ark_pyramid_80180418 }, D_neo_ark_pyramid_80180418, NULL },
-    { { .elements = D_neo_ark_pyramid_80180428 }, D_neo_ark_pyramid_80180518, NULL },
-    { { .elements = D_neo_ark_pyramid_80180530 }, D_neo_ark_pyramid_8018088C, NULL },
-    { { .elements = D_neo_ark_pyramid_801808AC }, D_neo_ark_pyramid_80180A8C, NULL },
-    { { .elements = D_neo_ark_pyramid_80180AA4 }, D_neo_ark_pyramid_80180DD8, NULL },
-    { { .empty = D_neo_ark_pyramid_80180DF8 }, D_neo_ark_pyramid_80180DF8, NULL },
-    { { .empty = D_neo_ark_pyramid_80180E08 }, D_neo_ark_pyramid_80180E08, NULL },
+SpriteView gNeoArkPyramidSpriteViews[8] = {
+    { { .empty = _gNeoArkPyramidView1SpriteBatches }, _gNeoArkPyramidView1SpriteBatches, NULL },
+    { { .empty = _gNeoArkPyramidView2SpriteBatches }, _gNeoArkPyramidView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkPyramidView3SpriteSources }, _gNeoArkPyramidView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkPyramidView4SpriteSources }, _gNeoArkPyramidView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkPyramidView5SpriteSources }, _gNeoArkPyramidView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkPyramidView6SpriteSources }, _gNeoArkPyramidView6SpriteBatches, NULL },
+    { { .empty = _gNeoArkPyramidView7SpriteBatches }, _gNeoArkPyramidView7SpriteBatches, NULL },
+    { { .empty = _gNeoArkPyramidView8SpriteBatches }, _gNeoArkPyramidView8SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_pyramid_80180E78[11] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3490, -2000, -3010 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -80, -4000, -6040 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2000, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4120, -2000, -5600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2560, -2000, -9990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3940, -2000, -0x28E6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5480, -2000, -0x2B16 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1900, -2000, -7420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2760, -2000, -5140 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1360, -2000, -6580 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4890, -2000, -4660 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -230, -2000, -7890 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
+/// Eleven white point lights shared by both room variants and enabled in every view.
+///
+/// RGB and identity rotations use ONE (12 fractional bits). Positions and inner/
+/// outer falloff radii use game units; room-light setup parents them to the view,
+/// and composition and lighting queries update the transforms and attenuation.
+static WorldCoordPointLight _gNeoArkPyramidPointLights[11] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3490, -2000, -3010 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -80, -4000, -6040 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 2000, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4120, -2000, -5600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2560, -2000, -9990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3940, -2000, -0x28E6 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5480, -2000, -0x2B16 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1900, -2000, -7420 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2760, -2000, -5140 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1360, -2000, -6580 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4890, -2000, -4660 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -230, -2000, -7890 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 4000 },
 };
 
-WorldCoordRoomLights D_neo_ark_pyramid_80181298[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_pyramid_80180E78), D_neo_ark_pyramid_80180E78, 0, NULL },
+/// Authored light collection shared by both pyramid room variants.
+///
+/// Holds only point lights: no directional or cone sources. Borrows the writable
+/// light array for coordinate updates and position-dependent shading queries.
+static WorldCoordRoomLights _gNeoArkPyramidRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkPyramidPointLights),
+    .pointLights           = _gNeoArkPyramidPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_pyramid_801812B0[6] = {
@@ -443,47 +538,100 @@ WorldCollisionOccluder D_neo_ark_pyramid_80181790[3] = {
     { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, 8628, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_pyramid_80181844 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    NEO_ARK_PYRAMID_SURFACE3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+    NEO_ARK_PYRAMID_SURFACE3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3B,
+    NEO_ARK_PYRAMID_STAIR_WALK_SOUND    = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    NEO_ARK_PYRAMID_STAIR_RUN_SOUND     = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_pyramid_80181850 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Paired walking/running requests for surface class 3; jumps reuse walking.
+///
+/// The player selects walk or run on animation cue 2 and adds one for cue 1.
+/// Type-1 requests use the currently loaded bank; the surface record borrows
+/// this storage while the pyramid overlay remains loaded.
+static WorldCollisionFootstepSounds _gNeoArkPyramidSurface3FootstepSounds = {
+    .walk         = NEO_ARK_PYRAMID_SURFACE3_WALK_SOUND,
+    .run          = NEO_ARK_PYRAMID_SURFACE3_RUN_SOUND,
+    .scriptedJump = NEO_ARK_PYRAMID_SURFACE3_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018185C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired type-1 requests for surface class 4, assigned by both stair triggers.
+///
+/// Scripted stair climbing selects the walking pair; the stored running pair
+/// applies if a running cue occurs while the actor retains this surface class.
+/// The surface record borrows this storage while the pyramid overlay is loaded.
+static WorldCollisionFootstepSounds _gNeoArkPyramidStairFootstepSounds = {
+    .walk         = NEO_ARK_PYRAMID_STAIR_WALK_SOUND,
+    .run          = NEO_ARK_PYRAMID_STAIR_RUN_SOUND,
+    .scriptedJump = NEO_ARK_PYRAMID_STAIR_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_pyramid_80181864[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy shared by surface classes 0, 5, 6 and 7.
+///
+/// Applies pushback and is borrowed through the room surface-class directory.
+static WorldCollisionSurfaceProperties _gNeoArkPyramidDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018186C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy of surface class 1, stored independently of class 0.
+///
+/// Applies pushback and is borrowed through the room surface-class directory.
+static WorldCollisionSurfaceProperties _gNeoArkPyramidSurface1Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_pyramid_80181874[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_pyramid_80181844 },
+/// Surface-class-2 policy: probes pass and weapon impacts are ignored.
+///
+/// Applies pushback and is borrowed through the room surface-class directory.
+static WorldCollisionSurfaceProperties _gNeoArkPyramidSurface2Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018187C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_pyramid_80181850 },
+/// Blocking surface-class-3 policy with walking and running footstep cues.
+///
+/// Applies pushback and is borrowed through the room surface-class directory.
+static WorldCollisionSurfaceProperties _gNeoArkPyramidSurface3Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gNeoArkPyramidSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[8] = {
-    D_neo_ark_pyramid_8018185C,
-    D_neo_ark_pyramid_80181864,
-    D_neo_ark_pyramid_8018186C,
-    D_neo_ark_pyramid_80181874,
-    D_neo_ark_pyramid_8018187C,
-    D_neo_ark_pyramid_8018185C,
-    D_neo_ark_pyramid_8018185C,
-    D_neo_ark_pyramid_8018185C,
+/// Blocking surface-class-4 policy with the stair footstep cues.
+///
+/// Applies pushback and is borrowed through the room surface-class directory.
+static WorldCollisionSurfaceProperties _gNeoArkPyramidSurface4Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gNeoArkPyramidStairFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkPyramidSurfaceProperties[8] = {
+    &_gNeoArkPyramidDefaultSurfaceProperties,
+    &_gNeoArkPyramidSurface1Properties,
+    &_gNeoArkPyramidSurface2Properties,
+    &_gNeoArkPyramidSurface3Properties,
+    &_gNeoArkPyramidSurface4Properties,
+    &_gNeoArkPyramidDefaultSurfaceProperties,
+    &_gNeoArkPyramidDefaultSurfaceProperties,
+    &_gNeoArkPyramidDefaultSurfaceProperties,
 };
 
 s32 D_neo_ark_pyramid_801818A4 = 0;

@@ -307,13 +307,13 @@ gNeoArkR31RoomLights = 0x8017DB7C; // absolute:True owner=neo_ark_r31
 gNeoArkR31SurfacePropertiesByClass = 0x8017DC34; // absolute:True owner=neo_ark_r31
 neoArkPyramidRoomTask = 0x8017DB98; // type:func absolute:True owner=neo_ark_pyramid
 D_neo_ark_pyramid_8017FC28 = 0x8017FC28; // absolute:True owner=neo_ark_pyramid
-D_neo_ark_pyramid_8017FC48 = 0x8017FC48; // absolute:True owner=neo_ark_pyramid
-D_neo_ark_pyramid_8017FC60 = 0x8017FC60; // absolute:True owner=neo_ark_pyramid
+gNeoArkPyramidRoomLighting = 0x8017FC48; // absolute:True owner=neo_ark_pyramid
+gNeoArkPyramidViewMaps = 0x8017FC60; // absolute:True owner=neo_ark_pyramid
 D_neo_ark_pyramid_8017FC68 = 0x8017FC68; // absolute:True owner=neo_ark_pyramid
 D_neo_ark_pyramid_8017FC6C = 0x8017FC6C; // absolute:True owner=neo_ark_pyramid shared=rooms
 D_neo_ark_pyramid_801802E8 = 0x801802E8; // absolute:True owner=neo_ark_pyramid
-D_neo_ark_pyramid_80180E18 = 0x80180E18; // absolute:True owner=neo_ark_pyramid
-D_neo_ark_pyramid_80181884 = 0x80181884; // absolute:True owner=neo_ark_pyramid shared=rooms
+gNeoArkPyramidSpriteViews = 0x80180E18; // absolute:True owner=neo_ark_pyramid
+gNeoArkPyramidSurfaceProperties = 0x80181884; // absolute:True owner=neo_ark_pyramid shared=rooms
 neoArkSubstationRoomTask = 0x8017D81C; // type:func absolute:True owner=neo_ark_substation
 D_neo_ark_substation_8017E3F0 = 0x8017E3F0; // absolute:True owner=neo_ark_substation
 D_neo_ark_substation_8017E400 = 0x8017E400; // absolute:True owner=neo_ark_substation

@@ -514,7 +514,7 @@ D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True owner=neo_ark_pavilio
 
 D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // absolute:True owner=neo_ark_r31
 
-D_neo_ark_submarine_gallery_8018186C = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
+D_neo_ark_submarine_gallery_8018186C = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery
 
 D_neo_ark_submarine_tunnel_801810E4 = 0x801810E4; // absolute:True owner=neo_ark_submarine_tunnel
 
