@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_pod_access_tunnel_80184C00[23];
+/// Sparse area-layout directory for placement variants 0..22 in the pod access tunnel.
+///
+/// Populated selectors are 1 scripted Aya, 2 Watchers, 3 Mossbacks, 4 Brute
+/// Mossback, 7 Rook, 11 Watchers/Rook and 21 gun Watchers. All other slots
+/// contain two NULL pointers. No terminator or bounds check; gameplay borrows
+/// these records and their tables while this room overlay remains loaded.
+extern AreaVariant gShelterB1PodAccessTunnelAreaVariants[23];
 
 /// Number of mapped camera/image/sprite views in the pod access tunnel.
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT = 14 };
