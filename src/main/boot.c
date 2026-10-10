@@ -120,7 +120,7 @@ static GfxImageSlot* Gfx_ImageSlotTables[] = {
     D_map_dryfield_80179A14,
     gMapDryfieldFullImageSlots,
     gMapShelterImageSlotsByArea,
-    D_map_neo_ark_80179DB8,
+    gMapNeoArkImageSlotsByArea,
 };
 
 /// Image-memory lengths in bytes; the full region ends at 0x801FD000.

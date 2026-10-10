@@ -101,15 +101,88 @@
  * or at the map pictures' marker models.
  */
 
-static AreaObjectPlace D_map_neo_ark_8017C790[2];
-static AreaObjectPlace D_map_neo_ark_8017C7B0[14];
-static AreaObjectPlace D_map_neo_ark_8017C890[2];
-static AreaObjectPlace D_map_neo_ark_8017C8B0[2];
-static AreaObjectPlace D_map_neo_ark_8017C8D0[4];
-static AreaObjectPlace D_map_neo_ark_8017C910[2];
-static AreaObjectPlace D_map_neo_ark_8017C930[4];
-static AreaObjectPlace D_map_neo_ark_8017C970[2];
-static AreaObjectPlace D_map_neo_ark_8017C990[2];
+static AreaObjectPlace _gMapNeoArkVehicularAirlockObjectPlaces[2];
+static AreaObjectPlace _gMapNeoArkHeliportObjectPlaces[14];
+static AreaObjectPlace _gMapNeoArkIslandObjectPlaces[2];
+static AreaObjectPlace _gMapNeoArkNurseryObjectPlaces[2];
+static AreaObjectPlace _gMapNeoArkGrowthRoomObjectPlaces[4];
+static AreaObjectPlace _gMapNeoArkCorridorObjectPlaces[2];
+static AreaObjectPlace _gMapNeoArkTentObjectPlaces[4];
+static AreaObjectPlace _gMapNeoArkSubmarineGalleryObjectPlaces[2];
+static AreaObjectPlace _gMapNeoArkSubstationObjectPlaces[2];
+
+/// Catalogue and UI kinds stored by this stage's saved-object lists.
+///
+/// Banks 0/1 are catalogue IDs; banks 7/8 select item-box and save-point UI.
+enum {
+    MAP_NEO_ARK_KIND_MP_BOOST_2               = 0x7,
+    MAP_NEO_ARK_KIND_LIPSTICK                 = 0xB,
+    MAP_NEO_ARK_KIND_MD_PLAYER                = 0xE,
+    MAP_NEO_ARK_KIND_SKULL_CRYSTAL            = 0x36,
+    MAP_NEO_ARK_KIND_PROTEIN_CAPSULE          = 0x3C,
+    MAP_NEO_ARK_KIND_RINGERS_SOLUTION         = 0x3D,
+    MAP_NEO_ARK_KIND_MONGOOSE                 = 0x88,
+    MAP_NEO_ARK_KIND_9MM_PARABELLUM           = 0xA0,
+    MAP_NEO_ARK_KIND_9MM_HYDRA                = 0xA1,
+    MAP_NEO_ARK_KIND_44_MAEDA_SP              = 0xA7,
+    MAP_NEO_ARK_KIND_GRENADE                  = 0xA9,
+    MAP_NEO_ARK_KIND_AIRBURST                 = 0xAA,
+    MAP_NEO_ARK_KIND_BUCKSHOT                 = 0xAC,
+    MAP_NEO_ARK_KIND_556_RIFLE                = 0xAF,
+    MAP_NEO_ARK_KIND_TEDDY_BEAR               = 0x124,
+    MAP_NEO_ARK_KIND_DOUGLAS_LETTER           = 0x128,
+    MAP_NEO_ARK_KIND_HELIPORT_FIRST_ITEM_BOX  = 0x703,
+    MAP_NEO_ARK_KIND_HELIPORT_SECOND_ITEM_BOX = 0x704,
+    MAP_NEO_ARK_KIND_HELIPORT_THIRD_ITEM_BOX  = 0x705,
+    MAP_NEO_ARK_KIND_HELIPORT_FOURTH_ITEM_BOX = 0x706,
+    MAP_NEO_ARK_KIND_GROWTH_ROOM_SAVE_POINT   = 0x80D,
+    MAP_NEO_ARK_KIND_TENT_SAVE_POINT          = 0x80E,
+};
+
+/// Initial two-bit saved states; replenishable pickups retain state 3 on collection.
+enum {
+    MAP_NEO_ARK_STATE_AVAILABLE     = 1,
+    MAP_NEO_ARK_STATE_REPLENISHABLE = 3,
+};
+
+/// Stage-local two-bit state slots used by the saved-object lists.
+enum {
+    MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_SAVE_POINT          = 1,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_DOUGLAS_LETTER         = 2,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_MP_BOOST_2             = 3,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_44_MAEDA_SP            = 4,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_MONGOOSE               = 5,
+    MAP_NEO_ARK_OBJECT_SLOT_VEHICULAR_AIRLOCK_TEDDY_BEAR    = 6,
+    MAP_NEO_ARK_OBJECT_SLOT_NURSERY_MP_BOOST_2              = 7,
+    MAP_NEO_ARK_OBJECT_SLOT_TENT_AIRBURST                   = 8,
+    MAP_NEO_ARK_OBJECT_SLOT_TENT_RINGERS_SOLUTION           = 9,
+    MAP_NEO_ARK_OBJECT_SLOT_SUBSTATION_9MM_HYDRA            = 10,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_FIRST_ITEM_BOX         = 11,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_SECOND_ITEM_BOX        = 12,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_THIRD_ITEM_BOX         = 13,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_FOURTH_ITEM_BOX        = 14,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_9MM_PARABELLUM         = 15,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_9MM_HYDRA              = 16,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_BUCKSHOT               = 17,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_GRENADE                = 18,
+    MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_556_RIFLE              = 19,
+    MAP_NEO_ARK_OBJECT_SLOT_SUBMARINE_GALLERY_SKULL_CRYSTAL = 20,
+    MAP_NEO_ARK_OBJECT_SLOT_ISLAND_LIPSTICK                 = 21,
+    MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_RINGERS_SOLUTION    = 22,
+    MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_MD_PLAYER           = 23,
+    MAP_NEO_ARK_OBJECT_SLOT_CORRIDOR_PROTEIN_CAPSULE        = 24,
+    MAP_NEO_ARK_OBJECT_SLOT_TENT_SAVE_POINT                 = 46,
+};
+
+/// Priority of the saved-object model task.
+enum { MAP_NEO_ARK_OBJECT_TASK_PRIORITY = 0x62 };
+
+/// Resource-entry selectors in the rooms' variant-1 GOLEM recipes.
+enum {
+    MAP_NEO_ARK_RESOURCE_PAWN_BEAM_SWORD       = 20,
+    MAP_NEO_ARK_RESOURCE_ROOK_BEAM_SWORD       = 23,
+    MAP_NEO_ARK_RESOURCE_ROOK_GRENADE_LAUNCHER = 57,
+};
 
 /// Movie ring byte extent and Eve Elevator staging origin in VRAM words/rows.
 enum {
@@ -230,65 +303,46 @@ s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp)
     return volume;
 }
 
-GfxImageSlot D_map_neo_ark_80179DB8[34] = {
-    GFX_IMAGE_SLOT(0x3A8E0),
-    GFX_IMAGE_SLOT(0x54B20),
-    GFX_IMAGE_SLOT(0x53DB0),
-    GFX_IMAGE_SLOT(0x55640),
-    GFX_IMAGE_SLOT(0x4F560),
-    GFX_IMAGE_SLOT(0x56AA0),
-    GFX_IMAGE_SLOT(0x58820),
-    GFX_IMAGE_SLOT(0x4A320),
-    GFX_IMAGE_SLOT(0x550A0),
-    GFX_IMAGE_SLOT(0x58F40),
-    GFX_IMAGE_SLOT(0x52360),
-    GFX_IMAGE_SLOT(0x53320),
-    GFX_IMAGE_SLOT(0x4B7D0),
-    GFX_IMAGE_SLOT(0x4DDF0),
-    GFX_IMAGE_SLOT(0x524B0),
-    GFX_IMAGE_SLOT(0x52610),
-    GFX_IMAGE_SLOT(0x52190),
-    GFX_IMAGE_SLOT(0x53240),
-    GFX_IMAGE_SLOT(0x55170),
-    GFX_IMAGE_SLOT(0x54BB0),
-    GFX_IMAGE_SLOT(0x55920),
-    GFX_IMAGE_SLOT(0x4D8E0),
-    GFX_IMAGE_SLOT(0x47E00),
-    GFX_IMAGE_SLOT(0x55620),
-    GFX_IMAGE_SLOT(0x50F30),
-    GFX_IMAGE_SLOT(0x50AF0),
-    GFX_IMAGE_SLOT(0x57570),
-    GFX_IMAGE_SLOT(0x514A0),
-    GFX_IMAGE_SLOT(0x4C020),
-    GFX_IMAGE_SLOT(0x50890),
-    GFX_IMAGE_SLOT(0x4F920),
-    GFX_IMAGE_SLOT(0x58C50),
-    GFX_IMAGE_SLOT(0x53AA0),
-    GFX_IMAGE_SLOT(0x55DA0),
+GfxImageSlot gMapNeoArkImageSlotsByArea[34] = {
+    [0]                                      = GFX_IMAGE_SLOT(0x3A8E0),
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE]    = GFX_IMAGE_SLOT(0x54B20),
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK] = GFX_IMAGE_SLOT(0x53DB0),
+    [GAME_AREA_SHELTER_1F_BULWARK]           = GFX_IMAGE_SLOT(0x55640),
+    [GAME_AREA_SHELTER_1F_HELIPORT]          = GFX_IMAGE_SLOT(0x4F560),
+    [GAME_AREA_SHELTER_1F_AIRLOCK]           = GFX_IMAGE_SLOT(0x56AA0),
+    [GAME_AREA_SHELTER_1F_GUARDROOM]         = GFX_IMAGE_SLOT(0x58820),
+    [GAME_AREA_NEO_ARK_OBSERVATORY]          = GFX_IMAGE_SLOT(0x4A320),
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL]    = GFX_IMAGE_SLOT(0x550A0),
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR]         = GFX_IMAGE_SLOT(0x58F40),
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE]      = GFX_IMAGE_SLOT(0x52360),
+    [GAME_AREA_NEO_ARK_FOREST_ZONE]          = GFX_IMAGE_SLOT(0x53320),
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL]     = GFX_IMAGE_SLOT(0x4B7D0),
+    [GAME_AREA_NEO_ARK_PAVILION]             = GFX_IMAGE_SLOT(0x4DDF0),
+    [GAME_AREA_NEO_ARK_ISLAND]               = GFX_IMAGE_SLOT(0x524B0),
+    [GAME_AREA_NEO_ARK_GARDEN]               = GFX_IMAGE_SLOT(0x52610),
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2]        = GFX_IMAGE_SLOT(0x52190),
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1]        = GFX_IMAGE_SLOT(0x53240),
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE]         = GFX_IMAGE_SLOT(0x55170),
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE]      = GFX_IMAGE_SLOT(0x54BB0),
+    [GAME_AREA_NEO_ARK_ALTAR]                = GFX_IMAGE_SLOT(0x55920),
+    [GAME_AREA_NEO_ARK_SHRINE]               = GFX_IMAGE_SLOT(0x4D8E0),
+    [GAME_AREA_SHELTER_B6_NURSERY]           = GFX_IMAGE_SLOT(0x47E00),
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM]       = GFX_IMAGE_SLOT(0x55620),
+    [GAME_AREA_SHELTER_B6_CORRIDOR]          = GFX_IMAGE_SLOT(0x50F30),
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM]     = GFX_IMAGE_SLOT(0x50AF0),
+    [GAME_AREA_NEO_ARK_R26]                  = GFX_IMAGE_SLOT(0x57570),
+    [GAME_AREA_NEO_ARK_BRIDGE]               = GFX_IMAGE_SLOT(0x514A0),
+    [GAME_AREA_SHELTER_1F_TENT]              = GFX_IMAGE_SLOT(0x4C020),
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH]        = GFX_IMAGE_SLOT(0x50890),
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY]    = GFX_IMAGE_SLOT(0x4F920),
+    [GAME_AREA_NEO_ARK_R31]                  = GFX_IMAGE_SLOT(0x58C50),
+    [GAME_AREA_NEO_ARK_PYRAMID]              = GFX_IMAGE_SLOT(0x53AA0),
+    [GAME_AREA_NEO_ARK_SUBSTATION]           = GFX_IMAGE_SLOT(0x55DA0),
 };
 
-s32 D_map_neo_ark_80179EC8[21] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0x21C00,
-    0,
-    0,
-    0x25800,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+s32 gMapNeoArkMovieWorkspaceBytesByArea[21] = {
+    [GAME_AREA_SHELTER_1F_GUARDROOM] = 0x21C00,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR] = 0x25800,
 };
 
 u8 D_map_neo_ark_80179F1C[8] = { 0, 0x19, 0x80, 0x1A };
@@ -427,55 +481,66 @@ MenuMapAreaName D_map_neo_ark_8017A28C[33] = {
     { "Substation" },
 };
 
-static AreaObjectSpawn D_map_neo_ark_8017A6AC[1] = {
+/// Terminator-only spawn recipes shared by seven saved-object lists.
+///
+/// These entries seed/query saved pickup and UI states without model tasks.
+static AreaObjectSpawn _gMapNeoArkEmptyObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_neo_ark_8017A6BC[2] = {
-    { 0x124, { { { TASK_BODY_TMD, 0x62 } }, shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask, { &gShelter1fVehicularAirlockModel03A58 } } },
+/// Teddy Bear model recipe for the Vehicular Airlock saved-object list.
+///
+/// Kind matching selects the model task; its room-owned callback hides the
+/// model when the saved state is collected (2). Model and callback are borrowed
+/// while the vehicular-airlock overlay is loaded. Ends with AREA_OBJECT_SPAWN_END.
+static AreaObjectSpawn _gMapNeoArkVehicularAirlockObjectSpawns[2] = {
+    { MAP_NEO_ARK_KIND_TEDDY_BEAR, { { { TASK_BODY_TMD, MAP_NEO_ARK_OBJECT_TASK_PRIORITY } }, shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask, { &gShelter1fVehicularAirlockModel03A58 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_neo_ark_8017A6DC[1] = {
+/// Terminator-only spawn recipes for the Heliport saved-object list.
+///
+/// Its pickups and item boxes have no model task recipes in this table.
+static AreaObjectSpawn _gMapNeoArkHeliportObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-AreaObjectRoom D_map_neo_ark_8017A6EC[35] = {
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C790 }, D_map_neo_ark_8017A6BC },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C7B0 }, D_map_neo_ark_8017A6DC },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C890 }, D_map_neo_ark_8017A6AC },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C8B0 }, D_map_neo_ark_8017A6AC },
-    { { D_map_neo_ark_8017C8D0 }, D_map_neo_ark_8017A6AC },
-    { { D_map_neo_ark_8017C910 }, D_map_neo_ark_8017A6AC },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C930 }, D_map_neo_ark_8017A6AC },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C970 }, D_map_neo_ark_8017A6AC },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_neo_ark_8017C990 }, D_map_neo_ark_8017A6AC },
-    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
+AreaObjectRoom gMapNeoArkObjectRooms[35] = {
+    [0]                                      = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE]    = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK] = { { .list = _gMapNeoArkVehicularAirlockObjectPlaces }, _gMapNeoArkVehicularAirlockObjectSpawns },
+    [GAME_AREA_SHELTER_1F_BULWARK]           = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_1F_HELIPORT]          = { { .list = _gMapNeoArkHeliportObjectPlaces }, _gMapNeoArkHeliportObjectSpawns },
+    [GAME_AREA_SHELTER_1F_AIRLOCK]           = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_1F_GUARDROOM]         = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_OBSERVATORY]          = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL]    = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR]         = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE]      = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_FOREST_ZONE]          = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL]     = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_PAVILION]             = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_ISLAND]               = { { .list = _gMapNeoArkIslandObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_NEO_ARK_GARDEN]               = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2]        = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1]        = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE]         = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE]      = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_ALTAR]                = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SHRINE]               = { { .list = _gMapNeoArkNurseryObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B6_NURSERY]           = { { .list = _gMapNeoArkGrowthRoomObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM]       = { { .list = _gMapNeoArkCorridorObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B6_CORRIDOR]          = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM]     = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_R26]                  = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_BRIDGE]               = { { .list = NULL }, NULL },
+    [GAME_AREA_SHELTER_1F_TENT]              = { { .list = _gMapNeoArkTentObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH]        = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY]    = { { .list = _gMapNeoArkSubmarineGalleryObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [GAME_AREA_NEO_ARK_R31]                  = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_PYRAMID]              = { { .list = NULL }, NULL },
+    [GAME_AREA_NEO_ARK_SUBSTATION]           = { { .list = _gMapNeoArkSubstationObjectPlaces }, _gMapNeoArkEmptyObjectSpawns },
+    [34]                                     = { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
 TaskDesc D_map_neo_ark_8017A804[] = {
@@ -515,9 +580,7 @@ TaskDesc D_map_neo_ark_8017A804[] = {
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
-/// Four bytes between the task table and the flag table that nothing
-/// is known to read.
-s32 D_map_neo_ark_8017A99C = 0;
+s32 gMapNeoArkCompanionDistressTicks = 0;
 
 u16 D_map_neo_ark_8017A9A0[9] = {
     0x1C4,
@@ -531,76 +594,112 @@ u16 D_map_neo_ark_8017A9A0[9] = {
     0x1AC,
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9B4[1] = {
-    { &gShelterB6NurseryRoomLights, gShelterB6NurseryAmbientByView },
+/// Room-1 Nursery lighting, borrowing its lights and ambient-by-view table.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkNurseryRoomLighting[1] = {
+    { .lights = &gShelterB6NurseryRoomLights, .ambientTable = gShelterB6NurseryAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9BC[1] = {
-    { &gShelterB6GrowthRoomLights, gShelterB6GrowthRoomAmbientByView },
+/// Room-1 Growth Room lighting, borrowing its lights and ambient-by-view table.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkGrowthRoomLighting[1] = {
+    { .lights = &gShelterB6GrowthRoomLights, .ambientTable = gShelterB6GrowthRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9C4[1] = {
-    { &gShelterB6CorridorRoomLights, gShelterB6CorridorRoomAmbientByView },
+/// Room-1 Corridor lighting, borrowing its lights and ambient-by-view table.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkCorridorRoomLighting[1] = {
+    { .lights = &gShelterB6CorridorRoomLights, .ambientTable = gShelterB6CorridorRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9CC[1] = {
-    { &gShelterB6TrainingRoomLights, gShelterB6TrainingRoomAmbientByView },
+/// Room-1 Training Room lighting, borrowing its lights and ambient-by-view table.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkTrainingRoomLighting[1] = {
+    { .lights = &gShelterB6TrainingRoomLights, .ambientTable = gShelterB6TrainingRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9D4[1] = {
-    { &gNeoArkBridgeRoomLights, NULL },
+/// Room-1 Bridge lighting, borrowing its lights and using default ambient minima.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkBridgeRoomLighting[1] = {
+    { .lights = &gNeoArkBridgeRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9DC[1] = {
-    { &gShelter1fTentRoomLights, NULL },
+/// Room-1 Tent lighting, borrowing its lights and using default ambient minima.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkTentRoomLighting[1] = {
+    { .lights = &gShelter1fTentRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9E4[1] = {
-    { &gNeoArkWoodlandPathRoomLights, gNeoArkWoodlandPathRoomAmbientByView },
+/// Room-1 Woodland Path lighting, borrowing its lights and ambient-by-view table.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkWoodlandPathRoomLighting[1] = {
+    { .lights = &gNeoArkWoodlandPathRoomLights, .ambientTable = gNeoArkWoodlandPathRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9EC[1] = {
-    { &gNeoArkSubmarineGalleryRoomLights, NULL },
+/// Room-1 Submarine Gallery lighting, borrowing its lights and using default ambient minima.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkSubmarineGalleryRoomLighting[1] = {
+    { .lights = &gNeoArkSubmarineGalleryRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_neo_ark_8017A9F4[1] = {
-    { &gNeoArkR31RoomLights, NULL },
+/// Room-1 area-31 lighting, borrowing its lights and using default ambient minima.
+///
+/// The map owns this single descriptor; its room-owned light resources must
+/// stay loaded during lighting queries and coordinate updates.
+static WorldCoordRoomLighting _gMapNeoArkR31RoomLighting[1] = {
+    { .lights = &gNeoArkR31RoomLights, .ambientTable = NULL },
 };
 
-WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
-    gShelter1fParkingGarageRoomLighting,
-    gShelter1fVehicularAirlockRoomLighting,
-    gShelter1fBulwarkRoomLighting,
-    gShelter1fHeliportRoomLighting,
-    gShelter1fAirlockRoomLighting,
-    gShelter1fGuardroomRoomLighting,
-    gNeoArkObservatoryRoomLighting,
-    gNeoArkEveAccessTunnelRoomLighting,
-    gNeoArkEveElevatorRoomLighting,
-    gNeoArkNorthPromenadeRoomLighting,
-    gNeoArkForestZoneRoomLighting,
-    gNeoArkSubmarineTunnelRoomLighting,
-    gNeoArkPavilionRoomLighting,
-    gNeoArkIslandRoomLighting,
-    gNeoArkGardenRoomLighting,
-    gNeoArkPowerPlant2RoomLighting,
-    gNeoArkPowerPlant1RoomLighting,
-    gNeoArkSavannaZoneRoomLighting,
-    gNeoArkSouthPromenadeRoomLighting,
-    gNeoArkAltarRoomLighting,
-    gNeoArkShrineRoomLighting,
-    D_map_neo_ark_8017A9B4,
-    D_map_neo_ark_8017A9BC,
-    D_map_neo_ark_8017A9C4,
-    D_map_neo_ark_8017A9CC,
-    gNeoArkR26RoomLighting,
-    D_map_neo_ark_8017A9D4,
-    D_map_neo_ark_8017A9DC,
-    D_map_neo_ark_8017A9E4,
-    D_map_neo_ark_8017A9EC,
-    D_map_neo_ark_8017A9F4,
-    gNeoArkPyramidRoomLighting,
-    gNeoArkSubstationRoomLighting,
+WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageRoomLighting,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockRoomLighting,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkRoomLighting,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportRoomLighting,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockRoomLighting,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomRoomLighting,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatoryRoomLighting,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelRoomLighting,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorRoomLighting,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeRoomLighting,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneRoomLighting,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelRoomLighting,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionRoomLighting,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandRoomLighting,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenRoomLighting,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2RoomLighting,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1RoomLighting,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneRoomLighting,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeRoomLighting,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarRoomLighting,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineRoomLighting,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = _gMapNeoArkNurseryRoomLighting,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = _gMapNeoArkGrowthRoomLighting,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = _gMapNeoArkCorridorRoomLighting,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = _gMapNeoArkTrainingRoomLighting,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26RoomLighting,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = _gMapNeoArkBridgeRoomLighting,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = _gMapNeoArkTentRoomLighting,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = _gMapNeoArkWoodlandPathRoomLighting,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = _gMapNeoArkSubmarineGalleryRoomLighting,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = _gMapNeoArkR31RoomLighting,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidRoomLighting,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationRoomLighting,
 };
 
 DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
@@ -789,43 +888,47 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
 
 ViewCameraTable D_map_neo_ark_8017AD28 = { D_map_neo_ark_8017ACA4 };
 
-static u8** D_map_neo_ark_8017AD2C[33] = {
-    gShelter1fParkingGarageViewMaps,
-    gShelter1fVehicularAirlockViewMaps,
-    gShelter1fBulwarkRoomViewMaps,
-    gShelter1fHeliportViewMaps,
-    gShelter1fAirlockViewMaps,
-    gShelter1fGuardroomViewMaps,
-    gNeoArkObservatoryViewMaps,
-    gNeoArkEveAccessTunnelViewMaps,
-    gNeoArkEveElevatorViewMaps,
-    gNeoArkNorthPromenadeViewMaps,
-    gNeoArkForestZoneViewMaps,
-    gNeoArkSubmarineTunnelViewMaps,
-    gNeoArkPavilionViewMaps,
-    gNeoArkIslandViewMaps,
-    gNeoArkGardenViewMaps,
-    gNeoArkPowerPlant2ViewMaps,
-    gNeoArkPowerPlant1ViewMaps,
-    gNeoArkSavannaZoneViewMaps,
-    gNeoArkSouthPromenadeViewMaps,
-    gNeoArkAltarViewMaps,
-    gNeoArkShrineViewMaps,
-    gShelterB6NurseryViewMaps,
-    gShelterB6GrowthRoomViewMaps,
-    gShelterB6CorridorViewMaps,
-    gShelterB6TrainingRoomViewMaps,
-    gNeoArkR26ViewMaps,
-    gNeoArkBridgeViewMaps,
-    gShelter1fTentViewMaps,
-    gNeoArkWoodlandPathViewMaps,
-    gNeoArkSubmarineGalleryViewMaps,
-    gNeoArkR31ViewMaps,
-    gNeoArkPyramidViewMaps,
-    gNeoArkSubstationViewMaps,
+/// Per-area logical-view map directories, selected with area IDs 1..33 minus one.
+///
+/// All entries borrow the owning room overlay's room directories; their byte
+/// maps remain mutable. Room/view IDs are also one-based; no terminators.
+static u8** _gMapNeoArkAreaViewMaps[33] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageViewMaps,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockViewMaps,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkRoomViewMaps,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportViewMaps,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockViewMaps,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomViewMaps,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatoryViewMaps,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelViewMaps,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorViewMaps,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeViewMaps,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneViewMaps,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelViewMaps,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionViewMaps,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandViewMaps,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenViewMaps,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2ViewMaps,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1ViewMaps,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneViewMaps,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeViewMaps,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarViewMaps,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineViewMaps,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = gShelterB6NurseryViewMaps,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = gShelterB6GrowthRoomViewMaps,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = gShelterB6CorridorViewMaps,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = gShelterB6TrainingRoomViewMaps,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26ViewMaps,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = gNeoArkBridgeViewMaps,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = gShelter1fTentViewMaps,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = gNeoArkWoodlandPathViewMaps,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = gNeoArkSubmarineGalleryViewMaps,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = gNeoArkR31ViewMaps,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidViewMaps,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationViewMaps,
 };
 
-ViewIndexTable D_map_neo_ark_8017ADB0 = { D_map_neo_ark_8017AD2C };
+ViewIndexTable gMapNeoArkViewIndexTable = { .viewMaps = _gMapNeoArkAreaViewMaps };
 
 static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gShelter1fParkingGarageSpriteViews,
@@ -865,55 +968,55 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
 
 SpriteAreaTable D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
 
-WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
-    gShelter1fParkingGarageSurfaceProperties,
-    gShelter1fVehicularAirlockSurfaceProperties,
-    gShelter1fBulwarkSurfaceProperties,
-    gShelter1fHeliportSurfacePropertiesByClass,
-    gShelter1fAirlockSurfaceProperties,
-    gShelter1fGuardroomSurfaceProperties,
-    gNeoArkObservatorySurfaceProperties,
-    gNeoArkEveAccessTunnelSurfaceProperties,
-    gNeoArkEveElevatorSurfaceProperties,
-    gNeoArkNorthPromenadeSurfaceProperties,
-    gNeoArkForestZoneSurfaceProperties,
-    gNeoArkSubmarineTunnelSurfaceProperties,
-    gNeoArkPavilionSurfaceProperties,
-    gNeoArkIslandSurfaceProperties,
-    gNeoArkGardenSurfacePropertiesByClass,
-    gNeoArkPowerPlant2SurfaceProperties,
-    gNeoArkPowerPlant1SurfacePropertiesByClass,
-    gNeoArkSavannaZoneSurfaceProperties,
-    gNeoArkSouthPromenadeSurfaceProperties,
-    gNeoArkAltarSurfaceProperties,
-    gNeoArkShrineSurfaceProperties,
-    gShelterB6NurserySurfaceProperties,
-    gShelterB6GrowthRoomSurfaceProperties,
-    gShelterB6CorridorSurfaceProperties,
-    gShelterB6TrainingRoomSurfaceProperties,
-    gNeoArkR26SurfaceProperties,
-    gNeoArkBridgeSurfaceProperties,
-    gShelter1fTentSurfacePropertiesByClass,
-    gNeoArkWoodlandPathSurfaceProperties,
-    gNeoArkSubmarineGallerySurfacePropertiesByClass,
-    gNeoArkR31SurfacePropertiesByClass,
-    gNeoArkPyramidSurfaceProperties,
-    gNeoArkSubstationSurfaceProperties,
+WorldCollisionSurfaceProperties** gMapNeoArkSurfacePropertiesByArea[33] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageSurfaceProperties,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockSurfaceProperties,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkSurfaceProperties,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockSurfaceProperties,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomSurfaceProperties,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatorySurfaceProperties,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelSurfaceProperties,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorSurfaceProperties,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeSurfaceProperties,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneSurfaceProperties,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelSurfaceProperties,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionSurfaceProperties,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandSurfaceProperties,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenSurfacePropertiesByClass,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2SurfaceProperties,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1SurfacePropertiesByClass,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneSurfaceProperties,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeSurfaceProperties,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarSurfaceProperties,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineSurfaceProperties,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = gShelterB6NurserySurfaceProperties,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = gShelterB6GrowthRoomSurfaceProperties,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = gShelterB6CorridorSurfaceProperties,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = gShelterB6TrainingRoomSurfaceProperties,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26SurfaceProperties,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = gNeoArkBridgeSurfaceProperties,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = gShelter1fTentSurfacePropertiesByClass,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = gNeoArkWoodlandPathSurfaceProperties,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = gNeoArkSubmarineGallerySurfacePropertiesByClass,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = gNeoArkR31SurfacePropertiesByClass,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidSurfaceProperties,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationSurfaceProperties,
 };
 
-AreaPlacement D_map_neo_ark_8017AEC0[1] = {
+AreaPlacement gMapNeoArkParkingGarageDefaultPlacements[1] = {
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AED0[3] = {
-    { 0x14, 0, 0, -0x6A4, 0, 0, 0xDAC, 0, 0, 2, 0 },
-    { 0x39, 0, 0, -0x2328, 0, 0, 0x400, 0, 3, 5, 0 },
+AreaPlacement gMapNeoArkVehicularAirlockDefaultPlacements[3] = {
+    { MAP_NEO_ARK_RESOURCE_PAWN_BEAM_SWORD, 0, 0, -1700, 0, 0, 0xDAC, 0, 0, 2, 0 },
+    { MAP_NEO_ARK_RESOURCE_ROOK_GRENADE_LAUNCHER, 0, 0, -9000, 0, 0, 0x400, 0, 3, 5, 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AF00[3] = {
-    { 0x17, 0, 0, -0xFA0, 0, -0x3E8, 0x400, 0, 0, 2, 0 },
-    { 0x39, 0, 0, -0xFA0, 0, 0x3E8, 0x400, 0, 3, 5, 0 },
+AreaPlacement gMapNeoArkBulwarkDefaultPlacements[3] = {
+    { MAP_NEO_ARK_RESOURCE_ROOK_BEAM_SWORD, 0, 0, -4000, 0, -1000, 0x400, 0, 0, 2, 0 },
+    { MAP_NEO_ARK_RESOURCE_ROOK_GRENADE_LAUNCHER, 0, 0, -4000, 0, 1000, 0x400, 0, 3, 5, 0 },
     { AREA_PLACEMENT_END },
 };
 
@@ -1571,65 +1674,97 @@ AreaPlacement D_map_neo_ark_8017C760[3] = {
     { AREA_PLACEMENT_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C790[2] = {
-    { 6, 0x124, 0, 0x301, -0x1C21, 2, 0x484, 0x4F0 },
-    { 0xFFFF },
+/// Vehicular Airlock Teddy Bear saved-state slot and model transform.
+///
+/// Initial state 1 is available; AREA_OBJECT_PLACE_PROMPT requests immediate
+/// collection. State bit 8 is retained with no established purpose. XYZ are
+/// world units and yaw is in 4096-unit turns. Ends with AREA_OBJECT_PLACE_END.
+static AreaObjectPlace _gMapNeoArkVehicularAirlockObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_VEHICULAR_AIRLOCK_TEDDY_BEAR, MAP_NEO_ARK_KIND_TEDDY_BEAR, 0, 0x100 | AREA_OBJECT_PLACE_PROMPT | MAP_NEO_ARK_STATE_AVAILABLE, -7201, 2, 1156, 0x4F0 },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C7B0[14] = {
-    { 2, 0x128, 0, 0x201 },
-    { 3, 7, 0, 1 },
-    { 4, 0xA7, 0, 1 },
-    { 5, 0x88, 0, 1 },
-    { 0xB, 0x703, 0, 1 },
-    { 0xC, 0x704, 0, 1 },
-    { 0xD, 0x705, 0, 1 },
-    { 0xE, 0x706, 0, 1 },
-    { 0xF, 0xA0, 0, 3 },
-    { 0x10, 0xA1, 0, 3 },
-    { 0x11, 0xAC, 0, 3 },
-    { 0x12, 0xA9, 0, 3 },
-    { 0x13, 0xAF, 0, 3 },
-    { 0xFFFF },
+/// Heliport saved-state slots for four pickups, four item boxes and five ammo supplies.
+///
+/// Ammunition supplies are replenishable (state 3); other entries start
+/// available (state 1). The letter requests immediate collection.
+/// Ends with AREA_OBJECT_PLACE_END.
+static AreaObjectPlace _gMapNeoArkHeliportObjectPlaces[14] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_DOUGLAS_LETTER, MAP_NEO_ARK_KIND_DOUGLAS_LETTER, 0, AREA_OBJECT_PLACE_PROMPT | MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_MP_BOOST_2, MAP_NEO_ARK_KIND_MP_BOOST_2, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_44_MAEDA_SP, MAP_NEO_ARK_KIND_44_MAEDA_SP, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_MONGOOSE, MAP_NEO_ARK_KIND_MONGOOSE, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_FIRST_ITEM_BOX, MAP_NEO_ARK_KIND_HELIPORT_FIRST_ITEM_BOX, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_SECOND_ITEM_BOX, MAP_NEO_ARK_KIND_HELIPORT_SECOND_ITEM_BOX, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_THIRD_ITEM_BOX, MAP_NEO_ARK_KIND_HELIPORT_THIRD_ITEM_BOX, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_FOURTH_ITEM_BOX, MAP_NEO_ARK_KIND_HELIPORT_FOURTH_ITEM_BOX, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_9MM_PARABELLUM, MAP_NEO_ARK_KIND_9MM_PARABELLUM, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_9MM_HYDRA, MAP_NEO_ARK_KIND_9MM_HYDRA, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_BUCKSHOT, MAP_NEO_ARK_KIND_BUCKSHOT, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_GRENADE, MAP_NEO_ARK_KIND_GRENADE, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_HELIPORT_556_RIFLE, MAP_NEO_ARK_KIND_556_RIFLE, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C890[2] = {
-    { 0x15, 0xB, 0, 1 },
-    { 0xFFFF },
+/// Island Lipstick pickup saved-state slot, initially available.
+///
+/// Ends with AREA_OBJECT_PLACE_END; no model spawn recipe is supplied.
+static AreaObjectPlace _gMapNeoArkIslandObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_ISLAND_LIPSTICK, MAP_NEO_ARK_KIND_LIPSTICK, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C8B0[2] = {
-    { 7, 7, 0, 1 },
-    { 0xFFFF },
+/// Nursery MP Boost2 pickup saved-state slot, initially available.
+///
+/// Ends with AREA_OBJECT_PLACE_END; no model spawn recipe is supplied.
+static AreaObjectPlace _gMapNeoArkNurseryObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_NURSERY_MP_BOOST_2, MAP_NEO_ARK_KIND_MP_BOOST_2, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C8D0[4] = {
-    { 1, 0x80D, 0, 1 },
-    { 0x16, 0x3D, 0, 1 },
-    { 0x17, 0xE, 0, 1 },
-    { 0xFFFF },
+/// Growth Room save-point, Ringer's Solution and MD Player saved-state slots.
+///
+/// All start available; ends with AREA_OBJECT_PLACE_END. No model recipes.
+static AreaObjectPlace _gMapNeoArkGrowthRoomObjectPlaces[4] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_SAVE_POINT, MAP_NEO_ARK_KIND_GROWTH_ROOM_SAVE_POINT, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_RINGERS_SOLUTION, MAP_NEO_ARK_KIND_RINGERS_SOLUTION, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_GROWTH_ROOM_MD_PLAYER, MAP_NEO_ARK_KIND_MD_PLAYER, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C910[2] = {
-    { 0x18, 0x3C, 0, 1 },
-    { 0xFFFF },
+/// Corridor Protein Capsule pickup saved-state slot, initially available.
+///
+/// Ends with AREA_OBJECT_PLACE_END; no model spawn recipe is supplied.
+static AreaObjectPlace _gMapNeoArkCorridorObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_CORRIDOR_PROTEIN_CAPSULE, MAP_NEO_ARK_KIND_PROTEIN_CAPSULE, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C930[4] = {
-    { 0x2E, 0x80E, 0, 1 },
-    { 8, 0xAA, 0, 1 },
-    { 9, 0x3D, 0, 1 },
-    { 0xFFFF },
+/// Tent save-point, Airburst and Ringer's Solution saved-state slots.
+///
+/// All start available; ends with AREA_OBJECT_PLACE_END. No model recipes.
+static AreaObjectPlace _gMapNeoArkTentObjectPlaces[4] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_TENT_SAVE_POINT, MAP_NEO_ARK_KIND_TENT_SAVE_POINT, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_TENT_AIRBURST, MAP_NEO_ARK_KIND_AIRBURST, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { MAP_NEO_ARK_OBJECT_SLOT_TENT_RINGERS_SOLUTION, MAP_NEO_ARK_KIND_RINGERS_SOLUTION, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C970[2] = {
-    { 0x14, 0x36, 0, 1 },
-    { 0xFFFF },
+/// Submarine Gallery Skull Crystal pickup saved-state slot, initially available.
+///
+/// Ends with AREA_OBJECT_PLACE_END; no model spawn recipe is supplied.
+static AreaObjectPlace _gMapNeoArkSubmarineGalleryObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_SUBMARINE_GALLERY_SKULL_CRYSTAL, MAP_NEO_ARK_KIND_SKULL_CRYSTAL, 0, MAP_NEO_ARK_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_neo_ark_8017C990[2] = {
-    { 0xA, 0xA1, 0, 3 },
-    { 0xFFFF },
+/// Substation replenishable 9mm Hydra saved-state slot.
+///
+/// Starts at state 3 and remains replenishable after collection. Ends with
+/// AREA_OBJECT_PLACE_END; no model spawn recipe is supplied.
+static AreaObjectPlace _gMapNeoArkSubstationObjectPlaces[2] = {
+    { MAP_NEO_ARK_OBJECT_SLOT_SUBSTATION_9MM_HYDRA, MAP_NEO_ARK_KIND_9MM_HYDRA, 0, MAP_NEO_ARK_STATE_REPLENISHABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
 InventoryBattleReward D_map_neo_ark_8017C9B0[29] = {

@@ -375,7 +375,7 @@ static AreaResource _gShelter1fParkingGarageEmptyAreaResources[1] = {
 
 AreaVariant D_shelter_1f_parking_garage_801818D8[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AEC0, _gShelter1fParkingGarageEmptyAreaResources },
+    { gMapNeoArkParkingGarageDefaultPlacements, _gShelter1fParkingGarageEmptyAreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

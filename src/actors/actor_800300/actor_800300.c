@@ -36,7 +36,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern s32              D_map_neo_ark_8017A99C;
+#include "mapui/map_neo_ark.h"
+
 extern TaskMessageEntry D_actor_800300_80168880[26];
 extern GpuImageUpload** D_actor_800300_80168950[];
 extern GpuImageUpload** D_actor_800300_80168960[];
@@ -954,7 +955,7 @@ static void _actor800300TickNormalMode(Task* task)
         companion->decisionTimer = (u16)companion->decisionTimer - 1;
     }
     // Distress interrupts normal behavior once the persistent distress counter reaches its threshold.
-    if (D_map_neo_ark_8017A99C >= ACTOR_800300_DISTRESS_START_TICKS) {
+    if (gMapNeoArkCompanionDistressTicks >= ACTOR_800300_DISTRESS_START_TICKS) {
         if (actor->state != ACTOR_800300_STATE_FLINCH) {
             actor->idleTicks++;
             if ((s16)actor->idleTicks >= (s8)companion->activity.distress.flinchInterval) {

@@ -127838,7 +127838,7 @@ former.
 ## A `%` written in the comparison leaves `expand_divmod` no destination, so the quotient stops sharing the remainder's pseudo
 
 `_actor450900CompanionDistressTask` (145 insns) keeps a signed constant remainder in
-`$v1`, its quotient in `$v0`, and the dividend `D_8017A99C - 0x30C` in `$a0`
+`$v1`, its quotient in `$v0`, and the dividend `gMapNeoArkCompanionDistressTicks - 0x30C` in `$a0`
 across both. Assigning the modulo to a local first -
 
 ```c

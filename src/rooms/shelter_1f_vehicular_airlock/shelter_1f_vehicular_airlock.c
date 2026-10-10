@@ -333,7 +333,7 @@ static AreaResource _gShelter1fVehicularAirlockActorResources[3] = {
 
 AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AED0, _gShelter1fVehicularAirlockActorResources },
+    { gMapNeoArkVehicularAirlockDefaultPlacements, _gShelter1fVehicularAirlockActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

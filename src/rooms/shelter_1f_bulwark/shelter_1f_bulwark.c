@@ -327,7 +327,7 @@ static AreaResource _gShelter1fBulwarkVariant1Resources[3] = {
 
 AreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AF00, _gShelter1fBulwarkVariant1Resources },
+    { gMapNeoArkBulwarkDefaultPlacements, _gShelter1fBulwarkVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

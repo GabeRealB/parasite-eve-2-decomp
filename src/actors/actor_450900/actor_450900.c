@@ -36,7 +36,7 @@
 
 #include "rooms/shelter_b6_growth_room.h"
 
-extern s32 D_map_neo_ark_8017A99C;
+#include "mapui/map_neo_ark.h"
 
 /// Number of periodic player responses whose seventy-tick release point has passed.
 ///
@@ -857,9 +857,9 @@ static void _actor450900CompanionDistressTask(Task* task)
             }
             // Count eligible updates across visits; demo playback retains the counter.
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450900_DISTRESS_DEMO_SCENE) {
-                D_map_neo_ark_8017A99C = D_map_neo_ark_8017A99C + 1;
+                gMapNeoArkCompanionDistressTicks = gMapNeoArkCompanionDistressTicks + 1;
             }
-            distressTicks = D_map_neo_ark_8017A99C - ACTOR_450900_COMPANION_DISTRESS_START_TICKS;
+            distressTicks = gMapNeoArkCompanionDistressTicks - ACTOR_450900_COMPANION_DISTRESS_START_TICKS;
             if (_gActor450900PostChoiceConversationStarted == false && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && distressTicks >= 0) {
                 _gActor450900CompanionDistressStarted = state;
                 if (distressTicks % ACTOR_450900_REACTION_PERIOD_TICKS == 0) {
@@ -913,8 +913,8 @@ static void _actor450900PlayerReactionTask(Task* task)
             task->state         = task->state + 1;
             return;
         case ACTOR_450900_PLAYER_REACTION_RUN:
-            if ((capIsBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) >= 0)) {
-                if ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == 0) {
+            if ((capIsBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((gMapNeoArkCompanionDistressTicks - ACTOR_450900_PLAYER_REACTION_START_TICKS) >= 0)) {
+                if ((gMapNeoArkCompanionDistressTicks - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == 0) {
                     playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                     pan         = (s8)worldCoordGetOriginAudioPan(playerCoord);
                     depth       = (s8)worldCoordGetOriginAudioDepth(playerCoord);
@@ -926,7 +926,7 @@ static void _actor450900PlayerReactionTask(Task* task)
                     TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &_gActor450900PlayerAnimationBankCopy, 0);
                     playerActorWriteWeaponAnimationBankIndex(&_gActor450900PlayerPeriodicResponseAnimation.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &_gActor450900PlayerPeriodicResponseAnimation, 0);
-                } else if ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_PLAYER_RESPONSE_TICKS) {
+                } else if ((gMapNeoArkCompanionDistressTicks - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_PLAYER_RESPONSE_TICKS) {
                     // The shared temporary and equal arms retain the matching shape;
                     // the original counter condition is unproven.
                     stateOrReactionCount = _gActor450900PlayerResponseCount;
@@ -1216,7 +1216,7 @@ void actor450900StartCompanionConversation(void)
         } else {
             capSpawnEventIfIdle(ACTOR_450900_REPEAT_CONVERSATION_CAP, CAP_EVENT_PAUSE_ACTORS);
         }
-    } else if (D_map_neo_ark_8017A99C < ACTOR_450900_COMPANION_DISTRESS_START_TICKS) {
+    } else if (gMapNeoArkCompanionDistressTicks < ACTOR_450900_COMPANION_DISTRESS_START_TICKS) {
         evsStartScript(_gActor450900BeforeDistressConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     } else {
         evsStartScript(_gActor450900DistressConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);

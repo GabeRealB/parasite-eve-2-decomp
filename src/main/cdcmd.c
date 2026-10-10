@@ -77,7 +77,7 @@ static s32* CdCmd_MapHeapSizes[] = {
     D_map_dryfield_80179B4C,
     NULL,
     NULL,
-    D_map_neo_ark_80179EC8,
+    gMapNeoArkMovieWorkspaceBytesByArea,
     NULL,
     NULL,
     NULL,
