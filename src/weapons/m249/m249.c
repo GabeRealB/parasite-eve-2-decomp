@@ -953,7 +953,7 @@ static const u16 _gM249ScriptedPresentationEnterAnimationIndices[] __attribute__
 
 /// Entry motion before a scripted event for the M249 bank, native sets 32 and 34.
 ///
-/// Scripted presentation selects set 32 when its saved variant halfword is zero.
+/// Scripted presentation selects set 32 when its saved s32 variant is zero.
 /// CAP weapon events and room presentations wait for this clip before their
 /// command. Child tracks 1..18 play without a timed entry blend; all nineteen
 /// rig tracks stop at their final poses. Keep the clip loaded through playback
@@ -989,7 +989,7 @@ static const u16 _gM249ScriptedPresentationLeaveAnimationIndices[] __attribute__
 
 /// Exit motion after a scripted event for the M249 bank, native sets 33 and 35.
 ///
-/// Scripted presentation selects set 33 when its saved variant halfword is nonzero.
+/// Scripted presentation selects set 33 when its saved s32 variant is nonzero.
 /// CAP weapon events and room presentations wait for this clip before resuming
 /// player control. Child tracks 1..18 play without a timed entry blend; all
 /// nineteen rig tracks stop at their final poses. Keep the clip loaded through
