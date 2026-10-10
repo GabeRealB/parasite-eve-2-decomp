@@ -83741,10 +83741,10 @@ moved; `lui v0` is rejected, so the fill falls to the return block, copies its
 epilogue — the target, one instruction longer.
 
 ```c
-    table  = D_actor_160900_8013F1CC;   /* %hi born first: takes $v0 */
+    table  = _gActor160900PlayerAnimationChain;   /* %hi born first: takes $v0 */
     entry = &table[work->playerAnimId];
 ```
-versus `entry = &D_actor_160900_8013F1CC[work->playerAnimId];`, which emits the
+versus `entry = &_gActor160900PlayerAnimationChain[work->playerAnimId];`, which emits the
 index load first and gives it `$v0`. The named pointer survives as the `reg/v`
 that becomes `$s1` (live across the two calls, so callee-saved), and the second
 table access reuses it with no `lui`/`addiu` at all.
@@ -153597,7 +153597,7 @@ the stores, and this image has it above the first load. The two inlines differ
 in that helper as well as in the loop body, so they are not one function with
 a selector.
 
-**Also.** `D_actor_160900_8013F1C4` was `u8[8]` holding two little-endian
+**Also.** `_gActor160900KyleAnimationSets` was `u8[8]` holding two little-endian
 addresses and was cast to `AnimationSet**` at the call; it is
 `AnimationSet*[2] = { &..0CDF4, &..0D334 }`, same bytes, no cast.
 

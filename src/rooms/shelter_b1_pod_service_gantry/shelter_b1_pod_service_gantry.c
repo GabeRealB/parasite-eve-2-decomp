@@ -35,6 +35,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
+#include "actors/actor_160900.h"
+
 #include "mapui/map_shelter.h"
 
 /// Steps of the room task's running state, held in
@@ -63,7 +65,6 @@ typedef struct {
 } _ShelterB1PodServiceGantryWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
-extern TaskDesc D_actor_160900_8013FB50[];
 extern TaskDesc D_actor_560800_8016EA28[];
 extern TaskDesc D_actor_560800_801718F0[];
 
@@ -1752,7 +1753,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
             if (cdCmdIsIdle() == 0) {
                 break;
             }
-            work->sceneTask = taskSpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(gActor160900TaskDescriptors, 0, 0, 0);
             areaApplySavedUpdates(D_shelter_b1_pod_service_gantry_80182540);
             gameFlagSetNibble(GAME_FLAG_118, GANTRY_RETURN_PENDING);
             work->step++;

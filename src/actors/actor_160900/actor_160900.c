@@ -1,3 +1,5 @@
+#include "actors/actor_160900.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -141,30 +143,6 @@ typedef struct {
 } _Actor160900KyleModelWork;
 STATIC_ASSERT_SIZEOF(_Actor160900KyleModelWork, 0x4BC);
 
-/// The overlay's task table. Entry 0 is `_actor160900CutsceneTask`, which
-/// spawns entries 3, 5 and 6 into `_Actor160900CutsceneWork`; entries 1 and 2 are
-/// spawned by `_actor160900SpawnFadeIn` / `_actor160900SpawnFadeOut`.
-extern TaskDesc D_actor_160900_8013FB50[];
-
-/// Clip chain `_actor160900AdvancePlayerAnimChain` follows for the player.
-extern ActorAnimChainLink D_actor_160900_8013F1CC[];
-
-extern u8       D_actor_160900_8013F210[];
-extern u8       D_actor_160900_8013F228[];
-extern TaskDesc D_actor_160900_8013F17C[];
-
-/// Point lists `_actor160900CutsceneTask` hands `_actor160900SpawnDriftingSprites`
-/// for `_Actor160900CutsceneWork::effectCue` ids 1-5.
-extern SVECTOR D_actor_160900_8013F258[];
-extern SVECTOR D_actor_160900_8013F2E0[];
-extern SVECTOR D_actor_160900_8013F3B0[];
-extern SVECTOR D_actor_160900_8013F400[];
-extern SVECTOR D_actor_160900_8013F458[];
-
-/// Pair of blocks `_actor160900CutsceneTask` passes to `evsStartScriptWithSkip`.
-extern EvsCommand D_actor_160900_8013F538[];
-extern EvsCommand D_actor_160900_8013FAA8[];
-
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running context, recomputed every frame.
 extern s32 gScreenWaveRamp;
@@ -173,7 +151,11 @@ extern s32 gScreenWaveRamp;
 /// the tick reads the ramp through it.
 extern ScreenWaveCtx* gScreenWaveCtx;
 
-extern Task* D_actor_160900_8013FBB4;
+/// Published task of the Aya/Kyle cutscene, borrowed by its script callbacks.
+///
+/// Set after work allocation, before Kyle and the scripts start. Valid only
+/// while that task and its work live; teardown does not clear the pointer.
+static Task* _gActor160900CutsceneTask;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
@@ -241,6 +223,19 @@ enum {
     ACTOR_160900_LIGHT_PATTERN_CORNERS_0_2 = 3,
     ACTOR_160900_LIGHT_PATTERN_CORNERS_2_3 = 4,
     ACTOR_160900_LIGHT_PATTERN_ALL_CORNERS = 5,
+};
+
+/// Stored chain/list terminators and cue ids used by the cutscene's data.
+enum {
+    ACTOR_160900_CHAIN_NO_SUCCESSOR = -1,
+    ACTOR_160900_SPRITE_POINTS_END  = -1,
+    ACTOR_160900_SCRIPT_POINTS_1    = 1,
+    ACTOR_160900_SCRIPT_POINTS_2    = 2,
+    ACTOR_160900_SCRIPT_POINTS_3    = 3,
+    ACTOR_160900_SCRIPT_POINTS_4    = 4,
+    ACTOR_160900_SCRIPT_POINTS_5    = 5,
+    ACTOR_160900_SKIP_VIEW          = 43,
+    ACTOR_160900_CAP_COMMAND_SLOT   = 1,
 };
 
 static TmdBone _gActor160900KyleMadiganBodySkeleton[20] = {
@@ -657,14 +652,22 @@ static AnimationSet _gActor160900Animation0D334 = {
     { NULL, _gActor160900Animation0D334Bank1, NULL, NULL, _gActor160900Animation0D334Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_160900_8013F17C[2] = {
+/// Screen-wave spawn recipe at index 0, followed by a descriptor terminator.
+///
+/// Bodyless, priority 192. Spawn argument 2 borrows the cutscene's
+/// `ScreenWaveCtx`; it must outlive the wave task. Argument 1 is unused.
+static TaskDesc _gActor160900ScreenWaveTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
 
-/// Borrowed player clips for the overlay's scripted animation requests.
+/// Aya's eleven cutscene animation sets, indexed by player clip id 0..10.
+///
+/// Playback borrows these loaded sets and their twenty-part track data.
+/// `_gActor160900PlayerAnimationChain` uses the same indices; the equipped
+/// weapon's animation bank replaces them when Aya walks away.
 static AnimationSet* _gActor160900PlayerAnimationSets[11] = {
     &_gActor160900Animation0BD10,
     &_gActor160900Animation09138,
@@ -679,119 +682,84 @@ static AnimationSet* _gActor160900PlayerAnimationSets[11] = {
     &_gActor160900Animation0AB80,
 };
 
-AnimationSet* D_actor_160900_8013F1C4[2] = {
+/// Kyle's body clips 0 and 1, borrowed by its twenty-part animation rig.
+///
+/// Clip zero starts on initialization; the reveal sequence requests clip one.
+/// The table and both sets must remain loaded through body playback.
+static AnimationSet* _gActor160900KyleAnimationSets[2] = {
     &_gActor160900Animation0CDF4,
     &_gActor160900Animation0D334,
 };
 
-ActorAnimChainLink D_actor_160900_8013F1CC[11] = {
-    { 0, -1 },
-    { 0, -1 },
+/// Successors of Aya's clips 0..10, each selected after playback finishes.
+///
+/// Clips 2, 3 and 4 advance to 3, 4 and 5; clips 7..9 return to 0.
+/// Other clips have no successor. All holds are zero, so no timed hold is used.
+static ActorAnimChainLink _gActor160900PlayerAnimationChain[11] = {
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
     { 0, 3 },
     { 0, 4 },
     { 0, 5 },
-    { 0, -1 },
-    { 0, -1 },
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
-    { 0, -1 },
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
 };
 
-ActorAnimChainLink D_actor_160900_8013F1F8[2] = {
-    { 0, -1 },
-    { 0, -1 },
+/// Kyle's two terminal clip links, each waiting for playback to settle.
+///
+/// Neither clip starts another; the cutscene requests clip changes explicitly.
+static ActorAnimChainLink _gActor160900KyleAnimationChain[2] = {
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
+    { 0, ACTOR_160900_CHAIN_NO_SUCCESSOR },
 };
 
-// Message-table callbacks use the argument views required by this TU.
-
-TaskMessageEntry D_actor_160900_8013F200[2] = {
+/// Placement and visibility messages of Kyle's body, hand and handgun tasks.
+///
+/// Only `ACTOR_MESSAGE_SET_MODEL_DRAW` and `ACTOR_MESSAGE_PLACE` may be sent:
+/// this two-entry table has no end marker. Draw control takes a mode word;
+/// placement borrows a complete `ActorTransform` during dispatch. Both
+/// callbacks return void, so senders must ignore the dispatch result.
+static TaskMessageEntry _gActor160900KyleModelMessages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor160900SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
-u8 D_actor_160900_8013F210[24] = {
-    148,
-    17,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    128,
-    12,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    4,
-    0,
-    0,
-    0,
-    0,
+/// Aya's initial cutscene position and quarter-turn yaw.
+///
+/// Position is in the model root's parent frame, in whole game-coordinate
+/// units; yaw uses 4096 units per turn. Borrowed only during the place message.
+static ActorTransform _gActor160900PlayerInitialPlacement = {
+    { 4500, 0, 3200, 0 },
+    { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
-u8 D_actor_160900_8013F228[24] = {
-    148,
-    17,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    128,
-    12,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    12,
-    0,
-    0,
-    0,
-    0,
+/// Aya's walk-cue position and three-quarter-turn yaw.
+///
+/// Position is in the model root's parent frame, in whole game-coordinate
+/// units; yaw uses 4096 units per turn. Borrowed only during the place message.
+static ActorTransform _gActor160900PlayerWalkPlacement = {
+    { 4500, 0, 3200, 0 },
+    { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
-u8 D_actor_160900_8013F240[24] = {
-    16,
-    39,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    128,
-    12,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    252,
-    0,
-    0,
-    0,
-    0,
+/// Kyle's hidden starting position and negative quarter-turn yaw.
+///
+/// Position is in the model root's parent frame, in whole game-coordinate
+/// units; yaw uses 4096 units per turn. Borrowed only during the place message.
+static ActorTransform _gActor160900KylePlacement = {
+    { 10000, 0, 3200, 0 },
+    { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
-SVECTOR D_actor_160900_8013F258[17] = {
+/// Drifting-sprite origins for effect cue 1: 16 points and a `pad == -1` terminator.
+///
+/// XYZ are signed game coordinates in the input frame of `GsWSMATRIX`.
+/// The spawner jitters X by up to 700 units and copies each position into an effect task.
+static SVECTOR _gActor160900DriftingSpritePoints1[17] = {
     { 6000, 1000, 2000, 0 },
     { 6000, 500, 2000, 0 },
     { 6000, 0, 2000, 0 },
@@ -808,10 +776,14 @@ SVECTOR D_actor_160900_8013F258[17] = {
     { 6000, 1000, 4000, 0 },
     { 6000, 500, 4000, 0 },
     { 6000, 0, 4000, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_160900_SPRITE_POINTS_END },
 };
 
-SVECTOR D_actor_160900_8013F2E0[26] = {
+/// Drifting-sprite origins for effect cue 2: 25 points and a `pad == -1` terminator.
+///
+/// XYZ are signed game coordinates in the input frame of `GsWSMATRIX`.
+/// The spawner jitters X by up to 700 units and copies each position into an effect task.
+static SVECTOR _gActor160900DriftingSpritePoints2[26] = {
     { 6000, 500, 2000, 0 },
     { 6000, 0, 2000, 0 },
     { 6000, -500, 2000, 0 },
@@ -837,10 +809,14 @@ SVECTOR D_actor_160900_8013F2E0[26] = {
     { 6000, -500, 4000, 0 },
     { 6000, -1000, 4000, 0 },
     { 6000, -1500, 4000, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_160900_SPRITE_POINTS_END },
 };
 
-SVECTOR D_actor_160900_8013F3B0[10] = {
+/// Drifting-sprite origins for effect cue 3: 9 points and a `pad == -1` terminator.
+///
+/// XYZ are signed game coordinates in the input frame of `GsWSMATRIX`.
+/// The spawner jitters X by up to 700 units and copies each position into an effect task.
+static SVECTOR _gActor160900DriftingSpritePoints3[10] = {
     { 6000, -1000, 2500, 0 },
     { 6000, -500, 2500, 0 },
     { 6000, 0, 2500, 0 },
@@ -850,10 +826,14 @@ SVECTOR D_actor_160900_8013F3B0[10] = {
     { 6000, -1000, 3500, 0 },
     { 6000, -500, 3500, 0 },
     { 6000, 0, 3500, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_160900_SPRITE_POINTS_END },
 };
 
-SVECTOR D_actor_160900_8013F400[11] = {
+/// Drifting-sprite origins for effect cue 4: 10 points and a `pad == -1` terminator.
+///
+/// XYZ are signed game coordinates in the input frame of `GsWSMATRIX`.
+/// The spawner jitters X by up to 700 units and copies each position into an effect task.
+static SVECTOR _gActor160900DriftingSpritePoints4[11] = {
     { 8000, 0, 3000, 0 },
     { 8000, -500, 3000, 0 },
     { 8000, 0, 2900, 0 },
@@ -864,10 +844,14 @@ SVECTOR D_actor_160900_8013F400[11] = {
     { 8000, -500, 2800, 0 },
     { 8000, 0, 2750, 0 },
     { 8000, -500, 2750, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_160900_SPRITE_POINTS_END },
 };
 
-SVECTOR D_actor_160900_8013F458[27] = {
+/// Drifting-sprite origins for effect cue 5: 26 points and a `pad == -1` terminator.
+///
+/// XYZ are signed game coordinates in the input frame of `GsWSMATRIX`.
+/// The spawner jitters X by up to 700 units and copies each position into an effect task.
+static SVECTOR _gActor160900DriftingSpritePoints5[27] = {
     { 7000, 3000, 3500, 0 },
     { 7000, 3000, 3000, 0 },
     { 7000, 3000, 2500, 0 },
@@ -894,18 +878,26 @@ SVECTOR D_actor_160900_8013F458[27] = {
     { 7000, -3000, 2500, 0 },
     { 7000, -3000, 2000, 0 },
     { 7000, -3000, 1500, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_160900_SPRITE_POINTS_END },
 };
 
-EvsSceneKey D_actor_160900_8013F530 = { 6, 9, 11 };
+/// Scene/audio stream key of the Aya/Kyle sequence (group 6, stream 9, qualifier 11).
+///
+/// The interpreter retains this loaded record through scene playback and cleanup.
+static EvsSceneKey _gActor160900SceneKey = { 6, 9, 11 };
 
-EvsCommand D_actor_160900_8013F538[58] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// CAP-synchronized Aya/Kyle cutscene, with player, Kyle and effect cues.
+///
+/// Starts CAP command slot 1, selects the scene stream, and sequences light
+/// quads, clips, drifting sprites and the screen wave before ending playback.
+/// The command stream and all referenced resources stay loaded until it ends.
+static EvsCommand _gActor160900CutsceneScript[58] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_160900_CAP_COMMAND_SLOT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_TAKE_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_160900_8013F530 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = ACTOR_160900_SCRIPT_POINTS_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor160900SceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SpawnOpeningLightPair }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -916,7 +908,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = ACTOR_160900_SCRIPT_POINTS_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SpawnKyleRevealLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -931,7 +923,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = ACTOR_160900_SCRIPT_POINTS_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -940,7 +932,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = ACTOR_160900_SCRIPT_POINTS_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -948,7 +940,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = ACTOR_160900_SCRIPT_POINTS_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = roomEffectRequestCancelAll }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -960,17 +952,21 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_160900_8013FAA8[7] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Input-skip path that fades, cancels scene playback and restores view 43.
+///
+/// Clears pending cues before event-scene cleanup, then waits three updates
+/// and ends. Borrows the live published cutscene task and its work.
+static EvsCommand _gActor160900SkipScript[7] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SkipCutscene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 43 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_160900_SKIP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_160900_8013FB50[8] = {
+TaskDesc gActor160900TaskDescriptors[8] = {
     { { { TASK_BODY_NONE, 192 } }, _actor160900CutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeOutTask, { .value = 0 } },
@@ -983,22 +979,9 @@ TaskDesc D_actor_160900_8013FB50[8] = {
 
 ScreenWaveCtx* gScreenWaveCtx;
 
-Task* D_actor_160900_8013FBB4;
-
 ScreenWaveOscillator gScreenWaveColumns[13];
 
 ScreenWaveOscillator gScreenWaveRows[30];
-
-extern u8 D_actor_160900_8013F240[];
-
-/// Animation-set table `animationInitContext` binds to the child's context, the table
-/// published as `_Actor160900KyleModelWork::animChain`, and the message table
-/// published as `Task::msgTable`.
-extern AnimationSet* D_actor_160900_8013F1C4[];
-
-extern ActorAnimChainLink D_actor_160900_8013F1F8[];
-
-extern TaskMessageEntry D_actor_160900_8013F200[2];
 
 static s32         _actor160900AdvancePlayerAnimChain(Task* task);
 static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId);
@@ -1053,7 +1036,7 @@ static s32 _actor160900AdvancePlayerAnimChain(Task* task)
     if (work->player == NULL) {
         return 1;
     }
-    chain = D_actor_160900_8013F1CC;
+    chain = _gActor160900PlayerAnimationChain;
     link  = &chain[work->playerAnimId];
     if (link->holdFrames != 0) {
         if (work->playerAnimHold >= link->holdFrames) {
@@ -1069,7 +1052,7 @@ static s32 _actor160900AdvancePlayerAnimChain(Task* task)
         if (taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
-        finishedLink = &D_actor_160900_8013F1CC[work->playerAnimId];
+        finishedLink = &_gActor160900PlayerAnimationChain[work->playerAnimId];
         if (finishedLink->nextAnimId < 0) {
             return 1;
         }
@@ -1222,7 +1205,7 @@ static void _actor160900KyleAttachmentTask(Task* task)
             tmdSetTextureOffsets(task->extra.tmd, 0, 0);
         }
         taskReparent(bodyTask, task);
-        task->msgTable = D_actor_160900_8013F200;
+        task->msgTable = _gActor160900KyleModelMessages;
         task->state   += 1;
         return;
     } else {
@@ -1264,8 +1247,8 @@ static inline void _actor160900InitKyleAnimation(Task* task, TmdObject* bodyMode
     _Actor160900KyleModelWork* work;
 
     work = task->work;
-    animationInitContext(&work->rig.anim, D_actor_160900_8013F1C4, bodyModel, work->rig.poses, work->rig.slots);
-    work->animChain = D_actor_160900_8013F1F8;
+    animationInitContext(&work->rig.anim, _gActor160900KyleAnimationSets, bodyModel, work->rig.poses, work->rig.slots);
+    work->animChain = _gActor160900KyleAnimationChain;
     _actor160900ResetKyleAnimSlots(task);
 }
 
@@ -1306,13 +1289,13 @@ static void _actor160900KyleBodyTask(Task* task)
             model->lightMtx = &work->light;
             model->colorMtx = &work->color;
             model->flags   |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            task->msgTable  = D_actor_160900_8013F200;
+            task->msgTable  = _gActor160900KyleModelMessages;
             placement       = areaGetVariant(&gGameSession->location.loc)->placements;
             while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_160900_KYLE_PLACEMENT_ID) {
                 placement++;
             }
             tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
-            taskReparent(D_actor_160900_8013FBB4, task);
+            taskReparent(_gActor160900CutsceneTask, task);
             allocationFailed = false;
         }
         if (allocationFailed) {
@@ -1617,7 +1600,7 @@ static void _actor160900UpdatePlayerCue(Task* task)
         case ACTOR_160900_CUE_NONE:
             break;
         case ACTOR_160900_PLAYER_CUE_TAKE_PLACE:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_actor_160900_8013F210, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor160900PlayerInitialPlacement, 0);
             ACTOR_160900_RESET_PLAYER_CUE_CLIP(task, ACTOR_160900_PLAYER_PLACE_CLIP, requestWork, message.animation);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_1:
@@ -1639,7 +1622,7 @@ static void _actor160900UpdatePlayerCue(Task* task)
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &message.animation, 0);
-                TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_actor_160900_8013F228, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor160900PlayerWalkPlacement, 0);
                 message.destination.vx = -0x7D0;
                 message.destination.vy = 0;
                 message.destination.vz = 0xC80;
@@ -1650,7 +1633,7 @@ static void _actor160900UpdatePlayerCue(Task* task)
         case ACTOR_160900_PLAYER_CUE_WAVE_START:
             work->wave.span  = ACTOR_160900_WAVE_RISE_UPDATES;
             work->wave.scale = ACTOR_160900_WAVE_FULL_SCALE;
-            taskSpawnFromTable(D_actor_160900_8013F17C, 0, 0, &work->wave);
+            taskSpawnFromTable(_gActor160900ScreenWaveTaskDescriptors, 0, 0, &work->wave);
             work->playerCue.id = ACTOR_160900_CUE_NONE;
             return;
         case ACTOR_160900_PLAYER_CUE_WAVE_END:
@@ -1697,7 +1680,7 @@ static void _actor160900UpdateKyleCue(Task* task)
             break;
         case ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE:
             taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, D_actor_160900_8013F240, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &_gActor160900KylePlacement, 0);
             break;
         case ACTOR_160900_KYLE_CUE_APPEAR:
             taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
@@ -1783,8 +1766,8 @@ static void _actor160900SpawnOpeningLightPair(void)
     _Actor160900LightQuadWork* quadWork;
     Task*                      quadTask;
 
-    cutsceneWork                = D_actor_160900_8013FBB4->work;
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    cutsceneWork                = _gActor160900CutsceneTask->work;
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
     cutsceneWork->lightQuads[0] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1813,7 +1796,7 @@ static void _actor160900SpawnOpeningLightPair(void)
     quadWork->corners[3].vx                      = 0;
     quadWork->corners[3].vy                      = 0;
     quadWork->corners[3].vz                      = 0;
-    quadTask                                     = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    quadTask                                     = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
     cutsceneWork->lightQuads[1]                  = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1885,8 +1868,8 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     _Actor160900LightQuadWork* quadWork;
     Task*                      quadTask;
 
-    cutsceneWork                = D_actor_160900_8013FBB4->work;
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_ALL_CORNERS, 0);
+    cutsceneWork                = _gActor160900CutsceneTask->work;
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_ALL_CORNERS, 0);
     cutsceneWork->lightQuads[0] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1900,7 +1883,7 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     quadWork = allocatedQuadWork;
     memFillBytes(quadWork, 0, sizeof(*quadWork));
     _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, 0x1F4, -0x1F4);
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_1_3, 0);
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_1_3, 0);
     cutsceneWork->lightQuads[1] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1914,7 +1897,7 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     quadWork = allocatedQuadWork;
     memFillBytes(quadWork, 0, sizeof(*quadWork));
     _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, 0x3E8, 0x1F4);
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_0_2, 0);
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_0_2, 0);
     cutsceneWork->lightQuads[2] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1928,7 +1911,7 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     quadWork = allocatedQuadWork;
     memFillBytes(quadWork, 0, sizeof(*quadWork));
     _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, -0x1F4, -0x3E8);
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_2_3, 0);
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_2_3, 0);
     cutsceneWork->lightQuads[3] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1942,7 +1925,7 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     quadWork = allocatedQuadWork;
     memFillBytes(quadWork, 0, sizeof(*quadWork));
     _actor160900PlaceRevealLightQuad(quadTask, quadWork, -0x1F4, 0x1F4, -0x1F4);
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
     cutsceneWork->lightQuads[4] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1956,7 +1939,7 @@ static void _actor160900SpawnKyleRevealLightQuads(void)
     quadWork = allocatedQuadWork;
     memFillBytes(quadWork, 0, sizeof(*quadWork));
     _actor160900PlaceRevealLightQuad(quadTask, quadWork, -0x1F4, 0x3E8, 0x1F4);
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
     cutsceneWork->lightQuads[5] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -1986,8 +1969,8 @@ static void _actor160900SpawnWalkLightPair(void)
     _Actor160900LightQuadWork* quadWork;
     Task*                      quadTask;
 
-    cutsceneWork                = D_actor_160900_8013FBB4->work;
-    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    cutsceneWork                = _gActor160900CutsceneTask->work;
+    quadTask                    = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
     cutsceneWork->lightQuads[0] = quadTask;
     if (quadTask == NULL) {
         return;
@@ -2016,7 +1999,7 @@ static void _actor160900SpawnWalkLightPair(void)
     quadWork->corners[3].vx                      = 0;
     quadWork->corners[3].vy                      = 0;
     quadWork->corners[3].vz                      = 0;
-    quadTask                                     = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    quadTask                                     = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
     cutsceneWork->lightQuads[1]                  = quadTask;
     if (quadTask == NULL) {
         return;
@@ -2087,12 +2070,12 @@ static void _actor160900CutsceneTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_actor_160900_8013FBB4 = task;
+                work->player              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                _gActor160900CutsceneTask = task;
                 // Publish the cast before event-script callbacks can address it.
-                work->kyle         = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_BODY, 0, task);
-                work->kyleGunHand  = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_GUN_HAND, ACTOR_160900_KYLE_GUN_HAND, work->kyle);
-                work->kyleFreeHand = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_FREE_HAND, ACTOR_160900_KYLE_FREE_HAND, work->kyle);
+                work->kyle         = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_KYLE_BODY, 0, task);
+                work->kyleGunHand  = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_KYLE_GUN_HAND, ACTOR_160900_KYLE_GUN_HAND, work->kyle);
+                work->kyleFreeHand = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_KYLE_FREE_HAND, ACTOR_160900_KYLE_FREE_HAND, work->kyle);
             }
             // Caption setup and the state increment also run after allocation failure.
             Gp_CapFile = NULL;
@@ -2101,7 +2084,7 @@ static void _actor160900CutsceneTask(Task* task)
             task->state += 1;
             return;
         case ACTOR_160900_CUTSCENE_START_SCRIPT:
-            evsStartScriptWithSkip(D_actor_160900_8013F538, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160900_8013FAA8);
+            evsStartScriptWithSkip(_gActor160900CutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor160900SkipScript);
             task->state += 1;
             break;
         case ACTOR_160900_CUTSCENE_RUN_SCRIPT:
@@ -2117,19 +2100,19 @@ static void _actor160900CutsceneTask(Task* task)
     cueWork = task->work;
     switch (cueWork->effectCue.id) {
         case ACTOR_160900_EFFECT_CUE_LIST_1:
-            _actor160900SpawnDriftingSprites(D_actor_160900_8013F258);
+            _actor160900SpawnDriftingSprites(_gActor160900DriftingSpritePoints1);
             break;
         case ACTOR_160900_EFFECT_CUE_LIST_2:
-            _actor160900SpawnDriftingSprites(D_actor_160900_8013F2E0);
+            _actor160900SpawnDriftingSprites(_gActor160900DriftingSpritePoints2);
             break;
         case ACTOR_160900_EFFECT_CUE_LIST_3:
-            _actor160900SpawnDriftingSprites(D_actor_160900_8013F3B0);
+            _actor160900SpawnDriftingSprites(_gActor160900DriftingSpritePoints3);
             break;
         case ACTOR_160900_EFFECT_CUE_LIST_4:
-            _actor160900SpawnDriftingSprites(D_actor_160900_8013F400);
+            _actor160900SpawnDriftingSprites(_gActor160900DriftingSpritePoints4);
             break;
         case ACTOR_160900_EFFECT_CUE_LIST_5:
-            _actor160900SpawnDriftingSprites(D_actor_160900_8013F458);
+            _actor160900SpawnDriftingSprites(_gActor160900DriftingSpritePoints5);
             break;
         case ACTOR_160900_CUE_NONE:
         default:
@@ -2278,7 +2261,7 @@ static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 un
 /// large rates retain signed-halfword wrap. Task/work allocation may fail.
 static void _actor160900SpawnFadeIn(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_FADE_IN, intensityStep, 0);
+    taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_FADE_IN, intensityStep, 0);
 }
 
 /// Starts the cutscene's darkening fade and holds the resulting black overlay.
@@ -2288,7 +2271,7 @@ static void _actor160900SpawnFadeIn(s32 intensityStep)
 /// retain signed-halfword wrap. Task/work allocation may fail.
 static void _actor160900SpawnFadeOut(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_FADE_OUT, intensityStep, 0);
+    taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_FADE_OUT, intensityStep, 0);
 }
 
 /// Kills and clears every light quad held by the running cutscene.
@@ -2301,7 +2284,7 @@ static void _actor160900KillLightQuads(void)
     Task*                     quadTask;
     s16                       quadIndex;
 
-    work = D_actor_160900_8013FBB4->work;
+    work = _gActor160900CutsceneTask->work;
     for (quadIndex = 0; quadIndex < ARRAY_SIZE(work->lightQuads); quadIndex++) {
         quadTask = work->lightQuads[quadIndex];
         if (quadTask != NULL) {
@@ -2319,7 +2302,7 @@ static void _actor160900PostPlayerCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
-    work                 = D_actor_160900_8013FBB4->work;
+    work                 = _gActor160900CutsceneTask->work;
     work->playerCue.id   = cueId;
     work->playerCue.step = 0;
 }
@@ -2332,7 +2315,7 @@ static void _actor160900PostKyleCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
-    work               = D_actor_160900_8013FBB4->work;
+    work               = _gActor160900CutsceneTask->work;
     work->kyleCue.id   = cueId;
     work->kyleCue.step = 0;
 }
@@ -2347,7 +2330,7 @@ static void _actor160900PostEffectCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
-    work                 = D_actor_160900_8013FBB4->work;
+    work                 = _gActor160900CutsceneTask->work;
     work->effectCue.id   = cueId;
     work->effectCue.step = 0;
 }
@@ -2360,7 +2343,7 @@ static void _actor160900SkipCutscene(void)
 {
     _Actor160900CutsceneWork* work;
 
-    work               = D_actor_160900_8013FBB4->work;
+    work               = _gActor160900CutsceneTask->work;
     work->playerCue.id = ACTOR_160900_CUE_NONE;
     work->kyleCue.id   = ACTOR_160900_CUE_NONE;
     work->effectCue.id = ACTOR_160900_CUE_NONE;
