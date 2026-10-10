@@ -3,11 +3,13 @@
 /// Advances the water tank's randomly driven, damped yaw motion.
 ///
 /// Requires the room's persistent yaw words and SDK random state. One draw
-/// selects a target change on the zero bucket of rand()*100/32768; a second
-/// chooses a random target below 80 or zero, and only the former takes a third
-/// draw. The step approaches the target by 256 even if it overshoots. Velocity
-/// uses signed 19/20 damping with truncation toward zero; yaw accumulates in
-/// 1/256 of a 4096th-turn angle. No angle wrapping or saturation is applied.
+/// selects a target change on the zero bucket of rand()*100/32768. A second
+/// bucket below 80 selects random acceleration in 0..5119 rather than zero,
+/// and only the random choice takes a third draw. Acceleration approaches its
+/// target by 256 even if it overshoots.
+/// Velocity is (velocity + acceleration) * 19 / 20 with signed truncation
+/// toward zero; yaw uses 1/256 of a 4096th-turn angle. No angle wrapping or
+/// saturation is applied.
 static inline void _waterTankAdvanceSway(void)
 {
     enum { WATER_TANK_YAW_STEP               = 256,
@@ -15,18 +17,18 @@ static inline void _waterTankAdvanceSway(void)
 
     if (((s32)(rand() * 100) >> 15) <= 0) {
         if (((s32)(rand() * 100) >> 15) < WATER_TANK_NONZERO_TARGET_PERCENT) {
-            gWaterTankYawTarget = (s32)(rand() * 20) >> 7;
+            gWaterTankYawTargetAcceleration = (rand() * 20) >> 7;
         } else {
-            gWaterTankYawTarget = 0;
+            gWaterTankYawTargetAcceleration = 0;
         }
     }
-    if (gWaterTankYawStep < gWaterTankYawTarget) {
-        gWaterTankYawStep += WATER_TANK_YAW_STEP;
-    } else if (gWaterTankYawTarget < gWaterTankYawStep) {
-        gWaterTankYawStep -= WATER_TANK_YAW_STEP;
+    if (gWaterTankYawAcceleration < gWaterTankYawTargetAcceleration) {
+        gWaterTankYawAcceleration += WATER_TANK_YAW_STEP;
+    } else if (gWaterTankYawTargetAcceleration < gWaterTankYawAcceleration) {
+        gWaterTankYawAcceleration -= WATER_TANK_YAW_STEP;
     }
     gWaterTankYawSpeed =
-        (gWaterTankYawSpeed + gWaterTankYawStep) * 19 / 20;
+        (gWaterTankYawSpeed + gWaterTankYawAcceleration) * 19 / 20;
     gWaterTankYaw += gWaterTankYawSpeed;
 }
 

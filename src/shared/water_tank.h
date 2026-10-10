@@ -12,14 +12,34 @@
 
 #include "main/task_types.h"
 
-/// The sway's accumulated yaw, in 1/256 of the matrix units.
+/// Accumulated tank yaw in 1/256 of a 4096th-turn angle, without angle wrapping.
+///
+/// The sway task adds the damped velocity once per running tick. Each room
+/// defines its own initialized word, retained across task initialization for
+/// the loaded overlay's lifetime. The day room shares it between its source files.
 extern s32 gWaterTankYaw;
-/// Its velocity, eased 19/20 toward the step each frame.
+
+/// Tank angular velocity in yaw Q8 units per running tick.
+///
+/// Each tick stores (velocity + acceleration) * 19 / 20 with signed truncation
+/// toward zero, then adds it to yaw. Each room defines its own initialized word;
+/// its source files share that word for the loaded overlay's lifetime.
 extern s32 gWaterTankYawSpeed;
-/// The step, moved 0x100 at a time toward the target.
-extern s32 gWaterTankYawStep;
-/// The target step, re-rolled now and then.
-extern s32 gWaterTankYawTarget;
+
+/// Additive yaw acceleration before damping, in yaw Q8 units per tick squared.
+///
+/// Approaches target acceleration in increments of 256, including overshoot;
+/// it remains a multiple of 256. Each room defines its own initialized word,
+/// shared by its source files and retained for the loaded overlay's lifetime.
+extern s32 gWaterTankYawAcceleration;
+
+/// Random target for yaw acceleration, in yaw Q8 units per tick squared.
+///
+/// Reselected on the zero bucket of rand()*100/32768. A second bucket below 80
+/// selects rand()*20/128 in 0..5119; otherwise the target is zero. Each room's
+/// initialized word is shared by its source files and retained across sway task
+/// starts within that loaded overlay. The target does not select a yaw position.
+extern s32 gWaterTankYawTargetAcceleration;
 
 /// Updates the Dryfield tank's eased yaw sway and view-dependent visibility.
 ///

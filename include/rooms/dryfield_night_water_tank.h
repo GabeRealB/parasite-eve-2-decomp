@@ -19,7 +19,13 @@ extern AreaVariant D_dryfield_night_water_tank_80180764[13];
 /// The collection and writable light transforms stay live while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightWaterTankRoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_water_tank_8017EE58[];
+/// Collision resources for night Dryfield stage 3 area 21's only room.
+///
+/// Indexed by room ID minus one; the stage map borrows this one-entry array.
+/// The grid, four view boundaries, eight actions and two sight occluders remain
+/// writable during binding and contact dispatch. Keep the overlay loaded until
+/// the grid is retired and the triggers and occluders are unlinked.
+extern WorldCollisionRoomResources gDryfieldNightWaterTankCollisionRooms[1];
 
 /// Logical-view mapping for room 1, indexed by room minus one.
 ///
@@ -29,9 +35,22 @@ extern WorldCollisionRoomResources D_dryfield_night_water_tank_8017EE58[];
 /// The directory and writable map belong to the loaded room overlay.
 extern u8* gDryfieldNightWaterTankViewMaps[1];
 
-extern ViewCount D_dryfield_night_water_tank_8017EE78[];
+/// Ten logical views searched through room 1's logical-view map.
+///
+/// This one-entry room array stores a signed halfword count, with no terminator.
+/// It counts views 1..10, which map to six camera/image/sprite entries; it does
+/// not include the map's two retained zeros. The stage map borrows the array
+/// while this room overlay is loaded.
+extern ViewCount gDryfieldNightWaterTankViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_water_tank_8017EE7C[];
+/// Two night water-tank warp endpoints, indexed by warp ID minus one.
+///
+/// IDs 1/2 supply player and companion world placements and initial logical
+/// views 2/4. The tower exit uses endpoint 1; endpoint 2 retains the view-4
+/// placement. Yaw uses 4096 units per turn. Both entries have no sounds, map
+/// flag or scripted/fade options. There is no terminator; the stage directory
+/// borrows the array while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightWaterTankWarpEntries[2];
 
 /// Room cameras indexed by mapped view minus one, for mapped views 1..6.
 ///

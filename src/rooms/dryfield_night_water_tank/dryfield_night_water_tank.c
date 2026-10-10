@@ -17,11 +17,13 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
@@ -41,12 +43,6 @@
 #include "mapui/map_dryfield_full.h"
 #include "../../shared/water_tank.h"
 
-extern WorldCollisionGrid D_dryfield_night_water_tank_8017E08C;
-
-/// `AREA_APPLY_END`-terminated `AreaApplyRec` list the room applies when the scripted end
-/// of the visit fires.
-extern AreaApplyRec D_dryfield_night_water_tank_801808B0[];
-
 /// Main-executable halfword the second state waits on before it may advance.
 
 /// Event scripts handed to `evsStartScriptWithSkip`: the one it starts and its skip
@@ -54,36 +50,16 @@ extern AreaApplyRec D_dryfield_night_water_tank_801808B0[];
 extern EvsCommand D_actor_146300_80137C28[];
 extern EvsCommand D_actor_146300_80138570[];
 
-/// Message table of the night water-tank room, 0x13EE..0x13F1 with the
-/// `TASK_MESSAGE_TABLE_END` terminator: `_dryfieldNightWaterTankResolveRoomEvent`,
-/// `_dryfieldNightWaterTankRejectKeyItemUse`, `..._8017D76C` and `..._8017D73C`.
-extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
-
-/// Task descriptor tables spawned by the room entry task, each one entry and
-/// the 0xFFFF terminator: `8017E010` runs the exit task
-/// `_dryfieldNightWaterTankBattleAftermathTask`, `8017EE28` the tank model's
-/// update `waterTankSwayTask`.
-extern TaskDesc D_dryfield_night_water_tank_8017E010[];
-extern TaskDesc D_dryfield_night_water_tank_8017EE28[];
-
 /// Absolute import: the shared room script descriptor 0x8013788C, spawned by
 /// entry 0 in the handler below.
 extern TaskDesc D_actor_146300_8013788C;
 
-/// Model/lighting records the handler below toggles on message 3 and 4.
-extern EvsCommand D_dryfield_night_water_tank_8017DDD8[];
-extern EvsCommand D_dryfield_night_water_tank_8017DEE0[];
-
-/// The tank's wobble spring: `8017EE40` is the accumulated yaw handed to
-/// `gfxRotMatrixY` (`>> 8`), `8017EE44` its velocity, `8017EE48` the yaw it
-/// steps toward and `8017EE4C` the target that step chases.
-
 static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank);
 
 static WorldCollisionGrid     _gDryfieldNightWaterTankCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2];
-extern WorldCollisionTrigger  D_dryfield_night_water_tank_8018038C[4];
-extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
+static WorldCollisionOccluder _gDryfieldNightWaterTankSightOccluders[2];
+static WorldCollisionTrigger  _gDryfieldNightWaterTankViewBoundaryTriggers[4];
+static WorldCollisionTrigger  _gDryfieldNightWaterTankActionTriggers[8];
 static WorldCoordRoomLights   _gDryfieldNightWaterTankRoomLights;
 static TmdSource              _gDryfieldNightWaterTankModel00FF8;
 
@@ -96,41 +72,88 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task);
 /// Inventory's request to use a collected key item in this room.
 enum { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-ActorTransform D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
+enum {
+    DRYFIELD_NIGHT_WATER_TANK_PLAYER_IDLE_ANIMATION = 1,
+    DRYFIELD_NIGHT_WATER_TANK_RELOCATION_SOUND      = 0x52150001,
+    DRYFIELD_NIGHT_WATER_TANK_STAGE                 = 3,
+    DRYFIELD_NIGHT_WATER_TANK_AREA                  = 21,
+    DRYFIELD_NIGHT_WATER_TANK_HANDOVER_LAYOUT       = 11,
+};
 
-ActorTransform D_dryfield_night_water_tank_8017DDAC = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
+/// Player placement reached by the relocation to logical view 4.
+///
+/// Position uses room/world game coordinates and Euler angles use 4096 per turn.
+/// The script borrows this record until its placement message returns.
+static ActorTransform _gDryfieldNightWaterTankView4PlayerTransform = {
+    .pos = { 820, -0x4010, 884, 0 },
+    .rot = { 0, 2560, 0, 0 },
+};
 
-AnimationPlayRequest D_dryfield_night_water_tank_8017DDC4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player placement reached by the relocation to logical view 3.
+///
+/// Position uses room/world game coordinates and Euler angles use 4096 per turn.
+/// The script borrows this record until its placement message returns.
+static ActorTransform _gDryfieldNightWaterTankView3PlayerTransform = {
+    .pos = { 1868, -0x2EE0, 1740, 0 },
+    .rot = { 0, 512, 0, 0 },
+};
 
-EvsCommand D_dryfield_night_water_tank_8017DDD8[11] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_tank_8017DDC4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Equipped-bank idle request that holds player control during either relocation.
+///
+/// The event interpreter copies the request and replaces source.index with the
+/// current weapon bank. Playback resets the clip and disables world collision;
+/// blendFrames is ignored. The room overlay stays loaded through dispatch.
+static AnimationPlayRequest _gDryfieldNightWaterTankPlayerIdleAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_NIGHT_WATER_TANK_PLAYER_IDLE_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Fades out, relocates the player to logical view 4 and restores ordinary control.
+///
+/// Room action 3 starts these eleven commands, including END. The 32-frame
+/// fade brackets placement and a stage-relative sound cue; waits retain their
+/// interpreter-update counts. Commands and payloads borrow this loaded overlay.
+static EvsCommand _gDryfieldNightWaterTankRelocateToView4Script[11] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterTankPlayerIdleAnimationRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_water_tank_8017DD94 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightWaterTankView4PlayerTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = DRYFIELD_NIGHT_WATER_TANK_RELOCATION_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_water_tank_8017DEE0[11] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_tank_8017DDC4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Fades out, relocates the player to logical view 3 and restores ordinary control.
+///
+/// Room action 4 starts these eleven commands, including END. The 32-frame
+/// fade brackets placement and a stage-relative sound cue; waits retain their
+/// interpreter-update counts. Commands and payloads borrow this loaded overlay.
+static EvsCommand _gDryfieldNightWaterTankRelocateToView3Script[11] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterTankPlayerIdleAnimationRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_water_tank_8017DDAC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightWaterTankView3PlayerTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = DRYFIELD_NIGHT_WATER_TANK_RELOCATION_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
+/// Room receivers for transition queries, key-item use, actions and CAP commands.
+///
+/// Four entries precede TASK_MESSAGE_TABLE_END. The registered room task borrows
+/// the table and its callbacks for its lifetime in the loaded room overlay.
+static TaskMessageEntry _gDryfieldNightWaterTankRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWaterTankResolveRoomEvent },
     { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterTankRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterTankRoomActionMessage },
@@ -138,34 +161,62 @@ TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_water_tank_8017E010[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldNightWaterTankBattleAftermathTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+/// Bodyless battle-aftermath controller recipe for placement variant 10.
+///
+/// Entry 0 runs at priority 32; TASK_DESC_END follows. Spawning consumes the
+/// descriptor synchronously, and the callback stays loaded through teardown.
+static TaskDesc _gDryfieldNightWaterTankBattleAftermathTasks[2] = {
+    { .header = { .fields = { TASK_BODY_NONE, 32 } }, .callback = _dryfieldNightWaterTankBattleAftermathTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
-static SVECTOR _gDryfieldNightWaterTankCollision00ACCNormals[2] = {
+/// Two room-space obstacle normals, with 4096 for unit length.
+static SVECTOR _gDryfieldNightWaterTankObstacleCollisionGridNormals[2] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightWaterTankCollision00ACCVerts[6] = {
+/// Six room-space vertices copied into the live grid's obstacle prefix.
+static SVECTOR _gDryfieldNightWaterTankObstacleCollisionGridVerts[6] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightWaterTankCollision00ACCFaces[2] = {
+/// Two surface-class-0 quads indexing the obstacle's six vertices and two normals.
+static WorldCollisionGridFace _gDryfieldNightWaterTankObstacleCollisionGridFaces[2] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_faces.inc"
 };
 
-static s16 _gDryfieldNightWaterTankCollision00ACCCells[4] = {
+/// One face-index list ending in WORLD_COLLISION_GRID_CELL_END, followed by a stored zero.
+static s16 _gDryfieldNightWaterTankObstacleCollisionGridCells[4] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightWaterTankCollision00ACCCells[i])
-static s16* _gDryfieldNightWaterTankCollision00ACCTable[1] = {
+// The generated table uses element offsets into this template's cell list.
+#define GRID_CELL(i) (&_gDryfieldNightWaterTankObstacleCollisionGridCells[i])
+/// The template's single cell points at the list containing both obstacle faces.
+static s16* _gDryfieldNightWaterTankObstacleCollisionGridTable[1] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_water_tank_8017E08C = { NULL, _gDryfieldNightWaterTankCollision00ACCNormals, _gDryfieldNightWaterTankCollision00ACCVerts, _gDryfieldNightWaterTankCollision00ACCFaces, _gDryfieldNightWaterTankCollision00ACCTable, -1016, 2444, 1, 1, 4000, 2 };
+/// Collision template restoring the tank obstacle in placement variants 10 and 11.
+///
+/// Its two faces/normals and six vertex XYZs replace the live room grid's leading
+/// geometry. The one-cell index is retained with the asset; this template is
+/// never activated or bound to a view. A nonzero restore argument offsets Z by
+/// -200 game units. All storage belongs to this room overlay.
+static WorldCollisionGrid _gDryfieldNightWaterTankObstacleCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightWaterTankObstacleCollisionGridNormals,
+    .vertices    = _gDryfieldNightWaterTankObstacleCollisionGridVerts,
+    .faces       = _gDryfieldNightWaterTankObstacleCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightWaterTankObstacleCollisionGridTable,
+    .xBias       = -1016,
+    .zBias       = 2444,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightWaterTankObstacleCollisionGridFaces),
+};
 
 static TmdBone _gDryfieldNightWaterTankModel00FF8Skeleton[1] = {
 #include "assets/dryfield_night_water_tank_model_00FF8_skeleton.inc"
@@ -199,25 +250,32 @@ static TmdSource _gDryfieldNightWaterTankModel00FF8 = {
     _gDryfieldNightWaterTankModel00FF8Stream,
 };
 
-TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
-    { { { TASK_BODY_TMD, 192 } }, waterTankSwayTask, { .model = &_gDryfieldNightWaterTankModel00FF8 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+/// Tank sway model recipe spawned on every room entry, followed by TASK_DESC_END.
+///
+/// Entry 0 attaches the one-part TMD at priority 192. Its borrowed geometry and
+/// callback must stay loaded for the spawned task's lifetime.
+static TaskDesc _gDryfieldNightWaterTankSwayTasks[2] = {
+    { .header = { .fields = { TASK_BODY_TMD, 192 } }, .callback = waterTankSwayTask, .data = { .model = &_gDryfieldNightWaterTankModel00FF8 } },
+    { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
 s32 gWaterTankYaw = 0;
 
 s32 gWaterTankYawSpeed = 0;
 
-s32 gWaterTankYawStep = 0;
+s32 gWaterTankYawAcceleration = 0;
 
-s32 gWaterTankYawTarget = 0;
+s32 gWaterTankYawTargetAcceleration = 0;
 
 WorldCoordRoomLighting gDryfieldNightWaterTankRoomLighting[1] = {
     { &_gDryfieldNightWaterTankRoomLights, NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_water_tank_8017EE58[1] = {
-    { &_gDryfieldNightWaterTankCollisionGrid, D_dryfield_night_water_tank_8018038C, D_dryfield_night_water_tank_801804BC, D_dryfield_night_water_tank_801807CC },
+WorldCollisionRoomResources gDryfieldNightWaterTankCollisionRooms[1] = {
+    { .grid                 = &_gDryfieldNightWaterTankCollisionGrid,
+      .viewBoundaryTriggers = _gDryfieldNightWaterTankViewBoundaryTriggers,
+      .actionTriggers       = _gDryfieldNightWaterTankActionTriggers,
+      .occluders            = _gDryfieldNightWaterTankSightOccluders },
 };
 
 /// Maps logical views 1..10 to the six camera/image/sprite entries.
@@ -243,9 +301,9 @@ u8* gDryfieldNightWaterTankViewMaps[1] = {
     _gDryfieldNightWaterTankLogicalViewMap,
 };
 
-ViewCount D_dryfield_night_water_tank_8017EE78[1] = { 10 };
+ViewCount gDryfieldNightWaterTankViewCounts[1] = { 10 };
 
-DirectionWarpEntry D_dryfield_night_water_tank_8017EE7C[2] = {
+DirectionWarpEntry gDryfieldNightWaterTankWarpEntries[2] = {
     { { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
@@ -556,42 +614,74 @@ static WorldCoordRoomLights _gDryfieldNightWaterTankRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_water_tank_8018038C[4] = {
+/// Four directed view boundaries switching between logical views 2 and 3.
+///
+/// Each pair covers one room crossing in opposite directions. Positions/radii
+/// use room game units, normals use 4096 per unit, and LAST marks the fourth
+/// included record. Room setup mutates links, coordinates, flags and hit latches.
+static WorldCollisionTrigger _gDryfieldNightWaterTankViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { -864, -0x32D0, 2464, 0 }, { { 0, -1968, -1024, 0 }, { 0, -1968, 1024, 0 }, { 0, 1968, -1024, 0 }, { 0, 1968, 1024, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2217, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -576, -0x3310, 2464, 0 }, { { 0, -1904, 1024, 0 }, { 0, -1904, -1024, 0 }, { 0, 1904, 1024, 0 }, { 0, 1904, -1024, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 768, -0x32D0, -2368, 0 }, { { 0, -1936, 1024, 0 }, { 0, -1936, -1024, 0 }, { 0, 1936, 1024, 0 }, { 0, 1936, -1024, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2187, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_tank_801804BC[8] = {
-    { NULL, NULL, NULL, { -2449, -0x2F60, 640, 0 }, { { -728, 0, -256, 0 }, { 336, 0, -584, 0 }, { -624, 0, 680, 0 }, { 1016, 0, 160, 0 } }, { 0, 4096, 0, 0 }, { 401, 0, 4076, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+// Exit parameter1 packs this area's departure slot 1 and the tower's arrival slot 3.
+enum {
+    DRYFIELD_NIGHT_WATER_TANK_TOWER_EXIT_AREA           = 20,
+    DRYFIELD_NIGHT_WATER_TANK_TOWER_EXIT_ENDPOINTS      = 0x13,
+    DRYFIELD_NIGHT_WATER_TANK_RELOCATE_TO_VIEW_4_ACTION = 3,
+    DRYFIELD_NIGHT_WATER_TANK_RELOCATE_TO_VIEW_3_ACTION = 4,
+    DRYFIELD_NIGHT_WATER_TANK_START_HANDOVER_ACTION     = 5,
+};
+
+/// Eight room interactions: the tower exit, CAP commands and room action regions.
+///
+/// The exit packs departure slot 1 and tower arrival slot 3. CAP slots 12/14
+/// and room actions 3/4/5 select dialogue, the two relocations and handover;
+/// automatic actions 1/2 are ignored by this room's handler. Positions/radii
+/// use room game units and normals use 4096 per unit. LAST includes record 7;
+/// links, coordinates, flags and hit latches remain writable while active.
+static WorldCollisionTrigger _gDryfieldNightWaterTankActionTriggers[8] = {
+    { NULL, NULL, NULL, { -2449, -0x2F60, 640, 0 }, { { -728, 0, -256, 0 }, { 336, 0, -584, 0 }, { -624, 0, 680, 0 }, { 1016, 0, 160, 0 } }, { 0, 4096, 0, 0 }, { 401, 0, 4076, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, DRYFIELD_NIGHT_WATER_TANK_TOWER_EXIT_AREA, DRYFIELD_NIGHT_WATER_TANK_TOWER_EXIT_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2064, -0x2F20, -832, 0 }, { { -1448, 0, -160, 0 }, { 1088, 0, -680, 0 }, { -1376, 0, 776, 0 }, { 1736, 0, 64, 0 } }, { 0, 4105, 0, 0 }, { 401, 0, 4076, 0 }, 1736, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1620, -0x4040, -1538, 0 }, { { 985, 0, -789, 0 }, { 1431, 0, 313, 0 }, { -780, 0, 951, 0 }, { 316, 0, 1350, 0 } }, { 0, 4107, 0, 0 }, { 401, 0, 4076, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 1, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1488, -0x2F23, 16, 0 }, { { 231, 0, 659, 0 }, { 229, 0, -659, 0 }, { 1395, 0, 739, 0 }, { 1411, 0, -737, 0 } }, { 0, 4103, 0, 0 }, { 4094, 0, 0, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1620, -0x4040, -1538, 0 }, { { 985, 0, -789, 0 }, { 1431, 0, 313, 0 }, { -780, 0, 951, 0 }, { 316, 0, 1350, 0 } }, { 0, 4107, 0, 0 }, { 401, 0, 4076, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, CAP_EVENT_PAUSE_ACTORS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1488, -0x2F23, 16, 0 }, { { 231, 0, 659, 0 }, { 229, 0, -659, 0 }, { 1395, 0, 739, 0 }, { 1411, 0, -737, 0 } }, { 0, 4103, 0, 0 }, { 4094, 0, 0, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -656, -0x2F21, 2160, 0 }, { { -841, 0, 1091, 0 }, { -619, 0, -1091, 0 }, { 611, 0, 1171, 0 }, { 851, 0, -1169, 0 } }, { 0, 4100, 0, 0 }, { 4094, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1471, -0x2F40, 1471, 0 }, { { -485, 0, 321, 0 }, { 259, 0, -507, 0 }, { 13, 0, 1473, 0 }, { 1559, 0, -134, 0 } }, { 0, 4100, 0, 0 }, { 2750, 0, 3035, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1039, -0x4040, 1063, 0 }, { { 756, 0, -376, 0 }, { -379, 0, 767, 0 }, { 543, 0, -928, 0 }, { -920, 0, 537, 0 } }, { 0, 4102, 0, 0 }, { -3166, 0, -2599, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 576, -0x2F20, -1984, 0 }, { { 445, 0, 788, 0 }, { -788, 0, -221, 0 }, { 1897, 0, 504, 0 }, { -50, 0, -1395, 0 } }, { 0, 4102, 0, 0 }, { 4094, 0, 0, 0 }, 1962, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 1471, -0x2F40, 1471, 0 }, { { -485, 0, 321, 0 }, { 259, 0, -507, 0 }, { 13, 0, 1473, 0 }, { 1559, 0, -134, 0 } }, { 0, 4100, 0, 0 }, { 2750, 0, 3035, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_NIGHT_WATER_TANK_RELOCATE_TO_VIEW_4_ACTION, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1039, -0x4040, 1063, 0 }, { { 756, 0, -376, 0 }, { -379, 0, 767, 0 }, { 543, 0, -928, 0 }, { -920, 0, 537, 0 } }, { 0, 4102, 0, 0 }, { -3166, 0, -2599, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_NIGHT_WATER_TANK_RELOCATE_TO_VIEW_3_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 576, -0x2F20, -1984, 0 }, { { 445, 0, 788, 0 }, { -788, 0, -221, 0 }, { 1897, 0, 504, 0 }, { -50, 0, -1395, 0 } }, { 0, 4102, 0, 0 }, { 4094, 0, 0, 0 }, 1962, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_NIGHT_WATER_TANK_START_HANDOVER_ACTION, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_dryfield_night_water_tank_8018071C[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Empty resource list for placement variant 1, containing only AREA_PLACEMENT_END.
+static AreaResource _gDryfieldNightWaterTankDefaultResources[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_water_tank_80180728[3] = {
-    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor146300FigureTasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor resources for placement variant 10's handover figure and Mind Sucklers.
+///
+/// Placement entry 143 selects file 146300 and figure descriptor 0; entry 15
+/// selects base file 201500 and its Mind Suckler descriptor. Additional files
+/// follow each placement's low file ID. AREA_PLACEMENT_END follows both entries.
+/// Loading and spawning borrow this overlay and the loaded actor descriptors.
+static AreaResource _gDryfieldNightWaterTankBattleResources[3] = {
+    { .entryId = 143, .fileNumber = 463, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor146300FigureTasks },
+    { .entryId = 15, .fileNumber = 15, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor01500MindSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_water_tank_8018074C[2] = {
-    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor146300FigureTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor resource for placement variant 11's handover figure, then AREA_PLACEMENT_END.
+///
+/// Entry 143 selects file 146300 and figure descriptor 0. Loading and spawning
+/// borrow this overlay and the loaded actor's descriptor table.
+static AreaResource _gDryfieldNightWaterTankHandoverResources[2] = {
+    { .entryId = 143, .fileNumber = 463, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor146300FigureTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C228, D_dryfield_night_water_tank_8018071C },
+    { D_map_dryfield_full_8017C228, _gDryfieldNightWaterTankDefaultResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -600,12 +690,17 @@ AreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C238, D_dryfield_night_water_tank_80180728 },
-    { D_map_dryfield_full_8017C288, D_dryfield_night_water_tank_8018074C },
+    { D_map_dryfield_full_8017C238, _gDryfieldNightWaterTankBattleResources },
+    { D_map_dryfield_full_8017C288, _gDryfieldNightWaterTankHandoverResources },
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2] = {
+/// Two perpendicular room-space quads blocking line of sight through the tank area.
+///
+/// Positions/radii use game units and normals use 4096 per unit. LAST includes
+/// the second quad. Room setup mutates their links and enable flags; bit 0's
+/// role is unproven and retained. Storage stays live until both are unlinked.
+static WorldCollisionOccluder _gDryfieldNightWaterTankSightOccluders[2] = {
     { NULL, NULL, { -256, -0x35A0, 0, 0 }, { { -2080, 2560, 0, 0 }, { 2080, 2560, 0, 0 }, { -2080, -2560, 0, 0 }, { 2080, -2560, 0, 0 } }, { 0, 0, 4098, 0 }, 3298, 1, 0 },
     { NULL, NULL, { 0, -0x35A0, 0, 0 }, { { 0, 2560, 1840, 0 }, { 0, 2560, -1840, 0 }, { 0, -2560, 1840, 0 }, { 0, -2560, -1840, 0 } }, { 4113, 0, 0, 0 }, 3145, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -702,9 +797,17 @@ WorldCollisionSurfaceProperties* gDryfieldNightWaterTankSurfacePropertiesByClass
     &_gDryfieldNightWaterTankDefaultSurface,
 };
 
-AreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
-    { 3, 21, 11, 0 },
-    { 255, 0, 0, 0 },
+/// Saved-area update selecting the post-battle handover layout for stage 3 area 21.
+///
+/// All save modes receive variant 11, reset saved enemy poses and clear the map
+/// mark. AREA_APPLY_END follows the update. The aftermath task consumes the
+/// list synchronously once the pending battle reset permits its scene.
+static AreaApplyRec _gDryfieldNightWaterTankBattleAftermathAreaUpdates[2] = {
+    { .stage   = DRYFIELD_NIGHT_WATER_TANK_STAGE,
+      .area    = DRYFIELD_NIGHT_WATER_TANK_AREA,
+      .variant = DRYFIELD_NIGHT_WATER_TANK_HANDOVER_LAYOUT,
+      .policy  = AREA_APPLY_MODE_ALWAYS },
+    { .stage = AREA_APPLY_END },
 };
 
 static void _dryfieldNightWaterTankInitializeRoom(Task* task);
@@ -748,7 +851,7 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
         case DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_RESET:
             // Publish the handover progress only after the battle reset is ready.
             if (gGameSession->battleResetPending != 0) {
-                areaApplySavedUpdates(D_dryfield_night_water_tank_801808B0);
+                areaApplySavedUpdates(_gDryfieldNightWaterTankBattleAftermathAreaUpdates);
                 gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
                 evsStartScriptWithSkip(D_actor_146300_80137C28, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146300_80138570);
@@ -830,10 +933,10 @@ static s32 _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messag
 
     if ((gGameSession->location.loc.variant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
         if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_4) {
-            evsStartScript(D_dryfield_night_water_tank_8017DDD8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gDryfieldNightWaterTankRelocateToView4Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_3) {
-            evsStartScript(D_dryfield_night_water_tank_8017DEE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gDryfieldNightWaterTankRelocateToView3Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
     }
     if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_HANDOVER) {
@@ -864,14 +967,14 @@ static void _dryfieldNightWaterTankInitializeRoom(Task* task)
         DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT = 2,
     };
 
-    task->msgTable = D_dryfield_night_water_tank_8017DFE8;
+    task->msgTable = _gDryfieldNightWaterTankRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
+    taskSpawnFromTable(_gDryfieldNightWaterTankSwayTasks, 0, 0, 0);
     if ((u32)(gGameSession->location.loc.variant - DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT) {
         _dryfieldNightWaterTankRestoreTankCollision(0);
     }
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) {
-        taskSpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
+        taskSpawnFromTable(_gDryfieldNightWaterTankBattleAftermathTasks, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) {
         actor146300RestoreHandoverPose();
@@ -892,10 +995,11 @@ static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask)
     }
 }
 
-/// The room task's three states, run from a stack copy by
-/// `dryfieldNightWaterTankRoomTask`: the entry tick, the per-frame
-/// state, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
+/// Room-task handlers for initialization, the Ice Bag timer hold and teardown.
+///
+/// States 0..2 index this three-entry table, with no terminator. Dispatch copies
+/// all twelve bytes to the stack before invoking the selected callback.
+static const TaskFuncTable3 _gDryfieldNightWaterTankRoomStates = {
     { _dryfieldNightWaterTankInitializeRoom, _dryfieldNightWaterTankHoldIceBagTimerState, taskKill },
 };
 
@@ -903,7 +1007,7 @@ void dryfieldNightWaterTankRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_water_tank_8017D5C4;
+    stateHandlers = _gDryfieldNightWaterTankRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -925,7 +1029,7 @@ static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank)
     s32                       geometryIndex;
 
     roomGrid     = &_gDryfieldNightWaterTankCollisionGrid;
-    tankTemplate = &D_dryfield_night_water_tank_8017E08C;
+    tankTemplate = &_gDryfieldNightWaterTankObstacleCollisionGrid;
 
     // Restores the reserved obstacle prefix without rebuilding the room's cells.
     // Grid arguments are stable pointers, evaluated repeatedly; index is writable

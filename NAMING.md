@@ -748,6 +748,15 @@ rectangle, with 64 columns and a waving seam along X, in a reserved actor-load
 arena. Drawer instances are static; geometry and arena constants use
 `WATER_HOLE_`. The general refraction and distortion helpers keep `water`.
 
+`waterTank` owns the paired Dryfield water-tank rooms' included yaw sway and
+view-dependent model visibility, with `src/shared/water_tank.h` as its private
+implementation interface. Each overlay owns initialized yaw, velocity,
+acceleration and target-acceleration words shared by its room translation units
+for its overlay lifetime. Angles use eight fractional bits over 4096 units per
+turn; velocity accumulates acceleration
+before signed 19/20 damping. Room task recipes and collision templates retain
+their package identities.
+
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each

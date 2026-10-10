@@ -431,9 +431,9 @@ s32 gWaterTankYaw = 0;
 
 s32 gWaterTankYawSpeed = 0;
 
-s32 gWaterTankYawStep = 0;
+s32 gWaterTankYawAcceleration = 0;
 
-s32 gWaterTankYawTarget = 0;
+s32 gWaterTankYawTargetAcceleration = 0;
 
 u16 D_dryfield_water_tank_801868CC[10] = {
     0,

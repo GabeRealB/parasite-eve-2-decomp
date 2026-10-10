@@ -22,8 +22,8 @@ D_map_dryfield_8017B644 = 0x8017B644; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B664 = 0x8017B664; // absolute:True owner=map_dryfield
 gWaterTankYaw = 0x801868BC; // size:0x4 defined:True
 gWaterTankYawSpeed = 0x801868C0; // size:0x4 defined:True
-gWaterTankYawStep = 0x801868C4; // size:0x4 defined:True
-gWaterTankYawTarget = 0x801868C8; // size:0x4 defined:True
+gWaterTankYawAcceleration = 0x801868C4; // size:0x4 defined:True
+gWaterTankYawTargetAcceleration = 0x801868C8; // size:0x4 defined:True
 D_dryfield_water_tank_801868CC = 0x801868CC; // size:0x14 defined:True
 D_dryfield_water_tank_801868E0 = 0x801868E0; // size:0x10 defined:True
 gDryfieldWaterTankRoomViewMaps = 0x801868F0; // size:0x4 defined:True

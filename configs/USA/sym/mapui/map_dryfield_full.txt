@@ -126,7 +126,7 @@ D_dryfield_night_toilet_8017DAB8 = 0x8017DAB8; // absolute:True owner=dryfield_n
 gDryfieldNightToiletViewMaps = 0x8017DAC8; // absolute:True owner=dryfield_night_toilet shared=rooms
 gDryfieldNightToiletViewCounts = 0x8017DACC; // absolute:True owner=dryfield_night_toilet
 D_dryfield_night_toilet_8017DAD0 = 0x8017DAD0; // absolute:True owner=dryfield_night_toilet shared=rooms
-gDryfieldNightToiletViewCameras = 0x8017DDAC; // absolute:True owner=dryfield_night_toilet shared=rooms
+gDryfieldNightToiletViewCameras = 0x8017DDAC; // absolute:True owner=dryfield_night_toilet
 gDryfieldNightToiletSpriteViews = 0x8017EC40; // absolute:True owner=dryfield_night_toilet shared=rooms
 gDryfieldNightToiletSurfacePropertiesByClass = 0x8017F3D8; // absolute:True owner=dryfield_night_toilet
 dryfieldNightMotelLobbyRoomTask = 0x8017FE38; // type:func absolute:True owner=dryfield_night_motel_lobby
@@ -167,10 +167,10 @@ gDryfieldNightWaterTowerSpriteViews = 0x80182040; // absolute:True owner=dryfiel
 gDryfieldNightWaterTowerSurfacePropertiesByClass = 0x80182C30; // absolute:True owner=dryfield_night_water_tower
 dryfieldNightWaterTankRoomTask = 0x8017D984; // type:func absolute:True owner=dryfield_night_water_tank shared=rooms
 gDryfieldNightWaterTankRoomLighting = 0x8017EE50; // absolute:True owner=dryfield_night_water_tank
-D_dryfield_night_water_tank_8017EE58 = 0x8017EE58; // absolute:True owner=dryfield_night_water_tank shared=rooms
+gDryfieldNightWaterTankCollisionRooms = 0x8017EE58; // absolute:True owner=dryfield_night_water_tank shared=rooms
 gDryfieldNightWaterTankViewMaps = 0x8017EE74; // absolute:True owner=dryfield_night_water_tank
-D_dryfield_night_water_tank_8017EE78 = 0x8017EE78; // absolute:True owner=dryfield_night_water_tank
-D_dryfield_night_water_tank_8017EE7C = 0x8017EE7C; // absolute:True owner=dryfield_night_water_tank shared=rooms
+gDryfieldNightWaterTankViewCounts = 0x8017EE78; // absolute:True owner=dryfield_night_water_tank
+gDryfieldNightWaterTankWarpEntries = 0x8017EE7C; // absolute:True owner=dryfield_night_water_tank shared=rooms
 gDryfieldNightWaterTankViewCameras = 0x8017F4D4; // absolute:True owner=dryfield_night_water_tank
 gDryfieldNightWaterTankSpriteViews = 0x801801CC; // absolute:True owner=dryfield_night_water_tank shared=rooms
 gDryfieldNightWaterTankSurfacePropertiesByClass = 0x80180890; // absolute:True owner=dryfield_night_water_tank
@@ -215,7 +215,7 @@ gDryfieldNightJunkYardRoomLighting = 0x80180784; // absolute:True owner=dryfield
 D_dryfield_night_junk_yard_80180794 = 0x80180794; // absolute:True owner=dryfield_night_junk_yard shared=rooms
 gDryfieldNightJunkYardViewMaps = 0x801807C0; // absolute:True owner=dryfield_night_junk_yard
 D_dryfield_night_junk_yard_801807C8 = 0x801807C8; // absolute:True owner=dryfield_night_junk_yard shared=rooms
-D_dryfield_night_junk_yard_801807CC = 0x801807CC; // absolute:True owner=dryfield_night_junk_yard shared=rooms
+D_dryfield_night_junk_yard_801807CC = 0x801807CC; // absolute:True owner=dryfield_night_junk_yard
 D_dryfield_night_junk_yard_801811DC = 0x801811DC; // absolute:True owner=dryfield_night_junk_yard
 gDryfieldNightJunkYardSpriteViews = 0x80183700; // absolute:True owner=dryfield_night_junk_yard
 gDryfieldNightJunkYardSurfacePropertiesByClass = 0x801844C4; // absolute:True owner=dryfield_night_junk_yard
