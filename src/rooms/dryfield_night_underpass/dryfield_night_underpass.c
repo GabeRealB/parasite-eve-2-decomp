@@ -824,34 +824,59 @@ static AreaResource _gDryfieldNightUnderpassScavengerResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_underpass_80180294[2] = {
-    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_UNDERPASS_RESOURCE_MOSSBACK     = 11,
+    DRYFIELD_NIGHT_UNDERPASS_FILE_MOSSBACK         = 11,
+    DRYFIELD_NIGHT_UNDERPASS_RESOURCE_KNIGHT_GOLEM = 22,
+    DRYFIELD_NIGHT_UNDERPASS_FILE_KNIGHT_GOLEM     = 22,
+    DRYFIELD_NIGHT_UNDERPASS_RESOURCE_MIND_SUCKLER = 15,
+    DRYFIELD_NIGHT_UNDERPASS_FILE_MIND_SUCKLER     = 15,
 };
 
-AreaResource D_dryfield_night_underpass_801802AC[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Mossback resource recipes for placement variant 3.
+///
+/// Keys match `gMapDryfieldFullUnderpassVariant3Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightUnderpassVariant3Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_UNDERPASS_RESOURCE_MOSSBACK, .fileNumber = DRYFIELD_NIGHT_UNDERPASS_FILE_MOSSBACK, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor101100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_underpass_801802C4[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Knight Golem resource recipes for placement variant 7.
+///
+/// Keys match `gMapDryfieldFullUnderpassVariant7Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightUnderpassVariant7Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_UNDERPASS_RESOURCE_KNIGHT_GOLEM, .fileNumber = DRYFIELD_NIGHT_UNDERPASS_FILE_KNIGHT_GOLEM, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor402200GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Mind Suckler resource recipes for placement variant 11.
+///
+/// Keys match `gMapDryfieldFullUnderpassVariant11Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightUnderpassVariant11Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_UNDERPASS_RESOURCE_MIND_SUCKLER, .fileNumber = DRYFIELD_NIGHT_UNDERPASS_FILE_MIND_SUCKLER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor01500MindSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_underpass_801802DC[12] = {
     { NULL, NULL },
     { gMapDryfieldFullUnderpassVariant1Placements, _gDryfieldNightUnderpassGrayStalkerResources },
     { gMapDryfieldFullUnderpassVariant2Placements, _gDryfieldNightUnderpassScavengerResources },
-    { gMapDryfieldFullUnderpassVariant3Placements, D_dryfield_night_underpass_80180294 },
+    { gMapDryfieldFullUnderpassVariant3Placements, _gDryfieldNightUnderpassVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullUnderpassVariant7Placements, D_dryfield_night_underpass_801802AC },
+    { gMapDryfieldFullUnderpassVariant7Placements, _gDryfieldNightUnderpassVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullUnderpassVariant11Placements, D_dryfield_night_underpass_801802C4 },
+    { gMapDryfieldFullUnderpassVariant11Placements, _gDryfieldNightUnderpassVariant11Resources },
 };
 
 /// Cue-2 bases in the currently loaded type-1 bank; cue 1 uses the next entry.

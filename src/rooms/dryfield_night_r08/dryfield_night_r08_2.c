@@ -283,15 +283,29 @@ static WorldCoordRoomLights _gDryfieldNightR08RoomLights = {
     NULL,
 };
 
-AreaResource D_dryfield_night_r08_801818B4[3] = {
-    { 132, 357, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &gActor535700AyaWalkerTaskDesc },
-    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, PAIR_WALK_TASK_BODY, { 0, 0 }, gActor535700PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_R08_RESOURCE_AYA_WALKER = 132,
+    DRYFIELD_NIGHT_R08_FILE_AYA_WALKER     = 357,
+    DRYFIELD_NIGHT_R08_RESOURCE_PAWN_GOLEM = 20,
+    DRYFIELD_NIGHT_R08_FILE_PAWN_GOLEM     = 358,
+};
+
+/// Aya Walker and Pawn Golem resource recipes for placement variant 1.
+///
+/// Keys match `gMapDryfieldFullR08Variant1Placements`; AREA_PLACEMENT_END ends the list.
+/// File 535700 supplies both walkers' code/models; 535800 supplies golem textures.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightR08Variant1Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_R08_RESOURCE_AYA_WALKER, .fileNumber = DRYFIELD_NIGHT_R08_FILE_AYA_WALKER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = &gActor535700AyaWalkerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_R08_RESOURCE_PAWN_GOLEM, .fileNumber = DRYFIELD_NIGHT_R08_FILE_PAWN_GOLEM, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = PAIR_WALK_TASK_BODY, .taskTable = gActor535700PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_r08_801818D8[11] = {
     { NULL, NULL },
-    { gMapDryfieldFullR08Variant1Placements, D_dryfield_night_r08_801818B4 },
+    { gMapDryfieldFullR08Variant1Placements, _gDryfieldNightR08Variant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

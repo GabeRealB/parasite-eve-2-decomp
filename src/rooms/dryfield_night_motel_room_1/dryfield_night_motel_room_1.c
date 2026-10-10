@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_motel_room_1_private.h"
 
@@ -27,14 +27,15 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_night_motel_room_1_8017DA2C[];
-
 static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _dryfieldNightMotelRoom1IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_dryfield_night_motel_room_1_8017DA2C[5] = {
+/// Room transition, key-item refusal and ignored action/command message handlers.
+///
+/// Four handlers precede TASK_MESSAGE_TABLE_END; unsupported IDs return zero.
+/// The room task borrows this immutable table and its callbacks while loaded.
+static const TaskMessageEntry _gDryfieldNightMotelRoom1Messages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom1IgnoreRoomAction },
@@ -80,7 +81,7 @@ static s32 _dryfieldNightMotelRoom1IgnoreRoomAction(Task* unusedTask, s32 unused
 /// receive messages. Registration does not retain the task or clear on teardown.
 static void _dryfieldNightMotelRoom1InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_motel_room_1_8017DA2C;
+    task->msgTable = _gDryfieldNightMotelRoom1Messages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -93,14 +94,16 @@ static void _dryfieldNightMotelRoom1IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_night_motel_room_1_8017D5C4 = {
+/// Room-task state handlers: 0 registers the receiver, 1 idles, 2 releases it.
+///
+/// Copied in full onto the dispatcher stack; the unchecked state must be 0..2.
+static const TaskFuncTable3 _gDryfieldNightMotelRoom1RoomStates = {
     { _dryfieldNightMotelRoom1InitRoomTask, _dryfieldNightMotelRoom1IdleRoomTask, taskKill },
 };
 
 void dryfieldNightMotelRoom1RoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_dryfield_night_motel_room_1_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gDryfieldNightMotelRoom1RoomStates;
     stateHandlers.funcs[task->state](task);
 }
 

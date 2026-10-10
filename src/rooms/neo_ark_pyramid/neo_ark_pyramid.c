@@ -488,14 +488,32 @@ WorldCollisionTrigger D_neo_ark_pyramid_80181478[7] = {
     { NULL, NULL, NULL, { 6528, -64, -9792, 0 }, { { 416, 14, -1278, 0 }, { 416, -13, 1279, 0 }, { -416, 14, -1278, 0 }, { -416, -13, 1279, 0 } }, { 0, 4119, 39, 0 }, { -4096, 0, 0, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_pyramid_8018168C[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    NEO_ARK_PYRAMID_RESOURCE_BLACK_BEETLE = 38,
+    NEO_ARK_PYRAMID_FILE_BLACK_BEETLE     = 38,
+    NEO_ARK_PYRAMID_RESOURCE_MAGGOT       = 26,
+    NEO_ARK_PYRAMID_FILE_MAGGOT           = 26,
 };
 
-AreaResource D_neo_ark_pyramid_801816A4[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle resource recipes for placement variant 1.
+///
+/// Keys match `gMapNeoArkPyramidVariant1Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkPyramidVariant1Resources[2] = {
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_BLACK_BEETLE, .fileNumber = NEO_ARK_PYRAMID_FILE_BLACK_BEETLE, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Maggot resource recipes for placement variant 2.
+///
+/// Keys match `gMapNeoArkPyramidVariant2Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkPyramidVariant2Resources[2] = {
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_MAGGOT, .fileNumber = NEO_ARK_PYRAMID_FILE_MAGGOT, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor02600MaggotCaterpillarBodyTask },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_neo_ark_pyramid_801816BC[3] = {
@@ -518,8 +536,8 @@ AreaResource D_neo_ark_pyramid_80181704[3] = {
 
 AreaVariant D_neo_ark_pyramid_80181728[13] = {
     { NULL, NULL },
-    { gMapNeoArkPyramidVariant1Placements, D_neo_ark_pyramid_8018168C },
-    { gMapNeoArkPyramidVariant2Placements, D_neo_ark_pyramid_801816A4 },
+    { gMapNeoArkPyramidVariant1Placements, _gNeoArkPyramidVariant1Resources },
+    { gMapNeoArkPyramidVariant2Placements, _gNeoArkPyramidVariant2Resources },
     { gMapNeoArkPyramidVariant3Placements, D_neo_ark_pyramid_801816BC },
     { gMapNeoArkPyramidVariant4Placements, D_neo_ark_pyramid_801816E0 },
     { NULL, NULL },

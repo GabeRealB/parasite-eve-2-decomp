@@ -524,7 +524,7 @@ gShelterR48SurfacePropertiesByClass = 0x8018BE10; // absolute:True owner=shelter
 shelterR49RoomTask = 0x8017D6C4; // type:func absolute:True owner=shelter_r49 shared=rooms
 gShelterR49RoomCollisionResources = 0x8017DA18; // absolute:True owner=shelter_r49
 gShelterR49RoomViewMaps = 0x8017DA28; // absolute:True owner=shelter_r49
-gShelterR49RoomViewCounts = 0x8017DA2C; // absolute:True owner=shelter_r49 shared=rooms
+gShelterR49RoomViewCounts = 0x8017DA2C; // absolute:True owner=shelter_r49
 gShelterR49RoomLighting = 0x8017DA30; // absolute:True owner=shelter_r49 shared=rooms
 gShelterR49WarpEntries = 0x8017DA38; // absolute:True owner=shelter_r49
 gShelterR49ViewCameras = 0x8017DAD0; // absolute:True owner=shelter_r49 shared=rooms

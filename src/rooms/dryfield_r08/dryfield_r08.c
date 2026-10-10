@@ -56,8 +56,6 @@ static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale,
 
 static WorldCollisionGrid _gDryfieldR08CollisionGrid;
 
-extern AreaResource D_dryfield_r08_80180B70[2];
-
 /// World-space glow centres of the twelve lamps, in their shattering order.
 ///
 /// Coordinates are signed integer world units. The cutoff skips a shattered
@@ -641,14 +639,25 @@ static WorldCoordRoomLights _gDryfieldR08AlternateRoomLights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_r08_80180B70[2] = {
-    { 132, 213, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor121300SceneTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    DRYFIELD_R08_RESOURCE_AYA_DOUBLE_SCENE = 132,
+    DRYFIELD_R08_FILE_AYA_DOUBLE_SCENE     = 213,
+};
+
+/// Aya Double Scene resource recipes for placement variant 1.
+///
+/// Keys match `gMapDryfieldR08Variant1Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldR08Variant1Resources[2] = {
+    { .entryId = DRYFIELD_R08_RESOURCE_AYA_DOUBLE_SCENE, .fileNumber = DRYFIELD_R08_FILE_AYA_DOUBLE_SCENE, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor121300SceneTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_r08_80180B88[13] = {
     { NULL, NULL },
-    { gMapDryfieldR08Variant1Placements, D_dryfield_r08_80180B70 },
+    { gMapDryfieldR08Variant1Placements, _gDryfieldR08Variant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

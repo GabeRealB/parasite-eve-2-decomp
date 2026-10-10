@@ -502,72 +502,123 @@ static AreaResource _gMineTunnelVariant11Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_tunnel_8017FF6C[6] = {
-    { 16, 0, 2, 6692, 0, 1952, 1024, 0, 0, 2, 0 },
-    { 16, 1, 1, 6116, 0, 2784, 1024, 0, 0, 2, 0 },
-    { 16, 0, 2, 0x2764, 0, 1216, 1024, 0, 0, 2, 0 },
-    { 16, 1, 1, 9500, 0, 600, 1024, 0, 0, 2, 0 },
-    { 16, 0, 2, 0x2884, 0, 512, 1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Actor-specific placement modes and rows used by the tunnel's layouts.
+///
+/// Scavenger variants choose recovery or a leap on the first-wave cue; their
+/// second-wave positions are selected by placement index 0..4. Scorpion rows
+/// index eight-entry turn/speed tables; bat rows index its eight turn rates.
+enum {
+    MINE_TUNNEL_SCAVENGER_ACTIVE             = 0,
+    MINE_TUNNEL_SCAVENGER_FIRST_WAVE         = 1,
+    MINE_TUNNEL_SCAVENGER_SECOND_WAVE        = 2,
+    MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY      = 0,
+    MINE_TUNNEL_SCAVENGER_WAVE_LEAP          = 1,
+    MINE_TUNNEL_SCORPION_ROAM                = 0,
+    MINE_TUNNEL_SCORPION_ROW_0               = 0,
+    MINE_TUNNEL_SCORPION_ROW_2               = 2,
+    MINE_TUNNEL_BAT_WANDER                   = 0,
+    MINE_TUNNEL_BAT_PERCH_BACK               = 2,
+    MINE_TUNNEL_BAT_TURN_ROW_0               = 0,
+    MINE_TUNNEL_BAT_TURN_ROW_5               = 5,
+    MINE_TUNNEL_MIND_SUCKLER_PERCHED         = 0,
+    MINE_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH = 2,
 };
 
-AreaPlacement D_mine_tunnel_8017FFCC[6] = {
-    { 16, 0, 0, 4400, -850, 1150, 3600, 0, 0, 2, 0 },
-    { 16, 0, 0, 5550, 0, 1200, 1300, 0, 0, 2, 0 },
-    { 16, 0, 0, 5000, 0, 1900, 350, 0, 0, 2, 0 },
-    { 16, 0, 0, 9300, 0, 2600, 2250, 0, 0, 2, 0 },
-    { 16, 0, 0, 0x2F44, 0, 600, 3150, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Five staged Scavengers for tunnel variant 1, followed by AREA_PLACEMENT_END.
+///
+/// Indices 1/3 start at the first-wave cue; 0/2/4 wait for the second wave.
+/// Positions are world units and yaw is 4096 per turn. The base file's textures
+/// use page offset 0 and CLUT-row offset 2. Placed actors borrow these records
+/// for their lifetime, including index-based second-wave entry positions.
+static AreaPlacement _gMineTunnelVariant1Placements[6] = {
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_SECOND_WAVE, .x = 6692, .y = 0, .z = 1952, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_LEAP, .mode = MINE_TUNNEL_SCAVENGER_FIRST_WAVE, .x = 6116, .y = 0, .z = 2784, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_SECOND_WAVE, .x = 0x2764, .y = 0, .z = 1216, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_LEAP, .mode = MINE_TUNNEL_SCAVENGER_FIRST_WAVE, .x = 9500, .y = 0, .z = 600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_SECOND_WAVE, .x = 0x2884, .y = 0, .z = 512, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_tunnel_8018002C[11] = {
-    { 25, 0, 0, 3000, 0, 650, 3350, 0, 0, 2, 2 },
-    { 25, 0, 0, 3700, 0, 2750, 2850, 0, 0, 2, 2 },
-    { 25, 0, 0, 7700, 0, 1050, 3000, 0, 0, 2, 2 },
-    { 37, 0, 2, 9400, -2300, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 9200, -2100, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 8900, -2500, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 8200, -2100, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 7800, -1800, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 7400, -2500, 2900, 0, 0, 2, 4, 5 },
-    { 37, 0, 2, 7000, -2000, 2900, 0, 0, 2, 4, 5 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Five immediately active Scavengers for variant 2, then AREA_PLACEMENT_END.
+///
+/// Positions are world units, yaw is 4096 per turn, and base-file textures use
+/// page offset 0 and CLUT-row offset 2. Keep the room and actor overlays loaded
+/// while the spawned actors borrow these placement records.
+static AreaPlacement _gMineTunnelVariant2Placements[6] = {
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_ACTIVE, .x = 4400, .y = -850, .z = 1150, .yaw = 3600, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_ACTIVE, .x = 5550, .y = 0, .z = 1200, .yaw = 1300, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_ACTIVE, .x = 5000, .y = 0, .z = 1900, .yaw = 350, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_ACTIVE, .x = 9300, .y = 0, .z = 2600, .yaw = 2250, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_SCAVENGER, .variant = MINE_TUNNEL_SCAVENGER_WAVE_RECOVERY, .mode = MINE_TUNNEL_SCAVENGER_ACTIVE, .x = 0x2F44, .y = 0, .z = 600, .yaw = 3150, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_tunnel_801800DC[8] = {
-    { 25, 0, 0, 4600, 0, 3000, 3072, 0, 0, 2, 2 },
-    { 25, 0, 0, 7500, 0, 1000, 3072, 0, 0, 2, 2 },
-    { 25, 0, 0, 5500, 0, 1200, 0, 0, 0, 2, 2 },
-    { 15, 0, 2, 5000, -2000, 150, 2048, 0, 2, 4, 0 },
-    { 15, 0, 2, 6500, -2000, 3050, 0, 0, 2, 4, 0 },
-    { 15, 0, 2, 9000, -2000, 150, 2048, 0, 2, 4, 0 },
-    { 15, 0, 2, 0x32C8, -1600, 200, 2048, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Three roaming Scorpions and seven rear-perched Bats for tunnel variant 3.
+///
+/// Scorpions use parameter row 2; Bats use turn-rate row 5 (both within 0..7).
+/// World-unit positions and 4096-unit yaw precede base-file texture offsets:
+/// Scorpions page/CLUT 0/2, Bats 2/4. AREA_PLACEMENT_END follows ten actors;
+/// records remain borrowed by their actors until teardown.
+static AreaPlacement _gMineTunnelVariant3Placements[11] = {
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 3000, .y = 0, .z = 650, .yaw = 3350, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 3700, .y = 0, .z = 2750, .yaw = 2850, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 7700, .y = 0, .z = 1050, .yaw = 3000, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 9400, .y = -2300, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 9200, .y = -2100, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 8900, .y = -2500, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 8200, .y = -2100, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 7800, .y = -1800, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 7400, .y = -2500, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_PERCH_BACK, .x = 7000, .y = -2000, .z = 2900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_5 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_tunnel_8018015C[7] = {
-    { 25, 0, 0, 4600, 0, 3000, 3072, 0, 0, 2, 0 },
-    { 25, 0, 0, 7500, 0, 1000, 3072, 0, 0, 2, 0 },
-    { 25, 0, 0, 5500, 0, 1200, 0, 0, 0, 2, 0 },
-    { 37, 0, 0, 2100, -1800, 2000, 1024, 0, 2, 4, 0 },
-    { 37, 0, 0, 6100, -1800, 1400, 0, 0, 2, 4, 0 },
-    { 37, 0, 0, 9600, -1800, 1800, 2048, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Three roaming Scorpions and four wall-perched Mind Sucklers for variant 4.
+///
+/// Scorpions use row 2; Mind Suckler mode 2 suppresses wall re-perching and
+/// ignores rowIndex. Positions are world units and yaw is 4096 per turn;
+/// base textures use page/CLUT offsets 0/2 and 2/4 respectively. Seven actors
+/// precede AREA_PLACEMENT_END; actors borrow the records while loaded.
+static AreaPlacement _gMineTunnelVariant4Placements[8] = {
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 4600, .y = 0, .z = 3000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 7500, .y = 0, .z = 1000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 5500, .y = 0, .z = 1200, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_2 },
+    { .entryId = MINE_TUNNEL_RESOURCE_MIND_SUCKLER, .variant = MINE_TUNNEL_MIND_SUCKLER_PERCHED, .mode = MINE_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, .x = 5000, .y = -2000, .z = 150, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_MIND_SUCKLER, .variant = MINE_TUNNEL_MIND_SUCKLER_PERCHED, .mode = MINE_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, .x = 6500, .y = -2000, .z = 3050, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_MIND_SUCKLER, .variant = MINE_TUNNEL_MIND_SUCKLER_PERCHED, .mode = MINE_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, .x = 9000, .y = -2000, .z = 150, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_MIND_SUCKLER, .variant = MINE_TUNNEL_MIND_SUCKLER_PERCHED, .mode = MINE_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, .x = 0x32C8, .y = -1600, .z = 200, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Three roaming Scorpions and three wandering Bats for tunnel variant 11.
+///
+/// Both use parameter row 0 within their eight-entry tables. Positions are
+/// world units and yaw is 4096 per turn; base textures use page/CLUT offsets
+/// 0/2 and 2/4 respectively. Six actors precede AREA_PLACEMENT_END; retain
+/// this room's placement storage until every borrowing actor is destroyed.
+static AreaPlacement _gMineTunnelVariant11Placements[7] = {
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 4600, .y = 0, .z = 3000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 7500, .y = 0, .z = 1000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_ACTOR_102500, .variant = 0, .mode = MINE_TUNNEL_SCORPION_ROAM, .x = 5500, .y = 0, .z = 1200, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MINE_TUNNEL_SCORPION_ROW_0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_WANDER, .x = 2100, .y = -1800, .z = 2000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_WANDER, .x = 6100, .y = -1800, .z = 1400, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_0 },
+    { .entryId = MINE_TUNNEL_RESOURCE_BAT, .variant = 0, .mode = MINE_TUNNEL_BAT_WANDER, .x = 9600, .y = -1800, .z = 1800, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MINE_TUNNEL_BAT_TURN_ROW_0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_mine_tunnel_801801CC[12] = {
     { NULL, NULL },
-    { D_mine_tunnel_8017FF6C, _gMineTunnelVariant1Resources },
-    { D_mine_tunnel_8017FFCC, _gMineTunnelVariant2Resources },
-    { D_mine_tunnel_8018002C, _gMineTunnelVariant3Resources },
-    { D_mine_tunnel_801800DC, _gMineTunnelVariant4Resources },
+    { _gMineTunnelVariant1Placements, _gMineTunnelVariant1Resources },
+    { _gMineTunnelVariant2Placements, _gMineTunnelVariant2Resources },
+    { _gMineTunnelVariant3Placements, _gMineTunnelVariant3Resources },
+    { _gMineTunnelVariant4Placements, _gMineTunnelVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_mine_tunnel_8018015C, _gMineTunnelVariant11Resources },
+    { _gMineTunnelVariant11Placements, _gMineTunnelVariant11Resources },
 };
 
 /// Header and five logical-view ambient minima, at 16 units per 8-bit colour level.

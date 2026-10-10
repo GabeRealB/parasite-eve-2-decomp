@@ -51,38 +51,65 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern AreaApplyRec D_neo_ark_garden_80182BF8[];
 
-extern AreaResource D_neo_ark_garden_80182AE8[2];
-extern AreaResource D_neo_ark_garden_80182B00[2];
-extern AreaResource D_neo_ark_garden_80182B18[3];
-extern AreaResource D_neo_ark_garden_80182B3C[2];
-
-AreaResource D_neo_ark_garden_80182AE8[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    NEO_ARK_GARDEN_RESOURCE_BLACK_BEETLE = 38,
+    NEO_ARK_GARDEN_FILE_BLACK_BEETLE     = 38,
+    NEO_ARK_GARDEN_RESOURCE_AYA_WALKER   = 132,
+    NEO_ARK_GARDEN_FILE_AYA_WALKER       = 510,
+    NEO_ARK_GARDEN_RESOURCE_MOSSBACK     = 49,
+    NEO_ARK_GARDEN_FILE_MOSSBACK         = 49,
+    NEO_ARK_GARDEN_RESOURCE_AMOEBA       = 24,
+    NEO_ARK_GARDEN_FILE_AMOEBA           = 24,
 };
 
-AreaResource D_neo_ark_garden_80182B00[2] = {
-    { 132, 510, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor151000WalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle resource recipes for placement variant 1.
+///
+/// Pairs with the map's variant-1 placements and ends at AREA_PLACEMENT_END.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkGardenVariant1Resources[2] = {
+    { .entryId = NEO_ARK_GARDEN_RESOURCE_BLACK_BEETLE, .fileNumber = NEO_ARK_GARDEN_FILE_BLACK_BEETLE, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_garden_80182B18[3] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Aya Walker resource recipes for placement variant 2.
+///
+/// Pairs with the map's variant-2 placements and ends at AREA_PLACEMENT_END.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkGardenVariant2Resources[2] = {
+    { .entryId = NEO_ARK_GARDEN_RESOURCE_AYA_WALKER, .fileNumber = NEO_ARK_GARDEN_FILE_AYA_WALKER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor151000WalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_garden_80182B3C[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle and Brute Mossback resource recipes for placement variant 3.
+///
+/// Six beetles and one Brute Mossback share this terminated recipe list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkGardenVariant3Resources[3] = {
+    { .entryId = NEO_ARK_GARDEN_RESOURCE_BLACK_BEETLE, .fileNumber = NEO_ARK_GARDEN_FILE_BLACK_BEETLE, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = NEO_ARK_GARDEN_RESOURCE_MOSSBACK, .fileNumber = NEO_ARK_GARDEN_FILE_MOSSBACK, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor01100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Amoeba resource recipes for placement variant 4.
+///
+/// Pairs with the map's variant-4 placements and ends at AREA_PLACEMENT_END.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gNeoArkGardenVariant4Resources[2] = {
+    { .entryId = NEO_ARK_GARDEN_RESOURCE_AMOEBA, .fileNumber = NEO_ARK_GARDEN_FILE_AMOEBA, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_garden_80182B54[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B630, D_neo_ark_garden_80182AE8 },
-    { D_map_neo_ark_8017B6E0, D_neo_ark_garden_80182B00 },
-    { D_map_neo_ark_8017B700, D_neo_ark_garden_80182B18 },
-    { D_map_neo_ark_8017B780, D_neo_ark_garden_80182B3C },
+    { D_map_neo_ark_8017B630, _gNeoArkGardenVariant1Resources },
+    { D_map_neo_ark_8017B6E0, _gNeoArkGardenVariant2Resources },
+    { D_map_neo_ark_8017B700, _gNeoArkGardenVariant3Resources },
+    { D_map_neo_ark_8017B780, _gNeoArkGardenVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

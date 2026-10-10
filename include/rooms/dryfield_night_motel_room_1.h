@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_motel_room_1_8018075C[22];
+/// Night motel room 1's placement variants, indexed by GameLocationKey.variant.
+///
+/// Slots 1, 2 and 21 pair the night map's placements with this room's recipes;
+/// slots 0 and 3..20 are absent (both pointers NULL). The unchecked index must
+/// be 0..21. Gameplay's stage-3 area-11 record borrows this directory; keep the
+/// room and map overlays loaded while their tables or placed actors are used.
+extern AreaVariant gDryfieldNightMotelRoom1AreaVariants[22];
 
 /// Two room-indexed lighting records sharing night motel room 1's authored lights.
 ///
@@ -20,7 +26,12 @@ extern AreaVariant D_dryfield_night_motel_room_1_8018075C[22];
 /// night map borrows these records only while this room overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom1RoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_1_8017DA74[];
+/// Two room-indexed descriptors sharing night motel room 1's collision resources.
+///
+/// Rooms 1..2 select room - 1. Both borrow the same grid, eight view boundaries,
+/// seven action triggers and one sight occluder. Setup mutates and links the
+/// resources; keep the room overlay loaded until its active lists are cleared.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom1RoomCollisionResources[2];
 
 /// Night motel room 1's single-room directory of logical-view byte maps.
 ///
@@ -30,9 +41,20 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_room_1_8017DA74[];
 /// neither pointer may outlive the loaded room overlay.
 extern u8* gDryfieldNightMotelRoom1ViewMaps[1];
 
-extern ViewCount D_dryfield_night_motel_room_1_8017DAA4[];
+/// Room 1's logical-view search count: nine entries in its view map.
+///
+/// The night map borrows this signed-halfword array at room - 1 (room 1 only).
+/// This count excludes the map's three trailing zeros and is independent of
+/// mapped camera indices. Keep this room overlay loaded during lookups.
+extern ViewCount gDryfieldNightMotelRoom1ViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_1_8017DAA8[];
+/// Motel-door warp endpoint, selected by 1-based warp ID 1.
+///
+/// Player and companion arrive at the same world position with yaw 3072
+/// (4096 units per turn), logical view 2, door sounds and map marker 487.
+/// The night map borrows this one-entry array; direction handling copies each
+/// complete endpoint and requires the room overlay loaded during lookup.
+extern DirectionWarpEntry gDryfieldNightMotelRoom1Warps[1];
 
 /// Nine cameras for nighttime motel room 1.
 ///

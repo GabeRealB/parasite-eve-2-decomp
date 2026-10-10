@@ -483,9 +483,20 @@ static WorldCollisionTrigger _gMineRefugeActionTriggers[6] = {
     { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_REFUGE_TRIGGER_CAP_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_refuge_801829D8[2] = {
-    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &gActor548100PanelTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    MINE_REFUGE_RESOURCE_CIRCUIT_PANEL = 101,
+    MINE_REFUGE_FILE_CIRCUIT_PANEL     = 481,
+};
+
+/// Circuit Panel resource recipes for placement variant 1.
+///
+/// Loads the circuit-panel overlay even though the paired default placements
+/// contain only AREA_PLACEMENT_END; this layout spawns no actors. The room
+/// starts the panel task separately after its descriptor overlay is loaded.
+static AreaResource _gMineRefugeVariant1Resources[2] = {
+    { .entryId = MINE_REFUGE_RESOURCE_CIRCUIT_PANEL, .fileNumber = MINE_REFUGE_FILE_CIRCUIT_PANEL, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = &gActor548100PanelTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Terminator-only default layout: no actors are spawned from placement records.
@@ -497,7 +508,7 @@ static AreaPlacement _gMineRefugeDefaultPlacements[1] = {
 
 AreaVariant D_mine_refuge_80182A00[11] = {
     { NULL, NULL },
-    { _gMineRefugeDefaultPlacements, D_mine_refuge_801829D8 },
+    { _gMineRefugeDefaultPlacements, _gMineRefugeVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

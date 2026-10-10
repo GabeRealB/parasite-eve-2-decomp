@@ -2361,15 +2361,28 @@ WorldCoordRoomLights gMistShootingGalleryAlternateRoomLights = {
     .coneLights            = _gMistShootingGalleryAlternateConeLights,
 };
 
-AreaResource D_mist_shooting_gallery_8018DF50[3] = {
-    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107600TaskDescriptors },
-    { 143, 151, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor215100PierceTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    MIST_SHOOTING_GALLERY_RESOURCE_TARGET_MOUNT = 76,
+    MIST_SHOOTING_GALLERY_FILE_TARGET_MOUNT     = 76,
+    MIST_SHOOTING_GALLERY_RESOURCE_PIERCE       = 143,
+    MIST_SHOOTING_GALLERY_FILE_PIERCE           = 151,
+};
+
+/// Target Mount and Pierce resource recipes for placement variant 1.
+///
+/// Pairs with the map's variant-1 placements and ends at AREA_PLACEMENT_END.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gMistShootingGalleryVariant1Resources[3] = {
+    { .entryId = MIST_SHOOTING_GALLERY_RESOURCE_TARGET_MOUNT, .fileNumber = MIST_SHOOTING_GALLERY_FILE_TARGET_MOUNT, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_107600_TASK_MOUNT, .taskTable = gActor107600TaskDescriptors },
+    { .entryId = MIST_SHOOTING_GALLERY_RESOURCE_PIERCE, .fileNumber = MIST_SHOOTING_GALLERY_FILE_PIERCE, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = ACTOR_215100_PIERCE_BODY_TASK, .taskTable = gActor215100PierceTaskDescs },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_mist_shooting_gallery_8018DF74[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BDEC, D_mist_shooting_gallery_8018DF50 },
+    { D_map_akropolis_8017BDEC, _gMistShootingGalleryVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

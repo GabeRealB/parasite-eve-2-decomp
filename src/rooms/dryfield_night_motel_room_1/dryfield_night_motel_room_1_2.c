@@ -10,6 +10,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/light.h"
@@ -18,6 +19,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
@@ -37,9 +39,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom1SpotLightStorage, 432);
 
 static WorldCollisionGrid     _gDryfieldNightMotelRoom1CollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_8017FF04[8];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_801804AC[7];
+static WorldCollisionOccluder _gDryfieldNightMotelRoom1SightOccluders[1];
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom1ViewBoundaries[8];
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom1ActionTriggers[7];
 static WorldCoordRoomLights   _gDryfieldNightMotelRoom1RoomLights;
 
 /// Large textured-flare centre for mapped views 2, 3, 8 and 9, in world units.
@@ -53,9 +55,9 @@ WorldCoordRoomLighting gDryfieldNightMotelRoom1RoomLighting[2] = {
     { .lights = &_gDryfieldNightMotelRoom1RoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_motel_room_1_8017DA74[2] = {
-    { &_gDryfieldNightMotelRoom1CollisionGrid, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
-    { &_gDryfieldNightMotelRoom1CollisionGrid, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
+WorldCollisionRoomResources gDryfieldNightMotelRoom1RoomCollisionResources[2] = {
+    { .grid = &_gDryfieldNightMotelRoom1CollisionGrid, .viewBoundaryTriggers = _gDryfieldNightMotelRoom1ViewBoundaries, .actionTriggers = _gDryfieldNightMotelRoom1ActionTriggers, .occluders = _gDryfieldNightMotelRoom1SightOccluders },
+    { .grid = &_gDryfieldNightMotelRoom1CollisionGrid, .viewBoundaryTriggers = _gDryfieldNightMotelRoom1ViewBoundaries, .actionTriggers = _gDryfieldNightMotelRoom1ActionTriggers, .occluders = _gDryfieldNightMotelRoom1SightOccluders },
 };
 
 /// Maps logical views 1..9 to the room's 1-based camera, image and sprite indices.
@@ -82,10 +84,28 @@ u8* gDryfieldNightMotelRoom1ViewMaps[1] = {
     _gDryfieldNightMotelRoom1LogicalViewMap,
 };
 
-ViewCount D_dryfield_night_motel_room_1_8017DAA4[1] = { 9 };
+enum { DRYFIELD_NIGHT_MOTEL_ROOM_1_LOGICAL_VIEW_COUNT = 9 };
 
-DirectionWarpEntry D_dryfield_night_motel_room_1_8017DAA8[1] = {
-    { { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, 0x530B0002, 0x530B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 487 },
+ViewCount gDryfieldNightMotelRoom1ViewCounts[1] = { DRYFIELD_NIGHT_MOTEL_ROOM_1_LOGICAL_VIEW_COUNT };
+
+/// Sound requests and map-marker index belonging to the motel-door endpoint.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_ARRIVAL_SOUND   = 0x530B0002,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_DEPARTURE_SOUND = 0x530B0001,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_MAP_FLAG        = 487,
+};
+
+DirectionWarpEntry gDryfieldNightMotelRoom1Warps[1] = {
+    {
+        .player         = { { .word = 3072 }, 4369, 0, 3388 },
+        .companion      = { { .word = 3072 }, 4369, 0, 3388 },
+        .arrivalSound   = DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_MAP_FLAG,
+    },
 };
 
 /// Cell counts along the room grid's X and Z axes.
@@ -668,15 +688,21 @@ SpriteView gDryfieldNightMotelRoom1SpriteViews[9] = {
     { { .elements = _gDryfieldNightMotelRoom1View9SpriteSources }, _gDryfieldNightMotelRoom1View9SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_1_8017FF04[8] = {
-    { NULL, NULL, NULL, { 2527, -1344, 2927, 0 }, { { 22, 1888, 1715, 0 }, { 22, -1888, 1715, 0 }, { -23, 1888, -1716, 0 }, { -23, -1888, -1716, 0 } }, { -4104, 0, 53, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2368, -1232, 2880, 0 }, { { -23, 1808, -1716, 0 }, { -23, -1808, -1716, 0 }, { 22, 1808, 1715, 0 }, { 22, -1808, 1715, 0 } }, { 4108, 0, -55, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4047, -1264, 4559, 0 }, { { -995, 1776, -5, 0 }, { -995, -1776, -5, 0 }, { 995, 1776, 5, 0 }, { 995, -1776, 5, 0 } }, { 19, 0, -4105, 0 }, { 0, 0, 4096, 0 }, 2031, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4095, -1248, 4463, 0 }, { { 1011, 1792, -11, 0 }, { 1011, -1792, -11, 0 }, { -1011, 1792, 11, 0 }, { -1011, -1792, 11, 0 } }, { 43, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 2048, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3200, -1280, 5632, 0 }, { { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 }, { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 } }, { 4101, 0, 19, 0 }, { 0, 0, 4096, 0 }, 2031, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3296, -1344, 5824, 0 }, { { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 }, { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 } }, { -4105, 0, -22, 0 }, { 0, 0, 4096, 0 }, 2031, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1920, -1312, 5472, 0 }, { { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 }, { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 } }, { -4105, 0, -22, 0 }, { 0, 0, 4096, 0 }, 2031, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1760, -1344, 5504, 0 }, { { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 }, { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 } }, { 4101, 0, 19, 0 }, { 0, 0, 4096, 0 }, 2031, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries for logical-view pairs 2/3, 2/4, 4/5 and 5/6.
+///
+/// Each direction has its own quad; the eighth record carries LAST and is live.
+/// Origins/corners use room units and normals use ONE per unit. Room binding
+/// writes coordinates, links, flags and hit latches; storage stays mutable
+/// until the active view-boundary list is cleared before unloading the room.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom1ViewBoundaries[8] = {
+    { NULL, NULL, NULL, { 2527, -1344, 2927, 0 }, { { 22, 1888, 1715, 0 }, { 22, -1888, 1715, 0 }, { -23, 1888, -1716, 0 }, { -23, -1888, -1716, 0 } }, { -4104, 0, 53, 0 }, { 0, 0, ONE, 0 }, 2547, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2368, -1232, 2880, 0 }, { { -23, 1808, -1716, 0 }, { -23, -1808, -1716, 0 }, { 22, 1808, 1715, 0 }, { 22, -1808, 1715, 0 } }, { 4108, 0, -55, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4047, -1264, 4559, 0 }, { { -995, 1776, -5, 0 }, { -995, -1776, -5, 0 }, { 995, 1776, 5, 0 }, { 995, -1776, 5, 0 } }, { 19, 0, -4105, 0 }, { 0, 0, ONE, 0 }, 2031, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4095, -1248, 4463, 0 }, { { 1011, 1792, -11, 0 }, { 1011, -1792, -11, 0 }, { -1011, 1792, 11, 0 }, { -1011, -1792, 11, 0 } }, { 43, 0, 4095, 0 }, { 0, 0, ONE, 0 }, 2048, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3200, -1280, 5632, 0 }, { { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 }, { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 } }, { 4101, 0, 19, 0 }, { 0, 0, ONE, 0 }, 2031, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3296, -1344, 5824, 0 }, { { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 }, { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 } }, { -4105, 0, -22, 0 }, { 0, 0, ONE, 0 }, 2031, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1920, -1312, 5472, 0 }, { { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 }, { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 } }, { -4105, 0, -22, 0 }, { 0, 0, ONE, 0 }, 2031, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1760, -1344, 5504, 0 }, { { 5, 1776, -995, 0 }, { 5, -1776, -995, 0 }, { -5, 1776, 995, 0 }, { -5, -1776, 995, 0 } }, { 4101, 0, 19, 0 }, { 0, 0, ONE, 0 }, 2031, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Four point lights shading models in every view of night motel room 1.
@@ -1106,60 +1132,102 @@ static WorldCoordRoomLights _gDryfieldNightMotelRoom1RoomLights = {
     .coneLights            = _gDryfieldNightMotelRoom1SpotLightStorage.coneLights,
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7] = {
-    { NULL, NULL, NULL, { 4704, -48, 3568, 0 }, { { -416, 0, -592, 0 }, { 416, 0, -592, 0 }, { -416, 0, 592, 0 }, { 416, 0, 592, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 384, -64, 3152, 0 }, { { -224, 0, -368, 0 }, { 224, 0, -368, 0 }, { -224, 0, 368, 0 }, { 224, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 430, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1984, -64, 3760, 0 }, { { -640, 0, -416, 0 }, { 160, 0, -416, 0 }, { -640, 0, 416, 0 }, { 1120, 0, 416, 0 } }, { 0, 4105, 0, 0 }, { 995, 0, -3973, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 688, -64, 3616, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2656, -64, 5664, 0 }, { { -416, 0, -304, 0 }, { 416, 0, -304, 0 }, { -416, 0, 304, 0 }, { 416, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1728, -64, 5664, 0 }, { { -416, 0, -304, 0 }, { 416, 0, -304, 0 }, { -416, 0, 304, 0 }, { 416, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4160, -64, 5568, 0 }, { { -736, 0, -304, 0 }, { 736, 0, -304, 0 }, { -736, 0, 304, 0 }, { 736, 0, 304, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Current door slot 1 and Main Street arrival slot 2, packed high/low nibble.
+enum { DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_WARP_SLOTS = (1 << 4) | 2 };
+
+/// Motel-door warp and six facing-gated CAP interactions for night room 1.
+///
+/// Warp requests area 2, departure slot 1 and destination slot 2. CAP indices
+/// are 4, 8, 6, 7, 6 and 1 with default presentation flags. The seventh record
+/// is live and carries LAST. Room-space geometry uses ONE-scaled normals;
+/// binding and contact handling mutate links, coordinates, flags and latches.
+/// Keep this storage loaded until the active action-trigger list is cleared.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom1ActionTriggers[7] = {
+    { NULL, NULL, NULL, { 4704, -48, 3568, 0 }, { { -416, 0, -592, 0 }, { 416, 0, -592, 0 }, { -416, 0, 592, 0 }, { 416, 0, 592, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, DRYFIELD_NIGHT_MOTEL_ROOM_1_DOOR_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 384, -64, 3152, 0 }, { { -224, 0, -368, 0 }, { 224, 0, -368, 0 }, { -224, 0, 368, 0 }, { 224, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 430, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1984, -64, 3760, 0 }, { { -640, 0, -416, 0 }, { 160, 0, -416, 0 }, { -640, 0, 416, 0 }, { 1120, 0, 416, 0 } }, { 0, 4105, 0, 0 }, { 995, 0, -3973, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 688, -64, 3616, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -ONE, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2656, -64, 5664, 0 }, { { -416, 0, -304, 0 }, { 416, 0, -304, 0 }, { -416, 0, 304, 0 }, { 416, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1728, -64, 5664, 0 }, { { -416, 0, -304, 0 }, { 416, 0, -304, 0 }, { -416, 0, 304, 0 }, { 416, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4160, -64, 5568, 0 }, { { -736, 0, -304, 0 }, { 736, 0, -304, 0 }, { -736, 0, 304, 0 }, { 736, 0, 304, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1] = {
+/// One two-sided sight-blocking quad in night motel room 1.
+///
+/// Room-space origin/corners use game units and the normal uses ONE per unit.
+/// The only record is live and carries LAST; low flag bit 0 remains unproven.
+/// Binding mutates links and enable state. Keep the room loaded until unlinked.
+static WorldCollisionOccluder _gDryfieldNightMotelRoom1SightOccluders[1] = {
     { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, 2918, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_dryfield_night_motel_room_1_801806FC[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_SCAVENGER     = 16,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_SCAVENGER         = 16,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_BLOOD_SUCKLER = 40,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_BLOOD_SUCKLER     = 40,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_MOTH          = 8,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_MOTH              = 7,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_SCORPION      = 25,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_SCORPION          = 25,
 };
 
-AreaResource D_dryfield_night_motel_room_1_80180720[3] = {
-    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700MothTaskDesc },
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scavenger and Blood Suckler resource recipes for placement variant 1.
+///
+/// Keys match `gMapDryfieldFullMotelRoom1Variant1Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightMotelRoom1Variant1Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_SCAVENGER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_BLOOD_SUCKLER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_BLOOD_SUCKLER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor204000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_motel_room_1_80180744[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Moth and Scorpion resource recipes for placement variant 2.
+///
+/// Keys match `gMapDryfieldFullMotelRoom1Variant2Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightMotelRoom1Variant2Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_MOTH, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_MOTH, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor00700MothTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_SCORPION, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_SCORPION, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor02500Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_motel_room_1_8018075C[22] = {
+/// Scavenger resource recipes for placement variant 21.
+///
+/// Keys match `gMapDryfieldFullMotelRoom1Variant21Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightMotelRoom1Variant21Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_1_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_1_FILE_SCAVENGER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gDryfieldNightMotelRoom1AreaVariants[22] = {
     { NULL, NULL },
-    { gMapDryfieldFullMotelRoom1Variant1Placements, D_dryfield_night_motel_room_1_801806FC },
-    { gMapDryfieldFullMotelRoom1Variant2Placements, D_dryfield_night_motel_room_1_80180720 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullMotelRoom1Variant1Placements, _gDryfieldNightMotelRoom1Variant1Resources },
+    { gMapDryfieldFullMotelRoom1Variant2Placements, _gDryfieldNightMotelRoom1Variant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullMotelRoom1Variant21Placements, D_dryfield_night_motel_room_1_80180744 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullMotelRoom1Variant21Placements, _gDryfieldNightMotelRoom1Variant21Resources },
 };
 
 /// Cue-2 script bases in the loaded type-1 bank; cue 1 uses the following entry.

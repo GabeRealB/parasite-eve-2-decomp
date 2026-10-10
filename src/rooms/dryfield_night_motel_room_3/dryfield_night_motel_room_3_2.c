@@ -1397,22 +1397,42 @@ static WorldCoordRoomLights _gDryfieldNightMotelRoom3RoomLights = {
     .coneLights            = _gDryfieldNightMotelRoom3SpotLightStorage.coneLights,
 };
 
-AreaResource D_dryfield_night_motel_room_3_80180CDC[3] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor304000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys and decimal file numbers for this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_ODD_STRANGER  = 18,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_ODD_STRANGER      = 18,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_BLOOD_SUCKLER = 40,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_BLOOD_SUCKLER     = 40,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_SCAVENGER     = 16,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_SCAVENGER         = 16,
 };
 
-AreaResource D_dryfield_night_motel_room_3_80180D00[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Odd Stranger and Blood Suckler resource recipes for placement variant 1.
+///
+/// Keys match `gMapDryfieldFullMotelRoom3Variant1Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightMotelRoom3Variant1Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_ODD_STRANGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_ODD_STRANGER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401800OddStrangerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_BLOOD_SUCKLER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_BLOOD_SUCKLER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor304000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Scavenger and Blood Suckler resource recipes for placement variant 2.
+///
+/// Keys match `gMapDryfieldFullMotelRoom3Variant2Placements`; AREA_PLACEMENT_END ends the list.
+/// Spawning borrows the room recipes, paired map placements and loaded actor
+/// descriptors; retain those overlays through spawning and model-flag updates.
+static AreaResource _gDryfieldNightMotelRoom3Variant2Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_SCAVENGER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MOTEL_ROOM_3_RESOURCE_BLOOD_SUCKLER, .fileNumber = DRYFIELD_NIGHT_MOTEL_ROOM_3_FILE_BLOOD_SUCKLER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor204000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_motel_room_3_80180D24[13] = {
     { NULL, NULL },
-    { gMapDryfieldFullMotelRoom3Variant1Placements, D_dryfield_night_motel_room_3_80180CDC },
-    { gMapDryfieldFullMotelRoom3Variant2Placements, D_dryfield_night_motel_room_3_80180D00 },
+    { gMapDryfieldFullMotelRoom3Variant1Placements, _gDryfieldNightMotelRoom3Variant1Resources },
+    { gMapDryfieldFullMotelRoom3Variant2Placements, _gDryfieldNightMotelRoom3Variant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
