@@ -1399,7 +1399,7 @@ static AreaResource _gDryfieldNightWaterTowerVariant21Resources[] = {
 AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
     { gMapDryfieldFullWaterTowerVariant1Placements, _gDryfieldNightWaterTowerVariant1Resources },
-    { D_map_dryfield_full_8017C158, _gDryfieldNightWaterTowerVariant2Resources },
+    { gMapDryfieldFullWaterTowerVariant2Placements, _gDryfieldNightWaterTowerVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1408,7 +1408,7 @@ AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C198, _gDryfieldNightWaterTowerVariant11Resources },
+    { gMapDryfieldFullWaterTowerVariant11Placements, _gDryfieldNightWaterTowerVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1418,7 +1418,7 @@ AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C1B8, _gDryfieldNightWaterTowerVariant21Resources },
+    { gMapDryfieldFullWaterTowerVariant21Placements, _gDryfieldNightWaterTowerVariant21Resources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 sound bank.

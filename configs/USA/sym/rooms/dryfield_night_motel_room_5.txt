@@ -58,8 +58,8 @@ gDryfieldNightMotelRoom5SurfacePropertiesByClass = 0x80181230; // size:0x20 defi
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
-D_map_dryfield_full_8017C968 = 0x8017C968; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017C9C8 = 0x8017C9C8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelRoom5Variant1Placements = 0x8017C968; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelRoom5Variant2Placements = 0x8017C9C8; // absolute:True owner=map_dryfield_full
 
 dryfieldNightMotelRoom5DrawFlareTask = 0x8017D9A4; // type:func
 glowDrawFlareClipped = 0x8017D728; // type:func

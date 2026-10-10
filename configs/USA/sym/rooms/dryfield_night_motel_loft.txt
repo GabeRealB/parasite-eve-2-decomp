@@ -6,8 +6,8 @@ _gDryfieldNightMotelLoftSurface1FootstepSounds = 0x801808F0; // size:0xC defined
 _gDryfieldNightMotelLoftDefaultSurfaceProperties = 0x801808FC; // size:0x8 defined:True
 _gDryfieldNightMotelLoftSurface1Properties = 0x80180904; // size:0x8 defined:True
 gDryfieldNightMotelLoftSurfacePropertiesByClass = 0x8018090C; // size:0x20 defined:True
-D_map_dryfield_full_8017CB58 = 0x8017CB58; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CB98 = 0x8017CB98; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelLoftVariant1Placements = 0x8017CB58; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelLoftVariant3Placements = 0x8017CB98; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullMotelLoftVariant4Placements = 0x8017CBF8; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullMotelLoftVariant11Placements = 0x8017CC78; // absolute:True owner=map_dryfield_full
 _gDryfieldNightMotelLoftJerryCanBarrierTemplateNormals = 0x8017ED10; // size:0x8 defined:True

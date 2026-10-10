@@ -4007,9 +4007,9 @@ static AreaResource _gDryfieldNightMotelBalconyVariant11Resources[2] = {
 
 AreaVariant D_dryfield_night_motel_balcony_8018EA94[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CA28, _gDryfieldNightMotelBalconyVariant1Resources },
-    { D_map_dryfield_full_8017CA88, _gDryfieldNightMotelBalconyVariant2Resources },
-    { D_map_dryfield_full_8017CAC8, _gDryfieldNightMotelBalconyVariant3Resources },
+    { gMapDryfieldFullMotelBalconyVariant1Placements, _gDryfieldNightMotelBalconyVariant1Resources },
+    { gMapDryfieldFullMotelBalconyVariant2Placements, _gDryfieldNightMotelBalconyVariant2Resources },
+    { gMapDryfieldFullMotelBalconyVariant3Placements, _gDryfieldNightMotelBalconyVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -4017,7 +4017,7 @@ AreaVariant D_dryfield_night_motel_balcony_8018EA94[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CAF8, _gDryfieldNightMotelBalconyVariant11Resources },
+    { gMapDryfieldFullMotelBalconyVariant11Placements, _gDryfieldNightMotelBalconyVariant11Resources },
     { NULL, NULL },
 };
 

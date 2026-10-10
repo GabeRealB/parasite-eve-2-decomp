@@ -1265,11 +1265,9 @@ static AreaResource _gDryfieldNightDrivewayVariant21Resources[3] = {
 
 AreaVariant D_dryfield_night_driveway_80181F4C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C5B8, _gDryfieldNightDrivewayVariant1Resources },
+    { gMapDryfieldFullDrivewayVariant1Placements, _gDryfieldNightDrivewayVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C698, _gDryfieldNightDrivewayVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullDrivewayVariant3Placements, _gDryfieldNightDrivewayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1285,7 +1283,9 @@ AreaVariant D_dryfield_night_driveway_80181F4C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C768, _gDryfieldNightDrivewayVariant21Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullDrivewayVariant21Placements, _gDryfieldNightDrivewayVariant21Resources },
 };
 
 /// Two mutable room-space sight-blocking quads shared by both driveway rooms.

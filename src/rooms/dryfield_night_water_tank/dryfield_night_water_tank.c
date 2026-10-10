@@ -681,7 +681,7 @@ static AreaResource _gDryfieldNightWaterTankHandoverResources[2] = {
 
 AreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C228, _gDryfieldNightWaterTankDefaultResources },
+    { gMapDryfieldFullWaterTankVariant1Placements, _gDryfieldNightWaterTankDefaultResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -690,8 +690,8 @@ AreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C238, _gDryfieldNightWaterTankBattleResources },
-    { D_map_dryfield_full_8017C288, _gDryfieldNightWaterTankHandoverResources },
+    { gMapDryfieldFullWaterTankVariant10Placements, _gDryfieldNightWaterTankBattleResources },
+    { gMapDryfieldFullWaterTankVariant11Placements, _gDryfieldNightWaterTankHandoverResources },
     { NULL, NULL },
 };
 

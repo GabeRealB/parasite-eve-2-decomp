@@ -52,9 +52,9 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor02500Tasks = 0x8014F9A8; // absolute:True owner=actor_202500
-D_map_dryfield_full_8017C5B8 = 0x8017C5B8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017C698 = 0x8017C698; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017C768 = 0x8017C768; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDrivewayVariant1Placements = 0x8017C5B8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDrivewayVariant3Placements = 0x8017C698; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDrivewayVariant21Placements = 0x8017C768; // absolute:True owner=map_dryfield_full
 gDrivewayCutsceneScript = 0x8017F3D4; // size:0x150 defined:True
 _gDryfieldNightDrivewayPlayerAnimation1 = 0x8017F524; // size:0x14 defined:True
 _gDryfieldNightDrivewayBlackoutPlayerAnimation24 = 0x8017F538; // size:0x14 defined:True

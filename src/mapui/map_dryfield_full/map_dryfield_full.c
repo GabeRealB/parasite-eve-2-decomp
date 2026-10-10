@@ -151,6 +151,33 @@ enum {
     MAP_DRYFIELD_FULL_BLOOD_SUCKLER_PATROL                 = 0,
 };
 
+/// Additional placement resource keys, distinct from the selected actor file numbers.
+enum {
+    MAP_DRYFIELD_FULL_RESOURCE_BURNER            = 31,
+    MAP_DRYFIELD_FULL_RESOURCE_MAD_CHASER        = 44,
+    MAP_DRYFIELD_FULL_RESOURCE_PAWN_GOLEM_105600 = 56,
+    MAP_DRYFIELD_FULL_RESOURCE_FLINT             = 114,
+    MAP_DRYFIELD_FULL_RESOURCE_HANDOVER_FIGURE   = 143,
+};
+
+/// Spawn selectors and parameter-table rows used by the night layouts below.
+enum {
+    MAP_DRYFIELD_FULL_MAD_CHASER_DANGLE             = 1,
+    MAP_DRYFIELD_FULL_MIND_SUCKLER_SCRIPTED         = 1,
+    MAP_DRYFIELD_FULL_ODD_STRANGER_STALK            = 0x10,
+    MAP_DRYFIELD_FULL_PAWN_PATROL                   = 1,
+    MAP_DRYFIELD_FULL_PAWN_PATROL_LENGTH_THOUSANDS  = 4,
+    MAP_DRYFIELD_FULL_ZEBRA_STALKER_FIRST_DROP      = 0x20,
+    MAP_DRYFIELD_FULL_ZEBRA_STALKER_JUNK_YARD_ENTRY = 0x30,
+    MAP_DRYFIELD_FULL_ZEBRA_STALKER_SECOND_DROP     = 0x40,
+    MAP_DRYFIELD_FULL_ZEBRA_STALKER_GROUP_WAIT      = 0x50,
+    MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2            = 2,
+    MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3         = 3,
+    MAP_DRYFIELD_FULL_BAT_TURN_RATE_28_ROW          = 3,
+    MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW          = 4,
+    MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW          = 5,
+};
+
 /// Map-page gating, fixed icon kind and room-task priority used by these tables.
 enum {
     MAP_DRYFIELD_FULL_PAGE_UNLOCK_FLAG_ID   = 0x16,
@@ -771,48 +798,54 @@ static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
 
 WorldCollisionStageResources D_map_dryfield_full_8017A9D8 = { D_map_dryfield_full_8017A940 };
 
-static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
-    gDryfieldNightGasStationViewCameras,
-    gDryfieldNightMainStreetViewCameras,
-    gDryfieldNightGeneralStoreViewCameras,
-    NULL,
-    gDryfieldNightBackStreetViewCameras,
-    gDryfieldNightSouvenirShopViewCameras,
-    gDryfieldNightWarehouseViewCameras,
-    gDryfieldNightR08ViewCameras,
-    gDryfieldNightDilapidatedHouseViewCameras,
-    NULL,
-    gDryfieldNightMotelRoom1ViewCameras,
-    gDryfieldNightMotelRoom2ViewCameras,
-    gDryfieldNightMotelRoom3ViewCameras,
-    gDryfieldNightMotelRoom4ViewCameras,
-    gDryfieldNightParkingLotViewCameras,
-    gDryfieldNightToiletViewCameras,
-    gDryfieldNightMotelLobbyViewCameras,
-    gDryfieldNightSaloonGRViewCameras,
-    gDryfieldNightGRKitchenViewCameras,
-    gDryfieldNightWaterTowerViewCameras,
-    gDryfieldNightWaterTankViewCameras,
-    gDryfieldNightBreezewayViewCameras,
-    gDryfieldNightFactoryViewCameras,
-    gDryfieldNightGarageViewCameras,
-    gDryfieldNightDrivewayViewCameras,
-    gDryfieldNightJunkYardViewCameras,
-    gDryfieldNightTrailerCoachViewCameras,
-    gDryfieldNightMotelRoom5ViewCameras,
-    gDryfieldNightMotelBalconyViewCameras,
-    gDryfieldNightMotelRoom6ViewCameras,
-    gDryfieldNightMotelLoftViewCameras,
-    gDryfieldNightWaterHoleViewCameras,
-    NULL,
-    gDryfieldNightCellarViewCameras,
-    NULL,
-    NULL,
-    NULL,
-    gDryfieldNightUnderpassViewCameras,
+/// Night-stage area directory of borrowed room camera arrays.
+///
+/// Slots use area ID minus one (0..37), with NULL for 4, 10, 33 and 35..37.
+/// A pool uses mapped camera index minus one and has its own extent; neither
+/// level has a terminator. Keep the selected room overlay loaded until any
+/// queued camera application has finished borrowing its record.
+static ViewCamera* _gMapDryfieldFullViewCamerasByArea[MAP_DRYFIELD_FULL_AREA_ID_LIMIT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_GAS_STATION - 1]       = gDryfieldNightGasStationViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET - 1]       = gDryfieldNightMainStreetViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE - 1]     = gDryfieldNightGeneralStoreViewCameras,
+    [3]                                              = NULL,
+    [GAME_AREA_DRYFIELD_NIGHT_BACK_STREET - 1]       = gDryfieldNightBackStreetViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP - 1]     = gDryfieldNightSouvenirShopViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE - 1]         = gDryfieldNightWarehouseViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_R08 - 1]               = gDryfieldNightR08ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE - 1] = gDryfieldNightDilapidatedHouseViewCameras,
+    [9]                                              = NULL,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_1 - 1]      = gDryfieldNightMotelRoom1ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2 - 1]      = gDryfieldNightMotelRoom2ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_3 - 1]      = gDryfieldNightMotelRoom3ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_4 - 1]      = gDryfieldNightMotelRoom4ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT - 1]       = gDryfieldNightParkingLotViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_TOILET - 1]            = gDryfieldNightToiletViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY - 1]       = gDryfieldNightMotelLobbyViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R - 1]        = gDryfieldNightSaloonGRViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN - 1]       = gDryfieldNightGRKitchenViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER - 1]       = gDryfieldNightWaterTowerViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TANK - 1]        = gDryfieldNightWaterTankViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY - 1]         = gDryfieldNightBreezewayViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_FACTORY - 1]           = gDryfieldNightFactoryViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_GARAGE - 1]            = gDryfieldNightGarageViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY - 1]          = gDryfieldNightDrivewayViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD - 1]         = gDryfieldNightJunkYardViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH - 1]     = gDryfieldNightTrailerCoachViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_5 - 1]      = gDryfieldNightMotelRoom5ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY - 1]     = gDryfieldNightMotelBalconyViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6 - 1]      = gDryfieldNightMotelRoom6ViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT - 1]        = gDryfieldNightMotelLoftViewCameras,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE - 1]        = gDryfieldNightWaterHoleViewCameras,
+    [32]                                             = NULL,
+    [GAME_AREA_DRYFIELD_NIGHT_CELLAR - 1]            = gDryfieldNightCellarViewCameras,
+    [34]                                             = NULL,
+    [35]                                             = NULL,
+    [36]                                             = NULL,
+    [GAME_AREA_DRYFIELD_NIGHT_UNDERPASS - 1]         = gDryfieldNightUnderpassViewCameras,
 };
 
-ViewCameraTable D_map_dryfield_full_8017AA74 = { D_map_dryfield_full_8017A9DC };
+ViewCameraTable gMapDryfieldFullViewCameraTable = { .cameras = _gMapDryfieldFullViewCamerasByArea };
 
 /// Night-stage area directory of borrowed per-room logical-view byte maps.
 ///
@@ -1443,264 +1476,264 @@ AreaPlacement gMapDryfieldFullWaterTowerVariant1Placements[10] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C158[4] = {
-    { 6, 0, 1, 0x14B4, 0, -0xDAC, -0xC8, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x12C, 0, -0xFA0, 0xAF0, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x2BC, 0, -0x1388, 0x3E8, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTowerVariant2Placements[4] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x14B4, .y = 0, .z = -0xDAC, .yaw = -0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x12C, .y = 0, .z = -0xFA0, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x2BC, .y = 0, .z = -0x1388, .yaw = 0x3E8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C198[2] = {
-    { 0x2C, 0, 1, 0x1C2, -0xE74, 0x1130, 0xA28, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTowerVariant11Placements[2] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MAD_CHASER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MAD_CHASER_DANGLE, .x = 0x1C2, .y = -0xE74, .z = 0x1130, .yaw = 0xA28, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C1B8[7] = {
-    { 0x19, 0, 2, 0x10CC, 0, 0x12C, 0x8CA, 0, 2, 4, 3 },
-    { 0x19, 0, 2, 0, 0, -0x1068, 0x400, 0, 2, 4, 3 },
-    { 0x19, 0, 2, 0x12C0, 0, -0xF6E, -0x64, 0, 2, 4, 3 },
-    { 0x19, 0, 2, 0xD7A, 0, -0xC8, 0x44C, 0, 2, 4, 3 },
-    { 6, 0, 1, -0x3E8, 0, -0x11F8, 0x384, 0, 0, 2, 0 },
-    { 6, 0, 1, 0xA28, 0, -0xC8, 0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTowerVariant21Placements[7] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x10CC, .y = 0, .z = 0x12C, .yaw = 0x8CA, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0, .y = 0, .z = -0x1068, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x12C0, .y = 0, .z = -0xF6E, .yaw = -0x64, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0xD7A, .y = 0, .z = -0xC8, .yaw = 0x44C, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = -0x3E8, .y = 0, .z = -0x11F8, .yaw = 0x384, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0xA28, .y = 0, .z = -0xC8, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C228[1] = {
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTankVariant1Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C238[5] = {
-    { 0x8F, 0, 0, 0x456, -0x2EE0, -0x9C4, 0x71C, 0, 0, 2, 0 },
-    { 0xF, 1, 3, -0x640, -0x3200, -0x9C4, 0, 0, 2, 4, 0 },
-    { 0xF, 1, 3, 0x44C, -0x3200, -0xA28, 0, 0, 2, 4, 0 },
-    { 0xF, 1, 3, 0xFA0, -0x3200, -0xA8C, 0, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTankVariant10Placements[5] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_HANDOVER_FIGURE, .variant = 0, .mode = 0, .x = 0x456, .y = -0x2EE0, .z = -0x9C4, .yaw = 0x71C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = MAP_DRYFIELD_FULL_MIND_SUCKLER_SCRIPTED, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = -0x640, .y = -0x3200, .z = -0x9C4, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = MAP_DRYFIELD_FULL_MIND_SUCKLER_SCRIPTED, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x44C, .y = -0x3200, .z = -0xA28, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = MAP_DRYFIELD_FULL_MIND_SUCKLER_SCRIPTED, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0xFA0, .y = -0x3200, .z = -0xA8C, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C288[2] = {
-    { 0x8F, 0, 0, 0x456, -0x2EE0, -0x9C4, 0x71C, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullWaterTankVariant11Placements[2] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_HANDOVER_FIGURE, .variant = 0, .mode = 0, .x = 0x456, .y = -0x2EE0, .z = -0x9C4, .yaw = 0x71C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C2A8[13] = {
-    { 0x25, 0, 2, 0x32C8, -0x898, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 2, 0x332C, -0x708, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 2, 0x319C, -0x834, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 2, 0x3138, -0x76C, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 2, 0x30D4, -0x8FC, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 2, 0x3070, -0x898, 0x898, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x3200, -0x640, 0x8FC, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x319C, -0x4B0, 0x960, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x3070, -0x5DC, 0x8FC, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x300C, -0x514, 0x960, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x2F44, -0x578, 0x8FC, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 1, 0x2FA8, -0x44C, 0x960, 0x800, 0, 0, 2, 4 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullBreezewayVariant1Placements[13] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x32C8, .y = -0x898, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x332C, .y = -0x708, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x319C, .y = -0x834, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x3138, .y = -0x76C, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x30D4, .y = -0x8FC, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = 0x3070, .y = -0x898, .z = 0x898, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x3200, .y = -0x640, .z = 0x8FC, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x319C, .y = -0x4B0, .z = 0x960, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x3070, .y = -0x5DC, .z = 0x8FC, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x300C, .y = -0x514, .z = 0x960, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x2F44, .y = -0x578, .z = 0x8FC, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_DROP, .x = 0x2FA8, .y = -0x44C, .z = 0x960, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C378[13] = {
-    { 1, 0, 0, 0x396C, 1, 0x640, 0xC00, 0, 0, 2, 0 },
-    { 8, 0, 0, 0x445C, -0xA8C, 0xAF0, 0x4B0, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x4524, -0x9C4, 0x9C4, 0x320, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x44C0, -0xAF0, 0xA28, 0x3E8, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x445C, -0xA28, 0xA8C, 0x384, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x3778, -0xA28, 0x514, 0x76C, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x36B0, -0xAF0, 0x578, 0x898, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x38A4, -0xA8C, 0x5DC, 0x800, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x2328, -0xA28, 0x514, 0x834, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x2260, -0x960, 0x578, 0x7D0, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x238C, -0xAF0, 0x578, 0x898, 0, 2, 4, 2 },
-    { 8, 0, 0, 0x2328, -0x9C4, 0x578, 0x834, 0, 2, 4, 2 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullBreezewayVariant3Placements[13] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_DESERT_CHASER, .variant = 0, .mode = 0, .x = 0x396C, .y = 1, .z = 0x640, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x445C, .y = -0xA8C, .z = 0xAF0, .yaw = 0x4B0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x4524, .y = -0x9C4, .z = 0x9C4, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x44C0, .y = -0xAF0, .z = 0xA28, .yaw = 0x3E8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x445C, .y = -0xA28, .z = 0xA8C, .yaw = 0x384, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x3778, .y = -0xA28, .z = 0x514, .yaw = 0x76C, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x36B0, .y = -0xAF0, .z = 0x578, .yaw = 0x898, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x38A4, .y = -0xA8C, .z = 0x5DC, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x2328, .y = -0xA28, .z = 0x514, .yaw = 0x834, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x2260, .y = -0x960, .z = 0x578, .yaw = 0x7D0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x238C, .y = -0xAF0, .z = 0x578, .yaw = 0x898, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0x2328, .y = -0x9C4, .z = 0x578, .yaw = 0x834, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C448[10] = {
-    { 0x19, 0, 2, 0x445C, 0, 0x5DC, 0xC1C, 0, 0, 2, 3 },
-    { 0x19, 0, 2, 0x2710, 0, 0x708, 0x400, 0, 0, 2, 3 },
-    { 0x19, 0, 2, 0x445C, 0, 0xB54, 0xAF0, 0, 0, 2, 3 },
-    { 0xF, 0, 3, 0x2580, -0x1388, 0x640, 0x9C4, 0, 2, 4, 0 },
-    { 0xF, 0, 3, 0x28A0, -0x1388, 0x4B0, 0x5DC, 0, 2, 4, 0 },
-    { 0xF, 0, 3, 0x2BC0, -0x1388, 0x3E8, 0xC8, 0, 2, 4, 0 },
-    { 0xF, 0, 3, 0x2EE0, -0x1388, 0x5DC, 0x320, 0, 2, 4, 0 },
-    { 0xF, 0, 3, 0x3200, -0x1388, 0x44C, 0xC80, 0, 2, 4, 0 },
-    { 0xF, 0, 3, 0x3520, -0x1388, 0x514, 0x960, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullBreezewayVariant21Placements[10] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x445C, .y = 0, .z = 0x5DC, .yaw = 0xC1C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x2710, .y = 0, .z = 0x708, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x445C, .y = 0, .z = 0xB54, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x2580, .y = -0x1388, .z = 0x640, .yaw = 0x9C4, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x28A0, .y = -0x1388, .z = 0x4B0, .yaw = 0x5DC, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x2BC0, .y = -0x1388, .z = 0x3E8, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x2EE0, .y = -0x1388, .z = 0x5DC, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x3200, .y = -0x1388, .z = 0x44C, .yaw = 0xC80, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_CEILING_NO_WALL_REPERCH, .x = 0x3520, .y = -0x1388, .z = 0x514, .yaw = 0x960, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C4E8[5] = {
-    { 0x10, 0, 0, 0x1F40, 0, 0x1130, 0x5DC, 0, 0, 2, 0 },
-    { 0x10, 0, 0, 0x238C, 0, 0xA28, 0x1F4, 0, 0, 2, 0 },
-    { 0x10, 0, 0, 0x2710, 0, 0xDAC, 0x708, 0, 0, 2, 0 },
-    { 0x10, 0, 0, 0x2648, 0, 0xB54, 0xE10, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullGarageVariant1Placements[5] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x1F40, .y = 0, .z = 0x1130, .yaw = 0x5DC, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x238C, .y = 0, .z = 0xA28, .yaw = 0x1F4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x2710, .y = 0, .z = 0xDAC, .yaw = 0x708, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x2648, .y = 0, .z = 0xB54, .yaw = 0xE10, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C538[3] = {
-    { 0x6A, 0, 0, 0x1644, -0x96, 0x170C, 0, 0, 0, 2, 0 },
-    { 0x72, 0, 0, 0x14B4, 0, 0x1B58, 0x7FF, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullGarageVariant2Placements[3] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_GARY_DOUGLAS, .variant = 0, .mode = 0, .x = 0x1644, .y = -0x96, .z = 0x170C, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_FLINT, .variant = 0, .mode = 0, .x = 0x14B4, .y = 0, .z = 0x1B58, .yaw = 0x7FF, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C568[1] = {
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullGarageVariant3Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C578[4] = {
-    { 6, 0, 1, 0xBB8, 0, 0x640, 0xDAC, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x22C4, 0, 0x1A90, 0xA8C, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x24B8, 0, 0xA28, 0xC1C, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullGarageVariant4Placements[4] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0xBB8, .y = 0, .z = 0x640, .yaw = 0xDAC, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x22C4, .y = 0, .z = 0x1A90, .yaw = 0xA8C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x24B8, .y = 0, .z = 0xA28, .yaw = 0xC1C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C5B8[14] = {
-    { 0x25, 0, 2, -0x3E8, -0x708, -0x76C, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0x258, -0x578, -0x76C, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0xC8, -0x640, -0x76C, 0x800, 0, 0, 2, 4 },
-    { 0x25, 0, 0, -0x708, -0x6A4, -0x708, 0xC80, 0, 0, 2, 4 },
-    { 0x25, 0, 0, -0x960, -0x514, -0x384, 0xA28, 0, 0, 2, 4 },
-    { 0x25, 0, 0, -0x7D0, -0x7D0, -0x44C, 0x898, 0, 0, 2, 4 },
-    { 0x25, 0, 0, -0x7D0, -0x640, -0x4B0, 0xC1C, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x514, -0x834, 0x708, 0xC1C, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x834, -0x898, 0xA8C, 0x960, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x898, -0x7D0, 0x4B0, 0x898, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x4B0, -0x640, 0x44C, 0xBB8, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x320, -0x708, 0x640, 0x6A4, 0, 0, 2, 4 },
-    { 0x25, 0, 0, 0x1F4, -0x76C, 0x7D0, 0xA8C, 0, 0, 2, 4 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullDrivewayVariant1Placements[14] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x3E8, .y = -0x708, .z = -0x76C, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x258, .y = -0x578, .z = -0x76C, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xC8, .y = -0x640, .z = -0x76C, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = -0x708, .y = -0x6A4, .z = -0x708, .yaw = 0xC80, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = -0x960, .y = -0x514, .z = -0x384, .yaw = 0xA28, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = -0x7D0, .y = -0x7D0, .z = -0x44C, .yaw = 0x898, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = -0x7D0, .y = -0x640, .z = -0x4B0, .yaw = 0xC1C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x514, .y = -0x834, .z = 0x708, .yaw = 0xC1C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x834, .y = -0x898, .z = 0xA8C, .yaw = 0x960, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x898, .y = -0x7D0, .z = 0x4B0, .yaw = 0x898, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x4B0, .y = -0x640, .z = 0x44C, .yaw = 0xBB8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x320, .y = -0x708, .z = 0x640, .yaw = 0x6A4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_WANDER, .x = 0x1F4, .y = -0x76C, .z = 0x7D0, .yaw = 0xA8C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C698[13] = {
-    { 0x25, 0, 2, -0x514, -0x1194, 0x7D0, 0x578, 0, 0, 2, 5 },
-    { 0x25, 0, 2, -0x4B0, -0x10CC, 0x6A4, 0x400, 0, 0, 2, 5 },
-    { 0x25, 0, 2, -0x640, -0x1130, 0x578, 0x320, 0, 0, 2, 5 },
-    { 0x25, 0, 2, -0x578, -0x1194, 0x2BC, 0x258, 0, 0, 2, 5 },
-    { 0x25, 0, 2, -0xA8C, -0xFA0, 0x898, 0x578, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0xAF0, -0x1004, 0x708, 0x400, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0xBB8, -0x1068, 0x514, 0x320, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0xB54, -0x10CC, 0x384, 0x258, 0, 0, 2, 4 },
-    { 0x25, 0, 2, -0xC80, -0xED8, 0x834, 0x578, 0, 0, 2, 3 },
-    { 0x25, 0, 2, -0xD48, -0xE10, 0x640, 0x400, 0, 0, 2, 3 },
-    { 0x25, 0, 2, -0xC1C, -0xDAC, 0x4B0, 0x320, 0, 0, 2, 3 },
-    { 0x25, 0, 2, -0xCE4, -0xE74, 0x320, 0x258, 0, 0, 2, 3 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullDrivewayVariant3Placements[13] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x514, .y = -0x1194, .z = 0x7D0, .yaw = 0x578, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x4B0, .y = -0x10CC, .z = 0x6A4, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x640, .y = -0x1130, .z = 0x578, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0x578, .y = -0x1194, .z = 0x2BC, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xA8C, .y = -0xFA0, .z = 0x898, .yaw = 0x578, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xAF0, .y = -0x1004, .z = 0x708, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xBB8, .y = -0x1068, .z = 0x514, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xB54, .y = -0x10CC, .z = 0x384, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_36_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xC80, .y = -0xED8, .z = 0x834, .yaw = 0x578, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_28_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xD48, .y = -0xE10, .z = 0x640, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_28_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xC1C, .y = -0xDAC, .z = 0x4B0, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_28_ROW },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BAT, .variant = 0, .mode = MAP_DRYFIELD_FULL_BAT_PERCH_BACK, .x = -0xCE4, .y = -0xE74, .z = 0x320, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_DRYFIELD_FULL_BAT_TURN_RATE_28_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C768[9] = {
-    { 0x19, 0, 2, -0xA8C, 0, 0x320, 0x400, 0, 2, 4, 3 },
-    { 0x19, 0, 2, 0x12C, 0, 0x384, 0xCE4, 0, 2, 4, 3 },
-    { 0x19, 0, 2, 0xC8, 0, 0x866, 0xA8C, 0, 2, 4, 3 },
-    { 0xF, 0, 2, 0x79E, -0x6A4, 0xBB8, 0, 0, 0, 2, 0 },
-    { 0xF, 0, 2, 0xD48, -0x76C, 0xBB8, 0, 0, 0, 2, 0 },
-    { 0xF, 0, 2, 0xC80, -0x898, 0, 0x800, 0, 0, 2, 0 },
-    { 0xF, 0, 2, 0x320, -0x708, 0, 0x800, 0, 0, 2, 0 },
-    { 0xF, 0, 2, -0xFA0, -0xAF0, -0x1F4, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullDrivewayVariant21Placements[9] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = -0xA8C, .y = 0, .z = 0x320, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0x12C, .y = 0, .z = 0x384, .yaw = 0xCE4, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCORPION, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCORPION_AMBUSH_FOLLOWER, .x = 0xC8, .y = 0, .z = 0x866, .yaw = 0xA8C, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_SCORPION_TUNING_ROW_3 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x79E, .y = -0x6A4, .z = 0xBB8, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0xD48, .y = -0x76C, .z = 0xBB8, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0xC80, .y = -0x898, .z = 0, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x320, .y = -0x708, .z = 0, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0xFA0, .y = -0xAF0, .z = -0x1F4, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C7F8[3] = {
-    { 6, 0, 0x31, 0x1082, 0, -0x1180, 0, 0, 0, 2, 0 },
-    { 6, 0, 0x41, 0x1C6D, 0, -0xDE1, 0x200, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullJunkYardVariant1Placements[3] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_JUNK_YARD_ENTRY | MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x1082, .y = 0, .z = -0x1180, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_SECOND_DROP | MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x1C6D, .y = 0, .z = -0xDE1, .yaw = 0x200, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C828[5] = {
-    { 0xF, 0, 2, 0x1F40, -0x9C4, 0, 0x800, 0, 0, 2, 0 },
-    { 0xF, 0, 2, 0x1F40, -0x708, 0x12F2, 0, 0, 0, 2, 0 },
-    { 1, 0, 1, 0x36B0, -1, 0xE74, 0x400, 0, 2, 4, 0 },
-    { 1, 0, 1, 0x2AF8, -1, 0x258, 0xED8, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullJunkYardVariant2Placements[5] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x1F40, .y = -0x9C4, .z = 0, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x1F40, .y = -0x708, .z = 0x12F2, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_DESERT_CHASER, .variant = 0, .mode = MAP_DRYFIELD_FULL_DESERT_CHASER_TUNING_ROW_2, .x = 0x36B0, .y = -1, .z = 0xE74, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_DESERT_CHASER, .variant = 0, .mode = MAP_DRYFIELD_FULL_DESERT_CHASER_TUNING_ROW_2, .x = 0x2AF8, .y = -1, .z = 0x258, .yaw = 0xED8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C878[4] = {
-    { 6, 0, 1, 0x34BC, 0, 0x578, 0xED8, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x1AF4, 0, 0xAF0, 0x4B0, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x898, 0, 0x960, 0x4B0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullJunkYardVariant4Placements[4] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x34BC, .y = 0, .z = 0x578, .yaw = 0xED8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x1AF4, .y = 0, .z = 0xAF0, .yaw = 0x4B0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x898, .y = 0, .z = 0x960, .yaw = 0x4B0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C8B8[3] = {
-    { 0x38, 4, 1, 0x1B58, 0, 0x7D0, 0x400, 0, 0, 2, 0 },
-    { 0x17, 0, 0, 0x32C8, 0, 0xED8, 0xC00, 0, 3, 5, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullJunkYardVariant7Placements[3] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_PAWN_GOLEM_105600, .variant = MAP_DRYFIELD_FULL_PAWN_PATROL_LENGTH_THOUSANDS, .mode = MAP_DRYFIELD_FULL_PAWN_PATROL, .x = 0x1B58, .y = 0, .z = 0x7D0, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ROOK_BEAM_SWORD, .variant = 0, .mode = 0, .x = 0x32C8, .y = 0, .z = 0xED8, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C8E8[6] = {
-    { 0xF, 0, 2, 0x3200, -0x76C, 0x12F2, 0, 0, 2, 4, 0 },
-    { 0xF, 0, 2, 0x2BC0, -0x640, 0x12F2, 0, 0, 2, 4, 0 },
-    { 0xF, 0, 2, 0x1F40, -0x960, 0, 0x800, 0, 2, 4, 0 },
-    { 0xF, 0, 2, 0x2AF8, -0x898, 0, 0x800, 0, 2, 4, 0 },
-    { 6, 0, 1, 0x5334, 0, 0xE74, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullJunkYardVariant21Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x3200, .y = -0x76C, .z = 0x12F2, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x2BC0, .y = -0x640, .z = 0x12F2, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x1F40, .y = -0x960, .z = 0, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = 0x2AF8, .y = -0x898, .z = 0, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x5334, .y = 0, .z = 0xE74, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C948[2] = {
-    { 0x6A, 0, 0, 0xEE2, 0, -0x852, 0x200, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullTrailerCoachVariant1Placements[2] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_GARY_DOUGLAS, .variant = 0, .mode = 0, .x = 0xEE2, .y = 0, .z = -0x852, .yaw = 0x200, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C968[6] = {
-    { 0x12, 0x10, 0, 0x509, 1, 0x69D, 0x400, 0, 0, 2, 0 },
-    { 0x12, 0x10, 0, 0x708, 1, 0x1388, 0x400, 0, 0, 2, 0 },
-    { 8, 0, 0, 0xC1C, -0x8FC, 0x898, 0x640, 0, 2, 4, 2 },
-    { 8, 0, 0, 0xE10, -0x834, 0x960, 0x960, 0, 2, 4, 2 },
-    { 8, 0, 0, 0xC80, -0x898, 0x834, 0x258, 0, 2, 4, 2 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelRoom5Variant1Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ODD_STRANGER, .variant = MAP_DRYFIELD_FULL_ODD_STRANGER_STALK, .mode = 0, .x = 0x509, .y = 1, .z = 0x69D, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ODD_STRANGER, .variant = MAP_DRYFIELD_FULL_ODD_STRANGER_STALK, .mode = 0, .x = 0x708, .y = 1, .z = 0x1388, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0xC1C, .y = -0x8FC, .z = 0x898, .yaw = 0x640, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0xE10, .y = -0x834, .z = 0x960, .yaw = 0x960, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MOTH, .variant = 0, .mode = 0, .x = 0xC80, .y = -0x898, .z = 0x834, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_DRYFIELD_FULL_MOTH_PURSUIT_ROW_2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017C9C8[6] = {
-    { 0x10, 0x80, 0, 0x1F4, 0, 0xC80, 0x8FC, 0, 0, 2, 0 },
-    { 0x10, 0x80, 0, 0x5AA, 0, 0xC80, 0x6A4, 0, 0, 2, 0 },
-    { 0x10, 0x80, 0, 0x41A, 0, 0xC80, 0x800, 0, 0, 2, 0 },
-    { 0x10, 0x80, 0, 0x190, 0, 0xE42, 0x708, 0, 0, 2, 0 },
-    { 0x10, 0x80, 0, 0x5DC, 0, 0xE74, 0x92E, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelRoom5Variant2Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = MAP_DRYFIELD_FULL_SCAVENGER_FORCE_POSED, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x1F4, .y = 0, .z = 0xC80, .yaw = 0x8FC, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = MAP_DRYFIELD_FULL_SCAVENGER_FORCE_POSED, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x5AA, .y = 0, .z = 0xC80, .yaw = 0x6A4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = MAP_DRYFIELD_FULL_SCAVENGER_FORCE_POSED, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x41A, .y = 0, .z = 0xC80, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = MAP_DRYFIELD_FULL_SCAVENGER_FORCE_POSED, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x190, .y = 0, .z = 0xE42, .yaw = 0x708, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = MAP_DRYFIELD_FULL_SCAVENGER_FORCE_POSED, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x5DC, .y = 0, .z = 0xE74, .yaw = 0x92E, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CA28[6] = {
-    { 0x10, 0, 0, -0x1FA4, -0xC80, 0xA8C, 0x4B0, 0, 0, 2, 0 },
-    { 0x10, 0, 0, -0x1A90, -0xC80, 0x5DC, 0x708, 0, 0, 2, 0 },
-    { 0x10, 0, 0, -0x1518, -0xC80, 0x29CC, 0x1F4, 0, 0, 2, 0 },
-    { 0x10, 0, 0, -0x1518, -0xC80, 0x1F4, 0x640, 0, 0, 2, 0 },
-    { 0x10, 0, 0, -0x15E0, -0xC80, -0xE10, 0x514, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelBalconyVariant1Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x1FA4, .y = -0xC80, .z = 0xA8C, .yaw = 0x4B0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x1A90, .y = -0xC80, .z = 0x5DC, .yaw = 0x708, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x1518, .y = -0xC80, .z = 0x29CC, .yaw = 0x1F4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x1518, .y = -0xC80, .z = 0x1F4, .yaw = 0x640, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x15E0, .y = -0xC80, .z = -0xE10, .yaw = 0x514, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CA88[4] = {
-    { 0x1F, 0, 0, -0x620, 0, 0x980, 0xC00, 0, 0, 2, 0 },
-    { 0x6A, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { 0x72, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelBalconyVariant2Placements[4] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_BURNER, .variant = 0, .mode = 0, .x = -0x620, .y = 0, .z = 0x980, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_GARY_DOUGLAS, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 6, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_FLINT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 6, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CAC8[3] = {
-    { 6, 0, 1, -0x1838, -0xC80, 0x1644, 0x64, 0, 0, 2, 0 },
-    { 6, 0, 1, -0x1644, -0xC80, 0x76C, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelBalconyVariant3Placements[3] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = -0x1838, .y = -0xC80, .z = 0x1644, .yaw = 0x64, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = -0x1644, .y = -0xC80, .z = 0x76C, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CAF8[6] = {
-    { 0xF, 0, 2, -0x2008, -0x1450, 0xBB8, 0, 0, 0, 2, 0 },
-    { 0xF, 0, 2, -0x1CE8, -0x157C, 0x3E8, 0x800, 0, 0, 2, 0 },
-    { 0xF, 0, 2, -0x1B58, -0x1388, 0x12C, 0xC00, 0, 0, 2, 0 },
-    { 0xF, 0, 2, -0x12C, -0x15E0, 0x2AF8, 0, 0, 0, 2, 0 },
-    { 0xF, 0, 2, -0x1388, -0x13EC, 0x2AF8, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelBalconyVariant11Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0x2008, .y = -0x1450, .z = 0xBB8, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0x1CE8, .y = -0x157C, .z = 0x3E8, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0x1B58, .y = -0x1388, .z = 0x12C, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0x12C, .y = -0x15E0, .z = 0x2AF8, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_MIND_SUCKLER, .variant = 0, .mode = MAP_DRYFIELD_FULL_MIND_SUCKLER_WALL_NO_WALL_REPERCH, .x = -0x1388, .y = -0x13EC, .z = 0x2AF8, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CB58[4] = {
-    { 6, 0, 0x21, 0x898, 0, 0, 0xC00, 0, 0, 2, 0 },
-    { 6, 0, 0x51, 0xDDE, 0, 0x186, 0xC00, 0, 0, 2, 0 },
-    { 6, 0, 0x51, 0x258, 0, -0x578, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelLoftVariant1Placements[4] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_FIRST_DROP | MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x898, .y = 0, .z = 0, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_GROUP_WAIT | MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0xDDE, .y = 0, .z = 0x186, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_GROUP_WAIT | MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x258, .y = 0, .z = -0x578, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_dryfield_full_8017CB98[6] = {
-    { 6, 0, 1, 0x44C, 0, -0x44C, 0x2BC, 0, 0, 2, 0 },
-    { 0x10, 0, 0, 0x125C, 0, 0x5DC, 0x44C, 0, 2, 4, 0 },
-    { 0x10, 0, 0, 0x128E, 0, -0x258, 0x384, 0, 2, 4, 0 },
-    { 0x10, 0, 0, 0xCE4, 0, 0x5DC, 0x190, 0, 2, 4, 0 },
-    { 0x10, 0, 0, -0x708, 0, -0x5DC, 0x4B0, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapDryfieldFullMotelLoftVariant3Placements[6] = {
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MAP_DRYFIELD_FULL_ZEBRA_STALKER_NO_CEILING, .x = 0x44C, .y = 0, .z = -0x44C, .yaw = 0x2BC, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x125C, .y = 0, .z = 0x5DC, .yaw = 0x44C, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0x128E, .y = 0, .z = -0x258, .yaw = 0x384, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = 0xCE4, .y = 0, .z = 0x5DC, .yaw = 0x190, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_DRYFIELD_FULL_RESOURCE_SCAVENGER, .variant = 0, .mode = MAP_DRYFIELD_FULL_SCAVENGER_ACTIVE, .x = -0x708, .y = 0, .z = -0x5DC, .yaw = 0x4B0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaPlacement gMapDryfieldFullMotelLoftVariant4Placements[8] = {

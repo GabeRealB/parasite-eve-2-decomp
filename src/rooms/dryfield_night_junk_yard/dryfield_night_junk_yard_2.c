@@ -1046,15 +1046,13 @@ AreaResource D_dryfield_night_junk_yard_801843CC[3] = {
 
 AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C7F8, _gDryfieldNightJunkYardVariant1Resources },
-    { D_map_dryfield_full_8017C828, D_dryfield_night_junk_yard_8018436C },
+    { gMapDryfieldFullJunkYardVariant1Placements, _gDryfieldNightJunkYardVariant1Resources },
+    { gMapDryfieldFullJunkYardVariant2Placements, D_dryfield_night_junk_yard_8018436C },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C878, D_dryfield_night_junk_yard_80184390 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_dryfield_full_8017C8B8, D_dryfield_night_junk_yard_801843A8 },
+    { gMapDryfieldFullJunkYardVariant4Placements, D_dryfield_night_junk_yard_80184390 },
     { NULL, NULL },
     { NULL, NULL },
+    { gMapDryfieldFullJunkYardVariant7Placements, D_dryfield_night_junk_yard_801843A8 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1066,7 +1064,9 @@ AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C8E8, D_dryfield_night_junk_yard_801843CC },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullJunkYardVariant21Placements, D_dryfield_night_junk_yard_801843CC },
 };
 
 /// Type-1 sound-script cue-2 bases in the currently loaded sound bank.

@@ -135,7 +135,14 @@ extern ViewCountTable D_map_dryfield_full_8017A93C;
 
 extern WorldCollisionStageResources D_map_dryfield_full_8017A9D8;
 
-extern ViewCameraTable D_map_dryfield_full_8017AA74;
+/// Dryfield-at-night directory of per-area room camera arrays.
+///
+/// `cameras[area - 1][mappedCamera - 1]` selects a borrowed `ViewCamera`.
+/// Areas 1..38 are represented; 4, 10, 33 and 35..37 are NULL. Neither level
+/// has a terminator, and each pool has its own extent. Require populated,
+/// in-range slots. Keep this map loaded during lookup and the selected room
+/// loaded until queued camera applications have copied their records.
+extern ViewCameraTable gMapDryfieldFullViewCameraTable;
 
 /// Dryfield-at-night directory of room-local logical-view mappings.
 ///
@@ -661,65 +668,322 @@ extern AreaPlacement gMapDryfieldFullGRKitchenVariant11Placements[8];
 /// Moths use pursuit-speed row 2.
 extern AreaPlacement gMapDryfieldFullWaterTowerVariant1Placements[10];
 
-extern AreaPlacement D_map_dryfield_full_8017C158[];
+/// Three Zebra Stalkers for night Water Tower placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// All start on the floor with ceiling perching disabled.
+extern AreaPlacement gMapDryfieldFullWaterTowerVariant2Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017C198[];
+/// One dangling Mad Chaser for night Water Tower placement variant 11.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The authored spawn transform is (450, -3700, 4400), yaw 2600.
+extern AreaPlacement gMapDryfieldFullWaterTowerVariant11Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017C1B8[];
+/// Four Scorpions and two Zebra Stalkers for night Water Tower placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Scorpions use signalled ambush mode and tuning row 3; Stalkers cannot perch on ceilings.
+extern AreaPlacement gMapDryfieldFullWaterTowerVariant21Placements[7];
 
-extern AreaPlacement D_map_dryfield_full_8017C228[];
+/// Empty placement list for night Water Tank placement variant 1.
+///
+/// Only `AREA_PLACEMENT_END`; the paired resource list is also empty.
+/// Keep this map overlay loaded while the room variant borrows the list.
+extern AreaPlacement gMapDryfieldFullWaterTankVariant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_full_8017C238[];
+/// The handover figure and three Mind Sucklers for night Water Tank placement variant 10.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The Sucklers select the scripted airborne variant, which ignores the stored
+/// perch-mode bits. All use base resource files.
+extern AreaPlacement gMapDryfieldFullWaterTankVariant10Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017C288[];
+/// The handover figure for night Water Tank placement variant 11.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Its initial transform is (1110, -12000, -2500), yaw 1820.
+extern AreaPlacement gMapDryfieldFullWaterTankVariant11Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017C2A8[];
+/// Twelve bats for night Breezeway placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Six push backward from their perches and six drop from them; all use turn-rate row 4.
+extern AreaPlacement gMapDryfieldFullBreezewayVariant1Placements[13];
 
-extern AreaPlacement D_map_dryfield_full_8017C378[];
+/// One Desert Chaser and eleven Moths for night Breezeway placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Moths use pursuit-speed row 2.
+extern AreaPlacement gMapDryfieldFullBreezewayVariant3Placements[13];
 
-extern AreaPlacement D_map_dryfield_full_8017C448[];
+/// Three Scorpions and six Mind Sucklers for night Breezeway placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Scorpions use signalled ambush mode and tuning row 3; Sucklers start on ceilings and cannot return to walls.
+extern AreaPlacement gMapDryfieldFullBreezewayVariant21Placements[10];
 
-extern AreaPlacement D_map_dryfield_full_8017C4E8[];
+/// Four active Scavengers for night Garage placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+extern AreaPlacement gMapDryfieldFullGarageVariant1Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017C538[];
+/// Gary Douglas and Flint for night Garage placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Their texture page/CLUT row offsets are respectively 0/2 and 2/4.
+extern AreaPlacement gMapDryfieldFullGarageVariant2Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017C568[];
+/// Empty placement list for night Garage placement variant 3's companion scene.
+///
+/// Only `AREA_PLACEMENT_END`; room initialization restores the companion separately.
+/// Keep this map overlay loaded while the room variant borrows the list.
+extern AreaPlacement gMapDryfieldFullGarageVariant3Placements[1];
 
-extern AreaPlacement D_map_dryfield_full_8017C578[];
+/// Three Zebra Stalkers for night Garage placement variant 4.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// All use ordinary floor entrances with ceiling perching disabled.
+extern AreaPlacement gMapDryfieldFullGarageVariant4Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017C5B8[];
+/// Thirteen bats for night Driveway placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Three push backward from perches and ten start wandering; all use turn-rate row 4.
+extern AreaPlacement gMapDryfieldFullDrivewayVariant1Placements[14];
 
-extern AreaPlacement D_map_dryfield_full_8017C698[];
+/// Twelve perched bats for night Driveway placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// All push backward from their perches, in groups of four using turn-rate rows 5, 4 and 3.
+extern AreaPlacement gMapDryfieldFullDrivewayVariant3Placements[13];
 
-extern AreaPlacement D_map_dryfield_full_8017C768[];
+/// Three Scorpions and five Mind Sucklers for night Driveway placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Scorpions use signalled ambush mode and tuning row 3; Sucklers start on walls and cannot return to walls.
+extern AreaPlacement gMapDryfieldFullDrivewayVariant21Placements[9];
 
-extern AreaPlacement D_map_dryfield_full_8017C7F8[];
+/// Two scripted-entrance Zebra Stalkers for night Junk Yard placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The first uses the junk-yard entrance and the second the second drop entrance; neither can perch on ceilings.
+extern AreaPlacement gMapDryfieldFullJunkYardVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017C828[];
+/// Two Mind Sucklers and two Desert Chasers for night Junk Yard placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Sucklers start on walls and cannot return to walls; Chasers select tuning row 2.
+extern AreaPlacement gMapDryfieldFullJunkYardVariant2Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017C878[];
+/// Three Zebra Stalkers for night Junk Yard placement variant 4.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// All use ordinary floor entrances with ceiling perching disabled.
+extern AreaPlacement gMapDryfieldFullJunkYardVariant4Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017C8B8[];
+/// A patrolling Pawn GOLEM and a Rook GOLEM for night Junk Yard placement variant 7.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The Pawn uses resource key 56 and 4000-unit patrol legs; the Rook uses Beam Sword resource key 23 and starts idle.
+extern AreaPlacement gMapDryfieldFullJunkYardVariant7Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017C8E8[];
+/// Four Mind Sucklers and one Zebra Stalker for night Junk Yard placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Sucklers start on walls and cannot return to walls; the Stalker cannot perch on ceilings.
+extern AreaPlacement gMapDryfieldFullJunkYardVariant21Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017C948[];
+/// Gary Douglas for night Trailer Coach placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// His initial transform is (3810, 0, -2130), yaw 512; resource key 106 selects the room's Gary recipe.
+extern AreaPlacement gMapDryfieldFullTrailerCoachVariant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017C968[];
+/// Two Odd Strangers and three Moths for night Motel Room 5 placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Odd Strangers switch from pursuit to stalking; Moths use pursuit-speed row 2.
+extern AreaPlacement gMapDryfieldFullMotelRoom5Variant1Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017C9C8[];
+/// Five posed Scavengers for night Motel Room 5 placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The actor-defined variant bit forces posed behavior while its running behavior remains eligible.
+extern AreaPlacement gMapDryfieldFullMotelRoom5Variant2Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017CA28[];
+/// Five active Scavengers for night Motel Balcony placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+extern AreaPlacement gMapDryfieldFullMotelBalconyVariant1Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017CA88[];
+/// Burner, Gary Douglas and Flint for night Motel Balcony placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Gary and Flint have zero initial XYZ/yaw and share texture offsets 4/6; both zero-transform records are live placements.
+extern AreaPlacement gMapDryfieldFullMotelBalconyVariant2Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017CAC8[];
+/// Two Zebra Stalkers for night Motel Balcony placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// Both use ordinary floor entrances with ceiling perching disabled and `fileIdLow = 0` (base resource files).
+extern AreaPlacement gMapDryfieldFullMotelBalconyVariant3Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017CAF8[];
+/// Five Mind Sucklers for night Motel Balcony placement variant 11.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// All start on walls, cannot return to walls and use `fileIdLow = 0` (base resource files).
+extern AreaPlacement gMapDryfieldFullMotelBalconyVariant11Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017CB58[];
+/// Three scripted-entrance Zebra Stalkers for night Motel Loft placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The first uses the first drop entrance and the other two wait for the group trigger; none can perch on ceilings.
+extern AreaPlacement gMapDryfieldFullMotelLoftVariant1Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017CB98[];
+/// One Zebra Stalker and four Scavengers for night Motel Loft placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn). Entry keys select
+/// the paired room-owned resource recipes; `fileIdLow = 0` uses their base files.
+/// Texture offsets count 64-word VRAM columns and CLUT rows. The final record
+/// is `AREA_PLACEMENT_END`; actors borrow the live records, so keep this map
+/// overlay loaded until they end.
+///
+/// The Stalker cannot perch on ceilings; Scavengers use the room's actor-301600 recipe.
+extern AreaPlacement gMapDryfieldFullMotelLoftVariant3Placements[6];
 
 /// Seven posed Scavengers for night Motel Loft placement variant 4.
 ///

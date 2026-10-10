@@ -704,11 +704,9 @@ static AreaResource _gDryfieldNightBreezewayVariant21Resources[3] = {
 
 AreaVariant D_dryfield_night_breezeway_801803E4[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C2A8, _gDryfieldNightBreezewayVariant1Resources },
+    { gMapDryfieldFullBreezewayVariant1Placements, _gDryfieldNightBreezewayVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C378, _gDryfieldNightBreezewayVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullBreezewayVariant3Placements, _gDryfieldNightBreezewayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -724,7 +722,9 @@ AreaVariant D_dryfield_night_breezeway_801803E4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C448, _gDryfieldNightBreezewayVariant21Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullBreezewayVariant21Placements, _gDryfieldNightBreezewayVariant21Resources },
 };
 
 /// Class 2's paired footstep cues in the loaded type-1 sound-script bank.

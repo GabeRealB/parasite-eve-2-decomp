@@ -140,10 +140,10 @@ gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_4006
 gActor403100TaskDescriptors = 0x8015560C; // absolute:True owner=actor_403100
 gActor335800GaryDouglasTasks = 0x8016EADC; // absolute:True owner=actor_335800
 gActor335800FlintTaskDesc = 0x80172E9C; // absolute:True owner=actor_335800
-D_map_dryfield_full_8017CA28 = 0x8017CA28; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CA88 = 0x8017CA88; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CAC8 = 0x8017CAC8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CAF8 = 0x8017CAF8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelBalconyVariant1Placements = 0x8017CA28; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelBalconyVariant2Placements = 0x8017CA88; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelBalconyVariant3Placements = 0x8017CAC8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelBalconyVariant11Placements = 0x8017CAF8; // absolute:True owner=map_dryfield_full
 _gDryfieldNightMotelBalconySection0IntactSpriteCommands = 0x80182858; // size:0x44 defined:True
 _gDryfieldNightMotelBalconySection0DamagedSpriteCommands = 0x8018289C; // size:0x44 defined:True
 _gDryfieldNightMotelBalconySection0RepeatDamageSpriteCommands = 0x801828E0; // size:0x44 defined:True

@@ -1259,10 +1259,10 @@ static AreaResource _gDryfieldNightGarageZebraStalkerResources[] = {
 
 AreaVariant D_dryfield_night_garage_801874BC[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C4E8, _gDryfieldNightGarageScavengerResources },
-    { D_map_dryfield_full_8017C538, _gDryfieldNightGarageGaryDouglasAndFlintResources },
-    { D_map_dryfield_full_8017C568, _gDryfieldNightGarageCompanionSceneResources },
-    { D_map_dryfield_full_8017C578, _gDryfieldNightGarageZebraStalkerResources },
+    { gMapDryfieldFullGarageVariant1Placements, _gDryfieldNightGarageScavengerResources },
+    { gMapDryfieldFullGarageVariant2Placements, _gDryfieldNightGarageGaryDouglasAndFlintResources },
+    { gMapDryfieldFullGarageVariant3Placements, _gDryfieldNightGarageCompanionSceneResources },
+    { gMapDryfieldFullGarageVariant4Placements, _gDryfieldNightGarageZebraStalkerResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
