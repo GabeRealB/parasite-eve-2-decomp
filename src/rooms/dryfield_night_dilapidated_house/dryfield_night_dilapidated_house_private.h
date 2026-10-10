@@ -37,9 +37,19 @@ extern EvsCommand D_dryfield_night_dilapidated_house_801868F4[88];
 
 extern EvsCommand D_dryfield_night_dilapidated_house_80187134[16];
 
-extern WorldCoordPointLight D_dryfield_night_dilapidated_house_80189500[8];
+/// Eight authored point lights contributing in every house view.
+///
+/// Positions and falloff radii use game units; RGB intensities use Q12.
+/// Room setup parents these mutable transforms to the active view and lighting
+/// updates their composition and attenuation. Storage belongs to this overlay.
+extern WorldCoordPointLight gDryfieldNightDilapidatedHousePointLights[8];
 
-extern WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1];
+/// The house's all-views cone light, authored with zero RGB intensity.
+///
+/// Positioned at (-5000, -2500, -4000) game units with 100/3000-unit falloff
+/// radii and a full opening of 625 units per 4096-unit turn. Room setup and
+/// lighting mutate its transform and attenuation while this overlay is loaded.
+extern WorldCoordSpotLight gDryfieldNightDilapidatedHouseConeLights[1];
 
 // Callbacks referenced by the overlay's shared data tables.
 

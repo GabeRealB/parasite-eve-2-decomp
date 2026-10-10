@@ -48,10 +48,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-/// The prism corners, eight per prism: a lit ring of four, then the far ring.
-extern SVECTOR gGlowPrismCorners[];
-
-extern WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1];
+static WorldCollisionGrid _gDryfieldNightDilapidatedHouseCollisionGrid;
 
 extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8];
 
@@ -1178,7 +1175,12 @@ TaskDesc D_dryfield_night_dilapidated_house_801872B4[2] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightDilapidatedHouseMovieTask, { .value = 0 } },
 };
 
-SVECTOR gGlowPrismCorners[24] = {
+/// Three light prisms in the drawing coordinate's local space, in game units.
+///
+/// Blocks at indices 0, 8 and 16 each contain four lit corners followed by
+/// four dark-rim corners. The room effect borrows them while this overlay is
+/// loaded; the shared drawer transforms them through the task coordinate.
+static SVECTOR _gDryfieldNightDilapidatedHouseLightPrismCorners[24] = {
     { -5500, -2250, -3030, 0 },
     { -4500, -2250, -3030, 0 },
     { -4500, -1030, -3030, 0 },
@@ -1210,14 +1212,14 @@ WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[1] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[1] = {
-    { D_dryfield_night_dilapidated_house_80187D44, D_dryfield_night_dilapidated_house_801892A0, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
+    { &_gDryfieldNightDilapidatedHouseCollisionGrid, D_dryfield_night_dilapidated_house_801892A0, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
 };
 
-u8* D_dryfield_night_dilapidated_house_801873A4[1] = {
+u8* gDryfieldNightDilapidatedHouseViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_dilapidated_house_801873A8[1] = { 11 };
+ViewCount gDryfieldNightDilapidatedHouseViewCounts[1] = { ARRAY_SIZE(gDryfieldNightDilapidatedHouseViewCameras) };
 
 DirectionWarpEntry D_dryfield_night_dilapidated_house_801873AC[3] = {
     { { { .word = 0 }, 1596, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2296, 0, -1578 }, { 0, 0, 0, 0 }, 0x53090002, 0x53090001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 467 },
@@ -1225,52 +1227,84 @@ DirectionWarpEntry D_dryfield_night_dilapidated_house_801873AC[3] = {
     { { { .word = 0 }, 1596, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2296, 0, -1578 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldNightDilapidatedHouseCollision0A784Normals[10] = {
+/// Room-space face normals, using ONE for unit length.
+static SVECTOR _gDryfieldNightDilapidatedHouseCollisionGridNormals[10] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightDilapidatedHouseCollision0A784Verts[116] = {
+/// Collision mesh positions in signed integer room units.
+static SVECTOR _gDryfieldNightDilapidatedHouseCollisionGridVerts[116] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightDilapidatedHouseCollision0A784Faces[70] = {
+/// Indexed collision triangles and quads, with room surface classes.
+static WorldCollisionGridFace _gDryfieldNightDilapidatedHouseCollisionGridFaces[70] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_faces.inc"
 };
 
-static s16 _gDryfieldNightDilapidatedHouseCollision0A784Cells[208] = {
+/// Six packed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+///
+/// The cell table selects each list's start. Retained zeros between some lists
+/// and after the final terminator are not traversed as face indices.
+static s16 _gDryfieldNightDilapidatedHouseCollisionGridCells[208] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightDilapidatedHouseCollision0A784Cells[i])
-static s16* _gDryfieldNightDilapidatedHouseCollision0A784Table[6] = {
+#define GRID_CELL(i) (&_gDryfieldNightDilapidatedHouseCollisionGridCells[i])
+/// X-major cell directory, indexed as cellX * 2 + cellZ for the 3-by-2 grid.
+static s16* _gDryfieldNightDilapidatedHouseCollisionGridTable[6] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1] = {
-    { NULL, _gDryfieldNightDilapidatedHouseCollision0A784Normals, _gDryfieldNightDilapidatedHouseCollision0A784Verts, _gDryfieldNightDilapidatedHouseCollision0A784Faces, _gDryfieldNightDilapidatedHouseCollision0A784Table, 6000, 3200, 3, 2, 4000, 70 },
+/// The house's room collision mesh and six-cell XZ face directory.
+///
+/// Positions use integer room units; normals use ONE for unit length. The
+/// 3-by-2 grid has 4000-unit cells and origin (-6000, -3200) on XZ. Activation
+/// binds its view coordinate. This overlay owns the mutable descriptor and
+/// all pools, which must remain loaded while collision queries borrow them.
+static WorldCollisionGrid _gDryfieldNightDilapidatedHouseCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightDilapidatedHouseCollisionGridNormals,
+    .vertices    = _gDryfieldNightDilapidatedHouseCollisionGridVerts,
+    .faces       = _gDryfieldNightDilapidatedHouseCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightDilapidatedHouseCollisionGridTable,
+    .xBias       = 6000,
+    .zBias       = 3200,
+    .cellCountX  = 3,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_dilapidated_house_80187D68[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 900, 0x4E20, 0 } }, 490 },
+ViewCamera gDryfieldNightDilapidatedHouseViewCameras[11] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 900, 20000, 0 } }, 490 },
     { { { { 3872, 0, -1335 }, { -1200, 1793, -3481 }, { 584, 3682, 1695 } }, { 5380, 4300, 2840 } }, 207 },
     { { { { -2538, 0, 3214 }, { 1329, 3729, 1049 }, { -2926, 1694, -2310 } }, { 200, 2400, -200 } }, 257 },
     { { { { -1264, 0, 3896 }, { 486, 4063, 158 }, { -3865, 511, -1254 } }, { -3950, 2000, -1850 } }, 230 },
     { { { { -1264, 0, -3896 }, { -486, 4063, 158 }, { 3865, 511, -1254 } }, { 3950, 2000, -1850 } }, 230 },
     { { { { -3842, 0, -1419 }, { -415, 3916, 1123 }, { 1357, 1198, -3674 } }, { -600, 2000, -600 } }, 257 },
     { { { { -2678, 0, 3098 }, { -221, 4085, -191 }, { -3090, -292, -2671 } }, { -5725, 703, -3247 } }, 447 },
-    { { { { -1861, 0, 3648 }, { 0, 4096, 0 }, { -3648, 0, -1861 } }, { -4445, 1450, -1015 } }, 447 },
-    { { { { -2246, 0, -3425 }, { 0, 4096, 0 }, { 3425, 0, -2246 } }, { -1229, 1400, -1022 } }, 447 },
+    { { { { -1861, 0, 3648 }, { 0, ONE, 0 }, { -3648, 0, -1861 } }, { -4445, 1450, -1015 } }, 447 },
+    { { { { -2246, 0, -3425 }, { 0, ONE, 0 }, { 3425, 0, -2246 } }, { -1229, 1400, -1022 } }, 447 },
     { { { { -3166, 0, -2598 }, { -493, 4021, 600 }, { 2550, 777, -3108 } }, { -720, 1805, -1720 } }, 447 },
-    { { { { -2242, 0, 3427 }, { 0, 4096, 0 }, { -3427, 0, -2242 } }, { -3395, 1400, -1085 } }, 447 },
+    { { { { -2242, 0, 3427 }, { 0, ONE, 0 }, { -3427, 0, -2242 } }, { -3395, 1400, -1085 } }, 447 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80187EF4[2] = {
+/// Decoded-background marker and empty foreground list for mapped house view 1.
+///
+/// The retained source-slot address is never read as SpriteSource elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80187F04[71] = {
+/// Foreground sprite sources for mapped house view 2.
+///
+/// The 71 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView2SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 48, -48, 641, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 56, -48, 623, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, -56, 617, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
@@ -1344,15 +1378,31 @@ SpriteSource D_dryfield_night_dilapidated_house_80187F04[71] = {
     { 142, 0x3FC0, { .fields = { 16, 48 } }, 112, 32, 375, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188490[5] = {
+/// Source-element boundaries of mapped views 2 and 3's separate drawing ranges.
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_FIRST_RANGE_COUNT  = 9,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_SECOND_RANGE_COUNT = 49,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_THIRD_RANGE_START  = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_FIRST_RANGE_COUNT + DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_SECOND_RANGE_COUNT,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_3_FIRST_RANGE_COUNT  = 41,
+};
+
+/// Foreground source ranges for mapped house view 2.
+///
+/// Ranges cover 0..8, 9..57 and 58..70 of the view's source array.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 49, 0, 0, { 2, 0 } },
-    { 58, 13, 0, 0, { 0, 0 } },
+    { 0, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_FIRST_RANGE_COUNT, 0, 0, { 1, 0 } },
+    { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_FIRST_RANGE_COUNT, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_SECOND_RANGE_COUNT, 0, 0, { 2, 0 } },
+    { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_THIRD_RANGE_START, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView2SpriteSources) - DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_2_THIRD_RANGE_START, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_801884B8[62] = {
+/// Foreground sprite sources for mapped house view 3.
+///
+/// The 62 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -48, 1227, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -32, 1299, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -24, 0, 1163, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
@@ -1417,14 +1467,22 @@ SpriteSource D_dryfield_night_dilapidated_house_801884B8[62] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 120, 32, 837, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188990[4] = {
+/// Foreground source ranges for mapped house view 3.
+///
+/// Ranges cover 0..40 and 41..61 of the view's source array.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 41, 0, 0, { 1, 0 } },
-    { 41, 21, 0, 0, { 0, 0 } },
+    { 0, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_3_FIRST_RANGE_COUNT, 0, 0, { 1, 0 } },
+    { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_3_FIRST_RANGE_COUNT, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView3SpriteSources) - DRYFIELD_NIGHT_DILAPIDATED_HOUSE_VIEW_3_FIRST_RANGE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_801889B0[45] = {
+/// Foreground sprite sources for mapped house view 4.
+///
+/// The 45 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, -64, 1503, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -32, 2189, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 2230, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
@@ -1472,13 +1530,21 @@ SpriteSource D_dryfield_night_dilapidated_house_801889B0[45] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 8, 1628, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188D34[3] = {
+/// Foreground source ranges for mapped house view 4.
+///
+/// The drawing range covers all 45 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 45, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80188D4C[7] = {
+/// Foreground sprite sources for mapped house view 5.
+///
+/// The 7 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 1429, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 0, 1397, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 0, 1475, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
@@ -1488,13 +1554,21 @@ SpriteSource D_dryfield_night_dilapidated_house_80188D4C[7] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 152, 8, 1126, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188DD8[3] = {
+/// Foreground source ranges for mapped house view 5.
+///
+/// The drawing range covers all 7 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80188DF0[11] = {
+/// Foreground sprite sources for mapped house view 6.
+///
+/// The 11 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -8, 837, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 48, 828, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 88, 8, 834, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
@@ -1508,13 +1582,21 @@ SpriteSource D_dryfield_night_dilapidated_house_80188DF0[11] = {
     { 143, 0x3FC0, { .fields = { 8, 96 } }, 152, 0, 735, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188ECC[3] = {
+/// Foreground source ranges for mapped house view 6.
+///
+/// The drawing range covers all 11 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80188EE4[9] = {
+/// Foreground sprite sources for mapped house view 7.
+///
+/// The 9 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -64, 2714, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, -72, 2500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 112, 0, 2475, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
@@ -1526,13 +1608,21 @@ SpriteSource D_dryfield_night_dilapidated_house_80188EE4[9] = {
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 144, -8, 2279, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80188F98[3] = {
+/// Foreground source ranges for mapped house view 7.
+///
+/// The drawing range covers all 9 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80188FB0[15] = {
+/// Foreground sprite sources for mapped house view 8.
+///
+/// The 15 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, 8, -80, 2329, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, 0, 2179, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 80 } }, 24, -80, 2164, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -1550,23 +1640,39 @@ SpriteSource D_dryfield_night_dilapidated_house_80188FB0[15] = {
     { 143, 0x3FC0, { .fields = { 24, 88 } }, 136, -8, 1896, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_801890DC[3] = {
+/// Foreground source ranges for mapped house view 8.
+///
+/// The drawing range covers all 15 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 15, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_801890F4[2] = {
+/// Decoded-background marker and empty foreground list for mapped house view 9.
+///
+/// The retained source-slot address is never read as SpriteSource elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80189104[2] = {
+/// Decoded-background marker and empty foreground list for mapped house view 10.
+///
+/// The retained source-slot address is never read as SpriteSource elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_dilapidated_house_80189114[12] = {
+/// Foreground sprite sources for mapped house view 11.
+///
+/// The 12 rectangles use pixels for position and size, texels for UV,
+/// and unscaled ordering depths. Batches select ranges in source elements.
+static SpriteSource _gDryfieldNightDilapidatedHouseView11SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 32, -88, 2089, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, 32, 0, 2087, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, 48, -96, 1918, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
@@ -1581,24 +1687,28 @@ SpriteSource D_dryfield_night_dilapidated_house_80189114[12] = {
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 136, -8, 1734, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_dilapidated_house_80189204[3] = {
+/// Foreground source ranges for mapped house view 11.
+///
+/// The drawing range covers all 12 source elements.
+/// The zero-count first record retains the decoded background; `SPRITE_BATCH_END` stops traversal.
+static SpriteBatch _gDryfieldNightDilapidatedHouseView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightDilapidatedHouseView11SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_dilapidated_house_8018921C[11] = {
-    { { .empty = D_dryfield_night_dilapidated_house_80187EF4 }, D_dryfield_night_dilapidated_house_80187EF4, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80187F04 }, D_dryfield_night_dilapidated_house_80188490, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_801884B8 }, D_dryfield_night_dilapidated_house_80188990, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_801889B0 }, D_dryfield_night_dilapidated_house_80188D34, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80188D4C }, D_dryfield_night_dilapidated_house_80188DD8, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80188DF0 }, D_dryfield_night_dilapidated_house_80188ECC, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80188EE4 }, D_dryfield_night_dilapidated_house_80188F98, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80188FB0 }, D_dryfield_night_dilapidated_house_801890DC, NULL },
-    { { .empty = D_dryfield_night_dilapidated_house_801890F4 }, D_dryfield_night_dilapidated_house_801890F4, NULL },
-    { { .empty = D_dryfield_night_dilapidated_house_80189104 }, D_dryfield_night_dilapidated_house_80189104, NULL },
-    { { .elements = D_dryfield_night_dilapidated_house_80189114 }, D_dryfield_night_dilapidated_house_80189204, NULL },
+SpriteView gDryfieldNightDilapidatedHouseSpriteViews[11] = {
+    { { .empty = _gDryfieldNightDilapidatedHouseView1SpriteBatches }, _gDryfieldNightDilapidatedHouseView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView2SpriteSources }, _gDryfieldNightDilapidatedHouseView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView3SpriteSources }, _gDryfieldNightDilapidatedHouseView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView4SpriteSources }, _gDryfieldNightDilapidatedHouseView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView5SpriteSources }, _gDryfieldNightDilapidatedHouseView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView6SpriteSources }, _gDryfieldNightDilapidatedHouseView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView7SpriteSources }, _gDryfieldNightDilapidatedHouseView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView8SpriteSources }, _gDryfieldNightDilapidatedHouseView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightDilapidatedHouseView9SpriteBatches }, _gDryfieldNightDilapidatedHouseView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightDilapidatedHouseView10SpriteBatches }, _gDryfieldNightDilapidatedHouseView10SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightDilapidatedHouseView11SpriteSources }, _gDryfieldNightDilapidatedHouseView11SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8] = {
@@ -1612,18 +1722,18 @@ WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8] = {
     { NULL, NULL, NULL, { 2975, -1472, -2048, 0 }, { { 2226, -2496, 127, 0 }, { -2235, -2496, -137, 0 }, { 2226, 2496, 127, 0 }, { -2235, 2496, -137, 0 } }, { -243, 0, 4090, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_night_dilapidated_house_80189500[8] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3549 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -1500, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 6400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1500, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3003 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -1500, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3000 },
+WorldCoordPointLight gDryfieldNightDilapidatedHousePointLights[8] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -1500, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3549 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2500, -1500, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -1500, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -1500, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1500, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2256, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2500, -1500, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 6400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1500, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3003 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2500, -1500, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1232, 1232 }, { 0, 0 } }, 2000, 3000 },
 };
 
-WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1] = {
+WorldCoordSpotLight gDryfieldNightDilapidatedHouseConeLights[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -ONE, 0, 0 }, { 0, -2902, 2901 }, { 0, 2901, 2901 } }, { -5000, -2500, -4000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, { 0, 2896, 2896, 0 }, 100, 3000, 625 },
 };
 
@@ -2503,6 +2613,7 @@ static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task)
     taskKill(task);
 }
 
+#define GLOW_PRISM_CORNERS _gDryfieldNightDilapidatedHouseLightPrismCorners
 #include "../../shared/glow_draw_prism.inc.c"
 
 void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task)

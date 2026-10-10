@@ -1,8 +1,18 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
+/// Local-space SVECTOR array borrowed by this tinted prism drawer instance.
+///
+/// Bind to an array identifier before including this fragment. Each call's
+/// firstCorner must select eight consecutive readable elements. The default
+/// uses the legacy package-local spelling. No token pasting or stringification
+/// occurs; the binding is undefined at the end of this fragment.
+#ifndef GLOW_PRISM_CORNERS
+#define GLOW_PRISM_CORNERS gGlowPrismCorners
+#endif
+
 /// Draws an additive tinted light prism from an eight-corner local-space block.
 ///
-/// `firstCorner` is an element index into this package's `gGlowPrismCorners`;
+/// `firstCorner` is an element index into the carrier's `GLOW_PRISM_CORNERS`;
 /// all eight elements starting there must exist. The first four form the lit
 /// ring and the next four its dark rim. `coord->workm` must already map the
 /// corners into world space. Borrows `coord`; transformed components narrow
@@ -54,16 +64,16 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
     // Fade the four sides from the lit ring to the dark rim.
     for (cornerIndex = 0; cornerIndex < GLOW_PRISM_RING_CORNERS; cornerIndex++) {
         gte_SetRotMatrix(&coord->workm);
-        GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + cornerIndex], 0);
+        GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + cornerIndex], 0);
         gte_SetRotMatrix(&coord->workm);
         nextCorner = (cornerIndex + 1) & (GLOW_PRISM_RING_CORNERS - 1);
-        GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + nextCorner], 1);
+        GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + nextCorner], 1);
         gte_SetRotMatrix(&coord->workm);
         farCorner = cornerIndex + GLOW_PRISM_RING_CORNERS;
-        GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + farCorner], 2);
+        GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + farCorner], 2);
         gte_SetRotMatrix(&coord->workm);
         farNextCorner = nextCorner + GLOW_PRISM_RING_CORNERS;
-        GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + farNextCorner], 3);
+        GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + farNextCorner], 3);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vertices[0]);
         gte_rtps();
@@ -85,13 +95,13 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
     }
     gte_SetRotMatrix(&coord->workm);
     // Close the lit end in quad vertex order 0, 1, 3, 2.
-    GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner], 0);
+    GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner], 0);
     gte_SetRotMatrix(&coord->workm);
-    GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + 1], 1);
+    GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + 1], 1);
     gte_SetRotMatrix(&coord->workm);
-    GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + 3], 2);
+    GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + 3], 2);
     gte_SetRotMatrix(&coord->workm);
-    GLOW_PRISM_TRANSFORM_CORNER(&gGlowPrismCorners[firstCorner + 2], 3);
+    GLOW_PRISM_TRANSFORM_CORNER(&GLOW_PRISM_CORNERS[firstCorner + 2], 3);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vertices[0]);
     gte_rtps();
@@ -113,3 +123,5 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
 #undef GLOW_PRISM_TRANSFORM_CORNER
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 }
+
+#undef GLOW_PRISM_CORNERS

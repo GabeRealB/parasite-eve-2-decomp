@@ -10,7 +10,9 @@
  * position of that helper. A package includes only the helpers it carries. The
  * TU-local drawers have static declarations in this header or their carriers.
  * Drawers called from other files in a package retain external linkage. The
- * prism drawers read their corners from the package's gGlowPrismCorners.
+ * Prism drawers borrow the carrier's local-space corner array. The tinted
+ * drawer accepts a GLOW_PRISM_CORNERS binding around its fragment inclusion;
+ * the grey drawer uses the legacy package-local gGlowPrismCorners spelling.
  */
 
 #ifndef SRC_SHARED_GLOW_DRAW_H
