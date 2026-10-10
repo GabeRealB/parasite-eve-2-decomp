@@ -13,12 +13,22 @@
 
 extern AreaVariant D_dryfield_night_motel_room_5_80181190[13];
 
-// dryfield_night_motel_room_5
-extern WorldCoordRoomLighting D_dryfield_night_motel_room_5_8017DA70[];
+/// Lighting for the two room variants of night motel room 5.
+///
+/// Indexed by the 1-based room minus one. Both entries borrow the same four
+/// point lights and one cone light; NULL ambient tables select the default
+/// ambient minima. The mutable lights remain valid while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightMotelRoom5RoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_motel_room_5_8017DA80[];
 
-extern u8* D_dryfield_night_motel_room_5_8017DAAC[];
+/// Logical-view mappings for the two room variants of night motel room 5.
+///
+/// Indexed by room minus one, then logical view minus one, for views 1..11.
+/// Room 1 uses the gameplay identity map; room 2 uses 1, 7..11, 2..6. Values
+/// select 1-based camera, image and sprite slots. Keep gameplay and this room
+/// overlay loaded while borrowing the maps; neither map has a terminator.
+extern u8* gDryfieldNightMotelRoom5RoomViewMaps[2];
 
 extern ViewCount D_dryfield_night_motel_room_5_8017DAB4[];
 
@@ -28,7 +38,12 @@ extern ViewCamera D_dryfield_night_motel_room_5_8017E060[];
 
 extern SpriteView D_dryfield_night_motel_room_5_80180994[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_5_80181230[];
+/// Collision policies and footstep cues indexed by room-local surface class 0..7.
+///
+/// Classes 0 and 4..7 share silent blocking properties; classes 1 and 2 add
+/// distinct footstep cues. Class 3 passes probes and ignores weapon impacts.
+/// Every class applies pushback. Records and cues borrow this overlay's lifetime.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom5SurfacePropertiesByClass[8];
 
 /// Draws the night motel room 5 light flare selected by the logical camera view.
 ///
