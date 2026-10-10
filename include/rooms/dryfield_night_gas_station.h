@@ -13,12 +13,21 @@
 
 extern AreaVariant D_dryfield_night_gas_station_80190624[12];
 
-// dryfield_night_gas_station
-extern WorldCoordRoomLighting D_dryfield_night_gas_station_80189DB0[];
+/// Lighting for night gas station room variants 1..4, indexed by room - 1.
+///
+/// Room 1 has eight point lights; rooms 2..4 share seven. All variants share
+/// ambient minima for logical views 1..21. Borrowed records and light arrays
+/// remain valid while this room overlay is loaded; light transforms are writable.
+extern WorldCoordRoomLighting gDryfieldNightGasStationRoomLighting[4];
 
 extern WorldCollisionRoomResources D_dryfield_night_gas_station_80189DD0[];
 
-extern u8* D_dryfield_night_gas_station_80189E70[];
+/// Logical-view maps for night gas station room variants 1..4, indexed by room - 1.
+///
+/// Each map's first 21 bytes select 1-based camera, image and sprite indices
+/// for logical views 1..21. Mappings may alias. Maps belong to the loaded
+/// room overlay and must remain live while the map and view systems use them.
+extern u8* gDryfieldNightGasStationViewMaps[4];
 
 extern ViewCount D_dryfield_night_gas_station_80189E80[];
 
@@ -28,7 +37,13 @@ extern ViewCamera D_dryfield_night_gas_station_8018B780[];
 
 extern SpriteView D_dryfield_night_gas_station_8018F6C4[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_gas_station_80190780[];
+/// Collision policies and footstep cue sets indexed by surface class 0..7.
+///
+/// Classes 0 and 5..7 share a silent blocking record. Class 1 passes probes
+/// and suppresses weapon impacts; classes 2..4 block and allow impacts.
+/// Every class applies pushback. Classes 1 and 4 share footstep cues, while
+/// 2 and 3 use separate pairs. Records and cues belong to the loaded room overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldNightGasStationSurfacePropertiesByClass[8];
 
 /// Runs the night gas station's charging pink flash, peak screen tint and fading star.
 ///

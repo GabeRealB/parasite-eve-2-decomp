@@ -452,7 +452,7 @@ u16 D_map_dryfield_full_8017A738[30] = {
 };
 
 WorldCoordRoomLighting* D_map_dryfield_full_8017A774[38] = {
-    D_dryfield_night_gas_station_80189DB0,
+    gDryfieldNightGasStationRoomLighting,
     D_dryfield_night_main_street_801822B4,
     D_dryfield_night_general_store_8017E82C,
     NULL,
@@ -663,7 +663,7 @@ static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
 ViewCameraTable D_map_dryfield_full_8017AA74 = { D_map_dryfield_full_8017A9DC };
 
 static u8** D_map_dryfield_full_8017AA78[38] = {
-    D_dryfield_night_gas_station_80189E70,
+    gDryfieldNightGasStationViewMaps,
     D_dryfield_night_main_street_801822FC,
     D_dryfield_night_general_store_8017E844,
     NULL,
@@ -749,7 +749,7 @@ static SpriteView* D_map_dryfield_full_8017AB14[38] = {
 SpriteAreaTable D_map_dryfield_full_8017ABAC = { D_map_dryfield_full_8017AB14 };
 
 WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[38] = {
-    D_dryfield_night_gas_station_80190780,
+    gDryfieldNightGasStationSurfacePropertiesByClass,
     D_dryfield_night_main_street_80188B84,
     D_dryfield_night_general_store_80185894,
     NULL,
