@@ -13,8 +13,13 @@
 
 extern AreaVariant D_acropolis_promenade_80183020[17];
 
-// acropolis_promenade
-extern WorldCollisionRoomResources D_acropolis_promenade_80181B90[];
+/// Collision resources for promenade rooms 1 and 2, indexed by room minus one.
+///
+/// Each room selects its own grid and borrows the same six view boundaries and
+/// six action triggers; neither has sight occluders. Setup binds the mutable
+/// resources to the active view. Keep the promenade overlay loaded until its
+/// grid is replaced and its triggers are unlinked. This table has no terminator.
+extern WorldCollisionRoomResources gAcropolisPromenadeRoomCollisionResources[2];
 
 /// Logical-view maps for promenade rooms 1 and 2, indexed by room minus one.
 ///
@@ -24,7 +29,12 @@ extern WorldCollisionRoomResources D_acropolis_promenade_80181B90[];
 /// pointers while the promenade overlay is loaded; there is no terminator.
 extern u8* gAcropolisPromenadeViewMaps[2];
 
-extern ViewCount D_acropolis_promenade_80181BC8[];
+/// Logical-view counts for promenade rooms 1 and 2, indexed by room minus one.
+///
+/// Both rooms search thirteen bytes of their logical-view maps. These signed
+/// element counts have no terminator and require the promenade overlay loaded;
+/// they describe the reverse-lookup domain, independently of camera capacity.
+extern ViewCount gAcropolisPromenadeViewCounts[2];
 
 /// Lighting descriptors for promenade rooms 1 and 2, indexed by room minus one.
 ///
@@ -33,11 +43,33 @@ extern ViewCount D_acropolis_promenade_80181BC8[];
 /// to stay loaded; this two-element table has no terminator.
 extern WorldCoordRoomLighting gAcropolisPromenadeRoomLightingTable[2];
 
-extern DirectionWarpEntry D_acropolis_promenade_80181BDC[];
+/// Five promenade arrival/departure endpoints, indexed by warp ID minus one.
+///
+/// Player and companion share each placement. Positions use game units and yaw
+/// uses 4096 units per turn; initial views are room-local logical view IDs.
+/// Endpoints 2, 3 and 5 carry paired arrival/departure sound cues, and 2 and 5
+/// carry map-marker flags. The stage map borrows this unterminated table while
+/// the promenade overlay is loaded; valid warp IDs are 1..5.
+extern DirectionWarpEntry gAcropolisPromenadeWarpEntries[5];
 
-extern SpriteView D_acropolis_promenade_80185FB4[];
+/// Sprite resources for mapped promenade views 1..13, indexed by view minus one.
+///
+/// Views 2..9 have source sprites; 1 and 10..13 have empty batch lists. Every
+/// view enables decoded image strips with a zero-count first batch, and none
+/// supplies clipping areas. Views 1 and 13 share their empty list. The stage
+/// map borrows these descriptors and their mutable lists while the promenade
+/// overlay is loaded. The descriptor array has no terminator.
+extern SpriteView gAcropolisPromenadeSpriteViews[13];
 
-extern ViewCamera D_acropolis_promenade_80186050[];
+/// Cameras for mapped promenade views 1..13, indexed by camera index minus one.
+///
+/// Rotation coefficients have twelve fractional bits; translation stores the
+/// negated camera origin in game units. Projection distances are pixels: 499
+/// for view 1, 230 for views 2..12 and 257 for view 13. Room 2's logical-view map
+/// permutes camera selection. The map borrows this unterminated array while the
+/// promenade overlay is loaded; queued camera application requires it to stay
+/// readable until the transform is copied.
+extern ViewCamera gAcropolisPromenadeViewCameras[13];
 
 /// Promenade collision and footstep policies, indexed by surface class 0..7.
 ///
