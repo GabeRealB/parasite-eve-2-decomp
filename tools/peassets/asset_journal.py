@@ -338,16 +338,29 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
 
     A clip constant is an index into one of these, not into the bank: a table
     lists the sets a rig can play, and may skip, repeat or order them as it
-    likes. They are found in the package's own bytes - a run of words each
-    naming a declared set, or null - and cut where the package's symbols
-    start, since tables for several rigs sit back to back. An entry is the
-    bank and the set's position in it, or None for a null slot.
+    likes. Everything is read from the package's bytes: a word naming one of
+    the sets the overlay manifest declares belongs to a table, and the table
+    is the object the package's symbol map has there - from the symbol's
+    address for its `size:`, so that an index counts from the symbol whatever
+    the slots before the first set hold. An entry is the bank and the set's
+    position in it, or None for a slot that names no set of this package (a
+    null, or a pointer the code or another package fills in).
+
+    Where the map gives the object no size it runs from its symbol to the
+    next one, as long as it holds nothing but sets and nulls. Where no symbol
+    reaches the word at all - splat's own `D_` names are not in a map - the
+    table is the run of sets and nulls around it, with one null slot before
+    it, and is named `package+0xOFFSET`. Trailing nulls are dropped, so a
+    `size:` added to a symbol map later changes no table.
     """
+    import bisect
     import struct
     import tomllib
     sys.path.insert(0, str(ROOT / "tools"))
     from gen_overlay_configs import declared_animations
+    from room_scene import SymbolMaps
 
+    maps = SymbolMaps()
     banks = {(rec["source"], rec["vram"]): key for key, rec in embedded.items() if rec.get("type") == "animation"}
     by_package: dict[str, list[dict]] = defaultdict(list)
     for row in declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
@@ -363,37 +376,41 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
             bank = banks.get((package + ".pe2pkg", load + row["offset"]))
             for n, offset in enumerate(row["sets"]):
                 sets[load + offset] = (bank, n)
-        names = {}
-        for sym in (ROOT / "configs/USA/sym").glob(f"*/{package}.txt"):
-            names = {int(m[2], 16): m[1] for m in SYMBOL.finditer(sym.read_text(encoding="utf-8"))}
+        own = maps.of(package)
+        names = {**maps.annotated.get(package, {}), **own.names}        # what starts an object, by address
+        starts, extents = sorted(names), sorted(own.sizes)
         words = struct.unpack_from(f"<{len(data) // 4}I", data)
+        listed = lambda w: words[w] in sets or words[w] == 0  # noqa: E731
         tables, i = [], 0
         while i < len(words):
             if words[i] not in sets:
                 i += 1
                 continue
-            # Slot 0 is unused, and some tables open with more than one null.
-            # The table starts at its symbol, so take the nulls back to one;
-            # with no symbol in reach, a single null slot is assumed.
-            start = i - 1 if i and words[i - 1] == 0 else i
-            for back in range(i, max(i - 5, -1), -1):
-                if back < i and words[back] != 0:
-                    break
-                if load + back * 4 in names:
-                    start = back
-                    break
-            end = i
-            while end < len(words) and (words[end] in sets or words[end] == 0):
-                end += 1
-            while words[end - 1] == 0:
-                end -= 1
-            cuts = [start] + [w for w in range(start + 1, end) if load + w * 4 in names] + [end]
-            # A symbol on the word before the run owns the null slot too.
-            for a, b in zip(cuts, cuts[1:]):
-                entries = [sets.get(w) for w in words[a:b]]
-                if any(entries):
-                    tables.append((names.get(load + a * 4, f"{package}+0x{a * 4:X}"), entries))
-            i = end
+            address = load + i * 4
+            at = bisect.bisect_right(starts, address)
+            symbol = starts[at - 1] if at else None
+            inside = bisect.bisect_right(extents, address)
+            if inside and address < extents[inside - 1] + own.sizes[extents[inside - 1]]:
+                symbol = extents[inside - 1]            # a sized object holds the word, whatever is named inside it
+            following = (starts[at] - load) // 4 if at < len(starts) else len(words)
+            size = own.sizes.get(symbol) if symbol is not None else None
+            first = (symbol - load) // 4 if symbol is not None and symbol % 4 == 0 else None
+            if first is not None and size and address < symbol + size:
+                start, end = first, min(first + size // 4, len(words))                  # the symbol's own extent
+            elif first is not None and not size and all(listed(w) for w in range(first, i)):
+                start, end = first, i                                                   # from its symbol to the next
+                while end < following and listed(end):
+                    end += 1
+            else:
+                start = i - 1 if i and words[i - 1] == 0 and (symbol is None or load + (i - 1) * 4 >= symbol + (size or 0)) else i
+                end = i
+                while end < following and listed(end):
+                    end += 1
+            entries = [sets.get(w) for w in words[start:end]]
+            while entries and entries[-1] is None:
+                entries.pop()
+            tables.append((names.get(load + start * 4, f"{package}+0x{start * 4:X}"), entries))
+            i = max(end, i + 1)
         out[package] = tables
     return out
 

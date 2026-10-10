@@ -17,7 +17,7 @@ cannot run without the group - a room and the file that carries it - and
 set), `weapon`, and so on. A **file** has a footprint: the rectangles its
 images and CLUTs upload to, moved by the edge's offsets.
 
-    asset_residency.py build            rebuild the graph from the manifest and the sources
+    asset_residency.py build            rebuild the graph from the manifest, the packages and the traced loads
     asset_residency.py stats
     asset_residency.py show LOADER      a loader's groups and what each brings
     asset_residency.py at LOADER X Y    what can sit at a VRAM position while LOADER runs
@@ -32,6 +32,11 @@ resource tables), `traced` (a load decided by code, read out of the sources
 into `residency_loads.tsv` beside this tool), or `folder` - a file in a room's folder taken to be the view
 of its number, which holds for rooms using the identity view map and is an
 assumption for the rest until their maps are read.
+
+The view maps and the variant tables are read from the package bytes, along
+gameplay's own route to them and with room_scene.py's readers (`view_maps`,
+`room_variants`); no C initialiser is parsed. A table that could not be read
+is listed on stderr by `build`.
 """
 from __future__ import annotations
 
@@ -64,11 +69,9 @@ GROUP_BASE = (10, 20, 30, 40, 50, 60, 0, 1, 2)
 SHIFTED_ROWS = range(245, 256)       # header rows the loader's row offset moves
 RELOCATED_FROM = 256                 # images at or below this row move by whole pages
 
-VARIANT_TABLE = re.compile(r"\bAreaVariant\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
-RESOURCE_TABLE = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
-RESOURCE_ROW = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,[^{}]*\{[^{}]*\}\s*,\s*(&?[\w.]+)\s*\}")
-OWNER = re.compile(r"D_([a-z0-9_]+?)_[0-9A-F]{8}$")
-PLACEMENT_TABLE = re.compile(r"\bAreaPlacement\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+AREA_PLACEMENT_END = 0xFF            # ends an AreaPlacement and an AreaResource table (include/gameplay/areaplace.h)
+UNUSED_PLACEMENT_ENTRY = 0           # a placement the loader steps over (src/gameplay/area_cd.c)
+TEXTURES_ONLY_GROUP = 5              # `AREA_RESOURCE_FILE_GROUP_BASE_60`: loaded only for a placement of the base file
 
 
 def footprints(assets: dict, node: dict) -> list[tuple]:
@@ -107,92 +110,81 @@ def moved(rect: tuple, page: int, row: int, mode: str = "") -> tuple[int, int]:
     return x, y
 
 
-PLACEMENT_FIELDS = ("entryId", "variant", "mode", "x", "y", "z", "yaw", "fileIdLow", "texturePageOffset", "clutRowOffset", "rowIndex")
-RESOURCE_FIELDS = ("entryId", "fileNumber", "fileGroupIndex", "taskIndex", "unknown_6", "taskTable")
+def scenes():
+    """room_scene.py, whose `Project` and `Scene` read every room's tables from the package bytes.
 
-
-def split_top(text: str, opener: str = "{", closer: str = "}") -> list[str]:
-    """The comma-separated parts of an initializer at its own nesting level."""
-    parts, depth, start = [], 0, 0
-    for i, ch in enumerate(text):
-        if ch in "{(":
-            depth += 1
-        elif ch in "})":
-            depth -= 1
-        elif ch == "," and depth == 0:
-            parts.append(text[start:i])
-            start = i + 1
-    parts.append(text[start:])
-    return [part.strip() for part in parts if part.strip()]
-
-
-def table_rows(body: str, fields: tuple[str, ...]) -> list[dict[str, str]]:
-    """The records of a table's initializer, each as field -> expression text.
-
-    A row is written positionally (`{ 41, 41, GROUP, 0, { 0, 0 }, &desc }`) or with
-    designators (`{ .entryId = NAME, .fileNumber = ... }`), on one line or several;
-    a naming pass rewrites the first form into the second.
+    Imported on use: it imports `GROUP_BASE` from this module.
     """
-    rows = []
-    for row in split_top(body):
-        if not (row.startswith("{") and row.endswith("}")):
-            continue
-        cells, record = split_top(row[1:-1]), {}
-        for n, cell in enumerate(cells):
-            match = re.match(r"\.(\w+)\s*=\s*(.*)", cell, re.S)
-            if match:
-                record[match[1]] = match[2].strip()
-            elif n < len(fields):
-                record[fields[n]] = cell
-        rows.append(record)
-    return rows
+    import room_scene
+    return room_scene
 
 
-def area_tables(files: list[Path], known: dict[str, int]):
-    """The placement, resource and variant tables of the sources, by symbol."""
-    placements, resources, variants = {}, {}, {}
-    for path in files:
-        if path.suffix != ".c":
-            continue
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if "Area" not in text:
-            continue
-        rel = path.relative_to(ROOT).as_posix()
-        # A cell can be a constant the file itself names (an entry id, a file number), beside the journal's.
-        local = dict(known)
-        local.update({name: value for _scope, name, _line, _kind, _expr, value in asset_journal.constants(path) if value is not None})
-        value = lambda record, field: asset_journal.evaluate(record.get(field, "0"), local)  # noqa: E731
-        for table in PLACEMENT_TABLE.finditer(text):
-            rows = []
-            for record in table_rows(table[2], PLACEMENT_FIELDS):
-                cells = [value(record, f) for f in ("entryId", "fileIdLow", "texturePageOffset", "clutRowOffset")]
-                if "entryId" in record and None not in cells:
-                    rows.append(tuple(cells))                                   # entry, fileIdLow, page, row
-            placements[table[1]] = rows
-        for table in RESOURCE_TABLE.finditer(text):
-            entries = {}
-            for record in table_rows(table[2], RESOURCE_FIELDS):
-                entry, number, group = (value(record, f) for f in ("entryId", "fileNumber", "fileGroupIndex"))
-                if None not in (entry, number, group) and 0 <= group < len(GROUP_BASE) and "END" not in record.get("entryId", ""):
-                    entries[entry] = ((GROUP_BASE[group] + number // 100) * 10000 + (number % 100) * 100, record.get("taskTable", "NULL"))
-            resources[table[1]] = entries
-        for table in VARIANT_TABLE.finditer(text):
-            # One row per variant number, written in order or by index (`[7] = { .placements = ..., .resources = ... }`),
-            # in which case the numbers left out are empty.
-            slots: dict[int, tuple[str, str]] = {}
-            at = 0
-            for item in split_top(table[2]):
-                index = re.match(r"\[([^\]]+)\]\s*=\s*(.*)", item, re.S)
-                if index:
-                    number = asset_journal.evaluate(index[1], local)
-                    if number is None:
-                        continue
-                    at, item = number, index[2].strip()
-                record = (table_rows(item, ("placements", "resources")) or [{}])[0]
-                slots[at] = (record.get("placements", "NULL"), record.get("resources", "NULL"))
-                at += 1
-            variants[table[1]] = (rel, [slots.get(n, ("NULL", "NULL")) for n in range(max(slots, default=-1) + 1)])
-    return placements, resources, variants
+def package_loads(manifest: dict) -> dict[str, int]:
+    """package -> its load address; an actor's follows from the slot it is linked for (configs/USA/overlays.toml)."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import slot_packages
+    out: dict[str, int] = {}
+    for spec in manifest.values():
+        if isinstance(spec, dict) and "overlays" in spec:
+            own = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+            for name, slot, _entry in slot_packages(spec):
+                out[name] = own.get(slot.get("slot"), int(spec["load_addr"]))
+    return out
+
+
+def unread(scene, blocks: tuple[str, ...]) -> list[str]:
+    """What a room's scene could not read of these blocks, one line each."""
+    return [f"{scene.room}: {u['what']} - {u['reason']}" for u in scene.unresolved if u["block"] in blocks]
+
+
+def room_variants(project=None, problems: list[str] | None = None) -> dict[str, dict]:
+    """room package -> its `AreaVariant` table, decoded from the bytes.
+
+    The route is gameplay's: `Gp_AreaTables[stage][area].variants` leads into the room's package, each slot to an
+    `AreaPlacement` and an `AreaResource` table, both ended by `AREA_PLACEMENT_END` in `entryId`. A resource row
+    gains `file` (its base file's stage-zero id, None when its group selector is outside `GROUP_BASE`) and `owner`,
+    the package its task table is in: the image mapped at that address while the room runs - gameplay, the stage's
+    map overlay or the room itself - else the package, of those the variant's own files carry, whose image holds the
+    address, the row's own files first; else what a symbol map says is there (`owner=`).
+    """
+    rs = scenes()
+    project = project or rs.Project()
+    loads = package_loads(project.manifest)
+    out: dict[str, dict] = {}
+    for room in sorted(project.place_of):
+        scene = rs.Scene(project, room)
+        record, _directory = scene.directory("areas")
+        slots, info = scene.table("placements", record["variants"], rs.VARIANT) if record and record["variants"] else (None, None)
+        variants = []
+        for slot in slots or []:
+            read = {}
+            for field, layout in (("resources", rs.RESOURCE), ("placements", rs.PLACEMENT)):
+                rows, _info = scene.table("placements", slot[field], layout, stop=lambda r: r["entryId"] == AREA_PLACEMENT_END) if slot[field] else (None, None)
+                read[field] = [r for r in rows or [] if r["entryId"] != AREA_PLACEMENT_END]
+            carried: dict[int, list[str]] = defaultdict(list)       # resource row -> the packages its files carry
+            for n, r in enumerate(read["resources"]):
+                lows = dict.fromkeys([0] + [p["fileIdLow"] for p in read["placements"] if p["entryId"] == r["entryId"]])
+                files = [scene.resolve_file(r, low) for low in lows]
+                r["file"] = files[0]["fileId"]
+                carried[n] = list(dict.fromkeys(f["package"] for f in files if f["package"]))
+            for n, r in enumerate(read["resources"]):
+                address, r["owner"] = r["taskTable"], None
+                if not address:
+                    continue
+                candidates = list(dict.fromkeys(carried[n] + [p for packages in carried.values() for p in packages]))
+                held = [p for p in candidates if p in loads and project.package(p) is not None and 0 <= address - loads[p] < len(project.package(p))]
+                r["owner"] = scene.owner_of(address) or (held[0] if held else scene.foreign(address, candidates)[1])
+                r["ownerBy"] = "mapped" if scene.owner_of(address) else "loaded" if held else "symbol map" if r["owner"] else None
+                if r["owner"] is None and problems is not None:
+                    problems.append(f"{room}: entry {r['entryId']}'s task table 0x{address:08X} is in no image the variant loads and no symbol map says whose it is")
+            variants.append({"placements": scene.ref(slot["placements"], rs.sizeof(rs.PLACEMENT)), "resources": scene.ref(slot["resources"], rs.sizeof(rs.RESOURCE)),
+                             "placed": read["placements"], "rows": read["resources"]})
+        if problems is not None:
+            problems += unread(scene, ("placements",))
+        if slots is not None:
+            where = info["where"]
+            out[room] = {"table": info["symbol"], "source": f"{where.get('file') or where['address']}:{where['symbol']}", "variants": variants}
+    return out
 
 
 # Loads decided by code, read out of the sources and kept as a table beside
@@ -260,71 +252,40 @@ def traced_loads(common: dict[int, str], folders: dict[tuple[int, int], dict[int
         yield loader, kind, condition, evidence_of[loader, kind, condition], members
 
 
-BYTE_TABLE = re.compile(r"\bu8\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
-VIEW_DIRECTORY = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*ViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}", re.S)
-VIEW_COUNTS = re.compile(r"\bViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}")
-POINTER_TABLE = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
-IDENTITY_MAP = "gViewIdentityMap"
-# The identity map has 50 entries (`VIEW_IDENTITY_MAP_LENGTH`). A room's `ViewCount` only bounds the reverse search
-# (`viewFindLogicalIndex`); the forward lookup is not bounded by it, so a boundary trigger can select a view past the
-# count and that view's file is a real view (dryfield_motel_room_3 walks views 7 and 8 with a count of 6).
-IDENTITY_VIEWS = list(range(1, 51))
+def view_maps(project=None, problems: list[str] | None = None) -> dict[str, list[list[int]]]:
+    """room package -> for each of its room indices, the file index of each view (1-based views).
 
+    Read from the packages along gameplay's route (room_scene.py): the stage's map overlay holds, per area, a
+    directory of byte maps, one per room index (`ViewIndexTable` in include/gameplay/view.h), and
+    `map[view - 1]` is the index of the view's file in the room's folder. Most room indices borrow gameplay's
+    identity map, whose 50 bytes are read like any other.
 
-def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]]]:
-    """room package -> for each of its rooms, the file index of each view (1-based views).
-
-    A room overlay publishes a directory of byte maps, one per room it holds,
-    followed by its view counts (`ViewIndexTable` in include/gameplay/view.h):
-    `map[view - 1]` is the index of the view's file in the room's folder.
-    Most rooms borrow gameplay's identity map.
+    A map is taken at its symbol's size, padding included (a zero is no file). A room's `ViewCount` only bounds the
+    reverse search (`viewFindLogicalIndex`); the forward lookup is not bounded by it, so a boundary trigger can
+    select a view past the count and that view's file is a real view (dryfield_motel_room_3 walks views 7 and 8
+    with a count of 6). The count cuts a map only where the symbol map gives the map no size, so that its extent is
+    a guess at where the next object starts.
     """
+    rs = scenes()
+    project = project or rs.Project()
     out: dict[str, list[list[int]]] = {}
-    for path in files:
-        if path.suffix != ".c" or "rooms" not in path.parts:
-            continue
-        text = asset_journal.code_of(path)
-        if "ViewCount" not in text:
-            continue
-        room = next((part for part in reversed(path.relative_to(ROOT).parts[:-1]) if part in packages), None)
-        # A count or a map entry can be a named constant of the file (a naming pass gives the view count a name,
-        # and declares it between the directory and the counts).
-        named = {name: value for _scope, name, _line, _kind, _expr, value in asset_journal.constants(path) if value is not None}
-        tables = {m[1]: [asset_journal.evaluate(c, named) for c in m[2].split(",") if c.strip()] for m in BYTE_TABLE.finditer(text)}
-        for directory in VIEW_DIRECTORY.finditer(text):
-            names = [c.strip() for c in directory[2].split(",") if c.strip()]
-            counts = [asset_journal.evaluate(c, named) or 0 for c in directory[3].split(",") if c.strip()]
-            # A count table can be shorter than its directory (neo_ark_altar: two counts, three room indices);
-            # a byte map without a count is taken at its own length.
-            counts += [0] * (len(names) - len(counts))
-            maps = []
-            for name, count in zip(names, counts):
-                if name == IDENTITY_MAP:
-                    maps.append(IDENTITY_VIEWS)
-                elif name in tables and None not in tables[name][:count or None]:
-                    maps.append(tables[name][:count or None])
-                else:
-                    maps = None
-                    break
-            if room and maps:
-                out[room] = maps
-        if room and room not in out:
-            # The directory and the counts are not always declared together:
-            # then it is the pointer table whose entries are all byte maps,
-            # as long as the view counts.
-            counted = [[asset_journal.evaluate(c, named) or 0 for c in m[1].split(",") if c.strip()] for m in VIEW_COUNTS.finditer(text)]
-            for directory in POINTER_TABLE.finditer(text):
-                names = [c.strip() for c in directory[2].split(",") if c.strip()]
-                if not names or any(n != IDENTITY_MAP and n not in tables for n in names):
-                    continue
-                # The counts may carry a zero terminator the directory does not have.
-                counts = next((c[:len(names)] for c in counted if len(c) >= len(names) and not any(c[len(names):])), None)
-                if counts is None:
-                    continue
-                maps = [IDENTITY_VIEWS if name == IDENTITY_MAP else tables[name][:count] for name, count in zip(names, counts)]
-                if all(None not in m for m in maps):
-                    out[room] = maps
-                    break
+    for room in sorted(project.place_of):
+        scene = rs.Scene(project, room)
+        maps = []
+        for row in scene.room_resources():
+            name, count, mapping = row["viewMap"], row["viewCount"], None
+            if name:
+                identity = scene.addresses[name] == rs.IDENTITY_MAP
+                mapping, info = scene.table("views", scene.addresses[name], "u8", count=rs.IDENTITY_MAP_LENGTH if identity else None)
+                if mapping is not None and count and info["length"] not in ("count", "symbol size"):
+                    mapping = mapping[:count]
+            maps.append(mapping or [])
+        while maps and not maps[-1]:
+            maps.pop()                  # a room index with collision but no map of its own
+        if maps:
+            out[room] = maps
+        if problems is not None:
+            problems += unread(scene, ("views",))
     return out
 
 
@@ -359,9 +320,9 @@ def build(db: sqlite3.Connection) -> None:
             group(package, "carrier", "", "carrier", path, [(path, 0, 0, "", "")])
     # A room's other files are its views, one loaded at a time; which file a
     # view is comes from the room's view map.
-    files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
-                   if p.suffix in (".c", ".h") and "psyq" not in p.parts)
-    maps = view_maps(files, packages)
+    project = scenes().Project()
+    problems: list[str] = list(project.root_problems)
+    maps = view_maps(project, problems)
     rooms: dict[str, str] = {}
     unmapped = 0
     for stage, body in tree.items():
@@ -402,46 +363,36 @@ def build(db: sqlite3.Connection) -> None:
             group(package, "optional", f"upload: {key}", "embedded", path, [(f"code:{key}", 0, 0, "", "uploaded by the overlay's own code")])
 
     # A room's variants: each pairs placements with the resources they name.
-    values: dict[str, set[int]] = defaultdict(set)
-    for path in files:
-        for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(path):
-            values[symbol].add(value)
-    known = {name: next(iter(v)) for name, v in values.items() if len(v) == 1}
-    placements, resources, variants = area_tables(files, known)
-    man_packages = packages
     missing: set[int] = set()
-    for name, (rel, rows) in sorted(variants.items()):
-        room = next((part for part in reversed(Path(rel).parts[:-1]) if part in man_packages), None)
-        if room is None:
-            continue
-        for index, (placed, named) in enumerate(rows):
-            entries = resources.get(named)
-            if not entries:
-                continue
-            # Every resource of the variant is loaded; a placement says with
-            # what offsets and which further file of the entry.
+    for room, table in sorted(room_variants(project, problems).items()):
+        for index, variant in enumerate(table["variants"]):
+            rows, placed = variant["rows"], variant["placed"]
+            # (loadingPollAreaBaseResources / loadingPollAreaPlacementFiles.) Every resource row is walked, and a
+            # placement says with what offsets and which further file of its entry.
             loads: dict[tuple, str] = {}
-            used = defaultdict(list)
-            for entry, low, page, row in placements.get(placed, ()):
-                used[entry].append((low, page, row))
-            # (loadingPollAreaBaseResources / loadingPollAreaPlacementFiles.) The
-            # base file of every resource is loaded, placed or not - except a
-            # texture-only resource (group 60), loaded only for a placement
-            # that names it without a further file. A placement's further
-            # file comes in addition, with that placement's own offsets.
-            for entry, (base, table) in entries.items():
-                textures = 600000 <= base < 700000
-                # Pass 1: the base file, once, with the offsets of the first
-                # placement that names the entry without a further file.
-                first = next(((page, row) for low, page, row in used.get(entry, ()) if low == 0), None)
+            for r in rows:
+                if r["file"] is None:
+                    problems.append(f"{room}: variant {index} entry {r['entryId']} has file group selector {r['fileGroupIndex']}, outside the loader's table")
+                    continue
+                entry = r["entryId"]
+                named = [p for p in placed if p["entryId"] == entry]
+                # The row's base file is loaded once, with the offsets of the first placement that names the entry
+                # without a further file, else unshifted - except a texture-only row, loaded only for such a placement.
+                first = next((p for p in named if not p["fileIdLow"]), None)
                 if first is not None:
-                    loads[(base,) + first] = f"entry {entry}"
-                elif not textures:
-                    loads[(base, 0, 0)] = f"entry {entry}, " + ("placed only with a further file" if entry in used else "not placed")
-                # Pass 2: each placement's further file, with its own offsets.
-                for low, page, row in used.get(entry, ()):
-                    if low:
-                        loads[(base + low, page, row)] = f"entry {entry}, file {low}"
+                    loads[r["file"], first["texturePageOffset"], first["clutRowOffset"]] = f"entry {entry}"
+                elif r["fileGroupIndex"] != TEXTURES_ONLY_GROUP:
+                    loads[r["file"], 0, 0] = f"entry {entry}, " + ("placed only with a further file" if named else "not placed")
+            # Each placement's further file comes in addition, with that placement's own offsets, beside the base
+            # file of the first resource row with its entry id.
+            for p in placed:
+                if not p["fileIdLow"] or p["entryId"] == UNUSED_PLACEMENT_ENTRY:
+                    continue
+                r = next((r for r in rows if r["entryId"] == p["entryId"]), None)
+                if r is None:
+                    problems.append(f"{room}: variant {index} places entry {p['entryId']} with further file {p['fileIdLow']}, and no resource row has that entry")
+                elif r["file"] is not None:
+                    loads[r["file"] + p["fileIdLow"], p["texturePageOffset"], p["clutRowOffset"]] = f"entry {p['entryId']}, file {p['fileIdLow']}"
             members = []
             for (fid, page, row), note in sorted(loads.items()):
                 if fid in common:
@@ -449,15 +400,14 @@ def build(db: sqlite3.Connection) -> None:
                 else:
                     missing.add(fid)
             if members:
-                gid = group(room, "optional", f"variant {index}", "placement", f"{rel}:{name}", members)
-                # What a placement spawns is the actor its resource's task
-                # table belongs to, displaced by that placement's offsets -
-                # which need not be the offsets its package's file came with.
+                gid = group(room, "optional", f"variant {index}", "placement", table["source"], members)
+                # What a placement spawns is the actor its resource's task table belongs to, displaced by that
+                # placement's offsets - which need not be the offsets its package's file came with.
                 spawned = set()
-                for entry, lows in used.items():
-                    owner = OWNER.match(entries.get(entry, (0, ""))[1].lstrip("&").split(".")[0])
-                    if owner and owner[1] in man_packages:
-                        spawned.update((owner[1], page, row, entry) for _low, page, row in lows)
+                for p in placed:
+                    r = next((r for r in rows if r["entryId"] == p["entryId"]), None)
+                    if r is not None and r["owner"] in packages:
+                        spawned.add((r["owner"], p["texturePageOffset"], p["clutRowOffset"], p["entryId"]))
                 db.executemany("INSERT INTO spawn VALUES (?,?,?,?,?)", [(gid,) + sp for sp in sorted(spawned)])
     folders: dict[tuple[int, int], dict[int, str]] = {}
     for stage, body in tree.items():
@@ -470,7 +420,10 @@ def build(db: sqlite3.Connection) -> None:
           f"{db.execute('SELECT COUNT(*) FROM footprint').fetchone()[0]} uploaded rectangles, "
           f"{db.execute('SELECT COUNT(*) FROM grp').fetchone()[0]} groups"
           + (f"; {unmapped} room files no view maps to" if unmapped else "")
-          + (f"; placements name {len(missing)} files the disc does not have, so nothing is loaded for them: {sorted(missing)}" if missing else ""))
+          + (f"; placements name {len(missing)} files the disc does not have, so nothing is loaded for them: {sorted(missing)}" if missing else "")
+          + (f"; {len(problems)} tables or records not read (below)" if problems else ""))
+    for line in problems:
+        print(f"  {line}", file=sys.stderr)
 
 
 # The template is the page's content only, as an artifact host wraps it; a

@@ -41,83 +41,105 @@ TEMPLATE = Path(__file__).with_name("asset_map.html")
 SHOWN = ("x", "y", "w", "h", "bpp", "clips", "parent", "required", "source", "vram", "size", "notes")
 
 
-def spawn_bindings(assets: dict) -> dict[tuple[str, str], set[int]]:
+def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[str, str], set[int]]:
     """(package, model) -> the stage-zero files a room loads for the entry that spawns that model.
 
-    This is read from the game's own tables, not inferred. A room's
-    `AreaResource` row names a file (`fileNumber`, `fileGroupIndex`) and the
-    actor it is for: `taskTable[taskIndex]`, a `TaskDesc` whose `data.model`
-    is the model's `TmdSource` when its body kind is a TMD model
-    (include/gameplay/area.h, include/main/task_types.h). So the row says
-    which file's textures the model spawned through it is drawn with.
+    This is read from the game's own tables, in the packages' bytes, by the
+    route gameplay takes (room_scene.py): `Gp_AreaTables[stage][area]` leads to
+    a room's `AreaVariant` table, and each variant to its `AreaPlacement` and
+    `AreaResource` lists. A resource row names a file (`fileNumber`,
+    `fileGroupIndex`) and the actor it is for: `taskTable[taskIndex]`, a
+    `TaskDesc` whose `data.model` is the model's `TmdSource` when its body kind
+    is a TMD model (include/gameplay/area.h, include/main/task_types.h). So the
+    row says which file's textures the model spawned through it is drawn with.
+
+    The task table is an address in an actor overlay, and the row does not say
+    which: it is the package the row's own file loads when the address lies in
+    it, else the one package among those the table's other files load whose
+    image holds the address (each at its slot's load address, from the overlay
+    manifest), else the room itself. Where several loaded packages hold it, the
+    symbol maps that name the address for one of them decide; a row that still
+    has no single package is left out and listed in `unresolved`.
     """
     import hashlib
     import re
     import struct
-    import asset_journal
     import pkg_model
-    row = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*\{[^{}]*\}\s*,\s*&?(\w+)\s*\}")
-    table = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
-    named: dict[str, list[tuple[str, int]]] = defaultdict(list)          # symbol -> (package, address)
-    for sym in (ROOT / "configs/USA/sym").glob("*/*.txt"):
-        for m in residency.asset_journal.SYMBOL.finditer(sym.read_text(encoding="utf-8")):
-            named[m[1]].append((sym.stem, int(m[2], 16)))
-    records = pkg_model.declared_records(ROOT)
+    import room_scene
+    from room_scene import PLACEMENT, RESOURCE, TASK_DESC, VARIANT, sizeof
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import slot_packages
+    project = room_scene.Project()
+    # Where each package is loaded: an actor at its slot's address, not at its family's (configs/USA/overlays.toml).
+    loads: dict[str, int] = {}
+    for spec in project.manifest.values():
+        if isinstance(spec, dict) and "overlays" in spec:
+            slots = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+            for name, slot, _entry in slot_packages(spec):
+                loads[name] = slots.get(slot.get("slot"), int(spec["load_addr"]))
     by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
-    blobs: dict[str, bytes] = {}
-    values: dict[str, set[int]] = defaultdict(set)
-    sources = sorted(p for p in (ROOT / "src").rglob("*.c"))
-    for path in sources:
-        if "AreaResource" in path.read_text(encoding="utf-8", errors="replace"):
-            for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(path):
-                values[symbol].add(value)
-    for header in (ROOT / "include" / "gameplay").glob("*.h"):
-        for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(header):
-            values[symbol].add(value)
-    known = {name: next(iter(v)) for name, v in values.items() if len(v) == 1}
-    # Which further file of an entry its placements ask for (`AreaPlacement.fileIdLow`): a placement with 0 uses
-    # the entry's base file, one with N the file N beside it. So the entry's models are drawn with those files.
-    placements, _resources, variants = residency.area_tables(sources, known)
-    lows: dict[tuple[str, int], set[int]] = defaultdict(set)
-    for _rel, pairs in variants.values():
-        for placed, resource_table in pairs:
-            for entry, low, _page, _row in placements.get(placed, ()):
-                lows[resource_table, entry].add(low)
+    last = lambda r: r["entryId"] == 0xFF  # noqa: E731 - AREA_RESOURCE_END / AREA_PLACEMENT_END (include/gameplay/area.h)
+    missed = unresolved if unresolved is not None else []
+
+    def holds(package: str | None, address: int) -> bool:
+        data = project.package(package) if package in loads else None
+        return data is not None and 0 <= address - loads[package] <= len(data) - sizeof(TASK_DESC)
+
     out: dict[tuple[str, str], set[int]] = defaultdict(set)
-    for path in sources:
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if "AreaResource" not in text:
+    for room in sorted(project.place_of):
+        scene = room_scene.Scene(project, room)
+        record, _ = scene.directory("areas")
+        if not record or not record["variants"]:
             continue
-        for found in table.finditer(asset_journal.code_of(path)):
-            for m in row.finditer(found[2]):
-                entry, number, group, index = (asset_journal.evaluate(c, known) for c in (m[1], m[2], m[3], m[4]))
-                if None in (entry, number, group, index) or not 0 <= group < len(residency.GROUP_BASE):
+        variants, _ = scene.table("placements", record["variants"], VARIANT)
+        # Which further file of an entry its placements ask for (`AreaPlacement.fileIdLow`): a placement with 0 uses
+        # the entry's base file, one with N the file N beside it. So the entry's models are drawn with those files.
+        lows: dict[tuple[int, int], set[int]] = defaultdict(set)
+        tables: dict[int, list[dict]] = {}
+        for variant in variants or []:
+            if not variant["resources"]:
+                continue
+            if variant["resources"] not in tables:
+                rows, _ = scene.table("placements", variant["resources"], RESOURCE, stop=last)
+                tables[variant["resources"]] = [r for r in rows or [] if not last(r)]
+            rows, _ = scene.table("placements", variant["placements"], PLACEMENT, stop=last) if variant["placements"] else (None, None)
+            for placed in rows or []:
+                if not last(placed):
+                    lows[variant["resources"], placed["entryId"]].add(placed["fileIdLow"])
+        for table, rows in tables.items():
+            files = [scene.resolve_file(r) for r in rows]
+            loaded = list(dict.fromkeys(f["package"] for f in files if f["package"]))
+            for r, file in zip(rows, files):
+                if file["fileId"] is None or not r["taskTable"]:
                     continue
-                file_id = (residency.GROUP_BASE[group] + number // 100) * 10000 + (number % 100) * 100
-                owners = named.get(m[5], [])
-                direct = re.fullmatch(r"D_([a-z0-9_]+?)_([0-9A-F]{8})", m[5])
-                if direct and not owners:
-                    owners = [(direct[1], int(direct[2], 16))]
-                for package, address in owners:
-                    if package not in records:
-                        continue
-                    load, _sources = records[package]
-                    if package not in blobs:
-                        blob = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
-                        blobs[package] = blob.read_bytes() if blob.is_file() else b""
-                    data, at = blobs[package], address - load + index * 12
-                    if not 0 <= at <= len(data) - 12:
-                        continue
-                    flags, _priority, _callback, model = struct.unpack_from("<HHII", data, at)
-                    if flags & 0xFF != 1 or not load <= model < load + len(data):
-                        continue                      # not a TMD body: the descriptor names no model
-                    try:
-                        src = pkg_model.read_source(data, load, model - load)
-                        key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
-                    except Exception:  # noqa: BLE001
-                        key = None
-                    if key:
-                        out[package, key].update(file_id + low for low in (lows.get((found[1], entry)) or {0}))
+                address = r["taskTable"] + r["taskIndex"] * sizeof(TASK_DESC)
+                where = f"{room} resource table {scene.ref(table)} entry {r['entryId']}"
+                if holds(file["package"], address):
+                    owners = [file["package"]]
+                else:
+                    owners = [package for package in loaded if holds(package, address)]
+                    if len(owners) > 1:
+                        named = scene.foreign(r["taskTable"], loaded)[1]
+                        owners = [named] if named in owners else owners
+                    if not owners and scene.owner_of(address) == room and holds(room, address):
+                        owners = [room]
+                if len(owners) != 1:
+                    if not scene.owner_of(address):
+                        missed.append(f"{where}: task table 0x{r['taskTable']:08X} is in "
+                                      + (f"several loaded packages ({', '.join(owners)})" if owners else "no package the table's files load"))
+                    continue
+                package = owners[0]
+                load, data = loads[package], project.package(package)
+                flags, _priority, _callback, model = struct.unpack_from("<HHII", data, address - load)
+                if flags & 0xFF != 1 or not load <= model < load + len(data):
+                    continue                      # not a TMD body: the descriptor names no model
+                try:
+                    src = pkg_model.read_source(data, load, model - load)
+                    key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+                except Exception:  # noqa: BLE001
+                    key = None
+                if key:
+                    out[package, key].update(file["fileId"] + low for low in (lows.get((table, r["entryId"])) or {0}))
     # What the tables cannot say - a model some task spawns itself - is read out of the code and kept beside this
     # tool: package, model, file ids, evidence, note.
     stated = Path(__file__).with_name("model_textures.tsv")
