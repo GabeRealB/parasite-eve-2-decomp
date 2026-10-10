@@ -325,7 +325,7 @@ m4a1PykeAttackState = 0x8011E4F8; // type:func absolute:True owner=m4a1_pyke
 m4a1HammerAttackState = 0x8011E710; // type:func absolute:True owner=m4a1_hammer
 m4a1JavelinAttackState = 0x8011F5D4; // type:func absolute:True owner=m4a1_javelin
 hypervelocityAttackState = 0x8011F724; // type:func absolute:True owner=hypervelocity
-gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True owner=shelter_b6_nursery shared=rooms
+gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True owner=shelter_b6_nursery
 gAcropolisCafeteriaModel077D8 = 0x80184E5C; // absolute:True owner=acropolis_cafeteria
 
 // Map UI tables selected by the resident gameplay map screen.

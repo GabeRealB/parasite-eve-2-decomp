@@ -55,21 +55,12 @@
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-/// The beam placements the view-dependent beam task draws for camera views 2,
-/// 3/6 and 4/7: pairs of end points, of which each view draws a subset.
-extern SVECTOR D_shelter_b2_pod_access_tunnel_80183C08[];
-extern SVECTOR D_shelter_b2_pod_access_tunnel_80183C48[];
-extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
-
-/// Tint rows for the expanding halo, indexed by the palette selector in its
-/// spawn argument.
-
-extern WorldCollisionGrid     D_shelter_b2_pod_access_tunnel_801841B4[1];
+static WorldCollisionGrid     _gShelterB2PodAccessTunnelCollisionGrid;
 extern WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1];
 extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_80184FD8[4];
 extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_80185108[3];
 extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_801851EC[3];
-extern WorldCoordRoomLights   D_shelter_b2_pod_access_tunnel_80184FC0[1];
+static WorldCoordRoomLights   _gShelterB2PodAccessTunnelLightCollection;
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -84,8 +75,21 @@ TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, shelterB2PodAccessTunnelRideToB1Task, { .value = 0 } };
 
-SVECTOR D_shelter_b2_pod_access_tunnel_80183C08[8] = {
-    { 920, 200, -0x29D6, 0 },
+/// Endpoint offsets used as the bases of the mapped-view beam selections.
+enum {
+    SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_2_BASE = 0,
+    SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_3_BASE = 8,
+    SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_4_BASE = 24,
+};
+
+/// World-space endpoint pairs of the tunnel's 28 light-fixture beams.
+///
+/// Adjacent points form one capsule, in signed game-coordinate units. The first
+/// 28 endpoints lie at Y=200 and the next 28 at Y=410. Mapped views 2, 3/6 and
+/// 4/7 select overlapping subsets from bases 0, 8 and 24; every pair lies within
+/// this complete array. Storage remains live for the room's beam task.
+static SVECTOR _gShelterB2PodAccessTunnelBeamEndpoints[56] = {
+    { 920, 200, -10710, 0 },
     { 920, 200, -9710, 0 },
     { 920, 200, -9105, 0 },
     { 920, 200, -8105, 0 },
@@ -93,14 +97,11 @@ SVECTOR D_shelter_b2_pod_access_tunnel_80183C08[8] = {
     { 920, 200, -6300, 0 },
     { 920, 200, -5660, 0 },
     { 920, 200, -4660, 0 },
-};
-
-SVECTOR D_shelter_b2_pod_access_tunnel_80183C48[16] = {
     { 920, 200, -3960, 0 },
     { 920, 200, -2960, 0 },
     { 920, 200, -2300, 0 },
     { 920, 200, -1300, 0 },
-    { 2623, 200, -0x29D6, 0 },
+    { 2623, 200, -10710, 0 },
     { 2623, 200, -9710, 0 },
     { 2623, 200, -9105, 0 },
     { 2623, 200, -8105, 0 },
@@ -112,14 +113,11 @@ SVECTOR D_shelter_b2_pod_access_tunnel_80183C48[16] = {
     { 2623, 200, -2960, 0 },
     { 1250, 200, -923, 0 },
     { 2250, 200, -923, 0 },
-};
-
-SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[32] = {
     { 3150, 200, -923, 0 },
     { 4150, 200, -923, 0 },
     { 3150, 200, -2620, 0 },
     { 4150, 200, -2620, 0 },
-    { 1020, 410, -0x29D6, 0 },
+    { 1020, 410, -10710, 0 },
     { 1020, 410, -9710, 0 },
     { 1020, 410, -9105, 0 },
     { 1020, 410, -8105, 0 },
@@ -131,7 +129,7 @@ SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[32] = {
     { 1020, 410, -2960, 0 },
     { 1020, 410, -2300, 0 },
     { 1020, 410, -1300, 0 },
-    { 2523, 410, -0x29D6, 0 },
+    { 2523, 410, -10710, 0 },
     { 2523, 410, -9710, 0 },
     { 2523, 410, -9100, 0 },
     { 2523, 410, -8100, 0 },
@@ -166,16 +164,21 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[2] = {
-    { D_shelter_b2_pod_access_tunnel_801841B4, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_80185108, D_shelter_b2_pod_access_tunnel_80185664 },
-    { D_shelter_b2_pod_access_tunnel_801841B4, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_801851EC, D_shelter_b2_pod_access_tunnel_80185664 },
+    { &_gShelterB2PodAccessTunnelCollisionGrid, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_80185108, D_shelter_b2_pod_access_tunnel_80185664 },
+    { &_gShelterB2PodAccessTunnelCollisionGrid, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_801851EC, D_shelter_b2_pod_access_tunnel_80185664 },
 };
 
-WorldCoordRoomLighting D_shelter_b2_pod_access_tunnel_80183E0C[2] = {
-    { D_shelter_b2_pod_access_tunnel_80184FC0, NULL },
-    { D_shelter_b2_pod_access_tunnel_80184FC0, NULL },
+WorldCoordRoomLighting gShelterB2PodAccessTunnelRoomLighting[2] = {
+    { &_gShelterB2PodAccessTunnelLightCollection, NULL },
+    { &_gShelterB2PodAccessTunnelLightCollection, NULL },
 };
 
-u8 D_shelter_b2_pod_access_tunnel_80183E1C[8] = {
+/// Room 2's seven logical views mapped to camera, image and sprite indices.
+///
+/// Logical views 3/4 select the alternate images at mapped indices 6/7;
+/// logical views 6/7 map back to 3/4. Index by logical view minus one.
+/// The eighth stored byte is zero, outside the seven-view search extent.
+static u8 _gShelterB2PodAccessTunnelRoom2ViewMap[8] = {
     1,
     2,
     6,
@@ -186,9 +189,9 @@ u8 D_shelter_b2_pod_access_tunnel_80183E1C[8] = {
     0,
 };
 
-u8* D_shelter_b2_pod_access_tunnel_80183E24[2] = {
+u8* gShelterB2PodAccessTunnelRoomViewMaps[2] = {
     gViewIdentityMap,
-    D_shelter_b2_pod_access_tunnel_80183E1C,
+    _gShelterB2PodAccessTunnelRoom2ViewMap,
 };
 
 ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[2] = { 7, 7 };
@@ -199,33 +202,53 @@ DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[3] = {
     { { { .word = 0 }, 4800, 0, -2400 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 4500, 0, -1250 }, { 0, 0, 0, 0 }, 0x54230005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
 };
 
-static SVECTOR _gShelterB2PodAccessTunnelCollision06BF4Normals[5] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB2PodAccessTunnelCollisionGridNormals[5] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_normals.inc"
 };
 
-static SVECTOR _gShelterB2PodAccessTunnelCollision06BF4Verts[40] = {
+/// Room-space collision vertices in signed game-coordinate units.
+static SVECTOR _gShelterB2PodAccessTunnelCollisionGridVerts[40] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2PodAccessTunnelCollision06BF4Faces[17] = {
+/// Seventeen collision faces indexing the grid's vertex and normal pools.
+static WorldCollisionGridFace _gShelterB2PodAccessTunnelCollisionGridFaces[17] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_faces.inc"
 };
 
-static s16 _gShelterB2PodAccessTunnelCollision06BF4Cells[72] = {
+/// Face-index lists for the six grid cells, each terminated by -1.
+static s16 _gShelterB2PodAccessTunnelCollisionGridCells[72] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2PodAccessTunnelCollision06BF4Cells[i])
-static s16* _gShelterB2PodAccessTunnelCollision06BF4Table[6] = {
+#define GRID_CELL(i) (&_gShelterB2PodAccessTunnelCollisionGridCells[i])
+/// X-major 2-by-3 directory into the collision grid's face-index lists.
+static s16* _gShelterB2PodAccessTunnelCollisionGridTable[6] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_pod_access_tunnel_801841B4[1] = {
-    { NULL, _gShelterB2PodAccessTunnelCollision06BF4Normals, _gShelterB2PodAccessTunnelCollision06BF4Verts, _gShelterB2PodAccessTunnelCollision06BF4Faces, _gShelterB2PodAccessTunnelCollision06BF4Table, -500, 0x2B8E, 2, 3, 4000, 17 },
+/// Tunnel collision mesh and its 2-by-3 XZ spatial index, shared by both rooms.
+///
+/// Cells span 4000 game units from origin (500, -11150). Activation borrows
+/// the current view coordinate; the grid and its writable mesh pools remain
+/// resident until the room is unloaded.
+static WorldCollisionGrid _gShelterB2PodAccessTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2PodAccessTunnelCollisionGridNormals,
+    .vertices    = _gShelterB2PodAccessTunnelCollisionGridVerts,
+    .faces       = _gShelterB2PodAccessTunnelCollisionGridFaces,
+    .cellFaceIds = _gShelterB2PodAccessTunnelCollisionGridTable,
+    .xBias       = -500,
+    .zBias       = 11150,
+    .cellCountX  = 2,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB2PodAccessTunnelCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[7] = {
+ViewCamera gShelterB2PodAccessTunnelViewCameras[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x36B0, 5500 } }, 230 },
     { { { { -3971, 0, -1003 }, { -45, 4091, 179 }, { 1002, 185, -3967 } }, { -949, 1422, 2295 } }, 230 },
     { { { { 3920, 0, -1185 }, { -147, 4064, -488 }, { 1176, 510, 3890 } }, { -899, 1609, 7345 } }, 230 },
@@ -235,17 +258,29 @@ ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[7] = {
     { { { { -672, 0, -4040 }, { -824, 4009, 137 }, { 3955, 835, -658 } }, { -779, 1872, 1145 } }, 225 },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_801842D4[2] = {
+/// Image-strip background with no source sprites for mapped view 1.
+///
+/// A zero-count first batch preserves decoded background strips; the next
+/// record ends the list. The source slot retains this same list's address.
+static SpriteBatch _gShelterB2PodAccessTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_801842E4[2] = {
+/// Image-strip background with no source sprites for mapped view 2.
+///
+/// A zero-count first batch preserves decoded background strips; the next
+/// record ends the list. The source slot retains this same list's address.
+static SpriteBatch _gShelterB2PodAccessTunnelView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_access_tunnel_801842F4[60] = {
+/// Sixty depth-sorted texture rectangles for mapped view 3.
+///
+/// Four batches cover all elements. Positions and sizes are screen pixels;
+/// texture pages 141..143 and CLUT 0x3FC0 select the view's loaded atlas.
+static SpriteSource _gShelterB2PodAccessTunnelView3SpriteSources[60] = {
     { 142, 0x3FC0, { .fields = { 40, 64 } }, 48, -120, 918, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 64 } }, 88, -120, 1250, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 72 } }, 128, -120, 1202, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
@@ -308,7 +343,11 @@ SpriteSource D_shelter_b2_pod_access_tunnel_801842F4[60] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 32, 613, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_801847A4[6] = {
+/// Image-strip background followed by four sprite ranges for mapped view 3.
+///
+/// Ranges [0,24), [24,27), [27,49) and [49,60) cover its source array;
+/// `SPRITE_BATCH_END` ends the list after the four live batches.
+static SpriteBatch _gShelterB2PodAccessTunnelView3SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 3, 0 } },
     { 24, 3, 0, 0, { 0, 0 } },
@@ -317,17 +356,29 @@ SpriteBatch D_shelter_b2_pod_access_tunnel_801847A4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_801847D4[2] = {
+/// Image-strip background with no source sprites for mapped view 4.
+///
+/// A zero-count first batch preserves decoded background strips; the next
+/// record ends the list. The source slot retains this same list's address.
+static SpriteBatch _gShelterB2PodAccessTunnelView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_801847E4[2] = {
+/// Image-strip background with no source sprites for mapped view 5.
+///
+/// A zero-count first batch preserves decoded background strips; the next
+/// record ends the list. The source slot retains this same list's address.
+static SpriteBatch _gShelterB2PodAccessTunnelView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_access_tunnel_801847F4[54] = {
+/// Fifty-four depth-sorted texture rectangles for alternate mapped view 6.
+///
+/// Four batches cover all elements. Positions and sizes are screen pixels;
+/// texture pages 142/143 and CLUT 0x3FC0 select the alternate view's atlas.
+static SpriteSource _gShelterB2PodAccessTunnelView6SpriteSources[54] = {
     { 143, 0x3FC0, { .fields = { 40, 64 } }, 48, -120, 918, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 64 } }, 88, -120, 1250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, -120, 1202, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -384,7 +435,11 @@ SpriteSource D_shelter_b2_pod_access_tunnel_801847F4[54] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 24, 758, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_80184C2C[6] = {
+/// Image-strip background followed by four sprite ranges for mapped view 6.
+///
+/// Ranges [0,24), [24,27), [27,44) and [44,54) cover its source array;
+/// `SPRITE_BATCH_END` ends the list after the four live batches.
+static SpriteBatch _gShelterB2PodAccessTunnelView6SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 3, 0 } },
     { 24, 3, 0, 0, { 0, 0 } },
@@ -393,22 +448,31 @@ SpriteBatch D_shelter_b2_pod_access_tunnel_80184C2C[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_access_tunnel_80184C5C[2] = {
+/// Image-strip background with no source sprites for mapped view 7.
+///
+/// A zero-count first batch preserves decoded background strips; the next
+/// record ends the list. The source slot retains this same list's address.
+static SpriteBatch _gShelterB2PodAccessTunnelView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[7] = {
-    { { .empty = D_shelter_b2_pod_access_tunnel_801842D4 }, D_shelter_b2_pod_access_tunnel_801842D4, NULL },
-    { { .empty = D_shelter_b2_pod_access_tunnel_801842E4 }, D_shelter_b2_pod_access_tunnel_801842E4, NULL },
-    { { .elements = D_shelter_b2_pod_access_tunnel_801842F4 }, D_shelter_b2_pod_access_tunnel_801847A4, NULL },
-    { { .empty = D_shelter_b2_pod_access_tunnel_801847D4 }, D_shelter_b2_pod_access_tunnel_801847D4, NULL },
-    { { .empty = D_shelter_b2_pod_access_tunnel_801847E4 }, D_shelter_b2_pod_access_tunnel_801847E4, NULL },
-    { { .elements = D_shelter_b2_pod_access_tunnel_801847F4 }, D_shelter_b2_pod_access_tunnel_80184C2C, NULL },
-    { { .empty = D_shelter_b2_pod_access_tunnel_80184C5C }, D_shelter_b2_pod_access_tunnel_80184C5C, NULL },
+SpriteView gShelterB2PodAccessTunnelSpriteViews[7] = {
+    { { .empty = _gShelterB2PodAccessTunnelView1SpriteBatches }, _gShelterB2PodAccessTunnelView1SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodAccessTunnelView2SpriteBatches }, _gShelterB2PodAccessTunnelView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodAccessTunnelView3SpriteSources }, _gShelterB2PodAccessTunnelView3SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodAccessTunnelView4SpriteBatches }, _gShelterB2PodAccessTunnelView4SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodAccessTunnelView5SpriteBatches }, _gShelterB2PodAccessTunnelView5SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodAccessTunnelView6SpriteSources }, _gShelterB2PodAccessTunnelView6SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodAccessTunnelView7SpriteBatches }, _gShelterB2PodAccessTunnelView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_pod_access_tunnel_80184CC0[8] = {
+/// Eight room-owned point lights contributing in every logical view.
+///
+/// Positions and inner/outer falloff radii are world-coordinate units; RGB
+/// intensities have 12 fractional bits. Lighting updates their transforms and
+/// attenuation in place while the room remains loaded.
+static WorldCoordPointLight _gShelterB2PodAccessTunnelPointLights[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1793, 0, -3949 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1200, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1793, 0, -5618 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1200, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1793, 0, -6721 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1200, 2500 },
@@ -419,8 +483,16 @@ WorldCoordPointLight D_shelter_b2_pod_access_tunnel_80184CC0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1793, 0, -2395 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1200, 2500 },
 };
 
-WorldCoordRoomLights D_shelter_b2_pod_access_tunnel_80184FC0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b2_pod_access_tunnel_80184CC0), D_shelter_b2_pod_access_tunnel_80184CC0, 0, NULL },
+/// The point-light collection used by both logical rooms.
+///
+/// Borrows all eight point lights, with no directional or cone lights.
+static WorldCoordRoomLights _gShelterB2PodAccessTunnelLightCollection = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2PodAccessTunnelPointLights),
+    .pointLights           = _gShelterB2PodAccessTunnelPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80184FD8[4] = {
@@ -442,43 +514,89 @@ WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_801851EC[3] = {
     { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_801852D0[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
+/// Placement-entry keys for the actor resources used by this room.
+enum {
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER               = 21,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK              = 11,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT                = 26,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LARGE_MOSSBACK        = 49,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BRAIN_STINGER         = 3,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM = 23,
+    SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LAUNCHER_PAWN_GOLEM   = 56,
+};
+
+/// Actor file and spawn recipes for placement variant 1.
+///
+/// Loads Watchers in actor slot 1 and a Mossback in slot 2.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant1Resources[3] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_801852F4[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
+/// Actor file and spawn recipes for placement variant 2.
+///
+/// Loads Watchers in actor slot 1 and Mossbacks in slot 2.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant2Resources[3] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_80185318[3] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
+/// Actor file and spawn recipes for placement variant 3.
+///
+/// Loads Maggots in actor slot 1 and a large Mossback in slot 2.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant3Resources[3] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LARGE_MOSSBACK, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_8018533C[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
+/// Actor file and spawn recipes for placement variant 4.
+///
+/// Loads a Brain Stinger in actor slot 1.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant4Resources[2] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BRAIN_STINGER, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_80185354[2] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
+/// Actor file and spawn recipes for placement variant 7.
+///
+/// Loads a Beam Sword Rook GOLEM in actor slot 1.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant7Resources[2] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_8018536C[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
+/// Actor file and spawn recipes for placement variant 11.
+///
+/// Loads Watchers in actor slot 1 and a Beam Sword Rook GOLEM in slot 2.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant11Resources[3] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_80185390[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
+/// Actor file and spawn recipes for placement variant 21.
+///
+/// Loads Watchers in actor slot 1 and a Launcher Pawn GOLEM in slot 2.
+/// Placements match `entryId`; `AREA_PLACEMENT_END` terminates the table.
+/// The room table and loaded actor descriptors stay live through spawning.
+static AreaResource _gShelterB2PodAccessTunnelVariant21Resources[3] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LAUNCHER_PAWN_GOLEM, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -488,51 +606,51 @@ AreaResource D_shelter_b2_pod_access_tunnel_801853B4[2] = {
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_801853CC[5] = {
-    { 21, 4, 0, 1200, -2200, -800, 2048, 0, 0, 2, 0 },
-    { 21, 4, 0, 1950, -2200, -800, 2048, 0, 0, 2, 0 },
-    { 21, 4, 0, 2700, -2200, -800, 2048, 0, 0, 2, 0 },
-    { 11, 0, 0, 1600, 0, -5200, 0, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1200, -2200, -800, 2048, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1950, -2200, -800, 2048, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 2700, -2200, -800, 2048, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 0, 0, 1600, 0, -5200, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_8018541C[5] = {
-    { 21, 34, 2048, 1000, -1900, -800, 2048, 0, 0, 2, 1 },
-    { 21, 34, 2048, 1000, -1400, -800, 2048, 0, 0, 2, 1 },
-    { 11, 2, 0, 3200, 0, -1300, 4000, 0, 2, 4, 0 },
-    { 11, 2, 0, 1950, 0, -4700, 3900, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -800, 2048, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -800, 2048, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 2, 0, 3200, 0, -1300, 4000, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 2, 0, 1950, 0, -4700, 3900, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_8018546C[5] = {
-    { 26, 0, 0, 1200, 0, -2800, 1700, 0, 0, 2, 0 },
-    { 26, 0, 0, 2500, 0, -1000, 1300, 0, 0, 2, 0 },
-    { 26, 0, 0, 1100, 0, -1100, 1900, 0, 0, 2, 0 },
-    { 49, 1, 0, 1600, 0, -1950, 2048, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 1200, 0, -2800, 1700, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 2500, 0, -1000, 1300, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 1100, 0, -1100, 1900, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LARGE_MOSSBACK, 1, 0, 1600, 0, -1950, 2048, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_801854BC[2] = {
-    { 3, 0, 0, 1700, 0, -5000, 0, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BRAIN_STINGER, 0, 0, 1700, 0, -5000, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_801854DC[2] = {
-    { 23, 7, 1, 1700, 0, -8600, 0, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 7, 1, 1700, 0, -8600, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_801854FC[4] = {
-    { 21, 34, 2048, 1000, -1900, -600, 2048, 0, 0, 2, 3 },
-    { 21, 34, 2048, 1000, -1400, -600, 2048, 0, 0, 2, 3 },
-    { 23, 0, 0, 5200, 0, -1750, 3072, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -600, 2048, 0, 0, 2, 3 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -600, 2048, 0, 0, 2, 3 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 0, 0, 5200, 0, -1750, 3072, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaPlacement D_shelter_b2_pod_access_tunnel_8018553C[5] = {
-    { 21, 1, 0, 1200, -2200, -800, 2048, 0, 0, 2, 1 },
-    { 21, 1, 0, 1950, -2200, -800, 2048, 0, 0, 2, 1 },
-    { 21, 1, 0, 2700, -2200, -800, 2048, 0, 0, 2, 1 },
-    { 56, 0, 0, 1700, 0, -8000, 0, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1200, -2200, -800, 2048, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1950, -2200, -800, 2048, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -2200, -800, 2048, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LAUNCHER_PAWN_GOLEM, 0, 0, 1700, 0, -8000, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
@@ -543,27 +661,27 @@ AreaPlacement D_shelter_b2_pod_access_tunnel_8018558C[2] = {
 
 AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23] = {
     { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801853CC, D_shelter_b2_pod_access_tunnel_801852D0 },
-    { D_shelter_b2_pod_access_tunnel_8018541C, D_shelter_b2_pod_access_tunnel_801852F4 },
-    { D_shelter_b2_pod_access_tunnel_8018546C, D_shelter_b2_pod_access_tunnel_80185318 },
-    { D_shelter_b2_pod_access_tunnel_801854BC, D_shelter_b2_pod_access_tunnel_8018533C },
+    { D_shelter_b2_pod_access_tunnel_801853CC, _gShelterB2PodAccessTunnelVariant1Resources },
+    { D_shelter_b2_pod_access_tunnel_8018541C, _gShelterB2PodAccessTunnelVariant2Resources },
+    { D_shelter_b2_pod_access_tunnel_8018546C, _gShelterB2PodAccessTunnelVariant3Resources },
+    { D_shelter_b2_pod_access_tunnel_801854BC, _gShelterB2PodAccessTunnelVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801854DC, D_shelter_b2_pod_access_tunnel_80185354 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801854FC, D_shelter_b2_pod_access_tunnel_8018536C },
+    { D_shelter_b2_pod_access_tunnel_801854DC, _gShelterB2PodAccessTunnelVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
+    { D_shelter_b2_pod_access_tunnel_801854FC, _gShelterB2PodAccessTunnelVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_8018553C, D_shelter_b2_pod_access_tunnel_80185390 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b2_pod_access_tunnel_8018553C, _gShelterB2PodAccessTunnelVariant21Resources },
     { D_shelter_b2_pod_access_tunnel_8018558C, D_shelter_b2_pod_access_tunnel_801853B4 },
 };
 
@@ -604,7 +722,7 @@ void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
     switch ((u8)viewGetMappedIndex()) {
         case 2: {
             const SVECTOR* beamPoints;
-            beamPoints = D_shelter_b2_pod_access_tunnel_80183C08;
+            beamPoints = &_gShelterB2PodAccessTunnelBeamEndpoints[SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_2_BASE];
             glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[4], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
@@ -626,7 +744,7 @@ void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
         case 3:
         case 6: {
             const SVECTOR* beamPoints;
-            beamPoints = D_shelter_b2_pod_access_tunnel_80183C48;
+            beamPoints = &_gShelterB2PodAccessTunnelBeamEndpoints[SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_3_BASE];
             glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[10], BEAM_RADIUS_SCALE, 0);
@@ -644,7 +762,7 @@ void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
         case 4:
         case 7: {
             const SVECTOR* beamPoints;
-            beamPoints = D_shelter_b2_pod_access_tunnel_80183CC8;
+            beamPoints = &_gShelterB2PodAccessTunnelBeamEndpoints[SHELTER_B2_POD_ACCESS_TUNNEL_BEAM_VIEW_4_BASE];
             glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&beamPoints[28], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);

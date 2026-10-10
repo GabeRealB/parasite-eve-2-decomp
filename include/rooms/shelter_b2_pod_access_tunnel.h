@@ -16,17 +16,38 @@ extern AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23];
 // shelter_b2_pod_access_tunnel
 extern WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[];
 
-extern WorldCoordRoomLighting D_shelter_b2_pod_access_tunnel_80183E0C[];
+/// Lighting records for logical rooms 1 and 2 of the pod access tunnel.
+///
+/// Both borrow the same eight-point-light collection and use default ambient
+/// minima. Index by room minus one; pointers require this overlay loaded.
+extern WorldCoordRoomLighting gShelterB2PodAccessTunnelRoomLighting[2];
 
-extern u8* D_shelter_b2_pod_access_tunnel_80183E24[];
+/// Logical-view maps for rooms 1 and 2 of the pod access tunnel.
+///
+/// Index by room minus one, then logical view minus one (views 1..7).
+/// Room 1 borrows the gameplay identity map; room 2 swaps 3/4 with 6/7.
+/// Values are 1-based camera, image and sprite indices. Keep gameplay and
+/// this overlay loaded while the directory and its maps are borrowed.
+extern u8* gShelterB2PodAccessTunnelRoomViewMaps[2];
 
 extern ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[];
 
 extern DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[];
 
-extern ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[];
+/// Seven cameras indexed by the pod access tunnel's mapped view minus one.
+///
+/// Cameras 6/7 repeat 3/4 for alternate images. Translation uses world units,
+/// rotation uses 12 fractional bits, and projection distance is in pixels.
+/// Queued camera applications borrow the record until dispatch.
+extern ViewCamera gShelterB2PodAccessTunnelViewCameras[7];
 
-extern SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[];
+/// Sprite resources for the pod access tunnel's seven mapped views.
+///
+/// Index by mapped view minus one. Views 3/6 select 60/54 source rectangles;
+/// views 1/2/4/5/7 retain empty batch lists. All use decoded image strips
+/// and no clipping-area list. Keep this overlay loaded through packet setup
+/// and drawing; the source arrays and batch lists remain writable.
+extern SpriteView gShelterB2PodAccessTunnelSpriteViews[7];
 
 /// Pod access tunnel collision and footstep policies for surface classes 0..7.
 ///
