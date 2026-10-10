@@ -27,6 +27,9 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "actors/actor_560800.h"
+
 /// Empty presence flag: this room supplies `_waterDrawSpinU16` and
 /// `_waterDrawTileU16`.
 ///
@@ -78,8 +81,6 @@ typedef struct {
     u16     screenY;         // Raw projected centre Y; second half of the GTE screen-position word
 } _ShelterB1PodServiceGantrySpinScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
-
-extern s32 D_actor_560800_801752EC;
 
 static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -638,7 +639,7 @@ void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumb
         // Size the projected disc and expand RGB with its alternating increment.
         screenRadius             = ((s16)radiusScale * SHELTER_B1_POD_SERVICE_GANTRY_GLOW_PERSPECTIVE_SCALE) / projection->depth;
         startAngle               = 0;
-        flickerIncrement         = (D_actor_560800_801752EC + _gShelterB1PodServiceGantryGlowFlickerOffsets[chainNumber & (ARRAY_SIZE(_gShelterB1PodServiceGantryGlowFlickerOffsets) - 1)]) & 1;
+        flickerIncrement         = (gActor560800ChainGlowTick + _gShelterB1PodServiceGantryGlowFlickerOffsets[chainNumber & (ARRAY_SIZE(_gShelterB1PodServiceGantryGlowFlickerOffsets) - 1)]) & 1;
         channels                 = colorBits;
         flickerIncrement       <<= channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FLICKER_SHIFT;
         red                      = flickerIncrement + ((channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_NIBBLE_BITS) & SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_BYTE_MASK);

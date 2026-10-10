@@ -36,6 +36,7 @@
 #include "main/task_types.h"
 
 #include "actors/actor_160900.h"
+#include "actors/actor_560800.h"
 
 #include "mapui/map_shelter.h"
 
@@ -66,7 +67,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
 extern TaskDesc D_actor_560800_8016EA28[];
-extern TaskDesc D_actor_560800_801718F0[];
 
 /// The room's message table, published in `Task::msgTable`.
 extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
@@ -103,10 +103,10 @@ DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[1] = {
 };
 
 AreaResource D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
-    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, D_actor_560800_801718F0 },
-    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_actor_560800_801718F0 },
-    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_actor_560800_801718F0 },
-    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_actor_560800_801718F0 },
+    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
+    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
+    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
+    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1911,7 +1911,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
 
     switch (work->step) {
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_FIRST_SCENE:
-            work->sceneTask = taskSpawnFromTable(D_actor_560800_801718F0, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_CUTSCENE, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:

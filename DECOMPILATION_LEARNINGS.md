@@ -75986,7 +75986,7 @@ call's first argument does not change that: the store still expands first.
 **Fix.** Hoist the pointer load into a named local above the store:
 
 ```c
-_Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+_Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 ActorCommand              command;
 
 command.command = commandId;
@@ -76278,7 +76278,7 @@ predicates and calls identical. So the control flow was already right and the
 penalty mix had to be operands. It was two symptoms:
 
 ```
--lw    a0,%lo(D_actor_560800_8017578C)(v0)     # retail: load issued early,
+-lw    a0,%lo(_gActor560800CutsceneTask)(v0)     # retail: load issued early,
 -move  a1,s1                                   # then sh,sh / jal / sh(delay)
  sh    zero,6(s0)
  sh    zero,4(s0)

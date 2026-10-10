@@ -610,8 +610,8 @@ D_actor_361100_80165F48 = 0x80165F48; // absolute:True owner=actor_361100
 D_actor_361100_80166848 = 0x80166848; // absolute:True owner=actor_361100
 gActor342400EncounterTaskDescs = 0x8016BFE0; // absolute:True owner=actor_342400
 D_actor_560800_8016EA28 = 0x8016EA28; // absolute:True owner=actor_560800
-D_actor_560800_801718F0 = 0x801718F0; // absolute:True owner=actor_560800
-D_actor_560800_801752EC = 0x801752EC; // absolute:True owner=actor_560800
+gActor560800CutsceneTaskDescriptors = 0x801718F0; // absolute:True owner=actor_560800
+gActor560800ChainGlowTick = 0x801752EC; // absolute:True owner=actor_560800
 mapAkropolisOpenKeyItemMenu = 0x80179FC8; // type:func absolute:True owner=map_akropolis
 mapAkropolisWasDryfieldMapSelected = 0x8017A038; // type:func absolute:True owner=map_akropolis
 func_807245E4 = 0x807245E4; // type:func absolute:True

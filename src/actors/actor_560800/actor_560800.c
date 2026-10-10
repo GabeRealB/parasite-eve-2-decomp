@@ -1,3 +1,5 @@
+#include "actors/actor_560800.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -300,22 +302,7 @@ extern ActorTransform D_actor_560800_80175494[];
 extern ActorTransform D_actor_560800_80175554[];
 extern ActorTransform D_actor_560800_80175614[];
 
-/// Controller task of this overlay, published by `_actor560800InitializeCutscene`
-/// and read by the sub-task handlers.
-extern Task* D_actor_560800_8017578C;
-
-/// Animation block `_actor560800BlendScenePlayerAnimation` points the `source.sets` of its
-/// `AnimationPlayRequest` at when it sends message 0x3F4 - the same role
-/// `_gActor400600PlayerHoldAnimationSets` plays in that overlay.
-extern AnimationSet* D_actor_560800_8016EA40[13];
-
 extern ActorAnimChainLink D_actor_560800_8016EBE8[];
-extern ActorTransform     D_actor_560800_8016F1CC[6];
-
-/// Animation bank `_actor560800InitChainModel` hands `animationInitContext` as its
-/// second argument: a null entry then one animation set per chain, indexed by
-/// `_Actor560800PropWork::chainNumber`.
-extern AnimationSet* D_actor_560800_801752F0[];
 
 /// Elapsed frames, one per phase id 1..3, written by
 /// `_actor560800FinishScenePhase` as the frames since that phase's timestamp.
@@ -323,7 +310,7 @@ extern AnimationSet* D_actor_560800_801752F0[];
 /// which is the one case the elapsed count is short by one.
 extern s32 D_actor_560800_80175790;
 extern s32 D_actor_560800_80175794;
-extern s32 D_actor_560800_80175798;
+static s32 _gActor560800ThirdPhaseElapsedTicks;
 
 /// Phase timestamps, one per phase id 1..3: `_actor560800StartScenePhasePlayback`
 /// stamps `gDisplayState.frameCount` (the frame counter) into the slot its argument
@@ -331,7 +318,7 @@ extern s32 D_actor_560800_80175798;
 /// the elapsed frames in the matching slot of `D_actor_560800_80175790`.
 extern s32 D_actor_560800_8017579C;
 extern s32 D_actor_560800_801757A0;
-extern s32 D_actor_560800_801757A4;
+static s32 _gActor560800ThirdPhaseStartTick;
 
 /// Seed `_actor560800CutsceneTask` loads into `gRandomLcgState` before it hands
 /// control back to gameplay.
@@ -341,17 +328,7 @@ extern u32 D_actor_560800_801757A8;
 extern EvsCommand D_actor_560800_8016F5E0[];
 extern EvsCommand D_actor_560800_80171800[];
 
-/// Flag word whose bit 0 gates `_actor560800RaiseCarrier`'s sink step.
-extern s32 D_actor_560800_801752E8;
-
-/// Frame counter `_actor560800CarrierTask` raises by one per tick.
-extern s32 D_actor_560800_801752EC;
-
-extern Task* D_actor_560800_801757AC;
-
-/// Task descriptor table the actor spawns most of its sub-tasks from, by
-/// index.
-extern TaskDesc D_actor_560800_801718F0[];
+static Task* _gActor560800CarrierTask;
 
 static void _actor560800HandlePlayerCue(Task* task);
 static void _actor560800HandleEveCue(Task* task);
@@ -366,11 +343,9 @@ extern AnimationSet*      D_actor_560800_8016EB30[];
 extern ActorAnimChainLink D_actor_560800_8016EC1C[36];
 extern ActorAnimChainLink D_actor_560800_8016ECAC[6];
 extern ActorAnimChainLink D_actor_560800_8016ECC4[46];
-extern ActorTransform     D_actor_560800_8016F154;
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry D_actor_560800_8016F34C[2];
-extern s32              D_actor_560800_8016F57C[];
+extern s32 D_actor_560800_8016F57C[];
 
 static s32 _actor560800TickCastAnimationChain(Task* task);
 
@@ -2814,7 +2789,12 @@ TaskDesc D_actor_560800_8016EA28[2] = {
     { { { TASK_BODY_NONE, 192 } }, _actor560800MovieTask, { .value = 0 } },
 };
 
-AnimationSet* D_actor_560800_8016EA40[13] = {
+/// Scene animation bank borrowed by Aya's player task.
+///
+/// Clip IDs 0..5 and 10..12 are populated; 6..9 are absent. Requests install this
+/// bank; scene clip IDs also index its clip chain. Keep the overlay and clip data
+/// loaded until the player has returned to its equipped-weapon animation bank.
+static AnimationSet* _gActor560800PlayerAnimationSets[13] = {
     &_gActor560800Animation27A30,
     &_gActor560800Animation27ED8,
     &_gActor560800Animation288D4,
@@ -3045,37 +3025,96 @@ ActorAnimChainLink D_actor_560800_8016ECC4[46] = {
     { 65535, -1 },
 };
 
-ActorTransform D_actor_560800_8016ED7C = { 0 };
+/// Hide marker for Aya in scene cuts 1, 4, 10, 13.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut1Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016ED94 = { 0 };
+/// Hide marker for Aya in scene cuts 2, 23.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut2Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EDAC = { { 6400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cuts 3, 5, 9, 12.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut3Placement = { { 6400, 0, 3350, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EDC4 = { 0 };
+/// Hide marker for Aya in scene cuts 6, 8, 11.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut6Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EDDC = { { 5400, 0, 3350, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cuts 7, 19.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut7Placement = { { 5400, 0, 3350, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EDF4 = { { 6000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cuts 14, 16, 18, 20.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut14Placement = { { 6000, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EE0C = { 0 };
+/// Hide marker for Aya in scene cuts 15, 17.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut15Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EE24 = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cut 21.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut21Placement = { { 5850, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EE3C = { 0 };
+/// Hide marker for Aya in scene cuts 22, 24.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut22Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EE54 = { 0 };
+/// Hide marker for Aya in scene cut 25.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut25Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EE6C = { 0 };
+/// Hide marker for Aya in scene cut 26.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut26Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EE84 = { 0 };
+/// Hide marker for Aya in scene cut 27.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800PlayerCut27Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EE9C[2] = { { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } }, { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } } };
+/// Aya placement for scene cuts 28, 30 and 32, followed by identical record bytes.
+///
+/// The cut table selects only element 0. The second complete record has the same
+/// position and quarter-turn yaw; its role is unproven. Both remain in storage.
+static ActorTransform _gActor560800PlayerCut28Placements[2] = {
+    { { 5850, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } }, // Cuts 28, 30 and 32
+    { { 5850, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } }, // Never selected; role unproven
+};
 
-ActorTransform D_actor_560800_8016EECC = { { 5850, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cut 33.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut33Placement = { { 5850, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EEE4 = { { 5000, 0, 3200, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement for Aya in scene cuts 29, 31.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800PlayerCut29Placement = { { 5000, 0, 3200, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EEFC = { { 7500, 0, 3000, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for No. 9 in scene cuts 1, 4, 10, 13.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut1Placement = { { 7500, 0, 3000, 0 }, { 0, 0, 0, 0 } };
 
 ActorTransform D_actor_560800_8016EF14 = { { 7850, 0, 3400, 0 }, { 0, 0, 0, 0 } };
 
@@ -3125,7 +3164,11 @@ ActorTransform D_actor_560800_8016F124 = { { 8350, 0, 4300, 0 }, { 0, 0, 0, 0 } 
 
 ActorTransform D_actor_560800_8016F13C = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F154 = { { 8130, 0, 2850, 0 }, { 0, 1024, 0, 0 } };
+/// Root placement of Eve's replacement body and of her body in cut 26.
+///
+/// Whole game units under the view coordinate and quarter-turn yaw. The body
+/// uses this record after the texture/model swap; dispatch retains no pointer.
+static ActorTransform _gActor560800EveReplacementPlacement = { { 8130, 0, 2850, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
 ActorTransform D_actor_560800_8016F16C = { 0 };
 
@@ -3135,13 +3178,21 @@ ActorTransform D_actor_560800_8016F19C = { 0 };
 
 ActorTransform D_actor_560800_8016F1B4 = { { 8600, 0, 3500, 0 }, { 0, -512, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F1CC[6] = {
-    { { 9400, 0, 2600, 0 }, { 0, -512, 0, 0 } },
-    { { 9400, 0, 2600, 0 }, { 0, -1024, 0, 0 } },
+enum { ACTOR_560800_KYLE_APPROACH_PLACEMENT = 5 };
+
+/// Kyle's six reusable scene placements and hide markers.
+///
+/// Indices 0..5: cuts 1/4/10/13; 2/23; hidden 3/5/9/12; 6/8/11;
+/// hidden 7/19; approach endpoint in cut 14 and placement in 16/18/20.
+/// Positions use whole game units under the view coordinate; yaw uses 4096
+/// units per turn. Dispatch borrows a single record and retains no pointer.
+static ActorTransform _gActor560800KyleCutPlacements[6] = {
+    { { 9400, 0, 2600, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } },
+    { { 9400, 0, 2600, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
     { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } },
-    { { 9400, 0, 2600, 0 }, { 0, -1024, 0, 0 } },
+    { { 9400, 0, 2600, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
     { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } },
-    { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } },
+    { { 7800, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
 ActorTransform D_actor_560800_8016F25C = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
@@ -3164,63 +3215,70 @@ ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0
 
 ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
-TaskMessageEntry D_actor_560800_8016F34C[2] = {
+/// Messages accepted by the scene bodies and their hand/weapon attachments.
+///
+/// No end marker: send only `ACTOR_MESSAGE_SET_MODEL_DRAW` with an integer
+/// draw mode (0 no change, 1 show, 2 hide/skip automatic buffering), or
+/// `ACTOR_MESSAGE_PLACE` with a borrowed `ActorTransform` in the root parent's
+/// frame (Y/X/Z Euler order, 4096 units per turn). Dispatch is synchronous;
+/// the callbacks return void, so every sender must ignore the result.
+static TaskMessageEntry _gActor560800CastMessages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor560800SetCastModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
 ActorTransform* D_actor_560800_8016F35C[34] = {
     NULL,
-    &D_actor_560800_8016ED7C,
-    &D_actor_560800_8016ED94,
-    &D_actor_560800_8016EDAC,
-    &D_actor_560800_8016ED7C,
-    &D_actor_560800_8016EDAC,
-    &D_actor_560800_8016EDC4,
-    &D_actor_560800_8016EDDC,
-    &D_actor_560800_8016EDC4,
-    &D_actor_560800_8016EDAC,
-    &D_actor_560800_8016ED7C,
-    &D_actor_560800_8016EDC4,
-    &D_actor_560800_8016EDAC,
-    &D_actor_560800_8016ED7C,
-    &D_actor_560800_8016EDF4,
-    &D_actor_560800_8016EE0C,
-    &D_actor_560800_8016EDF4,
-    &D_actor_560800_8016EE0C,
-    &D_actor_560800_8016EDF4,
-    &D_actor_560800_8016EDDC,
-    &D_actor_560800_8016EDF4,
-    &D_actor_560800_8016EE24,
-    &D_actor_560800_8016EE3C,
-    &D_actor_560800_8016ED94,
-    &D_actor_560800_8016EE3C,
-    &D_actor_560800_8016EE54,
-    &D_actor_560800_8016EE6C,
-    &D_actor_560800_8016EE84,
-    D_actor_560800_8016EE9C,
-    &D_actor_560800_8016EEE4,
-    D_actor_560800_8016EE9C,
-    &D_actor_560800_8016EEE4,
-    D_actor_560800_8016EE9C,
-    &D_actor_560800_8016EECC,
+    &_gActor560800PlayerCut1Hidden,
+    &_gActor560800PlayerCut2Hidden,
+    &_gActor560800PlayerCut3Placement,
+    &_gActor560800PlayerCut1Hidden,
+    &_gActor560800PlayerCut3Placement,
+    &_gActor560800PlayerCut6Hidden,
+    &_gActor560800PlayerCut7Placement,
+    &_gActor560800PlayerCut6Hidden,
+    &_gActor560800PlayerCut3Placement,
+    &_gActor560800PlayerCut1Hidden,
+    &_gActor560800PlayerCut6Hidden,
+    &_gActor560800PlayerCut3Placement,
+    &_gActor560800PlayerCut1Hidden,
+    &_gActor560800PlayerCut14Placement,
+    &_gActor560800PlayerCut15Hidden,
+    &_gActor560800PlayerCut14Placement,
+    &_gActor560800PlayerCut15Hidden,
+    &_gActor560800PlayerCut14Placement,
+    &_gActor560800PlayerCut7Placement,
+    &_gActor560800PlayerCut14Placement,
+    &_gActor560800PlayerCut21Placement,
+    &_gActor560800PlayerCut22Hidden,
+    &_gActor560800PlayerCut2Hidden,
+    &_gActor560800PlayerCut22Hidden,
+    &_gActor560800PlayerCut25Hidden,
+    &_gActor560800PlayerCut26Hidden,
+    &_gActor560800PlayerCut27Hidden,
+    _gActor560800PlayerCut28Placements,
+    &_gActor560800PlayerCut29Placement,
+    _gActor560800PlayerCut28Placements,
+    &_gActor560800PlayerCut29Placement,
+    _gActor560800PlayerCut28Placements,
+    &_gActor560800PlayerCut33Placement,
 };
 
 ActorTransform* D_actor_560800_8016F3E4[34] = {
     NULL,
-    &D_actor_560800_8016EEFC,
+    &_gActor560800No9Cut1Placement,
     &D_actor_560800_8016EF14,
     &D_actor_560800_8016EF2C,
-    &D_actor_560800_8016EEFC,
+    &_gActor560800No9Cut1Placement,
     &D_actor_560800_8016EF2C,
     &D_actor_560800_8016EF44,
     &D_actor_560800_8016EF5C,
     &D_actor_560800_8016EF44,
     &D_actor_560800_8016EF2C,
-    &D_actor_560800_8016EEFC,
+    &_gActor560800No9Cut1Placement,
     &D_actor_560800_8016EF44,
     &D_actor_560800_8016EF2C,
-    &D_actor_560800_8016EEFC,
+    &_gActor560800No9Cut1Placement,
     &D_actor_560800_8016EF74,
     &D_actor_560800_8016EF8C,
     &D_actor_560800_8016EF74,
@@ -3245,29 +3303,29 @@ ActorTransform* D_actor_560800_8016F3E4[34] = {
 
 ActorTransform* D_actor_560800_8016F46C[34] = {
     NULL,
-    D_actor_560800_8016F1CC,
-    &D_actor_560800_8016F1CC[1],
-    &D_actor_560800_8016F1CC[2],
-    D_actor_560800_8016F1CC,
-    &D_actor_560800_8016F1CC[2],
-    &D_actor_560800_8016F1CC[3],
-    &D_actor_560800_8016F1CC[4],
-    &D_actor_560800_8016F1CC[3],
-    &D_actor_560800_8016F1CC[2],
-    D_actor_560800_8016F1CC,
-    &D_actor_560800_8016F1CC[3],
-    &D_actor_560800_8016F1CC[2],
-    D_actor_560800_8016F1CC,
+    _gActor560800KyleCutPlacements,
+    &_gActor560800KyleCutPlacements[1],
+    &_gActor560800KyleCutPlacements[2],
+    _gActor560800KyleCutPlacements,
+    &_gActor560800KyleCutPlacements[2],
+    &_gActor560800KyleCutPlacements[3],
+    &_gActor560800KyleCutPlacements[4],
+    &_gActor560800KyleCutPlacements[3],
+    &_gActor560800KyleCutPlacements[2],
+    _gActor560800KyleCutPlacements,
+    &_gActor560800KyleCutPlacements[3],
+    &_gActor560800KyleCutPlacements[2],
+    _gActor560800KyleCutPlacements,
     &D_actor_560800_8016F334,
     &D_actor_560800_8016F25C,
-    &D_actor_560800_8016F1CC[5],
+    &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
     &D_actor_560800_8016F25C,
-    &D_actor_560800_8016F1CC[5],
-    &D_actor_560800_8016F1CC[4],
-    &D_actor_560800_8016F1CC[5],
+    &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
+    &_gActor560800KyleCutPlacements[4],
+    &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
     &D_actor_560800_8016F274,
     &D_actor_560800_8016F28C,
-    &D_actor_560800_8016F1CC[1],
+    &_gActor560800KyleCutPlacements[1],
     &D_actor_560800_8016F28C,
     &D_actor_560800_8016F2A4,
     &D_actor_560800_8016F2BC,
@@ -3307,7 +3365,7 @@ ActorTransform* D_actor_560800_8016F4F4[34] = {
     &D_actor_560800_8016F07C,
     &D_actor_560800_8016F124,
     &D_actor_560800_8016F13C,
-    &D_actor_560800_8016F154,
+    &_gActor560800EveReplacementPlacement,
     &D_actor_560800_8016F16C,
     &D_actor_560800_8016F184,
     &D_actor_560800_8016F19C,
@@ -3725,21 +3783,23 @@ EvsCommand D_actor_560800_80171800[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_560800_801718F0[14] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor560800CutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800DiscardTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800FadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800FadeOutTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800EveBodyTask, { .model = &_gActor560800EveBreaMaskedBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800KyleBodyTask, { .model = &_gActor560800KyleMadiganBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800No9BodyTask, { .model = &_gActor560800No9GolemDryfieldBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganHandRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganGun } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CastAttachmentTask, { .model = &_gActor560800No9GolemDryfieldGunblade } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800EveBodyTask, { .model = &_gActor560800AyaBreaBody } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800ReplaceEveBodyTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
+enum { ACTOR_560800_CUTSCENE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor560800CutsceneTaskDescriptors[14] = {
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800DiscardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeOutTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gActor560800EveBreaMaskedBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800KyleBodyTask, { .model = &_gActor560800KyleMadiganBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800No9BodyTask, { .model = &_gActor560800No9GolemDryfieldBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganHandRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganGun } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800No9GolemDryfieldGunblade } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gActor560800AyaBreaBody } },
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800ReplaceEveBodyTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
 };
 
 static TmdBone _gActor560800Model40064Skeleton[7] = {
@@ -4014,11 +4074,23 @@ static AnimationSet _gActor560800Animation434A0 = {
     { NULL, _gActor560800Animation434A0Bank1, NULL, NULL, _gActor560800Animation434A0Bank4, NULL, NULL, NULL },
 };
 
-s32 D_actor_560800_801752E8 = 1;
+enum { ACTOR_560800_CHAIN_PHASE_START = 1 };
 
-s32 D_actor_560800_801752EC = 1;
+/// Double-rate phase counter shared by chain sway and staggered tip effects.
+///
+/// Starts at 1 and advances by two on each carrier update after initialization,
+/// including hidden updates. Carrier-pose placement resets it to 1. Its low bit
+/// stays set and enables accelerated ascent; retain the signed 32-bit arithmetic.
+static s32 _gActor560800ChainSwayPhase = ACTOR_560800_CHAIN_PHASE_START;
 
-AnimationSet* D_actor_560800_801752F0[9] = {
+s32 gActor560800ChainGlowTick = ACTOR_560800_CHAIN_PHASE_START;
+
+/// Eight chain animation clips indexed by chain number 1..8.
+///
+/// Entry 0 is absent. Each seven-part chain borrows the bank in its animation
+/// context; clip playback seeds only slots 1..6. Keep the overlay and clip data
+/// loaded while any chain context is live.
+static AnimationSet* _gActor560800ChainAnimationSets[9] = {
     NULL,
     &_gActor560800Animation421C4,
     &_gActor560800Animation42474,
@@ -4102,34 +4174,34 @@ u16 D_actor_560800_801756EC[8] = {
     2,
 };
 
-s32 D_actor_560800_801756FC[6] = {
-    8340,
-    -2200,
-    4000,
-    0,
-    0,
-    0,
-};
+/// Carrier placement at the start of its first descent (command 2).
+///
+/// Whole game units under the view coordinate, with zero Euler rotation.
+/// The placement callback borrows this complete 24-byte record synchronously.
+static ActorTransform _gActor560800CarrierFirstDescentPlacement = { { 8340, -2200, 4000, 0 }, { 0, 0, 0, 0 } };
 
-s32 D_actor_560800_80175714[6] = {
-    6950,
-    -2200,
-    3650,
-    0,
-    0,
-    0,
-};
+/// Carrier placement at the start of its second descent (command 5).
+///
+/// Whole game units under the view coordinate, with zero Euler rotation.
+/// The placement callback borrows this complete 24-byte record synchronously.
+static ActorTransform _gActor560800CarrierSecondDescentPlacement = { { 6950, -2200, 3650, 0 }, { 0, 0, 0, 0 } };
 
-s32 D_actor_560800_8017572C[6] = {
-    6950,
-    -2500,
-    3500,
-    0,
-    0,
-    0,
-};
+/// Carrier placement at the start of carrying No. 9 away (command 6).
+///
+/// Whole game units under the view coordinate, with zero Euler rotation.
+/// The placement callback borrows this complete 24-byte record synchronously.
+static ActorTransform _gActor560800CarrierCarryNo9Placement = { { 6950, -2500, 3500, 0 }, { 0, 0, 0, 0 } };
 
-TaskMessageEntry D_actor_560800_80175744[3] = {
+/// Messages accepted by the cutscene's carrier model.
+///
+/// No end marker: send only `ACTOR_MESSAGE_SET_MODEL_DRAW` (integer mode 0 no
+/// change, 1 show, 2 hide/skip automatic buffering), `ACTOR_MESSAGE_PLACE`
+/// (borrowed `ActorTransform` in the root parent's frame, Y/X/Z Euler order), or
+/// `ACTOR_COMMAND_MESSAGE_APPLY` (borrowed `ActorCommand`; only its command
+/// halfword is read: 0 relight, 1 hide, 2 first descent, 3 slow descent,
+/// 4 rise, 5 second descent, 6 carry No. 9). Payloads are consumed synchronously;
+/// all callbacks return void, so senders must ignore the dispatch result.
+static TaskMessageEntry _gActor560800CarrierMessages[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor560800SetCarrierModelDraw },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceYawPitchRollCarrier },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor560800ApplyCarrierCommand },
@@ -4142,23 +4214,44 @@ TaskDesc D_actor_560800_8017575C[4] = {
     { { { TASK_BODY_TMD, 192 } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
 
-Task* D_actor_560800_8017578C = NULL;
+/// Borrowed singleton task controlling the scene and owning its cast/props.
+///
+/// Published after work allocation succeeds. Script callbacks borrow its work
+/// and child tasks join its teardown tree. Initially NULL; teardown does not
+/// clear it, so it may be used only while the controller and its work are live.
+static Task* _gActor560800CutsceneTask = NULL;
 
 s32 D_actor_560800_80175790;
 
 s32 D_actor_560800_80175794;
 
-s32 D_actor_560800_80175798;
+/// Display ticks elapsed in the third streamed scene phase.
+///
+/// Recorded when Kyle enters cut 33 and again at phase completion. Signed
+/// subtraction uses the saved third-phase start; if the unsigned counter has
+/// wrapped past that start, the retained result is one tick shorter.
+static s32 _gActor560800ThirdPhaseElapsedTicks;
 
 s32 D_actor_560800_8017579C;
 
 s32 D_actor_560800_801757A0;
 
-s32 D_actor_560800_801757A4;
+/// Display-counter timestamp at the start of the third streamed scene phase.
+///
+/// Recorded immediately before playback is queued. It must be written before
+/// third-phase elapsed-time recording. Stored as a signed word but compared
+/// as unsigned for wrap detection; it is not a playback-frame index.
+static s32 _gActor560800ThirdPhaseStartTick;
 
 u32 D_actor_560800_801757A8;
 
-Task* D_actor_560800_801757AC;
+/// Borrowed singleton carrier task whose root parents the detached chains.
+///
+/// Published after model/work initialization succeeds and used for carrier Y
+/// and the remaining chains' coordinate parent. Its lifetime belongs to the
+/// cutscene teardown tree. Teardown does not clear it; users require a live
+/// initialized carrier and must stop before scene teardown.
+static Task* _gActor560800CarrierTask;
 
 extern ActorTransform* D_actor_560800_8016F35C[];
 
@@ -4171,24 +4264,6 @@ extern ActorTransform* D_actor_560800_8016F4F4[];
 extern TaskMessageEntry D_actor_560800_801756D4[3];
 
 extern u16 D_actor_560800_801756EC[];
-
-extern s32 D_actor_560800_801756FC[];
-
-extern s32 D_actor_560800_80175714[];
-
-extern s32 D_actor_560800_8017572C[];
-
-/// Per-frame handler of a model task: state 0 allocates its
-/// `_Actor560800PropWork`, parents the root coordinate to `gGfxViewCoord`,
-/// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
-/// to identity. States 2/5 lift the root
-/// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
-/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `_actor560800RaiseCarrier` /
-/// `_actor560800CarryNo9Away`. Every state but 0 advances the two frame
-/// counters. Each case needs its own matrix pointer (and case 0 its own work
-/// pointer): a pointer shared across cases is a global pseudo, so the local
-/// 0x1000 constant takes `$v0` from it.
-extern TaskMessageEntry D_actor_560800_80175744[3];
 
 /// Blend duration used by the scene's player requests and cast-chain changes.
 enum { ACTOR_560800_ANIMATION_BLEND_FRAMES = 10 };
@@ -4343,7 +4418,7 @@ static s32 _actor560800AdvancePlayerAnimChain(Task* task)
     /// borrowed by the player. The binding ends with this function.
 #define ACTOR_560800_START_PLAYER_CHAIN_CLIP(work, clipId, request)                                       \
     {                                                                                                     \
-        (request).source.sets          = D_actor_560800_8016EA40;                                         \
+        (request).source.sets          = _gActor560800PlayerAnimationSets;                                \
         (work)->playerAnimId           = (clipId);                                                        \
         (request).animationId          = (clipId);                                                        \
         (request).blend                = ANIMATION_BLEND_INTERPOLATE;                                     \
@@ -4513,7 +4588,7 @@ static inline u16 _actor560800AllocateBodyWork(Task* task, u8 textureEntryId)
     memFillBytes(task->work, 0, sizeof(*allocatedWork));
     model->lightMtx = &allocatedWork->light;
     model->colorMtx = &allocatedWork->color;
-    task->msgTable  = D_actor_560800_8016F34C;
+    task->msgTable  = _gActor560800CastMessages;
     placement       = areaGetVariant(&gGameSession->location.loc)->placements;
     entryId         = placement->entryId;
     while (entryId != AREA_PLACEMENT_END) {
@@ -4524,7 +4599,7 @@ static inline u16 _actor560800AllocateBodyWork(Task* task, u8 textureEntryId)
         entryId = placement->entryId;
     }
     tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
-    taskReparent(D_actor_560800_8017578C, task);
+    taskReparent(_gActor560800CutsceneTask, task);
     return 0;
 }
 
@@ -4591,7 +4666,7 @@ static void _actor560800EveBodyTask(Task* task)
         case ACTOR_560800_EVE_PLACE_REPLACEMENT: {
             s32 replacementMode = task->spawnArg1.value;
             if (replacementMode == 1) {
-                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_560800_8016F154, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor560800EveReplacementPlacement, 0);
                 work->relit  = replacementMode;
                 task->state += 1;
             }
@@ -4681,7 +4756,7 @@ static void _actor560800CastAttachmentTask(Task* task)
             tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
         }
         taskReparent(parent, task);
-        task->msgTable = D_actor_560800_8016F34C;
+        task->msgTable = _gActor560800CastMessages;
         task->state   += 1;
         return;
     }
@@ -4806,7 +4881,7 @@ static void _actor560800No9BodyTask(Task* task)
 /// and reads only its command halfword. Does not change continuous-relight flags.
 static void _actor560800RelightCast(void)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
     Task*                     task;
     // Lighting samples and the final borrowed command have disjoint lifetimes.
     union {
@@ -4858,7 +4933,7 @@ static void _actor560800RelightCast(void)
         ACTOR_560800_RELIGHT_MODEL(task, scratch.lightingPosition);
     }
     if (work->chainGroup != NULL) {
-        _Actor560800CutsceneWork* dispatchWork = D_actor_560800_8017578C->work;
+        _Actor560800CutsceneWork* dispatchWork = _gActor560800CutsceneTask->work;
 
         scratch.command.command = ACTOR_560800_CHAIN_COMMAND_RELIGHT;
         TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->chainGroup, ACTOR_COMMAND_MESSAGE_APPLY, &scratch.command, 0);
@@ -4874,7 +4949,7 @@ static void _actor560800RelightCast(void)
 /// are checked for absence.
 static void _actor560800ShowCastMember(u32 memberId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     switch (memberId) {
         case ACTOR_560800_CAST_PLAYER:
@@ -4914,7 +4989,7 @@ static void _actor560800ShowCastMember(u32 memberId)
 /// buffer; the package model handlers only change draw flags.
 static void _actor560800HideCastMember(u32 memberId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     switch (memberId) {
         case ACTOR_560800_CAST_PLAYER:
@@ -4958,7 +5033,7 @@ static void _actor560800PlaceCastForCut(s32 cutId)
     _Actor560800CutsceneWork* work;
     ActorTransform*           placement;
 
-    work = D_actor_560800_8017578C->work;
+    work = _gActor560800CutsceneTask->work;
     if (work->keepEffects == 0) {
         roomEffectRequestCancelAll();
     }
@@ -5022,7 +5097,7 @@ static inline void _actor560800RestartPlayerAnimation(Task* task, u16 animationI
 
     work = task->work;
     if (work->player != NULL) {
-        request.source.sets          = D_actor_560800_8016EA40;
+        request.source.sets          = _gActor560800PlayerAnimationSets;
         work->playerAnimId           = animationId;
         request.animationId          = animationId;
         request.blend                = ANIMATION_BLEND_RESET;
@@ -5046,7 +5121,7 @@ static inline void _actor560800BlendPlayerAnimation(Task* task, u16 animationId,
 
     work = task->work;
     if (work->player != NULL) {
-        request.source.sets          = D_actor_560800_8016EA40;
+        request.source.sets          = _gActor560800PlayerAnimationSets;
         work->playerAnimId           = animationId;
         request.animationId          = animationId;
         request.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -5443,7 +5518,7 @@ static void _actor560800FireKyleGun(s32 unusedArg)
     // The original stack allocation remains required for the matching frame.
     SVECTOR unusedFrameStorage;
 
-    work = D_actor_560800_8017578C->work;
+    work = _gActor560800CutsceneTask->work;
     _actor560800RestartCastAnimationAtRate(work->kyle, 0x20, ANIMATION_RATE_ONE);
     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], ACTOR_560800_KYLE_GUN_EFFECT, NULL);
     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
@@ -5457,10 +5532,10 @@ static void _actor560800FireKyleGun(s32 unusedArg)
 /// result when the counter has wrapped past its timestamp.
 static inline void _actor560800RecordThirdPhaseElapsed(void)
 {
-    if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
-        D_actor_560800_80175798 = gDisplayState.frameCount - (D_actor_560800_801757A4 + 1);
+    if ((u32)_gActor560800ThirdPhaseStartTick > (u32)gDisplayState.frameCount) {
+        _gActor560800ThirdPhaseElapsedTicks = gDisplayState.frameCount - (_gActor560800ThirdPhaseStartTick + 1);
     } else {
-        D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
+        _gActor560800ThirdPhaseElapsedTicks = gDisplayState.frameCount - _gActor560800ThirdPhaseStartTick;
     }
 }
 
@@ -5536,8 +5611,8 @@ static void _actor560800HandleKyleCue(Task* task)
                 case 1:
                     kyleRoot              = work->kyle->extra.tmd->coords;
                     kyleRoot->coord.t[0] -= 0x1E;
-                    if (work->kyle->extra.tmd->coords->coord.t[0] < D_actor_560800_8016F1CC[5].pos.vx) {
-                        TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &D_actor_560800_8016F1CC[5], 0);
+                    if (work->kyle->extra.tmd->coords->coord.t[0] < _gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT].pos.vx) {
+                        TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT], 0);
                         _actor560800BlendCastAnimation(work->kyle, 0x1A, ANIMATION_RATE_ONE);
                         work->kyleCue.id = ACTOR_560800_CUE_NONE;
                     }
@@ -5773,7 +5848,7 @@ static void _actor560800FinishScenePhase(s32 phaseId)
     } else if (phaseId == ACTOR_560800_SCENE_PHASE_SECOND) {
         ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175794, D_actor_560800_801757A0);
     } else if (phaseId == ACTOR_560800_SCENE_PHASE_THIRD) {
-        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175798, D_actor_560800_801757A4);
+        ACTOR_560800_RECORD_PHASE_TICKS(_gActor560800ThirdPhaseElapsedTicks, _gActor560800ThirdPhaseStartTick);
     }
 #undef ACTOR_560800_RECORD_PHASE_TICKS
     // Completion also restores the random generators saved by scene playback.
@@ -5804,22 +5879,22 @@ static void _actor560800InitializeCutscene(Task* task)
         return;
     }
     memFillBytes(work, 0, sizeof(*work));
-    work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_actor_560800_8017578C = task;
-    work->eve               = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_EVE_MASKED, 0, 0);
-    kyle                    = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_KYLE, 0, 0);
-    work->kyle              = kyle;
-    work->kyleGunHand       = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_KYLE_GUN_HAND, ACTOR_560800_ATTACHMENT_GUN_HAND, kyle);
-    work->kyleFreeHand      = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_KYLE_FREE_HAND, ACTOR_560800_ATTACHMENT_FREE_HAND, work->kyle);
-    work->kyleGun           = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_KYLE_GUN, ACTOR_560800_ATTACHMENT_GUN, work->kyle);
-    no9                     = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_NO9, 0, 0);
-    work->no9               = no9;
-    work->no9Gunblade       = taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_NO9_GUNBLADE, ACTOR_560800_ATTACHMENT_GUNBLADE, no9);
-    work->chainGroup        = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CHAIN_GROUP, 0, task);
-    work->carrierModel      = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CARRIER, 0, task);
-    ambientColor.vx         = ACTOR_560800_SCENE_AMBIENT_LEVEL;
-    ambientColor.vy         = ACTOR_560800_SCENE_AMBIENT_LEVEL;
-    ambientColor.vz         = ACTOR_560800_SCENE_AMBIENT_LEVEL;
+    work->player              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    _gActor560800CutsceneTask = task;
+    work->eve                 = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_EVE_MASKED, 0, 0);
+    kyle                      = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_KYLE, 0, 0);
+    work->kyle                = kyle;
+    work->kyleGunHand         = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_KYLE_GUN_HAND, ACTOR_560800_ATTACHMENT_GUN_HAND, kyle);
+    work->kyleFreeHand        = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_KYLE_FREE_HAND, ACTOR_560800_ATTACHMENT_FREE_HAND, work->kyle);
+    work->kyleGun             = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_KYLE_GUN, ACTOR_560800_ATTACHMENT_GUN, work->kyle);
+    no9                       = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_NO9, 0, 0);
+    work->no9                 = no9;
+    work->no9Gunblade         = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_NO9_GUNBLADE, ACTOR_560800_ATTACHMENT_GUNBLADE, no9);
+    work->chainGroup          = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CHAIN_GROUP, 0, task);
+    work->carrierModel        = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CARRIER, 0, task);
+    ambientColor.vx           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
+    ambientColor.vy           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
+    ambientColor.vz           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
     worldCoordSetAmbientColorOverride(&ambientColor);
 }
 
@@ -5892,7 +5967,7 @@ static void _actor560800CutsceneTask(Task* task)
             if (work->eve != NULL) {
                 taskKill(work->eve);
             }
-            displaySpawnTaskFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_REPLACE_EVE, 0, 0);
+            displaySpawnTaskFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_REPLACE_EVE, 0, 0);
             break;
     }
     work->sceneCue.id = ACTOR_560800_CUE_NONE;
@@ -5940,7 +6015,7 @@ static void _actor560800FadeOutTask(Task* task)
             fade->b = 0;
             fade->g = 0;
             fade->r = 0;
-            taskReparent(D_actor_560800_8017578C, task);
+            taskReparent(_gActor560800CutsceneTask, task);
             task->state += 1;
             /* fallthrough */
         case ACTOR_560800_FADE_RAMP:
@@ -5986,7 +6061,7 @@ static void _actor560800FadeInTask(Task* task)
             fade->b = ACTOR_560800_FADE_MAX_INTENSITY;
             fade->g = ACTOR_560800_FADE_MAX_INTENSITY;
             fade->r = ACTOR_560800_FADE_MAX_INTENSITY;
-            taskReparent(D_actor_560800_8017578C, task);
+            taskReparent(_gActor560800CutsceneTask, task);
             task->state += 1;
             break;
         case ACTOR_560800_FADE_ENABLE_DISPLAY:
@@ -6044,7 +6119,7 @@ static void _actor560800SetCastModelDraw(Task* task, s32 messageId, s32 drawMode
 /// task joins its teardown tree. Does not check or return spawn success.
 static void _actor560800SpawnFadeIn(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_FADE_IN, intensityStep, 0);
+    taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_FADE_IN, intensityStep, 0);
 }
 
 /// Darkens the cutscene by spawning its subtractive fade-out task.
@@ -6054,7 +6129,7 @@ static void _actor560800SpawnFadeIn(s32 intensityStep)
 /// task joins its teardown tree. Does not check or return spawn success.
 static void _actor560800SpawnFadeOut(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_FADE_OUT, intensityStep, 0);
+    taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_FADE_OUT, intensityStep, 0);
 }
 
 /// Sends a synchronous action command to the scene's chain group.
@@ -6066,7 +6141,7 @@ static void _actor560800SpawnFadeOut(s32 intensityStep)
 /// 8 burst the next remaining chain.
 static void _actor560800SendChainCommand(s16 commandId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
     ActorCommand              command;
 
     command.command = commandId;
@@ -6081,7 +6156,7 @@ static void _actor560800SendChainCommand(s16 commandId)
 /// 4 accelerated rise, 5 second descent, 6 carry No. 9.
 static void _actor560800SendCarrierCommand(s16 commandId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
     ActorCommand              command;
 
     command.command = commandId;
@@ -6106,7 +6181,7 @@ static inline void _actor560800PostCue(ActorCutsceneCue* cue, s16 cueId)
 /// Cue 0 clears the request; other ids are interpreted by that actor's handler.
 static void _actor560800PostPlayerCue(s16 cueId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800PostCue(&work->playerCue, cueId);
 }
@@ -6119,7 +6194,7 @@ static void _actor560800PostPlayerCue(s16 cueId)
 /// player borrows the package's animation bank for subsequent playback.
 static void _actor560800BlendScenePlayerAnimation(s16 animationId)
 {
-    _actor560800BlendPlayerAnimation(D_actor_560800_8017578C, animationId, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+    _actor560800BlendPlayerAnimation(_gActor560800CutsceneTask, animationId, ACTOR_560800_ANIMATION_BLEND_FRAMES);
 }
 
 /// Blends Eve's non-root tracks into a scene clip over ten frames.
@@ -6129,7 +6204,7 @@ static void _actor560800BlendScenePlayerAnimation(s16 animationId)
 /// chain speed in sixteenths of a frame; the slots keep their current rates.
 static void _actor560800BlendEveAnimation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800BlendCastAnimation(work->eve, animationId, ANIMATION_RATE_ONE);
 }
@@ -6141,7 +6216,7 @@ static void _actor560800BlendEveAnimation(u16 animationId)
 /// chain speed in sixteenths of a frame; the slots keep their current rates.
 static void _actor560800BlendNo9Animation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800BlendCastAnimation(work->no9, animationId, ANIMATION_RATE_ONE);
 }
@@ -6182,7 +6257,7 @@ static void _actor560800SwapSceneTextureStrip(void)
 /// Cue 0 clears the request; other ids are interpreted by that actor's handler.
 static void _actor560800PostKyleCue(s16 cueId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800PostCue(&work->kyleCue, cueId);
 }
@@ -6194,7 +6269,7 @@ static void _actor560800PostKyleCue(s16 cueId)
 /// chain speed in sixteenths of a frame; the slots keep their current rates.
 static void _actor560800BlendKyleAnimation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800BlendCastAnimation(work->kyle, animationId, ANIMATION_RATE_ONE);
 }
@@ -6236,7 +6311,7 @@ static void _actor560800ReplaceEveBodyTask(Task* task)
     RECT                      sourceRect;
     _Actor560800CutsceneWork* work;
 
-    work = D_actor_560800_8017578C->work;
+    work = _gActor560800CutsceneTask->work;
     switch (task->state) {
         case ACTOR_560800_EVE_SWAP_HOLD:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -6256,7 +6331,7 @@ static void _actor560800ReplaceEveBodyTask(Task* task)
             D5B498_8006C234 = 0;
             taskKill(task);
             displayResumeGameLoop();
-            work->eve = taskSpawnFromTableOnDefaultList(D_actor_560800_801718F0, ACTOR_560800_TASK_EVE_REPLACEMENT, 1, D_actor_560800_8017578C);
+            work->eve = taskSpawnFromTableOnDefaultList(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_EVE_REPLACEMENT, 1, _gActor560800CutsceneTask);
             break;
     }
 }
@@ -6267,7 +6342,7 @@ static void _actor560800ReplaceEveBodyTask(Task* task)
 /// 0 clears the request. Restarts the sequence step without clearing its counter.
 static void _actor560800PostSceneCue(s16 cueId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800PostCue(&work->sceneCue, cueId);
 }
@@ -6279,7 +6354,7 @@ static void _actor560800PostSceneCue(s16 cueId)
 /// unchanged and does not post a scene cue.
 static void _actor560800PostCastCue(s16 cueId)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
 
     _actor560800PostCue(&work->playerCue, cueId);
     _actor560800PostCue(&work->eveCue, cueId);
@@ -6295,7 +6370,7 @@ static void _actor560800PostCastCue(s16 cueId)
 /// checks the latch before performing this operation.
 static void _actor560800ApplyShotDamage(void)
 {
-    _Actor560800CutsceneWork* work         = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work         = _gActor560800CutsceneTask->work;
     PlayerStatus*             playerStatus = &gPlayerStatus;
     s16                       remainingHp;
 
@@ -6320,7 +6395,7 @@ static void _actor560800ApplyShotDamage(void)
 /// skip script owns fades, texture restoration and scene teardown.
 static void _actor560800SkipScene(void)
 {
-    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
+    _Actor560800CutsceneWork* work = _gActor560800CutsceneTask->work;
     s16                       remainingHp;
 
     work->playerCue.id = 0;
@@ -6329,7 +6404,7 @@ static void _actor560800SkipScene(void)
     work->eveCue.id    = 0;
     if (work->shotDamageApplied == 0) {
         PlayerStatus*             playerStatus = &gPlayerStatus;
-        _Actor560800CutsceneWork* damageWork   = D_actor_560800_8017578C->work;
+        _Actor560800CutsceneWork* damageWork   = _gActor560800CutsceneTask->work;
 
         playerActorRemoveEquipment();
         if (playerStatus->hp < ACTOR_560800_SHOT_DAMAGE_HP + 1) {
@@ -6369,7 +6444,7 @@ static void _actor560800StartScenePhasePlayback(s32 phaseId)
     } else if (phaseId == 2) {
         D_actor_560800_801757A0 = gDisplayState.frameCount;
     } else if (phaseId == 3) {
-        D_actor_560800_801757A4 = gDisplayState.frameCount;
+        _gActor560800ThirdPhaseStartTick = gDisplayState.frameCount;
     }
     cdCmdEnqueueScenePlayback();
 }
@@ -6381,7 +6456,7 @@ static void _actor560800StartScenePhasePlayback(s32 phaseId)
 /// and packets after handing control over. Spawn failure is unchecked.
 static void _actor560800HoldDisplayUntilScenePlaybackEnds(void)
 {
-    displaySpawnTaskFromTable(D_actor_560800_801718F0, ACTOR_560800_TASK_AWAIT_PLAYBACK, 0, 0);
+    displaySpawnTaskFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_AWAIT_PLAYBACK, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     viewQueueCurrentCameraAndPackets();
 }
@@ -6480,7 +6555,7 @@ static void _actor560800BendChainTowardTarget(Task* task)
     memCopyBytes(work->rot, scratch->rot, sizeof(scratch->rot));
     if (work->chainNumber & 1) {
         angleStep = 2;
-        switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x300) {
+        switch (((_gActor560800ChainSwayPhase + work->swayPhase) * 2) & 0x300) {
             case 0x0:
             case 0x300:
                 scratch->rot[0].vx += 4;
@@ -6496,7 +6571,7 @@ static void _actor560800BendChainTowardTarget(Task* task)
         }
     } else {
         angleStep = 1;
-        switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x700) {
+        switch (((_gActor560800ChainSwayPhase + work->swayPhase) * 2) & 0x700) {
             case 0x0:
             case 0x100:
             case 0x600:
@@ -6671,7 +6746,7 @@ static void _actor560800InitChainModel(Task* task)
     work->field_274  = gRandomLcgState >> 16;
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->pulseScale = (gRandomLcgState >> 16) & 0x3FF;
-    animationInitContext(&work->rig.anim, D_actor_560800_801752F0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor560800ChainAnimationSets, model, work->rig.poses, work->rig.slots);
     work->chainNumber = task->spawnArg1.value;
 }
 
@@ -6803,7 +6878,7 @@ static void _actor560800IntactChainTask(Task* task)
         case ACTOR_560800_CHAIN_BREAK:
             // Transfer the local pose before the falling copy's first update.
             fallingTask = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_CHAIN_FALLING_TASK,
-                                             (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
+                                             (s32)_gActor560800CarrierTask->extra.tmd->coords->coord.t[1],
                                              task->spawnArg2.pointer);
             if (fallingTask == NULL) {
                 task->state = ACTOR_560800_CHAIN_BEND;
@@ -6828,7 +6903,7 @@ done:
     if (!(drawModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         shelterB1PodServiceGantryDrawChainGlow(&task->extra.tmd->coords[ACTOR_560800_CHAIN_TIP_PART], work->chainNumber, ACTOR_560800_CHAIN_GLOW_RADIUS_SCALE, ACTOR_560800_CHAIN_GLOW_PACKED_COLOR);
         if (viewFindLogicalIndex(gGameSession->location.loc.view) != ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
-            effectTick = D_actor_560800_801752E8 + 1;
+            effectTick = _gActor560800ChainSwayPhase + 1;
             // The retained three-bit selector staggers chains 1..7; it never selects chain 8.
             if (!(effectTick & ACTOR_560800_CHAIN_EFFECT_TICK_MASK) && ((effectTick >> ACTOR_560800_CHAIN_EFFECT_TICK_SHIFT) & ACTOR_560800_CHAIN_EFFECT_INDEX_MASK) == work->chainNumber) {
                 effectSpawn(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &task->extra.tmd->coords[ACTOR_560800_CHAIN_EFFECT_PART], ACTOR_560800_CHAIN_EFFECT_SIZE, NULL);
@@ -6869,7 +6944,7 @@ static void _actor560800FallingChainTask(Task* task)
     switch (task->state) {
         case ACTOR_560800_FALL_INITIALIZE:
             _actor560800InitChainModel(task);
-            root->parent           = D_actor_560800_801757AC->extra.tmd->coords;
+            root->parent           = _gActor560800CarrierTask->extra.tmd->coords;
             task->extra.tmd->flags = 0;
             work                   = task->work;
             partIndex              = 1;
@@ -6921,7 +6996,7 @@ static void _actor560800FallingChainTask(Task* task)
             work->fallDistance = nextDistance;
             work->speed        = nextSpeed;
             root->coord.t[1]   = work->fallStartY + task->spawnArg1.value -
-                               D_actor_560800_801757AC->extra.tmd->coords->coord.t[1] +
+                               _gActor560800CarrierTask->extra.tmd->coords->coord.t[1] +
                                (s16)nextDistance;
             root->composeStamp = GRAPHICS_COORD_DIRTY;
             if (root->coord.t[1] > ACTOR_560800_FALL_END_Y) {
@@ -7035,7 +7110,7 @@ static void _actor560800PlaceChainGroup(Task* task, s32 messageId, const ActorTr
                 if (work->chains[chainIndex & 0xFFFF] != NULL) {
                     chainWork              = work->chains[chainIndex & 0xFFFF]->work;
                     root                   = work->chains[chainIndex & 0xFFFF]->extra.tmd->coords;
-                    root->parent           = D_actor_560800_801757AC->extra.tmd->coords;
+                    root->parent           = _gActor560800CarrierTask->extra.tmd->coords;
                     chainWork->position.vx = poses->pos.vx;
                     chainWork->position.vy = poses->pos.vy;
                     chainWork->position.vz = poses->pos.vz;
@@ -7052,9 +7127,9 @@ static void _actor560800PlaceChainGroup(Task* task, s32 messageId, const ActorTr
                 chainIndex++;
                 poses++;
             } while ((u32)(chainIndex & 0xFFFF) < ARRAY_SIZE(work->chains));
-            work->placeMode         = ACTOR_560800_CHAIN_PLACE_FIRST;
-            D_actor_560800_801752E8 = 1;
-            D_actor_560800_801752EC = 1;
+            work->placeMode             = ACTOR_560800_CHAIN_PLACE_FIRST;
+            _gActor560800ChainSwayPhase = ACTOR_560800_CHAIN_PHASE_START;
+            gActor560800ChainGlowTick   = ACTOR_560800_CHAIN_PHASE_START;
             return;
     }
     // Ordinary arrangements use the group root and optionally straighten bends.
@@ -7334,7 +7409,7 @@ static void _actor560800ApplyCarrierCommand(Task* task, s32 messageId, ActorComm
             break;
         case ACTOR_560800_CARRIER_FIRST_DESCENT:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_801756FC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor560800CarrierFirstDescentPlacement, 0);
             work->pulseScale = ONE;
             task->state      = ACTOR_560800_CARRIER_FIRST_DESCENT;
             break;
@@ -7346,13 +7421,13 @@ static void _actor560800ApplyCarrierCommand(Task* task, s32 messageId, ActorComm
             break;
         case ACTOR_560800_CARRIER_SECOND_DESCENT:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_80175714, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor560800CarrierSecondDescentPlacement, 0);
             work->pulseScale = ONE;
             task->state      = ACTOR_560800_CARRIER_SECOND_DESCENT;
             break;
         case ACTOR_560800_CARRIER_CARRY_NO9:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_8017572C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor560800CarrierCarryNo9Placement, 0);
             work->carryStep = 0;
             task->state     = ACTOR_560800_CARRIER_CARRY_NO9;
             break;
@@ -7377,7 +7452,7 @@ static void _actor560800RaiseCarrier(Task* task)
 
     work = task->work;
     root = task->extra.tmd->coords;
-    if (D_actor_560800_801752E8 & ACTOR_560800_CARRIER_ACCELERATE) {
+    if (_gActor560800ChainSwayPhase & ACTOR_560800_CARRIER_ACCELERATE) {
         work->speed++;
     }
     // Retain the alias before the reload; removing it changes register allocation.
@@ -7592,8 +7667,8 @@ static void _actor560800CarrierTask(Task* task)
                 model->lightMtx       = &allocatedWork->light;
                 model->colorMtx       = &allocatedWork->color;
                 taskReparent(task->spawnArg2.pointer, task);
-                task->msgTable          = D_actor_560800_80175744;
-                D_actor_560800_801757AC = task;
+                task->msgTable           = _gActor560800CarrierMessages;
+                _gActor560800CarrierTask = task;
                 gfxSetRotIdentity(&root->coord);
             }
             task->state++;
@@ -7640,8 +7715,8 @@ static void _actor560800CarrierTask(Task* task)
             _actor560800CarryNo9Away(task);
             break;
     }
-    D_actor_560800_801752E8 += 2;
-    D_actor_560800_801752EC += 1;
+    _gActor560800ChainSwayPhase += 2;
+    gActor560800ChainGlowTick   += 1;
 }
 
 /// Changes active-draw and automatic-buffer flags on every surviving chain.
