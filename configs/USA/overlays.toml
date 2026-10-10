@@ -1244,7 +1244,7 @@ objects = [
 ]
 
 [rooms.overlays.acropolis_promenade]
-label = "code starts at 0x24; GCC hoisted the lui/lw for D_acropolis_promenade_80181140 above the addiu $sp prologue, so the span detector starts 8 bytes late"
+label = "code starts at 0x24; GCC hoisted the lui/lw for _gAcropolisPromenadeArrivalMovieStarted above the addiu $sp prologue, so the span detector starts 8 bytes late"
 id = 295
 text = ["0x24", "0x2844"]
 objects = [

@@ -55206,8 +55206,8 @@ disassembly names `D_acropolis_promenade_80181B34` (`+0x20`),
 mask table). Declaring the two arrays once and indexing them,
 
 ```c
-if (D_acropolis_promenade_80181B78[placementIndex + 4] & viewMask) {
-    effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &D_acropolis_promenade_80181B14[placementIndex + 4]);
+if (_gAcropolisPromenadeLampGlowViewMasks[placementIndex + 4] & viewMask) {
+    effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &_gAcropolisPromenadeLampGlowPositions[placementIndex + 4]);
 }
 ```
 

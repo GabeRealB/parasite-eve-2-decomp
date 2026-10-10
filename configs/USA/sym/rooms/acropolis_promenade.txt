@@ -1,14 +1,14 @@
 // Overlay-local symbols for acropolis_promenade.
-D_acropolis_promenade_80181B76 = 0x80181B76; // size:0x2 defined:True
-D_acropolis_promenade_80181B78 = 0x80181B78; // size:0x18 defined:True
-D_acropolis_promenade_80181184 = 0x80181184; // size:0x960 defined:True
+_gAcropolisPromenadeDripViewMask = 0x80181B76; // size:0x2 defined:True
+_gAcropolisPromenadeLampGlowViewMasks = 0x80181B78; // size:0x18 defined:True
+_gAcropolisPromenadeArrivalMoviePlayerPositions = 0x80181184; // size:0x960 defined:True
 _gAcropolisPromenadeGroundGlowUnitCorners = 0x80181AE4; // size:0x10 defined:True
-D_acropolis_promenade_80181B74 = 0x80181B74; // size:0x2 defined:True
-D_acropolis_promenade_80181AF4 = 0x80181AF4; // size:0x18 defined:True
-D_acropolis_promenade_80181B0C = 0x80181B0C; // size:0x8 defined:True
-D_acropolis_promenade_80181B14 = 0x80181B14; // size:0x60 defined:True
-D_acropolis_promenade_80181140 = 0x80181140; // size:0x4 defined:True
-D_acropolis_promenade_80181144 = 0x80181144; // size:0x4 defined:True
+_gAcropolisPromenadeGlowViewMask = 0x80181B74; // size:0x2 defined:True
+_gAcropolisPromenadeGlowPositions = 0x80181AF4; // size:0x18 defined:True
+_gAcropolisPromenadeGroundGlowPosition = 0x80181B0C; // size:0x8 defined:True
+_gAcropolisPromenadeLampGlowPositions = 0x80181B14; // size:0x60 defined:True
+_gAcropolisPromenadeArrivalMovieStarted = 0x80181140; // size:0x4 defined:True
+_gAcropolisPromenadeBattleFollowupState = 0x80181144; // size:0x4 defined:True
 _gAcropolisPromenadeMovieTaskDescriptors = 0x80181148; // size:0x3C defined:True
 gAcropolisPromenadeRoomCollisionResources = 0x80181B90; // size:0x20 defined:True
 _gAcropolisPromenadeRoom2ViewMap = 0x80181BB0; // size:0x10 defined:True
@@ -35,7 +35,7 @@ _gAcropolisPromenadeVariant2Resources = 0x80182F9C; // size:0x24 defined:True
 _gAcropolisPromenadeVariant3Resources = 0x80182FC0; // size:0x24 defined:True
 _gAcropolisPromenadeVariant7Resources = 0x80182FE4; // size:0x18 defined:True
 _gAcropolisPromenadeVariant8Resources = 0x80182FFC; // size:0x24 defined:True
-D_acropolis_promenade_80183020 = 0x80183020; // size:0x88 defined:True
+gAcropolisPromenadeAreaVariants = 0x80183020; // size:0x88 defined:True
 _gAcropolisPromenadePointLights = 0x801830A8; // size:0x960 defined:True
 _gAcropolisPromenadeRoomLights = 0x80183A08; // size:0x18 defined:True
 _gAcropolisPromenadeViews1And13SpriteBatches = 0x80183A20; // size:0x10 defined:True
@@ -69,22 +69,22 @@ gMapAkropolisPromenadeVariant2Placements = 0x8017B85C; // absolute:True owner=ma
 gMapAkropolisPromenadeVariant3Placements = 0x8017B8DC; // absolute:True owner=map_akropolis
 gMapAkropolisPromenadeVariant7Placements = 0x8017B98C; // absolute:True owner=map_akropolis
 gMapAkropolisPromenadeVariant8Placements = 0x8017B9AC; // absolute:True owner=map_akropolis
-D_acropolis_promenade_80180F00 = 0x80180F00; // size:0x168 defined:True
-D_acropolis_promenade_80181068 = 0x80181068; // size:0xD8 defined:True
+_gAcropolisPromenadeBattleFollowupScript = 0x80180F00; // size:0x168 defined:True
+_gAcropolisPromenadeBattleFollowupSkipScript = 0x80181068; // size:0xD8 defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton = 0x8017FE04; // size:0x24 defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9CPartVerts = 0x8017FE28; // size:0x4 defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9CVerts = 0x8017FE2C; // size:0x558 defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9CStream = 0x80180384; // size:0xACC defined:True
 _gAcropolisPromenadeAcropolisBridgeModel0AD9C = 0x80180E50; // size:0x24 defined:True
-D_acropolis_promenade_80180E74 = 0x80180E74; // size:0x30 defined:True
-D_acropolis_promenade_80180EA4 = 0x80180EA4; // size:0x18 defined:True
+_gAcropolisPromenadeRoomMessages = 0x80180E74; // size:0x30 defined:True
+_gAcropolisPromenadeTranslucentPlaneTaskDescriptors = 0x80180EA4; // size:0x18 defined:True
 _gAcropolisPromenadeBattleFollowupAnimationRequest = 0x80180EBC; // size:0x14 defined:True
 D_acropolis_promenade_80180ED0 = 0x80180ED0; // size:0x30 defined:True
-D_acropolis_promenade_80185FA4 = 0x80185FA4; // size:0x10 defined:True
+_gAcropolisPromenadeUnusedEmptySpriteBatches = 0x80185FA4; // size:0x10 defined:True
 gAcropolisPromenadeSpriteViews = 0x80185FB4; // size:0x9C defined:True
 gAcropolisPromenadeViewCameras = 0x80186050; // size:0x1D4 defined:True
-D_acropolis_promenade_80186224 = 0x80186224; // size:0x18 defined:True
-D_acropolis_promenade_8018623C = 0x8018623C; // size:0x8 defined:True
+_gAcropolisPromenadeArrivalMovieVibrationCommands = 0x80186224; // size:0x18 defined:True
+_gAcropolisPromenadeArrivalMovieVibrationSegments = 0x8018623C; // size:0x8 defined:True
 _gAcropolisPromenadeSurfaceClass1FootstepSounds = 0x80186244; // size:0xC defined:True
 _gAcropolisPromenadeSurfaceClass2FootstepSounds = 0x80186250; // size:0xC defined:True
 _gAcropolisPromenadeSurfaceClass3FootstepSounds = 0x8018625C; // size:0xC defined:True
@@ -97,8 +97,8 @@ _gAcropolisPromenadeSurfaceClass3Properties = 0x80186298; // size:0x8 defined:Tr
 _gAcropolisPromenadeSurfaceClass4Properties = 0x801862A0; // size:0x8 defined:True
 _gAcropolisPromenadeSurfaceClass7Properties = 0x801862A8; // size:0x8 defined:True
 gAcropolisPromenadeSurfacePropertiesByClass = 0x801862B0; // size:0x20 defined:True
-D_acropolis_promenade_801862D0 = 0x801862D0; // size:0x8 defined:True
-D_acropolis_promenade_801862D8 = 0x801862D8; // size:0x4 defined:True
+_gAcropolisPromenadeSanctuaryExitReply = 0x801862D0; // size:0x8 defined:True
+_gAcropolisPromenadeTranslucentPlaneTask = 0x801862D8; // size:0x4 defined:True
 
 acropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func
 
@@ -125,3 +125,4 @@ _acropolisPromenadeHandleRoomCommand = 0x8017d8e0; // type:func
 _acropolisPromenadeInitializeRoomTask = 0x8017d9e0; // type:func
 _acropolisPromenadeMoviePathTask = 0x8017db9c; // type:func
 _gAcropolisPromenadeTranslucentPlaneStates = 0x8017d5d0;
+_gAcropolisPromenadeRoomStates = 0x8017d5c4;

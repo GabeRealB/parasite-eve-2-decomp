@@ -11,7 +11,14 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_acropolis_promenade_80183020[17];
+/// Promenade placement/resource pairs indexed directly by placement variant.
+///
+/// Slots 1, 2, 3, 7 and 8 are populated; 0, 4..6 and 9..16 are empty.
+/// This seventeen-element table has no terminator. Gameplay's Acropolis area
+/// 11 record borrows it, and the populated map placements and room resource
+/// lists, while their overlays are loaded. Loading and spawning perform no
+/// variant bounds check; the selected index must be in 0..16.
+extern AreaVariant gAcropolisPromenadeAreaVariants[17];
 
 /// Collision resources for promenade rooms 1 and 2, indexed by room minus one.
 ///
