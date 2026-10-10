@@ -1447,136 +1447,202 @@ static AnimationSet _gMongooseStairAscentFinishOddAnimation = {
     .poseBanks         = { [1] = _gMongooseStairAscentFinishOddAnimationBank1, [4] = _gMongooseStairAscentFinishOddAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation05244Bank1[7] = {
+/// Pose-bank slots selected by the record encodings in these Mongoose clips.
+enum {
+    MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    MONGOOSE_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Even-count stair-ascent finish encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05244_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation05244Bank4[73] = {
+/// Even-count stair-ascent finish encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05244_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation05244Records[114] = {
+/// Even-count stair-ascent finish keyframes, footstep cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05244_records.inc"
 };
 
-static u16 _gMongooseAnimation05244Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseStairAscentFinishEvenAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05244_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation05244 = {
-    _gMongooseAnimation05244Records,
-    _gMongooseAnimation05244Indices,
-    { NULL, _gMongooseAnimation05244Bank1, NULL, NULL, _gMongooseAnimation05244Bank4, NULL, NULL, NULL },
+/// Player's ascent finish after an even-count stair flight with the Mongoose bank.
+///
+/// Native-bank set 38 supplies nineteen player-part tracks ending in stop
+/// controls. Track 1 carries the final footstep cue. This set and its private
+/// arrays must remain loaded during playback.
+static AnimationSet _gMongooseStairAscentFinishEvenAnimation = {
+    .records           = _gMongooseStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gMongooseStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseStairAscentFinishEvenAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseStairAscentFinishEvenAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation056CCBank1[9] = {
+/// Family-0 Parasite Energy release encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_056CC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation056CCBank4[104] = {
+/// Family-0 Parasite Energy release encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_056CC_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation056CCRecords[139] = {
+/// Family-0 Parasite Energy release keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_056CC_records.inc"
 };
 
-static u16 _gMongooseAnimation056CCIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyReleaseFamily0AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_056CC_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation056CC = {
-    _gMongooseAnimation056CCRecords,
-    _gMongooseAnimation056CCIndices,
-    { NULL, _gMongooseAnimation056CCBank1, NULL, NULL, _gMongooseAnimation056CCBank4, NULL, NULL, NULL },
+/// Player's Parasite Energy release for clip family 0 with the Mongoose bank.
+///
+/// Native-bank set 26 starts the release/charge/cast sequence selected by
+/// `GameActor::actionArgument` 0. Its nineteen part tracks stop before the
+/// charge pose begins. This set and its private arrays stay loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gMongooseParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyReleaseFamily0AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyReleaseFamily0AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation058C8Bank1[3] = {
+/// Family-0 Parasite Energy charge encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_058C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation058C8Bank4[22] = {
+/// Family-0 Parasite Energy charge encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_058C8_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation058C8Records[76] = {
+/// Family-0 Parasite Energy charge keyframes and loop controls with retained stop records; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_058C8_records.inc"
 };
 
-static u16 _gMongooseAnimation058C8Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyChargeFamily0AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_058C8_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation058C8 = {
-    _gMongooseAnimation058C8Records,
-    _gMongooseAnimation058C8Indices,
-    { NULL, _gMongooseAnimation058C8Bank1, NULL, NULL, _gMongooseAnimation058C8Bank4, NULL, NULL, NULL },
+/// Player's repeating Parasite Energy charge pose for family 0 with the Mongoose bank.
+///
+/// Native-bank set 27 follows the family-0 release while the attachment
+/// countdown remains nonzero. Its nineteen tracks repeat two-frame pose loops;
+/// set 28 replaces it for the cast. This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyChargeFamily0Animation = {
+    .records           = _gMongooseParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyChargeFamily0AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyChargeFamily0AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation05BA0Bank1[6] = {
+/// Family-0 Parasite Energy cast encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05BA0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation05BA0Bank4[57] = {
+/// Family-0 Parasite Energy cast encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05BA0_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation05BA0Records[87] = {
+/// Family-0 Parasite Energy cast keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05BA0_records.inc"
 };
 
-static u16 _gMongooseAnimation05BA0Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyCastFamily0AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05BA0_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation05BA0 = {
-    _gMongooseAnimation05BA0Records,
-    _gMongooseAnimation05BA0Indices,
-    { NULL, _gMongooseAnimation05BA0Bank1, NULL, NULL, _gMongooseAnimation05BA0Bank4, NULL, NULL, NULL },
+/// Player's Parasite Energy cast for clip family 0 with the Mongoose bank.
+///
+/// Native-bank set 28 replaces the family-0 charge when its countdown ends.
+/// Its nineteen part tracks stop to let the action resume the previous control
+/// state. This set and its private arrays must remain loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyCastFamily0Animation = {
+    .records           = _gMongooseParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyCastFamily0AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyCastFamily0AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation05E44Bank1[4] = {
+/// Family-1 Parasite Energy release encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05E44_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation05E44Bank4[55] = {
+/// Family-1 Parasite Energy release encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05E44_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation05E44Records[82] = {
+/// Family-1 Parasite Energy release keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05E44_records.inc"
 };
 
-static u16 _gMongooseAnimation05E44Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyReleaseFamily1AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_05E44_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation05E44 = {
-    _gMongooseAnimation05E44Records,
-    _gMongooseAnimation05E44Indices,
-    { NULL, _gMongooseAnimation05E44Bank1, NULL, NULL, _gMongooseAnimation05E44Bank4, NULL, NULL, NULL },
+/// Player's Parasite Energy release for clip family 1 with the Mongoose bank.
+///
+/// Native-bank set 29 starts the release/charge/cast sequence selected by
+/// `GameActor::actionArgument` 1. Its nineteen part tracks stop before the
+/// charge pose begins. This set and its private arrays stay loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gMongooseParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyReleaseFamily1AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyReleaseFamily1AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation06044Bank1[3] = {
+/// Family-1 Parasite Energy charge encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06044_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation06044Bank4[23] = {
+/// Family-1 Parasite Energy charge encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06044_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation06044Records[76] = {
+/// Family-1 Parasite Energy charge keyframes and loop controls with retained stop records; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06044_records.inc"
 };
 
-static u16 _gMongooseAnimation06044Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyChargeFamily1AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06044_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation06044 = {
-    _gMongooseAnimation06044Records,
-    _gMongooseAnimation06044Indices,
-    { NULL, _gMongooseAnimation06044Bank1, NULL, NULL, _gMongooseAnimation06044Bank4, NULL, NULL, NULL },
+/// Player's repeating Parasite Energy charge pose for family 1 with the Mongoose bank.
+///
+/// Native-bank set 30 follows the family-1 release while the attachment
+/// countdown remains nonzero. Its nineteen tracks repeat two-frame pose loops;
+/// set 31 replaces it for the cast. This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyChargeFamily1Animation = {
+    .records           = _gMongooseParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyChargeFamily1AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyChargeFamily1AnimationBank4 },
 };
 
 static AnimationPackedPose _gMongooseAnimation06398Bank1[8] = {
@@ -2024,11 +2090,11 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation083C8,
     &_gMongooseAnimation0965C,
     &_gMongooseAnimation08F40,
-    &_gMongooseAnimation056CC,
-    &_gMongooseAnimation058C8,
-    &_gMongooseAnimation05BA0,
-    &_gMongooseAnimation05E44,
-    &_gMongooseAnimation06044,
+    &_gMongooseParasiteEnergyReleaseFamily0Animation,
+    &_gMongooseParasiteEnergyChargeFamily0Animation,
+    &_gMongooseParasiteEnergyCastFamily0Animation,
+    &_gMongooseParasiteEnergyReleaseFamily1Animation,
+    &_gMongooseParasiteEnergyChargeFamily1Animation,
     &_gMongooseAnimation06398,
     &_gMongooseAnimation09ADC,
     &_gMongooseAnimation09CB4,
@@ -2036,7 +2102,7 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation09CB4,
     &_gMongooseStairAscentAnimation,
     &_gMongooseStairDescentAnimation,
-    &_gMongooseAnimation05244,
+    &_gMongooseStairAscentFinishEvenAnimation,
     &_gMongooseStairAscentFinishOddAnimation,
     &_gMongooseItemUseAnimation,
     &_gMongooseIdleAnimation,
