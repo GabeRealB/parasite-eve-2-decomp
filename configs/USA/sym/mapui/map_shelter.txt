@@ -101,7 +101,7 @@ D_shelter_b1_storeroom_80184B50 = 0x80184B50; // absolute:True owner=shelter_b1_
 D_shelter_b1_storeroom_80184B60 = 0x80184B60; // absolute:True owner=shelter_b1_storeroom shared=rooms
 D_shelter_b1_storeroom_80184B68 = 0x80184B68; // absolute:True owner=shelter_b1_storeroom shared=rooms
 D_shelter_b1_storeroom_80184B6C = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom shared=rooms
-D_shelter_b1_storeroom_80184B70 = 0x80184B70; // absolute:True owner=shelter_b1_storeroom shared=rooms
+D_shelter_b1_storeroom_80184B70 = 0x80184B70; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_801850FC = 0x801850FC; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80186090 = 0x80186090; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80186DEC = 0x80186DEC; // absolute:True owner=shelter_b1_storeroom
@@ -489,18 +489,18 @@ gShelterB4ReservoirViewCameras = 0x80185ADC; // absolute:True owner=shelter_b4_r
 gShelterB4ReservoirSpriteViews = 0x80186730; // absolute:True owner=shelter_b4_reservoir shared=rooms
 gShelterB4ReservoirSurfacePropertiesByClass = 0x80187480; // absolute:True owner=shelter_b4_reservoir
 shelterB4WaterSupplyRoomTask = 0x8017DDA4; // type:func absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_8018273C = 0x8018273C; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyViewMaps = 0x8018273C; // absolute:True owner=shelter_b4_water_supply
 D_shelter_b4_water_supply_80182740 = 0x80182740; // absolute:True owner=shelter_b4_water_supply
 D_shelter_b4_water_supply_80182744 = 0x80182744; // absolute:True owner=shelter_b4_water_supply
 D_shelter_b4_water_supply_80182E3C = 0x80182E3C; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80182E60 = 0x80182E60; // absolute:True owner=shelter_b4_water_supply shared=rooms
-D_shelter_b4_water_supply_80183F90 = 0x80183F90; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_801843D4 = 0x801843D4; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplyViewCameras = 0x80182E60; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplySpriteViews = 0x80183F90; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyRoomLights = 0x801843D4; // absolute:True owner=shelter_b4_water_supply shared=rooms
 D_shelter_b4_water_supply_801843EC = 0x801843EC; // absolute:True owner=shelter_b4_water_supply
 D_shelter_b4_water_supply_80184944 = 0x80184944; // absolute:True owner=shelter_b4_water_supply
 D_shelter_b4_water_supply_80184D04 = 0x80184D04; // absolute:True owner=shelter_b4_water_supply shared=rooms
-D_shelter_b4_water_supply_80184D7C = 0x80184D7C; // absolute:True owner=shelter_b4_water_supply shared=rooms
-D_shelter_b4_water_supply_80184E14 = 0x80184E14; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyRoomAmbient = 0x80184D7C; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplySurfacePropertiesByClass = 0x80184E14; // absolute:True owner=shelter_b4_water_supply
 shelterR47RoomTask = 0x801807B4; // type:func absolute:True owner=shelter_r47
 gShelterR47ViewMaps = 0x80187674; // absolute:True owner=shelter_r47
 D_shelter_r47_80187678 = 0x80187678; // absolute:True owner=shelter_r47 shared=rooms
@@ -514,7 +514,7 @@ gShelterR47RoomLights = 0x8018A5BC; // absolute:True owner=shelter_r47
 gShelterR47SurfaceProperties = 0x8018A618; // absolute:True owner=shelter_r47
 shelterR48RoomTask = 0x8017E224; // type:func absolute:True owner=shelter_r48
 gShelterR48RoomLighting = 0x80183014; // absolute:True owner=shelter_r48
-D_shelter_r48_8018301C = 0x8018301C; // absolute:True owner=shelter_r48 shared=rooms
+D_shelter_r48_8018301C = 0x8018301C; // absolute:True owner=shelter_r48
 gShelterR48ViewMaps = 0x8018302C; // absolute:True owner=shelter_r48 shared=rooms
 D_shelter_r48_80183030 = 0x80183030; // absolute:True owner=shelter_r48
 D_shelter_r48_80183034 = 0x80183034; // absolute:True owner=shelter_r48 shared=rooms

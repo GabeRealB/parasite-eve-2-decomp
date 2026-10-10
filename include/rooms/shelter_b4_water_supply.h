@@ -16,8 +16,11 @@ extern u8 D_shelter_b4_water_supply_801826FC[64];
 
 extern AreaVariant D_shelter_b4_water_supply_80184CA4[12];
 
-// shelter_b4_water_supply
-extern u8* D_shelter_b4_water_supply_8018273C[];
+/// Logical-view map directory for the water-supply area's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..11 select the same
+/// 1-based camera, image and sprite indices. Keep this overlay loaded during lookup.
+extern u8* gShelterB4WaterSupplyViewMaps[1];
 
 extern ViewCount D_shelter_b4_water_supply_80182740[];
 
@@ -25,11 +28,24 @@ extern DirectionWarpEntry D_shelter_b4_water_supply_80182744[];
 
 extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
 
-extern ViewCamera D_shelter_b4_water_supply_80182E60[];
+/// Cameras for mapped views 1..11, indexed by mapped view minus one.
+///
+/// Rotation uses 4096 per unit, translation is the negated world-space camera
+/// origin, and projection distance is in pixels. Borrow only while this room is loaded.
+extern ViewCamera gShelterB4WaterSupplyViewCameras[11];
 
-extern SpriteView D_shelter_b4_water_supply_80183F90[];
+/// Sprite resources for mapped views 1..11, indexed by mapped view minus one.
+///
+/// All views retain the decoded background; views 4, 7 and 8 add source sprites.
+/// Batch lists end with `SPRITE_BATCH_END`; no view has a clipping-area list.
+/// The records and their private source/batch arrays live with this room overlay.
+extern SpriteView gShelterB4WaterSupplySpriteViews[11];
 
-extern WorldCoordRoomLights D_shelter_b4_water_supply_801843D4;
+/// This room's ten point lights, with no directional or cone lights.
+///
+/// The private light array stays writable for transform composition and shading.
+/// Keep this overlay loaded while the lighting directory borrows the collection.
+extern WorldCoordRoomLights gShelterB4WaterSupplyRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b4_water_supply_801843EC[];
 
@@ -37,9 +53,19 @@ extern WorldCollisionTrigger D_shelter_b4_water_supply_80184944[];
 
 extern WorldCollisionOccluder D_shelter_b4_water_supply_80184D04[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b4_water_supply_80184D7C[];
+/// Minimum ambient colours for logical views 1..11, following a view-count header.
+///
+/// Entry zero stores 11; entries 1..11 store RGB minima in 16 units per colour
+/// level and retained luma. The lighting directory borrows this room-overlay table.
+extern WorldCoordRoomAmbientEntry gShelterB4WaterSupplyRoomAmbient[12];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b4_water_supply_80184E14[];
+/// Collision policies and footstep cue bases indexed by surface class 0..7.
+///
+/// Classes 0 and 4..7 share the silent blocking policy. Classes 1 and 2 block
+/// probes and allow weapon impacts; class 3 passes probes and ignores impacts.
+/// All apply pushback. Classes 1 and 3 share footstep cues; class 2 has its own.
+/// This directory and its private records remain valid only while the room is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB4WaterSupplySurfacePropertiesByClass[8];
 
 /// Runs the water-supply room receiver's initialize, idle or teardown state.
 ///

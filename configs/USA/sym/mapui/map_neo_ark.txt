@@ -94,7 +94,7 @@ gNeoArkNorthPromenadeViewCounts = 0x80181DD0; // absolute:True owner=neo_ark_nor
 D_neo_ark_north_promenade_80181DD4 = 0x80181DD4; // absolute:True owner=neo_ark_north_promenade shared=rooms
 gNeoArkNorthPromenadeViewCameras = 0x80182410; // absolute:True owner=neo_ark_north_promenade shared=rooms
 gNeoArkNorthPromenadeSpriteViews = 0x80182CA4; // absolute:True owner=neo_ark_north_promenade
-gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // absolute:True owner=neo_ark_north_promenade shared=rooms
+gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // absolute:True owner=neo_ark_north_promenade
 neoArkForestZoneRoomTask = 0x8017DBBC; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 D_neo_ark_forest_zone_801820A4 = 0x801820A4; // absolute:True owner=neo_ark_forest_zone shared=rooms
 D_neo_ark_forest_zone_801820B4 = 0x801820B4; // absolute:True owner=neo_ark_forest_zone
