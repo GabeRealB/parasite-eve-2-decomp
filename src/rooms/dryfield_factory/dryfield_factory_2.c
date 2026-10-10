@@ -68,19 +68,19 @@ static void _factoryPanelIdle(Task* task);
 static void _factoryPanelExit(Task* task);
 static void _factoryPanelWaitMove(Task* task);
 
-/// State handlers of the room's script task, run by
-/// `_factoryPanelRun`: set-up, prompt arming, the idle hotspot
-/// scan, prompt spawning, the prompt state, the exit and the wait for the
-/// lift movement to settle.
+/// Operator-panel handlers in FACTORY_PANEL_STATE_ order.
+///
+/// The dispatcher copies all seven callbacks by value before selecting the
+/// current task state. Every slot is populated; there is no terminator.
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
-        _factoryPanelInit,
-        _factoryPanelArmPrompt,
-        _factoryPanelIdle,
-        _factoryPanelOpenPrompt,
-        _factoryPanelPrompt,
-        _factoryPanelExit,
-        _factoryPanelWaitMove,
+        _factoryPanelInit,       // FACTORY_PANEL_STATE_INIT
+        _factoryPanelArmPrompt,  // FACTORY_PANEL_STATE_ARM_PROMPT
+        _factoryPanelIdle,       // FACTORY_PANEL_STATE_IDLE
+        _factoryPanelOpenPrompt, // FACTORY_PANEL_STATE_OPEN_PROMPT
+        _factoryPanelPrompt,     // FACTORY_PANEL_STATE_PROMPT
+        _factoryPanelExit,       // FACTORY_PANEL_STATE_EXIT
+        _factoryPanelWaitMove,   // FACTORY_PANEL_STATE_WAIT_MOVE
     },
 };
 
@@ -92,7 +92,7 @@ static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gFactoryPanelSessionDesc[2] = {
-    { { { TASK_BODY_NONE, 32 } }, factoryPanelSpawn, { .value = 0 } },
+    { { { TASK_BODY_NONE, FACTORY_PANEL_SESSION_PRIORITY } }, factoryPanelSpawn, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -169,123 +169,176 @@ static TmdSource _gDryfieldFactoryModel093E4 = {
     _gDryfieldFactoryModel093E4Stream,
 };
 
-static SVECTOR _gDryfieldFactoryCollision096A8Normals[2] = {
+static SVECTOR _gFactoryBarrierTemplateNormals[2] = {
 #include "assets/dryfield_factory_collision_096A8_normals.inc"
 };
 
-static SVECTOR _gDryfieldFactoryCollision096A8Verts[8] = {
+static SVECTOR _gFactoryBarrierTemplateVerts[8] = {
 #include "assets/dryfield_factory_collision_096A8_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldFactoryCollision096A8Faces[2] = {
+static WorldCollisionGridFace _gFactoryBarrierTemplateFaces[2] = {
 #include "assets/dryfield_factory_collision_096A8_faces.inc"
 };
 
-static s16 _gDryfieldFactoryCollision096A8Cells[4] = {
+static s16 _gFactoryBarrierTemplateCells[4] = {
 #include "assets/dryfield_factory_collision_096A8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldFactoryCollision096A8Cells[i])
-static s16* _gDryfieldFactoryCollision096A8Table[1] = {
+#define GRID_CELL(i) (&_gFactoryBarrierTemplateCells[i])
+static s16* _gFactoryBarrierTemplateTable[1] = {
 #include "assets/dryfield_factory_collision_096A8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryBarrierTemplate = { NULL, _gDryfieldFactoryCollision096A8Normals, _gDryfieldFactoryCollision096A8Verts, _gDryfieldFactoryCollision096A8Faces, _gDryfieldFactoryCollision096A8Table, -4464, -3949, 1, 1, 4000, 2 };
+WorldCollisionGrid gFactoryBarrierTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryBarrierTemplateNormals,
+    .vertices    = _gFactoryBarrierTemplateVerts,
+    .faces       = _gFactoryBarrierTemplateFaces,
+    .cellFaceIds = _gFactoryBarrierTemplateTable,
+    .xBias       = -4464,
+    .zBias       = -3949,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryBarrierTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryBarrierTemplateFaces),
+};
 
-static SVECTOR _gDryfieldFactoryCollision09778Normals[4] = {
+static SVECTOR _gFactoryLiftTemplateNormals[4] = {
 #include "assets/dryfield_factory_collision_09778_normals.inc"
 };
 
-static SVECTOR _gDryfieldFactoryCollision09778Verts[8] = {
+static SVECTOR _gFactoryLiftTemplateVerts[8] = {
 #include "assets/dryfield_factory_collision_09778_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldFactoryCollision09778Faces[4] = {
+static WorldCollisionGridFace _gFactoryLiftTemplateFaces[4] = {
 #include "assets/dryfield_factory_collision_09778_faces.inc"
 };
 
-static s16 _gDryfieldFactoryCollision09778Cells[10] = {
+static s16 _gFactoryLiftTemplateCells[10] = {
 #include "assets/dryfield_factory_collision_09778_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldFactoryCollision09778Cells[i])
-static s16* _gDryfieldFactoryCollision09778Table[2] = {
+#define GRID_CELL(i) (&_gFactoryLiftTemplateCells[i])
+static s16* _gFactoryLiftTemplateTable[2] = {
 #include "assets/dryfield_factory_collision_09778_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTemplate = { NULL, _gDryfieldFactoryCollision09778Normals, _gDryfieldFactoryCollision09778Verts, _gDryfieldFactoryCollision09778Faces, _gDryfieldFactoryCollision09778Table, 750, 2191, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryLiftTemplateNormals,
+    .vertices    = _gFactoryLiftTemplateVerts,
+    .faces       = _gFactoryLiftTemplateFaces,
+    .cellFaceIds = _gFactoryLiftTemplateTable,
+    .xBias       = 750,
+    .zBias       = 2191,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryLiftTemplateFaces),
+};
 
-static SVECTOR _gDryfieldFactoryCollision09844Normals[4] = {
+static SVECTOR _gFactoryLiftTurnedTemplateNormals[4] = {
 #include "assets/dryfield_factory_collision_09844_normals.inc"
 };
 
-static SVECTOR _gDryfieldFactoryCollision09844Verts[8] = {
+static SVECTOR _gFactoryLiftTurnedTemplateVerts[8] = {
 #include "assets/dryfield_factory_collision_09844_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldFactoryCollision09844Faces[4] = {
+static WorldCollisionGridFace _gFactoryLiftTurnedTemplateFaces[4] = {
 #include "assets/dryfield_factory_collision_09844_faces.inc"
 };
 
-static s16 _gDryfieldFactoryCollision09844Cells[8] = {
+static s16 _gFactoryLiftTurnedTemplateCells[8] = {
 #include "assets/dryfield_factory_collision_09844_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldFactoryCollision09844Cells[i])
-static s16* _gDryfieldFactoryCollision09844Table[2] = {
+#define GRID_CELL(i) (&_gFactoryLiftTurnedTemplateCells[i])
+static s16* _gFactoryLiftTurnedTemplateTable[2] = {
 #include "assets/dryfield_factory_collision_09844_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, _gDryfieldFactoryCollision09844Normals, _gDryfieldFactoryCollision09844Verts, _gDryfieldFactoryCollision09844Faces, _gDryfieldFactoryCollision09844Table, 750, 1950, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTurnedTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryLiftTurnedTemplateNormals,
+    .vertices    = _gFactoryLiftTurnedTemplateVerts,
+    .faces       = _gFactoryLiftTurnedTemplateFaces,
+    .cellFaceIds = _gFactoryLiftTurnedTemplateTable,
+    .xBias       = 750,
+    .zBias       = 1950,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTurnedTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryLiftTurnedTemplateFaces),
+};
 
 TaskDesc gFactoryDaySpawnTable[8] = {
-    { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryLampScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryCapScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryBarrierTransitionScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &_gDryfieldFactoryModel06604 } },
-    { { { TASK_BODY_COORD, 192 } }, factoryBarrierCollision, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryHatchScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &_gDryfieldFactoryModel093E4 } },
+    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryPowerScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryLampScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryCapScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryBarrierTransitionScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, FACTORY_TASK_PRIORITY } }, factoryLiftRun, { .model = &_gDryfieldFactoryModel06604 } },
+    { { { TASK_BODY_COORD, FACTORY_TASK_PRIORITY } }, factoryBarrierCollision, { .value = 0 } },
+    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryHatchScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, FACTORY_TASK_PRIORITY } }, factoryHatchRun, { .model = &_gDryfieldFactoryModel093E4 } },
 };
 
-TaskDesc gFactoryPromptDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _factoryPromptTask, { .value = 0 } },
-};
+/// Single bodyless priority-192 cursor task owned by an operator-panel session.
+///
+/// The panel passes spawnArg1 value 1 for controller port 0 and retains the child
+/// task until exit; no table terminator or model resource is stored.
+static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPromptTask, { .value = 0 } };
 
-TaskDesc gFactoryDayPanelDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _factoryPanelRun, { .value = 0 } },
-};
+TaskDesc gFactoryDayPanelDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPanelRun, { .value = 0 } };
 
-TaskMessageEntry gFactoryPanelMsgTable[2] = {
+/// Lift-completion notification followed by the task-message end marker.
+///
+/// The panel borrows this table while its work is live. Both payload words
+/// are ignored. The handler has no defined result; senders discard it.
+static TaskMessageEntry _gFactoryPanelMsgTable[2] = {
     { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, _factoryPanelMarkMoveSettled },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActionPromptHotspot gFactoryPanelHotspots[6] = {
-    { -68, -63, 16, 16, 0, 1, 0 },
-    { -27, -63, 16, 16, 1, 1, 0 },
-    { 13, -63, 16, 16, 2, 1, 0 },
-    { 46, -80, 34, 32, 3, 0, 0 },
-    { -38, 0, 72, 48, 4, 0, 0 },
+/// Mutable operator-panel hotspot rectangles in screen-centred pixels.
+///
+/// Raise, lower and turn open Push menus; the two caption spots open
+/// Examine menus. Hit testing writes every entry's hit byte, and confirm
+/// latches the first hit. The sixth entry ends the scan by its ID alone.
+static ActionPromptHotspot _gFactoryPanelHotspots[6] = {
+    { -68, -63, 16, 16, FACTORY_PANEL_CHOICE_RAISE, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { -27, -63, 16, 16, FACTORY_PANEL_CHOICE_LOWER, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { 13, -63, 16, 16, FACTORY_PANEL_CHOICE_TURN, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { 46, -80, 34, 32, FACTORY_PANEL_CHOICE_CAPTION6, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
+    { -38, 0, 72, 48, FACTORY_PANEL_CHOICE_CAPTION7, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-SVECTOR gFactoryGlowPos48 = { 395, -1630, 846, 0 };
+/// Power-glow centre in signed whole world-coordinate units.
+static SVECTOR _gFactoryPowerGlowPosition = { 395, -1630, 846, 0 };
 
-SVECTOR gFactoryGlowPos4A1 = { 5910, -1308, 5649, 0 };
+/// Lamp-glow centre at lamp progress 1, in signed whole world-coordinate units.
+static SVECTOR _gFactoryLampFirstGlowPosition = { 5910, -1308, 5649, 0 };
 
-SVECTOR gFactoryGlowPos4A2 = { 5910, -1404, 5649, 0 };
+/// Alternate lamp-glow centre at lamp progress 2, in signed whole world-coordinate units.
+static SVECTOR _gFactoryLampSecondGlowPosition = { 5910, -1404, 5649, 0 };
 
 WorldCollisionRoomResources D_dryfield_factory_80186F10[2] = {
     { &gDryfieldFactoryCollisionGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
     { &gDryfieldFactoryCollisionGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
 };
 
-u8 D_dryfield_factory_80186F30[20] = {
+/// Room-2 logical-view map used after the barrier is cleared.
+///
+/// Logical views 1..19 map to camera/image/sprite indices 1..19 in a
+/// different order. The twentieth stored byte is zero, outside the valid
+/// logical-view domain; lookups use the separate count rather than a sentinel.
+static u8 _gDryfieldFactoryClearedBarrierViewMap[20] = {
     1,
     13,
     14,
@@ -308,22 +361,64 @@ u8 D_dryfield_factory_80186F30[20] = {
     0,
 };
 
-u8* D_dryfield_factory_80186F44[2] = {
+u8* gDryfieldFactoryRoomViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_factory_80186F30,
+    _gDryfieldFactoryClearedBarrierViewMap,
 };
 
-WorldCoordRoomLighting D_dryfield_factory_80186F4C[2] = {
-    { &gDryfieldFactoryRoomLights, gDryfieldFactoryViewAmbientMinima },
-    { &gDryfieldFactoryRoomLights, gDryfieldFactoryViewAmbientMinima },
+WorldCoordRoomLighting gDryfieldFactoryRoomLighting[2] = {
+    { .lights = &gDryfieldFactoryRoomLights, .ambientTable = gDryfieldFactoryViewAmbientMinima },
+    { .lights = &gDryfieldFactoryRoomLights, .ambientTable = gDryfieldFactoryViewAmbientMinima },
 };
 
-ViewCount D_dryfield_factory_80186F5C[2] = { 19, 19 };
+enum { DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT = 19 };
 
-DirectionWarpEntry D_dryfield_factory_80186F60[3] = {
-    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170002, 0x52170001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 474 },
-    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4530, 0, 1200 }, { 0, 0, 0, 0 }, 0x52170004, 0x52170003, 0x52170005, 7, DIRECTION_WARP_FLAG_NONE, 475 },
-    { { { .word = 3072 }, 5445, 0, 6866 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5420, 0, 6000 }, { 0, 0, 0, 0 }, 0x52170014, 0x52170006, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
+ViewCount gDryfieldFactoryRoomViewCounts[2] = { DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT, DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT };
+
+/// Map-marker nibbles shared with the opposite endpoint of each factory door.
+enum {
+    DRYFIELD_FACTORY_DRIVEWAY_MAP_FLAG  = 474,
+    DRYFIELD_FACTORY_BREEZEWAY_MAP_FLAG = 475,
+    DRYFIELD_FACTORY_GARAGE_MAP_FLAG    = 473
+};
+
+DirectionWarpEntry gDryfieldFactoryWarpEntries[3] = {
+    {
+        .player         = { { .word = 3072 }, 5178, 0, 1454 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 4530, 0, 1200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_FACTORY_DRIVEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 1024 }, 642, 0, 7493 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 4530, 0, 1200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 3),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 5),
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_FACTORY_BREEZEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 3072 }, 5445, 0, 6866 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 5420, 0, 6000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x14),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 6),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DRYFIELD_FACTORY_GARAGE_MAP_FLAG,
+    },
 };
 
 #include "../../shared/factory_panel_idle.inc.c"

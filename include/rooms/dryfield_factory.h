@@ -15,13 +15,53 @@
 // dryfield_factory
 extern WorldCollisionRoomResources D_dryfield_factory_80186F10[];
 
-extern u8* D_dryfield_factory_80186F44[];
+/// Logical-view maps for the daytime factory's two room variants.
+///
+/// Indexed by room minus one, then logical view minus one. Room 1 borrows
+/// gameplay's identity map; room 2 remaps logical views 1..19 after the barrier
+/// is cleared. The mapped byte selects camera, image and sprite resources.
+/// The map overlay borrows this directory while the factory remains loaded.
+extern u8* gDryfieldFactoryRoomViewMaps[2];
 
-extern WorldCoordRoomLighting D_dryfield_factory_80186F4C[];
+/// Lighting resources for daytime factory room selectors 1 and 2.
+///
+/// Both borrow the same point-light collection and per-logical-view ambient
+/// minima. Coordinate and lighting lookups index by room minus one; the
+/// descriptors and their resources require the factory overlay to stay loaded.
+extern WorldCoordRoomLighting gDryfieldFactoryRoomLighting[2];
 
-extern ViewCount D_dryfield_factory_80186F5C[];
+/// Reverse-view lookup limits for daytime factory room selectors 1 and 2.
+///
+/// Both search nineteen logical-view bytes. These signed element counts
+/// exclude room 2's final stored zero and do not bound mapped resource arrays.
+/// The map overlay borrows the two entries while the factory remains loaded.
+extern ViewCount gDryfieldFactoryRoomViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_factory_80186F60[];
+/// Daytime factory endpoints for the driveway, breezeway and garage, in that order.
+///
+/// Indexed by the one-based warp ID minus one.
+/// Entries carry whole world-coordinate actor placements, 4096-unit yaw,
+/// arrival/departure/refusal sound IDs, logical arrival views and map markers.
+/// The third endpoint requests a departure fade. Records have no terminator;
+/// the stage map borrows them while this factory overlay remains loaded.
+extern DirectionWarpEntry gDryfieldFactoryWarpEntries[3];
+
+/// Eight indexed daytime factory spawn recipes, without a terminator.
+///
+/// Slots 0..7 create the power, lamp, barrier-dialogue, barrier-transition,
+/// lift-model, barrier-collision, hatch-scene and hatch-model tasks. All run at
+/// priority 192; scene spawns carry CAP commands in spawnArg1, the lift borrows
+/// the panel-task slot in spawnArg2, and the hatch borrows its lift parent there.
+/// Runtime selection may reach this table from either compiled factory room;
+/// its callbacks and borrowed TMD sources require the daytime overlay loaded.
+extern TaskDesc gFactoryDaySpawnTable[8];
+
+/// Single priority-192, bodyless operator-panel spawn recipe for the daytime factory.
+///
+/// Entry 0 starts the seven-state panel dispatcher. Runtime stage selection
+/// may borrow it from either compiled room; the daytime factory code must
+/// remain loaded while its panel and cursor tasks run. No terminator is stored.
+extern TaskDesc gFactoryDayPanelDesc;
 
 extern ViewCamera D_dryfield_factory_80187C1C[];
 

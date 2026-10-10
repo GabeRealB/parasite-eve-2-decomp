@@ -191,10 +191,10 @@ gDryfieldBreezewaySpriteViews = 0x80183D9C; // absolute:True owner=dryfield_bree
 gDryfieldBreezewaySurfacePropertiesByClass = 0x8018437C; // absolute:True owner=dryfield_breezeway
 dryfieldFactoryEntryTask = 0x8017DF88; // type:func absolute:True owner=dryfield_factory
 D_dryfield_factory_80186F10 = 0x80186F10; // absolute:True owner=dryfield_factory
-D_dryfield_factory_80186F44 = 0x80186F44; // absolute:True owner=dryfield_factory
-D_dryfield_factory_80186F4C = 0x80186F4C; // absolute:True owner=dryfield_factory
-D_dryfield_factory_80186F5C = 0x80186F5C; // absolute:True owner=dryfield_factory
-D_dryfield_factory_80186F60 = 0x80186F60; // absolute:True owner=dryfield_factory
+gDryfieldFactoryRoomViewMaps = 0x80186F44; // absolute:True owner=dryfield_factory
+gDryfieldFactoryRoomLighting = 0x80186F4C; // absolute:True owner=dryfield_factory
+gDryfieldFactoryRoomViewCounts = 0x80186F5C; // absolute:True owner=dryfield_factory
+gDryfieldFactoryWarpEntries = 0x80186F60; // absolute:True owner=dryfield_factory
 D_dryfield_factory_80187C1C = 0x80187C1C; // absolute:True owner=dryfield_factory
 D_dryfield_factory_801895B0 = 0x801895B0; // absolute:True owner=dryfield_factory
 gDryfieldFactorySurfaceClasses = 0x8018A37C; // absolute:True owner=dryfield_factory

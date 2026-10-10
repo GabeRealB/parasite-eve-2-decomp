@@ -14,7 +14,11 @@ static void _factoryRoomInit(Task* task)
            FACTORY_ROOM_BARRIER_SPAWN_INDEX = 5 };
     Task** slot;
 
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+    task->msgTable = _gFactoryMsgTable;
+#else
     task->msgTable = gFactoryMsgTable;
+#endif
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     slot       = (gFactoryPanelSlot = memCalloc(sizeof(*slot), 0));
     task->work = slot;
@@ -24,7 +28,7 @@ static void _factoryRoomInit(Task* task)
         gFactorySpawnTable = gFactoryNightSpawnTable;
     }
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-        gFactoryPanelDesc = gFactoryDayPanelDesc;
+        gFactoryPanelDesc = &gFactoryDayPanelDesc;
     } else {
         gFactoryPanelDesc = gFactoryNightPanelDesc;
     }

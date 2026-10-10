@@ -12,7 +12,7 @@ static void _factoryPanelIdle(Task* task)
     enum { FACTORY_PANEL_EVENT_ACTIVE = 1 };
 
     ActionPrompt*        prompt  = gActionPromptSlots;
-    ActionPromptHotspot* hotspot = gFactoryPanelHotspots;
+    ActionPromptHotspot* hotspot = _gFactoryPanelHotspots;
     FactoryPanelWork*    work    = task->work;
 
     // Hold event input while captions and the post-choice delay settle.

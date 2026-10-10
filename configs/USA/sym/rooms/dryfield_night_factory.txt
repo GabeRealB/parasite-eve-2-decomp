@@ -3,9 +3,9 @@
 // Stage 2 uses the day factory's view-sprite routines.
 dryfieldFactorySetView9SpriteVisible = 0x80181620; // type:func absolute:True owner=dryfield_factory
 dryfieldFactorySetView11SpriteVisible = 0x80181B38; // type:func absolute:True owner=dryfield_factory
-gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
-gFactoryGlowPos48 = 0x80186F04; // size:0x8 defined:True
-gFactoryGlowPos4A1 = 0x80186F0C; // size:0x8 defined:True
+_gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
+_gFactoryPowerGlowPosition = 0x80186F04; // size:0x8 defined:True
+_gFactoryLampFirstGlowPosition = 0x80186F0C; // size:0x8 defined:True
 _gDryfieldNightFactorySurface2FootstepSounds = 0x8018A764; // size:0xC defined:True
 _gDryfieldNightFactorySurface3FootstepSounds = 0x8018A770; // size:0xC defined:True
 _gDryfieldNightFactoryDefaultSurfaceProperties = 0x8018A77C; // size:0x8 defined:True
@@ -21,15 +21,15 @@ gFactoryPanelDesc = 0x8018A7E0; // size:0x4 defined:True
 gFactorySpawnTable = 0x8018A7E4; // size:0x4 defined:True
 gFactoryPanelSlot = 0x8018A7E8; // size:0x4 defined:True
 gRoomEventReq = 0x8018A7EC; // size:0x14 defined:True
-gFactoryGlowPos4A2 = 0x80186F14; // size:0x8 defined:True
+_gFactoryLampSecondGlowPosition = 0x80186F14; // size:0x8 defined:True
 gDryfieldNightFactoryViewMaps = 0x80186F1C; // size:0x8 defined:True
 gDryfieldNightFactoryRoomLighting = 0x80186F24; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80186E40; // size:0xC defined:True
-gFactoryPanelSessionDesc = 0x80186E4C; // size:0x18 defined:True
-gFactoryMsgTable = 0x80186E64; // size:0x30 defined:True
-gFactoryPromptDesc = 0x80186E94; // size:0xC defined:True
+_gFactoryPanelSessionDesc = 0x80186E4C; // size:0x18 defined:True
+_gFactoryMsgTable = 0x80186E64; // size:0x30 defined:True
+_gFactoryPanelCursorDesc = 0x80186E94; // size:0xC defined:True
 gFactoryNightPanelDesc = 0x80186EA0; // size:0xC defined:True
-gFactoryPanelMsgTable = 0x80186EAC; // size:0x10 defined:True
+_gFactoryPanelMsgTable = 0x80186EAC; // size:0x10 defined:True
 gFactoryDayJoltCmds = 0x8018A39C; // absolute:True owner=dryfield_factory
 gFactoryDayJoltRecs = 0x8018A3A8; // absolute:True owner=dryfield_factory
 gDryfieldNightFactorySpriteViews = 0x80189A24; // size:0xE4 defined:True
@@ -93,23 +93,23 @@ _gDryfieldNightFactoryDryfieldFactoryModel093E4Verts = 0x801867B4; // size:0xC8 
 _gDryfieldNightFactoryDryfieldFactoryModel093E4Normals = 0x8018687C; // size:0xE0 defined:True
 _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream = 0x8018695C; // size:0x22C defined:True
 _gDryfieldNightFactoryDryfieldFactoryModel093E4 = 0x80186B88; // size:0x24 defined:True
-_gDryfieldNightFactoryCollision09660Normals = 0x80186BAC; // size:0x10 defined:True
-_gDryfieldNightFactoryCollision09660Verts = 0x80186BBC; // size:0x40 defined:True
-_gDryfieldNightFactoryCollision09660Faces = 0x80186BFC; // size:0x18 defined:True
-_gDryfieldNightFactoryCollision09660Cells = 0x80186C14; // size:0x6 defined:True
-_gDryfieldNightFactoryCollision09660Table = 0x80186C1C; // size:0x4 defined:True
+_gFactoryBarrierTemplateNormals = 0x80186BAC; // size:0x10 defined:True
+_gFactoryBarrierTemplateVerts = 0x80186BBC; // size:0x40 defined:True
+_gFactoryBarrierTemplateFaces = 0x80186BFC; // size:0x18 defined:True
+_gFactoryBarrierTemplateCells = 0x80186C14; // size:0x8 defined:True
+_gFactoryBarrierTemplateTable = 0x80186C1C; // size:0x4 defined:True
 gFactoryBarrierTemplate = 0x80186C20; // size:0x24 defined:True
-_gDryfieldNightFactoryCollision09730Normals = 0x80186C44; // size:0x20 defined:True
-_gDryfieldNightFactoryCollision09730Verts = 0x80186C64; // size:0x40 defined:True
-_gDryfieldNightFactoryCollision09730Faces = 0x80186CA4; // size:0x30 defined:True
-_gDryfieldNightFactoryCollision09730Cells = 0x80186CD4; // size:0xA defined:True
-_gDryfieldNightFactoryCollision09730Table = 0x80186CE8; // size:0x8 defined:True
+_gFactoryLiftTemplateNormals = 0x80186C44; // size:0x20 defined:True
+_gFactoryLiftTemplateVerts = 0x80186C64; // size:0x40 defined:True
+_gFactoryLiftTemplateFaces = 0x80186CA4; // size:0x30 defined:True
+_gFactoryLiftTemplateCells = 0x80186CD4; // size:0x14 defined:True
+_gFactoryLiftTemplateTable = 0x80186CE8; // size:0x8 defined:True
 gFactoryLiftTemplate = 0x80186CF0; // size:0x24 defined:True
-_gDryfieldNightFactoryCollision097FCNormals = 0x80186D14; // size:0x20 defined:True
-_gDryfieldNightFactoryCollision097FCVerts = 0x80186D34; // size:0x40 defined:True
-_gDryfieldNightFactoryCollision097FCFaces = 0x80186D74; // size:0x30 defined:True
-_gDryfieldNightFactoryCollision097FCCells = 0x80186DA4; // size:0x8 defined:True
-_gDryfieldNightFactoryCollision097FCTable = 0x80186DB4; // size:0x8 defined:True
+_gFactoryLiftTurnedTemplateNormals = 0x80186D14; // size:0x20 defined:True
+_gFactoryLiftTurnedTemplateVerts = 0x80186D34; // size:0x40 defined:True
+_gFactoryLiftTurnedTemplateFaces = 0x80186D74; // size:0x30 defined:True
+_gFactoryLiftTurnedTemplateCells = 0x80186DA4; // size:0x10 defined:True
+_gFactoryLiftTurnedTemplateTable = 0x80186DB4; // size:0x8 defined:True
 gFactoryLiftTurnedTemplate = 0x80186DBC; // size:0x24 defined:True
 gFactoryNightSpawnTable = 0x80186DE0; // size:0x60 defined:True
 

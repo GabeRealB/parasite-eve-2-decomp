@@ -24,14 +24,14 @@ void FACTORY_DRAW_GLOWS_TASK(Task* task)
     actorRenderComposeCoord(task->extra.coordBody->coord);
 #endif
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0 && (viewBit & FACTORY_GLOW_POWER_VIEW_MASK) != 0) {
-        _glowDrawTintedDisc(&gFactoryGlowPos48, FACTORY_GLOW_POWER_RADIUS_SCALE, FACTORY_GLOW_POWER_COLOR);
+        _glowDrawTintedDisc(&_gFactoryPowerGlowPosition, FACTORY_GLOW_POWER_RADIUS_SCALE, FACTORY_GLOW_POWER_COLOR);
     }
     // Lamp progress selects one position independently of the power flag.
     if (viewBit & FACTORY_GLOW_LAMP_VIEW_MASK) {
         if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_FIRST_POSITION) {
-            _glowDrawTintedDisc(&gFactoryGlowPos4A1, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_FIRST_COLOR);
+            _glowDrawTintedDisc(&_gFactoryLampFirstGlowPosition, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_FIRST_COLOR);
         } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_SECOND_POSITION) {
-            _glowDrawTintedDisc(&gFactoryGlowPos4A2, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_SECOND_COLOR);
+            _glowDrawTintedDisc(&_gFactoryLampSecondGlowPosition, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_SECOND_COLOR);
         }
     }
 }

@@ -81,8 +81,6 @@ static void _actionPromptResetDefault(Task* task);
 
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The world-space points the room's three glow discs are drawn at.
-
 static void _factoryPromptTask(Task* task);
 static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
@@ -150,77 +148,113 @@ static TmdSource _gDryfieldNightFactoryDryfieldFactoryModel093E4 = {
     _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream,
 };
 
-static SVECTOR _gDryfieldNightFactoryCollision09660Normals[2] = {
+static SVECTOR _gFactoryBarrierTemplateNormals[2] = {
 #include "assets/dryfield_night_factory_collision_09660_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightFactoryCollision09660Verts[8] = {
+static SVECTOR _gFactoryBarrierTemplateVerts[8] = {
 #include "assets/dryfield_night_factory_collision_09660_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightFactoryCollision09660Faces[2] = {
+static WorldCollisionGridFace _gFactoryBarrierTemplateFaces[2] = {
 #include "assets/dryfield_night_factory_collision_09660_faces.inc"
 };
 
-static s16 _gDryfieldNightFactoryCollision09660Cells[4] = {
+static s16 _gFactoryBarrierTemplateCells[4] = {
 #include "assets/dryfield_night_factory_collision_09660_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision09660Cells[i])
-static s16* _gDryfieldNightFactoryCollision09660Table[1] = {
+#define GRID_CELL(i) (&_gFactoryBarrierTemplateCells[i])
+static s16* _gFactoryBarrierTemplateTable[1] = {
 #include "assets/dryfield_night_factory_collision_09660_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryBarrierTemplate = { NULL, _gDryfieldNightFactoryCollision09660Normals, _gDryfieldNightFactoryCollision09660Verts, _gDryfieldNightFactoryCollision09660Faces, _gDryfieldNightFactoryCollision09660Table, -4464, -3949, 1, 1, 4000, 2 };
+WorldCollisionGrid gFactoryBarrierTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryBarrierTemplateNormals,
+    .vertices    = _gFactoryBarrierTemplateVerts,
+    .faces       = _gFactoryBarrierTemplateFaces,
+    .cellFaceIds = _gFactoryBarrierTemplateTable,
+    .xBias       = -4464,
+    .zBias       = -3949,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryBarrierTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryBarrierTemplateFaces),
+};
 
-static SVECTOR _gDryfieldNightFactoryCollision09730Normals[4] = {
+static SVECTOR _gFactoryLiftTemplateNormals[4] = {
 #include "assets/dryfield_night_factory_collision_09730_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightFactoryCollision09730Verts[8] = {
+static SVECTOR _gFactoryLiftTemplateVerts[8] = {
 #include "assets/dryfield_night_factory_collision_09730_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightFactoryCollision09730Faces[4] = {
+static WorldCollisionGridFace _gFactoryLiftTemplateFaces[4] = {
 #include "assets/dryfield_night_factory_collision_09730_faces.inc"
 };
 
-static s16 _gDryfieldNightFactoryCollision09730Cells[10] = {
+static s16 _gFactoryLiftTemplateCells[10] = {
 #include "assets/dryfield_night_factory_collision_09730_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision09730Cells[i])
-static s16* _gDryfieldNightFactoryCollision09730Table[2] = {
+#define GRID_CELL(i) (&_gFactoryLiftTemplateCells[i])
+static s16* _gFactoryLiftTemplateTable[2] = {
 #include "assets/dryfield_night_factory_collision_09730_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTemplate = { NULL, _gDryfieldNightFactoryCollision09730Normals, _gDryfieldNightFactoryCollision09730Verts, _gDryfieldNightFactoryCollision09730Faces, _gDryfieldNightFactoryCollision09730Table, 750, 2191, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryLiftTemplateNormals,
+    .vertices    = _gFactoryLiftTemplateVerts,
+    .faces       = _gFactoryLiftTemplateFaces,
+    .cellFaceIds = _gFactoryLiftTemplateTable,
+    .xBias       = 750,
+    .zBias       = 2191,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryLiftTemplateFaces),
+};
 
-static SVECTOR _gDryfieldNightFactoryCollision097FCNormals[4] = {
+static SVECTOR _gFactoryLiftTurnedTemplateNormals[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightFactoryCollision097FCVerts[8] = {
+static SVECTOR _gFactoryLiftTurnedTemplateVerts[8] = {
 #include "assets/dryfield_night_factory_collision_097FC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightFactoryCollision097FCFaces[4] = {
+static WorldCollisionGridFace _gFactoryLiftTurnedTemplateFaces[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_faces.inc"
 };
 
-static s16 _gDryfieldNightFactoryCollision097FCCells[8] = {
+static s16 _gFactoryLiftTurnedTemplateCells[8] = {
 #include "assets/dryfield_night_factory_collision_097FC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightFactoryCollision097FCCells[i])
-static s16* _gDryfieldNightFactoryCollision097FCTable[2] = {
+#define GRID_CELL(i) (&_gFactoryLiftTurnedTemplateCells[i])
+static s16* _gFactoryLiftTurnedTemplateTable[2] = {
 #include "assets/dryfield_night_factory_collision_097FC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, _gDryfieldNightFactoryCollision097FCNormals, _gDryfieldNightFactoryCollision097FCVerts, _gDryfieldNightFactoryCollision097FCFaces, _gDryfieldNightFactoryCollision097FCTable, 750, 1950, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTurnedTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gFactoryLiftTurnedTemplateNormals,
+    .vertices    = _gFactoryLiftTurnedTemplateVerts,
+    .faces       = _gFactoryLiftTurnedTemplateFaces,
+    .cellFaceIds = _gFactoryLiftTurnedTemplateTable,
+    .xBias       = 750,
+    .zBias       = 1950,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTurnedTemplateTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gFactoryLiftTurnedTemplateFaces),
+};
 
 TaskDesc gFactoryNightSpawnTable[8] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
@@ -235,12 +269,22 @@ TaskDesc gFactoryNightSpawnTable[8] = {
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gFactoryPanelSessionDesc[2] = {
-    { { { TASK_BODY_NONE, 32 } }, factoryPanelSpawn, { .value = 0 } },
+/// Bodyless priority-32 operator-panel session poller and an unspawned end entry.
+///
+/// Entry 0 borrows the room-owned panel-task slot, spawns the selected panel
+/// and waits for its exit request. The factory room must remain loaded.
+static TaskDesc _gFactoryPanelSessionDesc[2] = {
+    { { { TASK_BODY_NONE, FACTORY_PANEL_SESSION_PRIORITY } }, factoryPanelSpawn, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry gFactoryMsgTable[6] = {
+/// Room departures, key-item refusal, CAP commands, sound and direction actions.
+///
+/// Five native-payload callbacks followed by TASK_MESSAGE_TABLE_END. Resolve
+/// borrows eight-byte request/reply records, command and sound use integer
+/// first words, and the action callback borrows a four-byte request. The room
+/// task borrows this table and its code while the night factory is loaded.
+static TaskMessageEntry _gFactoryMsgTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantFactoryMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, factoryIgnoreMessage },
     { ROOM_MESSAGE_COMMAND, factoryCommand },
@@ -249,33 +293,47 @@ TaskMessageEntry gFactoryMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gFactoryPromptDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _factoryPromptTask, { .value = 0 } },
-};
+/// Single bodyless priority-192 cursor task owned by an operator-panel session.
+///
+/// The panel passes spawnArg1 value 1 for controller port 0 and retains the child
+/// task until exit; no table terminator or model resource is stored.
+static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPromptTask, { .value = 0 } };
 
 TaskDesc gFactoryNightPanelDesc[1] = {
     { { { TASK_BODY_NONE, 192 } }, _factoryPanelRun, { .value = 0 } },
 };
 
-TaskMessageEntry gFactoryPanelMsgTable[2] = {
+/// Lift-completion notification followed by the task-message end marker.
+///
+/// The panel borrows this table while its work is live. Both payload words
+/// are ignored. The handler has no defined result; senders discard it.
+static TaskMessageEntry _gFactoryPanelMsgTable[2] = {
     { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, _factoryPanelMarkMoveSettled },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActionPromptHotspot gFactoryPanelHotspots[6] = {
-    { -68, -63, 16, 16, 0, 1, 0 },
-    { -27, -63, 16, 16, 1, 1, 0 },
-    { 13, -63, 16, 16, 2, 1, 0 },
-    { 46, -80, 34, 32, 3, 0, 0 },
-    { -38, 0, 72, 48, 4, 0, 0 },
+/// Mutable operator-panel hotspot rectangles in screen-centred pixels.
+///
+/// Raise, lower and turn open Push menus; the two caption spots open
+/// Examine menus. Hit testing writes every entry's hit byte, and confirm
+/// latches the first hit. The sixth entry ends the scan by its ID alone.
+static ActionPromptHotspot _gFactoryPanelHotspots[6] = {
+    { -68, -63, 16, 16, FACTORY_PANEL_CHOICE_RAISE, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { -27, -63, 16, 16, FACTORY_PANEL_CHOICE_LOWER, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { 13, -63, 16, 16, FACTORY_PANEL_CHOICE_TURN, FACTORY_PANEL_PROMPT_PUSH, 0 },
+    { 46, -80, 34, 32, FACTORY_PANEL_CHOICE_CAPTION6, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
+    { -38, 0, 72, 48, FACTORY_PANEL_CHOICE_CAPTION7, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-SVECTOR gFactoryGlowPos48 = { 395, -1630, 846, 0 };
+/// Power-glow centre in signed whole world-coordinate units.
+static SVECTOR _gFactoryPowerGlowPosition = { 395, -1630, 846, 0 };
 
-SVECTOR gFactoryGlowPos4A1 = { 5910, -1308, 5649, 0 };
+/// Lamp-glow centre at lamp progress 1, in signed whole world-coordinate units.
+static SVECTOR _gFactoryLampFirstGlowPosition = { 5910, -1308, 5649, 0 };
 
-SVECTOR gFactoryGlowPos4A2 = { 5910, -1404, 5649, 0 };
+/// Alternate lamp-glow centre at lamp progress 2, in signed whole world-coordinate units.
+static SVECTOR _gFactoryLampSecondGlowPosition = { 5910, -1404, 5649, 0 };
 
 u8* gDryfieldNightFactoryViewMaps[2] = {
     gViewIdentityMap,
@@ -890,19 +948,19 @@ static const TaskFuncTable3 _gFactoryEntryStates = {
 
 #include "../../shared/factory_panel_idle.inc.c"
 
-/// State handlers of the room's script task, run by
-/// `_factoryPanelRun`: set-up, prompt arming, the idle
-/// hotspot scan, prompt spawning, the prompt state, the exit and the wait for
-/// the message handler's trigger.
+/// Operator-panel handlers in FACTORY_PANEL_STATE_ order.
+///
+/// The dispatcher copies all seven callbacks by value before selecting the
+/// current task state. Every slot is populated; there is no terminator.
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
-        _factoryPanelInit,
-        _factoryPanelArmPrompt,
-        _factoryPanelIdle,
-        _factoryPanelOpenPrompt,
-        _factoryPanelPrompt,
-        _factoryPanelExit,
-        _factoryPanelWaitMove,
+        _factoryPanelInit,       // FACTORY_PANEL_STATE_INIT
+        _factoryPanelArmPrompt,  // FACTORY_PANEL_STATE_ARM_PROMPT
+        _factoryPanelIdle,       // FACTORY_PANEL_STATE_IDLE
+        _factoryPanelOpenPrompt, // FACTORY_PANEL_STATE_OPEN_PROMPT
+        _factoryPanelPrompt,     // FACTORY_PANEL_STATE_PROMPT
+        _factoryPanelExit,       // FACTORY_PANEL_STATE_EXIT
+        _factoryPanelWaitMove,   // FACTORY_PANEL_STATE_WAIT_MOVE
     },
 };
 

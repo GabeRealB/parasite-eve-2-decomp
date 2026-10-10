@@ -33,7 +33,11 @@ s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument)
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+            taskSpawnFromTable(_gFactoryPanelSessionDesc, 0, 0, 0);
+#else
             taskSpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
+#endif
             break;
         case FACTORY_COMMAND_HATCH_SCENE:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == FACTORY_LIFT_POSITION_TURNED) {

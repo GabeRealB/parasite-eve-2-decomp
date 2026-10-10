@@ -169,6 +169,27 @@ enum {
     FACTORY_PANEL_STATE_COUNT
 };
 
+/// Choice IDs stored by the operator panel's hotspot table and work block.
+enum {
+    FACTORY_PANEL_CHOICE_RAISE = 0,
+    FACTORY_PANEL_CHOICE_LOWER,
+    FACTORY_PANEL_CHOICE_TURN,
+    FACTORY_PANEL_CHOICE_CAPTION6,
+    FACTORY_PANEL_CHOICE_CAPTION7
+};
+
+/// Prompt kinds forwarded by the operator panel's hotspots.
+enum {
+    FACTORY_PANEL_PROMPT_EXAMINE = 0,
+    FACTORY_PANEL_PROMPT_PUSH    = 1
+};
+
+/// Scheduler priorities of factory interaction tasks and their session poller.
+enum {
+    FACTORY_TASK_PRIORITY          = 192,
+    FACTORY_PANEL_SESSION_PRIORITY = 32
+};
+
 /// Saved views used while scanning the operator panel and after leaving it.
 enum {
     FACTORY_PANEL_VIEW_RETURN    = 3,
@@ -191,7 +212,7 @@ typedef struct {
     u8  unknown_0[8]; // Never read or written by the room; role unproven
     u16 scanDelay;    // Frames left before the idle state tests the hotspots again; armed with FACTORY_PANEL_SCAN_DELAY_FRAMES
     s16 moveSettled;  // Whether the lift has reported the end of its movement (0 not yet, 1 reported); cleared when the panel resumes
-    s16 choice;       // `ActionPromptHotspot::id` of the confirmed hotspot (0 raise, 1 lower, 2 turn, 3 and 4 the two caption-only spots)
+    s16 choice;       // Confirmed hotspot ID, a `FACTORY_PANEL_CHOICE_` (0 raise, 1 lower, 2 turn, 3 caption 6, 4 caption 7)
     s8  promptKind;   // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
     u8  unknown_F;    // Never read or written by the room; role unproven
 } FactoryPanelWork;
@@ -206,37 +227,54 @@ enum {
 };
 
 /* Defined by each build. */
-/// Collision templates the lift and barrier rebuild their grid faces from:
-/// the lift raised, the lift turned, and the barrier.
+/// Unturned lift footprint used to rebuild the live room's moving collision.
+///
+/// Four normals/faces and eight vertices are in lift-model coordinates;
+/// the lift's local matrix applies its current height and yaw. The one-by-two
+/// cell directory uses 4000-unit cells and a ten-halfword list pool. The
+/// descriptor and pools are borrowed from the loaded factory instance.
 extern WorldCollisionGrid gFactoryLiftTemplate;
+/// Alternate lift footprint selected while the lift-position TURNED bit is set.
+///
+/// Four normals/faces and eight model-space vertices use the same topology
+/// as `gFactoryLiftTemplate`, with different longitudinal limits. The lift's
+/// local matrix still supplies the turn and height. Its one-by-two directory
+/// uses 4000-unit cells and an eight-halfword list pool; storage belongs to
+/// the loaded factory instance.
 extern WorldCollisionGrid gFactoryLiftTurnedTemplate;
+/// Closed barrier geometry restored into the live room's leading collision slots.
+///
+/// Two normals/faces and eight room-space vertices describe its two sides.
+/// Clearing the barrier shifts the live copy 2000 world units along X;
+/// the source stays in its closed position. The one-cell, 4000-unit grid
+/// borrows a four-halfword face-list pool, with one unused trailing word.
+/// Keep the defining factory instance loaded while its task reads the source.
 extern WorldCollisionGrid gFactoryBarrierTemplate;
-/// The room task's message table and the panel session's task descriptors.
-extern TaskMessageEntry gFactoryMsgTable[];
-extern TaskDesc         gFactoryPanelSessionDesc[];
+#if DRYFIELD_TIME == DRYFIELD_DAY
+/// Factory room messages: departures, key-item refusal, CAP commands, sound and actions.
+///
+/// Five handlers followed by `TASK_MESSAGE_TABLE_END`. Resolve borrows an
+/// eight-byte request/reply pair; command and sound take integer first words;
+/// the direction action borrows its four-byte request. All entries use native
+/// payload signatures. The room task borrows the table and code while loaded.
+extern TaskMessageEntry gFactoryMsgTable[6];
+/// Spawn recipe for the operator-panel session's polling owner, followed by TASK_DESC_END.
+///
+/// Entry 0 creates a bodyless priority-32 task which spawns the stage-selected
+/// panel and polls its exit. It borrows the room-owned panel-task slot; the
+/// terminal entry is retained but is never spawned by the command handler.
+extern TaskDesc gFactoryPanelSessionDesc[2];
+#endif
 /// The spawn table and panel descriptor picked for this stage, and the slot
 /// holding the panel task.
 extern TaskDesc* gFactorySpawnTable;
 extern TaskDesc* gFactoryPanelDesc;
 extern Task**    gFactoryPanelSlot;
-/// The panel's prompt state machine descriptor, its hotspot table ended by
-/// `ACTION_PROMPT_HOTSPOT_END`, and its message table.
-///
-/// The set-up state installs the message table in `Task::msgTable`, which
-/// borrows it for as long as the panel can receive messages. Its one callback
-/// uses the receiver alone and returns nothing; dispatch forwards whatever the
-/// result register holds, so a sender must not read a result from this table.
-extern TaskDesc            gFactoryPromptDesc[];
-extern ActionPromptHotspot gFactoryPanelHotspots[];
-extern TaskMessageEntry    gFactoryPanelMsgTable[2];
-
 /* The room is built once per stage, day (stage 2) and night, from the same
  * source. Each build defines its own spawn table, collision grid, jolt script,
  * panel descriptor and view-sprite routines, and names the other build's by
  * address; the code picks between the two by stage. */
-extern TaskDesc                  gFactoryDaySpawnTable[];
 extern TaskDesc                  gFactoryNightSpawnTable[];
-extern TaskDesc                  gFactoryDayPanelDesc[];
 extern TaskDesc                  gFactoryNightPanelDesc[];
 extern PadScriptCmd              gFactoryDayJoltCmds[3];
 extern PadScriptCmd              gFactoryNightJoltCmds[3];
@@ -427,11 +465,5 @@ s32 factoryIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);
 static s32 _factoryHatchWatch(Task* task);
-
-/// Where `FACTORY_DRAW_GLOWS_TASK` draws the disc nibble 0x48 enables, and the two
-/// it alternates between by nibble 0x4A's value.
-extern SVECTOR gFactoryGlowPos48;
-extern SVECTOR gFactoryGlowPos4A1;
-extern SVECTOR gFactoryGlowPos4A2;
 
 #endif /* SRC_SHARED_FACTORY_LIFT_H */

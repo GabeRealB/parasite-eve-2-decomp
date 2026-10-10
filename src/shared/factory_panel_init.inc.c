@@ -21,9 +21,9 @@ static void _factoryPanelInit(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = taskSpawnFromTable(gFactoryPromptDesc, 0, FACTORY_PANEL_CURSOR_PORT_0, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&_gFactoryPanelCursorDesc, 0, FACTORY_PANEL_CURSOR_PORT_0, 0);
     task->work              = work;
-    task->msgTable          = gFactoryPanelMsgTable;
+    task->msgTable          = _gFactoryPanelMsgTable;
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_UNPOWERED;
     } else {
@@ -32,7 +32,7 @@ static void _factoryPanelInit(Task* task)
     task->state++;
     displayAcquireMenuHold();
     // Discard the previous scan before the new cursor can confirm a hotspot.
-    for (hotspot = gFactoryPanelHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = _gFactoryPanelHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
     gGameSession->cutsceneHold = true;

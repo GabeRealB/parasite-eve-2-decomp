@@ -30,11 +30,6 @@ static inline void _factoryPanelPlayButtonSound(void)
 static void _factoryPanelApplyChoice(Task* task, s16 choice)
 {
     enum {
-        FACTORY_PANEL_CHOICE_RAISE              = 0,
-        FACTORY_PANEL_CHOICE_LOWER              = 1,
-        FACTORY_PANEL_CHOICE_TURN               = 2,
-        FACTORY_PANEL_CHOICE_CAPTION6           = 3,
-        FACTORY_PANEL_CHOICE_CAPTION7           = 4,
         FACTORY_PANEL_CAPTION6                  = 6,
         FACTORY_PANEL_CAPTION7                  = 7,
         FACTORY_PANEL_CAPTION_CANNOT_RAISE      = 8,
