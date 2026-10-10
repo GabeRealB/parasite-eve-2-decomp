@@ -1440,8 +1440,8 @@ SpriteView gMistR18SpriteViews[10] = {
 };
 
 AreaResource D_mist_r18_80186BD8[3] = {
-    { 144, 130, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_113000_8013ABB4 },
-    { 105, 130, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_213000_80157DE0 },
+    { 144, 130, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor113000RupertBroderickHurtTaskDesc },
+    { 105, 130, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor213000EricBaldwinTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

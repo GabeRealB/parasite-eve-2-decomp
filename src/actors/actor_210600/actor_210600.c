@@ -1,4 +1,5 @@
 #include "actors/actor_210600.h"
+#include "actors/task_tables.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -33,7 +34,6 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -248,7 +248,13 @@ TaskMessageEntry D_actor_210600_8015A4CC[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_210600_8015A4EC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor210600Task, { .model = &_gActor210600GrinningStrangerBody } };
+enum { ACTOR_210600_STRANGER_TASK_PRIORITY = 96 };
+
+TaskDesc gActor210600GrinningStrangerTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_210600_STRANGER_TASK_PRIORITY } },
+    .callback = _actor210600Task,
+    .data     = { .model = &_gActor210600GrinningStrangerBody },
+};
 
 static AnimationPackedPose _gActor210600Animation11F5CBank1[37] = {
 #include "assets/actor_210600_animation_11F5C_bank1.inc"

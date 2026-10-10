@@ -60,7 +60,7 @@ gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300
-D_actor_323000_80173A08 = 0x80173A08; // absolute:True owner=actor_323000
+gActor323000DesertChaserTaskDesc = 0x80173A08; // absolute:True owner=actor_323000
 D_map_dryfield_8017AD44 = 0x8017AD44; // absolute:True owner=map_dryfield
 D_map_dryfield_8017AD74 = 0x8017AD74; // absolute:True owner=map_dryfield
 D_map_dryfield_8017ADE4 = 0x8017ADE4; // absolute:True owner=map_dryfield

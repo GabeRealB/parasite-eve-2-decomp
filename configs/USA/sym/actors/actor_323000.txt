@@ -2,7 +2,7 @@
 _gDesertChaserClipBlendFrames = 0x80173090; // size:0x7EC defined:True
 gRigAnimSource = 0x8017387C; // size:0x154 defined:True
 gRigMessages = 0x801739D0; // size:0x38 defined:True
-D_actor_323000_80173A08 = 0x80173A08; // size:0xC defined:True
+gActor323000DesertChaserTaskDesc = 0x80173A08; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x80173A14; // size:0x10 defined:True
 _gActor323000DesertChaserBodySkeleton = 0x80164D84; // size:0x288 defined:True
 _gActor323000DesertChaserBodyPartVerts = 0x8016500C; // size:0x48 defined:True

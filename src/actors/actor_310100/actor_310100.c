@@ -27,7 +27,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -658,16 +657,48 @@ TaskDesc D_actor_310100_801798E4 = { { { TASK_BODY_NONE, 192 } }, _actor310100Sw
 
 TaskDesc D_actor_310100_801798F0 = { { { TASK_BODY_NONE, 192 } }, _actor310100SwapOfficerCulledBodyModelTask, { .value = 0 } };
 
-TaskDesc D_actor_310100_801798FC[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor310100Officer1ControllerTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer1BodyTask, { .model = &_gActor310100PoliceOfficer1Body } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer1CulledBodyTask, { .model = &_gActor310100PoliceOfficer1CulledBody } },
+enum { ACTOR_310100_OFFICER_TASK_PRIORITY = 192 };
+
+TaskDesc gActor310100Officer1TaskDescriptors[3] = {
+    // 0: controller.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer1ControllerTask,
+        .data     = { .value = 0 },
+    },
+    // 1: animated body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer1BodyTask,
+        .data     = { .model = &_gActor310100PoliceOfficer1Body },
+    },
+    // 2: culled body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer1CulledBodyTask,
+        .data     = { .model = &_gActor310100PoliceOfficer1CulledBody },
+    },
 };
 
-TaskDesc D_actor_310100_80179920[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor310100Officer2ControllerTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer2BodyTask, { .model = &_gActor310100PoliceOfficer2Body } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer2CulledBodyTask, { .model = &_gActor310100PoliceOfficer2CulledBody } },
+TaskDesc gActor310100Officer2TaskDescriptors[3] = {
+    // 0: controller.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer2ControllerTask,
+        .data     = { .value = 0 },
+    },
+    // 1: animated body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer2BodyTask,
+        .data     = { .model = &_gActor310100PoliceOfficer2Body },
+    },
+    // 2: culled body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+        .callback = _actor310100Officer2CulledBodyTask,
+        .data     = { .model = &_gActor310100PoliceOfficer2CulledBody },
+    },
 };
 
 /// Emits newly entered slot-1 sound cues, advances the eighteen non-root slots,
@@ -833,14 +864,14 @@ static void _actor310100SwapOfficerBodyModelTask(Task* task)
                 do {
                     placementId = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_80179920, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
             } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_1) {
                 do {
                     do {
                         placementId = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
             }
             _actor310100FinishOfficerModelSwap(task, controllerWork, placementId);
             break;
@@ -879,14 +910,14 @@ static void _actor310100SwapOfficerCulledBodyModelTask(Task* task)
                 do {
                     placementId = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_80179920, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_2_CULLED_BODY_ANIMATION, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_2_CULLED_BODY_ANIMATION, 0);
             } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_1) {
                 do {
                     do {
                         placementId = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_CULLED_BODY_ANIMATION, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_CULLED_BODY_ANIMATION, 0);
             }
             _actor310100FinishOfficerModelSwap(task, controllerWork, placementId);
             break;
@@ -1095,7 +1126,7 @@ static void _actor310100Officer1ControllerTask(Task* task)
                 while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
                     placement++;
                 }
-                modelTask             = taskSpawnFromTable(D_actor_310100_801798FC, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_SPAWN_CLIP, 0);
+                modelTask             = taskSpawnFromTable(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_SPAWN_CLIP, 0);
                 work->modelTask       = modelTask;
                 rootCoord             = modelTask->extra.tmd->coords;
                 rootCoord->coord.t[0] = placement->x;
@@ -1185,7 +1216,7 @@ static void _actor310100Officer2ControllerTask(Task* task)
                 while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
                     placement++;
                 }
-                modelTask             = taskSpawnFromTable(D_actor_310100_80179920, ACTOR_310100_MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
+                modelTask             = taskSpawnFromTable(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
                 work->modelTask       = modelTask;
                 rootCoord             = modelTask->extra.tmd->coords;
                 rootCoord->coord.t[0] = placement->x;

@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -55,7 +57,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -65,8 +66,6 @@
 #include "../../shared/screen_wave.h"
 #include "../../shared/coord_math.h"
 #include "../../shared/diver.h"
-
-extern TaskDesc D_actor_206100_80158B0C[];
 
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
@@ -875,9 +874,21 @@ TaskDesc D_actor_206100_80158AF0[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-TaskDesc D_actor_206100_80158B0C[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor206100Task, { .model = &_gActor206100DiverBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor206100ShotTask, { .value = 0 } },
+enum { ACTOR_206100_SEA_DIVER_TASK_PRIORITY = 96 };
+
+TaskDesc gActor206100SeaDiverTaskDescriptors[2] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_206100_SEA_DIVER_TASK_PRIORITY } },
+        .callback = _actor206100Task,
+        .data     = { .model = &_gActor206100DiverBody },
+    },
+    // 1: shot.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_206100_SEA_DIVER_TASK_PRIORITY } },
+        .callback = _actor206100ShotTask,
+        .data     = { .value = 0 },
+    },
 };
 
 AnimationSet* D_actor_206100_80158B24[17] = {
@@ -1648,7 +1659,7 @@ static inline void _actor206100SpawnShot(Task* task)
     SVECTOR               velocityTip;
 
     headCoord = &task->extra.tmd->coords[ACTOR_206100_SHOT_HEAD_PART];
-    shotTask  = taskSpawnFromTable(D_actor_206100_80158B0C, ACTOR_206100_SHOT_TASK_INDEX, 0, 0);
+    shotTask  = taskSpawnFromTable(gActor206100SeaDiverTaskDescriptors, ACTOR_206100_SHOT_TASK_INDEX, 0, 0);
     if (shotTask != NULL) {
         shotWork = memCalloc(sizeof(*shotWork), false);
         if (shotWork == NULL) {

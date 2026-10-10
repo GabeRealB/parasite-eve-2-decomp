@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -33,7 +35,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -1020,7 +1021,13 @@ TaskMessageEntry gRigMessages[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_323000_80173A08 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor323000DesertChaserBody } };
+enum { ACTOR_323000_DESERT_CHASER_TASK_PRIORITY = 96 };
+
+TaskDesc gActor323000DesertChaserTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_323000_DESERT_CHASER_TASK_PRIORITY } },
+    .callback = _desertChaserTask,
+    .data     = { .model = &_gActor323000DesertChaserBody },
+};
 
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition = { 0 };
 

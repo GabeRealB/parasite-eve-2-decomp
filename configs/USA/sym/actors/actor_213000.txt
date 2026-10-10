@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_213000.
-D_actor_213000_80157DE0 = 0x80157DE0; // size:0x3C defined:True
+gActor213000EricBaldwinTaskDescriptors = 0x80157DE0; // size:0x3C defined:True
 D_actor_213000_80157E1C = 0x80157E1C; // size:0x28 defined:True
 _gActor213000EricBaldwinBodySkeleton = 0x8014AA4C; // size:0x2D0 defined:True
 _gActor213000EricBaldwinBodyPartVerts = 0x8014AD1C; // size:0x50 defined:True

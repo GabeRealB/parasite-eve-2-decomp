@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -38,7 +40,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
@@ -261,7 +262,13 @@ TaskMessageEntry D_actor_311500_80169330[1] = {
     { ACTOR_MESSAGE_IS_PRESENT, _actor311500IsPresentMessage },
 };
 
-TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor311500Task, { .model = &_gActor311500StrangerBody } };
+enum { ACTOR_311500_STRANGER_TASK_PRIORITY = 192 };
+
+TaskDesc gActor311500StrangerTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_311500_STRANGER_TASK_PRIORITY } },
+    .callback = _actor311500Task,
+    .data     = { .model = &_gActor311500StrangerBody },
+};
 
 static void        _actor311500Init(Task* actorTask);
 static inline void _actor311500ResetAnim(ActorAnimRig19* rig, u8 requestedRate, s32 slotIndex);

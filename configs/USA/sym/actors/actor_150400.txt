@@ -2,7 +2,7 @@
 D_actor_150400_8013C90C = 0x8013C90C; // size:0x18 defined:True
 D_actor_150400_8013C924 = 0x8013C924; // size:0x4 defined:True
 D_actor_150400_8013C928 = 0x8013C928; // size:0x4 defined:True
-D_actor_150400_8013C8F4 = 0x8013C8F4; // size:0x18 defined:True
+gActor150400No9GolemTaskDescriptors = 0x8013C8F4; // size:0x18 defined:True
 D_actor_150400_8013C8C4 = 0x8013C8C4; // size:0x30 defined:True
 _gActor150400GolemBeamSwordSkeleton = 0x8013C380; // size:0x24 defined:True
 _gActor150400GolemBeamSwordPartVerts = 0x8013C3A4; // size:0x4 defined:True

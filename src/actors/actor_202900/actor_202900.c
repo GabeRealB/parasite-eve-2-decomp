@@ -1,4 +1,5 @@
 #include "actors/actor_202900.h"
+#include "actors/task_tables.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -19,7 +20,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 #define ACTOR_MESSAGE_BODY_TASK _gActor202900BodyTask
 #include "../../shared/actor_messages.h"
@@ -49,7 +49,6 @@ STATIC_ASSERT_SIZEOF(_Actor202900Work, 0x564);
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_202900_80156E0C[3];
-extern TaskDesc         D_actor_202900_80156E24[];
 extern AnimationSet*    D_actor_202900_80156E3C[6];
 
 /// The actor's work block, published so the overlay's functions can reach it
@@ -221,9 +220,21 @@ TaskMessageEntry D_actor_202900_80156E0C[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_202900_80156E24[2] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor202900BodyTask, { .model = &_gActor202900AnmcWomanCafeteriaBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor202900CarriedModelTask, { .model = &_gActor202900Model0BC44 } },
+enum { ACTOR_202900_WOMAN_TASK_PRIORITY = 192 };
+
+TaskDesc gActor202900WomanTaskDescriptors[2] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_202900_WOMAN_TASK_PRIORITY } },
+        .callback = _actor202900BodyTask,
+        .data     = { .model = &_gActor202900AnmcWomanCafeteriaBody },
+    },
+    // 1: carried model.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_202900_WOMAN_TASK_PRIORITY } },
+        .callback = _actor202900CarriedModelTask,
+        .data     = { .model = &_gActor202900Model0BC44 },
+    },
 };
 
 AnimationSet* D_actor_202900_80156E3C[6] = {
@@ -284,7 +295,7 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
     model->otOffset                  = ACTOR_202900_BODY_OT_OFFSET;
     model->flags                     = 0;
     _gActor202900BodyTask            = task;
-    gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
+    gActorHelperTask                 = taskSpawnFromTable(gActor202900WomanTaskDescriptors, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
     _actorRenderApplyTaskPlacementTextureOffsets(gActorHelperTask, enemy);
     model->lightMtx = &D_actor_202900_80156E54->light;
     model->colorMtx = &D_actor_202900_80156E54->color;

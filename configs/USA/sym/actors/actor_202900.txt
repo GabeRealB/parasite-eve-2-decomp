@@ -2,7 +2,7 @@
 D_actor_202900_80156E54 = 0x80156E54; // size:0x4 defined:True
 _gActor202900BodyTask = 0x80156E58; // size:0x4 defined:True
 gActorHelperTask = 0x80156E5C; // size:0x4 defined:True
-D_actor_202900_80156E24 = 0x80156E24; // size:0x18 defined:True
+gActor202900WomanTaskDescriptors = 0x80156E24; // size:0x18 defined:True
 D_actor_202900_80156E3C = 0x80156E3C; // size:0x18 defined:True
 D_actor_202900_80156E0C = 0x80156E0C; // size:0x18 defined:True
 _gActor202900Animation06098Bank1 = 0x8014A4AC; // size:0x768 defined:True

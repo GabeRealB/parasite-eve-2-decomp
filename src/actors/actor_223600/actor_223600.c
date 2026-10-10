@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -34,7 +36,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -142,8 +143,6 @@ STATIC_ASSERT_SIZEOF(_Actor223600AxisStepScratch, 0xC);
 /// Integer part of the last movement step `func_actor_223600_8014AA04`
 /// applied.
 static SVECTOR ActorContact_ScratchPosition;
-
-/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -896,7 +895,13 @@ static const TaskMessageEntry _gActor223600Messages[4] __attribute__((section(".
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_223600_80150B48 = { { { TASK_BODY_TMD, 96 } }, _actor223600Task, { .model = &_gActor223600BloodSucklerBody } };
+enum { ACTOR_223600_BLOOD_SUCKLER_TASK_PRIORITY = 96 };
+
+TaskDesc gActor223600BloodSucklerTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_223600_BLOOD_SUCKLER_TASK_PRIORITY } },
+    .callback = _actor223600Task,
+    .data     = { .model = &_gActor223600BloodSucklerBody },
+};
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -1468,13 +1473,23 @@ static void _actor223600Update(Enemy* enemy, Task* task)
     work->relightPending = 0;
 }
 
-/// The enemy's three task states -- spawn, per-frame tick and teardown -- which
-/// `_actor223600Task` runs by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_223600_80149E58 = {
-    {
-        _actor223600Spawn,
-        _actor223600Update,
-        enemyDestroy,
+enum {
+    ACTOR_223600_BLOOD_SUCKLER_TASK_SPAWN   = 0,
+    ACTOR_223600_BLOOD_SUCKLER_TASK_UPDATE  = 1,
+    ACTOR_223600_BLOOD_SUCKLER_TASK_DESTROY = 2,
+};
+
+/// Blood Suckler lifecycle handlers in `Task::state` order: 0 spawn, 1 update, 2 destroy.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
+static const EnemyTaskFuncTable3 _gActor223600BloodSucklerTaskStates = {
+    .funcs = {
+        [ACTOR_223600_BLOOD_SUCKLER_TASK_SPAWN]   = _actor223600Spawn,
+        [ACTOR_223600_BLOOD_SUCKLER_TASK_UPDATE]  = _actor223600Update,
+        [ACTOR_223600_BLOOD_SUCKLER_TASK_DESTROY] = enemyDestroy,
     },
 };
 
@@ -1576,6 +1591,6 @@ static void _actor223600Task(Task* task)
 {
     EnemyTaskFuncTable3 taskHandlers;
 
-    taskHandlers = D_actor_223600_80149E58;
+    taskHandlers = _gActor223600BloodSucklerTaskStates;
     taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

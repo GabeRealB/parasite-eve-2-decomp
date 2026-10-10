@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -26,7 +28,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
@@ -57,10 +58,6 @@ typedef struct {
 } _Actor120400KyleMadiganWork;
 STATIC_ASSERT_SIZEOF(_Actor120400KyleMadiganWork, 0x504);
 
-/// The task table the parent is spawned from and its two children are spawned
-/// from (entries 1 and 2), and the message table the parent points its
-/// `Task::msgTable` at; both live in this overlay's trailing data.
-extern TaskDesc D_actor_120400_8013E748[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -873,10 +870,27 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
     _gActor120400KyleMadiganAnimationBank,
 };
 
-TaskDesc D_actor_120400_8013E748[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120400KyleMadiganWalkerTask, { .model = &_gActor120400KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor120400KyleMadiganHandTask, { .model = &_gActor120400KyleMadiganLeft } },
-    { { { TASK_BODY_TMD, 192 } }, _actor120400KyleMadiganHandTask, { .model = &_gActor120400KyleMadiganHandRight } },
+enum { ACTOR_120400_KYLE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor120400KyleMadiganTaskDescriptors[3] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_120400_KYLE_TASK_PRIORITY } },
+        .callback = _actor120400KyleMadiganWalkerTask,
+        .data     = { .model = &_gActor120400KyleMadiganBody },
+    },
+    // 1: left hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_120400_KYLE_TASK_PRIORITY } },
+        .callback = _actor120400KyleMadiganHandTask,
+        .data     = { .model = &_gActor120400KyleMadiganLeft },
+    },
+    // 2: right hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_120400_KYLE_TASK_PRIORITY } },
+        .callback = _actor120400KyleMadiganHandTask,
+        .data     = { .model = &_gActor120400KyleMadiganHandRight },
+    },
 };
 
 TaskMessageEntry D_actor_120400_8013E76C[6] = {
@@ -923,11 +937,11 @@ static void _actor120400SpawnKyleMadiganWalker(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
     // Spawn independent hand models, borrowing the body task until teardown.
-    childTask = taskSpawnFromTable(D_actor_120400_8013E748, ACTOR_120400_KYLE_LEFT_HAND_TASK, ACTOR_120400_KYLE_LEFT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor120400KyleMadiganTaskDescriptors, ACTOR_120400_KYLE_LEFT_HAND_TASK, ACTOR_120400_KYLE_LEFT_HAND_PART, task);
     if (childTask != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    childTask = taskSpawnFromTable(D_actor_120400_8013E748, ACTOR_120400_KYLE_RIGHT_HAND_TASK, ACTOR_120400_KYLE_RIGHT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor120400KyleMadiganTaskDescriptors, ACTOR_120400_KYLE_RIGHT_HAND_TASK, ACTOR_120400_KYLE_RIGHT_HAND_PART, task);
     if (childTask != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }

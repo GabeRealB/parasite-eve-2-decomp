@@ -695,12 +695,26 @@ static void _actor312200PlayAnimation(Task* task)
     _actor312200DriveAnimation(task);
 }
 
-/// The actor's three state handlers, dispatched by
-/// `_actor312200Task`: spawn, per-frame tick and teardown.
-static const EnemyTaskFuncTable3 D_actor_312200_80161E24 = {
-    _actor312200Spawn,
-    _actor312200Tick,
-    enemyDestroy,
+enum {
+    ACTOR_312200_SWAT_TASK_SPAWN   = 0,
+    ACTOR_312200_SWAT_TASK_UPDATE  = 1,
+    ACTOR_312200_SWAT_TASK_DESTROY = 2,
+};
+
+/// SWAT figure lifecycle handlers: 0 spawn, 1 hidden/playback update, 2 destroy.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
+/// Destroy leaves the work-owned collision sphere linked. After work release,
+/// collision traversal must remain suspended until the room lists are reset.
+static const EnemyTaskFuncTable3 _gActor312200SwatTaskStates = {
+    .funcs = {
+        [ACTOR_312200_SWAT_TASK_SPAWN]   = _actor312200Spawn,
+        [ACTOR_312200_SWAT_TASK_UPDATE]  = _actor312200Tick,
+        [ACTOR_312200_SWAT_TASK_DESTROY] = enemyDestroy,
+    },
 };
 
 /// Dispatches the actor task's spawn, per-frame update or enemy teardown callback.
@@ -712,6 +726,6 @@ static void _actor312200Task(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_312200_80161E24;
+    handlers = _gActor312200SwatTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

@@ -43,3 +43,4 @@ _actor312200SetModelDraw = 0x80163510; // type:func
 _actor312200Place = 0x801635cc; // type:func
 _actor312200ApplyCommand = 0x801636cc; // type:func
 _actor312200Task = 0x80163854; // type:func
+_gActor312200SwatTaskStates = 0x80161e24;

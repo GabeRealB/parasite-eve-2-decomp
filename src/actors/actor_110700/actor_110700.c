@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -14,7 +16,6 @@
 #include "main/coord.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
@@ -196,7 +197,13 @@ static AnimationSet _gActor110700Animation0A14C = {
     { NULL, _gActor110700Animation0A14CBank1, NULL, NULL, _gActor110700Animation0A14CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, _actor110700No9GolemTask, { .model = &_gActor110700No9GolemAkropolisBody } };
+enum { ACTOR_110700_GOLEM_TASK_PRIORITY = 96 };
+
+TaskDesc gActor110700No9GolemTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_110700_GOLEM_TASK_PRIORITY } },
+    .callback = _actor110700No9GolemTask,
+    .data     = { .model = &_gActor110700No9GolemAkropolisBody },
+};
 
 /// Message map for the script-posed No. 9 golem.
 ///

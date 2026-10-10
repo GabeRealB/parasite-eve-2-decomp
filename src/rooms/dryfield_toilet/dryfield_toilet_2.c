@@ -529,7 +529,7 @@ static WorldCoordRoomLights _gDryfieldToiletRoomLights = {
 
 AreaResource D_dryfield_toilet_801828C4[3] = {
     { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
-    { 9, 233, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_323300_8017255C },
+    { 9, 233, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor323300WomanStrangerTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

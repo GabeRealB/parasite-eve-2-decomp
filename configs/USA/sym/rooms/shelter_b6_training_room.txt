@@ -47,7 +47,7 @@ gActor105100TaskDescriptors = 0x80141464; // absolute:True owner=actor_105100
 gActor205200ControllerPartTasks = 0x8014CA60; // absolute:True owner=actor_205200
 gActor205200BodyTaskDesc = 0x801567C4; // absolute:True owner=actor_205200
 gActor350700MaskedEveReverseWalkTaskDesc = 0x80169D10; // absolute:True owner=actor_350700
-D_actor_350700_801708DC = 0x801708DC; // absolute:True owner=actor_350700
+gActor350700KyleMadiganTaskDescriptors = 0x801708DC; // absolute:True owner=actor_350700
 D_shelter_b6_training_room_80184334 = 0x80184334; // size:0xC8 defined:True
 D_shelter_b6_training_room_80184404 = 0x80184404; // size:0x14 defined:True
 D_shelter_b6_training_room_80185C98 = 0x80185C98; // size:0x2 defined:True

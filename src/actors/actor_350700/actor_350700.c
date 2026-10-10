@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -26,7 +28,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
@@ -40,11 +41,6 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-/// The `TaskDesc`s `_actor350700KyleMadiganWalkerInitialize` spawns its child tasks from,
-/// and the message table it points the parent's `Task::msgTable` at: ids
-/// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
-/// `_actorMotionPlayAnim`, terminated by `TASK_MESSAGE_TABLE_END`.
-extern TaskDesc         D_actor_350700_801708DC[];
 extern TaskMessageEntry D_actor_350700_8017090C[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
@@ -57,13 +53,25 @@ static void _actor350700KyleMadiganWalkerIdle(Task* task);
 static void _actor350700KyleMadiganWalkerRunStep(Task* task);
 static void _actor350700KyleMadiganWalkerBeginMove(Task* task);
 
-/// Spawn, tick and exit handlers of the enemy actor, dispatched by
-/// `_actor350700ReverseWalkTask`.
-static const TaskFuncTable3 D_actor_350700_80161E24 = { {
-    _reverseWalkSpawn,
-    _reverseWalkUpdate,
-    _reverseWalkExit,
-} };
+enum {
+    ACTOR_350700_REVERSE_WALK_TASK_SPAWN  = 0,
+    ACTOR_350700_REVERSE_WALK_TASK_UPDATE = 1,
+    ACTOR_350700_REVERSE_WALK_TASK_EXIT   = 2,
+};
+
+/// Reversing walker lifecycle handlers: 0 spawn, 1 update, 2 exit.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Actor-control holds suspend dispatch of all three slots.
+static const TaskFuncTable3 _gActor350700ReverseWalkTaskStates = {
+    .funcs = {
+        [ACTOR_350700_REVERSE_WALK_TASK_SPAWN]  = _reverseWalkSpawn,
+        [ACTOR_350700_REVERSE_WALK_TASK_UPDATE] = _reverseWalkUpdate,
+        [ACTOR_350700_REVERSE_WALK_TASK_EXIT]   = _reverseWalkExit,
+    },
+};
 
 /// Scripted walk phases indexed by `ReverseWalkWork::walk.motionStep` (0..3).
 ///
@@ -539,11 +547,33 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
     _gActor350700KyleMadiganAnimationBank,
 };
 
-TaskDesc D_actor_350700_801708DC[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700KyleMadiganWalkerTask, { .model = &_gActor350700KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganHandLeft } },
-    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganHandRight } },
-    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganGun } },
+enum { ACTOR_350700_KYLE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor350700KyleMadiganTaskDescriptors[4] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .callback = _actor350700KyleMadiganWalkerTask,
+        .data     = { .model = &_gActor350700KyleMadiganBody },
+    },
+    // 1: left hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .callback = _actor350700KyleMadiganAttachmentTask,
+        .data     = { .model = &_gActor350700KyleMadiganHandLeft },
+    },
+    // 2: right hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .callback = _actor350700KyleMadiganAttachmentTask,
+        .data     = { .model = &_gActor350700KyleMadiganHandRight },
+    },
+    // 3: held gun.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .callback = _actor350700KyleMadiganAttachmentTask,
+        .data     = { .model = &_gActor350700KyleMadiganGun },
+    },
 };
 
 TaskMessageEntry D_actor_350700_8017090C[6] = {
@@ -569,7 +599,7 @@ TaskMessageEntry D_actor_350700_8017090C[6] = {
 /// all three states. Spawn failure or exit may release the task and resources.
 static void _actor350700ReverseWalkTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_actor_350700_80161E24;
+    const TaskFuncTable3 stateHandlers = _gActor350700ReverseWalkTaskStates;
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
@@ -697,17 +727,17 @@ static void _actor350700KyleMadiganWalkerInitialize(Task* task)
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    childTask                = taskSpawnFromTable(D_actor_350700_801708DC, ACTOR_350700_KYLE_LEFT_HAND_TASK, ACTOR_350700_KYLE_LEFT_HAND_PART, task);
+    childTask                = taskSpawnFromTable(gActor350700KyleMadiganTaskDescriptors, ACTOR_350700_KYLE_LEFT_HAND_TASK, ACTOR_350700_KYLE_LEFT_HAND_PART, task);
     if (childTask != NULL) {
         work->handTasks[0] = childTask;
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    childTask = taskSpawnFromTable(D_actor_350700_801708DC, ACTOR_350700_KYLE_RIGHT_HAND_TASK, ACTOR_350700_KYLE_RIGHT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor350700KyleMadiganTaskDescriptors, ACTOR_350700_KYLE_RIGHT_HAND_TASK, ACTOR_350700_KYLE_RIGHT_HAND_PART, task);
     if (childTask != NULL) {
         work->handTasks[1] = childTask;
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    childTask = taskSpawnFromTable(D_actor_350700_801708DC, ACTOR_350700_KYLE_HELD_TASK, ACTOR_350700_KYLE_LEFT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor350700KyleMadiganTaskDescriptors, ACTOR_350700_KYLE_HELD_TASK, ACTOR_350700_KYLE_LEFT_HAND_PART, task);
     if (childTask != NULL) {
         work->heldItemTask = childTask;
     }

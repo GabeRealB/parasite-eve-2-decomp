@@ -1,4 +1,5 @@
 #include "actors/actor_150400.h"
+#include "actors/task_tables.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -34,7 +35,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b1_control_room.h"
@@ -47,8 +47,7 @@ extern TaskDesc D_actor_150400_80132CF0;
 extern Task*    D_actor_150400_8013C924;
 extern Task*    D_actor_150400_8013C928;
 
-extern TaskDesc D_actor_150400_8013C8F4[];
-extern u8       D_actor_150400_8013C90C[];
+extern u8 D_actor_150400_8013C90C[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -334,9 +333,23 @@ TaskMessageEntry D_actor_150400_8013C8C4[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_150400_8013C8F4[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor150400PairWalkerTask, { .model = &_gActor150400No9GolemDryfieldBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor150400GolemBeamSword } },
+enum { ACTOR_150400_GOLEM_TASK_PRIORITY = 96 };
+
+enum { ACTOR_150400_BEAM_SWORD_DESCRIPTOR = 1 };
+
+TaskDesc gActor150400No9GolemTaskDescriptors[2] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
+        .callback = _actor150400PairWalkerTask,
+        .data     = { .model = &_gActor150400No9GolemDryfieldBody },
+    },
+    // 1: beam sword.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
+        .callback = _pairWalkSubModelTask,
+        .data     = { .model = &_gActor150400GolemBeamSword },
+    },
 };
 
 u8 D_actor_150400_8013C90C[24] = {
@@ -545,7 +558,7 @@ static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task)
     model->flags                     = 0;
     model->otOffset                  = 1;
     work->enemy                      = enemy;
-    attachmentEnemy                  = enemySpawnFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
+    attachmentEnemy                  = enemySpawnFromTable(gActor150400No9GolemTaskDescriptors, ACTOR_150400_BEAM_SWORD_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(attachmentEnemy->task->extra.tmd, enemy);
     taskReparent(task, attachmentEnemy->task);
     work->pairTask = attachmentEnemy->task;

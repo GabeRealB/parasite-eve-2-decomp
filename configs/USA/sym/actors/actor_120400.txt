@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_120400.
-D_actor_120400_8013E748 = 0x8013E748; // size:0x24 defined:True
+gActor120400KyleMadiganTaskDescriptors = 0x8013E748; // size:0x24 defined:True
 D_actor_120400_8013E76C = 0x8013E76C; // size:0x30 defined:True
 _gActor120400KyleMadiganBodySkeleton = 0x80132D1C; // size:0x2D0 defined:True
 _gActor120400KyleMadiganBodyPartVerts = 0x80132FEC; // size:0x50 defined:True

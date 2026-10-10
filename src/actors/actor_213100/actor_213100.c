@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -21,7 +23,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
@@ -45,10 +46,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
 extern AnimationSet** gActorMotionAnimBanks19[1];
-
-/// Spawn table the spawn state takes its child from; entry 1 is the child,
-/// whose body is `_actor213100HeldModelTask`.
-extern TaskDesc D_actor_213100_801521A8[];
 
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
 /// animation handler `_actorMotionPlayAnim19`, 0x7D4 the placement
@@ -355,9 +352,21 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     _gActor213100BodyAnimSets,
 };
 
-TaskDesc D_actor_213100_801521A8[2] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor213100BodyTask, { .model = &_gActor213100JodieBouquetBody1 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor213100HeldModelTask, { .model = &_gActor213100Actor213000Prop } },
+enum { ACTOR_213100_JODIE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor213100JodieBouquetTaskDescriptors[2] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213100_JODIE_TASK_PRIORITY } },
+        .callback = _actor213100BodyTask,
+        .data     = { .model = &_gActor213100JodieBouquetBody1 },
+    },
+    // 1: held model.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213100_JODIE_TASK_PRIORITY } },
+        .callback = _actor213100HeldModelTask,
+        .data     = { .model = &_gActor213100Actor213000Prop },
+    },
 };
 
 TaskMessageEntry D_actor_213100_801521C0[4] = {
@@ -550,7 +559,7 @@ static void _actor213100InitBody(Task* actorTask)
     work->model.animId  = ACTOR_MODEL_STATE_NONE;
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
     work->freeCountdown = ACTOR_213100_BUFFER_FREE_NONE;
-    heldModelTask       = taskSpawnFromTable(D_actor_213100_801521A8, ACTOR_213100_HELD_MODEL_DESCRIPTOR, ACTOR_213100_HELD_MODEL_PART, actorTask);
+    heldModelTask       = taskSpawnFromTable(gActor213100JodieBouquetTaskDescriptors, ACTOR_213100_HELD_MODEL_DESCRIPTOR, ACTOR_213100_HELD_MODEL_PART, actorTask);
     work->heldModelTask = heldModelTask;
     if (heldModelTask == NULL) {
         enemyTaskExit(actorTask);

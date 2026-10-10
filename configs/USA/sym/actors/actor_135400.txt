@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_135400.
 _gActor135400FlintLights = 0x8013F904; // size:0x30 defined:True
-D_actor_135400_8013F8D8 = 0x8013F8D8; // size:0xC defined:True
+gActor135400FlintTaskDesc = 0x8013F8D8; // size:0xC defined:True
 _gActor135400FlintMessages = 0x8013F8E4; // size:0x20 defined:True
 _gActor135400GaryDouglasBodySkeleton = 0x80132F9C; // size:0x2D0 defined:True
 _gActor135400GaryDouglasBodyPartVerts = 0x8013326C; // size:0x50 defined:True

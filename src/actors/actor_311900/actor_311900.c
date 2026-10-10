@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -22,7 +24,6 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 
 #include "overlay.h"
@@ -229,9 +230,21 @@ static AnimationSet* _gActor311900SwatAnimationSets[3] = {
     NULL,
 };
 
-TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, _actor311900SwatTask, { .model = &_gActor311900SwatMember2Body } };
+enum { ACTOR_311900_SWAT_TASK_PRIORITY = 96 };
 
-TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, _actor311900RupertTask, { .model = &_gActor311900RupertBroderickBody1 } };
+TaskDesc gActor311900SwatTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_SWAT_TASK_PRIORITY } },
+    .callback = _actor311900SwatTask,
+    .data     = { .model = &_gActor311900SwatMember2Body },
+};
+
+enum { ACTOR_311900_RUPERT_TASK_PRIORITY = 96 };
+
+TaskDesc gActor311900RupertTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_RUPERT_TASK_PRIORITY } },
+    .callback = _actor311900RupertTask,
+    .data     = { .model = &_gActor311900RupertBroderickBody1 },
+};
 
 /// Palette read-back and greying workspace shared by this package's two figures.
 ///
@@ -394,22 +407,44 @@ static void _actor311900UpdateAnimation(Task* task)
     }
 }
 
-/// The actor's first state table - `_actor311900InitRupert`'s setup,
-/// `_actor311900UpdateRupert`'s tick and teardown - dispatched through by
-/// `_actor311900RupertTask`.
-static const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
-    _actor311900InitRupert,
-    _actor311900UpdateRupert,
-    enemyDestroy,
+enum {
+    ACTOR_311900_RUPERT_TASK_INITIALIZE = 0,
+    ACTOR_311900_RUPERT_TASK_UPDATE     = 1,
+    ACTOR_311900_RUPERT_TASK_DESTROY    = 2,
 };
 
-/// The actor's second state table - `_actor311900InitSwat`'s setup,
-/// `_actor311900UpdateSwat`'s tick and teardown - dispatched through by
-/// `_actor311900SwatTask`.
-static const EnemyTaskFuncTable3 D_actor_311900_80161E30 = {
-    _actor311900InitSwat,
-    _actor311900UpdateSwat,
-    enemyDestroy,
+/// Rupert security-monitor lifecycle handlers: 0 initialize, 1 walk/playback, 2 destroy.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
+static const EnemyTaskFuncTable3 _gActor311900RupertTaskStates = {
+    .funcs = {
+        [ACTOR_311900_RUPERT_TASK_INITIALIZE] = _actor311900InitRupert,
+        [ACTOR_311900_RUPERT_TASK_UPDATE]     = _actor311900UpdateRupert,
+        [ACTOR_311900_RUPERT_TASK_DESTROY]    = enemyDestroy,
+    },
+};
+
+enum {
+    ACTOR_311900_SWAT_TASK_INITIALIZE = 0,
+    ACTOR_311900_SWAT_TASK_UPDATE     = 1,
+    ACTOR_311900_SWAT_TASK_DESTROY    = 2,
+};
+
+/// SWAT security-monitor lifecycle handlers: 0 initialize, 1 playback, 2 destroy.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
+static const EnemyTaskFuncTable3 _gActor311900SwatTaskStates = {
+    .funcs = {
+        [ACTOR_311900_SWAT_TASK_INITIALIZE] = _actor311900InitSwat,
+        [ACTOR_311900_SWAT_TASK_UPDATE]     = _actor311900UpdateSwat,
+        [ACTOR_311900_SWAT_TASK_DESTROY]    = enemyDestroy,
+    },
 };
 
 /// Dispatches Rupert's security-monitor task through initialization, playback and teardown.
@@ -423,7 +458,7 @@ static void _actor311900RupertTask(Task* task)
     EnemyTaskFuncTable3 stateHandlers;
 
     enemy         = task->spawnArg2.pointer;
-    stateHandlers = D_actor_311900_80161E24;
+    stateHandlers = _gActor311900RupertTaskStates;
     stateHandlers.funcs[task->state](enemy, task);
 }
 
@@ -518,7 +553,7 @@ static void _actor311900SwatTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_311900_80161E30;
+    stateHandlers = _gActor311900SwatTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

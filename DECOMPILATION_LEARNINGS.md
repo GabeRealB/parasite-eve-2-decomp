@@ -3512,14 +3512,14 @@ if (task->spawnArg1 == 0) {
     do {
         mode = 0x6D;              /* depth 1: def counts 2 */
     } while (0);
-    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, 2, 5, 0);
 } else if (task->spawnArg1 == 1) {
     do {
         do {
             mode = 0x6C;          /* depth 2: def counts 3 */
         } while (0);
     } while (0);
-    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, 2, 7, 0);
 }
 ```
 
@@ -48515,7 +48515,7 @@ the overlay id at `0x80161E20` and `ActorsShared80135df4Table` at `0x80161E30`:
 ```c
 INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
 
-const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
+const EnemyTaskFuncTable3 _gActor311900RupertTaskStates = {
     _actor311900InitRupert,
     _actor311900UpdateRupert,
     enemyDestroy,
@@ -48573,7 +48573,7 @@ Written into a local ahead of it,
 
 ```c
 ctx = arg0->field_20;
-sp  = D_actor_311900_80161E24;
+sp  = _gActor311900RupertTaskStates;
 sp.funcs[arg0->field_30](ctx, arg0);
 ```
 
@@ -48583,7 +48583,7 @@ gets a `nop` instead - one instruction longer:
 ```
 sw     $ra, 0x20($sp)
 lw     $a0, 0x20($a1)
-lui    $v0, %hi(D_actor_311900_80161E24)
+lui    $v0, %hi(_gActor311900RupertTaskStates)
 ...
 lw     $v0, 0x30($a1)
 nop
@@ -82621,10 +82621,10 @@ the two spawn branches materialise as `lui $a0` + `addiu $a0,$a0` — the `%hi`
 scratch in the *same* register as the `lo_sum` destination:
 
 ```asm
-0x36C lui   $a0,%hi(D_actor_310100_80179920)
-0x374 addiu $a0,$a0,%lo(D_actor_310100_80179920)
-0x384 lui   $a0,%hi(D_actor_310100_801798FC)
-0x388 addiu $a0,$a0,%lo(D_actor_310100_801798FC)
+0x36C lui   $a0,%hi(gActor310100Officer2TaskDescriptors)
+0x374 addiu $a0,$a0,%lo(gActor310100Officer2TaskDescriptors)
+0x384 lui   $a0,%hi(gActor310100Officer1TaskDescriptors)
+0x388 addiu $a0,$a0,%lo(gActor310100Officer1TaskDescriptors)
 ```
 
 **The scratch register is decided by `combine_regs`, and it ties only a local
@@ -82660,10 +82660,10 @@ each extra constant-false loop around a single set is worth one more reference:
 ```c
 if (task->spawnArg1 == 0) {
     do { mode = 0x6D; } while (0);                                   /* depth 2 -> +2 */
-    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_80179920, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, 1, work->bodyAnimationId, 0);
 } else if (task->spawnArg1 == 1) {
     do { do { mode = 0x6C; } while (0); } while (0);                 /* depth 3 -> +3 */
-    work->modelTask = taskSpawnFromTableOnDefaultList(&D_actor_310100_801798FC, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, 1, work->bodyAnimationId, 0);
 } else {
     goto skip;
 }

@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -31,7 +33,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -89,13 +90,6 @@ typedef struct {
     byte                  pad_53F[1];
 } _Actor113100PierceCarradineWork;
 STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
-
-/// Child task table the setup handler `_actor113100SpawnPierceCarradine` spawns
-/// from, four `TaskDesc` entries. Index 1 is spawned only when
-/// `gGameSession->location.loc.variant == 2` and its task lands in
-/// `_Actor113100PierceCarradineWork::billboardTask`; indices 2 and 3 are the two
-/// modelled parts the handler re-dresses from the area record.
-extern TaskDesc D_actor_113100_80144308[];
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
 /// (`_actor113100PlayAnimation`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
@@ -1157,11 +1151,33 @@ static TmdSource _gActor113100Model07BC4;
 static TmdSource _gActor113100Model07960;
 static TmdSource _gActor113100Model07AB4;
 
-TaskDesc D_actor_113100_80144308[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor113100PierceCarradineTask, { .model = &_gActor113100PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor113100BillboardTask, { .model = &_gActor113100Model07BC4 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07960 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07AB4 } },
+enum { ACTOR_113100_PIERCE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor113100PierceCarradineTaskDescriptors[4] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .callback = _actor113100PierceCarradineTask,
+        .data     = { .model = &_gActor113100PierceCarradineBody },
+    },
+    // 1: billboard.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .callback = _actor113100BillboardTask,
+        .data     = { .model = &_gActor113100Model07BC4 },
+    },
+    // 2: part-4 attachment.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .callback = _actor113100AttachedModelTask,
+        .data     = { .model = &_gActor113100Model07960 },
+    },
+    // 3: part-2 attachment.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .callback = _actor113100AttachedModelTask,
+        .data     = { .model = &_gActor113100Model07AB4 },
+    },
 };
 
 TaskMessageEntry D_actor_113100_80144338[6] = {
@@ -1213,15 +1229,15 @@ static void _actor113100SpawnPierceCarradine(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
     if (gGameSession->location.loc.variant == ACTOR_113100_BILLBOARD_VARIANT) {
-        work->billboardTask = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_BILLBOARD_CHILD, ACTOR_113100_BILLBOARD_PARENT_PART, task);
+        work->billboardTask = taskSpawnFromTable(gActor113100PierceCarradineTaskDescriptors, ACTOR_113100_BILLBOARD_CHILD, ACTOR_113100_BILLBOARD_PARENT_PART, task);
     }
 
-    attachedTask2 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_2, ACTOR_113100_CHILD_2_PARENT_PART, task);
+    attachedTask2 = taskSpawnFromTable(gActor113100PierceCarradineTaskDescriptors, ACTOR_113100_ATTACHED_CHILD_2, ACTOR_113100_CHILD_2_PARENT_PART, task);
     if (attachedTask2 != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(attachedTask2, task->spawnArg2.pointer);
     }
 
-    attachedTask3 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_3, ACTOR_113100_CHILD_3_PARENT_PART, task);
+    attachedTask3 = taskSpawnFromTable(gActor113100PierceCarradineTaskDescriptors, ACTOR_113100_ATTACHED_CHILD_3, ACTOR_113100_CHILD_3_PARENT_PART, task);
     if (attachedTask3 != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(attachedTask3, task->spawnArg2.pointer);
     }

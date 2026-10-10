@@ -399,3 +399,4 @@ _actor521100UpdateAnmcWomanFlattenColor = 0x80136290; // type:func
 _actor521100AnmcWomanSpawn = 0x80135ddc; // type:func
 _actor521100AnmcWomanFlattenState = 0x801360c4; // type:func
 _actor521100AnmcWomanApplyCommand = 0x80136ae0; // type:func
+_gActor521100GunbladeTaskStates = 0x80131e40;

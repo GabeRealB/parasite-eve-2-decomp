@@ -221,8 +221,6 @@ extern s16 D_actor_521100_8015F5C8[3][2];
 
 extern u16 D_actor_521100_8015F614[];
 
-/// Main-executable global with no module header yet: the remaining-enemy count.
-
 extern EnemyParams D_actor_521100_8015F560;
 
 static void _actor521100ResolveContacts(Task* task);
@@ -3368,14 +3366,26 @@ static void _actor521100TickEventFire(Task* task)
     }
 }
 
-/// State handlers of the actor's second part, which `_actor521100GunbladeTask`
-/// dispatches through: the setup `_actor521100AttachGunblade`, the per-frame
-/// tick `_actor521100UpdateGunbladeDrawMode` and `enemyDestroy`.
-static const EnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
-    _actor521100AttachGunblade,
-    _actor521100UpdateGunbladeDrawMode,
-    enemyDestroy,
-} };
+enum {
+    ACTOR_521100_GUNBLADE_TASK_ATTACH  = 0,
+    ACTOR_521100_GUNBLADE_TASK_UPDATE  = 1,
+    ACTOR_521100_GUNBLADE_TASK_DESTROY = 2,
+};
+
+/// Child gunblade lifecycle handlers: 0 attach, 1 draw-policy update, 2 destroy.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
+/// Attach/update borrow the parent body task, part 8 and its lighting.
+static const EnemyTaskFuncTable3 _gActor521100GunbladeTaskStates = {
+    .funcs = {
+        [ACTOR_521100_GUNBLADE_TASK_ATTACH]  = _actor521100AttachGunblade,
+        [ACTOR_521100_GUNBLADE_TASK_UPDATE]  = _actor521100UpdateGunbladeDrawMode,
+        [ACTOR_521100_GUNBLADE_TASK_DESTROY] = enemyDestroy,
+    },
+};
 
 /// Dispatches the GOLEM body's spawn or update callback with its owning Enemy.
 ///
@@ -3695,7 +3705,7 @@ static void _actor521100GunbladeTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_521100_80131E40;
+    handlers = _gActor521100GunbladeTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

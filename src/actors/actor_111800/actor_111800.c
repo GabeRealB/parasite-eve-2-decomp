@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
@@ -25,7 +27,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
@@ -83,12 +84,6 @@ STATIC_ASSERT_SIZEOF(_Actor111800Work, 0x498);
 /// Animation bank `animationInitContext` builds the work block's clip context from;
 /// the actor hands it over whole, so it is only ever a byte address here.
 extern AnimationSet* D_actor_111800_8013A448[8];
-
-/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-
-/// Main-executable globals with no module header yet: `gAttachmentState.mode` is 1 while the attachment wheel is open and
-/// `gDisplayState.pendingMode` is a pending display mode. `acropolisSquareStartSirenSequence` is
-/// the room overlay's handler the view-matrix test calls with `t[0]`.
 
 static TmdSource _gActor111800GrinningStrangerBody;
 static void      _actor111800GrinningStrangerTask(Task* task);
@@ -246,7 +241,13 @@ AnimationSet* D_actor_111800_8013A448[8] = {
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor111800GrinningStrangerTask, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+enum { ACTOR_111800_STRANGER_TASK_PRIORITY = 192 };
+
+TaskDesc gActor111800GrinningStrangerTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_111800_STRANGER_TASK_PRIORITY } },
+    .callback = _actor111800GrinningStrangerTask,
+    .data     = { .model = &_gActor111800GrinningStrangerBody },
+};
 
 static inline void _actor111800TickAnim(Task* task);
 static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);

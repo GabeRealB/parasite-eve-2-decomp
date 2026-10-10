@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -33,7 +35,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -122,10 +123,6 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 extern TaskMessageEntry D_actor_323300_80172574[];
 
 extern AnimationSet** gActorMotionAnimBanks19[1];
-
-/// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
-/// task kept in `_Actor323300WomanWork::strangerTask`.
-extern TaskDesc D_actor_323300_8017255C[];
 
 /// Placement `_actor323300WomanSpawn` hands `actorMsgPlaceEuler`.
 extern ActorTransform D_actor_323300_8017259C;
@@ -327,9 +324,21 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     _gActor323300WomanAnimSets,
 };
 
-TaskDesc D_actor_323300_8017255C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor323300WomanTask, { .model = &_gActor323300AnmcWoman1Body } },
-    { { { TASK_BODY_TMD, 192 } }, _actor323300StrangerTask, { .model = &_gActor323300LesserStrangerBody } },
+enum { ACTOR_323300_ENCOUNTER_TASK_PRIORITY = 192 };
+
+TaskDesc gActor323300WomanStrangerTaskDescriptors[2] = {
+    // 0: woman.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
+        .callback = _actor323300WomanTask,
+        .data     = { .model = &_gActor323300AnmcWoman1Body },
+    },
+    // 1: lesser stranger.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
+        .callback = _actor323300StrangerTask,
+        .data     = { .model = &_gActor323300LesserStrangerBody },
+    },
 };
 
 TaskMessageEntry D_actor_323300_80172574[5] = {
@@ -759,7 +768,7 @@ static s32 _actor323300WomanApplyCommand(Task* task, s32 messageId, const ActorC
             _actor323300WomanSetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
         case ACTOR_323300_WOMAN_COMMAND_SPAWN_STRANGER:
-            strangerTask       = taskSpawnFromTable(D_actor_323300_8017255C, ACTOR_323300_STRANGER_TASK_INDEX, 0, 0);
+            strangerTask       = taskSpawnFromTable(gActor323300WomanStrangerTaskDescriptors, ACTOR_323300_STRANGER_TASK_INDEX, 0, 0);
             work->strangerTask = strangerTask;
             if (strangerTask != NULL) {
                 // Seed the new root; the stranger's initialization later applies its placement preset.

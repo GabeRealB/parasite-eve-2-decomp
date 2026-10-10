@@ -86,13 +86,24 @@ static void _actor317000LaunchLeap(Task* task);
 static void _actor317000LandLeap(Task* task);
 static s32  _actor317000SetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
-/// The actor's three task states, which `_actor317000Task` runs by
-/// `Task::state`: spawn, per-frame tick and exit.
-static const TaskFuncTable3 D_actor_317000_80161E24 = { {
-    _actor317000Init,
-    _actor317000Update,
-    _actor317000Exit,
-} };
+enum {
+    ACTOR_317000_LEAP_TASK_INITIALIZE = 0,
+    ACTOR_317000_LEAP_TASK_UPDATE     = 1,
+    ACTOR_317000_LEAP_TASK_EXIT       = 2,
+};
+
+/// Scripted leap actor lifecycle handlers: 0 initialize, 1 update, 2 exit.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+static const TaskFuncTable3 _gActor317000LeapTaskStates = {
+    .funcs = {
+        [ACTOR_317000_LEAP_TASK_INITIALIZE] = _actor317000Init,
+        [ACTOR_317000_LEAP_TASK_UPDATE]     = _actor317000Update,
+        [ACTOR_317000_LEAP_TASK_EXIT]       = _actor317000Exit,
+    },
+};
 
 /// Grinning Stranger leap phases: turn to launch yaw, launch, land, face the player.
 ///
@@ -671,7 +682,7 @@ static void _actor317000Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_317000_80161E24;
+    stateHandlers = _gActor317000LeapTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

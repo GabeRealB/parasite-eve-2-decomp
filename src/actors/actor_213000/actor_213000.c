@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -19,7 +21,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
@@ -48,10 +49,6 @@ typedef struct {
     Task*          heldModelTasks[2]; // Tasks drawing the two models hung on body part 8, a hand; an actor command shows or hides each. `NULL` where the spawn failed
 } _Actor213000EricBaldwinWork;
 STATIC_ASSERT_SIZEOF(_Actor213000EricBaldwinWork, 0x4C4);
-
-/// The actor's spawn table: entry 0 is the actor itself, entries 1 to 4 the
-/// children its spawn handler creates.
-extern TaskDesc D_actor_213000_80157DE0[];
 
 /// The actor's message table: `(message id, handler)` pairs for 0x7D3 / 0x7D4 /
 /// 0x7D5 / 0x7DB, ended by `TASK_MESSAGE_TABLE_END`. The spawn handler parks its address in
@@ -483,12 +480,39 @@ AnimationSet** D_actor_213000_80157DDC[1] = {
     D_actor_213000_80157DB0,
 };
 
-TaskDesc D_actor_213000_80157DE0[5] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor213000BodyTask, { .model = &_gActor213000EricBaldwinBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor213000HeldModelTask, { .model = &_gActor213000Model072AC } },
-    { { { TASK_BODY_TMD, 192 } }, _actor213000HeldModelTask, { .model = &_gActor213000Prop } },
-    { { { TASK_BODY_TMD, 192 } }, _actor213000ThreeRootModelTask, { .model = &_gActor213000Model06A10 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor213000RightHandTask, { .model = &_gActor213000EricBaldwinHandRight } },
+enum { ACTOR_213000_ERIC_TASK_PRIORITY = 192 };
+
+TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .callback = _actor213000BodyTask,
+        .data     = { .model = &_gActor213000EricBaldwinBody },
+    },
+    // 1: first held model.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .callback = _actor213000HeldModelTask,
+        .data     = { .model = &_gActor213000Model072AC },
+    },
+    // 2: second held model.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .callback = _actor213000HeldModelTask,
+        .data     = { .model = &_gActor213000Prop },
+    },
+    // 3: three-root attachment.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .callback = _actor213000ThreeRootModelTask,
+        .data     = { .model = &_gActor213000Model06A10 },
+    },
+    // 4: right hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .callback = _actor213000RightHandTask,
+        .data     = { .model = &_gActor213000EricBaldwinHandRight },
+    },
 };
 
 TaskMessageEntry D_actor_213000_80157E1C[5] = {
@@ -536,10 +560,10 @@ static void _actor213000InitializeEricBaldwin(Task* task)
     work->field_478         = 0;
     work->freeCountdown     = ACTOR_213000_FREE_DISABLED;
     bodyModel->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->heldModelTasks[0] = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_FIRST_HELD_TASK, ACTOR_213000_HELD_PART, task);
-    work->heldModelTasks[1] = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_SECOND_HELD_TASK, ACTOR_213000_HELD_PART, task);
-    threeRootTask           = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_THREE_ROOT_TASK, ACTOR_213000_THREE_ROOT_PART, task);
-    rightHandTask           = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_RIGHT_HAND_TASK, ACTOR_213000_RIGHT_HAND_PART, task);
+    work->heldModelTasks[0] = taskSpawnFromTable(gActor213000EricBaldwinTaskDescriptors, ACTOR_213000_FIRST_HELD_TASK, ACTOR_213000_HELD_PART, task);
+    work->heldModelTasks[1] = taskSpawnFromTable(gActor213000EricBaldwinTaskDescriptors, ACTOR_213000_SECOND_HELD_TASK, ACTOR_213000_HELD_PART, task);
+    threeRootTask           = taskSpawnFromTable(gActor213000EricBaldwinTaskDescriptors, ACTOR_213000_THREE_ROOT_TASK, ACTOR_213000_THREE_ROOT_PART, task);
+    rightHandTask           = taskSpawnFromTable(gActor213000EricBaldwinTaskDescriptors, ACTOR_213000_RIGHT_HAND_TASK, ACTOR_213000_RIGHT_HAND_PART, task);
     if (threeRootTask != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(threeRootTask, task->spawnArg2.pointer);
     }

@@ -90,7 +90,7 @@ _gDryfieldNightSaloonGRClass2Surface = 0x80188F74; // size:0x8 defined:True
 _gDryfieldNightSaloonGRClass3Surface = 0x80188F7C; // size:0x8 defined:True
 gDryfieldNightSaloonGRSurfacePropertiesByClass = 0x80188F84; // size:0x20 defined:True
 D_dryfield_night_saloon_g_r_80188FA4 = 0x80188FA4; // size:0x8 defined:True
-D_actor_135600_8013B0C4 = 0x8013B0C4; // absolute:True owner=actor_135600
+gActor135600KyleMadiganTaskDescriptors = 0x8013B0C4; // absolute:True owner=actor_135600
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000

@@ -1,4 +1,5 @@
 #include "actors/actor_210700.h"
+#include "actors/task_tables.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -25,7 +26,6 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -528,7 +528,13 @@ static AnimationSet** _gActor210700AnimationBanks[1] = {
     _gActor210700AnimationSets,
 };
 
-TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, _actor210700Task, { .model = &_gActor210700RupertBroderickBody1 } };
+enum { ACTOR_210700_RUPERT_TASK_PRIORITY = 192 };
+
+TaskDesc gActor210700RupertBroderickTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_210700_RUPERT_TASK_PRIORITY } },
+    .callback = _actor210700Task,
+    .data     = { .model = &_gActor210700RupertBroderickBody1 },
+};
 
 /// Rupert message dispatch: animation, placement, drawing and eye images.
 ///

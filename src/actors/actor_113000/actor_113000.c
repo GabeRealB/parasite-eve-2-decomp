@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -23,7 +25,6 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
@@ -390,7 +391,13 @@ static AnimationSet** _gActor113000AnimationBanks[1] = {
     _gActor113000AnimationSets,
 };
 
-TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, _actor113000Task, { .model = &_gActor113000RupertBroderickHurtBody } };
+enum { ACTOR_113000_RUPERT_TASK_PRIORITY = 192 };
+
+TaskDesc gActor113000RupertBroderickHurtTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113000_RUPERT_TASK_PRIORITY } },
+    .callback = _actor113000Task,
+    .data     = { .model = &_gActor113000RupertBroderickHurtBody },
+};
 
 /// Eye-image selection or timed-blink message for the hurt Rupert body.
 enum { ACTOR_113000_MESSAGE_SET_EYES = 2016 };

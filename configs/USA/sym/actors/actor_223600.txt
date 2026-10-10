@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_223600.
 ActorContact_ScratchPosition = 0x80150B54; // size:0x8 defined:True
 _gActor223600EffectSpawnArg = 0x80150B5C; // size:0x8 defined:True
-D_actor_223600_80150B48 = 0x80150B48; // size:0xC defined:True
+gActor223600BloodSucklerTaskDesc = 0x80150B48; // size:0xC defined:True
 _gActor223600Messages = 0x80150B28; // size:0x20 defined:True
 _gActor223600BloodSucklerBodySkeleton = 0x8014CFF4; // size:0xD8 defined:True
 _gActor223600BloodSucklerBodyPartVerts = 0x8014D0CC; // size:0x18 defined:True
@@ -108,3 +108,4 @@ _actor223600ApplyCommand = 0x8014ccd4; // type:func
 _actor223600Hide = 0x8014cf3c; // type:func
 _actor223600Task = 0x8014cf6c; // type:func
 _gActor223600BehaviorStates = 0x80149e4c;
+_gActor223600BloodSucklerTaskStates = 0x80149e58;

@@ -23,7 +23,7 @@ D_actor_311500_801692FC = 0x801692FC; // size:0x8 defined:True
 D_actor_311500_80169304 = 0x80169304; // size:0x20 defined:True
 D_actor_311500_80169324 = 0x80169324; // size:0xC defined:True
 D_actor_311500_80169330 = 0x80169330; // size:0x8 defined:True
-D_actor_311500_80169338 = 0x80169338; // size:0xC defined:True
+gActor311500StrangerTaskDesc = 0x80169338; // size:0xC defined:True
 
 gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // absolute:True owner=acropolis_fire_escape shared=rooms
 

@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_350700.
-D_actor_350700_801708DC = 0x801708DC; // size:0x30 defined:True
+gActor350700KyleMadiganTaskDescriptors = 0x801708DC; // size:0x30 defined:True
 D_actor_350700_8017090C = 0x8017090C; // size:0x30 defined:True
 _gActor350700EveBreaMaskedBodySkeleton = 0x80163964; // size:0x2AC defined:True
 _gActor350700EveBreaMaskedBodyPartVerts = 0x80163C10; // size:0x4C defined:True
@@ -119,3 +119,4 @@ _actor350700ReverseWalkTask = 0x80162398; // type:func
 _actor350700KyleMadiganWalkerInitialize = 0x80162b30; // type:func
 _gReverseWalkStepHandlers = 0x80161e30;
 _gActor350700KyleMadiganAttachmentStates = 0x80161e50;
+_gActor350700ReverseWalkTaskStates = 0x80161e24;

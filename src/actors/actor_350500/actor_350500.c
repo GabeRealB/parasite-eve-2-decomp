@@ -30,17 +30,25 @@
 
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
+enum {
+    ACTOR_350500_REVERSE_WALK_TASK_SPAWN  = 0,
+    ACTOR_350500_REVERSE_WALK_TASK_UPDATE = 1,
+    ACTOR_350500_REVERSE_WALK_TASK_EXIT   = 2,
+};
 
-/// Spawn, tick and exit handlers, dispatched by `_actor350500ReverseWalkTask`.
-static const TaskFuncTable3 D_actor_350500_80161E24 = { {
-    _reverseWalkSpawn,
-    _reverseWalkUpdate,
-    _reverseWalkExit,
-} };
+/// Reversing walker lifecycle handlers: 0 spawn, 1 update, 2 exit.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
+/// or bounds check. Callbacks require a live task; update requires setup
+/// work, and teardown may release both the task and its owned `Enemy`.
+/// Actor-control holds suspend dispatch of all three slots.
+static const TaskFuncTable3 _gActor350500ReverseWalkTaskStates = {
+    .funcs = {
+        [ACTOR_350500_REVERSE_WALK_TASK_SPAWN]  = _reverseWalkSpawn,
+        [ACTOR_350500_REVERSE_WALK_TASK_UPDATE] = _reverseWalkUpdate,
+        [ACTOR_350500_REVERSE_WALK_TASK_EXIT]   = _reverseWalkExit,
+    },
+};
 
 /// Scripted walk phases indexed by `ReverseWalkWork::walk.motionStep` (0..3).
 ///
@@ -230,7 +238,7 @@ static TaskMessageEntry _gReverseWalkMessages[6] = {
 /// Any actor-control value other than running skips all three states.
 static void _actor350500ReverseWalkTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_actor_350500_80161E24;
+    const TaskFuncTable3 stateHandlers = _gActor350500ReverseWalkTaskStates;
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);

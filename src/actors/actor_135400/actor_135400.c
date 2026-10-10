@@ -29,7 +29,6 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -583,7 +582,13 @@ static AnimationSet** _gActor135400FlintAnimationBanks[1] = {
     _gActor135400FlintAnimationSets,
 };
 
-TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400FlintTask, { .model = &_gActor135400FlintBody } };
+enum { ACTOR_135400_FLINT_TASK_PRIORITY = 192 };
+
+TaskDesc gActor135400FlintTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_135400_FLINT_TASK_PRIORITY } },
+    .callback = _actor135400FlintTask,
+    .data     = { .model = &_gActor135400FlintBody },
+};
 
 /// Flint's message map for animation playback, Euler placement and drawing.
 ///

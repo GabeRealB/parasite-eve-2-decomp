@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,17 +29,12 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
 #include "overlay.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-
-/// Child task table the setup handler spawns from: entry 0 is the actor
-/// itself, entries 1 and 2 the two part models and entry 3 the marker task.
-extern TaskDesc D_actor_135600_8013B0C4[];
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3, 0x7D4, 0x7D5,
 /// 0x7DD and 0x7DB against the handlers below.
@@ -630,11 +627,33 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
     _gActor135600KyleMadiganAnimationBank,
 };
 
-TaskDesc D_actor_135600_8013B0C4[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135600KyleMadiganWalkerTask, { .model = &_gActor135600KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHandTask, { .model = &_gActor135600KyleMadiganHandLeft } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHandTask, { .model = &_gActor135600KyleMadiganHandRight } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHeldItemTask, { .model = &_gActor135600Model06AC4 } },
+enum { ACTOR_135600_KYLE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor135600KyleMadiganTaskDescriptors[4] = {
+    // 0: body.
+    {
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_135600_KYLE_TASK_PRIORITY } },
+        .callback = _actor135600KyleMadiganWalkerTask,
+        .data     = { .model = &_gActor135600KyleMadiganBody },
+    },
+    // 1: left hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_135600_KYLE_TASK_PRIORITY } },
+        .callback = _actor135600KyleMadiganHandTask,
+        .data     = { .model = &_gActor135600KyleMadiganHandLeft },
+    },
+    // 2: right hand.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_135600_KYLE_TASK_PRIORITY } },
+        .callback = _actor135600KyleMadiganHandTask,
+        .data     = { .model = &_gActor135600KyleMadiganHandRight },
+    },
+    // 3: held model.
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_135600_KYLE_TASK_PRIORITY } },
+        .callback = _actor135600KyleMadiganHeldItemTask,
+        .data     = { .model = &_gActor135600Model06AC4 },
+    },
 };
 
 TaskMessageEntry D_actor_135600_8013B0F4[6] = {
@@ -793,19 +812,19 @@ static void _actor135600InitializeKyleMadiganWalker(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_LEFT_HAND_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor135600KyleMadiganTaskDescriptors, ACTOR_135600_KYLE_LEFT_HAND_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
     if (childTask != NULL) {
         work->handTasks[1] = childTask;
         _actorRenderApplyPlacementTextureOffsets(childTask->extra.tmd, task->spawnArg2.pointer);
     }
 
-    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_RIGHT_HAND_TASK, ACTOR_135600_KYLE_RIGHT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor135600KyleMadiganTaskDescriptors, ACTOR_135600_KYLE_RIGHT_HAND_TASK, ACTOR_135600_KYLE_RIGHT_HAND_PART, task);
     if (childTask != NULL) {
         work->handTasks[0] = childTask;
         _actorRenderApplyPlacementTextureOffsets(childTask->extra.tmd, task->spawnArg2.pointer);
     }
 
-    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_HELD_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
+    childTask = taskSpawnFromTable(gActor135600KyleMadiganTaskDescriptors, ACTOR_135600_KYLE_HELD_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
     if (childTask != NULL) {
         work->heldItemTask = childTask;
     }

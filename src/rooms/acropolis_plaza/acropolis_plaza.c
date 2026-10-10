@@ -1788,8 +1788,8 @@ WorldCollisionTrigger D_acropolis_plaza_8019923C[4] = {
 };
 
 AreaResource D_acropolis_plaza_8019936C[3] = {
-    { 109, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310100_80179920 },
-    { 108, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310100_801798FC },
+    { 109, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor310100Officer2TaskDescriptors },
+    { 108, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor310100Officer1TaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

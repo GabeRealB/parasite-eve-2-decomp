@@ -214,7 +214,14 @@ extern TaskDesc D_actor_461800_80139F8C[];
 /// and animation helpers support one live figure.
 extern TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
-extern TaskDesc D_actor_111800_8013A468;
+/// Grinning Stranger spawn recipe for the Acropolis Square departure sequence.
+///
+/// Priority 192. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Waits for the attachment wheel and display request to clear before setup.
+/// Keep actor_111800 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor111800GrinningStrangerTaskDesc;
 
 /// Gary Douglas spawn recipes: 0 body, 1 head and hat, 2 carried model.
 ///
@@ -237,9 +244,25 @@ extern TaskDesc gActor05500MaggotCaterpillarTasks[2];
 /// Slot-1 export of `gActor05500MaggotCaterpillarTasks` from actor_105500.
 extern TaskDesc gActor105500MaggotCaterpillarTasks[2];
 
-extern TaskDesc D_actor_113000_8013ABB4;
+/// Hurt Rupert Broderick spawn recipe for the M.I.S.T. briefing room.
+///
+/// Priority 192. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy` for placement and teardown.
+/// Keep actor_113000 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor113000RupertBroderickHurtTaskDesc;
 
-extern TaskDesc D_actor_135600_8013B0C4[];
+/// Kyle Madigan spawn recipes: 0 walker body, 1 left hand, 2 right hand, 3 held model.
+///
+/// Priority 192. Indices 0..3 have no terminator.
+/// The body skips automatic primitive buffers; attached TMD entries use them.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Children borrow the body task
+/// in `Task::spawnArg2` and part 8 (left/held) or 12 (right) in `Task::spawnArg1`.
+/// They join the body teardown tree and borrow its coordinates and lighting.
+/// Keep actor_135600 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor135600KyleMadiganTaskDescriptors[4];
 
 /// Mind Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
@@ -247,9 +270,24 @@ extern TaskDesc D_actor_135600_8013B0C4[];
 /// model geometry are in use.
 extern TaskDesc gActor01500MindSucklerTaskDesc;
 
-extern TaskDesc D_actor_110700_8013BF94;
+/// No. 9 GOLEM spawn recipe for the scripted sanctuary figure.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`; scripts select its poses.
+/// Keep actor_110700 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor110700No9GolemTaskDesc;
 
-extern TaskDesc D_actor_150400_8013C8F4[];
+/// No. 9 GOLEM spawn recipes: 0 scripted walker, 1 carried Beam Sword.
+///
+/// Priority 96. Indices 0..1 have no terminator.
+/// The body uses automatic primitive buffers; the sword skips them.
+/// Spawn both through the enemy interface. The sword is reparented under
+/// the walker and borrows body part 7 and its work-owned lighting.
+/// Keep actor_150400 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor150400No9GolemTaskDescriptors[2];
 
 /// Descriptor indices shared by the Beta and Proto Generator spawn tables.
 ///
@@ -299,7 +337,15 @@ extern TaskDesc gActor160600PlacedActorTask;
 /// model geometry are in use.
 extern TaskDesc gActor04000BloodSucklerTaskDesc;
 
-extern TaskDesc D_actor_120400_8013E748[];
+/// Kyle Madigan spawn recipes: 0 walker body, 1 left hand, 2 right hand.
+///
+/// Priority 192. Indices 0..2 have no terminator.
+/// The body skips automatic primitive buffers; attached TMD entries use them.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Hands borrow the body task
+/// in `Task::spawnArg2` and part 8 or 12 in `Task::spawnArg1`, then join its teardown tree.
+/// Keep actor_120400 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor120400KyleMadiganTaskDescriptors[3];
 
 /// Trailer-coach Gary Douglas spawn recipes: 0 body, 1 head-and-hat, 2 shotgun.
 ///
@@ -317,7 +363,14 @@ extern TaskDesc gActor107000SlouchTaskDescs[3];
 /// handlers. Keep the actor_451100 code, geometry and clip data loaded.
 extern TaskDesc gActor451100QuietWalkTaskDesc;
 
-extern TaskDesc D_actor_135400_8013F8D8;
+/// Flint spawn recipe for the night garage scene.
+///
+/// Priority 192. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`; actor-control holds suspend dispatch.
+/// Keep actor_135400 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor135400FlintTaskDesc;
 
 extern TaskDesc D_actor_136100_80140744[];
 
@@ -336,7 +389,16 @@ extern TaskDesc gActor105100TaskDescriptors[3];
 
 extern TaskDesc D_actor_461800_801437EC;
 
-extern TaskDesc D_actor_113100_80144308[];
+/// Pierce Carradine spawn recipes: 0 body, 1 billboard, 2 part-4 model, 3 part-2 model.
+///
+/// Priority 192. Indices 0..3 have no terminator.
+/// The body skips automatic primitive buffers; attached TMD entries use them.
+/// Children borrow their body task in `Task::spawnArg2` and parent-part index in `Task::spawnArg1`.
+/// The body spawns the billboard on part 8 only in placement variant 2.
+/// Child roots and lighting remain borrowed until the body teardown tree exits them.
+/// Keep actor_113100 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor113100PierceCarradineTaskDescriptors[4];
 
 /// Slot export of `gActor01600ScavengerTaskDesc` from actor_101600, with the same descriptor contract.
 extern TaskDesc gActor101600ScavengerTaskDesc;
@@ -442,7 +504,14 @@ extern TaskDesc gActor203800BlackBeetleTaskDesc;
 /// Slot export of `gActor04600SkullStalkerTaskDesc` from actor_204600, with the same descriptor contract.
 extern TaskDesc gActor204600SkullStalkerTaskDesc;
 
-extern TaskDesc D_actor_223600_80150B48;
+/// Blood Suckler spawn recipe for the general-store scripted figure.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy` for setup, update and teardown.
+/// Keep actor_223600 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor223600BloodSucklerTaskDesc;
 
 /// Slot-2 export of `gActor00700RatTaskDesc`, with the same spawn contract.
 extern TaskDesc gActor200700RatTaskDesc;
@@ -477,7 +546,16 @@ extern TaskDesc gActor400600ZebraStalkerTaskDesc;
 /// Slot export of `gActor03700BatTaskDesc` from actor_203700, with the same descriptor contract.
 extern TaskDesc gActor203700BatTaskDesc;
 
-extern TaskDesc D_actor_213100_801521A8[];
+/// Jodie Bouquet spawn recipes: 0 body, 1 held model.
+///
+/// Priority 192. Indices 0..1 have no terminator.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. The held model borrows the body
+/// in `Task::spawnArg2` and part 8 in `Task::spawnArg1`, then joins its teardown tree.
+/// Body setup tears down the actor if its held-model spawn fails.
+/// Keep actor_213100 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor213100JodieBouquetTaskDescriptors[2];
 
 /// Slot-2 export of `gActor02600MaggotCaterpillarBodyTask` from actor_202600,
 /// with the same body descriptor contract.
@@ -542,11 +620,37 @@ extern TaskDesc gActor204000BloodSucklerTaskDesc;
 /// its borrowed model geometry and the selected room resources loaded while live.
 extern TaskDesc gActor205200BodyTaskDesc;
 
-extern TaskDesc D_actor_202900_80156E24[];
+/// Cafeteria woman spawn recipes: 0 animated body, 1 carried model.
+///
+/// Priority 192. Indices 0..1 have no terminator.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Entry 1 ignores its arguments
+/// and follows part 4 of the published singleton body task; that body must
+/// remain live while the carried model runs.
+/// Keep actor_202900 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor202900WomanTaskDescriptors[2];
 
-extern TaskDesc D_actor_213000_80157DE0[];
+/// Eric Baldwin spawn recipes: 0 body, 1/2 held models, 3 three-root attachment, 4 right hand.
+///
+/// Priority 192. Indices 0..4 have no terminator.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Children borrow the body task
+/// in `Task::spawnArg2`. Held models use part 8 and the right hand part 12 from
+/// `Task::spawnArg1`; entry 3 attaches its three roots to body parts 9..11.
+/// All children join the body teardown tree and borrow its lighting.
+/// Keep actor_213000 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor213000EricBaldwinTaskDescriptors[5];
 
-extern TaskDesc D_actor_210700_801585CC;
+/// Rupert Broderick spawn recipe for the sanctuary scene.
+///
+/// Priority 192. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy` for placement and teardown.
+/// Keep actor_210700 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor210700RupertBroderickTaskDesc;
 
 /// Spawn recipes for Pierce in shelter room 47 and his attached held model.
 ///
@@ -563,11 +667,26 @@ extern TaskDesc gActor443500PierceTaskDescs[2];
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor401300HornedStrangerTaskDesc;
 
-extern TaskDesc D_actor_206100_80158B0C[];
+/// Sea Diver spawn recipes: 0 enemy body, 1 flying shot with a coordinate body.
+///
+/// Priority 96. Indices 0..1 have no terminator.
+/// The TMD body uses automatic primitive buffers; the shot has no TMD buffer.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. The shot spawner supplies its
+/// work and world transform before its first dispatch; descriptor data is unused.
+/// Keep actor_206100 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor206100SeaDiverTaskDescriptors[2];
 
 extern TaskDesc D_actor_403000_80158D58;
 
-extern TaskDesc D_actor_210600_8015A4EC;
+/// Grinning Stranger spawn recipe for the cafeteria scene.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy` for setup, update and teardown.
+/// Keep actor_210600 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor210600GrinningStrangerTaskDesc;
 
 /// Scavenger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
 ///
@@ -627,7 +746,15 @@ extern TaskDesc gActor301200BoneSucklerTaskDesc;
 /// its borrowed model/animation resources loaded until the task is destroyed.
 extern TaskDesc gActor350500MaskedEveReverseWalkTaskDesc;
 
-extern TaskDesc D_actor_311500_80169338;
+/// Stranger spawn recipe for the fire-escape barrier encounter.
+///
+/// Priority 192. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Its task edits the loaded
+/// fire-escape collision grid, which must remain live through the encounter.
+/// Keep actor_311500 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor311500StrangerTaskDesc;
 
 /// Rat TMD spawn descriptor exported by actor_300700; priority 96.
 ///
@@ -671,15 +798,56 @@ extern TaskDesc gActor304000BloodSucklerTaskDesc;
 /// The actor package's code and model data must remain loaded for all three tasks.
 extern TaskDesc gActor335800GaryDouglasTasks[3];
 
-extern TaskDesc D_actor_311900_8016EC00;
+/// SWAT figure spawn recipe for the security-monitor camera.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. The figure is parented to the
+/// view coordinate and shown only on its mapped monitor camera.
+/// Keep actor_311900 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor311900SwatTaskDesc;
 
-extern TaskDesc D_actor_311900_8016EC0C;
+/// Rupert Broderick spawn recipe for the security-monitor walking scene.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies use automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. The view-parented figure starts
+/// walking once seen and selects teardown after ninety walking updates.
+/// Keep actor_311900 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor311900RupertTaskDesc;
 
-extern TaskDesc D_actor_350700_801708DC[];
+/// Kyle Madigan spawn recipes: 0 walker body, 1 left hand, 2 right hand, 3 held gun.
+///
+/// Priority 192. Indices 0..3 have no terminator.
+/// The body skips automatic primitive buffers; attached TMD entries use them.
+/// Body `Task::spawnArg2` borrows its live `Enemy`. Children borrow the body task
+/// in `Task::spawnArg2` and part 8 (left/gun) or 12 (right) in `Task::spawnArg1`.
+/// They join the body teardown tree and borrow its coordinates and lighting.
+/// Keep actor_350700 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor350700KyleMadiganTaskDescriptors[4];
 
-extern TaskDesc D_actor_323400_8017120C;
+/// Desert Chaser spawn recipe for the breezeway scripted encounter.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`; this package carries the
+/// cutscene build of the Desert Chaser lifecycle.
+/// Keep actor_323400 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor323400DesertChaserTaskDesc;
 
-extern TaskDesc D_actor_323300_8017255C[];
+/// Toilet encounter spawn recipes: 0 woman, 1 Lesser Stranger revealed by her command.
+///
+/// Priority 192. Indices 0..1 have no terminator.
+/// The woman skips automatic primitive buffers; the Stranger uses them.
+/// Body entry 0 borrows its live `Enemy` in `Task::spawnArg2`. Entry 1 receives
+/// zero spawn arguments; its setup establishes its own placement and work.
+/// Keep actor_323300 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor323300WomanStrangerTaskDescriptors[2];
 
 /// Spawn recipe for the night motel balcony's independently placed Flint model.
 ///
@@ -695,7 +863,15 @@ extern TaskDesc gActor335800FlintTaskDesc;
 /// model/animation resources loaded through enemy teardown.
 extern TaskDesc gActor356100HornedStrangerTaskDesc;
 
-extern TaskDesc D_actor_323000_80173A08;
+/// Desert Chaser spawn recipe for the main-street scripted encounter.
+///
+/// Priority 96. Spawn at index 0.
+/// TMD bodies skip automatic primitive buffers.
+/// Body `Task::spawnArg2` borrows its live `Enemy`; this package carries the
+/// cutscene build of the Desert Chaser lifecycle.
+/// Keep actor_323000 callbacks and borrowed model/animation resources loaded
+/// while the spawned tasks use them.
+extern TaskDesc gActor323000DesertChaserTaskDesc;
 
 /// Spawn recipe indices for the incinerator encounter controller and its row spawners.
 enum {
