@@ -59,9 +59,22 @@ extern ViewCount D_shelter_b1_underground_parking_8018793C[];
 
 extern DirectionWarpEntry D_shelter_b1_underground_parking_8018794C[];
 
-extern ViewCamera D_shelter_b1_underground_parking_80189778[];
+/// Camera records for underground parking's 24 mapped views.
+///
+/// Indexed by mapped view - 1, independently of logical room-view numbering.
+/// Rotation coefficients use Q12 (ONE is unity); translations are negated
+/// world-space camera origins in game units, and screen distances are pixels.
+/// The Shelter area-20 directory borrows this array while the room overlay is loaded.
+extern ViewCamera gShelterB1UndergroundParkingViewCameras[SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT];
 
-extern SpriteView D_shelter_b1_underground_parking_8018AB9C[];
+/// Sprite resources for underground parking's 24 mapped views.
+///
+/// Indexed by mapped view - 1 through the Shelter area-20 directory. Every view
+/// selects decoded background strips; views 3/7/11, 4/8, 10, 12, 13/14 and 17
+/// also share or select source sprites. Empty views retain their batch-list
+/// address in `sources.empty`. All draw-area pointers are NULL. Descriptors and
+/// mutable source/batch lists remain borrowed while this room overlay is loaded.
+extern SpriteView gShelterB1UndergroundParkingSpriteViews[SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT];
 
 /// Collision policies and footstep cues for underground parking surface classes 0..7.
 ///
