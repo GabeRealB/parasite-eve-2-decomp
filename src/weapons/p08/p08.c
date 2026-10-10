@@ -20,7 +20,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
 
@@ -117,37 +116,46 @@ void p08AttackState(Task* playerTask)
 
 /* Each package carries its own model. */
 #if WEAPON_ID == 0x4
-static TmdBone _gP08Model00440Skeleton[1] = {
+/// Identity transform for the P08 model's self-parented root.
+static const TmdBone _gP08WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/p08_model_00440_skeleton.inc"
 };
 
-static u32 _gP08Model00440PartVerts[1] = {
+/// Vertex count for the P08 model's only part.
+static const u32 _gP08WeaponModelPartVerts[] __attribute__((section(".data"))) = {
 #include "assets/p08_model_00440_partVerts.inc"
 };
 
-static SVECTOR _gP08Model00440Verts[28] = {
+/// P08 vertices in integer coordinates local to the weapon root.
+static SVECTOR _gP08WeaponModelVerts[] = {
 #include "assets/p08_model_00440_verts.inc"
 };
 
-static SVECTOR _gP08Model00440Normals[26] = {
+/// Part-local P08 lighting normals, indexed independently of the vertices.
+static SVECTOR _gP08WeaponModelNormals[] = {
 #include "assets/p08_model_00440_normals.inc"
 };
 
-static u32 _gP08Model00440Stream[201] = {
+/// Writable P08 draw stream: four textured Gouraud triangles and 24 quads.
+///
+/// Model creation fills its handler slots. The sole skeletal group is followed
+/// by an empty group and `TMD_STREAM_END`.
+static u32 _gP08WeaponModelStream[] = {
 #include "assets/p08_model_00440_stream.inc"
 };
 
-TmdSource D_p08_8011D924 = {
-    0,
-    1408,
-    0,
-    1,
-    _gP08Model00440PartVerts,
-    _gP08Model00440Verts,
-    _gP08Model00440Normals,
-    _gP08Model00440Skeleton,
-    _gP08Model00440Stream,
+TmdSource gP08WeaponModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = 4 * sizeof(POLY_GT3) + 24 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gP08WeaponModelSkeleton),
+    .partVertexCounts    = _gP08WeaponModelPartVerts,
+    .verts               = _gP08WeaponModelVerts,
+    .normals             = _gP08WeaponModelNormals,
+    .skeleton            = _gP08WeaponModelSkeleton,
+    .stream              = _gP08WeaponModelStream,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gP08WeaponModelPartVerts) == ARRAY_SIZE(_gP08WeaponModelSkeleton), p08_weapon_model_part_counts);
 #elif WEAPON_ID == 0x1
 static TmdBone _gP08SnailP08Model00440Skeleton[1] = {
 #include "assets/p08_model_00440_skeleton.inc"

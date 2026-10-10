@@ -75,8 +75,6 @@ enum {
 /// released; creation resolves the writable command stream in place.
 extern TmdSource gUnused85HeldWeaponModel;
 
-extern TmdSource D_p08_8011D924;
-
 /// Single-part Mongoose model attached to the player's weapon hand.
 ///
 /// The source and its geometry stay live while the Mongoose package is loaded.

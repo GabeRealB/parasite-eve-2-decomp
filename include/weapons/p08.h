@@ -2,6 +2,16 @@
 #define INCLUDE_WEAPONS_P08_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Rigid held P08 pistol model selected for both magazine variants.
+///
+/// One root part holds 28 vertices and 26 lighting normals. Instances borrow
+/// the loaded P08 package's geometry and writable command stream; release them
+/// before replacing the package. Creation resolves draw handlers in place and
+/// copies the identity root transform. Each primitive-buffer half contains four
+/// textured Gouraud triangles and 24 quads, all directly transformed.
+extern TmdSource gP08WeaponModel;
 
 /// Runs one P08 player shot and its impact and recovery phases.
 ///
