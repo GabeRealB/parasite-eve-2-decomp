@@ -1521,7 +1521,7 @@ D_dryfield_souvenir_shop_8017F598 = 0x8017F598; // absolute:True owner=dryfield_
 
 D_dryfield_toilet_80182918 = 0x80182918; // absolute:True owner=dryfield_toilet shared=rooms
 
-D_dryfield_trailer_coach_801876F0 = 0x801876F0; // absolute:True owner=dryfield_trailer_coach
+gDryfieldTrailerCoachAreaVariants = 0x801876F0; // absolute:True owner=dryfield_trailer_coach
 
 gDryfieldUnderpassAreaVariants = 0x8017F868; // absolute:True owner=dryfield_underpass shared=rooms
 

@@ -195,7 +195,7 @@ gNeoArkShrineViewCameras = 0x801836BC; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineSpriteViews = 0x80185280; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineSurfaceProperties = 0x80186844; // absolute:True owner=neo_ark_shrine
 shelterB6NurseryRoomTask = 0x8017FF9C; // type:func absolute:True owner=shelter_b6_nursery
-gShelterB6NurseryViewMaps = 0x80185304; // absolute:True owner=shelter_b6_nursery shared=rooms
+gShelterB6NurseryViewMaps = 0x80185304; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryViewCounts = 0x80185308; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryWarpEntries = 0x8018530C; // absolute:True owner=shelter_b6_nursery
 gShelterB6NurseryCollisionGrid = 0x801858A0; // absolute:True owner=shelter_b6_nursery

@@ -462,7 +462,7 @@ AreaRecord D_8010CC94[39] = {
     { D_dryfield_garage_801800E0, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
     { gDryfieldDrivewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
     { D_dryfield_junk_yard_8017F558, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
-    { D_dryfield_trailer_coach_801876F0, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    { gDryfieldTrailerCoachAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
     { NULL, NULL },
     { D_dryfield_motel_balcony_80186220, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
     { D_dryfield_motel_room_6_80186764, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },

@@ -19,7 +19,17 @@
 /// the session and its UI tasks run; the UI tasks own their objects.
 extern TaskDesc gDryfieldTrailerCoachShopSessionTaskDesc;
 
-extern AreaVariant D_dryfield_trailer_coach_801876F0[13];
+/// Complete extent of the trailer coach's saved-placement variant directory.
+enum { DRYFIELD_TRAILER_COACH_AREA_VARIANT_COUNT = 13 };
+
+/// Daytime trailer-coach placement/resource variants, indexed by location.variant.
+///
+/// Indices 0..12 are present: variant 1 pairs the stage map's Gary placements
+/// with this room's Gary resources; slot 0 and slots 2..12 are NULL pairs.
+/// The loader and scene borrow the directory and resource table from this room,
+/// and the placements from the Dryfield map. Keep both overlays loaded while
+/// their tables are used. There is no terminator or index check.
+extern AreaVariant gDryfieldTrailerCoachAreaVariants[DRYFIELD_TRAILER_COACH_AREA_VARIANT_COUNT];
 
 extern TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0;
 

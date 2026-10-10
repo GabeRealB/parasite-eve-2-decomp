@@ -62,7 +62,7 @@ gAcropolisSecurityRoomRoomLightingTable = 0x801839E8; // absolute:True owner=acr
 gAcropolisSecurityRoomWarpEntries = 0x801839F0; // absolute:True owner=acropolis_security_room shared=rooms
 gAcropolisSecurityRoomSpriteViews = 0x80184C50; // absolute:True owner=acropolis_security_room
 gAcropolisSecurityRoomViewCameras = 0x80184D10; // absolute:True owner=acropolis_security_room shared=rooms
-gAcropolisSecurityRoomSurfacePropertiesByClass = 0x80184FA0; // absolute:True owner=acropolis_security_room shared=rooms
+gAcropolisSecurityRoomSurfacePropertiesByClass = 0x80184FA0; // absolute:True owner=acropolis_security_room
 gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = 0x80185584; // absolute:True owner=acropolis_security_room shared=rooms
 acropolisHallwayRoomTask = 0x8017D7D0; // type:func absolute:True owner=acropolis_hallway
 acropolisHallwayBlueKeyPickupTask = 0x8017E120; // type:func absolute:True owner=acropolis_hallway
