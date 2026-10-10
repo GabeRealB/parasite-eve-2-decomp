@@ -26,26 +26,68 @@ extern TaskDesc D_neo_ark_bridge_80181F18;
 
 extern AreaVariant D_neo_ark_bridge_80184A50[13];
 
-// neo_ark_bridge
-extern u8* D_neo_ark_bridge_80181F80[];
+/// Number of mapped camera/sprite entries and collision surface classes.
+///
+/// Camera/sprite capacity is independent of the room's reverse-search view count.
+enum {
+    NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT = 6,
+    NEO_ARK_BRIDGE_SURFACE_CLASS_COUNT = 8,
+};
+
+/// The bridge's single room directory of logical-view byte maps.
+///
+/// Room 1 borrows `gViewIdentityMap`, indexed by logical view - 1, returning
+/// the same 1-based resource index. The room's reverse-search count is 8;
+/// camera and sprite lookups require a mapped index in 1..6. The directory
+/// stays valid only while this room overlay is loaded; the map belongs to gameplay.
+extern u8* gNeoArkBridgeViewMaps[1];
 
 extern ViewCount D_neo_ark_bridge_80181F84[];
 
 extern DirectionWarpEntry D_neo_ark_bridge_80181F88[];
 
-extern WorldCollisionGrid D_neo_ark_bridge_80182814;
+/// The bridge's room collision mesh and 3-by-7 XZ cell index.
+///
+/// Owns references to 5 normals, 97 vertices and 43 faces in this overlay.
+/// Cells are 4000 game-coordinate units wide, from origin (-5100, -12200)
+/// on X/Z, with X-major face lists terminated by `WORLD_COLLISION_GRID_CELL_END`.
+/// Activation binds the mutable grid to the view; its pools stay live with this overlay.
+extern WorldCollisionGrid gNeoArkBridgeCollisionGrid;
 
-extern ViewCamera D_neo_ark_bridge_80182838[];
+/// The bridge's six cameras, indexed by mapped view - 1.
+///
+/// Rotation has 12 fractional bits, translation is the negated world-space
+/// camera origin, and screen distance is in pixels. Require a mapped index
+/// in 1..6 independently of the logical reverse-search count. Queued cameras
+/// borrow these records until application, so keep this overlay loaded.
+extern ViewCamera gNeoArkBridgeViewCameras[NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT];
 
-extern SpriteView D_neo_ark_bridge_80184564[];
+/// The bridge's six sprite views, indexed by mapped view - 1.
+///
+/// View 1 has no source sprites; views 2..6 select 34, 89, 135, 61 and 34
+/// depth-sorted rectangles. Every first batch keeps decoded background strips;
+/// every list ends with `SPRITE_BATCH_END`, and no view supplies clipping areas.
+/// Require a mapped index in 1..6 and keep this overlay loaded while caching
+/// or drawing the borrowed, mutable sources and batches.
+extern SpriteView gNeoArkBridgeSpriteViews[NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT];
 
-extern WorldCoordRoomLights D_neo_ark_bridge_8018470C;
+/// Four directional lights shared by every bridge view, with no point or cone lights.
+///
+/// The record borrows this overlay's mutable light array; coordinate setup and
+/// shading update transforms and attenuation. Keep the overlay loaded while used.
+extern WorldCoordRoomLights gNeoArkBridgeRoomLights;
 
 extern WorldCollisionTrigger D_neo_ark_bridge_80184724[];
 
 extern WorldCollisionTrigger D_neo_ark_bridge_80184AB8[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[];
+/// Collision policies and footstep cues indexed by bridge surface class (0..7).
+///
+/// All classes apply pushback. Class 1 passes probes and suppresses weapon
+/// impacts; every other class blocks probes and permits impacts. Only classes
+/// 3 and 4 supply footstep pairs; 0, 2 and 5..7 share the silent solid record.
+/// Records and cue bases are borrowed from this overlay and expire on unload.
+extern WorldCollisionSurfaceProperties* gNeoArkBridgeSurfaceProperties[NEO_ARK_BRIDGE_SURFACE_CLASS_COUNT];
 
 /// Installs bridge effect variants and updates its side-view smoke and red marker.
 ///

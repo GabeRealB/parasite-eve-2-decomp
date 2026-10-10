@@ -35,6 +35,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -63,7 +64,7 @@ SVECTOR D_neo_ark_bridge_80181F68 = { 1000, -2100, -0x5848, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_neo_ark_bridge_80181F80[1] = {
+u8* gNeoArkBridgeViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -134,32 +135,51 @@ SVECTOR D_neo_ark_bridge_801820CC[9] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gNeoArkBridgeCollision05254Normals[5] = {
+/// Room-space face normals, with `ONE` (4096) representing unit length.
+static SVECTOR _gNeoArkBridgeCollisionGridNormals[] = {
 #include "assets/neo_ark_bridge_collision_05254_normals.inc"
 };
 
-static SVECTOR _gNeoArkBridgeCollision05254Verts[97] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkBridgeCollisionGridVerts[] = {
 #include "assets/neo_ark_bridge_collision_05254_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkBridgeCollision05254Faces[43] = {
+/// Indexed collision quads selecting the bridge's local surface policies.
+static WorldCollisionGridFace _gNeoArkBridgeCollisionGridFaces[] = {
 #include "assets/neo_ark_bridge_collision_05254_faces.inc"
 };
 
-static s16 _gNeoArkBridgeCollision05254Cells[188] = {
+/// Serialized face-index lists, ending at `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// Retains the authored halfwords between lists; table entries select their starts.
+static s16 _gNeoArkBridgeCollisionGridCells[] = {
 #include "assets/neo_ark_bridge_collision_05254_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkBridgeCollision05254Cells[i])
-static s16* _gNeoArkBridgeCollision05254Table[21] = {
+#define GRID_CELL(i) (&_gNeoArkBridgeCollisionGridCells[i])
+/// X-major 3-by-7 cell directory; NULL entries are empty cells.
+static s16* _gNeoArkBridgeCollisionGridTable[] = {
 #include "assets/neo_ark_bridge_collision_05254_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_bridge_80182814 = { NULL, _gNeoArkBridgeCollision05254Normals, _gNeoArkBridgeCollision05254Verts, _gNeoArkBridgeCollision05254Faces, _gNeoArkBridgeCollision05254Table, 5100, 0x2FA8, 3, 7, 4000, 43 };
+WorldCollisionGrid gNeoArkBridgeCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkBridgeCollisionGridNormals,
+    .vertices    = _gNeoArkBridgeCollisionGridVerts,
+    .faces       = _gNeoArkBridgeCollisionGridFaces,
+    .cellFaceIds = _gNeoArkBridgeCollisionGridTable,
+    .xBias       = 5100,
+    .zBias       = 12200,
+    .cellCountX  = 3,
+    .cellCountZ  = 7,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkBridgeCollisionGridFaces),
+};
 
-ViewCamera D_neo_ark_bridge_80182838[6] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2070, 0x7530, 2510 } }, 329 },
+ViewCamera gNeoArkBridgeViewCameras[NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 2070, 30000, 2510 } }, 329 },
     { { { { 4016, 0, -803 }, { -47, 4088, -239 }, { 801, 244, 4009 } }, { 3540, 984, -1480 } }, 257 },
     { { { { 4067, 0, -478 }, { -134, 3931, -1142 }, { 459, 1150, 3904 } }, { 3409, 1865, 2359 } }, 257 },
     { { { { -3827, 0, -1459 }, { -1009, 2958, 2646 }, { 1054, 2832, -2764 } }, { 3080, 3284, -1610 } }, 243 },
@@ -167,12 +187,14 @@ ViewCamera D_neo_ark_bridge_80182838[6] = {
     { { { { -4031, 0, -725 }, { -51, 4085, 287 }, { 723, 291, -4020 } }, { 3470, 1000, 5440 } }, 257 },
 };
 
-SpriteBatch D_neo_ark_bridge_80182910[2] = {
+/// View 1 keeps background strips and has no source range before the end marker.
+static SpriteBatch _gNeoArkBridgeView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_bridge_80182920[34] = {
+/// View 2's 34 depth-sorted texture rectangles, in pixels relative to the view centre.
+static SpriteSource _gNeoArkBridgeView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 16, 1450, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 24, 1425, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 96, 8 } }, -40, 24, 1425, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
@@ -209,13 +231,15 @@ SpriteSource D_neo_ark_bridge_80182920[34] = {
     { 143, 0x3FC0, { .fields = { 112, 8 } }, -152, 112, 500, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_bridge_80182BC8[3] = {
+/// View 2 keeps background strips and draws its complete source array.
+static SpriteBatch _gNeoArkBridgeView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkBridgeView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_bridge_80182BE0[89] = {
+/// View 3's 89 depth-sorted texture rectangles, selected by four contiguous ranges.
+static SpriteSource _gNeoArkBridgeView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 96, 561, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 96, 665, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, 80, 646, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
@@ -307,16 +331,20 @@ SpriteSource D_neo_ark_bridge_80182BE0[89] = {
     { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 112, 675, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_bridge_801832D4[6] = {
+/// View 3 keeps background strips and partitions all 89 source elements.
+///
+/// The two serialized bytes after each range's flags retain their unproven meaning.
+static SpriteBatch _gNeoArkBridgeView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 3, 0 } },
     { 5, 16, 0, 0, { 0, 0 } },
     { 21, 22, 0, 0, { 2, 0 } },
-    { 43, 46, 0, 0, { 1, 0 } },
+    { 43, ARRAY_SIZE(_gNeoArkBridgeView3SpriteSources) - 43, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_bridge_80183304[135] = {
+/// View 4's 135 depth-sorted texture rectangles, selected by three contiguous ranges.
+static SpriteSource _gNeoArkBridgeView4SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -128, 16, 974, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, 112, 559, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 24, 625, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
@@ -454,15 +482,17 @@ SpriteSource D_neo_ark_bridge_80183304[135] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 0, 883, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_bridge_80183D90[5] = {
+/// View 4 keeps background strips and partitions all 135 source elements.
+static SpriteBatch _gNeoArkBridgeView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
     { 20, 99, 0, 0, { 2, 0 } },
-    { 119, 16, 0, 0, { 0, 0 } },
+    { 119, ARRAY_SIZE(_gNeoArkBridgeView4SpriteSources) - 119, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_bridge_80183DB8[61] = {
+/// View 5's 61 depth-sorted texture rectangles, selected by three contiguous ranges.
+static SpriteSource _gNeoArkBridgeView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 112, 497, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 96, 625, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 88, 8, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -526,15 +556,17 @@ SpriteSource D_neo_ark_bridge_80183DB8[61] = {
     { 142, 0x3FC0, { .fields = { 88, 8 } }, 24, 112, 614, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_bridge_8018427C[5] = {
+/// View 5 keeps background strips and partitions all 61 source elements.
+static SpriteBatch _gNeoArkBridgeView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 15, 0, 0, { 2, 0 } },
-    { 21, 40, 0, 0, { 0, 0 } },
+    { 21, ARRAY_SIZE(_gNeoArkBridgeView5SpriteSources) - 21, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_bridge_801842A4[34] = {
+/// View 6's 34 depth-sorted texture rectangles, in pixels relative to the view centre.
+static SpriteSource _gNeoArkBridgeView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 8, 1625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 8, 1538, { .fields = { 112, 8 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 120, 8 } }, -40, 16, 1600, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
@@ -571,29 +603,40 @@ SpriteSource D_neo_ark_bridge_801842A4[34] = {
     { 143, 0x3FC0, { .fields = { 104, 8 } }, 48, 112, 653, { .fields = { 8, 8 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_bridge_8018454C[3] = {
+/// View 6 keeps background strips and draws its complete source array.
+static SpriteBatch _gNeoArkBridgeView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkBridgeView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_bridge_80184564[6] = {
-    { { .empty = D_neo_ark_bridge_80182910 }, D_neo_ark_bridge_80182910, NULL },
-    { { .elements = D_neo_ark_bridge_80182920 }, D_neo_ark_bridge_80182BC8, NULL },
-    { { .elements = D_neo_ark_bridge_80182BE0 }, D_neo_ark_bridge_801832D4, NULL },
-    { { .elements = D_neo_ark_bridge_80183304 }, D_neo_ark_bridge_80183D90, NULL },
-    { { .elements = D_neo_ark_bridge_80183DB8 }, D_neo_ark_bridge_8018427C, NULL },
-    { { .elements = D_neo_ark_bridge_801842A4 }, D_neo_ark_bridge_8018454C, NULL },
+SpriteView gNeoArkBridgeSpriteViews[NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT] = {
+    { { .empty = _gNeoArkBridgeView1SpriteBatches }, _gNeoArkBridgeView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkBridgeView2SpriteSources }, _gNeoArkBridgeView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkBridgeView3SpriteSources }, _gNeoArkBridgeView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkBridgeView4SpriteSources }, _gNeoArkBridgeView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkBridgeView5SpriteSources }, _gNeoArkBridgeView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkBridgeView6SpriteSources }, _gNeoArkBridgeView6SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_bridge_801845AC[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
+/// Four all-view directional contributions; XYZ translation encodes each light direction.
+///
+/// RGB intensity uses 12 fractional bits; transforms and attenuation remain writable.
+static WorldCoordLight _gNeoArkBridgeDirectionalLights[] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_bridge_8018470C = { ARRAY_SIZE(D_neo_ark_bridge_801845AC), D_neo_ark_bridge_801845AC, 0, NULL, 0, NULL };
+WorldCoordRoomLights gNeoArkBridgeRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkBridgeDirectionalLights),
+    .directionalLights     = _gNeoArkBridgeDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_neo_ark_bridge_80184724[8] = {
     { NULL, NULL, NULL, { -3040, -993, 3552, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -606,21 +649,72 @@ WorldCollisionTrigger D_neo_ark_bridge_80184724[8] = {
     { NULL, NULL, NULL, { -2880, -928, -7745, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_bridge_80184984[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement entry IDs and decimal file numbers used by the bridge's first three layouts.
+///
+/// Entry IDs match placement rows; file numbers select libraries through their group bases.
+enum {
+    NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID         = 4,
+    NEO_ARK_BRIDGE_BLACK_BEETLE_ENTRY_ID      = 38,
+    NEO_ARK_BRIDGE_LARGE_MOSSBACK_ENTRY_ID    = 49,
+    NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER      = 4,
+    NEO_ARK_BRIDGE_BLACK_BEETLE_FILE_NUMBER   = 38,
+    NEO_ARK_BRIDGE_LARGE_MOSSBACK_FILE_NUMBER = 49,
 };
 
-AreaResource D_neo_ark_bridge_8018499C[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Bog Diver file and task recipe, keyed by placement entry 4.
+///
+/// The three placements share this recipe; `AREA_PLACEMENT_END` terminates the list.
+static AreaResource _gNeoArkBridgeVariant1Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_bridge_801849C0[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Bog Diver and Black Beetle file/task recipes, keyed by entries 4 and 38.
+///
+/// Two Diver and three Beetle placements borrow these recipes through the end marker.
+static AreaResource _gNeoArkBridgeVariant2Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    {
+        .entryId        = NEO_ARK_BRIDGE_BLACK_BEETLE_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BLACK_BEETLE_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20,
+        .taskIndex      = 0,
+        .taskTable      = &gActor203800BlackBeetleTaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 3's Bog Diver and large Mossback file/task recipes, keyed by entries 4 and 49.
+///
+/// The extra file of entry 49 uses its placement's fileIdLow; the list ends at `AREA_PLACEMENT_END`.
+static AreaResource _gNeoArkBridgeVariant3Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    {
+        .entryId        = NEO_ARK_BRIDGE_LARGE_MOSSBACK_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_LARGE_MOSSBACK_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20,
+        .taskIndex      = 0,
+        .taskTable      = gActor201100Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_neo_ark_bridge_801849E4[3] = {
@@ -646,9 +740,9 @@ AreaResource D_neo_ark_bridge_80184A38[2] = {
 
 AreaVariant D_neo_ark_bridge_80184A50[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C1D0, D_neo_ark_bridge_80184984 },
-    { D_map_neo_ark_8017C210, D_neo_ark_bridge_8018499C },
-    { D_map_neo_ark_8017C270, D_neo_ark_bridge_801849C0 },
+    { D_map_neo_ark_8017C1D0, _gNeoArkBridgeVariant1Resources },
+    { D_map_neo_ark_8017C210, _gNeoArkBridgeVariant2Resources },
+    { D_map_neo_ark_8017C270, _gNeoArkBridgeVariant3Resources },
     { D_map_neo_ark_8017C2A0, D_neo_ark_bridge_801849E4 },
     { D_map_neo_ark_8017C2E0, D_neo_ark_bridge_80184A08 },
     { NULL, NULL },
@@ -666,43 +760,77 @@ WorldCollisionTrigger D_neo_ark_bridge_80184AB8[3] = {
     { NULL, NULL, NULL, { -480, -64, -1472, 0 }, { { -544, 0, -1904, 0 }, { 544, 0, -1904, 0 }, { -544, 0, 1904, 0 }, { 544, 0, 1904, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_bridge_80184B9C = {
-    0x1000000D,
-    0x1000000F,
-    0x1000000D,
+/// Type-1 cue-2 request bases; cue 1 uses the next script entry.
+enum {
+    NEO_ARK_BRIDGE_SURFACE3_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0D,
+    NEO_ARK_BRIDGE_SURFACE3_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0F,
+    NEO_ARK_BRIDGE_SURFACE4_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    NEO_ARK_BRIDGE_SURFACE4_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_bridge_80184BA8 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Surface class 3's walking, running and scripted-jump footstep pairs.
+///
+/// Walking and scripted jumps share their base; playback selects the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gNeoArkBridgeSurface3FootstepSounds = {
+    .walk         = NEO_ARK_BRIDGE_SURFACE3_FOOTSTEP_WALK,
+    .run          = NEO_ARK_BRIDGE_SURFACE3_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_BRIDGE_SURFACE3_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BB4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 4's walking, running and scripted-jump footstep pairs.
+///
+/// Walking and scripted jumps share their base; playback selects the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gNeoArkBridgeSurface4FootstepSounds = {
+    .walk         = NEO_ARK_BRIDGE_SURFACE4_FOOTSTEP_WALK,
+    .run          = NEO_ARK_BRIDGE_SURFACE4_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_BRIDGE_SURFACE4_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BBC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Classes 0, 2 and 5..7 block probes and allow weapon impacts and pushback, without cues.
+static WorldCollisionSurfaceProperties _gNeoArkBridgeSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BC4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_bridge_80184B9C },
+/// Class 1 passes probes and suppresses weapon impacts, retaining pushback without cues.
+static WorldCollisionSurfaceProperties _gNeoArkBridgeProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BCC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_bridge_80184BA8 },
+/// Class 3 blocks probes and allows weapon impacts, pushback and its footstep pairs.
+static WorldCollisionSurfaceProperties _gNeoArkBridgeSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkBridgeSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[8] = {
-    D_neo_ark_bridge_80184BB4,
-    D_neo_ark_bridge_80184BBC,
-    D_neo_ark_bridge_80184BB4,
-    D_neo_ark_bridge_80184BC4,
-    D_neo_ark_bridge_80184BCC,
-    D_neo_ark_bridge_80184BB4,
-    D_neo_ark_bridge_80184BB4,
-    D_neo_ark_bridge_80184BB4,
+/// Class 4 blocks probes and allows weapon impacts, pushback and its footstep pairs.
+static WorldCollisionSurfaceProperties _gNeoArkBridgeSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkBridgeSurface4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkBridgeSurfaceProperties[NEO_ARK_BRIDGE_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkBridgeSolidSurface,
+    &_gNeoArkBridgeProbePassSurface,
+    &_gNeoArkBridgeSolidSurface,
+    &_gNeoArkBridgeSurface3Properties,
+    &_gNeoArkBridgeSurface4Properties,
+    &_gNeoArkBridgeSolidSurface,
+    &_gNeoArkBridgeSolidSurface,
+    &_gNeoArkBridgeSolidSurface,
 };
 
 void neoArkBridgeAmbientEffectsTask(Task* task)

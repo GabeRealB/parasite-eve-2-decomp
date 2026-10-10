@@ -548,7 +548,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9CC[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9D4[1] = {
-    { &D_neo_ark_bridge_8018470C, NULL },
+    { &gNeoArkBridgeRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9DC[1] = {
@@ -694,7 +694,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017ABBC[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABCC[1] = {
-    { &D_neo_ark_bridge_80182814, D_neo_ark_bridge_80184724, D_neo_ark_bridge_80184AB8, NULL },
+    { &gNeoArkBridgeCollisionGrid, D_neo_ark_bridge_80184724, D_neo_ark_bridge_80184AB8, NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
@@ -778,7 +778,7 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     D_shelter_b6_corridor_8017FAB4,
     D_shelter_b6_training_room_80184758,
     D_neo_ark_r26_8017E1C0,
-    D_neo_ark_bridge_80182838,
+    gNeoArkBridgeViewCameras,
     D_shelter_1f_tent_80182314,
     D_neo_ark_woodland_path_80181D80,
     D_neo_ark_submarine_gallery_801823C0,
@@ -816,7 +816,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_shelter_b6_corridor_8017F8B4,
     D_shelter_b6_training_room_80184418,
     D_neo_ark_r26_8017E0E4,
-    D_neo_ark_bridge_80181F80,
+    gNeoArkBridgeViewMaps,
     D_shelter_1f_tent_80181D44,
     D_neo_ark_woodland_path_80181694,
     D_neo_ark_submarine_gallery_80181A08,
@@ -854,7 +854,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_shelter_b6_corridor_8018004C,
     D_shelter_b6_training_room_80184D78,
     D_neo_ark_r26_8017E898,
-    D_neo_ark_bridge_80184564,
+    gNeoArkBridgeSpriteViews,
     D_shelter_1f_tent_801838E4,
     D_neo_ark_woodland_path_80183C6C,
     D_neo_ark_submarine_gallery_80184D10,
@@ -892,7 +892,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_shelter_b6_corridor_80180548,
     D_shelter_b6_training_room_80185C38,
     D_neo_ark_r26_8017EA30,
-    D_neo_ark_bridge_80184BD4,
+    gNeoArkBridgeSurfaceProperties,
     D_shelter_1f_tent_801842B4,
     D_neo_ark_woodland_path_80184910,
     D_neo_ark_submarine_gallery_801858EC,
