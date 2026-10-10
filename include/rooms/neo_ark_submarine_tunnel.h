@@ -15,14 +15,26 @@
 #include "main/task_types.h"
 
 enum {
-    NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT          = 1,
-    NEO_ARK_SUBMARINE_TUNNEL_SURFACE_CLASS_COUNT = 8,
+    NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT               = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT               = 10,
+    NEO_ARK_SUBMARINE_TUNNEL_WARP_COUNT               = 2,
+    NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_SET_COUNT = 4,
+    NEO_ARK_SUBMARINE_TUNNEL_SURFACE_CLASS_COUNT      = 8,
 };
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4];
+/// Four eight-point patrol rings borrowed by the tunnel's Bog Divers.
+///
+/// Spawn-argument bits 4..5 select ring 0..3; each waypoint index wraps 0..7.
+/// XZ positions and Y swim heights use signed room-coordinate units. Normal
+/// patrol adds the Diver's water Y to waypoint Y; the scripted tunnel patrol
+/// uses waypoint Y directly. Keep the room overlay loaded through actor teardown.
+extern SVECTOR* gNeoArkSubmarineTunnelDiverWaypointSets[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_SET_COUNT];
 
-extern s16 D_neo_ark_submarine_tunnel_80181E90;
+/// Water-surface Y sampled by each tunnel Bog Diver at spawn, in room-coordinate units.
+///
+/// Zero throughout this room's lifetime; the Diver uses it for surfacing and
+/// normal patrol heights. The room publishes no live water-height controller.
+extern s16 gNeoArkSubmarineTunnelDiverWaterY;
 
 extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 
@@ -35,7 +47,12 @@ extern AreaVariant D_neo_ark_submarine_tunnel_80187470[13];
 /// Keep the overlay loaded while these records or their lights are in use.
 extern WorldCoordRoomLighting gNeoArkSubmarineTunnelRoomLighting[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
-extern WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[];
+/// Collision resources for the tunnel's single room, indexed by room minus one.
+///
+/// Borrows the room's writable grid, six view boundaries, eleven action quads
+/// and three sight occluders. Setup binds and links these resources; retain the
+/// room overlay until the active grid is replaced and all its lists are unlinked.
+extern WorldCollisionRoomResources gNeoArkSubmarineTunnelRoomCollisionResources[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
 /// Logical-view maps for the tunnel's single room, indexed by room minus one.
 ///
@@ -44,13 +61,34 @@ extern WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[];
 /// tunnel views. Keep this room directory's overlay loaded while using it.
 extern u8* gNeoArkSubmarineTunnelViewMaps[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
-extern ViewCount D_neo_ark_submarine_tunnel_80181E1C[];
+/// Ten logical views for the tunnel's single room, indexed by room minus one.
+///
+/// Limits reverse lookup in the borrowed identity map independently of its
+/// larger capacity. The map directory borrows this array while the room is loaded.
+extern ViewCount gNeoArkSubmarineTunnelViewCounts[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
-extern DirectionWarpEntry D_neo_ark_submarine_tunnel_80181E20[];
+/// Tunnel arrival/departure endpoints, indexed by 1-based warp ID minus one.
+///
+/// Warp 1 faces -X at the forest-zone end and starts view 2; warp 2 faces +X
+/// at the pavilion end and starts view 5. Both place the player in scripted
+/// control for the entry action to release, and supply no sounds or map flags.
+/// Placements use room-coordinate units and yaw uses 4096 units per turn.
+/// The stage warp directory borrows both records while this room is loaded.
+extern DirectionWarpEntry gNeoArkSubmarineTunnelWarpEntries[NEO_ARK_SUBMARINE_TUNNEL_WARP_COUNT];
 
-extern ViewCamera D_neo_ark_submarine_tunnel_80182500[];
+/// Ten tunnel cameras, indexed by mapped view minus one (views 1..10).
+///
+/// World-to-camera matrices use ONE-scaled rotation and negated world origins;
+/// projection distances are pixels. The map directory and queued camera tasks
+/// borrow these records while the room overlay is loaded.
+extern ViewCamera gNeoArkSubmarineTunnelViewCameras[NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_submarine_tunnel_80186B78[];
+/// Sprite descriptors for mapped tunnel views 1..10, indexed by view minus one.
+///
+/// Views 1, 6 and 10 have no source sprites and retain their empty batch address
+/// in sources.empty. Every batch list ends with SPRITE_BATCH_END; no view supplies
+/// clipping areas. Keep the room and selected view textures loaded during drawing.
+extern SpriteView gNeoArkSubmarineTunnelSpriteViews[NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT];
 
 /// Collision policies for the tunnel's eight surface classes, indexed by class 0..7.
 ///

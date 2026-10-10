@@ -72,6 +72,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#define SCREEN_WAVE_SPAWN_CONTEXT _gScreenWaveSpawnCtx
 #include "../../shared/screen_wave.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
@@ -134,11 +135,9 @@ typedef struct {
 } _ShelterB4ReservoirBurstConfig;
 STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirBurstConfig, 6);
 
-/// Spawn table of the screen-wave task, and the context it is spawned with.
-/// The context's mode word is written through its own symbol, which is how the
-/// original reached it.
+/// Spawn table of the screen-wave task.
 extern TaskDesc      gScreenWaveTaskDesc[];
-extern ScreenWaveCtx gScreenWaveSpawnCtx;
+static ScreenWaveCtx _gScreenWaveSpawnCtx;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -1322,7 +1321,13 @@ ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
 ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
-ScreenWaveCtx gScreenWaveSpawnCtx = { 0 };
+/// Persistent ramp and tint context borrowed by the reservoir's scripted wave.
+///
+/// A non-positive event request seeds span 1, strength 96 and RGB 64/128/128;
+/// the task resets frame/state on initialization. Positive requests write the
+/// low signed-halfword ramp phase (1 falling, 2 finished). Only one task may
+/// borrow it at a time; keep the room loaded through that task's final draw.
+static ScreenWaveCtx _gScreenWaveSpawnCtx = { 0 };
 
 /// Next free byte in the frame's borrowed reservoir water packet half.
 ///
@@ -1740,6 +1745,7 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
 }
 
 #include "../../shared/screen_wave_run.inc.c"
+#undef SCREEN_WAVE_SPAWN_CONTEXT
 
 /// Stops the retained water-ramp task, if live, and clears its shared handle.
 ///

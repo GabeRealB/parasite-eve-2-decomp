@@ -268,25 +268,25 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
         eventVariant = gGameSession->location.loc.variant;
         if (eventVariant == EVENT_VARIANT) {
             evsStartScript(D_neo_ark_submarine_tunnel_80181AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_neo_ark_submarine_tunnel_80181DF0 = eventVariant;
+            gNeoArkSubmarineTunnelEntryActionHandled = eventVariant;
         }
     }
     actionId = request->actionId;
-    if ((actionId == ACTION_ENTRY_OR_WARP_2) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.loc.variant == actionId)) {
+    if ((actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.loc.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ENTERED);
         evsStartScript(D_actor_451100_80136108, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        D_neo_ark_submarine_tunnel_80181DF0 = ENTRY_HANDLED;
+        gNeoArkSubmarineTunnelEntryActionHandled = ENTRY_HANDLED;
     }
-    if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED)) {
+    if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED)) {
         entryWarp = gGameSession->location.loc.warp;
         if (entryWarp == ENTRY_WARP_1) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            D_neo_ark_submarine_tunnel_80181DF0 = entryWarp;
+            gNeoArkSubmarineTunnelEntryActionHandled = entryWarp;
         }
     }
-    if ((request->actionId == ACTION_ENTRY_OR_WARP_2) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2)) {
+    if ((request->actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        D_neo_ark_submarine_tunnel_80181DF0 = ENTRY_HANDLED;
+        gNeoArkSubmarineTunnelEntryActionHandled = ENTRY_HANDLED;
     }
     return 0;
 }

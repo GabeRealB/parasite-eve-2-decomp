@@ -48,12 +48,12 @@
 #include "../../shared/screen_wave.h"
 
 static WorldCollisionGrid     _gNeoArkSubmarineTunnelCollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3];
-extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_80187248[6];
-extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_801874D8[11];
+static WorldCollisionOccluder _gNeoArkSubmarineTunnelSightOccluders[3];
+static WorldCollisionTrigger  _gNeoArkSubmarineTunnelViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gNeoArkSubmarineTunnelActionTriggers[11];
 static WorldCoordRoomLights   _gNeoArkSubmarineTunnelRoomLights;
 
-u8 D_neo_ark_submarine_tunnel_80181DF0 = 0;
+u8 gNeoArkSubmarineTunnelEntryActionHandled = 0;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
@@ -61,24 +61,36 @@ WorldCoordRoomLighting gNeoArkSubmarineTunnelRoomLighting[NEO_ARK_SUBMARINE_TUNN
     { .lights = &_gNeoArkSubmarineTunnelRoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[1] = {
-    { &_gNeoArkSubmarineTunnelCollisionGrid, D_neo_ark_submarine_tunnel_80187248, D_neo_ark_submarine_tunnel_801874D8, D_neo_ark_submarine_tunnel_8018781C },
+WorldCollisionRoomResources gNeoArkSubmarineTunnelRoomCollisionResources[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = {
+    {
+        .grid                 = &_gNeoArkSubmarineTunnelCollisionGrid,
+        .viewBoundaryTriggers = _gNeoArkSubmarineTunnelViewBoundaryTriggers,
+        .actionTriggers       = _gNeoArkSubmarineTunnelActionTriggers,
+        .occluders            = _gNeoArkSubmarineTunnelSightOccluders,
+    },
 };
 
 u8* gNeoArkSubmarineTunnelViewMaps[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_submarine_tunnel_80181E1C[1] = { 10 };
+ViewCount gNeoArkSubmarineTunnelViewCounts[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = { NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_submarine_tunnel_80181E20[2] = {
+DirectionWarpEntry gNeoArkSubmarineTunnelWarpEntries[NEO_ARK_SUBMARINE_TUNNEL_WARP_COUNT] = {
     { { { .word = 3072 }, 6300, 2330, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4544, 2944, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 1024 }, -6300, 2330, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5250, 3000, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-s16 D_neo_ark_submarine_tunnel_80181E90 = 0;
+s16 gNeoArkSubmarineTunnelDiverWaterY = 0;
 
-SVECTOR D_neo_ark_submarine_tunnel_80181E94[8] = {
+enum { NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_COUNT = 8 };
+
+/// Diver patrol ring 0: room XZ positions and submerged Y swim heights.
+///
+/// Selected by spawn-argument bits 4..5 equal to 0; indices wrap through eight
+/// points. Scripted tunnel patrol reads Y directly; normal patrol adds water Y.
+/// The SDK pad halfword is unused. Borrowed until the room's Divers are released.
+static SVECTOR _gNeoArkSubmarineTunnelDiverPatrolWaypoints0[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_COUNT] = {
     { 3456, -800, 2112, 0 },
     { -3648, -850, 2112, 0 },
     { -5344, -850, -1440, 0 },
@@ -89,7 +101,11 @@ SVECTOR D_neo_ark_submarine_tunnel_80181E94[8] = {
     { -5376, -800, -1216, 0 },
 };
 
-SVECTOR D_neo_ark_submarine_tunnel_80181ED4[8] = {
+/// Diver patrol ring 1: ring 0's XZ path in reverse, with Y at the water surface.
+///
+/// Selected by spawn-argument bits 4..5 equal to 1; eight signed-coordinate
+/// points, with an unused SDK pad halfword. Borrowed through Diver teardown.
+static SVECTOR _gNeoArkSubmarineTunnelDiverPatrolWaypoints1[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_COUNT] = {
     { -5376, 0, -1216, 0 },
     { 2720, 0, -2560, 0 },
     { 4832, 0, -1440, 0 },
@@ -100,7 +116,11 @@ SVECTOR D_neo_ark_submarine_tunnel_80181ED4[8] = {
     { 3456, 0, 2112, 0 },
 };
 
-SVECTOR D_neo_ark_submarine_tunnel_80181F14[8] = {
+/// Diver patrol ring 2: eight room-coordinate points at surface Y.
+///
+/// Selected by spawn-argument bits 4..5 equal to 2; indices wrap 0..7.
+/// The SDK pad halfword is unused. Borrowed through Diver teardown.
+static SVECTOR _gNeoArkSubmarineTunnelDiverPatrolWaypoints2[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_COUNT] = {
     { -7168, 0, 5696, 0 },
     { -3904, 0, 4224, 0 },
     { -4832, 0, 3440, 0 },
@@ -111,7 +131,11 @@ SVECTOR D_neo_ark_submarine_tunnel_80181F14[8] = {
     { -2880, 0, 6079, 0 },
 };
 
-SVECTOR D_neo_ark_submarine_tunnel_80181F54[8] = {
+/// Diver patrol ring 3: eight room-coordinate points at surface Y.
+///
+/// Selected by spawn-argument bits 4..5 equal to 3; indices wrap 0..7.
+/// The SDK pad halfword is unused. Borrowed through Diver teardown.
+static SVECTOR _gNeoArkSubmarineTunnelDiverPatrolWaypoints3[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_COUNT] = {
     { 0x319C, 0, 4000, 0 },
     { 0x3840, 0, 4000, 0 },
     { 0x2840, 0, 4072, 0 },
@@ -122,11 +146,11 @@ SVECTOR D_neo_ark_submarine_tunnel_80181F54[8] = {
     { 8320, 0, 1632, 0 },
 };
 
-SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4] = {
-    D_neo_ark_submarine_tunnel_80181E94,
-    D_neo_ark_submarine_tunnel_80181ED4,
-    D_neo_ark_submarine_tunnel_80181F14,
-    D_neo_ark_submarine_tunnel_80181F54,
+SVECTOR* gNeoArkSubmarineTunnelDiverWaypointSets[NEO_ARK_SUBMARINE_TUNNEL_DIVER_WAYPOINT_SET_COUNT] = {
+    _gNeoArkSubmarineTunnelDiverPatrolWaypoints0,
+    _gNeoArkSubmarineTunnelDiverPatrolWaypoints1,
+    _gNeoArkSubmarineTunnelDiverPatrolWaypoints2,
+    _gNeoArkSubmarineTunnelDiverPatrolWaypoints3,
 };
 
 enum {
@@ -182,8 +206,8 @@ static WorldCollisionGrid _gNeoArkSubmarineTunnelCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gNeoArkSubmarineTunnelCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_submarine_tunnel_80182500[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0xC350, 0 } }, 911 },
+ViewCamera gNeoArkSubmarineTunnelViewCameras[NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0xC350, 0 } }, 911 },
     { { { { 378, 0, -4078 }, { 741, 4027, 68 }, { 4010, -744, 372 } }, { -750, -2400, 200 } }, 257 },
     { { { { 652, 0, -4043 }, { 348, 4080, 56 }, { 4028, -352, 650 } }, { 2380, -2390, 300 } }, 257 },
     { { { { 652, 0, 4043 }, { -348, 4080, 56 }, { -4028, -352, 650 } }, { -2380, -2390, 300 } }, 257 },
@@ -1216,7 +1240,7 @@ static SpriteBatch _gNeoArkSubmarineTunnelView10SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_submarine_tunnel_80186B78[10] = {
+SpriteView gNeoArkSubmarineTunnelSpriteViews[NEO_ARK_SUBMARINE_TUNNEL_VIEW_COUNT] = {
     { { .empty = _gNeoArkSubmarineTunnelView1SpriteBatches }, _gNeoArkSubmarineTunnelView1SpriteBatches, NULL },
     { { .elements = _gNeoArkSubmarineTunnelView2SpriteSources }, _gNeoArkSubmarineTunnelView2SpriteBatches, NULL },
     { { .elements = _gNeoArkSubmarineTunnelView3SpriteSources }, _gNeoArkSubmarineTunnelView3SpriteBatches, NULL },
@@ -1273,41 +1297,99 @@ static WorldCoordRoomLights _gNeoArkSubmarineTunnelRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
-    { NULL, NULL, NULL, { -3699, 1825, -52, 0 }, { { 12, -1904, -3017, 0 }, { -12, -1904, 3018, 0 }, { 12, 1904, -3017, 0 }, { -12, 1904, 3018, 0 } }, { 4096, 0, 16, 0 }, { 0, 0, 4096, 0 }, 3565, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3528, 1857, -133, 0 }, { { -18, -1904, 2884, 0 }, { 18, -1904, -2884, 0 }, { -18, 1904, 2884, 0 }, { 18, 1904, -2884, 0 } }, { -4109, 0, -27, 0 }, { 0, 0, 4096, 0 }, 3453, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 64, 1919, -176, 0 }, { { 0, -1904, 3056, 0 }, { 0, -1904, -3056, 0 }, { 0, 1904, 3056, 0 }, { 0, 1904, -3056, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3593, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -128, 1951, -176, 0 }, { { 0, -1904, -3040, 0 }, { 0, -1904, 3040, 0 }, { 0, 1904, -3040, 0 }, { 0, 1904, 3040, 0 } }, { 4109, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3584, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3360, 1824, -160, 0 }, { { 0, -1904, -3040, 0 }, { 0, -1904, 3040, 0 }, { 0, 1904, -3040, 0 }, { 0, 1904, 3040, 0 } }, { 4109, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3584, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3520, 1856, -96, 0 }, { { 0, -1904, 3056, 0 }, { 0, -1904, -3056, 0 }, { 0, 1904, 3056, 0 }, { 0, 1904, -3056, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3593, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries for 2 <-> 3 <-> 4 <-> 5, with LAST on the sixth quad.
+///
+/// Room setup binds the coordinate, links and enables every record. Positions
+/// and radii use room-coordinate units; normals use ONE per unit. Mutable
+/// list links and hit latches stay live until unlinked before the room unloads.
+static WorldCollisionTrigger _gNeoArkSubmarineTunnelViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { -3699, 1825, -52, 0 }, { { 12, -1904, -3017, 0 }, { -12, -1904, 3018, 0 }, { 12, 1904, -3017, 0 }, { -12, 1904, 3018, 0 } }, { ONE, 0, 16, 0 }, { 0, 0, ONE, 0 }, 3565, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3528, 1857, -133, 0 }, { { -18, -1904, 2884, 0 }, { 18, -1904, -2884, 0 }, { -18, 1904, 2884, 0 }, { 18, 1904, -2884, 0 } }, { -4109, 0, -27, 0 }, { 0, 0, ONE, 0 }, 3453, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 64, 1919, -176, 0 }, { { 0, -1904, 3056, 0 }, { 0, -1904, -3056, 0 }, { 0, 1904, 3056, 0 }, { 0, 1904, -3056, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3593, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -128, 1951, -176, 0 }, { { 0, -1904, -3040, 0 }, { 0, -1904, 3040, 0 }, { 0, 1904, -3040, 0 }, { 0, 1904, 3040, 0 } }, { 4109, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3584, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3360, 1824, -160, 0 }, { { 0, -1904, -3040, 0 }, { 0, -1904, 3040, 0 }, { 0, 1904, -3040, 0 }, { 0, 1904, 3040, 0 } }, { 4109, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3584, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3520, 1856, -96, 0 }, { { 0, -1904, 3056, 0 }, { 0, -1904, -3056, 0 }, { 0, 1904, 3056, 0 }, { 0, 1904, -3056, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3593, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_submarine_tunnel_80187410[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_DIVER      = 4,
+    NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AMOEBA     = 24,
+    NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AYA_WALKER = 132,
+    NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_NO9_WALKER = 34,
+    NEO_ARK_SUBMARINE_TUNNEL_DIVER_FILE          = 4,
+    NEO_ARK_SUBMARINE_TUNNEL_AMOEBA_FILE         = 24,
+    NEO_ARK_SUBMARINE_TUNNEL_SCENE_ACTOR_FILE    = 511,
 };
 
-AreaResource D_neo_ark_submarine_tunnel_80187428[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Bog Diver load/spawn recipe, ending at AREA_PLACEMENT_END.
+///
+/// Placement entry 4 loads file 100400 and spawns body descriptor 0 for both
+/// Divers. The resource list is borrowed during loading and actor spawning;
+/// its task table belongs to the loaded actor package.
+static AreaResource _gNeoArkSubmarineTunnelVariant1Resources[] = {
+    {
+        .entryId        = NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_DIVER,
+        .fileNumber     = NEO_ARK_SUBMARINE_TUNNEL_DIVER_FILE,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_submarine_tunnel_80187440[3] = {
-    { 132, 511, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor451100QuietWalkTaskDesc },
-    { 34, 511, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor451100PairWalkTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Amoeba load/spawn recipe, ending at AREA_PLACEMENT_END.
+///
+/// Placement entry 24 loads file 102400 and spawns descriptor 0 for both
+/// Amoebas. The resource list is borrowed during loading and actor spawning;
+/// its task table belongs to the loaded actor package.
+static AreaResource _gNeoArkSubmarineTunnelVariant2Resources[] = {
+    {
+        .entryId        = NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AMOEBA,
+        .fileNumber     = NEO_ARK_SUBMARINE_TUNNEL_AMOEBA_FILE,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = 0,
+        .taskTable      = gActor102400Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_submarine_tunnel_80187464[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Aya-body and No. 9 GOLEM scene-walker recipes, then AREA_PLACEMENT_END.
+///
+/// Entry 132 loads actor file 451100; entry 34 loads its additional 651100
+/// textures. Both spawn descriptor 0 from actor_451100's respective task tables.
+/// Keep this list live during loading/spawning and that actor package live
+/// through walker teardown.
+static AreaResource _gNeoArkSubmarineTunnelVariant3Resources[] = {
+    {
+        .entryId        = NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AYA_WALKER,
+        .fileNumber     = NEO_ARK_SUBMARINE_TUNNEL_SCENE_ACTOR_FILE,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .taskTable      = &gActor451100QuietWalkTaskDesc,
+    },
+    {
+        .entryId        = NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_NO9_WALKER,
+        .fileNumber     = NEO_ARK_SUBMARINE_TUNNEL_SCENE_ACTOR_FILE,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60,
+        .taskIndex      = 0,
+        .taskTable      = gActor451100PairWalkTaskDescs,
+    },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 4's present but empty resource list: only AREA_PLACEMENT_END.
+///
+/// Paired with an empty placement list; it queues no files and spawns no actors.
+static AreaResource _gNeoArkSubmarineTunnelVariant4Resources[] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B330, D_neo_ark_submarine_tunnel_80187410 },
-    { D_map_neo_ark_8017B360, D_neo_ark_submarine_tunnel_80187428 },
-    { D_map_neo_ark_8017B390, D_neo_ark_submarine_tunnel_80187440 },
-    { D_map_neo_ark_8017B3C0, D_neo_ark_submarine_tunnel_80187464 },
+    { D_map_neo_ark_8017B330, _gNeoArkSubmarineTunnelVariant1Resources },
+    { D_map_neo_ark_8017B360, _gNeoArkSubmarineTunnelVariant2Resources },
+    { D_map_neo_ark_8017B390, _gNeoArkSubmarineTunnelVariant3Resources },
+    { D_map_neo_ark_8017B3C0, _gNeoArkSubmarineTunnelVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1318,21 +1400,49 @@ AreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionTrigger D_neo_ark_submarine_tunnel_801874D8[11] = {
-    { NULL, NULL, NULL, { 5040, 2947, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING, 73, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5088, 2956, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING, 73, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5984, 736, 0, 0 }, { { 0, -2896, -1024, 0 }, { 0, 2896, -1024, 0 }, { 0, -2896, 1024, 0 }, { 0, 2896, 1024, 0 } }, { -4111, 0, 0, 0 }, { -4096, 0, 0, 0 }, 3061, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 11, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6144, 752, 0, 0 }, { { 0, 3008, -1024, 0 }, { 0, -3008, -1024, 0 }, { 0, 3008, 1024, 0 }, { 0, -3008, 1024, 0 } }, { 4096, 0, 0, 0 }, { 4096, 0, 0, 0 }, 3176, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 13, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4032, 2944, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 6080, 2256, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 67, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5088, 2931, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6112, 2272, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 67, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4992, 2944, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, 2944, 608, 0 }, { { -6544, 0, -416, 0 }, { 6544, 0, -416, 0 }, { -6544, 0, 416, 0 }, { 6544, 0, 416, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 6556, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, 2944, -448, 0 }, { { -6544, 0, -416, 0 }, { 6544, 0, -416, 0 }, { -6544, 0, 416, 0 }, { 6544, 0, 416, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 6556, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+// Stair parameters pack surface class 4 above a low-nibble step count; yaw
+// parameters use 256 units per turn. Warp bytes pack departure/arrival slots.
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCEND           = 0x100,
+    NEO_ARK_SUBMARINE_TUNNEL_STAIR_ASCENT            = (4 << 4) | 9,
+    NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCENT           = (4 << 4) | 3,
+    NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_POSITIVE_X    = 64,
+    NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_NEGATIVE_X    = 192,
+    NEO_ARK_SUBMARINE_TUNNEL_WARP_TO_FOREST_ZONE     = (1 << 4) | 2,
+    NEO_ARK_SUBMARINE_TUNNEL_WARP_TO_PAVILION        = (2 << 4) | 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ACTION_ADVANCE_PROGRESS = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ACTION_EVENT_OR_WARP_1  = 2,
+    NEO_ARK_SUBMARINE_TUNNEL_ACTION_ENTRY_OR_WARP_2  = 3,
+    NEO_ARK_SUBMARINE_TUNNEL_CAP_POSITIVE_Z          = 4,
+    NEO_ARK_SUBMARINE_TUNNEL_CAP_NEGATIVE_Z          = 5,
 };
 
-WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3] = {
+/// Eleven tunnel action quads for stairs, exits, entry scenes and side-wall CAP commands.
+///
+/// Final quad carries LAST. Setup binds, links and enables these writable
+/// records; hits and links survive until cleared/unlinked. Positions and radii
+/// use room-coordinate units, normals use ONE per unit, and facing yaws use
+/// 256 units per turn. Keep the room overlay live while any record is linked.
+static WorldCollisionTrigger _gNeoArkSubmarineTunnelActionTriggers[11] = {
+    { NULL, NULL, NULL, { 5040, 2947, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING, NEO_ARK_SUBMARINE_TUNNEL_STAIR_ASCENT, NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_POSITIVE_X, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5088, 2956, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING, NEO_ARK_SUBMARINE_TUNNEL_STAIR_ASCENT, NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_NEGATIVE_X, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5984, 736, 0, 0 }, { { 0, -2896, -1024, 0 }, { 0, 2896, -1024, 0 }, { 0, -2896, 1024, 0 }, { 0, 2896, 1024, 0 } }, { -4111, 0, 0, 0 }, { -ONE, 0, 0, 0 }, 3061, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_NEO_ARK_FOREST_ZONE, NEO_ARK_SUBMARINE_TUNNEL_WARP_TO_FOREST_ZONE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6144, 752, 0, 0 }, { { 0, 3008, -1024, 0 }, { 0, -3008, -1024, 0 }, { 0, 3008, 1024, 0 }, { 0, -3008, 1024, 0 } }, { ONE, 0, 0, 0 }, { ONE, 0, 0, 0 }, 3176, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_NEO_ARK_PAVILION, NEO_ARK_SUBMARINE_TUNNEL_WARP_TO_PAVILION, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4032, 2944, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_SUBMARINE_TUNNEL_ACTION_ADVANCE_PROGRESS, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 6080, 2256, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCENT, NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_NEGATIVE_X, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5088, 2931, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_SUBMARINE_TUNNEL_ACTION_EVENT_OR_WARP_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6112, 2272, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_SUBMARINE_TUNNEL_STAIR_DESCENT, NEO_ARK_SUBMARINE_TUNNEL_STAIR_YAW_POSITIVE_X, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4992, 2944, 0, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_SUBMARINE_TUNNEL_ACTION_ENTRY_OR_WARP_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, 2944, 608, 0 }, { { -6544, 0, -416, 0 }, { 6544, 0, -416, 0 }, { -6544, 0, 416, 0 }, { 6544, 0, 416, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -ONE, 0 }, 6556, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_TUNNEL_CAP_POSITIVE_Z, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, 2944, -448, 0 }, { { -6544, 0, -416, 0 }, { 6544, 0, -416, 0 }, { -6544, 0, 416, 0 }, { 6544, 0, 416, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, ONE, 0 }, 6556, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_TUNNEL_CAP_NEGATIVE_Z, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Three room-space sight-blocking quads, with LAST on the third record.
+///
+/// Positions and radii use room-coordinate units; normals use ONE per unit.
+/// Setup links and enables these writable records. Retained low flag bit 0
+/// has no established meaning; keep all records live until their list is cleared.
+static WorldCollisionOccluder _gNeoArkSubmarineTunnelSightOccluders[3] = {
     { NULL, NULL, { 0, 576, 0, 0 }, { { -0x2720, 0, -1024, 0 }, { 0x2720, 0, -1024, 0 }, { -0x2720, 0, 1024, 0 }, { 0x2720, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, 10032, 1, 0 },
     { NULL, NULL, { 0, 1904, 896, 0 }, { { -0x2720, -1456, -224, 0 }, { 0x2720, -1456, -224, 0 }, { -0x2720, 1456, 224, 0 }, { 0x2720, 1456, 224, 0 } }, { 0, 622, -4048, 0 }, 10084, 1, 0 },
     { NULL, NULL, { 0, 1920, -832, 0 }, { { -0x2720, -1459, 208, 0 }, { 0x2720, -1459, 208, 0 }, { -0x2720, 1458, -209, 0 }, { 0x2720, 1458, -209, 0 } }, { 0, -580, -4055, 0 }, 10084, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },

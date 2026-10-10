@@ -23,7 +23,7 @@
  *   ScreenWaveOscillator  gScreenWaveColumns[]       per-column phase, offset and speed
  *   ScreenWaveOscillator  gScreenWaveRows[]          per-row phase, offset and speed
  *   POLY_FT4              gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
- *   ScreenWaveCtx         gScreenWaveSpawnCtx        the context _screenWaveRun fills
+ *   ScreenWaveCtx         SCREEN_WAVE_SPAWN_CONTEXT the context _screenWaveRun fills
  *   TaskDesc              gScreenWaveTaskDesc[]      the wave task _screenWaveRun spawns
  *
  * The grid task's records are the eight-byte ScreenWaveGridOscillator rather
@@ -44,6 +44,18 @@
 #include "main/task_types.h"
 
 #include "overlay.h"
+
+/// Persistent ScreenWaveCtx lvalue seeded and steered by `_screenWaveRun`.
+///
+/// Defaults to `gScreenWaveSpawnCtx`, shared between the tunnel's translation
+/// units. The reservoir binds its TU-local `_gScreenWaveSpawnCtx` before this
+/// header. Declare storage in the carrier at its existing BSS position; the
+/// wave task borrows its address through the final draw, so overlapping spawns
+/// are forbidden. The replacement is a side-effect-free, addressable lvalue,
+/// used once for each field store and once when taking its spawn address.
+#ifndef SCREEN_WAVE_SPAWN_CONTEXT
+#define SCREEN_WAVE_SPAWN_CONTEXT gScreenWaveSpawnCtx
+#endif
 
 /// Quad array `_screenWaveGridTask` indexes, `[buffer][row][column]`.
 ///
