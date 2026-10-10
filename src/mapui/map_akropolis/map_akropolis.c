@@ -851,7 +851,7 @@ WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOT
 };
 
 static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
-    D_acropolis_square_80183B9C,
+    gAcropolisSquareRoomCollisionResources,
     gAcropolisEastElevatorHallRoomCollisionResources,
     gAcropolisPatioRoomCollisionResources,
     gAcropolisCafeteriaCollisionRooms,
@@ -876,7 +876,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
 WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
 
 static SpriteView* D_map_akropolis_8017AACC[20] = {
-    D_acropolis_square_8018857C,
+    gAcropolisSquareSpriteViews,
     gAcropolisEastElevatorHallSpriteViews,
     gAcropolisPatioSpriteViews,
     gAcropolisCafeteriaSpriteViews,
@@ -901,7 +901,7 @@ static SpriteView* D_map_akropolis_8017AACC[20] = {
 SpriteAreaTable D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
 
 DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
-    D_acropolis_square_80183BBC,
+    gAcropolisSquareWarpEntries,
     gAcropolisEastElevatorHallWarpEntries,
     gAcropolisPatioWarpEntries,
     gAcropolisCafeteriaWarps,
@@ -924,7 +924,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
 };
 
 static ViewCount* D_map_akropolis_8017AB70[20] = {
-    D_acropolis_square_80183BB0,
+    gAcropolisSquareViewCounts,
     gAcropolisEastElevatorHallViewCounts,
     gAcropolisPatioViewCounts,
     gAcropolisCafeteriaViewCounts,
@@ -949,7 +949,7 @@ static ViewCount* D_map_akropolis_8017AB70[20] = {
 ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
 
 static ViewCamera* D_map_akropolis_8017ABC4[20] = {
-    D_acropolis_square_80188630,
+    gAcropolisSquareViewCameras,
     gAcropolisEastElevatorHallViewCameras,
     gAcropolisPatioViewCameras,
     gAcropolisCafeteriaViewCameras,

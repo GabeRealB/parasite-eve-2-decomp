@@ -85,7 +85,7 @@ _gShelterB1SterilizationRoomConeLights = 0x8018B18C; // size:0x4A4 defined:True
 _gShelterB1SterilizationRoomLights = 0x8018B630; // size:0x18 defined:True
 _gShelterB1SterilizationRoomViewBoundaryTriggers = 0x8018B648; // size:0x260 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
+gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 gShelterB1SterilizationRoomActionTriggers = 0x8018B8A8; // size:0x850 defined:True
 _gShelterB1SterilizationRoomVariant1Resources = 0x8018C0F8; // size:0xC defined:True
 _gShelterB1SterilizationRoomVariant5Resources = 0x8018C104; // size:0x18 defined:True

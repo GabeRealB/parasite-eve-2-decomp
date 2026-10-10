@@ -272,7 +272,7 @@ gShelterB2ElevatorViewBoundaryTriggers = 0x8017E858; // absolute:True owner=shel
 gShelterB2ElevatorActionTriggers = 0x8017E8F0; // absolute:True owner=shelter_b2_elevator
 gShelterB2ElevatorSurfacePropertiesByClass = 0x8017E9D8; // absolute:True owner=shelter_b2_elevator
 shelterB2ElevatorHallRoomTask = 0x8017DD08; // type:func absolute:True owner=shelter_b2_elevator_hall shared=rooms
-gShelterB2ElevatorHallViewMaps = 0x801838DC; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
+gShelterB2ElevatorHallViewMaps = 0x801838DC; // absolute:True owner=shelter_b2_elevator_hall
 D_shelter_b2_elevator_hall_801838E0 = 0x801838E0; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 D_shelter_b2_elevator_hall_801838E4 = 0x801838E4; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 gShelterB2ElevatorHallRoomCollision = 0x80183DB4; // absolute:True owner=shelter_b2_elevator_hall
@@ -343,7 +343,7 @@ gShelterB2BreedingRoomCollisionGrid = 0x801810F4; // absolute:True owner=shelter
 D_shelter_b2_breeding_room_80181118 = 0x80181118; // absolute:True owner=shelter_b2_breeding_room
 D_shelter_b2_breeding_room_801833D4 = 0x801833D4; // absolute:True owner=shelter_b2_breeding_room
 gShelterB2BreedingRoomRoomLights = 0x801837AC; // absolute:True owner=shelter_b2_breeding_room shared=rooms
-D_shelter_b2_breeding_room_801837C4 = 0x801837C4; // absolute:True owner=shelter_b2_breeding_room shared=rooms
+D_shelter_b2_breeding_room_801837C4 = 0x801837C4; // absolute:True owner=shelter_b2_breeding_room
 D_shelter_b2_breeding_room_80183F9C = 0x80183F9C; // absolute:True owner=shelter_b2_breeding_room shared=rooms
 gShelterB2BreedingRoomAmbientByView = 0x80184624; // absolute:True owner=shelter_b2_breeding_room
 D_shelter_b2_breeding_room_8018467C = 0x8018467C; // absolute:True owner=shelter_b2_breeding_room shared=rooms

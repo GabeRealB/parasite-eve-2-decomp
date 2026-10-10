@@ -81,7 +81,7 @@ _gTelephoneMenuList = 0x80182784; // size:0x24 defined:True
 _gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc = 0x80182814; // size:0xC defined:True
 gDryfieldNightMotelLobbyCashRegisterHotspots = 0x80182820; // size:0xB4 defined:True
 gDryfieldNightMotelLobbyCashRegisterTaskDesc = 0x801828D4; // size:0xC defined:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
+gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 _gRoomCutsceneTaskDescs = 0x801827A8; // size:0x24 defined:True
 D_dryfield_night_motel_lobby_801827CC = 0x801827CC; // size:0x30 defined:True
 D_dryfield_night_motel_lobby_801827FC = 0x801827FC; // size:0x18 defined:True

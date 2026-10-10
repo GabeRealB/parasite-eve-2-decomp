@@ -12,13 +12,22 @@
 
 #include "main/task_types.h"
 
-// The copied room-event handler uses this table only in stage 1, area 1.
-extern AreaApplyRec D_acropolis_square_80188888[4];
+/// Saved-area updates after the opening square cutscene advances Acropolis progress.
+///
+/// All save modes select variant 3 in the patio and cafeteria, variant 2 in
+/// MIST parking, and mark those areas on the map. AREA_APPLY_END terminates the
+/// list. Shared cutscene carriers borrow it only for stage 1, area 1; the square
+/// overlay must be loaded when that branch applies the updates.
+extern AreaApplyRec gAcropolisSquarePostCutsceneAreaUpdates[4];
 
 extern AreaVariant D_acropolis_square_80185E50[3];
 
-// acropolis_square
-extern WorldCollisionRoomResources D_acropolis_square_80183B9C[];
+/// Collision resources for the square's single room, borrowed by the Akropolis map.
+///
+/// Room 1 supplies a grid, sixteen view boundaries, twenty-six action triggers
+/// and no sight occluders. Setup binds and links the mutable resources; keep the
+/// room overlay loaded until the active lists are unlinked. No array terminator.
+extern WorldCollisionRoomResources gAcropolisSquareRoomCollisionResources[1];
 
 /// Logical-view mapping for the square's single room, borrowed by the Akropolis map.
 ///
@@ -27,7 +36,12 @@ extern WorldCollisionRoomResources D_acropolis_square_80183B9C[];
 /// owns the shared byte map. Keep this room overlay loaded while using the directory.
 extern u8* gAcropolisSquareViewMaps[1];
 
-extern ViewCount D_acropolis_square_80183BB0[];
+/// Number of logical view slots in the square's single room.
+///
+/// Room 1 has fifteen slots. The signed halfword count bounds reverse mapping
+/// through `gAcropolisSquareViewMaps`; it counts elements, with no terminator.
+/// The Akropolis map borrows this storage while the room overlay is loaded.
+extern ViewCount gAcropolisSquareViewCounts[1];
 
 /// Model lighting for the square's single room, borrowed by the Akropolis map.
 ///
@@ -37,11 +51,30 @@ extern ViewCount D_acropolis_square_80183BB0[];
 /// and referenced storage; keep it loaded while lighting uses them.
 extern WorldCoordRoomLighting gAcropolisSquareRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_square_80183BBC[];
+/// Seven warp endpoints for the square, indexed by 1-based warp ID minus one.
+///
+/// Slots 1/7 share west-elevator placement but select views 13/15; slot 2 is
+/// the east-elevator placement. Slots 3/5 and 4/6 pair ordinary and scripted
+/// patio/forked-road placements. Positions use room game units and yaw uses
+/// 4096 units per turn. No terminator; the Akropolis map borrows the array while
+/// the overlay is loaded, and consumers copy complete entries by value.
+extern DirectionWarpEntry gAcropolisSquareWarpEntries[7];
 
-extern SpriteView D_acropolis_square_8018857C[];
+/// Foreground sprite resources for mapped square views 1..15, stored at index minus one.
+///
+/// Views 3..8 have source sprites. Views 1/2 and 9..15 retain their empty batch
+/// lists in sources.empty and draw decoded background strips. Every drawAreas
+/// pointer is NULL. Lists and sources are mutable room-owned storage borrowed
+/// by the Akropolis map and sprite cache; keep the overlay loaded while used.
+extern SpriteView gAcropolisSquareSpriteViews[15];
 
-extern ViewCamera D_acropolis_square_80188630[];
+/// Fifteen square cameras in mapped 1-based view order, with no terminator.
+///
+/// Rotations use Q12 unit coefficients; translations are negated camera origins
+/// in room game units, applied before rotation. Projection distances are pixels.
+/// The Akropolis map and queued camera tasks borrow these room-owned records;
+/// keep the overlay loaded until queued applications finish copying them.
+extern ViewCamera gAcropolisSquareViewCameras[15];
 
 /// Collision and footstep policies indexed by the square's surface classes 0..7.
 ///

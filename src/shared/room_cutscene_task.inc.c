@@ -189,7 +189,7 @@ static void _roomCutsceneTask(Task* task)
                     gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
                     gameFlagSetNibble(GAME_FLAG_00E, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0)) {
-                        areaApplySavedUpdates(D_acropolis_square_80188888);
+                        areaApplySavedUpdates(gAcropolisSquarePostCutsceneAreaUpdates);
                         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
                     }
                 }
