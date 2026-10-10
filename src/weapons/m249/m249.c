@@ -367,136 +367,213 @@ static AnimationSet _gM249ItemUseAnimation = {
     },
 };
 
-static AnimationPackedPose _gM249Animation03040Bank1[14] = {
+/// Translation and full-resolution Euler poses for the M249 stair ascent (encoding 1).
+///
+/// Read-only clip payloads retain their serialized .data positions.
+static const AnimationPackedPose _gM249StairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03040_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation03040Bank4[156] = {
+/// Packed Euler rotations for the M249 stair ascent (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249StairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03040_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation03040Records[253] = {
+/// Stair-ascent keyframes, track loops and stop controls, with footstep cues on track 1.
+static const AnimationRecord _gM249StairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03040_records.inc"
 };
 
-static u16 _gM249Animation03040Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249StairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03040_indices.inc"
 };
 
-static AnimationSet _gM249Animation03040 = {
-    _gM249Animation03040Records,
-    _gM249Animation03040Indices,
-    { NULL, _gM249Animation03040Bank1, NULL, NULL, _gM249Animation03040Bank4, NULL, NULL, NULL },
+/// Repeating stair-ascent stride for the player with the M249 bank bound, native-bank set 36.
+///
+/// Its nineteen rig tracks loop; ordinary child playback uses tracks 1..18.
+/// Track 1's footstep cues gate stair displacement. Keep the clip data loaded
+/// while any slot refers to it.
+static AnimationSet _gM249StairAscentAnimation = {
+    .records           = _gM249StairAscentAnimationRecords,
+    .trackStartIndices = _gM249StairAscentAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249StairAscentAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249StairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation037C8Bank1[16] = {
+/// Translation and full-resolution Euler poses for the M249 stair descent (encoding 1).
+static const AnimationPackedPose _gM249StairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_037C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation037C8Bank4[167] = {
+/// Packed Euler rotations for the M249 stair descent (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249StairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_037C8_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation037C8Records[247] = {
+/// Stair-descent keyframes, track loops and stop controls, with footstep cues on track 1.
+static const AnimationRecord _gM249StairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_037C8_records.inc"
 };
 
-static u16 _gM249Animation037C8Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249StairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_037C8_indices.inc"
 };
 
-static AnimationSet _gM249Animation037C8 = {
-    _gM249Animation037C8Records,
-    _gM249Animation037C8Indices,
-    { NULL, _gM249Animation037C8Bank1, NULL, NULL, _gM249Animation037C8Bank4, NULL, NULL, NULL },
+/// Repeating stair-descent stride for the player with the M249 bank bound, native-bank set 37.
+///
+/// Its nineteen rig tracks loop; ordinary child playback uses tracks 1..18.
+/// Track 1's footstep cues gate stair displacement. Keep the clip data loaded
+/// while any slot refers to it.
+static AnimationSet _gM249StairDescentAnimation = {
+    .records           = _gM249StairDescentAnimationRecords,
+    .trackStartIndices = _gM249StairDescentAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249StairDescentAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249StairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation03A9CBank1[6] = {
+/// Translation and full-resolution Euler poses for an odd-count M249 stair-ascent finish (encoding 1).
+static const AnimationPackedPose _gM249StairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03A9C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation03A9CBank4[52] = {
+/// Packed Euler rotations for an odd-count M249 stair-ascent finish (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249StairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03A9C_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation03A9CRecords[91] = {
+/// Odd-count stair-ascent finish keyframes and stop controls, with a footstep cue on track 1.
+static const AnimationRecord _gM249StairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03A9C_records.inc"
 };
 
-static u16 _gM249Animation03A9CIndices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249StairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03A9C_indices.inc"
 };
 
-static AnimationSet _gM249Animation03A9C = {
-    _gM249Animation03A9CRecords,
-    _gM249Animation03A9CIndices,
-    { NULL, _gM249Animation03A9CBank1, NULL, NULL, _gM249Animation03A9CBank4, NULL, NULL, NULL },
+/// Stair-ascent finish after an odd original step count, M249 native-bank set 39.
+///
+/// Plays the level stride at the top of the flight. Its nineteen rig tracks
+/// stop at their final poses; ordinary child playback uses tracks 1..18.
+/// Keep the clip data loaded while any slot refers to it.
+static AnimationSet _gM249StairAscentFinishOddAnimation = {
+    .records           = _gM249StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM249StairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249StairAscentFinishOddAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249StairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation03E2CBank1[7] = {
+/// Translation and full-resolution Euler poses for an even-count M249 stair-ascent finish (encoding 1).
+static const AnimationPackedPose _gM249StairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03E2C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation03E2CBank4[73] = {
+/// Packed Euler rotations for an even-count M249 stair-ascent finish (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249StairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03E2C_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation03E2CRecords[114] = {
+/// Even-count stair-ascent finish keyframes and stop controls, with a footstep cue on track 1.
+static const AnimationRecord _gM249StairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03E2C_records.inc"
 };
 
-static u16 _gM249Animation03E2CIndices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249StairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_03E2C_indices.inc"
 };
 
-static AnimationSet _gM249Animation03E2C = {
-    _gM249Animation03E2CRecords,
-    _gM249Animation03E2CIndices,
-    { NULL, _gM249Animation03E2CBank1, NULL, NULL, _gM249Animation03E2CBank4, NULL, NULL, NULL },
+/// Stair-ascent finish after an even original step count, M249 native-bank set 38.
+///
+/// Plays the level stride at the top of the flight. Its nineteen rig tracks
+/// stop at their final poses; ordinary child playback uses tracks 1..18.
+/// Keep the clip data loaded while any slot refers to it.
+static AnimationSet _gM249StairAscentFinishEvenAnimation = {
+    .records           = _gM249StairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM249StairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249StairAscentFinishEvenAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249StairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation042B4Bank1[9] = {
+/// Translation and full-resolution Euler poses for M249 Parasite Energy family-0 release (encoding 1).
+static const AnimationPackedPose _gM249ParasiteEnergyFamily0ReleaseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_042B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation042B4Bank4[104] = {
+/// Packed Euler rotations for M249 Parasite Energy family-0 release (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249ParasiteEnergyFamily0ReleaseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_042B4_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation042B4Records[139] = {
+/// Keyframes and terminal stop controls for M249 Parasite Energy family-0 release.
+static const AnimationRecord _gM249ParasiteEnergyFamily0ReleaseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_042B4_records.inc"
 };
 
-static u16 _gM249Animation042B4Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249ParasiteEnergyFamily0ReleaseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_042B4_indices.inc"
 };
 
-static AnimationSet _gM249Animation042B4 = {
-    _gM249Animation042B4Records,
-    _gM249Animation042B4Indices,
-    { NULL, _gM249Animation042B4Bank1, NULL, NULL, _gM249Animation042B4Bank4, NULL, NULL, NULL },
+/// Parasite Energy release gesture for clip family 0, M249 native-bank set 26.
+///
+/// Plays when the attachment countdown starts, before family 0's charge clip.
+/// Family 0 serves attachment IDs 300..600 whose tens digit is not 3, and
+/// IDs at least 601 whose tens digit is 1. Its nineteen rig tracks stop at
+/// their final poses; ordinary child playback uses tracks 1..18. Keep the clip
+/// data loaded while any slot refers to it.
+static AnimationSet _gM249ParasiteEnergyFamily0ReleaseAnimation = {
+    .records           = _gM249ParasiteEnergyFamily0ReleaseAnimationRecords,
+    .trackStartIndices = _gM249ParasiteEnergyFamily0ReleaseAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249ParasiteEnergyFamily0ReleaseAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249ParasiteEnergyFamily0ReleaseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation044B0Bank1[3] = {
+/// Translation and full-resolution Euler poses for M249 Parasite Energy family-0 charge (encoding 1).
+static const AnimationPackedPose _gM249ParasiteEnergyFamily0ChargeAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_044B0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation044B0Bank4[22] = {
+/// Packed Euler rotations for M249 Parasite Energy family-0 charge (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249ParasiteEnergyFamily0ChargeAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_044B0_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation044B0Records[76] = {
+/// Charge-pose keyframes, track loops and stop controls for M249 Parasite Energy family 0.
+static const AnimationRecord _gM249ParasiteEnergyFamily0ChargeAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_044B0_records.inc"
 };
 
-static u16 _gM249Animation044B0Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249ParasiteEnergyFamily0ChargeAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_044B0_indices.inc"
 };
 
-static AnimationSet _gM249Animation044B0 = {
-    _gM249Animation044B0Records,
-    _gM249Animation044B0Indices,
-    { NULL, _gM249Animation044B0Bank1, NULL, NULL, _gM249Animation044B0Bank4, NULL, NULL, NULL },
+/// Repeating Parasite Energy charge pose for clip family 0, M249 native-bank set 27.
+///
+/// Holds while the attachment countdown is nonzero, between
+/// `_gM249ParasiteEnergyFamily0ReleaseAnimation` and the family-0 cast clip.
+/// Its nineteen rig tracks loop; ordinary child playback uses tracks 1..18.
+/// Keep the clip data loaded while any slot refers to it.
+static AnimationSet _gM249ParasiteEnergyFamily0ChargeAnimation = {
+    .records           = _gM249ParasiteEnergyFamily0ChargeAnimationRecords,
+    .trackStartIndices = _gM249ParasiteEnergyFamily0ChargeAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249ParasiteEnergyFamily0ChargeAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249ParasiteEnergyFamily0ChargeAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM249Animation04788Bank1[6] = {
@@ -1076,8 +1153,8 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249Animation06FB0,
     &_gM249Animation08244,
     &_gM249Animation07B28,
-    &_gM249Animation042B4,
-    &_gM249Animation044B0,
+    &_gM249ParasiteEnergyFamily0ReleaseAnimation,
+    &_gM249ParasiteEnergyFamily0ChargeAnimation,
     &_gM249Animation04788,
     &_gM249Animation04A2C,
     &_gM249Animation04C2C,
@@ -1086,10 +1163,10 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249Animation0889C,
     &_gM249Animation086C4,
     &_gM249Animation0889C,
-    &_gM249Animation03040,
-    &_gM249Animation037C8,
-    &_gM249Animation03E2C,
-    &_gM249Animation03A9C,
+    &_gM249StairAscentAnimation,
+    &_gM249StairDescentAnimation,
+    &_gM249StairAscentFinishEvenAnimation,
+    &_gM249StairAscentFinishOddAnimation,
     &_gM249ItemUseAnimation,
     &_gM249IdleAnimation,
     &_gM249Animation08E00,
