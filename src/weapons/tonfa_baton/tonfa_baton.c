@@ -937,136 +937,264 @@ static AnimationSet _gTonfaBatonStairAscentFinishEvenAnimation = {
     },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation04A2CBank1[9] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily0ReleaseAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04A2C_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation04A2CBank4[104] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily0ReleaseAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04A2C_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation04A2CRecords[139] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily0ReleaseAnimation`.
+///
+/// Durations count normal-rate frames; stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04A2C_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation04A2CIndices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily0ReleaseAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04A2C_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation04A2C = {
-    _gTonfaBatonAnimation04A2CRecords,
-    _gTonfaBatonAnimation04A2CIndices,
-    { NULL, _gTonfaBatonAnimation04A2CBank1, NULL, NULL, _gTonfaBatonAnimation04A2CBank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 release clip in the tonfa baton player bank.
+///
+/// Bank slot 26 enters the action with a six-frame blend on child tracks 1..18.
+/// Tracks stop on their final pose, allowing the action to advance to charging.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily0ReleaseAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily0ReleaseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation04C28Bank1[3] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily0ChargeAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily0ChargeAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04C28_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation04C28Bank4[22] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily0ChargeAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily0ChargeAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04C28_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation04C28Records[76] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily0ChargeAnimation`.
+///
+/// Durations count normal-rate frames; each track loops its two keyframes.
+/// The following stop record is retained but bypassed by the loop.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily0ChargeAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04C28_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation04C28Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily0ChargeAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily0ChargeAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04C28_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation04C28 = {
-    _gTonfaBatonAnimation04C28Records,
-    _gTonfaBatonAnimation04C28Indices,
-    { NULL, _gTonfaBatonAnimation04C28Bank1, NULL, NULL, _gTonfaBatonAnimation04C28Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 charge clip in the tonfa baton player bank.
+///
+/// Bank slot 27 loops child tracks 1..18 while the attachment countdown runs.
+/// The cast clip replaces it when the countdown reaches zero.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily0ChargeAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily0ChargeAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily0ChargeAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily0ChargeAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily0ChargeAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation04F00Bank1[6] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily0CastAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily0CastAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04F00_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation04F00Bank4[57] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily0CastAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily0CastAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04F00_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation04F00Records[87] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily0CastAnimation`.
+///
+/// Durations count normal-rate frames; stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily0CastAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04F00_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation04F00Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily0CastAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily0CastAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04F00_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation04F00 = {
-    _gTonfaBatonAnimation04F00Records,
-    _gTonfaBatonAnimation04F00Indices,
-    { NULL, _gTonfaBatonAnimation04F00Bank1, NULL, NULL, _gTonfaBatonAnimation04F00Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 cast clip in the tonfa baton player bank.
+///
+/// Bank slot 28 plays child tracks 1..18 when the attachment countdown expires.
+/// Tracks stop on their final pose, allowing the interrupted player state to resume.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily0CastAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily0CastAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily0CastAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily0CastAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily0CastAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation051A4Bank1[4] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily1ReleaseAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_051A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation051A4Bank4[55] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily1ReleaseAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_051A4_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation051A4Records[82] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily1ReleaseAnimation`.
+///
+/// Durations count normal-rate frames; stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_051A4_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation051A4Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily1ReleaseAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_051A4_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation051A4 = {
-    _gTonfaBatonAnimation051A4Records,
-    _gTonfaBatonAnimation051A4Indices,
-    { NULL, _gTonfaBatonAnimation051A4Bank1, NULL, NULL, _gTonfaBatonAnimation051A4Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 release clip in the tonfa baton player bank.
+///
+/// Bank slot 29 enters the action with a six-frame blend on child tracks 1..18.
+/// Tracks stop on their final pose, allowing the action to advance to charging.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily1ReleaseAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily1ReleaseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation053A4Bank1[3] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily1ChargeAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily1ChargeAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_053A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation053A4Bank4[23] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily1ChargeAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily1ChargeAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_053A4_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation053A4Records[76] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily1ChargeAnimation`.
+///
+/// Durations count normal-rate frames; each track loops its two keyframes.
+/// The following stop record is retained but bypassed by the loop.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily1ChargeAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_053A4_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation053A4Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily1ChargeAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily1ChargeAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_053A4_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation053A4 = {
-    _gTonfaBatonAnimation053A4Records,
-    _gTonfaBatonAnimation053A4Indices,
-    { NULL, _gTonfaBatonAnimation053A4Bank1, NULL, NULL, _gTonfaBatonAnimation053A4Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 charge clip in the tonfa baton player bank.
+///
+/// Bank slot 30 loops child tracks 1..18 while the attachment countdown runs.
+/// The cast clip replaces it when the countdown reaches zero.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily1ChargeAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily1ChargeAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily1ChargeAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily1ChargeAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily1ChargeAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation056F8Bank1[8] = {
+/// Translation/rotation poses for `_gTonfaBatonParasiteEnergyFamily1CastAnimation`.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonParasiteEnergyFamily1CastAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_056F8_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation056F8Bank4[68] = {
+/// Rotation-only poses for `_gTonfaBatonParasiteEnergyFamily1CastAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonParasiteEnergyFamily1CastAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_056F8_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation056F8Records[101] = {
+/// Keyframes and control records for `_gTonfaBatonParasiteEnergyFamily1CastAnimation`.
+///
+/// Durations count normal-rate frames; stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonParasiteEnergyFamily1CastAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_056F8_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation056F8Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonParasiteEnergyFamily1CastAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonParasiteEnergyFamily1CastAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_056F8_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation056F8 = {
-    _gTonfaBatonAnimation056F8Records,
-    _gTonfaBatonAnimation056F8Indices,
-    { NULL, _gTonfaBatonAnimation056F8Bank1, NULL, NULL, _gTonfaBatonAnimation056F8Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 cast clip in the tonfa baton player bank.
+///
+/// Bank slot 31 plays child tracks 1..18 when the attachment countdown expires.
+/// Tracks stop on their final pose, allowing the interrupted player state to resume.
+/// Records carry no embedded action cues. Borrows read-only, word-aligned data
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonParasiteEnergyFamily1CastAnimation = {
+    .records           = _gTonfaBatonParasiteEnergyFamily1CastAnimationRecords,
+    .trackStartIndices = _gTonfaBatonParasiteEnergyFamily1CastAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonParasiteEnergyFamily1CastAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonParasiteEnergyFamily1CastAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gTonfaBatonAnimation059ACBank1[5] = {
@@ -1580,12 +1708,12 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation07728,
     &_gTonfaBatonAnimation089BC,
     &_gTonfaBatonAnimation082A0,
-    &_gTonfaBatonAnimation04A2C,
-    &_gTonfaBatonAnimation04C28,
-    &_gTonfaBatonAnimation04F00,
-    &_gTonfaBatonAnimation051A4,
-    &_gTonfaBatonAnimation053A4,
-    &_gTonfaBatonAnimation056F8,
+    &_gTonfaBatonParasiteEnergyFamily0ReleaseAnimation,
+    &_gTonfaBatonParasiteEnergyFamily0ChargeAnimation,
+    &_gTonfaBatonParasiteEnergyFamily0CastAnimation,
+    &_gTonfaBatonParasiteEnergyFamily1ReleaseAnimation,
+    &_gTonfaBatonParasiteEnergyFamily1ChargeAnimation,
+    &_gTonfaBatonParasiteEnergyFamily1CastAnimation,
     &_gTonfaBatonAnimation08E3C,
     &_gTonfaBatonAnimation09014,
     &_gTonfaBatonAnimation08E3C,
