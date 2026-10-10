@@ -1284,136 +1284,292 @@ static AnimationSet _gM4a1JavelinStairAscentFinishEvenAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation06B5CBank1[9] = {
+/// Family-0 Parasite Energy release poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_06B5C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation06B5CBank4[104] = {
+/// Family-0 Parasite Energy release rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06B5C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation06B5CRecords[139] = {
+/// Keyframes and stop controls for the nineteen-part family-0 release clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06B5C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation06B5CIndices[20] = {
+/// Absolute record starts for the family-0 release clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06B5C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation06B5C = {
-    _gM4a1JavelinAnimation06B5CRecords,
-    _gM4a1JavelinAnimation06B5CIndices,
-    { NULL, _gM4a1JavelinAnimation06B5CBank1, NULL, NULL, _gM4a1JavelinAnimation06B5CBank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 release clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 26. Entered with a six-frame blend when the attachment
+/// begins release.
+/// Its nineteen tracks stop at their final poses before charge playback.
+/// Family 0 selects spell IDs 300..600 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation06D58Bank1[3] = {
+/// Family-0 Parasite Energy charge poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_06D58_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation06D58Bank4[22] = {
+/// Family-0 Parasite Energy charge rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyChargeFamily0AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06D58_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation06D58Records[76] = {
+/// Keyframes and loop/stop controls for the nineteen-part family-0 charge clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track jumps to its first keyframe before its retained stop
+/// control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyChargeFamily0AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06D58_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation06D58Indices[20] = {
+/// Absolute record starts for the family-0 charge clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyChargeFamily0AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06D58_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation06D58 = {
-    _gM4a1JavelinAnimation06D58Records,
-    _gM4a1JavelinAnimation06D58Indices,
-    { NULL, _gM4a1JavelinAnimation06D58Bank1, NULL, NULL, _gM4a1JavelinAnimation06D58Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 charge clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 27. Reset after the release clip; replaced by the cast
+/// clip when the countdown reaches zero. Its nineteen tracks loop over two
+/// one-frame keyframes while the cast countdown runs.
+/// Family 0 selects spell IDs 300..600 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyChargeFamily0Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyChargeFamily0AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation07030Bank1[6] = {
+/// Family-0 Parasite Energy cast poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_07030_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation07030Bank4[57] = {
+/// Family-0 Parasite Energy cast rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyCastFamily0AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07030_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation07030Records[87] = {
+/// Keyframes and stop controls for the nineteen-part family-0 cast clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyCastFamily0AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07030_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation07030Indices[20] = {
+/// Absolute record starts for the family-0 cast clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyCastFamily0AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07030_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation07030 = {
-    _gM4a1JavelinAnimation07030Records,
-    _gM4a1JavelinAnimation07030Indices,
-    { NULL, _gM4a1JavelinAnimation07030Bank1, NULL, NULL, _gM4a1JavelinAnimation07030Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 0 cast clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 28. Reset when the attachment's cast countdown reaches zero.
+/// Its nineteen tracks stop at their final poses before normal control resumes.
+/// Family 0 selects spell IDs 300..600 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyCastFamily0Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyCastFamily0AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation072D4Bank1[4] = {
+/// Family-1 Parasite Energy release poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_072D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation072D4Bank4[55] = {
+/// Family-1 Parasite Energy release rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_072D4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation072D4Records[82] = {
+/// Keyframes and stop controls for the nineteen-part family-1 release clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_072D4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation072D4Indices[20] = {
+/// Absolute record starts for the family-1 release clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_072D4_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation072D4 = {
-    _gM4a1JavelinAnimation072D4Records,
-    _gM4a1JavelinAnimation072D4Indices,
-    { NULL, _gM4a1JavelinAnimation072D4Bank1, NULL, NULL, _gM4a1JavelinAnimation072D4Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 release clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 29. Entered with a six-frame blend when the attachment
+/// begins release.
+/// Its nineteen tracks stop at their final poses before charge playback.
+/// Family 1 selects spell IDs below 300 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is not 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation074D4Bank1[3] = {
+/// Family-1 Parasite Energy charge poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_074D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation074D4Bank4[23] = {
+/// Family-1 Parasite Energy charge rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyChargeFamily1AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_074D4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation074D4Records[76] = {
+/// Keyframes and loop/stop controls for the nineteen-part family-1 charge clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track jumps to its first keyframe before its retained stop
+/// control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyChargeFamily1AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_074D4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation074D4Indices[20] = {
+/// Absolute record starts for the family-1 charge clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyChargeFamily1AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_074D4_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation074D4 = {
-    _gM4a1JavelinAnimation074D4Records,
-    _gM4a1JavelinAnimation074D4Indices,
-    { NULL, _gM4a1JavelinAnimation074D4Bank1, NULL, NULL, _gM4a1JavelinAnimation074D4Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 charge clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 30. Reset after the release clip; replaced by the cast
+/// clip when the countdown reaches zero. Its nineteen tracks loop over two
+/// one-frame keyframes while the cast countdown runs.
+/// Family 1 selects spell IDs below 300 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is not 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyChargeFamily1Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyChargeFamily1AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation07828Bank1[8] = {
+/// Family-1 Parasite Energy cast poses for player tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_07828_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation07828Bank4[68] = {
+/// Family-1 Parasite Energy cast rotations for player tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyCastFamily1AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07828_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation07828Records[101] = {
+/// Keyframes and stop controls for the nineteen-part family-1 cast clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyCastFamily1AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07828_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation07828Indices[20] = {
+/// Absolute record starts for the family-1 cast clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyCastFamily1AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07828_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation07828 = {
-    _gM4a1JavelinAnimation07828Records,
-    _gM4a1JavelinAnimation07828Indices,
-    { NULL, _gM4a1JavelinAnimation07828Bank1, NULL, NULL, _gM4a1JavelinAnimation07828Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 1 cast clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 31. Reset when the attachment's cast countdown reaches zero.
+/// Its nineteen tracks stop at their final poses before normal control resumes.
+/// Family 1 selects spell IDs below 300 whose tens digit is not 3, or item IDs
+/// at least 601 whose tens digit is not 1.
+/// The borrowed arrays and word-aligned pose banks remain live while the
+/// package is loaded.
+static AnimationSet _gM4a1JavelinParasiteEnergyCastFamily1Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyCastFamily1AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyCastFamily1AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation07ADCBank1[5] = {
@@ -1927,12 +2083,12 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation09858,
     &_gM4a1JavelinAnimation0AAEC,
     &_gM4a1JavelinAnimation0A3D0,
-    &_gM4a1JavelinAnimation06B5C,
-    &_gM4a1JavelinAnimation06D58,
-    &_gM4a1JavelinAnimation07030,
-    &_gM4a1JavelinAnimation072D4,
-    &_gM4a1JavelinAnimation074D4,
-    &_gM4a1JavelinAnimation07828,
+    &_gM4a1JavelinParasiteEnergyReleaseFamily0Animation,
+    &_gM4a1JavelinParasiteEnergyChargeFamily0Animation,
+    &_gM4a1JavelinParasiteEnergyCastFamily0Animation,
+    &_gM4a1JavelinParasiteEnergyReleaseFamily1Animation,
+    &_gM4a1JavelinParasiteEnergyChargeFamily1Animation,
+    &_gM4a1JavelinParasiteEnergyCastFamily1Animation,
     &_gM4a1JavelinAnimation0AF6C,
     &_gM4a1JavelinAnimation0B144,
     &_gM4a1JavelinAnimation0AF6C,
