@@ -34,13 +34,13 @@ gShelter1fBulwarkSpriteViews = 0x801807B0; // absolute:True owner=shelter_1f_bul
 gShelter1fBulwarkSurfaceProperties = 0x80180E9C; // absolute:True owner=shelter_1f_bulwark
 shelter1fHeliportRoomTask = 0x80180768; // type:func absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812D0 = 0x801812D0; // absolute:True owner=shelter_1f_heliport shared=rooms
-D_shelter_1f_heliport_801812E0 = 0x801812E0; // absolute:True owner=shelter_1f_heliport
-D_shelter_1f_heliport_801812E8 = 0x801812E8; // absolute:True owner=shelter_1f_heliport
-D_shelter_1f_heliport_801812EC = 0x801812EC; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportRoomLighting = 0x801812E0; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportViewMaps = 0x801812E8; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportViewCounts = 0x801812EC; // absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812F0 = 0x801812F0; // absolute:True owner=shelter_1f_heliport
-D_shelter_1f_heliport_80181998 = 0x80181998; // absolute:True owner=shelter_1f_heliport shared=rooms
-D_shelter_1f_heliport_80181EC0 = 0x80181EC0; // absolute:True owner=shelter_1f_heliport
-D_shelter_1f_heliport_80182C78 = 0x80182C78; // absolute:True owner=shelter_1f_heliport shared=rooms
+gShelter1fHeliportViewCameras = 0x80181998; // absolute:True owner=shelter_1f_heliport shared=rooms
+gShelter1fHeliportSpriteViews = 0x80181EC0; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportSurfacePropertiesByClass = 0x80182C78; // absolute:True owner=shelter_1f_heliport shared=rooms
 shelter1fAirlockRoomTask = 0x8017D678; // type:func absolute:True owner=shelter_1f_airlock shared=rooms
 D_shelter_1f_airlock_8017E59C = 0x8017E59C; // absolute:True owner=shelter_1f_airlock
 gShelter1fAirlockRoomLighting = 0x8017E5AC; // absolute:True owner=shelter_1f_airlock
@@ -263,7 +263,7 @@ D_neo_ark_bridge_80184724 = 0x80184724; // absolute:True owner=neo_ark_bridge sh
 D_neo_ark_bridge_80184AB8 = 0x80184AB8; // absolute:True owner=neo_ark_bridge shared=rooms
 gNeoArkBridgeSurfaceProperties = 0x80184BD4; // absolute:True owner=neo_ark_bridge shared=rooms
 shelter1fTentRoomTask = 0x8017FDB8; // type:func absolute:True owner=shelter_1f_tent
-gShelter1fTentViewMaps = 0x80181D44; // absolute:True owner=shelter_1f_tent shared=rooms
+gShelter1fTentViewMaps = 0x80181D44; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80181D48 = 0x80181D48; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80181D4C = 0x80181D4C; // absolute:True owner=shelter_1f_tent
 gShelter1fTentCollisionGrid = 0x801822F0; // absolute:True owner=shelter_1f_tent shared=rooms

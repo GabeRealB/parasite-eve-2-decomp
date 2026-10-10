@@ -18,19 +18,49 @@ extern AreaVariant D_shelter_1f_heliport_80182BF4[13];
 // shelter_1f_heliport
 extern WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[];
 
-extern WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[];
+/// Number of logical views and corresponding camera/sprite records in the heliport.
+enum { SHELTER_1F_HELIPORT_VIEW_COUNT = 12 };
 
-extern u8* D_shelter_1f_heliport_801812E8[];
+/// Lighting for the heliport's single room, indexed by room ID minus one.
+///
+/// Borrows mutable point/cone lights and twelve ambient minima from this overlay;
+/// keep the room loaded while gameplay composes or samples its lighting.
+extern WorldCoordRoomLighting gShelter1fHeliportRoomLighting[1];
 
-extern ViewCount D_shelter_1f_heliport_801812EC[];
+/// Logical-view map directory for the heliport's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..12 select matching
+/// camera/image/sprite indices. Gameplay and this room must remain loaded.
+extern u8* gShelter1fHeliportViewMaps[1];
+
+/// Reverse-lookup limit for the heliport's single room: twelve logical views.
+///
+/// Indexed by room ID minus one; the count limits searches of the identity map,
+/// independently of that gameplay-owned map's capacity.
+extern ViewCount gShelter1fHeliportViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_1f_heliport_801812F0[];
 
-extern ViewCamera D_shelter_1f_heliport_80181998[];
+/// Cameras selected by the heliport's mapped view index minus one (views 1..12).
+///
+/// Rotations use `ONE` per unit, translations are negated world-space camera
+/// origins in game units, and projection distances are pixels. Queued camera
+/// application borrows a record until dispatch; keep this overlay loaded.
+extern ViewCamera gShelter1fHeliportViewCameras[SHELTER_1F_HELIPORT_VIEW_COUNT];
 
-extern SpriteView D_shelter_1f_heliport_80181EC0[];
+/// Sprite resources selected by the heliport's mapped view index minus one.
+///
+/// All twelve views retain decoded image strips; views 2 and 11 additionally
+/// draw 21 and 13 depth-sorted sprites. No view supplies clipping commands.
+/// Mutable sources and terminated batch lists remain owned by this overlay.
+extern SpriteView gShelter1fHeliportSpriteViews[SHELTER_1F_HELIPORT_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[];
+/// Collision policies indexed by the heliport grid's surface class (0..7).
+///
+/// Every class blocks probes, accepts weapon impacts and applies pushback.
+/// Only class 1 supplies footstep cues; the other classes share a silent record.
+/// The directory and borrowed properties remain valid while this room is loaded.
+extern WorldCollisionSurfaceProperties* gShelter1fHeliportSurfacePropertiesByClass[8];
 
 /// Runs the heliport room controller's setup, per-frame visibility or teardown state.
 ///

@@ -97,10 +97,6 @@ extern TaskMessageEntry D_shelter_1f_heliport_801811A0[];
 
 extern u8 D_shelter_1f_heliport_801811D4[][4];
 
-/// Offset `shelter1fHeliportUpdateCompanionObstacle` hands the mesh rebuild; only its
-/// `vy` is ever set.
-extern SVECTOR D_shelter_1f_heliport_80181204;
-
 /// The mesh's pristine source and the working copy rebuilt from it.
 extern WorldCollisionGrid gFollowCollisionSource;
 static WorldCollisionGrid _gShelter1fHeliportCollisionGrid;
@@ -124,14 +120,46 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 #include "../../shared/shop.h"
 #include "../../shared/cap_dialogue.h"
 
-extern WorldCollisionTrigger      D_shelter_1f_heliport_80182178[12];
-extern WorldCollisionTrigger      D_shelter_1f_heliport_80182508[21];
-extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
-extern WorldCoordRoomLights       D_shelter_1f_heliport_80182160[1];
-static s32                        _shelter1fHeliportResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32                        _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-static s32                        _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
-static s32                        _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static WorldCollisionTrigger            _gShelter1fHeliportViewBoundaryTriggers[12];
+static WorldCollisionTrigger            _gShelter1fHeliportActionTriggers[21];
+static const WorldCoordRoomAmbientEntry _gShelter1fHeliportAmbientByView[SHELTER_1F_HELIPORT_VIEW_COUNT + 1] __attribute__((section(".data")));
+static WorldCoordRoomLights             _gShelter1fHeliportRoomLights;
+static s32                              _shelter1fHeliportResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                              _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32                              _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
+static s32                              _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Room interaction IDs shared by the trigger resources and their message handlers.
+enum {
+    SHELTER_1F_HELIPORT_ACTION_TALK               = 1,
+    SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_B     = 2,
+    SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_A     = 3,
+    SHELTER_1F_HELIPORT_ACTION_SHOP               = 4,
+    SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER = 5,
+    SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE     = 0x21,
+    SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK        = 0x22,
+};
+
+/// Direct CAP command-table indices used by interaction quads.
+enum {
+    SHELTER_1F_HELIPORT_TRIGGER_CAP_24 = 0x24,
+    SHELTER_1F_HELIPORT_TRIGGER_CAP_26 = 0x26,
+    SHELTER_1F_HELIPORT_TRIGGER_CAP_27 = 0x27,
+    SHELTER_1F_HELIPORT_TRIGGER_CAP_2A = 0x2A,
+};
+
+/// Warp slots: departure descriptor in the high nibble, destination arrival in the low.
+enum {
+    SHELTER_1F_HELIPORT_TENT_WARP_SLOTS    = (2 << 4) | 1,
+    SHELTER_1F_HELIPORT_BULWARK_WARP_SLOTS = (1 << 4) | 2,
+};
+
+/// Shared GPU texture encoding and neutral RGB modulation for the room sprites.
+enum {
+    SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE  = getTPage(1, 0, 960, 0),
+    SHELTER_1F_HELIPORT_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR = 128,
+};
 
 #include "../../shared/shop_data.inc.c"
 
@@ -166,7 +194,12 @@ u8 D_shelter_1f_heliport_801811D4[12][4] = {
     { 2, 2, 1, 1 },
 };
 
-SVECTOR D_shelter_1f_heliport_80181204 = { 0 };
+/// Extra companion-obstacle translation in room axes and signed game units.
+///
+/// X/Z stay zero. Y is zero while the companion blocks movement, or +10000
+/// to move the obstacle out of the walkable room. The rebuild borrows XYZ for
+/// the call; this persistent vector stays in the room overlay.
+static SVECTOR _gShelter1fHeliportCompanionObstacleOffset = { 0 };
 
 static SVECTOR _gShelter1fHeliportCollision03CECNormals[4] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_normals.inc"
@@ -193,18 +226,18 @@ static s16* _gShelter1fHeliportCollision03CECTable[1] = {
 WorldCollisionGrid gFollowCollisionSource = { NULL, _gShelter1fHeliportCollision03CECNormals, _gShelter1fHeliportCollision03CECVerts, _gShelter1fHeliportCollision03CECFaces, _gShelter1fHeliportCollision03CECTable, 131, 227, 1, 1, 4000, 4 };
 
 WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[1] = {
-    { &_gShelter1fHeliportCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
+    { &_gShelter1fHeliportCollisionGrid, _gShelter1fHeliportViewBoundaryTriggers, _gShelter1fHeliportActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[1] = {
-    { D_shelter_1f_heliport_80182160, D_shelter_1f_heliport_80182B44 },
+WorldCoordRoomLighting gShelter1fHeliportRoomLighting[1] = {
+    { &_gShelter1fHeliportRoomLights, _gShelter1fHeliportAmbientByView },
 };
 
-u8* D_shelter_1f_heliport_801812E8[1] = {
+u8* gShelter1fHeliportViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_heliport_801812EC[1] = { 12 };
+ViewCount gShelter1fHeliportViewCounts[1] = { ARRAY_SIZE(gShelter1fHeliportViewCameras) };
 
 DirectionWarpEntry D_shelter_1f_heliport_801812F0[2] = {
     { { { .word = 3072 }, 9920, 0, 3450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, 0x55040002, 0x55040001, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
@@ -249,8 +282,8 @@ static s16* _gShelter1fHeliportCollisionGridTable[SHELTER_1F_HELIPORT_COLLISION_
 /// the current view coordinate; the record and pools live with this overlay.
 static WorldCollisionGrid _gShelter1fHeliportCollisionGrid = { NULL, _gShelter1fHeliportCollisionGridNormals, _gShelter1fHeliportCollisionGridVerts, _gShelter1fHeliportCollisionGridFaces, _gShelter1fHeliportCollisionGridTable, 0, 2800, SHELTER_1F_HELIPORT_COLLISION_CELLS_X, SHELTER_1F_HELIPORT_COLLISION_CELLS_Z, 4000, ARRAY_SIZE(_gShelter1fHeliportCollisionGridFaces) };
 
-ViewCamera D_shelter_1f_heliport_80181998[12] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
+ViewCamera gShelter1fHeliportViewCameras[SHELTER_1F_HELIPORT_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
     { { { { 338, 0, -4082 }, { -81, 4095, -6 }, { 4081, 81, 337 } }, { -550, 1690, -2890 } }, 230 },
     { { { { 604, 0, 4051 }, { 79, 4095, -11 }, { -4050, 80, 604 } }, { -7570, 1700, -2750 } }, 230 },
     { { { { 3910, 0, 1218 }, { -32, 4094, 105 }, { -1217, -110, 3909 } }, { -2572, 1124, -1708 } }, 269 },
@@ -264,179 +297,224 @@ ViewCamera D_shelter_1f_heliport_80181998[12] = {
     { { { { -1836, -49, 3660 }, { 2496, 2978, 1292 }, { -2677, 2810, -1305 } }, { -3140, 1450, -1920 } }, 329 },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181B48[2] = {
+/// View 1's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_heliport_80181B58[21] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 72, 1239, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -40, 1539, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -16, 1500, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 8, 1500, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, -48, 150, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, -24, 1500, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 0, 1500, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 24, 1500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -56, 1350, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -24, 1375, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 8, 1375, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, -64, 1175, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 40, 1375, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, -32, 1175, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 0, 1200, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 32, 1200, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 64, 1193, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -72, 1100, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -32, 1100, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 8, 1100, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, 48, 1100, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+/// View 2's 21 textured rectangles, in view-centred pixels with unscaled OT depths.
+static SpriteSource _gShelter1fHeliportView2SpriteSources[21] = {
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 120, 72, 1239, { .fields = { 96, 240 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, -40, 1539, { .fields = { 104, 216 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, -16, 1500, { .fields = { 104, 192 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 8, 1500, { .fields = { 104, 240 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, -48, 150, { .fields = { 112, 232 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, -24, 1500, { .fields = { 80, 24 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, 0, 1500, { .fields = { 88, 216 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, 24, 1500, { .fields = { 80, 0 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 112, -56, 1350, { .fields = { 96, 128 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 112, -24, 1375, { .fields = { 96, 160 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 112, 8, 1375, { .fields = { 96, 96 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 128, -64, 1175, { .fields = { 112, 200 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 112, 40, 1375, { .fields = { 112, 168 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 128, -32, 1175, { .fields = { 96, 0 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 128, 0, 1200, { .fields = { 96, 64 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 32 } }, 128, 32, 1200, { .fields = { 96, 32 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 24 } }, 128, 64, 1193, { .fields = { 88, 192 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -72, 1100, { .fields = { 112, 48 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -32, 1100, { .fields = { 112, 88 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, 8, 1100, { .fields = { 112, 128 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 48 } }, 144, 48, 1100, { .fields = { 112, 0 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181CFC[3] = {
+/// View 2's image-strip selector, complete source range and batch sentinel.
+static SpriteBatch _gShelter1fHeliportView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelter1fHeliportView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D14[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_1f_heliport_80181D24[2] = {
+/// View 3's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D34[2] = {
+/// View 4's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D44[2] = {
+/// View 5's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D54[2] = {
+/// View 6's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D64[2] = {
+/// View 7's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D74[2] = {
+/// View 8's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_heliport_80181D84[2] = {
+/// View 9's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_heliport_80181D94[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 72, 1100, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 72, 1075, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 80, 1175, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 80, 1100, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 80, 1050, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 104, 1050, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 88, 1025, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 72, 1000, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 64, 900, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 104, 1150, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 104, 1250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 88, 1150, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 120, 88, 1175, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_shelter_1f_heliport_80181E98[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_1f_heliport_80181EB0[2] = {
+/// View 10's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_1f_heliport_80181EC0[12] = {
-    { { .empty = D_shelter_1f_heliport_80181B48 }, D_shelter_1f_heliport_80181B48, NULL },
-    { { .elements = D_shelter_1f_heliport_80181B58 }, D_shelter_1f_heliport_80181CFC, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D14 }, D_shelter_1f_heliport_80181D14, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D24 }, D_shelter_1f_heliport_80181D24, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D34 }, D_shelter_1f_heliport_80181D34, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D44 }, D_shelter_1f_heliport_80181D44, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D54 }, D_shelter_1f_heliport_80181D54, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D64 }, D_shelter_1f_heliport_80181D64, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D74 }, D_shelter_1f_heliport_80181D74, NULL },
-    { { .empty = D_shelter_1f_heliport_80181D84 }, D_shelter_1f_heliport_80181D84, NULL },
-    { { .elements = D_shelter_1f_heliport_80181D94 }, D_shelter_1f_heliport_80181E98, NULL },
-    { { .empty = D_shelter_1f_heliport_80181EB0 }, D_shelter_1f_heliport_80181EB0, NULL },
+/// View 11's 13 textured rectangles, in view-centred pixels with unscaled OT depths.
+static SpriteSource _gShelter1fHeliportView11SpriteSources[13] = {
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, 72, 1100, { .fields = { 120, 144 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 72, 1075, { .fields = { 120, 152 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 120, 80, 1175, { .fields = { 120, 112 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, 80, 1100, { .fields = { 120, 120 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 80, 1050, { .fields = { 120, 128 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 104, 1050, { .fields = { 112, 80 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 88, 1025, { .fields = { 112, 64 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 72, 1000, { .fields = { 112, 96 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 64, 900, { .fields = { 112, 136 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 104, 1150, { .fields = { 112, 16 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 104, 1250, { .fields = { 112, 0 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 88, 1150, { .fields = { 112, 48 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_1F_HELIPORT_SPRITE_TEXTURE_PAGE, SHELTER_1F_HELIPORT_SPRITE_CLUT, { .fields = { 8, 16 } }, 120, 88, 1175, { .fields = { 120, 32 } }, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-WorldCoordPointLight D_shelter_1f_heliport_80181F50[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5450, -4000, 3600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, 4500, 5000 },
+/// View 11's image-strip selector, complete source range and batch sentinel.
+static SpriteBatch _gShelter1fHeliportView11SpriteBatches[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelter1fHeliportView11SpriteSources), 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordSpotLight D_shelter_1f_heliport_80181FB0[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 700, -1250, -1510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2469, 809, 3165, 0 }, 0x4E20, 0x4E20, 887 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 450, -1500, 9740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2574, 780, -3089, 0 }, 0x3A98, 0x3A98, 887 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7900, -1750, 6890 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2537, 992, -3058, 0 }, 0x4E20, 0x4E20, 887 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7550, -1500, -6360 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2627, 0, 3142, 0 }, 0x4E20, 0x4E20, 887 },
+/// View 12's empty sprite list: retain image strips, then stop at the sentinel.
+static SpriteBatch _gShelter1fHeliportView12SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_shelter_1f_heliport_80182160[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_1f_heliport_80181F50), D_shelter_1f_heliport_80181F50, ARRAY_SIZE(D_shelter_1f_heliport_80181FB0), D_shelter_1f_heliport_80181FB0 },
+SpriteView gShelter1fHeliportSpriteViews[SHELTER_1F_HELIPORT_VIEW_COUNT] = {
+    { { .empty = _gShelter1fHeliportView1SpriteBatches }, _gShelter1fHeliportView1SpriteBatches, NULL },
+    { { .elements = _gShelter1fHeliportView2SpriteSources }, _gShelter1fHeliportView2SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView3SpriteBatches }, _gShelter1fHeliportView3SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView4SpriteBatches }, _gShelter1fHeliportView4SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView5SpriteBatches }, _gShelter1fHeliportView5SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView6SpriteBatches }, _gShelter1fHeliportView6SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView7SpriteBatches }, _gShelter1fHeliportView7SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView8SpriteBatches }, _gShelter1fHeliportView8SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView9SpriteBatches }, _gShelter1fHeliportView9SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView10SpriteBatches }, _gShelter1fHeliportView10SpriteBatches, NULL },
+    { { .elements = _gShelter1fHeliportView11SpriteSources }, _gShelter1fHeliportView11SpriteBatches, NULL },
+    { { .empty = _gShelter1fHeliportView12SpriteBatches }, _gShelter1fHeliportView12SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_shelter_1f_heliport_80182178[12] = {
-    { NULL, NULL, NULL, { 4017, -3248, 3516, 0 }, { { 131, -3712, -3671, 0 }, { -135, -3712, 3667, 0 }, { 131, 3712, -3671, 0 }, { -135, 3712, 3667, 0 } }, { 4104, 0, 148, 0 }, { 0, 0, 4096, 0 }, 5221, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4122, -3200, 3577, 0 }, { { -135, -3712, 3667, 0 }, { 131, -3712, -3670, 0 }, { -135, 3712, 3667, 0 }, { 131, 3712, -3670, 0 } }, { -4104, 0, -150, 0 }, { 0, 0, 4096, 0 }, 5221, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 94, -3232, 5853, 0 }, { { 1452, -3712, -676, 0 }, { -1451, -3712, 677, 0 }, { 1452, 3712, -676, 0 }, { -1451, 3712, 677, 0 } }, { 1733, 0, 3719, 0 }, { 0, 0, 4096, 0 }, 4039, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 110, -3232, 6014, 0 }, { { -1468, -3712, 669, 0 }, { 1468, -3712, -669, 0 }, { -1468, 3712, 669, 0 }, { 1468, 3712, -669, 0 } }, { -1702, 0, -3733, 0 }, { 0, 0, 4096, 0 }, 4039, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6829, -3296, 606, 0 }, { { 1337, -3712, 569, 0 }, { -1337, -3712, -569, 0 }, { 1337, 3712, 569, 0 }, { -1337, 3712, -569, 0 } }, { -1611, 0, 3782, 0 }, { 0, 0, 4096, 0 }, 3982, 0, 11, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6813, -3168, 766, 0 }, { { -1306, -3712, -569, 0 }, { 1307, -3712, 570, 0 }, { -1306, 3712, -569, 0 }, { 1307, 3712, 570, 0 } }, { 1642, 0, -3771, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 5, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9152, -3232, 575, 0 }, { { -1160, -3712, 828, 0 }, { 1160, -3712, -827, 0 }, { -1160, 3712, 828, 0 }, { 1160, 3712, -827, 0 } }, { -2388, 0, -3347, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 5, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9183, -3200, 350, 0 }, { { 1154, -3712, -836, 0 }, { -1153, -3712, 836, 0 }, { 1154, 3712, -836, 0 }, { -1153, 3712, 836, 0 } }, { 2411, 0, 3327, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 11, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2847, -3200, 5856, 0 }, { { 1449, -3712, 711, 0 }, { -1448, -3712, -710, 0 }, { 1449, 3712, 711, 0 }, { -1448, 3712, -710, 0 } }, { -1807, 0, 3682, 0 }, { 0, 0, 4096, 0 }, 4047, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2846, -3265, 6046, 0 }, { { -1448, -3712, -710, 0 }, { 1449, -3712, 711, 0 }, { -1448, 3712, -710, 0 }, { 1449, 3712, 711, 0 } }, { 1806, 0, -3684, 0 }, { 0, 0, 4096, 0 }, 4047, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6653, -2944, 3869, 0 }, { { 134, -3712, -3670, 0 }, { -133, -3712, 3670, 0 }, { 134, 3712, -3670, 0 }, { -133, 3712, 3670, 0 } }, { 4105, 0, 149, 0 }, { 0, 0, 4096, 0 }, 5221, 0, 11, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6782, -2912, 4031, 0 }, { { -178, -3712, 3669, 0 }, { 178, -3712, -3668, 0 }, { -178, 3712, 3669, 0 }, { 178, 3712, -3668, 0 } }, { -4092, 0, -199, 0 }, { 0, 0, 4096, 0 }, 5221, 0, 2, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room-axis point light, active in every view, with 4500..5000 game-unit falloff.
+///
+/// Gameplay parents and composes its coordinate and rewrites attenuation for
+/// shading queries; retain writable overlay storage while the room is active.
+static WorldCoordPointLight _gShelter1fHeliportPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5450, -4000, 3600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, 4500, 5000 },
 };
 
-WorldCollisionTrigger D_shelter_1f_heliport_80182508[21] = {
-    { NULL, NULL, NULL, { 416, -48, 4704, 0 }, { { -448, 0, -608, 0 }, { 448, 0, -608, 0 }, { -448, 0, 608, 0 }, { 448, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 754, WORLD_COLLISION_TRIGGER_ACTION_WARP, 28, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6960, -64, -1168, 0 }, { { -336, 0, -688, 0 }, { 1424, 0, -688, 0 }, { -336, 0, 1392, 0 }, { 1424, 0, 1392, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1991, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 832, -64, 3040, 0 }, { { -1008, 0, -848, 0 }, { 1104, 0, -848, 0 }, { -1008, 0, 1104, 0 }, { 1104, 0, 1104, 0 } }, { 0, 4094, 0, 0 }, { -4096, 0, 0, 0 }, 1557, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2880, -64, 5056, 0 }, { { -1552, 0, -1328, 0 }, { 752, 0, -1328, 0 }, { -1552, 0, 816, 0 }, { 752, 0, 816, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 544, -64, 6944, 0 }, { { -624, 0, -1168, 0 }, { 1296, 0, -1168, 0 }, { -624, 0, 400, 0 }, { 1296, 0, 400, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1740, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1968, -64, 7760, 0 }, { { -1120, 0, -288, 0 }, { 1120, 0, -288, 0 }, { -1120, 0, 288, 0 }, { 1120, 0, 288, 0 } }, { 0, 4114, 0, 0 }, { 600, 0, -4053, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_CAP, 33, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1792, -64, 1504, 0 }, { { -688, 0, -496, 0 }, { 1264, 0, -496, 0 }, { -688, 0, 1168, 0 }, { 1264, 0, 1168, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_CAP, 34, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3344, -64, 5232, 0 }, { { -512, 0, -736, 0 }, { 512, 0, -736, 0 }, { -512, 0, 736, 0 }, { 512, 0, 736, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 896, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4416, -64, 5232, 0 }, { { -512, 0, -752, 0 }, { 512, 0, -752, 0 }, { -512, 0, 752, 0 }, { 512, 0, 752, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3872, -64, 4432, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3888, -64, 5920, 0 }, { { -1024, 0, -1904, 0 }, { 1024, 0, -1904, 0 }, { -1024, 0, -688, 0 }, { 1024, 0, -688, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 2157, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2880, -64, 4992, 0 }, { { 0, 0, -1120, 0 }, { 896, 0, -1120, 0 }, { 0, 0, 960, 0 }, { 896, 0, 960, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4384, -64, 4928, 0 }, { { -512, 0, -1120, 0 }, { 640, 0, -1120, 0 }, { -512, 0, 960, 0 }, { 640, 0, 960, 0 } }, { 0, 4108, 0, 0 }, { 4096, 0, 0, 0 }, 1286, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Four room-axis cone lights active in every view, with Q12 aims and intensities.
+///
+/// Full cone opening is 887 angle units (ONE per turn); inner/outer distances
+/// are game units. Gameplay builds rotations, parents/composes the coordinates
+/// and overwrites attenuation, so the array stays writable while loaded.
+static WorldCoordSpotLight _gShelter1fHeliportConeLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 700, -1250, -1510 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2469, 809, 3165, 0 }, 0x4E20, 0x4E20, 887 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 450, -1500, 9740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2574, 780, -3089, 0 }, 0x3A98, 0x3A98, 887 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7900, -1750, 6890 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2537, 992, -3058, 0 }, 0x4E20, 0x4E20, 887 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7550, -1500, -6360 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2627, 0, 3142, 0 }, 0x4E20, 0x4E20, 887 },
+};
+
+/// The heliport's single light collection: one point, four cones, no directional lights.
+static WorldCoordRoomLights _gShelter1fHeliportRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelter1fHeliportPointLights),
+    .pointLights           = _gShelter1fHeliportPointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelter1fHeliportConeLights),
+    .coneLights            = _gShelter1fHeliportConeLights,
+};
+
+/// Twelve directed view-boundary quads, including the LAST-marked final quad.
+///
+/// Parameter bytes name source/destination logical views (2, 3, 4, 5 or 11).
+/// Setup binds coordinates and list links to the live view; retain writable
+/// room storage until the triggers are unlinked on room replacement.
+static WorldCollisionTrigger _gShelter1fHeliportViewBoundaryTriggers[12] = {
+    { NULL, NULL, NULL, { 4017, -3248, 3516, 0 }, { { 131, -3712, -3671, 0 }, { -135, -3712, 3667, 0 }, { 131, 3712, -3671, 0 }, { -135, 3712, 3667, 0 } }, { 4104, 0, 148, 0 }, { 0, 0, ONE, 0 }, 5221, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4122, -3200, 3577, 0 }, { { -135, -3712, 3667, 0 }, { 131, -3712, -3670, 0 }, { -135, 3712, 3667, 0 }, { 131, 3712, -3670, 0 } }, { -4104, 0, -150, 0 }, { 0, 0, ONE, 0 }, 5221, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 94, -3232, 5853, 0 }, { { 1452, -3712, -676, 0 }, { -1451, -3712, 677, 0 }, { 1452, 3712, -676, 0 }, { -1451, 3712, 677, 0 } }, { 1733, 0, 3719, 0 }, { 0, 0, ONE, 0 }, 4039, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 110, -3232, 6014, 0 }, { { -1468, -3712, 669, 0 }, { 1468, -3712, -669, 0 }, { -1468, 3712, 669, 0 }, { 1468, 3712, -669, 0 } }, { -1702, 0, -3733, 0 }, { 0, 0, ONE, 0 }, 4039, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6829, -3296, 606, 0 }, { { 1337, -3712, 569, 0 }, { -1337, -3712, -569, 0 }, { 1337, 3712, 569, 0 }, { -1337, 3712, -569, 0 } }, { -1611, 0, 3782, 0 }, { 0, 0, ONE, 0 }, 3982, 0, 11, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6813, -3168, 766, 0 }, { { -1306, -3712, -569, 0 }, { 1307, -3712, 570, 0 }, { -1306, 3712, -569, 0 }, { 1307, 3712, 570, 0 } }, { 1642, 0, -3771, 0 }, { 0, 0, ONE, 0 }, 3974, 0, 5, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9152, -3232, 575, 0 }, { { -1160, -3712, 828, 0 }, { 1160, -3712, -827, 0 }, { -1160, 3712, 828, 0 }, { 1160, 3712, -827, 0 } }, { -2388, 0, -3347, 0 }, { 0, 0, ONE, 0 }, 3974, 0, 5, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9183, -3200, 350, 0 }, { { 1154, -3712, -836, 0 }, { -1153, -3712, 836, 0 }, { 1154, 3712, -836, 0 }, { -1153, 3712, 836, 0 } }, { 2411, 0, 3327, 0 }, { 0, 0, ONE, 0 }, 3974, 0, 11, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2847, -3200, 5856, 0 }, { { 1449, -3712, 711, 0 }, { -1448, -3712, -710, 0 }, { 1449, 3712, 711, 0 }, { -1448, 3712, -710, 0 } }, { -1807, 0, 3682, 0 }, { 0, 0, ONE, 0 }, 4047, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2846, -3265, 6046, 0 }, { { -1448, -3712, -710, 0 }, { 1449, -3712, 711, 0 }, { -1448, 3712, -710, 0 }, { 1449, 3712, 711, 0 } }, { 1806, 0, -3684, 0 }, { 0, 0, ONE, 0 }, 4047, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6653, -2944, 3869, 0 }, { { 134, -3712, -3670, 0 }, { -133, -3712, 3670, 0 }, { 134, 3712, -3670, 0 }, { -133, 3712, 3670, 0 } }, { 4105, 0, 149, 0 }, { 0, 0, ONE, 0 }, 5221, 0, 11, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6782, -2912, 4031, 0 }, { { -178, -3712, 3669, 0 }, { 178, -3712, -3668, 0 }, { -178, 3712, 3669, 0 }, { 178, 3712, -3668, 0 } }, { -4092, 0, -199, 0 }, { 0, 0, ONE, 0 }, 5221, 0, 2, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Interaction and departure regions, including the LAST-marked final region.
+///
+/// Selectors distinguish room action IDs, direct CAP indices, room command
+/// messages, warps and latched room-event regions. Quad coordinates and radii
+/// use room game units; normals/facing vectors use ONE per unit. Runtime setup
+/// binds the view coordinate and mutates links, flags and hits until unlinking.
+static WorldCollisionTrigger _gShelter1fHeliportActionTriggers[21] = {
+    { NULL, NULL, NULL, { 416, -48, 4704, 0 }, { { -448, 0, -608, 0 }, { 448, 0, -608, 0 }, { -448, 0, 608, 0 }, { 448, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 754, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_TENT, SHELTER_1F_HELIPORT_TENT_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6960, -64, -1168, 0 }, { { -336, 0, -688, 0 }, { 1424, 0, -688, 0 }, { -336, 0, 1392, 0 }, { 1424, 0, 1392, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 1991, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_SHOP, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 832, -64, 3040, 0 }, { { -1008, 0, -848, 0 }, { 1104, 0, -848, 0 }, { -1008, 0, 1104, 0 }, { 1104, 0, 1104, 0 } }, { 0, 4094, 0, 0 }, { -ONE, 0, 0, 0 }, 1557, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_B, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2880, -64, 5056, 0 }, { { -1552, 0, -1328, 0 }, { 752, 0, -1328, 0 }, { -1552, 0, 816, 0 }, { 752, 0, 816, 0 } }, { 0, 4113, 0, 0 }, { -ONE, 0, 0, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_A, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 544, -64, 6944, 0 }, { { -624, 0, -1168, 0 }, { 1296, 0, -1168, 0 }, { -624, 0, 400, 0 }, { 1296, 0, 400, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 1740, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_TALK, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1968, -64, 7760, 0 }, { { -1120, 0, -288, 0 }, { 1120, 0, -288, 0 }, { -1120, 0, 288, 0 }, { 1120, 0, 288, 0 } }, { 0, 4114, 0, 0 }, { 600, 0, -4053, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1792, -64, 1504, 0 }, { { -688, 0, -496, 0 }, { 1264, 0, -496, 0 }, { -688, 0, 1168, 0 }, { 1264, 0, 1168, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3344, -64, 5232, 0 }, { { -512, 0, -736, 0 }, { 512, 0, -736, 0 }, { -512, 0, 736, 0 }, { 512, 0, 736, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 896, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4416, -64, 5232, 0 }, { { -512, 0, -752, 0 }, { 512, 0, -752, 0 }, { -512, 0, 752, 0 }, { 512, 0, 752, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3872, -64, 4432, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3888, -64, 5920, 0 }, { { -1024, 0, -1904, 0 }, { 1024, 0, -1904, 0 }, { -1024, 0, -688, 0 }, { 1024, 0, -688, 0 } }, { 0, 4101, 0, 0 }, { -ONE, 0, 0, 0 }, 2157, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2880, -64, 4992, 0 }, { { 0, 0, -1120, 0 }, { 896, 0, -1120, 0 }, { 0, 0, 960, 0 }, { 896, 0, 960, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, 4928, 0 }, { { -512, 0, -1120, 0 }, { 640, 0, -1120, 0 }, { -512, 0, 960, 0 }, { 640, 0, 960, 0 } }, { 0, 4108, 0, 0 }, { ONE, 0, 0, 0 }, 1286, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3168, -64, 3872, 0 }, { { -512, 0, -192, 0 }, { 1920, 0, -192, 0 }, { -512, 0, 960, 0 }, { 1920, 0, 960, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, -4091, 0 }, 2141, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9759, -64, 1519, 0 }, { { -648, 0, -163, 0 }, { 97, 0, -661, 0 }, { -96, 0, 662, 0 }, { 649, 0, 164, 0 } }, { 0, 4106, 0, 0 }, { -3703, 0, 1751, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5616, -64, 5296, 0 }, { { -3280, 0, -368, 0 }, { 3280, 0, -368, 0 }, { -3280, 0, 368, 0 }, { 3280, 0, 368, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -4096, 0 }, 3298, WORLD_COLLISION_TRIGGER_ACTION_CAP, 36, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2784, -64, 6592, 0 }, { { -448, 0, -1376, 0 }, { 448, 0, -1376, 0 }, { -448, 0, 1376, 0 }, { 448, 0, 1376, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 36, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5040, -64, 1216, 0 }, { { -2080, 0, -368, 0 }, { 2080, 0, -368, 0 }, { -2080, 0, 368, 0 }, { 2080, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 2111, WORLD_COLLISION_TRIGGER_ACTION_CAP, 38, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8208, -64, -2592, 0 }, { { -816, 0, -368, 0 }, { 816, 0, -368, 0 }, { -816, 0, 368, 0 }, { 816, 0, 368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 39, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2880, -64, 3200, 0 }, { { -448, 0, -1376, 0 }, { 448, 0, -1376, 0 }, { -448, 0, 1376, 0 }, { 448, 0, 1376, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 42, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3904, -64, 6080, 0 }, { { -1248, 0, -2624, 0 }, { 1248, 0, -2624, 0 }, { -1248, 0, -832, 0 }, { 1248, 0, -832, 0 } }, { 0, 4117, 0, 0 }, { 4096, 0, 0, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 9759, -64, 1519, 0 }, { { -648, 0, -163, 0 }, { 97, 0, -661, 0 }, { -96, 0, 662, 0 }, { 649, 0, 164, 0 } }, { 0, 4106, 0, 0 }, { -3703, 0, 1751, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_BULWARK, SHELTER_1F_HELIPORT_BULWARK_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5616, -64, 5296, 0 }, { { -3280, 0, -368, 0 }, { 3280, 0, -368, 0 }, { -3280, 0, 368, 0 }, { 3280, 0, 368, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -ONE, 0 }, 3298, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_TRIGGER_CAP_24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2784, -64, 6592, 0 }, { { -448, 0, -1376, 0 }, { 448, 0, -1376, 0 }, { -448, 0, 1376, 0 }, { 448, 0, 1376, 0 } }, { 0, 4107, 0, 0 }, { -ONE, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_TRIGGER_CAP_24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5040, -64, 1216, 0 }, { { -2080, 0, -368, 0 }, { 2080, 0, -368, 0 }, { -2080, 0, 368, 0 }, { 2080, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 2111, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_TRIGGER_CAP_26, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8208, -64, -2592, 0 }, { { -816, 0, -368, 0 }, { 816, 0, -368, 0 }, { -816, 0, 368, 0 }, { 816, 0, 368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, ONE, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_TRIGGER_CAP_27, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2880, -64, 3200, 0 }, { { -448, 0, -1376, 0 }, { 448, 0, -1376, 0 }, { -448, 0, 1376, 0 }, { 448, 0, 1376, 0 } }, { 0, 4107, 0, 0 }, { -ONE, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_HELIPORT_TRIGGER_CAP_2A, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3904, -64, 6080, 0 }, { { -1248, 0, -2624, 0 }, { 1248, 0, -2624, 0 }, { -1248, 0, -832, 0 }, { 1248, 0, -832, 0 } }, { 0, 4117, 0, 0 }, { ONE, 0, 0, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_1f_heliport_80182B44) - 1 },
+/// Header count followed by ambient RGB minima for logical views 1..12.
+///
+/// RGB uses 16 units per 8-bit level. Stored luma is (3R + 4G + B)/8;
+/// lighting reads RGB only. Views 3/4 are brighter; the others use level 1.
+/// Retains its authored data-section position beside the room resources.
+static const WorldCoordRoomAmbientEntry _gShelter1fHeliportAmbientByView[SHELTER_1F_HELIPORT_VIEW_COUNT + 1] __attribute__((section(".data"))) = {
+    { .viewCount = ARRAY_SIZE(_gShelter1fHeliportAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1838, 1819, 1496, 1785 } },
@@ -451,13 +529,21 @@ WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-AreaResource D_shelter_1f_heliport_80182BAC[3] = {
+/// Variant 1's resource recipes for Soldier B and Jodie, followed by END.
+///
+/// Placement IDs 116/115 select decimal files 615/605 with group-base selectors
+/// 10/20 and task slot 0. The loader/spawner borrows this table and actor exports.
+static AreaResource _gShelter1fHeliportVariant1Resources[3] = {
     { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor161500SoldierBTasks },
     { 115, 605, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor260500JodieTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_1f_heliport_80182BD0[3] = {
+/// Variant 2's resource recipes for Soldier B and Rupert, followed by END.
+///
+/// Placement IDs 116/144 select decimal files 615/604 with group-base selectors
+/// 10/20 and task slot 0. The loader/spawner borrows this table and actor exports.
+static AreaResource _gShelter1fHeliportVariant2Resources[3] = {
     { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor161500SoldierBTasks },
     { 144, 604, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor260400RupertBroderickTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -465,8 +551,8 @@ AreaResource D_shelter_1f_heliport_80182BD0[3] = {
 
 AreaVariant D_shelter_1f_heliport_80182BF4[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AF30, D_shelter_1f_heliport_80182BAC },
-    { D_map_neo_ark_8017AF80, D_shelter_1f_heliport_80182BD0 },
+    { D_map_neo_ark_8017AF30, _gShelter1fHeliportVariant1Resources },
+    { D_map_neo_ark_8017AF80, _gShelter1fHeliportVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -479,29 +565,51 @@ AreaVariant D_shelter_1f_heliport_80182BF4[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_heliport_80182C5C = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Cue-2 bases in the loaded type-1 sound bank; cue 1 uses the next entry.
+enum {
+    SHELTER_1F_HELIPORT_SURFACE_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_1F_HELIPORT_SURFACE_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_heliport_80182C68[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's paired footstep cues; walking and scripted jumps share a pair.
+///
+/// Cue 1 adds one to the base. The gameplay cue reader adds 100 for companions;
+/// the heliport follower instead maps the walk base to its actor-bank pair.
+/// Borrows the current type-1 bank while this overlay's surface table is active.
+/// Retains its authored data-section position beside the surface properties.
+static const WorldCollisionFootstepSounds _gShelter1fHeliportSurface1FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = SHELTER_1F_HELIPORT_SURFACE_1_WALK_CUE_BASE,
+    .run          = SHELTER_1F_HELIPORT_SURFACE_1_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_1F_HELIPORT_SURFACE_1_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_heliport_80182C70[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_heliport_80182C5C },
+/// Shared blocking, impact-enabled, pushback-enabled policy without footstep cues.
+static WorldCollisionSurfaceProperties _gShelter1fHeliportDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[8] = {
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C70,
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C68,
-    D_shelter_1f_heliport_80182C68,
+/// Surface class 1's blocking, impact-enabled, pushback-enabled policy with footstep cues.
+static WorldCollisionSurfaceProperties _gShelter1fHeliportSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelter1fHeliportSurface1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelter1fHeliportSurfacePropertiesByClass[8] = {
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportSurface1Properties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
+    &_gShelter1fHeliportDefaultSurfaceProperties,
 };
 
 /// Displayed weapon-supply quantity in signed 24.8 fixed point.
@@ -655,11 +763,11 @@ void shelter1fHeliportUpdateCompanionObstacle(s32 unusedEventArg)
     }
     // Move an inactive obstacle out of the walkable room without changing cells.
     if (companionTask != NULL && gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == SHELTER_1F_HELIPORT_SOLDIER_REQUEST_PENDING) {
-        D_shelter_1f_heliport_80181204.vy = 0;
+        _gShelter1fHeliportCompanionObstacleOffset.vy = 0;
     } else {
-        D_shelter_1f_heliport_80181204.vy = SHELTER_1F_HELIPORT_HIDDEN_OBSTACLE_Y;
+        _gShelter1fHeliportCompanionObstacleOffset.vy = SHELTER_1F_HELIPORT_HIDDEN_OBSTACLE_Y;
     }
-    _followCollisionRebuildObstacle(obstacleTask->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
+    _followCollisionRebuildObstacle(obstacleTask->extra.tmd->coords, &_gShelter1fHeliportCompanionObstacleOffset);
 }
 
 /// Tests the borrowed pending-trigger list for a hit room-event region.
@@ -717,9 +825,7 @@ static s32 _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s
 /// playback ends. The receiver, message ID and second word are unused.
 static s32 _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    enum { SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE    = 0x21,
-           SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK       = 0x22,
-           SHELTER_1F_HELIPORT_CAP_TALK_NOT_READY       = 0x25,
+    enum { SHELTER_1F_HELIPORT_CAP_TALK_NOT_READY       = 0x25,
            SHELTER_1F_HELIPORT_TALKS_REQUIRED           = 1,
            SHELTER_1F_HELIPORT_VARIANT_1_TALKS_REQUIRED = 2,
            SHELTER_1F_HELIPORT_VARIANT_INITIAL          = 1 };
@@ -752,13 +858,8 @@ static s32 _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMe
 /// The receiver, message ID and second word are unused.
 static s32 _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    enum { SHELTER_1F_HELIPORT_ACTION_TALK               = 1,
-           SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_B     = 2,
-           SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_A     = 3,
-           SHELTER_1F_HELIPORT_ACTION_SHOP               = 4,
-           SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER = 5,
-           SHELTER_1F_HELIPORT_VARIANT_INITIAL           = 1,
-           SHELTER_1F_HELIPORT_VARIANT_LATER             = 2 };
+    enum { SHELTER_1F_HELIPORT_VARIANT_INITIAL = 1,
+           SHELTER_1F_HELIPORT_VARIANT_LATER   = 2 };
 
     switch (request->actionId) {
         case SHELTER_1F_HELIPORT_ACTION_TALK:
