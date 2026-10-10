@@ -219,136 +219,237 @@ static AnimationSet _gUnused86PlayerTurnLeftAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused86Animation03254Bank1[19] = {
+/// Right-turn translation/rotation keyframes for tracks 0 and 1, in model units and 1/4096 turns.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerTurnRightAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03254_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation03254Bank4[170] = {
+/// Right-turn packed Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerTurnRightAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03254_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation03254Records[290] = {
+/// Right-turn keyframes and loop/stop controls; durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerTurnRightAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03254_records.inc"
 };
 
-static u16 _gUnused86Animation03254Indices[20] = {
+/// Absolute right-turn record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerTurnRightAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03254_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation03254 = {
-    _gUnused86Animation03254Records,
-    _gUnused86Animation03254Indices,
-    { NULL, _gUnused86Animation03254Bank1, NULL, NULL, _gUnused86Animation03254Bank4, NULL, NULL, NULL },
+/// Stationary right turn for the player using the unused weapon animation bank.
+///
+/// Native clip 6, also selected for scripted turns toward a nonnegative yaw
+/// delta. Contains 19 part tracks: translation/rotation for tracks 0 and 1,
+/// packed rotation for 2..18. The clip loops after its opening poses. The loaded
+/// weapon package must remain present while playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerTurnRightAnimation = {
+    .records           = _gUnused86PlayerTurnRightAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerTurnRightAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerTurnRightAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerTurnRightAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation03568Bank1[3] = {
+/// Item-use translation/rotation keyframes for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03568_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation03568Bank4[69] = {
+/// Item-use packed Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03568_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation03568Records[99] = {
+/// Item-use keyframes and stop controls; durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03568_records.inc"
 };
 
-static u16 _gUnused86Animation03568Indices[20] = {
+/// Absolute item-use record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03568_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation03568 = {
-    _gUnused86Animation03568Records,
-    _gUnused86Animation03568Indices,
-    { NULL, _gUnused86Animation03568Bank1, NULL, NULL, _gUnused86Animation03568Bank4, NULL, NULL, NULL },
+/// Item-use presentation for the player using the unused weapon animation bank.
+///
+/// Native clip 40. Plays once before returning to aim locomotion; the animation
+/// does not apply the item. Contains 19 part tracks: translation/rotation for
+/// tracks 0 and 1, packed rotation for 2..18. The loaded weapon package must
+/// remain present while playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerItemUseAnimation = {
+    .records           = _gUnused86PlayerItemUseAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerItemUseAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerItemUseAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation03CC4Bank1[14] = {
+/// Stair-ascent translation/rotation keyframes for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03CC4_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation03CC4Bank4[156] = {
+/// Stair-ascent packed Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03CC4_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation03CC4Records[253] = {
+/// Stair-ascent keyframes, footstep cues and loop/stop controls.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03CC4_records.inc"
 };
 
-static u16 _gUnused86Animation03CC4Indices[20] = {
+/// Absolute stair-ascent record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_03CC4_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation03CC4 = {
-    _gUnused86Animation03CC4Records,
-    _gUnused86Animation03CC4Indices,
-    { NULL, _gUnused86Animation03CC4Bank1, NULL, NULL, _gUnused86Animation03CC4Bank4, NULL, NULL, NULL },
+/// Looping stair ascent for the player using the unused weapon animation bank.
+///
+/// Native clip 36. Track 1's footstep cues gate the scripted stair strides;
+/// finishing the flight selects a separate clip by the original step-count parity.
+/// Contains 19 part tracks: translation/rotation for tracks 0 and 1, packed
+/// rotation for 2..18. The loaded weapon package must remain present while
+/// playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerStairAscentAnimation = {
+    .records           = _gUnused86PlayerStairAscentAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerStairAscentAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerStairAscentAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation0444CBank1[16] = {
+/// Stair-descent translation/rotation keyframes for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0444C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation0444CBank4[167] = {
+/// Stair-descent packed Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0444C_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation0444CRecords[247] = {
+/// Stair-descent keyframes, footstep cues and loop/stop controls.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0444C_records.inc"
 };
 
-static u16 _gUnused86Animation0444CIndices[20] = {
+/// Absolute stair-descent record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0444C_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation0444C = {
-    _gUnused86Animation0444CRecords,
-    _gUnused86Animation0444CIndices,
-    { NULL, _gUnused86Animation0444CBank1, NULL, NULL, _gUnused86Animation0444CBank4, NULL, NULL, NULL },
+/// Looping stair descent for the player using the unused weapon animation bank.
+///
+/// Native clip 37. Track 1's footstep cues gate the scripted stair strides;
+/// completing the final stride returns to idle. Contains 19 part tracks:
+/// translation/rotation for tracks 0 and 1, packed rotation for 2..18. The loaded
+/// weapon package must remain present while playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerStairDescentAnimation = {
+    .records           = _gUnused86PlayerStairDescentAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerStairDescentAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerStairDescentAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation04720Bank1[6] = {
+/// Translation/rotation keyframes for finishing an ascent with an odd step count.
+///
+/// Tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04720_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation04720Bank4[52] = {
+/// Packed Euler keyframes for finishing an ascent with an odd step count.
+///
+/// Tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04720_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation04720Records[91] = {
+/// Keyframes, footstep cues and stop controls for finishing an ascent with an odd step count.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04720_records.inc"
 };
 
-static u16 _gUnused86Animation04720Indices[20] = {
+/// Absolute record starts for finishing an ascent with an odd step count.
+///
+/// Tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04720_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation04720 = {
-    _gUnused86Animation04720Records,
-    _gUnused86Animation04720Indices,
-    { NULL, _gUnused86Animation04720Bank1, NULL, NULL, _gUnused86Animation04720Bank4, NULL, NULL, NULL },
+/// Finishing stride after a player stair ascent with an odd original step count.
+///
+/// Native clip 39 in the unused weapon animation bank. Plays once while the
+/// player moves onto level ground, then returns to idle. Contains 19 part tracks:
+/// translation/rotation for tracks 0 and 1, packed rotation for 2..18. The loaded
+/// weapon package must remain present while playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerStairAscentFinishOddAnimation = {
+    .records           = _gUnused86PlayerStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerStairAscentFinishOddAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerStairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation04AB0Bank1[7] = {
+/// Translation/rotation keyframes for finishing an ascent with an even step count.
+///
+/// Tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04AB0_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation04AB0Bank4[73] = {
+/// Packed Euler keyframes for finishing an ascent with an even step count.
+///
+/// Tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04AB0_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation04AB0Records[114] = {
+/// Keyframes, footstep cues and stop controls for finishing an ascent with an even step count.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04AB0_records.inc"
 };
 
-static u16 _gUnused86Animation04AB0Indices[20] = {
+/// Absolute record starts for finishing an ascent with an even step count.
+///
+/// Tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_04AB0_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation04AB0 = {
-    _gUnused86Animation04AB0Records,
-    _gUnused86Animation04AB0Indices,
-    { NULL, _gUnused86Animation04AB0Bank1, NULL, NULL, _gUnused86Animation04AB0Bank4, NULL, NULL, NULL },
+/// Finishing stride after a player stair ascent with an even original step count.
+///
+/// Native clip 38 in the unused weapon animation bank. Plays once while the
+/// player moves onto level ground, then returns to idle. Contains 19 part tracks:
+/// translation/rotation for tracks 0 and 1, packed rotation for 2..18. The loaded
+/// weapon package must remain present while playback refers to this set or its arrays.
+static AnimationSet _gUnused86PlayerStairAscentFinishEvenAnimation = {
+    .records           = _gUnused86PlayerStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerStairAscentFinishEvenAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerStairAscentFinishEvenAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused86Animation04F38Bank1[9] = {
@@ -886,7 +987,7 @@ AnimationBank D_unused_86_8012A0D8 = { { {
     &_gUnused86PlayerBackwardWalkAnimation,
     &_gUnused86PlayerRunAnimation,
     &_gUnused86PlayerTurnLeftAnimation,
-    &_gUnused86Animation03254,
+    &_gUnused86PlayerTurnRightAnimation,
     &_gUnused86Animation0C924,
     &_gUnused86Animation0CEF0,
     &_gUnused86Animation0A2D4,
@@ -916,11 +1017,11 @@ AnimationBank D_unused_86_8012A0D8 = { { {
     &_gUnused86Animation09520,
     &_gUnused86Animation09348,
     &_gUnused86Animation09520,
-    &_gUnused86Animation03CC4,
-    &_gUnused86Animation0444C,
-    &_gUnused86Animation04AB0,
-    &_gUnused86Animation04720,
-    &_gUnused86Animation03568,
+    &_gUnused86PlayerStairAscentAnimation,
+    &_gUnused86PlayerStairDescentAnimation,
+    &_gUnused86PlayerStairAscentFinishEvenAnimation,
+    &_gUnused86PlayerStairAscentFinishOddAnimation,
+    &_gUnused86PlayerItemUseAnimation,
     &_gUnused86PlayerIdleAnimation,
     &_gUnused86Animation09A84,
     &_gUnused86Animation09C78,
