@@ -35,6 +35,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -48,19 +49,20 @@
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-/// Where the bridge effect task draws its pulsing marker and spawns its two
-/// sparks.
-extern SVECTOR D_neo_ark_bridge_80181F58;
-extern SVECTOR D_neo_ark_bridge_80181F60;
-extern SVECTOR D_neo_ark_bridge_80181F68;
-
 static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
-SVECTOR D_neo_ark_bridge_80181F58 = { -6360, -1370, -0x4A24, 0 };
+/// World-coordinate centre of the pulsing red marker drawn in mapped views 5 and 6.
+static SVECTOR _gNeoArkBridgeRedMarkerCentre = { -6360, -1370, -18980, 0 };
 
-SVECTOR D_neo_ark_bridge_80181F60 = { 1000, -1800, -0x51A4, 0 };
+/// First world-coordinate smoke-puff spawn site, active in mapped views 5 and 6.
+///
+/// Spawning snapshots XYZ and retains this overlay-owned point in the effect work.
+static SVECTOR _gNeoArkBridgeFirstSmokeSpawnPoint = { 1000, -1800, -20900, 0 };
 
-SVECTOR D_neo_ark_bridge_80181F68 = { 1000, -2100, -0x5848, 0 };
+/// Second world-coordinate smoke-puff spawn site, active in mapped views 5 and 6.
+///
+/// Spawning snapshots XYZ and retains this overlay-owned point in the effect work.
+static SVECTOR _gNeoArkBridgeSecondSmokeSpawnPoint = { 1000, -2100, -22600, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
@@ -68,18 +70,51 @@ u8* gNeoArkBridgeViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_bridge_80181F84[1] = { 8 };
+/// Authored logical-view search limit, independent of camera and sprite capacity.
+enum { NEO_ARK_BRIDGE_LOGICAL_VIEW_SEARCH_COUNT = 8 };
 
-DirectionWarpEntry D_neo_ark_bridge_80181F88[2] = {
-    { { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3160, 0, 6368 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3160, 0, -0x2D50 }, { 0, 0, 0, 0 }, 0x551B0002, 0x551B0001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+ViewCount gNeoArkBridgeViewCounts[1] = { NEO_ARK_BRIDGE_LOGICAL_VIEW_SEARCH_COUNT };
+
+/// Bridge-bank passage cues and the room-local arrival views of its two endpoints.
+enum {
+    NEO_ARK_BRIDGE_ARRIVAL_SOUND         = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 2),
+    NEO_ARK_BRIDGE_DEPARTURE_SOUND       = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 1),
+    NEO_ARK_BRIDGE_PAVILION_ARRIVAL_VIEW = 2,
+    NEO_ARK_BRIDGE_GARDEN_ARRIVAL_VIEW   = 6,
 };
 
-// Height override read by the shared waypoint actor.
-s16 D_neo_ark_bridge_80181FF8 = 300;
+DirectionWarpEntry gNeoArkBridgeWarpEntries[2] = {
+    {
+        .player         = { { .word = 2048 }, -3160, 0, 6368 },
+        .companion      = { { .word = 2048 }, -3160, 0, 6368 },
+        .arrivalSound   = NEO_ARK_BRIDGE_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_BRIDGE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = NEO_ARK_BRIDGE_PAVILION_ARRIVAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, -3160, 0, -11600 },
+        .companion      = { { .word = 0 }, -3160, 0, -11600 },
+        .arrivalSound   = NEO_ARK_BRIDGE_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_BRIDGE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = NEO_ARK_BRIDGE_GARDEN_ARRIVAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_bridge_80181FFC[8] = {
+s16 gNeoArkBridgeDiverWaterY = 300;
+
+/// Each patrol ring is indexed modulo eight by the Diver's waypoint cursor.
+enum { NEO_ARK_BRIDGE_DIVER_PATROL_WAYPOINT_COUNT = 8 };
+
+/// Diver patrol ring for selectors 0 and 3, with depths 1500 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkBridgeDiverWaterY`.
+static SVECTOR _gNeoArkBridgeDiverPatrolWaypoints0[NEO_ARK_BRIDGE_DIVER_PATROL_WAYPOINT_COUNT] = {
     { -5600, 1500, -5000, 0 },
     { 0, 1500, -5500, 0 },
     { -5500, 1500, -9300, 0 },
@@ -90,8 +125,10 @@ SVECTOR D_neo_ark_bridge_80181FFC[8] = {
     { 0, 1500, 2500, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_bridge_8018203C[8] = {
+/// Diver patrol ring for selector 1, with depths 3000 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkBridgeDiverWaterY`.
+static SVECTOR _gNeoArkBridgeDiverPatrolWaypoints1[NEO_ARK_BRIDGE_DIVER_PATROL_WAYPOINT_COUNT] = {
     { 2300, 3000, -9000, 0 },
     { 3000, 3000, -7100, 0 },
     { 0, 3000, -6500, 0 },
@@ -102,37 +139,43 @@ SVECTOR D_neo_ark_bridge_8018203C[8] = {
     { -5300, 3000, 2500, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_bridge_8018207C[8] = {
+/// Diver patrol ring for selector 2, with depths 4000 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkBridgeDiverWaterY`.
+static SVECTOR _gNeoArkBridgeDiverPatrolWaypoints2[NEO_ARK_BRIDGE_DIVER_PATROL_WAYPOINT_COUNT] = {
     { -7000, 4000, 5600, 0 },
     { -8200, 4000, 9000, 0 },
     { -6000, 4000, 2800, 0 },
     { 0, 4000, 2100, 0 },
     { -600, 4000, 5000, 0 },
     { -7000, 4000, 6100, 0 },
-    { -7000, 4000, 0x2774, 0 },
+    { -7000, 4000, 10100, 0 },
     { -5200, 4000, 4800, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_neo_ark_bridge_801820BC[4] = {
-    D_neo_ark_bridge_80181FFC,
-    D_neo_ark_bridge_8018203C,
-    D_neo_ark_bridge_8018207C,
-    D_neo_ark_bridge_80181FFC,
+SVECTOR* gNeoArkBridgeDiverPatrolRings[4] = {
+    _gNeoArkBridgeDiverPatrolWaypoints0,
+    _gNeoArkBridgeDiverPatrolWaypoints1,
+    _gNeoArkBridgeDiverPatrolWaypoints2,
+    _gNeoArkBridgeDiverPatrolWaypoints0,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_neo_ark_bridge_801820CC[9] = {
-    { 0, 0, 0, 0 },
-    { -5000, 0, 5000, 0 },
-    { 0, 0, 4400, 0 },
-    { -5000, 0, 1600, 0 },
-    { -5000, 0, -5400, 0 },
-    { 0, 0, -6600, 0 },
-    { 0, 0, -0x2710, 0 },
-    { -5400, 0, -0x2710, 0 },
-    { 0, 0, 0, -1 },
+/// Initial claim state and terminator for the room's writable Diver emergence spots.
+enum {
+    NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE = 0,
+    NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_END  = -1,
+};
+
+SVECTOR gNeoArkBridgeDiverSurfaceSpots[9] = {
+    { 0, 0, 0, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { -5000, 0, 5000, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, 4400, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { -5000, 0, 1600, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { -5000, 0, -5400, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, -6600, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, -10000, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { -5400, 0, -10000, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, 0, NEO_ARK_BRIDGE_DIVER_SURFACE_SPOT_END },
 };
 
 /// Room-space face normals, with `ONE` (4096) representing unit length.
@@ -638,15 +681,87 @@ WorldCoordRoomLights gNeoArkBridgeRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_bridge_80184724[8] = {
-    { NULL, NULL, NULL, { -3040, -993, 3552, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3169, -1057, 3392, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2912, -993, 64, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2977, -961, -96, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3264, -1089, -3264, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3137, -993, -3009, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2880, -800, -7552, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2880, -928, -7745, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gNeoArkBridgeViewBoundaryTriggers[8] = {
+    {
+        .origin       = { -3040, -993, 3552, 0 },
+        .vertices     = { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } },
+        .normal       = { 0, 0, -4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 4190,
+        .parameter0   = 3,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -3169, -1057, 3392, 0 },
+        .vertices     = { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } },
+        .normal       = { 0, 0, 4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3840,
+        .parameter0   = 2,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -2912, -993, 64, 0 },
+        .vertices     = { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } },
+        .normal       = { 0, 0, -4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 4190,
+        .parameter0   = 4,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -2977, -961, -96, 0 },
+        .vertices     = { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } },
+        .normal       = { 0, 0, 4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3840,
+        .parameter0   = 3,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -3264, -1089, -3264, 0 },
+        .vertices     = { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } },
+        .normal       = { 0, 0, 4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3840,
+        .parameter0   = 4,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -3137, -993, -3009, 0 },
+        .vertices     = { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } },
+        .normal       = { 0, 0, -4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 4190,
+        .parameter0   = 5,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -2880, -800, -7552, 0 },
+        .vertices     = { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } },
+        .normal       = { 0, 0, -4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 4190,
+        .parameter0   = 6,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -2880, -928, -7745, 0 },
+        .vertices     = { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } },
+        .normal       = { 0, 0, 4101, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3840,
+        .parameter0   = 5,
+        .parameter1   = 6,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST,
+    },
 };
 
 /// Placement entry IDs and decimal file numbers used by the bridge's first three layouts.
@@ -717,47 +832,132 @@ static AreaResource _gNeoArkBridgeVariant3Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_bridge_801849E4[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Rook placement/file IDs and body descriptor indices used by the later variants.
+enum {
+    NEO_ARK_BRIDGE_ROOK_GOLEM_ENTRY_ID            = 23,
+    NEO_ARK_BRIDGE_ROOK_GOLEM_FILE_NUMBER         = 23,
+    NEO_ARK_BRIDGE_ROOK_GOLEM_BODY_TASK_INDEX     = 0,
+    NEO_ARK_BRIDGE_LARGE_MOSSBACK_BODY_TASK_INDEX = 0,
 };
 
-AreaResource D_neo_ark_bridge_80184A08[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's Bog Diver and large Mossback file/task recipes, keyed by entries 4 and 49.
+///
+/// Selects base files 100400 and 204900, using body descriptor 0 in each actor
+/// family. Two Diver placements share entry 4; `AREA_PLACEMENT_END` ends the list.
+static AreaResource _gNeoArkBridgeVariant4Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    {
+        .entryId        = NEO_ARK_BRIDGE_LARGE_MOSSBACK_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_LARGE_MOSSBACK_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20,
+        .taskIndex      = NEO_ARK_BRIDGE_LARGE_MOSSBACK_BODY_TASK_INDEX,
+        .taskTable      = gActor201100Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_bridge_80184A20[2] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 5's Bog Diver recipe, shared by its three wounded-Diver placements.
+///
+/// Entry 4 loads base file 100400 and spawns its body descriptor;
+/// `AREA_PLACEMENT_END` terminates the list.
+static AreaResource _gNeoArkBridgeVariant5Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_BOG_DIVER_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_BOG_DIVER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_00400_BODY_TASK_INDEX,
+        .taskTable      = gActor100400Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_bridge_80184A38[2] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 11's Beam Sword Rook GOLEM recipe, shared by its two placements.
+///
+/// Entry 23 loads base file 102300 and spawns body descriptor 0;
+/// `AREA_PLACEMENT_END` terminates the list.
+static AreaResource _gNeoArkBridgeVariant11Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_ROOK_GOLEM_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_ROOK_GOLEM_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = NEO_ARK_BRIDGE_ROOK_GOLEM_BODY_TASK_INDEX,
+        .taskTable      = gActor102300RookGolemTasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_bridge_80184A50[13] = {
-    { NULL, NULL },
-    { gMapNeoArkBridgeVariant1Placements, _gNeoArkBridgeVariant1Resources },
-    { gMapNeoArkBridgeVariant2Placements, _gNeoArkBridgeVariant2Resources },
-    { gMapNeoArkBridgeVariant3Placements, _gNeoArkBridgeVariant3Resources },
-    { gMapNeoArkBridgeVariant4Placements, D_neo_ark_bridge_801849E4 },
-    { gMapNeoArkBridgeVariant5Placements, D_neo_ark_bridge_80184A08 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkBridgeVariant11Placements, D_neo_ark_bridge_80184A20 },
-    { gMapNeoArkBridgeVariant12Placements, D_neo_ark_bridge_80184A38 },
+/// Variant 12's Beam Sword Rook GOLEM recipe, shared by its two placements.
+///
+/// Entry 23 loads base file 102300 and spawns body descriptor 0;
+/// `AREA_PLACEMENT_END` terminates the list.
+static AreaResource _gNeoArkBridgeVariant12Resources[] = {
+    {
+        .entryId        = NEO_ARK_BRIDGE_ROOK_GOLEM_ENTRY_ID,
+        .fileNumber     = NEO_ARK_BRIDGE_ROOK_GOLEM_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = NEO_ARK_BRIDGE_ROOK_GOLEM_BODY_TASK_INDEX,
+        .taskTable      = gActor102300RookGolemTasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionTrigger D_neo_ark_bridge_80184AB8[3] = {
-    { NULL, NULL, NULL, { -3008, -48, 6640, 0 }, { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3008, -48, -0x2D40, 0 }, { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -480, -64, -1472, 0 }, { { -544, 0, -1904, 0 }, { 544, 0, -1904, 0 }, { -544, 0, 1904, 0 }, { 544, 0, 1904, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+AreaVariant gNeoArkBridgePlacementVariants[13] = {
+    [1]  = { .placements = gMapNeoArkBridgeVariant1Placements, .resources = _gNeoArkBridgeVariant1Resources },
+    [2]  = { .placements = gMapNeoArkBridgeVariant2Placements, .resources = _gNeoArkBridgeVariant2Resources },
+    [3]  = { .placements = gMapNeoArkBridgeVariant3Placements, .resources = _gNeoArkBridgeVariant3Resources },
+    [4]  = { .placements = gMapNeoArkBridgeVariant4Placements, .resources = _gNeoArkBridgeVariant4Resources },
+    [5]  = { .placements = gMapNeoArkBridgeVariant5Placements, .resources = _gNeoArkBridgeVariant5Resources },
+    [11] = { .placements = gMapNeoArkBridgeVariant11Placements, .resources = _gNeoArkBridgeVariant11Resources },
+    [12] = { .placements = gMapNeoArkBridgeVariant12Placements, .resources = _gNeoArkBridgeVariant12Resources },
+};
+
+/// Passage parameters pack the bridge departure slot above the destination arrival slot.
+enum {
+    NEO_ARK_BRIDGE_PAVILION_WARP_PAIR  = (1 << 4) | 2,
+    NEO_ARK_BRIDGE_GARDEN_WARP_PAIR    = (2 << 4) | 1,
+    NEO_ARK_BRIDGE_EXAMINE_CAP_COMMAND = 1,
+};
+
+WorldCollisionTrigger gNeoArkBridgeActionTriggers[3] = {
+    {
+        .origin       = { -3008, -48, 6640, 0 },
+        .vertices     = { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 1137,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_NEO_ARK_PAVILION,
+        .parameter1   = NEO_ARK_BRIDGE_PAVILION_WARP_PAIR,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -3008, -48, -11584, 0 },
+        .vertices     = { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 1137,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_NEO_ARK_GARDEN,
+        .parameter1   = NEO_ARK_BRIDGE_GARDEN_WARP_PAIR,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -480, -64, -1472, 0 },
+        .vertices     = { { -544, 0, -1904, 0 }, { 544, 0, -1904, 0 }, { -544, 0, 1904, 0 }, { 544, 0, 1904, 0 } },
+        .normal       = { 0, 4099, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 1978,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = NEO_ARK_BRIDGE_EXAMINE_CAP_COMMAND,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+    },
 };
 
 /// Type-1 cue-2 request bases; cue 1 uses the next script entry.
@@ -885,10 +1085,10 @@ void neoArkBridgeAmbientEffectsTask(Task* task)
                 if (mappedViewIndex >= NEO_ARK_BRIDGE_FIRST_AMBIENT_VIEW) {
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         // Each site consumes its own roll and optional smoke-parameter roll.
-                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_bridge_80181F60, firstSmokeOptionsState);
-                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_bridge_80181F68, secondSmokeOptionsState);
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeFirstSmokeSpawnPoint, firstSmokeOptionsState);
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeSecondSmokeSpawnPoint, secondSmokeOptionsState);
                     }
-                    _neoArkBridgeDrawPulsingRedStar(&D_neo_ark_bridge_80181F58, NEO_ARK_BRIDGE_MARKER_PULSE_ANGLE_STEP, NEO_ARK_BRIDGE_MARKER_RADIUS_SCALE);
+                    _neoArkBridgeDrawPulsingRedStar(&_gNeoArkBridgeRedMarkerCentre, NEO_ARK_BRIDGE_MARKER_PULSE_ANGLE_STEP, NEO_ARK_BRIDGE_MARKER_RADIUS_SCALE);
                 }
             }
             break;

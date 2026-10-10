@@ -29,7 +29,7 @@ gAcropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=ac
 
 gAcropolisFireEscapeCollisionGridVerts = 0x80181EC4; // absolute:True owner=acropolis_fire_escape
 
-gAcropolisFireEscapeCollisionGridFaces = 0x8018207C; // absolute:True owner=acropolis_fire_escape shared=rooms
+gAcropolisFireEscapeCollisionGridFaces = 0x8018207C; // absolute:True owner=acropolis_fire_escape
 _actorRenderYawJointInWorld = 0x801626CC; // type:func
 _actorContactFindLastObstaclePush = 0x80161E38; // type:func
 _actorContactApplyAvoidancePushback = 0x80162180; // type:func

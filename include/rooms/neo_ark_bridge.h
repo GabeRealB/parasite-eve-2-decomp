@@ -15,16 +15,39 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_neo_ark_bridge_801820BC[4];
+/// Four borrowed eight-point patrol rings selected by Diver spawn-argument bits 4..5.
+///
+/// Selectors 0 and 3 share a ring; 1 and 2 select the other two. X/Z are room
+/// coordinates and Y is depth below `gNeoArkBridgeDiverWaterY`, all in game units.
+/// Ring pointers remain valid only while this room overlay is loaded.
+extern SVECTOR* gNeoArkBridgeDiverPatrolRings[4];
 
-extern SVECTOR D_neo_ark_bridge_801820CC[9];
+/// Writable emergence spots shared by the bridge's Divers.
+///
+/// Entries 1..7 supply room-coordinate X/Z; entry 0 is the reserved fallback
+/// claim and is never searched. Y is unused by the searches. The fourth
+/// halfword (`pad`) stores 0 free, 1 claimed; entry 8 has -1 and ends the list.
+/// A Diver with no eligible spot retains its previous emergence position and
+/// switches its claim index to 0. Claims are released on relocation or despawn.
+/// Keep the room overlay loaded until all Divers have released their claims.
+extern SVECTOR gNeoArkBridgeDiverSurfaceSpots[9];
 
-extern s16 D_neo_ark_bridge_80181FF8;
+/// Room-coordinate water-surface Y sampled by each bridge Diver at spawn.
+///
+/// Positive Y points downward. Patrol depths are added to this height; the
+/// room overlay must remain loaded while the Diver configuration is read.
+extern s16 gNeoArkBridgeDiverWaterY;
 
 extern TaskDesc D_neo_ark_bridge_80181F18;
 
-extern AreaVariant D_neo_ark_bridge_80184A50[13];
+/// Placement/resource pairs indexed by the bridge's saved placement variant (0..12).
+///
+/// Slot 0 and slots 6..10 are empty; 1 is the default. Slots 1..5 pair Diver
+/// layouts with room-owned resource recipes, sometimes adding Beetles or a
+/// Mossback. Slots 11 and 12 supply Rook GOLEMs. Placements belong to the stage
+/// map overlay; recipes belong to this room and borrow actor task descriptors.
+/// Keep all owning overlays loaded while loading, spawning or updating actors.
+extern AreaVariant gNeoArkBridgePlacementVariants[13];
 
 /// Number of mapped camera/sprite entries and collision surface classes.
 ///
@@ -42,9 +65,22 @@ enum {
 /// stays valid only while this room overlay is loaded; the map belongs to gameplay.
 extern u8* gNeoArkBridgeViewMaps[1];
 
-extern ViewCount D_neo_ark_bridge_80181F84[];
+/// Room 1's signed logical-view reverse-search limit, eight entries.
+///
+/// The identity map provides those bytes, independently of the six camera,
+/// sprite and view-file records. This count does not authorize a resource
+/// lookup at mapped index 7 or 8. Borrowed by the stage map while this room is loaded.
+extern ViewCount gNeoArkBridgeViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_bridge_80181F88[];
+/// Two bridge arrival/departure endpoints, indexed by the 1-based warp ID minus one.
+///
+/// Endpoint 1 is the pavilion end, at (-3160, 0, 6368), yaw 2048 and view 2;
+/// endpoint 2 is the garden end, at (-3160, 0, -11600), yaw 0 and view 6.
+/// Both place player and companion together in room-coordinate units, with
+/// 4096 angle units per turn. They use bridge-bank entry 2 on arrival and 1
+/// on departure, with no blocked sound, scripted spawn, fade or map flag.
+/// Whole records are copied during transitions; keep this room loaded through lookup.
+extern DirectionWarpEntry gNeoArkBridgeWarpEntries[2];
 
 /// The bridge's room collision mesh and 3-by-7 XZ cell index.
 ///
@@ -77,9 +113,23 @@ extern SpriteView gNeoArkBridgeSpriteViews[NEO_ARK_BRIDGE_VIEW_RESOURCE_COUNT];
 /// shading update transforms and attenuation. Keep the overlay loaded while used.
 extern WorldCoordRoomLights gNeoArkBridgeRoomLights;
 
-extern WorldCollisionTrigger D_neo_ark_bridge_80184724[];
+/// Eight directed boundaries connecting the bridge's walking views 2 through 6.
+///
+/// Each adjacent pair has a boundary in each direction; the eighth record
+/// carries `WORLD_COLLISION_TRIGGER_LAST`. Coordinates and radii use room
+/// game units; normals use 4096 per unit. Room setup binds, links and enables
+/// these mutable records. Keep this overlay loaded until they are unlinked.
+extern WorldCollisionTrigger gNeoArkBridgeViewBoundaryTriggers[8];
 
-extern WorldCollisionTrigger D_neo_ark_bridge_80184AB8[];
+/// Facing-gated passage and examination quads for the bridge.
+///
+/// The first requests pavilion arrival 2 via bridge endpoint 1; the second
+/// requests garden arrival 1 via endpoint 2. The third starts CAP command 1
+/// with presentation flags 0 and carries `WORLD_COLLISION_TRIGGER_LAST`.
+/// Coordinates/radii use room game units and normals use 4096 per unit.
+/// Room setup mutates links, transforms and hit state; keep the room overlay
+/// loaded while linked and the caption bundle loaded for examination.
+extern WorldCollisionTrigger gNeoArkBridgeActionTriggers[3];
 
 /// Collision policies and footstep cues indexed by bridge surface class (0..7).
 ///

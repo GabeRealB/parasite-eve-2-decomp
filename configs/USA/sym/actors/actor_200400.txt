@@ -355,9 +355,9 @@ gShelterB2SepticTankWaterY = 0x801832BC; // absolute:True owner=shelter_b2_septi
 D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // absolute:True owner=shelter_b4_upper_sewer
 D_shelter_b4_upper_sewer_80186708 = 0x80186708; // absolute:True owner=shelter_b4_upper_sewer
 D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True owner=shelter_b4_upper_sewer
-D_neo_ark_bridge_801820BC = 0x801820BC; // absolute:True owner=neo_ark_bridge shared=rooms
-D_neo_ark_bridge_801820CC = 0x801820CC; // absolute:True owner=neo_ark_bridge
-D_neo_ark_bridge_80181FF8 = 0x80181FF8; // absolute:True owner=neo_ark_bridge
+gNeoArkBridgeDiverPatrolRings = 0x801820BC; // absolute:True owner=neo_ark_bridge shared=rooms
+gNeoArkBridgeDiverSurfaceSpots = 0x801820CC; // absolute:True owner=neo_ark_bridge
+gNeoArkBridgeDiverWaterY = 0x80181FF8; // absolute:True owner=neo_ark_bridge
 D_neo_ark_submarine_gallery_80181B0C = 0x80181B0C; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181B1C = 0x80181B1C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
