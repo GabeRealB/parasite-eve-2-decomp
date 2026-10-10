@@ -80,8 +80,6 @@ extern TaskDesc D_shelter_b2_operating_room_80180910;
 /// The room's message table, which the cap scripts index.
 extern TaskMessageEntry D_shelter_b2_operating_room_8018091C[];
 
-/// Point pairs and points the view task draws its glows at, per view.
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -95,7 +93,6 @@ extern RoomEventReqStorage   gRoomEventReq;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-// Indexed views below share one contiguous table.
 static s32 _shelterB2OperatingRoomResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB2OperatingRoomIgnoreKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB2OperatingRoomHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
@@ -134,7 +131,12 @@ SVECTOR D_shelter_b2_operating_room_80180944[15] = {
     { 4600, 200, 3525, 0 },
 };
 
-SVECTOR D_shelter_b2_operating_room_801809BC[64] = {
+/// Fixed glow centres and consecutive capsule endpoints in integer world units.
+///
+/// The mapped-view drawer selects individual centres or two readable SVECTORs
+/// starting at an even index in 32..62; the final capsule reads entries 62..63.
+/// All 64 authored positions remain in the room overlay for the drawer's lifetime.
+static SVECTOR _gShelterB2OperatingRoomGlowPoints[64] = {
     { 5235, 200, 3525, 0 },
     { 5855, 200, 3525, 0 },
     { 6475, 200, 3525, 0 },
@@ -203,7 +205,7 @@ SVECTOR D_shelter_b2_operating_room_801809BC[64] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-u8* D_shelter_b2_operating_room_80180BC8[1] = {
+u8* gShelterB2OperatingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -215,31 +217,59 @@ DirectionWarpEntry D_shelter_b2_operating_room_80180BD0[3] = {
     { { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, 0x541D0006, 0x541D0005, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB2OperatingRoomCollision03DA4Normals[18] = {
+/// Room-space normals for the operating-room grid, with 4096 for unit length.
+static SVECTOR _gShelterB2OperatingRoomCollisionGridNormals[18] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_normals.inc"
 };
 
-static SVECTOR _gShelterB2OperatingRoomCollision03DA4Verts[99] = {
+/// Operating-room collision vertices in signed integer game-coordinate units.
+static SVECTOR _gShelterB2OperatingRoomCollisionGridVerts[99] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2OperatingRoomCollision03DA4Faces[42] = {
+/// Indexed room-grid faces: class-0 walls and class-1/class-2 floors.
+static WorldCollisionGridFace _gShelterB2OperatingRoomCollisionGridFaces[42] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_faces.inc"
 };
 
-static s16 _gShelterB2OperatingRoomCollision03DA4Cells[150] = {
+/// Packed signed face-index lists, terminated by `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// Cell-directory offsets are halfword indices; retained zero entries between
+/// lists and after the final terminator are never consumed by cell traversal.
+static s16 _gShelterB2OperatingRoomCollisionGridCells[150] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2OperatingRoomCollision03DA4Cells[i])
-static s16* _gShelterB2OperatingRoomCollision03DA4Table[8] = {
+/// Collision-grid dimensions; square-cell side length is in integer game units.
+enum {
+    SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_X = 4,
+    SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_Z = 2,
+    SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_SIZE    = 4000,
+};
+
+// The generated include supplies halfword indices into this grid's cell lists.
+#define GRID_CELL(i) (&_gShelterB2OperatingRoomCollisionGridCells[i])
+/// X-major collision-cell directory, indexed by x * cellCountZ + z.
+static s16* _gShelterB2OperatingRoomCollisionGridTable[SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_X * SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_operating_room_80181364 = { NULL, _gShelterB2OperatingRoomCollision03DA4Normals, _gShelterB2OperatingRoomCollision03DA4Verts, _gShelterB2OperatingRoomCollision03DA4Faces, _gShelterB2OperatingRoomCollision03DA4Table, 1000, 0, 4, 2, 4000, 42 };
+WorldCollisionGrid gShelterB2OperatingRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2OperatingRoomCollisionGridNormals,
+    .vertices    = _gShelterB2OperatingRoomCollisionGridVerts,
+    .faces       = _gShelterB2OperatingRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB2OperatingRoomCollisionGridTable,
+    .xBias       = 1000,
+    .zBias       = 0,
+    .cellCountX  = SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_X,
+    .cellCountZ  = SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_Z,
+    .cellSize    = SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gShelterB2OperatingRoomCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b2_operating_room_80181388[12] = {
+ViewCamera gShelterB2OperatingRoomViewCameras[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5500, 0x5208, -3500 } }, 380 },
     { { { { -4023, 0, -767 }, { 132, 4034, -694 }, { 755, -707, -3963 } }, { -9754, 492, -5270 } }, 230 },
     { { { { 3968, 0, -1013 }, { 80, 4083, 313 }, { 1010, -324, 3956 } }, { -9594, 639, -681 } }, 230 },
@@ -254,12 +284,14 @@ ViewCamera D_shelter_b2_operating_room_80181388[12] = {
     { { { { 16, 0, 4095 }, { 3674, 1809, -14 }, { -1809, 3674, 7 } }, { -5788, 2908, -3077 } }, 264 },
 };
 
-SpriteBatch D_shelter_b2_operating_room_80181538[2] = {
+/// Empty mapped-view-1 sprite list; the zero-count record enables background strips.
+static SpriteBatch _gShelterB2OperatingRoomView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_80181548[25] = {
+/// Mapped-view-2 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView2SpriteSources[25] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 429, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 104, 88, 496, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 88, 470, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
@@ -287,14 +319,16 @@ SpriteSource D_shelter_b2_operating_room_80181548[25] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, 104, -120, 879, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_operating_room_8018173C[4] = {
+/// Two contiguous ranges covering mapped view 2's sources, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 18, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gShelterB2OperatingRoomView2SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_8018175C[17] = {
+/// Mapped-view-3 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView3SpriteSources[17] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 88, 509, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -96, -120, 1054, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, -112, -120, 1084, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -314,13 +348,15 @@ SpriteSource D_shelter_b2_operating_room_8018175C[17] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -160, -120, 556, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_operating_room_801818B0[3] = {
+/// One complete source range for mapped view 3, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2OperatingRoomView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_801818C8[87] = {
+/// Mapped-view-4 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView4SpriteSources[87] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 40, 1121, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, -24, 1117, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 16 } }, 0, -8, 1036, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
@@ -410,7 +446,8 @@ SpriteSource D_shelter_b2_operating_room_801818C8[87] = {
     { 142, 0x4000, { .fields = { 88, 48 } }, -16, -112, 1621, { .fields = { 120, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_operating_room_80181F94[14] = {
+/// Twelve contiguous ranges covering mapped view 4's sources, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView4SpriteBatches[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 7, 0 } },
     { 15, 7, 0, 0, { 2, 0 } },
@@ -423,11 +460,12 @@ SpriteBatch D_shelter_b2_operating_room_80181F94[14] = {
     { 56, 12, 0, 0, { 8, 0 } },
     { 68, 1, 0, 0, { 4, 0 } },
     { 69, 17, 0, 0, { 11, 0 } },
-    { 86, 1, 0, 0, { 3, 0 } },
+    { 86, ARRAY_SIZE(_gShelterB2OperatingRoomView4SpriteSources) - 86, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_80182004[124] = {
+/// Mapped-view-5 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView5SpriteSources[124] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 56, 952, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 8 } }, -64, 56, 749, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 8 } }, -64, 48, 752, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
@@ -554,7 +592,8 @@ SpriteSource D_shelter_b2_operating_room_80182004[124] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, 120, -96, 1460, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_operating_room_801829B4[14] = {
+/// Twelve contiguous ranges covering mapped view 5's sources, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView5SpriteBatches[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 7, 0 } },
     { 16, 11, 0, 0, { 2, 0 } },
@@ -567,11 +606,12 @@ SpriteBatch D_shelter_b2_operating_room_801829B4[14] = {
     { 84, 2, 0, 0, { 8, 0 } },
     { 86, 2, 0, 0, { 4, 0 } },
     { 88, 18, 0, 0, { 11, 0 } },
-    { 106, 18, 0, 0, { 3, 0 } },
+    { 106, ARRAY_SIZE(_gShelterB2OperatingRoomView5SpriteSources) - 106, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_80182A24[40] = {
+/// Mapped-view-6 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView6SpriteSources[40] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -80, 1041, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -24, 664, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 8 } }, 72, -104, 725, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
@@ -614,15 +654,17 @@ SpriteSource D_shelter_b2_operating_room_80182A24[40] = {
     { 143, 0x4000, { .fields = { 8, 72 } }, 48, -80, 944, { .fields = { 120, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_operating_room_80182D44[5] = {
+/// Three contiguous ranges covering mapped view 6's sources, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView6SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 1, 0 } },
     { 30, 6, 0, 0, { 2, 0 } },
-    { 36, 4, 0, 0, { 0, 0 } },
+    { 36, ARRAY_SIZE(_gShelterB2OperatingRoomView6SpriteSources) - 36, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_operating_room_80182D6C[50] = {
+/// Mapped-view-7 texture rectangles, with pixel positions and unscaled sorting depths.
+static SpriteSource _gShelterB2OperatingRoomView7SpriteSources[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, -120, 607, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -16, 625, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -16, 619, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
@@ -675,26 +717,31 @@ SpriteSource D_shelter_b2_operating_room_80182D6C[50] = {
     { 142, 0x4000, { .fields = { 8, 72 } }, -112, -104, 596, { .fields = { 120, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_operating_room_80183154[6] = {
+/// Four contiguous ranges covering mapped view 7's sources, plus background and end records.
+static SpriteBatch _gShelterB2OperatingRoomView7SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 3, 0 } },
     { 26, 10, 0, 0, { 0, 0 } },
     { 36, 10, 0, 0, { 2, 0 } },
-    { 46, 4, 0, 0, { 1, 0 } },
+    { 46, ARRAY_SIZE(_gShelterB2OperatingRoomView7SpriteSources) - 46, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_operating_room_80183184[7] = {
-    { { .empty = D_shelter_b2_operating_room_80181538 }, D_shelter_b2_operating_room_80181538, NULL },
-    { { .elements = D_shelter_b2_operating_room_80181548 }, D_shelter_b2_operating_room_8018173C, NULL },
-    { { .elements = D_shelter_b2_operating_room_8018175C }, D_shelter_b2_operating_room_801818B0, NULL },
-    { { .elements = D_shelter_b2_operating_room_801818C8 }, D_shelter_b2_operating_room_80181F94, NULL },
-    { { .elements = D_shelter_b2_operating_room_80182004 }, D_shelter_b2_operating_room_801829B4, NULL },
-    { { .elements = D_shelter_b2_operating_room_80182A24 }, D_shelter_b2_operating_room_80182D44, NULL },
-    { { .elements = D_shelter_b2_operating_room_80182D6C }, D_shelter_b2_operating_room_80183154, NULL },
+SpriteView gShelterB2OperatingRoomSpriteViews[7] = {
+    { { .empty = _gShelterB2OperatingRoomView1SpriteBatches }, _gShelterB2OperatingRoomView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView2SpriteSources }, _gShelterB2OperatingRoomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView3SpriteSources }, _gShelterB2OperatingRoomView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView4SpriteSources }, _gShelterB2OperatingRoomView4SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView5SpriteSources }, _gShelterB2OperatingRoomView5SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView6SpriteSources }, _gShelterB2OperatingRoomView6SpriteBatches, NULL },
+    { { .elements = _gShelterB2OperatingRoomView7SpriteSources }, _gShelterB2OperatingRoomView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_operating_room_801831D8[14] = {
+/// Fourteen all-view point lights with world-unit falloff radii and Q12 RGB intensities.
+///
+/// Room-light updates parent and compose the transforms; shading overwrites
+/// attenuation. These writable records remain owned by the loaded room overlay.
+static WorldCoordPointLight _gShelterB2OperatingRoomPointLights[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1560, -1747, 1797 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 4014, 3932 }, { 0, 0 } }, 601, 1260 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2800, -1615, 1827 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 3686 }, { 0, 0 } }, 0, 2161 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -1705, 4987 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3932, 3932 }, { 0, 0 } }, 500, 1300 },
@@ -711,7 +758,14 @@ WorldCoordPointLight D_shelter_b2_operating_room_801831D8[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 600, -1731, 3937 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 500, 2021 },
 };
 
-WorldCoordRoomLights D_shelter_b2_operating_room_80183718 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_operating_room_801831D8), D_shelter_b2_operating_room_801831D8, 0, NULL };
+WorldCoordRoomLights gShelterB2OperatingRoomRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2OperatingRoomPointLights),
+    .pointLights           = _gShelterB2OperatingRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b2_operating_room_80183730[10] = {
     { NULL, NULL, NULL, { 2075, -1440, 1530, 0 }, { { 16, -1936, 1216, 0 }, { -16, -1936, -1215, 0 }, { 16, 1937, 1216, 0 }, { -16, 1937, -1215, 0 } }, { -4112, 0, 53, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -829,8 +883,8 @@ AreaVariant D_shelter_b2_operating_room_80184124[12] = {
     { D_shelter_b2_operating_room_80184094, D_shelter_b2_operating_room_80183F24 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[8] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b2_operating_room_80184184) - 1 },
+WorldCoordRoomAmbientEntry gShelterB2OperatingRoomRoomAmbient[8] = {
+    { .viewCount = ARRAY_SIZE(gShelterB2OperatingRoomRoomAmbient) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 490, 520, 560, 513 } },
     { .color = { 400, 438, 400, 419 } },
@@ -840,39 +894,76 @@ WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[8] = {
     { .color = { 620, 630, 690, 633 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_operating_room_801841C4 = {
-    0x10000009,
-    0x1000000B,
-    0x10000009,
+/// Cue-2 footstep bases in the currently loaded type-1 sound bank.
+enum {
+    SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x09,
+    SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0B,
+    SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_operating_room_801841D0 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Walking, running and scripted-jump cue bases for collision surface class 1.
+///
+/// Scripted jumps reuse walking sounds. Animation cue 1 adds one to the base;
+/// companion playback adds 100. These borrowed cue records live with the room.
+static WorldCollisionFootstepSounds _gShelterB2OperatingRoomSurface1FootstepSounds = {
+    .walk         = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_1_WALK_CUE_BASE,
+    .run          = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_1_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_1_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_operating_room_801841DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for collision surface class 2.
+///
+/// Scripted jumps reuse walking sounds. Animation cue 1 adds one to the base;
+/// companion playback adds 100. These borrowed cue records live with the room.
+static WorldCollisionFootstepSounds _gShelterB2OperatingRoomSurface2FootstepSounds = {
+    .walk         = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_2_WALK_CUE_BASE,
+    .run          = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_2_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_OPERATING_ROOM_FOOTSTEP_SURFACE_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_operating_room_801841E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_operating_room_801841C4 },
+/// Probe-blocking, impact-enabled policy shared by silent surface classes 0 and 3..7.
+///
+/// Grid contacts apply pushback. The leading byte stays zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB2OperatingRoomDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_operating_room_801841EC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_operating_room_801841D0 },
+/// Probe-blocking, impact-enabled collision policy and footstep cues for surface class 1.
+///
+/// Grid contacts apply pushback. The leading byte stays zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB2OperatingRoomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2OperatingRoomSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_operating_room_801841F4[8] = {
-    D_shelter_b2_operating_room_801841DC,
-    D_shelter_b2_operating_room_801841E4,
-    D_shelter_b2_operating_room_801841EC,
-    D_shelter_b2_operating_room_801841DC,
-    D_shelter_b2_operating_room_801841DC,
-    D_shelter_b2_operating_room_801841DC,
-    D_shelter_b2_operating_room_801841DC,
-    D_shelter_b2_operating_room_801841DC,
+/// Probe-blocking, impact-enabled collision policy and footstep cues for surface class 2.
+///
+/// Grid contacts apply pushback. The leading byte stays zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB2OperatingRoomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2OperatingRoomSurface2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB2OperatingRoomSurfaceProperties[8] = {
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
+    &_gShelterB2OperatingRoomSurface1Properties,
+    &_gShelterB2OperatingRoomSurface2Properties,
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
+    &_gShelterB2OperatingRoomDefaultSurfaceProperties,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -1126,61 +1217,61 @@ void shelterB2OperatingRoomDrawGlowsTask(Task* task)
     // Only views 2..7 have glows; capsules borrow consecutive endpoint pairs.
     switch ((u8)viewGetMappedIndex()) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[54], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[58], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[62], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[54], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[58], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[62], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[52], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[60], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[52], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[60], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[49], SHELTER_B2_OPERATING_ROOM_GLOW_LARGE_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[1], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[5], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[11], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[12], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[18], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[19], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[22], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[23], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[26], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[27], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[28], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[42], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[49], SHELTER_B2_OPERATING_ROOM_GLOW_LARGE_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[1], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[5], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[11], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[12], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[18], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[19], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[22], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[23], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[26], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[27], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[28], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[42], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
             break;
         case 5:
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[0], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[6], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[9], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[10], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[16], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[17], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[20], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[21], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[24], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[25], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[29], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[30], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[31], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[0], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[6], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[9], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[10], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[16], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[17], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[20], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[21], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[24], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[25], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[29], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[30], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&_gShelterB2OperatingRoomGlowPoints[31], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[32], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[34], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[32], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[34], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[36], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[38], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[40], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[44], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[36], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[38], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[40], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&_gShelterB2OperatingRoomGlowPoints[44], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
     }
 }

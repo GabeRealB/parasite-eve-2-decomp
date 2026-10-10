@@ -14,20 +14,44 @@
 
 extern AreaVariant D_shelter_b2_operating_room_80184124[12];
 
-// shelter_b2_operating_room
-extern u8* D_shelter_b2_operating_room_80180BC8[];
+/// Logical-view maps for the operating room's single room slot.
+///
+/// Room ID 1 borrows `gViewIdentityMap`; logical views 1..7 select the same
+/// camera/image/sprite IDs. The directory requires this room overlay to stay loaded.
+extern u8* gShelterB2OperatingRoomRoomViewMaps[1];
 
 extern ViewCount D_shelter_b2_operating_room_80180BCC[];
 
 extern DirectionWarpEntry D_shelter_b2_operating_room_80180BD0[];
 
-extern WorldCollisionGrid D_shelter_b2_operating_room_80181364;
+/// Operating-room collision mesh and its 4-by-2 XZ cell directory.
+///
+/// Cells span 4000 game units from origin (-1000, 0). The 42 faces select
+/// surface classes 0..2. Activation binds the view coordinate; the record and
+/// all mesh/index storage remain borrowed while this room overlay is loaded.
+extern WorldCollisionGrid gShelterB2OperatingRoomCollisionGrid;
 
-extern ViewCamera D_shelter_b2_operating_room_80181388[];
+/// Twelve authored operating-room cameras, indexed by camera ID minus one.
+///
+/// Normal logical views map to IDs 1..7; the remaining five records are
+/// retained camera data. Rotation uses 12 fractional bits, origin uses game
+/// units, and projection distance uses pixels. Keep the overlay loaded until
+/// any queued camera application has consumed its borrowed record.
+extern ViewCamera gShelterB2OperatingRoomViewCameras[12];
 
-extern SpriteView D_shelter_b2_operating_room_80183184[];
+/// Sprite overlays for mapped operating-room views 1..7, stored at ID minus one.
+///
+/// View 1 draws only the decoded background; views 2..7 add depth-sorted
+/// texture rectangles. All batch lists terminate with `SPRITE_BATCH_END`,
+/// their first zero-count record retains background drawing, and clipping is
+/// absent. The descriptors and their source/batch arrays live with this overlay.
+extern SpriteView gShelterB2OperatingRoomSpriteViews[7];
 
-extern WorldCoordRoomLights D_shelter_b2_operating_room_80183718;
+/// Operating-room model lighting supplied by fourteen point lights in every view.
+///
+/// No directional or cone lights are present. Coordinate and attenuation
+/// updates require writable records; all light storage lives with this overlay.
+extern WorldCoordRoomLights gShelterB2OperatingRoomRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_operating_room_80183730[];
 
@@ -35,9 +59,19 @@ extern WorldCollisionOccluder D_shelter_b2_operating_room_80183A28[];
 
 extern WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[];
+/// Minimum ambient colours for logical operating-room views 1..7.
+///
+/// Entry zero counts the seven following colours. RGB uses 16 units per
+/// 8-bit colour level; the fourth component retains weighted brightness.
+/// Lighting borrows this table only while the room overlay stays loaded.
+extern WorldCoordRoomAmbientEntry gShelterB2OperatingRoomRoomAmbient[8];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_operating_room_801841F4[];
+/// Collision-policy directory indexed directly by surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Classes
+/// 1 and 2 select separate footstep cues; classes 0 and 3..7 share the silent
+/// policy. Records and their sound tables remain borrowed from this overlay.
+extern WorldCollisionSurfaceProperties* gShelterB2OperatingRoomSurfaceProperties[8];
 
 /// Dispatches the operating room's persistent task and message service.
 ///
