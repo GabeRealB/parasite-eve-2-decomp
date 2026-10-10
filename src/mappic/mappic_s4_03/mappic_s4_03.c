@@ -1,175 +1,187 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS403MappicS406Model0014CSkeleton[1] = {
+/// Identity transform and self-parented root for the B1 elevator hall shape.
+static TmdBone _gMappicS403B1ElevatorHallShapeSkeleton[] = {
 #include "assets/mappic_s4_06_model_0014C_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS406Model0014CPartVerts[1] = {
+/// Vertex count of the B1 elevator hall shape's sole part (eight vertices).
+static u32 _gMappicS403B1ElevatorHallShapePartVerts[] = {
 #include "assets/mappic_s4_06_model_0014C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS406Model0014CVerts[8] = {
+/// B1 elevator hall's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1ElevatorHallShapeVerts[] = {
 #include "assets/mappic_s4_06_model_0014C_verts.inc"
 };
 
-static u32 _gMappicS403MappicS406Model0014CStream[15] = {
+/// Three unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1ElevatorHallShapeStream[] = {
 #include "assets/mappic_s4_06_model_0014C_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012EFD8 = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS403MappicS406Model0014CPartVerts,
-    _gMappicS403MappicS406Model0014CVerts,
-    &_gMappicS403MappicS406Model0014CVerts[8],
-    _gMappicS403MappicS406Model0014CSkeleton,
-    _gMappicS403MappicS406Model0014CStream,
+TmdSource gMappicS403B1ElevatorHallShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1ElevatorHallShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1ElevatorHallShapePartVerts,
+    .verts            = _gMappicS403B1ElevatorHallShapeVerts,
+    .normals          = &_gMappicS403B1ElevatorHallShapeVerts[ARRAY_SIZE(_gMappicS403B1ElevatorHallShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1ElevatorHallShapeSkeleton,
+    .stream           = _gMappicS403B1ElevatorHallShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS400Model0005C00154MappicS403Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 south maintenance walkway shape.
+static TmdBone _gMappicS403B1SouthMaintenanceWalkwayShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_03_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C00154MappicS403PartVerts[1] = {
+/// Vertex count of the B1 south maintenance walkway shape's sole part (six vertices).
+static u32 _gMappicS403B1SouthMaintenanceWalkwayShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_03_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS400Model0005C00154MappicS403Verts[6] = {
+/// B1 south maintenance walkway's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1SouthMaintenanceWalkwayShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_03_verts.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C00154MappicS403Stream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1SouthMaintenanceWalkwayShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_03_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F084 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS403MappicS400Model0005C00154MappicS403PartVerts,
-    _gMappicS403MappicS400Model0005C00154MappicS403Verts,
-    &_gMappicS403MappicS400Model0005C00154MappicS403Verts[6],
-    _gMappicS403MappicS400Model0005C00154MappicS403Skeleton,
-    _gMappicS403MappicS400Model0005C00154MappicS403Stream,
+TmdSource gMappicS403B1SouthMaintenanceWalkwayShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1SouthMaintenanceWalkwayShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1SouthMaintenanceWalkwayShapePartVerts,
+    .verts            = _gMappicS403B1SouthMaintenanceWalkwayShapeVerts,
+    .normals          = &_gMappicS403B1SouthMaintenanceWalkwayShapeVerts[ARRAY_SIZE(_gMappicS403B1SouthMaintenanceWalkwayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1SouthMaintenanceWalkwayShapeSkeleton,
+    .stream           = _gMappicS403B1SouthMaintenanceWalkwayShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS202Model00C48001E4Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 storeroom shape.
+static TmdBone _gMappicS403B1StoreroomShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C48001E4PartVerts[1] = {
+/// Vertex count of the B1 storeroom shape's sole part (four vertices).
+static u32 _gMappicS403B1StoreroomShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS202Model00C48001E4Verts[4] = {
+/// B1 storeroom's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1StoreroomShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_verts.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C48001E4Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1StoreroomShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F114 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS403MappicS202Model00C48001E4PartVerts,
-    _gMappicS403MappicS202Model00C48001E4Verts,
-    &_gMappicS403MappicS202Model00C48001E4Verts[4],
-    _gMappicS403MappicS202Model00C48001E4Skeleton,
-    _gMappicS403MappicS202Model00C48001E4Stream,
+TmdSource gMappicS403B1StoreroomShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1StoreroomShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1StoreroomShapePartVerts,
+    .verts            = _gMappicS403B1StoreroomShapeVerts,
+    .normals          = &_gMappicS403B1StoreroomShapeVerts[ARRAY_SIZE(_gMappicS403B1StoreroomShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1StoreroomShapeSkeleton,
+    .stream           = _gMappicS403B1StoreroomShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS400Model0005C00290Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 north maintenance walkway shape.
+static TmdBone _gMappicS403B1NorthMaintenanceWalkwayShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C00290PartVerts[1] = {
+/// Vertex count of the B1 north maintenance walkway shape's sole part (six vertices).
+static u32 _gMappicS403B1NorthMaintenanceWalkwayShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS400Model0005C00290Verts[6] = {
+/// B1 north maintenance walkway's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1NorthMaintenanceWalkwayShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_verts.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C00290Stream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1NorthMaintenanceWalkwayShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F1C0 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS403MappicS400Model0005C00290PartVerts,
-    _gMappicS403MappicS400Model0005C00290Verts,
-    &_gMappicS403MappicS400Model0005C00290Verts[6],
-    _gMappicS403MappicS400Model0005C00290Skeleton,
-    _gMappicS403MappicS400Model0005C00290Stream,
+TmdSource gMappicS403B1NorthMaintenanceWalkwayShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1NorthMaintenanceWalkwayShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1NorthMaintenanceWalkwayShapePartVerts,
+    .verts            = _gMappicS403B1NorthMaintenanceWalkwayShapeVerts,
+    .normals          = &_gMappicS403B1NorthMaintenanceWalkwayShapeVerts[ARRAY_SIZE(_gMappicS403B1NorthMaintenanceWalkwayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1NorthMaintenanceWalkwayShapeSkeleton,
+    .stream           = _gMappicS403B1NorthMaintenanceWalkwayShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS400Model0005C0033CSkeleton[1] = {
+/// Identity transform and self-parented root for the B1 armory shape.
+static TmdBone _gMappicS403B1ArmoryShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C0033CPartVerts[1] = {
+/// Vertex count of the B1 armory shape's sole part (six vertices).
+static u32 _gMappicS403B1ArmoryShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS400Model0005C0033CVerts[6] = {
+/// B1 armory's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1ArmoryShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_verts.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C0033CStream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1ArmoryShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F26C = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS403MappicS400Model0005C0033CPartVerts,
-    _gMappicS403MappicS400Model0005C0033CVerts,
-    &_gMappicS403MappicS400Model0005C0033CVerts[6],
-    _gMappicS403MappicS400Model0005C0033CSkeleton,
-    _gMappicS403MappicS400Model0005C0033CStream,
+TmdSource gMappicS403B1ArmoryShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1ArmoryShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1ArmoryShapePartVerts,
+    .verts            = _gMappicS403B1ArmoryShapeVerts,
+    .normals          = &_gMappicS403B1ArmoryShapeVerts[ARRAY_SIZE(_gMappicS403B1ArmoryShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1ArmoryShapeSkeleton,
+    .stream           = _gMappicS403B1ArmoryShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS400Model0005C003E8Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 sleeping quarters shape.
+static TmdBone _gMappicS403B1SleepingQuartersShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C003E8PartVerts[1] = {
+/// Vertex count of the B1 sleeping quarters shape's sole part (six vertices).
+static u32 _gMappicS403B1SleepingQuartersShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS400Model0005C003E8Verts[6] = {
+/// B1 sleeping quarters' map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1SleepingQuartersShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_verts.inc"
 };
 
-static u32 _gMappicS403MappicS400Model0005C003E8Stream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1SleepingQuartersShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F318 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS403MappicS400Model0005C003E8PartVerts,
-    _gMappicS403MappicS400Model0005C003E8Verts,
-    &_gMappicS403MappicS400Model0005C003E8Verts[6],
-    _gMappicS403MappicS400Model0005C003E8Skeleton,
-    _gMappicS403MappicS400Model0005C003E8Stream,
+TmdSource gMappicS403B1SleepingQuartersShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1SleepingQuartersShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1SleepingQuartersShapePartVerts,
+    .verts            = _gMappicS403B1SleepingQuartersShapeVerts,
+    .normals          = &_gMappicS403B1SleepingQuartersShapeVerts[ARRAY_SIZE(_gMappicS403B1SleepingQuartersShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1SleepingQuartersShapeSkeleton,
+    .stream           = _gMappicS403B1SleepingQuartersShapeStream,
 };
 
 static TmdBone _gMappicS403MappicS202Model00910004C8Skeleton[1] = {

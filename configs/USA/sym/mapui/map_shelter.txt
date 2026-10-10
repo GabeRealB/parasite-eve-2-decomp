@@ -541,12 +541,12 @@ gMappicS402TunnelShape = 0x8012F0C0; // absolute:True owner=mappic_s4_02
 gMappicS402GorgeShape = 0x8012F150; // absolute:True owner=mappic_s4_02
 gMappicS402RefugeShape = 0x8012F1E0; // absolute:True owner=mappic_s4_02
 gMappicS402ForkedTunnelShape = 0x8012F28C; // absolute:True owner=mappic_s4_02
-D_mappic_s4_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s4_03 shared=mappic
-D_mappic_s4_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s4_03 shared=mappic
-D_mappic_s4_03_8012F114 = 0x8012F114; // absolute:True owner=mappic_s4_03 shared=mappic
-D_mappic_s4_03_8012F1C0 = 0x8012F1C0; // absolute:True owner=mappic_s4_03 shared=mappic
-D_mappic_s4_03_8012F26C = 0x8012F26C; // absolute:True owner=mappic_s4_03 shared=mappic
-D_mappic_s4_03_8012F318 = 0x8012F318; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1ElevatorHallShape = 0x8012EFD8; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1SouthMaintenanceWalkwayShape = 0x8012F084; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1StoreroomShape = 0x8012F114; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1NorthMaintenanceWalkwayShape = 0x8012F1C0; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1ArmoryShape = 0x8012F26C; // absolute:True owner=mappic_s4_03 shared=mappic
+gMappicS403B1SleepingQuartersShape = 0x8012F318; // absolute:True owner=mappic_s4_03 shared=mappic
 D_mappic_s4_03_8012F3F8 = 0x8012F3F8; // absolute:True owner=mappic_s4_03
 D_mappic_s4_03_8012F488 = 0x8012F488; // absolute:True owner=mappic_s4_03
 D_mappic_s4_03_8012F584 = 0x8012F584; // absolute:True owner=mappic_s4_03

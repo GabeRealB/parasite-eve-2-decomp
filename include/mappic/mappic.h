@@ -495,17 +495,47 @@ extern TmdSource gMappicS402RefugeShape;
 extern TmdSource gMappicS402ForkedTunnelShape;
 
 // mappic_s4_03
-extern TmdSource D_mappic_s4_03_8012EFD8;
+/// B1 elevator hall's three-quad area fill on page 3 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1ElevatorHallShape;
 
-extern TmdSource D_mappic_s4_03_8012F084;
+/// B1 south maintenance walkway's two-quad area fill on page 3 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1SouthMaintenanceWalkwayShape;
 
-extern TmdSource D_mappic_s4_03_8012F114;
+/// B1 storeroom's area-fill quad on page 3 of the Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1StoreroomShape;
 
-extern TmdSource D_mappic_s4_03_8012F1C0;
+/// B1 north maintenance walkway's two-quad area fill on page 3 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1NorthMaintenanceWalkwayShape;
 
-extern TmdSource D_mappic_s4_03_8012F26C;
+/// B1 armory's two-quad area fill on page 3 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1ArmoryShape;
 
-extern TmdSource D_mappic_s4_03_8012F318;
+/// B1 sleeping quarters' two-quad area fill on page 3 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1SleepingQuartersShape;
 
 extern TmdSource D_mappic_s4_03_8012F3F8;
 
