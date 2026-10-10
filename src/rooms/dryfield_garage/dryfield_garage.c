@@ -55,15 +55,6 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The room's message table, installed on the room task by its entry state.
-extern TaskMessageEntry D_dryfield_garage_8017DC7C[];
-
-/// Spawn table of `_dryfieldGarageJunkYardRefusalTask`, ended by `TASK_DESC_END`.
-extern TaskDesc D_dryfield_garage_8017DCAC[];
-
-extern ActorTransform        D_dryfield_garage_8017DCC4;
-extern WorldCollisionTrigger D_dryfield_garage_8017FD1C[11];
-
 /// Storage for the task of the scene that turns the player back from the
 /// junk-yard door.
 ///
@@ -79,8 +70,6 @@ typedef struct {
 } _DryfieldGarageDoorSceneStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldGarageDoorSceneStorage, 8);
 
-extern _DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C;
-
 enum { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32  _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
@@ -88,8 +77,8 @@ static void _dryfieldGarageInitRoomTask(Task* task);
 static void _dryfieldGarageIdleRoomTask(Task* unusedTask);
 
 static WorldCollisionGrid               _gDryfieldGarageCollisionGrid;
-extern WorldCollisionTrigger            D_dryfield_garage_8017F69C[14];
-extern WorldCollisionTrigger            D_dryfield_garage_8017FD1C[11];
+static WorldCollisionTrigger            _gDryfieldGarageViewBoundaryTriggers[14];
+static WorldCollisionTrigger            _gDryfieldGarageActionTriggers[11];
 static const WorldCoordRoomAmbientEntry _gDryfieldGarageAmbientByView[16];
 static WorldCoordRoomLights             _gDryfieldGarageRoomLights;
 static s32                              _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -99,7 +88,11 @@ static void                             _dryfieldGarageJunkYardRefusalTask(Task*
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
+/// The room receiver's five message handlers and unsupported-message terminator.
+///
+/// Installed during entry and borrowed through teardown. The callbacks accept
+/// their message-specific integer or pointer payloads through the 32-bit task ABI.
+static const TaskMessageEntry _gDryfieldGarageMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldGarageResolveRoomEventMessage },
     { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _garageSoundMsg },
@@ -108,30 +101,45 @@ TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_garage_8017DCAC[2] = {
+/// Bodyless priority-32 wrapper for the refused junk-yard departure scene.
+///
+/// Only slot 0 is spawnable; the second record ends the descriptor table.
+/// The wrapper starts Gary's scene task independently and then releases itself.
+static TaskDesc _gDryfieldGarageJunkYardRefusalTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, 32 } }, _dryfieldGarageJunkYardRefusalTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-ActorTransform D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };
+/// Companion placement for entry warp 2, in world units with a half-turn yaw.
+///
+/// The complete position and Euler angles are borrowed during synchronous placement.
+static const ActorTransform _gDryfieldGarageCompanionEntryPlacement SECTION(".data") = {
+    { 1680, 0, 6170, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 }
+};
 
-WorldCollisionRoomResources D_dryfield_garage_8017DCDC[1] = {
-    { &_gDryfieldGarageCollisionGrid, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },
+WorldCollisionRoomResources gDryfieldGarageRoomCollisionResources[1] = {
+    { &_gDryfieldGarageCollisionGrid, _gDryfieldGarageViewBoundaryTriggers, _gDryfieldGarageActionTriggers, NULL },
 };
 
 u8* gDryfieldGarageRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_garage_8017DCF0[1] = { 15 };
+ViewCount gDryfieldGarageRoomViewCounts[1] = { DRYFIELD_GARAGE_VIEW_COUNT };
 
 WorldCoordRoomLighting gDryfieldGarageRoomLighting[1] = {
     { &_gDryfieldGarageRoomLights, _gDryfieldGarageAmbientByView },
 };
 
-DirectionWarpEntry D_dryfield_garage_8017DCFC[2] = {
-    { { { .word = 1024 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 940, 0, 2200 }, { 0, 0, 0, 0 }, 0x52180004, 0x52180003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
-    { { { .word = 2048 }, 950, 0, 7300 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1100, 0, 7300 }, { 0, 0, 0, 0 }, 0x52180002, 0x52180001, 0x52180007, 6, DIRECTION_WARP_FLAG_NONE, 472 },
+/// Map-marker nibbles for the garage's factory and junk-yard endpoints.
+enum {
+    DRYFIELD_GARAGE_FACTORY_WARP_MAP_FLAG   = 473,
+    DRYFIELD_GARAGE_JUNK_YARD_WARP_MAP_FLAG = 472,
+};
+
+DirectionWarpEntry gDryfieldGarageWarpEntries[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 853, 0, 2741 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 7 / 8 }, 940, 0, 2200 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GARAGE, 4), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GARAGE, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DRYFIELD_GARAGE_FACTORY_WARP_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 950, 0, 7300 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 1100, 0, 7300 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GARAGE, 2), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GARAGE, 1), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GARAGE, 7), 6, DIRECTION_WARP_FLAG_NONE, DRYFIELD_GARAGE_JUNK_YARD_WARP_MAP_FLAG },
 };
 
 SVECTOR gDryfieldGarageCollisionGridNormals[39] = {
@@ -178,14 +186,14 @@ static WorldCollisionGrid _gDryfieldGarageCollisionGrid = {
     .faceCount   = ARRAY_SIZE(gDryfieldGarageCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_garage_8017E670[15] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5508, 0x33C2, -3974 } }, 257 },
+ViewCamera gDryfieldGarageViewCameras[DRYFIELD_GARAGE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5508, 0x33C2, -3974 } }, 257 },
     { { { { 3382, 0, 2309 }, { 756, 3870, -1107 }, { -2182, 1340, 3196 } }, { -3863, 2161, -312 } }, 257 },
     { { { { 1352, 0, 3866 }, { 657, 4036, -230 }, { -3809, 696, 1332 } }, { -0x294D, 1921, -1936 } }, 257 },
     { { { { 4042, 0, 661 }, { 142, 3999, -870 }, { -646, 882, 3947 } }, { -9784, 1851, -1821 } }, 257 },
     { { { { 2349, 0, 3354 }, { 3299, 742, -2310 }, { -607, 4028, 425 } }, { -9916, 5826, -2247 } }, 257 },
     { { { { 3533, 0, -2071 }, { -1751, 2188, -2987 }, { 1106, 3462, 1887 } }, { -997, 4246, -3702 } }, 257 },
-    { { { { 1536, 0, 3796 }, { 0, 4096, 0 }, { -3796, 0, 1536 } }, { -4981, 1166, -1302 } }, 348 },
+    { { { { 1536, 0, 3796 }, { 0, ONE, 0 }, { -3796, 0, 1536 } }, { -4981, 1166, -1302 } }, 348 },
     { { { { -525, 0, -4062 }, { -354, 4080, 45 }, { 4046, 357, -523 } }, { -2448, 1577, -2001 } }, 269 },
     { { { { 3882, 0, -1306 }, { -40, 4093, -121 }, { 1305, 127, 3880 } }, { -3150, 1402, -251 } }, 289 },
     { { { { 2526, 0, -3224 }, { -214, 4086, -167 }, { 3216, 272, 2520 } }, { -1837, 1404, -858 } }, 259 },
@@ -503,55 +511,77 @@ static SpriteBatch _gDryfieldGarageView11SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F3CC[2] = {
+/// View 12's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count selector and terminal record also occupy the unused source
+/// slot; that retained address is never dereferenced as source sprites.
+static SpriteBatch _gDryfieldGarageView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F3DC[2] = {
+/// View 13's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count selector and terminal record also occupy the unused source
+/// slot; that retained address is never dereferenced as source sprites.
+static SpriteBatch _gDryfieldGarageView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F3EC[2] = {
+/// View 14's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count selector and terminal record also occupy the unused source
+/// slot; that retained address is never dereferenced as source sprites.
+static SpriteBatch _gDryfieldGarageView14SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017F3FC[23] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, -48, 1091, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, -48, 1231, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, -48, 1326, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -40, 1243, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -40, 1099, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -40, -24, 1000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, 16, 1026, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -32, -24, 1037, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -32, -16, 970, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -16, 0, 928, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 56, -32, 1276, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, -24, 1229, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 56 } }, 8, 0, 807, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 56 } }, 88, 0, 922, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 88, 56, 817, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, 8, 56, 975, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, -16, 932, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 24, -16, 820, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -16, 966, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 72, -16, 857, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 64, 725, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, 64, 712, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -160, 64, 700, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+/// View 15's 23 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView15SpriteSources[23] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 120, -48, 1091, { .fields = { 16, 216 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, -48, 1231, { .fields = { 32, 208 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, 88, -48, 1326, { .fields = { 88, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, 96, -40, 1243, { .fields = { 64, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, -40, 1099, { .fields = { 48, 112 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 96 } }, -40, -24, 1000, { .fields = { 104, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, 16, 1026, { .fields = { 88, 112 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 8 } }, -32, -24, 1037, { .fields = { 8, 168 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 104 } }, -32, -16, 970, { .fields = { 112, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 96 } }, -16, 0, 928, { .fields = { 104, 104 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 16 } }, 56, -32, 1276, { .fields = { 56, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, -24, 1229, { .fields = { 56, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 80, 56 } }, 8, 0, 807, { .fields = { 24, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 72, 56 } }, 88, 0, 922, { .fields = { 56, 200 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 32 } }, 88, 56, 817, { .fields = { 48, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 80, 24 } }, 8, 56, 975, { .fields = { 8, 88 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 16 } }, -16, -16, 932, { .fields = { 24, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 16 } }, 24, -16, 820, { .fields = { 8, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 16 } }, 120, -16, 966, { .fields = { 16, 152 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 16 } }, 72, -16, 857, { .fields = { 40, 176 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 64, 725, { .fields = { 96, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -152, 64, 712, { .fields = { 88, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -160, 64, 700, { .fields = { 96, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017F5C8[4] = {
+/// View 15's complete 23-sprite list in ranges [0, 20) and [20, 23).
+///
+/// The initial zero-count selector retains decoded background strips. The final
+/// sentinel ends the list; visibility stays writable. The serialized trailing
+/// bytes, including the first range's value 1, have no established interpretation.
+static SpriteBatch _gDryfieldGarageView15SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
-    { 20, 3, 0, 0, { 0, 0 } },
+    { 20, ARRAY_SIZE(_gDryfieldGarageView15SpriteSources) - 20, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_garage_8017F5E8[15] = {
+SpriteView gDryfieldGarageSpriteViews[DRYFIELD_GARAGE_VIEW_COUNT] = {
     { { .empty = _gDryfieldGarageView1SpriteBatches }, _gDryfieldGarageView1SpriteBatches, NULL },
     { { .elements = _gDryfieldGarageView2SpriteSources }, _gDryfieldGarageView2SpriteBatches, NULL },
     { { .elements = _gDryfieldGarageView3SpriteSources }, _gDryfieldGarageView3SpriteBatches, NULL },
@@ -563,27 +593,33 @@ SpriteView D_dryfield_garage_8017F5E8[15] = {
     { { .empty = _gDryfieldGarageView9SpriteBatches }, _gDryfieldGarageView9SpriteBatches, NULL },
     { { .empty = _gDryfieldGarageView10SpriteBatches }, _gDryfieldGarageView10SpriteBatches, NULL },
     { { .empty = _gDryfieldGarageView11SpriteBatches }, _gDryfieldGarageView11SpriteBatches, NULL },
-    { { .empty = D_dryfield_garage_8017F3CC }, D_dryfield_garage_8017F3CC, NULL },
-    { { .empty = D_dryfield_garage_8017F3DC }, D_dryfield_garage_8017F3DC, NULL },
-    { { .empty = D_dryfield_garage_8017F3EC }, D_dryfield_garage_8017F3EC, NULL },
-    { { .elements = D_dryfield_garage_8017F3FC }, D_dryfield_garage_8017F5C8, NULL },
+    { { .empty = _gDryfieldGarageView12SpriteBatches }, _gDryfieldGarageView12SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView13SpriteBatches }, _gDryfieldGarageView13SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView14SpriteBatches }, _gDryfieldGarageView14SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView15SpriteSources }, _gDryfieldGarageView15SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_garage_8017F69C[14] = {
-    { NULL, NULL, NULL, { 1455, -1648, 1775, 0 }, { { -1960, -2672, -1625, 0 }, { 1960, -2672, 1624, 0 }, { -1960, 2672, -1625, 0 }, { 1960, 2672, 1624, 0 } }, { 2615, 0, -3157, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 15, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1566, -1584, 1614, 0 }, { { 1960, -2608, 1673, 0 }, { -1960, -2608, -1673, 0 }, { 1960, 2608, 1673, 0 }, { -1960, 2608, -1673, 0 } }, { -2662, 0, 3116, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 2, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 991, -1664, 4894, 0 }, { { 2101, -2688, -1181, 0 }, { -2101, -2688, 1181, 0 }, { 2101, 2688, -1181, 0 }, { -2101, 2688, 1181, 0 } }, { 2010, 0, 3577, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1024, -1600, 5023, 0 }, { { -2101, -2624, 1181, 0 }, { 2101, -2624, -1181, 0 }, { -2101, 2624, 1181, 0 }, { 2101, 2624, -1181, 0 } }, { -2011, 0, -3577, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7827, -1552, 5066, 0 }, { { -435, -2576, 52, 0 }, { 436, -2576, -51, 0 }, { -435, 2576, 52, 0 }, { 436, 2576, -51, 0 } }, { -484, 0, -4077, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7817, -1760, 4954, 0 }, { { 491, -2784, -59, 0 }, { -490, -2784, 60, 0 }, { 491, 2784, -59, 0 }, { -490, 2784, 60, 0 } }, { 491, 0, 4066, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7326, -1536, 2718, 0 }, { { 1076, -2560, 2157, 0 }, { -1076, -2560, -2156, 0 }, { 1076, 2560, 2157, 0 }, { -1076, 2560, -2156, 0 } }, { -3672, 0, 1831, 0 }, { 0, 0, 4096, 0 }, 3510, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7199, -1728, 2782, 0 }, { { -1076, -2752, -2156, 0 }, { 1076, -2752, 2157, 0 }, { -1076, 2752, -2156, 0 }, { 1076, 2752, 2157, 0 } }, { 3664, 0, -1829, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9680, -1840, 4735, 0 }, { { -1379, -2864, 332, 0 }, { 1379, -2864, -332, 0 }, { -1379, 2864, 332, 0 }, { 1379, 2864, -332, 0 } }, { -960, 0, -3984, 0 }, { 0, 0, 4096, 0 }, 3187, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9664, -1792, 4640, 0 }, { { 1379, -2816, -332, 0 }, { -1379, -2816, 332, 0 }, { 1379, 2816, -332, 0 }, { -1379, 2816, 332, 0 } }, { 958, 0, 3982, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6315, -1792, 6411, 0 }, { { 1136, -2784, -1556, 0 }, { -1136, -2784, 1556, 0 }, { 1136, 2784, -1556, 0 }, { -1136, 2784, 1556, 0 } }, { 3318, 0, 2422, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6427, -1760, 6490, 0 }, { { -1047, -2784, 1415, 0 }, { 1047, -2784, -1414, 0 }, { -1047, 2784, 1415, 0 }, { 1047, 2784, -1414, 0 } }, { -3299, 0, -2442, 0 }, { 0, 0, 4096, 0 }, 3288, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4465, -1664, 1695, 0 }, { { 148, -2672, -2050, 0 }, { -163, -2672, 2041, 0 }, { 148, 2672, -2050, 0 }, { -163, 2672, 2041, 0 } }, { 4088, 0, 310, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 3, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4592, -1760, 1648, 0 }, { { -175, -2672, 1978, 0 }, { 162, -2672, -1987, 0 }, { -175, 2672, 1978, 0 }, { 162, 2672, -1987, 0 } }, { -4098, 0, -349, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 15, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Fourteen directed boundaries between garage views, ending on the last live quad.
+///
+/// Source/destination view pairs are 15/2, 2/6, 3/4, 3/5, 5/4, 4/3 and 3/15,
+/// in both directions. Setup binds the current view, links and enables all records.
+/// Positions and radii use room units; normals use 4096 per unit. Storage must
+/// stay loaded until the view-boundary list is cleared or unlinked.
+static WorldCollisionTrigger _gDryfieldGarageViewBoundaryTriggers[14] = {
+    { NULL, NULL, NULL, { 1455, -1648, 1775, 0 }, { { -1960, -2672, -1625, 0 }, { 1960, -2672, 1624, 0 }, { -1960, 2672, -1625, 0 }, { 1960, 2672, 1624, 0 } }, { 2615, 0, -3157, 0 }, { 0, 0, ONE, 0 }, 3683, 0, 15, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1566, -1584, 1614, 0 }, { { 1960, -2608, 1673, 0 }, { -1960, -2608, -1673, 0 }, { 1960, 2608, 1673, 0 }, { -1960, 2608, -1673, 0 } }, { -2662, 0, 3116, 0 }, { 0, 0, ONE, 0 }, 3665, 0, 2, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 991, -1664, 4894, 0 }, { { 2101, -2688, -1181, 0 }, { -2101, -2688, 1181, 0 }, { 2101, 2688, -1181, 0 }, { -2101, 2688, 1181, 0 } }, { 2010, 0, 3577, 0 }, { 0, 0, ONE, 0 }, 3602, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1024, -1600, 5023, 0 }, { { -2101, -2624, 1181, 0 }, { 2101, -2624, -1181, 0 }, { -2101, 2624, 1181, 0 }, { 2101, 2624, -1181, 0 } }, { -2011, 0, -3577, 0 }, { 0, 0, ONE, 0 }, 3556, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7827, -1552, 5066, 0 }, { { -435, -2576, 52, 0 }, { 436, -2576, -51, 0 }, { -435, 2576, 52, 0 }, { 436, 2576, -51, 0 } }, { -484, 0, -4077, 0 }, { 0, 0, ONE, 0 }, 2610, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7817, -1760, 4954, 0 }, { { 491, -2784, -59, 0 }, { -490, -2784, 60, 0 }, { 491, 2784, -59, 0 }, { -490, 2784, 60, 0 } }, { 491, 0, 4066, 0 }, { 0, 0, ONE, 0 }, 2816, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7326, -1536, 2718, 0 }, { { 1076, -2560, 2157, 0 }, { -1076, -2560, -2156, 0 }, { 1076, 2560, 2157, 0 }, { -1076, 2560, -2156, 0 } }, { -3672, 0, 1831, 0 }, { 0, 0, ONE, 0 }, 3510, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7199, -1728, 2782, 0 }, { { -1076, -2752, -2156, 0 }, { 1076, -2752, 2157, 0 }, { -1076, 2752, -2156, 0 }, { 1076, 2752, 2157, 0 } }, { 3664, 0, -1829, 0 }, { 0, 0, ONE, 0 }, 3656, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9680, -1840, 4735, 0 }, { { -1379, -2864, 332, 0 }, { 1379, -2864, -332, 0 }, { -1379, 2864, 332, 0 }, { 1379, 2864, -332, 0 } }, { -960, 0, -3984, 0 }, { 0, 0, ONE, 0 }, 3187, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9664, -1792, 4640, 0 }, { { 1379, -2816, -332, 0 }, { -1379, -2816, 332, 0 }, { 1379, 2816, -332, 0 }, { -1379, 2816, 332, 0 } }, { 958, 0, 3982, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6315, -1792, 6411, 0 }, { { 1136, -2784, -1556, 0 }, { -1136, -2784, 1556, 0 }, { 1136, 2784, -1556, 0 }, { -1136, 2784, 1556, 0 } }, { 3318, 0, 2422, 0 }, { 0, 0, ONE, 0 }, 3376, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6427, -1760, 6490, 0 }, { { -1047, -2784, 1415, 0 }, { 1047, -2784, -1414, 0 }, { -1047, 2784, 1415, 0 }, { 1047, 2784, -1414, 0 } }, { -3299, 0, -2442, 0 }, { 0, 0, ONE, 0 }, 3288, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4465, -1664, 1695, 0 }, { { 148, -2672, -2050, 0 }, { -163, -2672, 2041, 0 }, { 148, 2672, -2050, 0 }, { -163, 2672, 2041, 0 } }, { 4088, 0, 310, 0 }, { 0, 0, ONE, 0 }, 3367, 0, 3, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4592, -1760, 1648, 0 }, { { -175, -2672, 1978, 0 }, { 162, -2672, -1987, 0 }, { -175, 2672, 1978, 0 }, { 162, 2672, -1987, 0 } }, { -4098, 0, -349, 0 }, { 0, 0, ONE, 0 }, 3328, 0, 15, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Six point lights contributing in every garage view.
@@ -613,17 +649,24 @@ static WorldCoordRoomLights _gDryfieldGarageRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
-    { NULL, NULL, NULL, { 3552, -64, 2384, 0 }, { { -1728, 0, -1392, 0 }, { 2048, 0, -1392, 0 }, { -1792, 0, 944, 0 }, { 2016, 0, 944, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, 4096, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 656, -48, 7376, 0 }, { { -976, 0, -256, 0 }, { 976, 0, -256, 0 }, { -976, 0, 256, 0 }, { 976, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1007, WORLD_COLLISION_TRIGGER_ACTION_WARP, 26, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 608, -48, 2960, 0 }, { { 272, 0, -976, 0 }, { 272, 0, 976, 0 }, { -272, 0, -976, 0 }, { -272, 0, 976, 0 } }, { 0, 4111, 0, 0 }, { 4096, 0, 0, 0 }, 1011, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2192, -64, 5344, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 2918, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Eleven garage interactions and exit quads, ending on the last live record.
+///
+/// Warps use endpoint 2 to junk-yard endpoint 1 and endpoint 1 to factory endpoint 3.
+/// Other records request room actions 1/2 or CAP commands 16/17/18/20/21; command
+/// 16 routes through the room handler outside battle. Entry disables action 1
+/// outside variant 1. Setup binds the view and mutates links, enables and hit latches.
+/// Positions and radii use room units; normals use 4096 per unit. Keep loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldGarageActionTriggers[11] = {
+    { NULL, NULL, NULL, { 3552, -64, 2384, 0 }, { { -1728, 0, -1392, 0 }, { 2048, 0, -1392, 0 }, { -1792, 0, 944, 0 }, { 2016, 0, 944, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, ONE, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 656, -48, 7376, 0 }, { { -976, 0, -256, 0 }, { 976, 0, -256, 0 }, { -976, 0, 256, 0 }, { 976, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 1007, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_JUNK_YARD, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 608, -48, 2960, 0 }, { { 272, 0, -976, 0 }, { 272, 0, 976, 0 }, { -272, 0, -976, 0 }, { -272, 0, 976, 0 } }, { 0, 4111, 0, 0 }, { ONE, 0, 0, 0 }, 1011, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_FACTORY, (1 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2192, -64, 5344, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { -ONE, 0, 0, 0 }, 2918, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5024, -64, 5312, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { 4091, 0, -201, 0 }, 2918, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9600, -64, 6368, 0 }, { { 688, 0, -1552, 0 }, { 688, 0, 1552, 0 }, { -688, 0, -1552, 0 }, { -688, 0, 1552, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 1693, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9680, -64, 1696, 0 }, { { 1088, 0, -624, 0 }, { 1088, 0, 624, 0 }, { -1088, 0, -624, 0 }, { -1088, 0, 624, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8335, -64, 4895, 0 }, { { 23, 0, -1493, 0 }, { 1494, 0, -22, 0 }, { -1493, 0, 23, 0 }, { -22, 0, 1494, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 976, -64, 1792, 0 }, { { 784, 0, -720, 0 }, { 784, 0, 48, 0 }, { -784, 0, -48, 0 }, { -784, 0, 720, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6752, -64, 1312, 0 }, { { 1088, 0, -464, 0 }, { 1088, 0, 464, 0 }, { -1088, 0, -464, 0 }, { -1088, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9600, -64, 6368, 0 }, { { 688, 0, -1552, 0 }, { 688, 0, 1552, 0 }, { -688, 0, -1552, 0 }, { -688, 0, 1552, 0 } }, { 0, 4103, 0, 0 }, { -ONE, 0, 0, 0 }, 1693, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9680, -64, 1696, 0 }, { { 1088, 0, -624, 0 }, { 1088, 0, 624, 0 }, { -1088, 0, -624, 0 }, { -1088, 0, 624, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8335, -64, 4895, 0 }, { { 23, 0, -1493, 0 }, { 1494, 0, -22, 0 }, { -1493, 0, 23, 0 }, { -22, 0, 1494, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ONE, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 976, -64, 1792, 0 }, { { 784, 0, -720, 0 }, { 784, 0, 48, 0 }, { -784, 0, -48, 0 }, { -784, 0, 720, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6752, -64, 1312, 0 }, { { 1088, 0, -464, 0 }, { 1088, 0, 464, 0 }, { -1088, 0, -464, 0 }, { -1088, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3624, -64, 2944, 0 }, { { -1864, 0, -1552, 0 }, { 1912, 0, -1552, 0 }, { -1928, 0, 1008, 0 }, { 1880, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { 201, 0, -4091, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
@@ -632,38 +675,62 @@ AreaResource D_dryfield_garage_80180060[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_garage_80180078[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Placement keys matching the garage's enemy loading recipes.
+enum {
+    DRYFIELD_GARAGE_MIND_SUCKLER_RESOURCE_ENTRY  = 15,
+    DRYFIELD_GARAGE_DESERT_CHASER_RESOURCE_ENTRY = 75,
+};
+
+/// Variant 2's Mind Suckler recipe for five map-owned placements using entry 15.
+///
+/// Loads base-group-10 file 15 and spawns descriptor 0; the final record terminates
+/// loading and lookup. The room, map and actor overlays must stay loaded while used.
+static AreaResource _gDryfieldGarageVariant2Resources[2] = {
+    { DRYFIELD_GARAGE_MIND_SUCKLER_RESOURCE_ENTRY, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_garage_80180090[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Variant 3's Mind Suckler recipe for three map-owned placements using entry 15.
+///
+/// Loads base-group-10 file 15 and spawns descriptor 0; the final record terminates
+/// loading and lookup. Kept as a distinct table for this layout despite matching
+/// variant 2's recipe. The room, map and actor overlays must stay loaded while used.
+static AreaResource _gDryfieldGarageVariant3Resources[2] = {
+    { DRYFIELD_GARAGE_MIND_SUCKLER_RESOURCE_ENTRY, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_garage_801800A8[2] = {
-    { 75, 75, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+/// Variant 10's Desert Chaser recipe for its one room-owned placement using entry 75.
+///
+/// Loads base-group-40 file 75 and spawns descriptor 0; the final record terminates
+/// loading and lookup. Keep the room and actor overlays loaded while used.
+static AreaResource _gDryfieldGarageVariant10Resources[2] = {
+    { DRYFIELD_GARAGE_DESERT_CHASER_RESOURCE_ENTRY, 75, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_dryfield_garage_801800C0[2] = {
-    { 75, 0, 0, 4676, 0, 2038, 3072, 0, 0, 2, 0 },
+/// Variant 10's single Desert Chaser placement and table terminator.
+///
+/// World position (4676, 0, 2038), yaw 3072 of 4096 per turn; texture pages are
+/// unchanged and the CLUT row offset is 2. Spawn variant, mode and parameter row
+/// are zero. Actors borrow the placement from the loaded garage overlay.
+static AreaPlacement _gDryfieldGarageVariant10Placements[2] = {
+    { DRYFIELD_GARAGE_DESERT_CHASER_RESOURCE_ENTRY, 0, 0, 4676, 0, 2038, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B724, D_dryfield_garage_80180060 },
-    { D_map_dryfield_8017B744, D_dryfield_garage_80180078 },
-    { D_map_dryfield_8017B7A4, D_dryfield_garage_80180090 },
+    { D_map_dryfield_8017B744, _gDryfieldGarageVariant2Resources },
+    { D_map_dryfield_8017B7A4, _gDryfieldGarageVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_dryfield_garage_801800C0, D_dryfield_garage_801800A8 },
+    { _gDryfieldGarageVariant10Placements, _gDryfieldGarageVariant10Resources },
     { NULL, NULL },
     { NULL, NULL },
 };
@@ -736,16 +803,24 @@ WorldCollisionSurfaceProperties* gDryfieldGarageSurfacePropertiesByClass[8] = {
     &_gDryfieldGarageSilentSurfaceProperties,
 };
 
-AreaApplyRec D_dryfield_garage_80180204[6] = {
-    { 2, 2, 2, 1 },
-    { 2, 11, 3, 1 },
-    { 2, 15, 2, 1 },
-    { 2, 29, 2, 17 },
-    { 2, 29, 7, 33 },
-    { 255, 0, 0, 0 },
+/// Low policy bit requesting a saved-area map mark.
+enum { DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK = 1 };
+
+const AreaApplyRec gDryfieldGarageGarySceneAreaUpdates[6] SECTION(".data") = {
+    { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK },
+    { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_1, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK },
+    { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK },
+    { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK },
+    { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | DRYFIELD_GARAGE_AREA_UPDATE_MAP_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-_DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C = { 0 };
+/// Last task spawned for the junk-yard refusal scene; the room never polls it.
+///
+/// The handle is borrowed, starts NULL and may become stale after the scene ends.
+/// The four trailing bytes remain zero with no recovered access; their grouping
+/// with the handle is unproven. Keep the existing eight-byte storage intact.
+static _DryfieldGarageDoorSceneStorage _gDryfieldGarageDoorScene = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -766,7 +841,7 @@ RoomEventReq gRoomEventReq;
 /// `dryfieldGarageRoomTask`: the entry state
 /// `_dryfieldGarageInitRoomTask`, the idle state
 /// `_dryfieldGarageIdleRoomTask`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
+static const TaskFuncTable3 _gDryfieldGarageRoomTaskStates = {
     { _dryfieldGarageInitRoomTask, _dryfieldGarageIdleRoomTask, taskKill },
 };
 
@@ -808,7 +883,7 @@ static s32 _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMe
     if (request->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-                taskSpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
+                taskSpawnFromTable(_gDryfieldGarageJunkYardRefusalTaskDescriptors, 0, 0, 0);
             }
             return DRYFIELD_GARAGE_EVENT_REFUSE_WITH_SCENE;
         }
@@ -881,10 +956,10 @@ static void _dryfieldGarageJunkYardRefusalTask(Task* task)
     s32   currentState;
     switch (task->state) {
         case DRYFIELD_GARAGE_REFUSAL_SPAWN:
-            sceneTask                       = taskSpawnFromTable(D_actor_120300_80141B6C, DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX, 0, 0);
-            currentState                    = task->state;
-            D_dryfield_garage_8018021C.task = sceneTask;
-            task->state                     = currentState + 1;
+            sceneTask                      = taskSpawnFromTable(D_actor_120300_80141B6C, DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX, 0, 0);
+            currentState                   = task->state;
+            _gDryfieldGarageDoorScene.task = sceneTask;
+            task->state                    = currentState + 1;
             break;
         case DRYFIELD_GARAGE_REFUSAL_EXIT:
             taskKill(task);
@@ -925,14 +1000,14 @@ static void _dryfieldGarageInitRoomTask(Task* task)
         DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER   = 0,
     };
 
-    task->msgTable = D_dryfield_garage_8017DC7C;
+    task->msgTable = _gDryfieldGarageMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == DRYFIELD_GARAGE_COMPANION_PLACEMENT_WARP)) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_garage_8017DCC4, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGarageCompanionEntryPlacement, 0);
     }
     _dryfieldGarageAdvanceEntryDialogue();
     if (gGameSession->location.loc.variant != DRYFIELD_GARAGE_ROOM_ACTION_VARIANT) {
-        D_dryfield_garage_8017FD1C[DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER].flags &= (u8)~WORLD_COLLISION_TRIGGER_ENABLED;
+        _gDryfieldGarageActionTriggers[DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER].flags &= (u8)~WORLD_COLLISION_TRIGGER_ENABLED;
     }
     task->state += 1;
 }
@@ -949,7 +1024,7 @@ void dryfieldGarageRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_garage_8017D5DC;
+    stateHandlers = _gDryfieldGarageRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

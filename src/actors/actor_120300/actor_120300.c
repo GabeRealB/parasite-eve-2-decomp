@@ -2241,7 +2241,7 @@ static void _actor120300BodyTask(Task* task)
             return;
         case ACTOR_120300_BODY_STATE_WAIT_SCENE:
             if (gGameSession->eventState == 0) {
-                areaApplySavedUpdates(D_dryfield_garage_80180204);
+                areaApplySavedUpdates(gDryfieldGarageGarySceneAreaUpdates);
                 task->state += 1;
             }
             break;
