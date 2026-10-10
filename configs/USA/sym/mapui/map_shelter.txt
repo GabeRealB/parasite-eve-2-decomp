@@ -323,7 +323,7 @@ D_shelter_b2_north_maintenance_walkway_80186360 = 0x80186360; // absolute:True o
 shelterB2LaboratoryTask = 0x801804A4; // type:func absolute:True owner=shelter_b2_laboratory
 gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = 0x801829E4; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80182C08 = 0x80182C08; // absolute:True owner=shelter_b2_laboratory shared=rooms
-D_shelter_b2_laboratory_80182C0C = 0x80182C0C; // absolute:True owner=shelter_b2_laboratory shared=rooms
+D_shelter_b2_laboratory_80182C0C = 0x80182C0C; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80182C10 = 0x80182C10; // absolute:True owner=shelter_b2_laboratory shared=rooms
 D_shelter_b2_laboratory_8018355C = 0x8018355C; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80183580 = 0x80183580; // absolute:True owner=shelter_b2_laboratory

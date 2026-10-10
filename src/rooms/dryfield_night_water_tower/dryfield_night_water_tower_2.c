@@ -32,6 +32,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -46,17 +47,19 @@
 #include "../../shared/room_events.h"
 #include "../../shared/water_tower.h"
 
-/// The world points the room's effect draw places its glow sprites and light
-/// shaft at, `SVECTOR`s laid out back to back; the first two are the ends of
-/// the shaft. `E73C` is reached both as `E71C[4]` and by its own name, which
-/// compile differently, so it is declared on its own as well; `E734` and
-/// `E744` are only reached by name.
-extern SVECTOR D_dryfield_night_water_tower_8017E744;
+/// Shaft endpoints and flare anchors in signed whole world-coordinate units.
+typedef struct {
+    SVECTOR shaftEndpoints[2];    // Consecutive endpoints of the shaft drawn in views 3 and 4.
+    SVECTOR views3And4FlarePoint; // Single flare drawn alongside the shaft in views 3 and 4.
+    SVECTOR view5FlarePoint;      // Single flare drawn in view 5.
+    SVECTOR views2And4FlarePoint; // Single flare drawn in views 2 and 4.
+} _DryfieldNightWaterTowerGlowPoints;
+STATIC_ASSERT_SIZEOF(_DryfieldNightWaterTowerGlowPoints, 0x28);
 
 static WorldCollisionGrid    _gDryfieldNightWaterTowerCollisionGrid;
 static WorldCollisionTrigger _gDryfieldNightWaterTowerViewBoundaryTriggers[14];
 static WorldCollisionTrigger _gDryfieldNightWaterTowerActionTriggers[9];
-extern WorldCoordRoomLights  D_dryfield_night_water_tower_801823F8[1];
+static WorldCoordRoomLights  _gDryfieldNightWaterTowerRoomLights;
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -69,18 +72,23 @@ TaskMessageEntry gDryfieldNightWaterTowerRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_water_tower_8017E71C[5] = {
-    { -2850, -2160, -5970, 0 },
-    { -2390, -2160, -5970, 0 },
-    { -5020, -3050, -3120, 0 },
-    { -3190, -3050, 4630, 0 },
-    { 4170, -3050, -3710, 0 },
+/// World-space shaft endpoints and single-flare anchors for the night Water Tower.
+///
+/// The glow task borrows these points during drawing while this overlay is loaded.
+static _DryfieldNightWaterTowerGlowPoints _gDryfieldNightWaterTowerGlowPoints = {
+    .shaftEndpoints       = { { -2850, -2160, -5970, 0 }, { -2390, -2160, -5970, 0 } },
+    .views3And4FlarePoint = { -5020, -3050, -3120, 0 },
+    .view5FlarePoint      = { -3190, -3050, 4630, 0 },
+    .views2And4FlarePoint = { 4170, -3050, -3710, 0 },
 };
 
-SVECTOR D_dryfield_night_water_tower_8017E744 = { 4290, -3050, 1810, 0 };
+/// World-space anchor for two coincident flare passes in views 7 and 10.
+///
+/// Signed whole game-coordinate units; borrowed only during the glow draw call.
+static SVECTOR _gDryfieldNightWaterTowerDoubleFlarePoint = { 4290, -3050, 1810, 0 };
 
-WorldCoordRoomLighting D_dryfield_night_water_tower_8017E74C[1] = {
-    { D_dryfield_night_water_tower_801823F8, NULL },
+WorldCoordRoomLighting gDryfieldNightWaterTowerRoomLighting[1] = {
+    { .lights = &_gDryfieldNightWaterTowerRoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources gDryfieldNightWaterTowerCollisionRooms[1] = {
@@ -92,7 +100,7 @@ WorldCollisionRoomResources gDryfieldNightWaterTowerCollisionRooms[1] = {
     },
 };
 
-u8* D_dryfield_night_water_tower_8017E764[1] = {
+u8* gDryfieldNightWaterTowerViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -218,25 +226,34 @@ static WorldCollisionGrid _gDryfieldNightWaterTowerCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldNightWaterTowerCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_water_tower_8017F418[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
-    { { { { 0, 0, -4096 }, { 23, 4095, 0 }, { 4095, -23, 0 } }, { 2600, 1169, 4500 } }, 257 },
+ViewCamera gDryfieldNightWaterTowerViewCameras[DRYFIELD_NIGHT_WATER_TOWER_LOGICAL_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
+    { { { { 0, 0, -ONE }, { 23, 4095, 0 }, { 4095, -23, 0 } }, { 2600, 1169, 4500 } }, 257 },
     { { { { -119, 0, 4094 }, { -19, 4095, 0 }, { -4094, -19, -119 } }, { -2900, 1170, 4250 } }, 257 },
     { { { { -3811, 0, -1500 }, { -121, 4082, 307 }, { 1495, 330, -3798 } }, { 5810, 1779, -4040 } }, 257 },
     { { { { 4000, 0, -878 }, { 74, 4081, 338 }, { 875, -346, 3986 } }, { 5550, 1170, 2970 } }, 257 },
     { { { { 1168, 0, 3925 }, { 3159, 2431, -939 }, { -2330, 3296, 693 } }, { -4290, 6370, -3260 } }, 257 },
     { { { { 4001, 0, 876 }, { 118, 4058, -539 }, { -868, 552, 3964 } }, { -5510, 1500, 5900 } }, 257 },
     { { { { 4002, 0, -870 }, { -738, 2168, -3395 }, { 460, 3475, 2118 } }, { 700, 5770, 3420 } }, 230 },
-    { { { { -3657, 0, 1843 }, { 0, 4096, 0 }, { -1843, 0, -3657 } }, { -1430, 1250, -4770 } }, 257 },
+    { { { { -3657, 0, 1843 }, { 0, ONE, 0 }, { -1843, 0, -3657 } }, { -1430, 1250, -4770 } }, 257 },
     { { { { 1485, 0, -3816 }, { -3580, 1417, -1394 }, { 1321, 3842, 514 } }, { -3517, 4818, -1078 } }, 257 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_8017F580[2] = {
+/// View 1's empty sprite list, retaining decoded background-strip presentation.
+///
+/// The zero-count first record is followed by `SPRITE_BATCH_END`; the source
+/// slot retains this list's address but supplies no `SpriteSource` elements.
+static SpriteBatch _gDryfieldNightWaterTowerView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_8017F590[58] = {
+/// View 2's 58 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView2SpriteSources[58] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 8, 1261, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 8, 1416, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, -120, 613, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -297,7 +314,11 @@ SpriteSource D_dryfield_night_water_tower_8017F590[58] = {
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -112, 16, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_8017FA18[6] = {
+/// View 2's drawing ranges into `_gDryfieldNightWaterTowerView2SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 9, 0, 0, { 0, 0 } },
@@ -306,7 +327,12 @@ SpriteBatch D_dryfield_night_water_tower_8017FA18[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_8017FA48[48] = {
+/// View 3's 48 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView3SpriteSources[48] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -120, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -112, 1250, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -72, 1250, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
@@ -357,7 +383,11 @@ SpriteSource D_dryfield_night_water_tower_8017FA48[48] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, -56, 1458, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_8017FE08[5] = {
+/// View 3's drawing ranges into `_gDryfieldNightWaterTowerView3SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 16, 0, 0, { 2, 0 } },
@@ -365,7 +395,12 @@ SpriteBatch D_dryfield_night_water_tower_8017FE08[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_8017FE30[88] = {
+/// View 4's 88 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView4SpriteSources[88] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -88, -120, 1149, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -80, -120, 4608, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -72, -120, 1254, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -456,7 +491,11 @@ SpriteSource D_dryfield_night_water_tower_8017FE30[88] = {
     { 142, 0x3FC0, { .fields = { 16, 64 } }, 144, -56, 450, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80180510[9] = {
+/// View 4's drawing ranges into `_gDryfieldNightWaterTowerView4SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 3, 0 } },
     { 6, 30, 0, 0, { 4, 0 } },
@@ -468,7 +507,12 @@ SpriteBatch D_dryfield_night_water_tower_80180510[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_80180558[56] = {
+/// View 5's 56 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView5SpriteSources[56] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -120, 875, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -112, 875, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -120, 875, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
@@ -527,7 +571,11 @@ SpriteSource D_dryfield_night_water_tower_80180558[56] = {
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 136, 24, 825, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_801809B8[6] = {
+/// View 5's drawing ranges into `_gDryfieldNightWaterTowerView5SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView5SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 14, 0, 0, { 0, 0 } },
@@ -536,7 +584,12 @@ SpriteBatch D_dryfield_night_water_tower_801809B8[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_801809E8[84] = {
+/// View 6's 84 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView6SpriteSources[84] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -120, 1125, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 88, 1125, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 72, 1125, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
@@ -623,7 +676,11 @@ SpriteSource D_dryfield_night_water_tower_801809E8[84] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, 32, 1750, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80181078[9] = {
+/// View 6's drawing ranges into `_gDryfieldNightWaterTowerView6SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView6SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 6, 0, 0, { 4, 0 } },
@@ -635,7 +692,12 @@ SpriteBatch D_dryfield_night_water_tower_80181078[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_801810C0[69] = {
+/// View 7's 69 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView7SpriteSources[69] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, -56, 1750, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -24, -56, 1875, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -40, 1750, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
@@ -707,7 +769,11 @@ SpriteSource D_dryfield_night_water_tower_801810C0[69] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -16, -64, 2250, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80181624[9] = {
+/// View 7's drawing ranges into `_gDryfieldNightWaterTowerView7SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView7SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 20, 0, 0, { 4, 0 } },
@@ -719,7 +785,12 @@ SpriteBatch D_dryfield_night_water_tower_80181624[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_8018166C[99] = {
+/// View 8's 99 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView8SpriteSources[99] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, -56, 1250, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -128, -32, 1500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, -16, 1625, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
@@ -821,7 +892,11 @@ SpriteSource D_dryfield_night_water_tower_8018166C[99] = {
     { 142, 0x3FC0, { .fields = { 24, 40 } }, -104, -80, 1868, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80181E28[11] = {
+/// View 8's drawing ranges into `_gDryfieldNightWaterTowerView8SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView8SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
     { 5, 12, 0, 0, { 5, 0 } },
@@ -835,12 +910,21 @@ SpriteBatch D_dryfield_night_water_tower_80181E28[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80181E80[2] = {
+/// View 9's empty sprite list, retaining decoded background-strip presentation.
+///
+/// The zero-count first record is followed by `SPRITE_BATCH_END`; the source
+/// slot retains this list's address but supplies no `SpriteSource` elements.
+static SpriteBatch _gDryfieldNightWaterTowerView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_water_tower_80181E90[20] = {
+/// View 10's 20 texture rectangles and sorting depths for scene sprites.
+///
+/// Positions and sizes are pixels; depths are unscaled OT sorting values.
+/// Sources have neutral RGB modulation and opaque code flags, with no terminator.
+/// The view's batches borrow element ranges while this overlay is loaded.
+static SpriteSource _gDryfieldNightWaterTowerView10SpriteSources[20] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 112, 1000, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, 40, 575, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, 64, 612, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -863,43 +947,63 @@ SpriteSource D_dryfield_night_water_tower_80181E90[20] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -48, 462, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_tower_80182020[4] = {
+/// View 10's drawing ranges into `_gDryfieldNightWaterTowerView10SpriteSources`.
+///
+/// The zero-count first record keeps decoded background strips; the final
+/// record ends the list with `SPRITE_BATCH_END`. Visibility is mutable while loaded.
+static SpriteBatch _gDryfieldNightWaterTowerView10SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_water_tower_80182040[10] = {
-    { { .empty = D_dryfield_night_water_tower_8017F580 }, D_dryfield_night_water_tower_8017F580, NULL },
-    { { .elements = D_dryfield_night_water_tower_8017F590 }, D_dryfield_night_water_tower_8017FA18, NULL },
-    { { .elements = D_dryfield_night_water_tower_8017FA48 }, D_dryfield_night_water_tower_8017FE08, NULL },
-    { { .elements = D_dryfield_night_water_tower_8017FE30 }, D_dryfield_night_water_tower_80180510, NULL },
-    { { .elements = D_dryfield_night_water_tower_80180558 }, D_dryfield_night_water_tower_801809B8, NULL },
-    { { .elements = D_dryfield_night_water_tower_801809E8 }, D_dryfield_night_water_tower_80181078, NULL },
-    { { .elements = D_dryfield_night_water_tower_801810C0 }, D_dryfield_night_water_tower_80181624, NULL },
-    { { .elements = D_dryfield_night_water_tower_8018166C }, D_dryfield_night_water_tower_80181E28, NULL },
-    { { .empty = D_dryfield_night_water_tower_80181E80 }, D_dryfield_night_water_tower_80181E80, NULL },
-    { { .elements = D_dryfield_night_water_tower_80181E90 }, D_dryfield_night_water_tower_80182020, NULL },
+SpriteView gDryfieldNightWaterTowerSpriteViews[DRYFIELD_NIGHT_WATER_TOWER_LOGICAL_VIEW_COUNT] = {
+    { .sources = { .empty = _gDryfieldNightWaterTowerView1SpriteBatches }, .batches = _gDryfieldNightWaterTowerView1SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView2SpriteSources }, .batches = _gDryfieldNightWaterTowerView2SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView3SpriteSources }, .batches = _gDryfieldNightWaterTowerView3SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView4SpriteSources }, .batches = _gDryfieldNightWaterTowerView4SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView5SpriteSources }, .batches = _gDryfieldNightWaterTowerView5SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView6SpriteSources }, .batches = _gDryfieldNightWaterTowerView6SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView7SpriteSources }, .batches = _gDryfieldNightWaterTowerView7SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView8SpriteSources }, .batches = _gDryfieldNightWaterTowerView8SpriteBatches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterTowerView9SpriteBatches }, .batches = _gDryfieldNightWaterTowerView9SpriteBatches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterTowerView10SpriteSources }, .batches = _gDryfieldNightWaterTowerView10SpriteBatches, .drawAreas = NULL },
 };
 
-WorldCoordLight D_dryfield_night_water_tower_801820B8[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
+/// Four all-view directional lights for the night Water Tower's model shading.
+///
+/// Local translations supply direction vectors; RGB intensities have 12 fractional
+/// bits. Binding parents the transforms to the view; queries overwrite attenuation.
+static WorldCoordLight _gDryfieldNightWaterTowerDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 750, 750 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_dryfield_night_water_tower_80182218[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3840, -3761, 4020 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 4463, 4464 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -2541, -3142 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5124, 5124, 5124 }, { 0, 0 } }, 2382, 3321 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4200, -3100, -3479 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 3405, 3602 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4200, -2599, 1900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 2541, 3061 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2339, -2000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 2000, 3000 },
+/// Five all-view point lights with room-space positions and distance falloff.
+///
+/// Positions and inner/outer radii use whole game units; RGB has 12 fractional
+/// bits. View parents, composition caches and attenuation are mutable while loaded.
+static WorldCoordPointLight _gDryfieldNightWaterTowerPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3840, -3761, 4020 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 4463, 4464 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -2541, -3142 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5124, 5124, 5124 }, { 0, 0 } }, 2382, 3321 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4200, -3100, -3479 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 3405, 3602 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4200, -2599, 1900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6148, 6148, 6148 }, { 0, 0 } }, 2541, 3061 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2339, -2000, -6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 2000, 3000 },
 };
 
-WorldCoordRoomLights D_dryfield_night_water_tower_801823F8[1] = {
-    { ARRAY_SIZE(D_dryfield_night_water_tower_801820B8), D_dryfield_night_water_tower_801820B8, ARRAY_SIZE(D_dryfield_night_water_tower_80182218), D_dryfield_night_water_tower_80182218, 0, NULL },
+/// Model-shading light collection for room 1, with no cone lights.
+///
+/// Borrowed with its mutable light arrays while the night Water Tower is loaded.
+static WorldCoordRoomLights _gDryfieldNightWaterTowerRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gDryfieldNightWaterTowerDirectionalLights),
+    .directionalLights     = _gDryfieldNightWaterTowerDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightWaterTowerPointLights),
+    .pointLights           = _gDryfieldNightWaterTowerPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 /// Directed boundaries between logical views 2/3, 3/4, 4/5, 5/6, 2/7, 7/8 and 7/10.
@@ -1317,33 +1421,64 @@ AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { D_map_dryfield_full_8017C1B8, _gDryfieldNightWaterTowerVariant21Resources },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_water_tower_80182C0C = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Cue-2 footstep bases in the loaded type-1 sound bank.
+enum {
+    DRYFIELD_NIGHT_WATER_TOWER_WALK_FOOTSTEP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    DRYFIELD_NIGHT_WATER_TOWER_RUN_FOOTSTEP_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C18[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tower_80182C0C },
+/// Footstep cue bases shared by surface classes 0 and 2, and aliases 3 through 7.
+///
+/// Walking and scripted jumps share one pair; running uses the next pair.
+/// Cue 1 adds one to the base, and companions add 100. Borrowed while loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightWaterTowerFootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_WATER_TOWER_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_NIGHT_WATER_TOWER_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_WATER_TOWER_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled surface policy for class 0 and aliases 3 through 7.
+///
+/// Applies grid pushback and supplies footstep cues; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldNightWaterTowerSurfaceClass0Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightWaterTowerFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tower_80182C0C },
+/// Class-1 policy allowing probes through and suppressing weapon impacts and footsteps.
+///
+/// Grid pushback remains enabled; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldNightWaterTowerSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[8] = {
-    D_dryfield_night_water_tower_80182C18,
-    D_dryfield_night_water_tower_80182C20,
-    D_dryfield_night_water_tower_80182C28,
-    D_dryfield_night_water_tower_80182C18,
-    D_dryfield_night_water_tower_80182C18,
-    D_dryfield_night_water_tower_80182C18,
-    D_dryfield_night_water_tower_80182C18,
-    D_dryfield_night_water_tower_80182C18,
+/// Separate class-2 policy blocking probes and enabling weapon impacts and footsteps.
+///
+/// Applies grid pushback, like class 0; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldNightWaterTowerSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightWaterTowerFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightWaterTowerSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass1Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass2Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
+    &_gDryfieldNightWaterTowerSurfaceClass0Properties,
 };
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -1377,31 +1512,31 @@ void dryfieldNightWaterTowerDrawGlowsTask(Task* task)
     };
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    // Select lights by the room-local view ID; the shaft spans array points 0 and 1.
+    // Select glow anchors by the room-local view ID.
     switch (gGameSession->location.loc.view) {
         case 2:
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.views2And4FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _glowDrawShaft(_gDryfieldNightWaterTowerGlowPoints.shaftEndpoints, DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.views3And4FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawShaft(&D_dryfield_night_water_tower_8017E71C[0], DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[2], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _glowDrawShaft(_gDryfieldNightWaterTowerGlowPoints.shaftEndpoints, DRYFIELD_NIGHT_WATER_TOWER_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.views3And4FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[4], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.views2And4FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(&D_dryfield_night_water_tower_8017E71C[3], DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.view5FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
         case 7:
         case 10:
-            _dryfieldNightWaterTowerDrawDoubleFlare(&D_dryfield_night_water_tower_8017E744, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
+            _dryfieldNightWaterTowerDrawDoubleFlare(&_gDryfieldNightWaterTowerDoubleFlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                                                     DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);
             break;
     }
