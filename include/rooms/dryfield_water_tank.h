@@ -13,8 +13,16 @@
 
 extern AreaVariant D_dryfield_water_tank_80188BF0[13];
 
-// dryfield_water_tank
-extern WorldCollisionRoomResources D_dryfield_water_tank_801868E0[];
+/// Number of mapped camera, sprite and ambient-effect slots in the water-tank room.
+enum { DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT = 10 };
+
+/// Room 1's collision mesh, four view boundaries and nine action triggers.
+///
+/// Indexed by room minus one. Both mutable trigger arrays include their final
+/// WORLD_COLLISION_TRIGGER_LAST record; there are no sight occluders. The map
+/// overlay borrows the directory while this room is loaded. Keep its grid live
+/// while active and its trigger storage live until the runtime lists are unlinked.
+extern WorldCollisionRoomResources gDryfieldWaterTankRoomCollisionResources[1];
 
 /// Room 1's logical-view map, mapping views 1..10 to the same sprite/camera indices.
 ///
@@ -22,7 +30,13 @@ extern WorldCollisionRoomResources D_dryfield_water_tank_801868E0[];
 /// The map overlay borrows this directory while the water-tank overlay is loaded.
 extern u8* gDryfieldWaterTankRoomViewMaps[1];
 
-extern ViewCount D_dryfield_water_tank_801868F4[];
+/// Room 1's ten-view logical search count, followed by a retained zero halfword.
+///
+/// Count lookup uses room minus one; only room 1 has an established view map.
+/// The second halfword has no established consumer or role and is not a proven
+/// terminator or second room. Its stored extent is retained. The map overlay
+/// borrows the signed-halfword storage while this room overlay is loaded.
+extern ViewCount gDryfieldWaterTankRoomViewCounts[2];
 
 /// Room 1's authored light collection and ten per-view ambient minima.
 ///
@@ -31,11 +45,29 @@ extern ViewCount D_dryfield_water_tank_801868F4[];
 /// remain loaded while lighting uses it.
 extern WorldCoordRoomLighting gDryfieldWaterTankRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_water_tank_80186900[];
+/// Two silent player/companion warp endpoints, indexed by warp ID minus one.
+///
+/// Slots 1/2 place both actors at their authored world positions and start in
+/// logical views 2/4. Yaw uses 4096 units per turn. Neither endpoint selects
+/// optional warp flags or a map marker; there is no terminator. The map overlay
+/// borrows the entries while this room is loaded; transitions copy whole records.
+extern DirectionWarpEntry gDryfieldWaterTankWarpEntries[2];
 
-extern ViewCamera D_dryfield_water_tank_80186EE0[];
+/// Authored camera transforms and perspective distances for mapped views 1..10.
+///
+/// Indexed by mapped view minus one, without a terminator. Rotation uses Q12,
+/// translation is the negated camera origin in world units, and screen distance
+/// is in pixels. The map overlay borrows this array while the room is loaded;
+/// queued camera applications require the selected record to remain live.
+extern ViewCamera gDryfieldWaterTankViewCameras[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT];
 
-extern SpriteView D_dryfield_water_tank_80187F80[];
+/// Background and foreground sprite resources for mapped views 1..10.
+///
+/// Indexed by mapped view minus one, without a terminator. Views 1, 6, 7 and 10
+/// have empty source lists but retain decoded backgrounds; every draw-area list
+/// is NULL. Mechanism operation toggles batches in views 3 and 8. The map borrows
+/// this directory and its mutable sources/batches while the room remains loaded.
+extern SpriteView gDryfieldWaterTankSpriteViews[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT];
 
 /// Collision and footstep policies indexed by surface class 0..7.
 ///

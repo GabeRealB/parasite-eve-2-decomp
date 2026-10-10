@@ -6,7 +6,12 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 s32 D_dryfield_water_tank_80188D48;
 
-Task* D_dryfield_water_tank_80188D4C;
+/// Live prop-scene driver, published before its child prop is initialized.
+///
+/// Borrows the task until scene teardown; request/skip callbacks and child
+/// reparenting require its allocated work to remain live. Teardown does not
+/// clear this handle, so it must not be used after the driver is released.
+static Task* _gDryfieldWaterTankPropSceneTask;
 
 #include "rooms/dryfield_water_tank.h"
 
@@ -106,64 +111,139 @@ extern Task*        D_dryfield_water_tank_80188D44;
 
 static void _dryfieldWaterTankSyncMechanismSprites(void);
 
-extern AreaResource D_dryfield_water_tank_80188BCC[2];
-
 static WorldCollisionGrid    _gDryfieldWaterTankRoomCollisionGrid;
-extern WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4];
-extern WorldCollisionTrigger D_dryfield_water_tank_80188920[9];
+static WorldCollisionTrigger _gDryfieldWaterTankViewBoundaryTriggers[4];
+static WorldCollisionTrigger _gDryfieldWaterTankActionTriggers[9];
 static WorldCoordRoomLights  _gDryfieldWaterTankRoomLights;
 
-/// Player clips for extended ids 47-65; NULL at id 47, which no request
-/// selects.
+/// Clip keys and whole-frame blend durations for the scripted player-path scene.
+enum {
+    DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT      = 19,
+    DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK            = 1, // Replaced with the equipped bank by the event interpreter
+    DRYFIELD_WATER_TANK_PLAYER_EXIT_STANCE_CLIP         = 1,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP48             = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP49             = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP50             = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP51             = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP52             = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP55             = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP56             = ANIMATION_BANK_BASE_SET_COUNT + 9,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP57             = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP58             = ANIMATION_BANK_BASE_SET_COUNT + 11,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP61             = ANIMATION_BANK_BASE_SET_COUNT + 14,
+    DRYFIELD_WATER_TANK_PLAYER_PATH_CLIP62              = ANIMATION_BANK_BASE_SET_COUNT + 15,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES       = 20,
+    DRYFIELD_WATER_TANK_PLAYER_EVENT_SHORT_BLEND_FRAMES = 3,
+    DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY            = 192,
+};
+
+/// Player clip pointers and their copy request, also transferred as raw words.
 ///
-/// One of the room's two event scripts sends the player the copy request before
-/// it plays any of these clips; the other plays a base-bank clip only.
-/// `D_dryfield_water_tank_801849AC` copies 20 words starting here into the
-/// player's bank, which is one word past the end of this array: the read runs
-/// on through the first word of `D_dryfield_water_tank_801849AC`, that
-/// request's own source pointer. That overrun is the original's and is kept as
-/// it is: the request carries a literal count larger than the table, while the
-/// table was stored with only its own entries. The room stores a play request
-/// for each of ids 48-65, and the script sends 13 of them. Id 66, which
-/// receives the source pointer, is never played.
-AnimationSet* D_dryfield_water_tank_80184960[19] = { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 };
+/// The source span includes the request's own source pointer, but not its count.
+typedef union {
+    struct {
+        AnimationSet*            sets[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT];                          // Slots 47..65; slot 47 is NULL
+        AnimationBankCopyRequest copy;                                                                          // Installs slots 47..66 in the equipped bank
+    } data;                                                                                                     // Typed records sharing the transferred storage
+    s32 words[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT + sizeof(AnimationBankCopyRequest) / sizeof(s32)]; // Complete raw span; final count word is not copied
+} _DryfieldWaterTankPlayerAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTankPlayerAnimationBankExtensionStorage, 0x54);
 
-// Installs the player's clips; the count is 20, not the 19 entries of its source.
-AnimationBankCopyRequest D_dryfield_water_tank_801849AC = { { .sets = D_dryfield_water_tank_80184960 }, 20 };
+/// Player-path scene's extension clips and self-referencing copy request.
+///
+/// The script copies twenty words before playback: slots 47..65 receive NULL
+/// and eighteen borrowed clip pointers, and unused slot 66 receives this
+/// storage's address. The raw view covers that entire transfer. Keep the room
+/// clips loaded while the equipped bank references them; the skip script only
+/// restores a base-bank stance and does not install the extension.
+static _DryfieldWaterTankPlayerAnimationBankExtensionStorage _gDryfieldWaterTankPlayerAnimationBankExtension = {
+    .data = {
+        { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 },
+        { { .words = _gDryfieldWaterTankPlayerAnimationBankExtension.words }, ARRAY_SIZE(_gDryfieldWaterTankPlayerAnimationBankExtension.data.sets) + 1 },
+    },
+};
 
-AnimationPlayRequest D_dryfield_water_tank_801849B4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Equipped-weapon standing clip restored by both player-path scene exits.
+///
+/// The interpreter replaces the template bank in a stack copy, then resets
+/// base clip 1 with world collision disabled until scripted control ends.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerExitStanceAnimation = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EXIT_STANCE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_801849C8 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 48, used at scene entry and before the first path leg.
+///
+/// Borrows the installed room clip, blending over twenty frames in the equipped
+/// weapon bank with world collision disabled. Its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation48 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP48, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_801849DC = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 49, blended after the scene actor's repeated base clip 3.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation49 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP49, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_801849F0 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 50, followed eight frames later by the scene actor's clip 5.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation50 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP50, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A04 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 51, played between CAP cues before event clip 50.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation51 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP51, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A18 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 52, reset after the first 52-frame player path leg.
+///
+/// Uses the equipped bank's installed room clip with world collision disabled;
+/// the script waits for a CAP cue afterwards. Its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation52 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_dryfield_water_tank_80184A2C[2] = {
     { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A54 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 55, blended alongside the scene actor's clip 23.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation55 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP55, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A68 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 56, blended alongside the scene actor's clip 8.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation56 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP56, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A7C = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 57, blended alongside the scene actor's clip 23 before clip 61.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation57 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP57, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184A90 = { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 58, repeated at two CAP-cue boundaries in the player-path scene.
+///
+/// Uses the equipped bank's installed room clip, twenty blend frames and no
+/// world collision; the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation58 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP58, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_dryfield_water_tank_80184AA4[2] = {
     { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_dryfield_water_tank_80184ACC = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Event clip 61, a three-frame blend between the clip-57 and clip-58 cues.
+///
+/// Uses the equipped bank's installed room clip with world collision disabled;
+/// the clip's physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerEventAnimation61 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP61, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_PLAYER_EVENT_SHORT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184AE0 = { { .index = 1 }, 62, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip reset at the start of each scripted position-table path leg.
+///
+/// Equipped-bank clip 62 borrows the installed room animation; collision stays
+/// disabled while the path tasks place the player. Its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldWaterTankPlayerPathAnimation62 = { { .index = DRYFIELD_WATER_TANK_PLAYER_TEMPLATE_BANK }, DRYFIELD_WATER_TANK_PLAYER_PATH_CLIP62, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_dryfield_water_tank_80184AF4 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -173,7 +253,11 @@ AnimationPlayRequest D_dryfield_water_tank_80184B1C = { { .index = 1 }, 65, ANIM
 
 ActorTransform D_dryfield_water_tank_80184B30 = { { 2530, -0x2EE0, 610, 0 }, { 0, -2047, 0, 0 } };
 
-ActorTransform D_dryfield_water_tank_80184B48 = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
+/// Player-path scene's common normal/skip exit placement in world-coordinate units.
+///
+/// Both exits place the player here before restoring the weapon stance and
+/// logical view 3. Yaw is 960 in 4096 units per turn; pitch and roll are zero.
+static ActorTransform _gDryfieldWaterTankPlayerPathExitPlacement = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
 
 s32 D_dryfield_water_tank_80184B60[2] = {
     62,
@@ -239,9 +323,9 @@ ActorTransform D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 
 
 ActorTransform D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
 
-TaskDesc D_dryfield_water_tank_80184DF4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankMovePlayerFirstLegTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankMovePlayerSecondLegTask, { .value = 0 } },
+TaskDesc gDryfieldWaterTankPlayerPathTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY } }, dryfieldWaterTankMovePlayerFirstLegTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY } }, dryfieldWaterTankMovePlayerSecondLegTask, { .value = 0 } },
 };
 
 EvsCommand D_dryfield_water_tank_80184E0C[126] = {
@@ -249,12 +333,12 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_water_tank_801849AC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldWaterTankPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_80184B30 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_water_tank_80184DAC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849C8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184CE4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5215000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -273,26 +357,26 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A68 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation56 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184C08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5215000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184BCC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A7C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation57 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184D5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184D70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184D98 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184ACC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation61 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184D0C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A90 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation58 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -315,10 +399,10 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184B1C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A54 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation55 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184D34 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A90 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation58 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -332,37 +416,37 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184BA4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849DC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184C08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5215000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x52150010 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A04 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849F0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_water_tank_80184BCC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849C8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = dryfieldWaterTankSpawnPlayerPathTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerPathAnimation62 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 52 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A18 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerEventAnimation52 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_dryfield_water_tank_80184DDC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = dryfieldWaterTankSpawnPlayerPathTask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerPathAnimation62 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 4 }, { .value = 30 }, { .value = 30 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_80184B48 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gDryfieldWaterTankPlayerPathExitPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849B4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerExitStanceAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -377,9 +461,9 @@ EvsCommand D_dryfield_water_tank_801859DC[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 4 }, { .value = 30 }, { .value = 30 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_80184B48 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gDryfieldWaterTankPlayerPathExitPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849B4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlayerExitStanceAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -435,34 +519,34 @@ s32 gWaterTankYawAcceleration = 0;
 
 s32 gWaterTankYawTargetAcceleration = 0;
 
-u16 D_dryfield_water_tank_801868CC[10] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
+u16 gDryfieldWaterTankViewEffectGates[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT] = {
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
 };
 
-WorldCollisionRoomResources D_dryfield_water_tank_801868E0[1] = {
-    { &_gDryfieldWaterTankRoomCollisionGrid, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
+WorldCollisionRoomResources gDryfieldWaterTankRoomCollisionResources[1] = {
+    { &_gDryfieldWaterTankRoomCollisionGrid, _gDryfieldWaterTankViewBoundaryTriggers, _gDryfieldWaterTankActionTriggers, NULL },
 };
 
 u8* gDryfieldWaterTankRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_water_tank_801868F4[2] = { 10, 0 };
+ViewCount gDryfieldWaterTankRoomViewCounts[2] = { DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT, 0 };
 
 WorldCoordRoomLighting gDryfieldWaterTankRoomLighting[1] = {
     { .lights = &_gDryfieldWaterTankRoomLights, .ambientTable = _gDryfieldWaterTankViewAmbientColors },
 };
 
-DirectionWarpEntry D_dryfield_water_tank_80186900[2] = {
+DirectionWarpEntry gDryfieldWaterTankWarpEntries[2] = {
     { { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
@@ -512,16 +596,16 @@ static WorldCollisionGrid _gDryfieldWaterTankRoomCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldWaterTankRoomCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_water_tank_80186EE0[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
+ViewCamera gDryfieldWaterTankViewCameras[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
     { { { { 1429, 0, -3838 }, { -2523, 3086, -939 }, { 2892, 2692, 1077 } }, { 5050, 0x3E4E, 1880 } }, 257 },
     { { { { -853, 0, 4006 }, { 1212, 3903, 258 }, { -3818, 1239, -813 } }, { -5920, 0x37FA, -1350 } }, 257 },
     { { { { -1180, 0, 3922 }, { 173, 4092, 52 }, { -3918, 180, -1179 } }, { -4220, 0x42EA, -1350 } }, 230 },
-    { { { { -2338, 0, 3362 }, { 0, 4096, 0 }, { -3362, 0, -2338 } }, { -6615, 0x324B, -2870 } }, 541 },
-    { { { { -4013, 0, 817 }, { 0, 4096, 0 }, { -817, 0, -4013 } }, { -3050, 0x348A, -2000 } }, 680 },
-    { { { { 4022, 0, 773 }, { 0, 4096, 0 }, { -773, 0, 4022 } }, { -3000, 0x348A, 1950 } }, 680 },
-    { { { { -1032, 0, 3963 }, { 0, 4096, 0 }, { -3963, 0, -1032 } }, { -3180, 0x335E, -310 } }, 257 },
-    { { { { 3261, 0, 2478 }, { 0, 4096, 0 }, { -2478, 0, 3261 } }, { -4900, 1150, 2500 } }, 257 },
+    { { { { -2338, 0, 3362 }, { 0, ONE, 0 }, { -3362, 0, -2338 } }, { -6615, 0x324B, -2870 } }, 541 },
+    { { { { -4013, 0, 817 }, { 0, ONE, 0 }, { -817, 0, -4013 } }, { -3050, 0x348A, -2000 } }, 680 },
+    { { { { 4022, 0, 773 }, { 0, ONE, 0 }, { -773, 0, 4022 } }, { -3000, 0x348A, 1950 } }, 680 },
+    { { { { -1032, 0, 3963 }, { 0, ONE, 0 }, { -3963, 0, -1032 } }, { -3180, 0x335E, -310 } }, 257 },
+    { { { { 3261, 0, 2478 }, { 0, ONE, 0 }, { -2478, 0, 3261 } }, { -4900, 1150, 2500 } }, 257 },
     { { { { -2401, 0, 3317 }, { 3202, 1072, 2318 }, { -868, 3953, -628 } }, { 572, 0x42B6, 1557 } }, 380 },
 };
 
@@ -758,13 +842,21 @@ static SpriteSource _gDryfieldWaterTankView8SpriteSources[1] = {
     { 143, 0x3FC0, { .fields = { 88, 240 } }, -40, -120, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_80187D0C[3] = {
+/// View 8's complete pre-operation mechanism range and decoded-background header.
+///
+/// Batch 1 is shown before operation and hidden afterwards; the terminal row
+/// contributes no sprites. Cached allocation retains the source while hidden.
+static SpriteBatch _gDryfieldWaterTankView8SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 1, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldWaterTankView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_80187D24[27] = {
+/// View 9's 27 foreground rectangles, in view-centred pixels and OT depth units.
+///
+/// Four batches partition the complete array; cached packet setup snapshots
+/// texture geometry while depth remains readable each frame. There is no sentinel.
+static SpriteSource _gDryfieldWaterTankView9SpriteSources[27] = {
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -88, 750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 750, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -16, 750, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
@@ -794,21 +886,28 @@ SpriteSource D_dryfield_water_tank_80187D24[27] = {
     { 143, 0x3FC0, { .fields = { 8, 120 } }, -48, 0, 250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_80187F40[6] = {
+/// View 9's ranges [0,10), [10,13), [13,21) and [21,27), after its background header.
+///
+/// All four ranges are initially visible and retained in the cached buffers.
+/// The final SPRITE_BATCH_END row terminates traversal without a sprite payload.
+static SpriteBatch _gDryfieldWaterTankView9SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 3, 0 } },
     { 10, 3, 0, 0, { 0, 0 } },
     { 13, 8, 0, 0, { 2, 0 } },
-    { 21, 6, 0, 0, { 1, 0 } },
+    { 21, ARRAY_SIZE(_gDryfieldWaterTankView9SpriteSources) - 21, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_water_tank_80187F70[2] = {
+/// View 10's empty foreground list, retaining decoded background strips.
+///
+/// The zero-count header is nonterminal; the second row ends the batch scan.
+static SpriteBatch _gDryfieldWaterTankView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_water_tank_80187F80[10] = {
+SpriteView gDryfieldWaterTankSpriteViews[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT] = {
     { { .empty = _gDryfieldWaterTankView1SpriteBatches }, _gDryfieldWaterTankView1SpriteBatches, NULL },
     { { .elements = _gDryfieldWaterTankView2SpriteSources }, _gDryfieldWaterTankView2SpriteBatches, NULL },
     { { .elements = _gDryfieldWaterTankView3SpriteSources }, _gDryfieldWaterTankView3SpriteBatches, NULL },
@@ -816,16 +915,21 @@ SpriteView D_dryfield_water_tank_80187F80[10] = {
     { { .elements = _gDryfieldWaterTankView5SpriteSources }, _gDryfieldWaterTankView5SpriteBatches, NULL },
     { { .empty = _gDryfieldWaterTankView6SpriteBatches }, _gDryfieldWaterTankView6SpriteBatches, NULL },
     { { .empty = _gDryfieldWaterTankView7SpriteBatches }, _gDryfieldWaterTankView7SpriteBatches, NULL },
-    { { .elements = _gDryfieldWaterTankView8SpriteSources }, D_dryfield_water_tank_80187D0C, NULL },
-    { { .elements = D_dryfield_water_tank_80187D24 }, D_dryfield_water_tank_80187F40, NULL },
-    { { .empty = D_dryfield_water_tank_80187F70 }, D_dryfield_water_tank_80187F70, NULL },
+    { { .elements = _gDryfieldWaterTankView8SpriteSources }, _gDryfieldWaterTankView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView9SpriteSources }, _gDryfieldWaterTankView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldWaterTankView10SpriteBatches }, _gDryfieldWaterTankView10SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4] = {
-    { NULL, NULL, NULL, { -864, -0x32D0, 2464, 0 }, { { 0, -1968, -1024, 0 }, { 0, -1968, 1024, 0 }, { 0, 1968, -1024, 0 }, { 0, 1968, 1024, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2217, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -576, -0x3310, 2464, 0 }, { { 0, -1904, 1024, 0 }, { 0, -1904, -1024, 0 }, { 0, 1904, 1024, 0 }, { 0, 1904, -1024, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 768, -0x32D0, -2368, 0 }, { { 0, -1936, 1024, 0 }, { 0, -1936, -1024, 0 }, { 0, 1936, 1024, 0 }, { 0, 1936, -1024, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2187, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Four mutable view boundaries, switching between logical views 2 and 3.
+///
+/// Opposite-facing pairs cover two room locations. Coordinates use room units,
+/// normals use Q12, and the last live record carries WORLD_COLLISION_TRIGGER_LAST.
+/// Room setup binds and links them; their storage must remain live until unlinked.
+static WorldCollisionTrigger _gDryfieldWaterTankViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { -864, -0x32D0, 2464, 0 }, { { 0, -1968, -1024, 0 }, { 0, -1968, 1024, 0 }, { 0, 1968, -1024, 0 }, { 0, 1968, 1024, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2217, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -576, -0x3310, 2464, 0 }, { { 0, -1904, 1024, 0 }, { 0, -1904, -1024, 0 }, { 0, 1904, 1024, 0 }, { 0, 1904, -1024, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2157, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 768, -0x32D0, -2368, 0 }, { { 0, -1936, 1024, 0 }, { 0, -1936, -1024, 0 }, { 0, 1936, 1024, 0 }, { 0, 1936, -1024, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2187, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2157, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Room 1's 21 white Q12 point lights, contributing in every view.
@@ -867,31 +971,60 @@ static WorldCoordRoomLights _gDryfieldWaterTankRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_water_tank_80188920[9] = {
-    { NULL, NULL, NULL, { -2449, -0x2F60, 640, 0 }, { { -728, 0, -256, 0 }, { 336, 0, -584, 0 }, { -624, 0, 680, 0 }, { 1016, 0, 160, 0 } }, { 0, 4096, 0, 0 }, { 401, 0, 4076, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2512, -0x2F20, 720, 0 }, { { -840, 0, -144, 0 }, { 896, 0, -152, 0 }, { -832, 0, 120, 0 }, { 776, 0, 176, 0 } }, { 0, 4100, 0, 0 }, { 401, 0, 4076, 0 }, 907, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -1668, -0x4040, -1586, 0 }, { { 1321, 0, -1157, 0 }, { 1703, 0, 329, 0 }, { -1148, 0, 1191, 0 }, { 396, 0, 1526, 0 } }, { 0, 4115, 0, 0 }, { 401, 0, 4076, 0 }, 1755, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 1, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1432, -0x2F23, -17, 0 }, { { 159, 0, 627, 0 }, { 157, 0, -595, 0 }, { 1387, 0, 451, 0 }, { 1371, 0, -481, 0 } }, { 0, 4107, 0, 0 }, { 4094, 0, 0, 0 }, 1453, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -656, -0x2F21, 2160, 0 }, { { -841, 0, 1091, 0 }, { -619, 0, -1091, 0 }, { 611, 0, 1171, 0 }, { 851, 0, -1169, 0 } }, { 0, 4100, 0, 0 }, { 4094, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1031, -0x2F40, 1303, 0 }, { { -269, 0, 617, 0 }, { 667, 0, -339, 0 }, { 261, 0, 1577, 0 }, { 1711, 0, 194, 0 } }, { 0, 4111, 0, 0 }, { 2750, 0, 3035, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1255, -0x4040, 1247, 0 }, { { 668, 0, -496, 0 }, { -403, 0, 647, 0 }, { 39, 0, -1272, 0 }, { -1328, 0, 97, 0 } }, { 0, 4103, 0, 0 }, { -3166, 0, -2599, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1296, -0x4046, 1232, 0 }, { { 780, 0, -320, 0 }, { -291, 0, 823, 0 }, { 439, 0, -936, 0 }, { -928, 0, 433, 0 } }, { 0, 4096, 0, 0 }, { -3166, 0, -2599, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1280, -0x2F20, 1560, 0 }, { { -685, 0, 241, 0 }, { 187, 0, -619, 0 }, { -251, 0, 689, 0 }, { 751, 0, -310, 0 } }, { 0, 4097, 0, 0 }, { 2750, 0, 3035, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action and resource keys authored by the room's trigger and variant tables.
+enum {
+    DRYFIELD_WATER_TANK_TRIGGER_MOVIE_EVENT       = 1,
+    DRYFIELD_WATER_TANK_TRIGGER_PLAYER_PATH_SCENE = 2,
+    DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW4    = 3,
+    DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW3    = 4,
+    DRYFIELD_WATER_TANK_TRIGGER_CAP_COMMAND12     = 12,
+    DRYFIELD_WATER_TANK_TO_WATER_TOWER_WARP_SLOTS = (1 << 4) | 3,
+    DRYFIELD_WATER_TANK_KYLE_RESOURCE_ENTRY       = 140,
+    DRYFIELD_WATER_TANK_KYLE_RESOURCE_FILE        = 204,
 };
 
-AreaResource D_dryfield_water_tank_80188BCC[2] = {
-    { 140, 204, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor120400KyleMadiganTaskDescriptors },
+// CAP uses the same command slot for the prompt and its room-message request.
+enum { DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND = 14 };
+
+/// Nine mutable warp, CAP and scene-action quads for the water-tank room.
+///
+/// Includes departure slot 1 to water-tower arrival slot 3, automatic movie/path
+/// scene actions, CAP commands 12/14, and paired player-placement actions 3/4.
+/// The last live quad carries WORLD_COLLISION_TRIGGER_LAST. Room binding supplies
+/// coordinates and list links; these records must stay loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldWaterTankActionTriggers[9] = {
+    { NULL, NULL, NULL, { -2449, -0x2F60, 640, 0 }, { { -728, 0, -256, 0 }, { 336, 0, -584, 0 }, { -624, 0, 680, 0 }, { 1016, 0, 160, 0 } }, { 0, ONE, 0, 0 }, { 401, 0, 4076, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_WATER_TANK_TO_WATER_TOWER_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2512, -0x2F20, 720, 0 }, { { -840, 0, -144, 0 }, { 896, 0, -152, 0 }, { -832, 0, 120, 0 }, { 776, 0, 176, 0 } }, { 0, 4100, 0, 0 }, { 401, 0, 4076, 0 }, 907, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_WATER_TANK_TRIGGER_MOVIE_EVENT, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -1668, -0x4040, -1586, 0 }, { { 1321, 0, -1157, 0 }, { 1703, 0, 329, 0 }, { -1148, 0, 1191, 0 }, { 396, 0, 1526, 0 } }, { 0, 4115, 0, 0 }, { 401, 0, 4076, 0 }, 1755, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_WATER_TANK_TRIGGER_CAP_COMMAND12, CAP_EVENT_PAUSE_ACTORS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1432, -0x2F23, -17, 0 }, { { 159, 0, 627, 0 }, { 157, 0, -595, 0 }, { 1387, 0, 451, 0 }, { 1371, 0, -481, 0 } }, { 0, 4107, 0, 0 }, { 4094, 0, 0, 0 }, 1453, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -656, -0x2F21, 2160, 0 }, { { -841, 0, 1091, 0 }, { -619, 0, -1091, 0 }, { 611, 0, 1171, 0 }, { 851, 0, -1169, 0 } }, { 0, 4100, 0, 0 }, { 4094, 0, 0, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_WATER_TANK_TRIGGER_PLAYER_PATH_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 1031, -0x2F40, 1303, 0 }, { { -269, 0, 617, 0 }, { 667, 0, -339, 0 }, { 261, 0, 1577, 0 }, { 1711, 0, 194, 0 } }, { 0, 4111, 0, 0 }, { 2750, 0, 3035, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1255, -0x4040, 1247, 0 }, { { 668, 0, -496, 0 }, { -403, 0, 647, 0 }, { 39, 0, -1272, 0 }, { -1328, 0, 97, 0 } }, { 0, 4103, 0, 0 }, { -3166, 0, -2599, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1296, -0x4046, 1232, 0 }, { { 780, 0, -320, 0 }, { -291, 0, 823, 0 }, { 439, 0, -936, 0 }, { -928, 0, 433, 0 } }, { 0, ONE, 0, 0 }, { -3166, 0, -2599, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1280, -0x2F20, 1560, 0 }, { { -685, 0, 241, 0 }, { 187, 0, -619, 0 }, { -251, 0, 689, 0 }, { 751, 0, -310, 0 } }, { 0, 4097, 0, 0 }, { 2750, 0, 3035, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_WATER_TANK_TRIGGER_PLACE_IN_VIEW4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Variant 1's Kyle Madigan resource, keyed by placement entry 140, then the end row.
+///
+/// File 204 in base group 10 loads actor 120400; task index 0 selects its first
+/// recipe. The room and actor task descriptors remain borrowed through loading
+/// and spawning. The placement table uses the same entry ID.
+static AreaResource _gDryfieldWaterTankVariant1KyleResources[2] = {
+    { DRYFIELD_WATER_TANK_KYLE_RESOURCE_ENTRY, DRYFIELD_WATER_TANK_KYLE_RESOURCE_FILE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor120400KyleMadiganTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_water_tank_80188BE4[1] = {
+/// Variant 2's empty actor-resource list, containing only AREA_PLACEMENT_END.
+///
+/// Its paired placement list is also empty, so this variant requests no actors.
+static AreaResource _gDryfieldWaterTankVariant2EmptyResources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_water_tank_80188BF0[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B644, D_dryfield_water_tank_80188BCC },
-    { D_map_dryfield_8017B664, D_dryfield_water_tank_80188BE4 },
+    { D_map_dryfield_8017B644, _gDryfieldWaterTankVariant1KyleResources },
+    { D_map_dryfield_8017B664, _gDryfieldWaterTankVariant2EmptyResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1035,10 +1168,7 @@ AreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
 
 Task* D_dryfield_water_tank_80188D44 = NULL;
 
-Task* D_dryfield_water_tank_80188D50;
-
-// CAP uses the same command slot for the prompt and its room-message request.
-enum { DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND = 14 };
+Task* gDryfieldWaterTankMovieEventTask;
 
 /// Returns player control and the saved view after a declined mechanism prompt.
 ///
@@ -1368,7 +1498,7 @@ static inline void _dryfieldWaterTankInitPropModel(Task* task)
         initialModel->lightMtx = &work->lightMtx;
         initialModel->colorMtx = &work->colorMtx;
         task->msgTable         = gDryfieldWaterTankPropMessages;
-        taskReparent(D_dryfield_water_tank_80188D4C, task);
+        taskReparent(_gDryfieldWaterTankPropSceneTask, task);
     }
 }
 
@@ -1436,8 +1566,8 @@ void dryfieldWaterTankPropSceneTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->playerTask               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_water_tank_80188D4C = task;
+                work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                _gDryfieldWaterTankPropSceneTask = task;
             }
             work           = task->work;
             work->propTask = taskSpawnFromTable(gDryfieldWaterTankPropSceneTaskDescs, DRYFIELD_WATER_TANK_PROP_TASK_INDEX, 0, 0);
@@ -1507,7 +1637,7 @@ void dryfieldWaterTankPostPropSceneRequest(s16 request)
 {
     _DryfieldWaterTankPropSceneWork* work;
 
-    work           = D_dryfield_water_tank_80188D4C->work;
+    work           = _gDryfieldWaterTankPropSceneTask->work;
     work->request  = request;
     work->field_52 = 0;
 }
@@ -1521,7 +1651,7 @@ void dryfieldWaterTankSkipPropScene(void)
     };
     _DryfieldWaterTankPropSceneWork* work;
 
-    work                                                       = D_dryfield_water_tank_80188D4C->work;
+    work                                                       = _gDryfieldWaterTankPropSceneTask->work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
     gGameSession->viewDirty = 1;

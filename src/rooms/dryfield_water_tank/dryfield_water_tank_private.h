@@ -10,6 +10,8 @@
 
 #include "main/task_types.h"
 
+#include "rooms/dryfield_water_tank.h"
+
 /// Requests the prop scene's event script posts to the scene's driver task.
 ///
 /// The driver carries a request out on its next frame and clears it, so each
@@ -28,11 +30,26 @@ enum {
     DRYFIELD_WATER_TANK_PROP_STATE_SLIDING = 2,
 };
 
-extern TaskDesc D_dryfield_water_tank_80184DF4[2];
+/// Two bodyless priority-192 player-path task recipes, indexed as legs 0 and 1.
+///
+/// Each callback places the player for 52 ticks then ends. This indexed table
+/// has no TASK_DESC_END row. The scene script spawns fresh tasks with zero
+/// arguments; the loaded room callbacks and player must outlive path playback.
+extern TaskDesc gDryfieldWaterTankPlayerPathTaskDescs[2];
 
-extern u16 D_dryfield_water_tank_801868CC[10];
+/// Ambient-effect gates indexed by mapped view minus one, for views 1..10.
+///
+/// View 9 enables the room effect; the other entries disable it. Values are
+/// ROOM_EFFECT_VIEW_* stored as unsigned halfwords, with no terminator. The
+/// per-frame publisher requires this table and the current mapped view to be live.
+extern u16 gDryfieldWaterTankViewEffectGates[DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT];
 
-extern Task* D_dryfield_water_tank_80188D50;
+/// Live movie-event task, published after its twelve-byte work block is initialized.
+///
+/// Borrows the task until the waiter performs requested teardown. Command and
+/// skip callbacks require its work to remain allocated. Teardown does not clear
+/// this handle; a completed event must not receive further callback requests.
+extern Task* gDryfieldWaterTankMovieEventTask;
 
 /// Fades to logical view 4 and places the player at its fixed world position.
 ///

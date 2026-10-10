@@ -89568,8 +89568,8 @@ Declare the table at the width the target's own access uses, and write the index
 once:
 
 ```c
-extern u16 D_dryfield_water_tank_801868CC[];
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(viewGetMappedIndex() & 0xFF) - 1];
+extern u16 gDryfieldWaterTankViewEffectGates[];
+    gRoomEffectState->roomEffectMode = gDryfieldWaterTankViewEffectGates[(viewGetMappedIndex() & 0xFF) - 1];
 ```
 
 `lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first

@@ -1177,8 +1177,8 @@ static void _dryfieldWaterTankMovieEventTask(Task* task)
                     taskKill(task);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    D_dryfield_water_tank_80188D50 = task;
+                    work->player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    gDryfieldWaterTankMovieEventTask = task;
                 }
                 _dryfieldWaterTankBlendPlayerWeaponStance();
                 evsStartScriptWithSkip(_gDryfieldWaterTankMovieEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
@@ -1215,7 +1215,7 @@ static void _dryfieldWaterTankSetEventCommand(s16 command)
 {
     enum { DRYFIELD_WATER_TANK_EVENT_FIRST_COMMAND_STEP = 0 };
 
-    _DryfieldWaterTankEventWork* work = D_dryfield_water_tank_80188D50->work;
+    _DryfieldWaterTankEventWork* work = gDryfieldWaterTankMovieEventTask->work;
 
     work->command     = command;
     work->commandStep = DRYFIELD_WATER_TANK_EVENT_FIRST_COMMAND_STEP;
@@ -1231,7 +1231,7 @@ static void _dryfieldWaterTankRestorePlayerAfterSkip(void)
 {
     _DryfieldWaterTankEventWork* work;
 
-    work = D_dryfield_water_tank_80188D50->work;
+    work = gDryfieldWaterTankMovieEventTask->work;
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTankMovieEventExitPlacement, 0);
     _dryfieldWaterTankRestoreWeaponStance();
     SetDispMask(1);
@@ -1244,7 +1244,7 @@ void dryfieldWaterTankSpawnPlayerPathTask(u32 packedPath)
         DRYFIELD_WATER_TANK_PATH_ARGUMENT_SHIFT = 16,
     };
 
-    taskSpawnFromTable(D_dryfield_water_tank_80184DF4, packedPath & DRYFIELD_WATER_TANK_PATH_INDEX_MASK, (s32)(packedPath >> DRYFIELD_WATER_TANK_PATH_ARGUMENT_SHIFT), 0);
+    taskSpawnFromTable(gDryfieldWaterTankPlayerPathTaskDescs, packedPath & DRYFIELD_WATER_TANK_PATH_INDEX_MASK, (s32)(packedPath >> DRYFIELD_WATER_TANK_PATH_ARGUMENT_SHIFT), 0);
 }
 
 void dryfieldWaterTankMovePlayerFirstLegTask(Task* task)
@@ -1325,5 +1325,5 @@ void dryfieldWaterTankUpdateViewEffectGateTask(Task* task)
     s32 mappedViewIndex;
 
     mappedViewIndex                  = viewGetMappedIndex();
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(u8)mappedViewIndex - 1];
+    gRoomEffectState->roomEffectMode = gDryfieldWaterTankViewEffectGates[(u8)mappedViewIndex - 1];
 }
