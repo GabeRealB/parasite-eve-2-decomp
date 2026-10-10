@@ -1575,7 +1575,7 @@ D_neo_ark_power_plant_2_80182DE0 = 0x80182DE0; // absolute:True owner=neo_ark_po
 
 D_neo_ark_pyramid_80181728 = 0x80181728; // absolute:True owner=neo_ark_pyramid shared=rooms
 
-D_neo_ark_r26_8017E994 = 0x8017E994; // absolute:True owner=neo_ark_r26
+gNeoArkR26AreaVariants = 0x8017E994; // absolute:True owner=neo_ark_r26
 
 D_neo_ark_r31_8017DBB8 = 0x8017DBB8; // absolute:True owner=neo_ark_r31
 
@@ -1633,7 +1633,7 @@ D_shelter_b1_transfer_tunnel_801830B8 = 0x801830B8; // absolute:True owner=shelt
 
 D_shelter_b1_underground_parking_8018B5C4 = 0x8018B5C4; // absolute:True owner=shelter_b1_underground_parking
 
-D_shelter_b2_elevator_8017E964 = 0x8017E964; // absolute:True owner=shelter_b2_elevator shared=rooms
+D_shelter_b2_elevator_8017E964 = 0x8017E964; // absolute:True owner=shelter_b2_elevator
 
 D_shelter_b2_elevator_hall_80184C7C = 0x80184C7C; // absolute:True owner=shelter_b2_elevator_hall
 

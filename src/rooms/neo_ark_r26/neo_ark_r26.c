@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "common.h"
 
@@ -28,6 +29,7 @@
 #include "main/mc_types.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -54,36 +56,71 @@ static s32  _neoArkR26IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId
 static s32  _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 static void _neoArkR26RoomIdleState(Task* unusedTask);
 
-extern WorldCollisionGrid         D_neo_ark_r26_8017E19C[1];
-extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
-extern WorldCoordRoomLights       D_neo_ark_r26_8017E928[1];
+static WorldCollisionGrid         _gNeoArkR26FloorCollisionGrid;
+static WorldCoordRoomAmbientEntry _gNeoArkR26ViewAmbient[5];
+static WorldCoordRoomLights       _gNeoArkR26RoomLights;
 
-extern AnimationPlayRequest D_neo_ark_r26_8017D780;
-extern AnimationPlayRequest D_neo_ark_r26_8017D7C4;
 extern AnimationPlayRequest D_neo_ark_r26_8017D7D8;
 extern AnimationPlayRequest D_neo_ark_r26_8017D864;
 extern AnimationPlayRequest D_neo_ark_r26_8017D904;
 extern AnimationPlayRequest D_neo_ark_r26_8017D918;
 extern AnimationPlayRequest D_neo_ark_r26_8017D9CC;
-extern ActorCommand         D_neo_ark_r26_8017D798;
 static void                 _neoArkR26ReturnToShelterTent(void);
 static void                 _neoArkR26InitializeRoom(Task* task);
 
 /// Replay scene whose entry script and departure callback are suppressed.
 enum { NEO_ARK_R26_ATTRACT_DEMO = 9 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Receiver-specific keys used by the room's entry scene and actor layout.
+enum {
+    NEO_ARK_R26_PLAYER_ENTRY_CLIP        = 1,
+    NEO_ARK_R26_SECOND_WALKER_ENTRY_CLIP = 3,
+    NEO_ARK_R26_WALKER_SHOW_ATTACHMENT1  = 1,
+    NEO_ARK_R26_FIRST_WALKER_RESOURCE    = 111,
+    NEO_ARK_R26_SECOND_WALKER_RESOURCE   = 112,
+    NEO_ARK_R26_VIEW2_MAIN_SPRITE_COUNT  = 54,
+};
+
+/// Restarts the player's entry clip in the equipped weapon bank, without grid response.
+///
+/// Event playback replaces source.index in a copy before synchronous dispatch;
+/// the stored bank selector is therefore not the bank ultimately played.
+/// Read-only script arguments retain their original data-section placement.
+static const AnimationPlayRequest _gNeoArkR26PlayerEntryAnimation SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = NEO_ARK_R26_PLAYER_ENTRY_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 ActorCommand D_neo_ark_r26_8017D794 = { { .loc = { 4, 36 } }, 0 };
 
-ActorCommand D_neo_ark_r26_8017D798 = { { .loc = { 4, 36 } }, 1 };
+/// Shows attachment 1 and hides attachment 2 of the second scripted walker.
+///
+/// The receiver ignores the retained Shelter R36 context tags and reads only
+/// command. The entry script borrows this record through synchronous dispatch.
+static ActorCommand _gNeoArkR26ShowWalkerAttachment1Command = {
+    { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36 } },
+    NEO_ARK_R26_WALKER_SHOW_ATTACHMENT1,
+};
 
 AnimationPlayRequest D_neo_ark_r26_8017D79C[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D7C4 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Immediately restarts clip 3 of the second scripted walker for the entry scene.
+///
+/// The actor reads animationId and blend; its fixed clip table ignores the bank
+/// selector, blend duration on reset, and grid-participation word.
+static AnimationPlayRequest _gNeoArkR26SecondWalkerEntryAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = NEO_ARK_R26_SECOND_WALKER_ENTRY_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_neo_ark_r26_8017D7D8 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -145,12 +182,12 @@ EvsCommand D_neo_ark_r26_8017DA74[57] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_r26_8017D780 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkR26PlayerEntryAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_r26_8017DA44 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_r26_8017D798 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkR26ShowWalkerAttachment1Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_neo_ark_r26_8017DA5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D7C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerEntryAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -220,192 +257,246 @@ TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-WorldCollisionRoomResources D_neo_ark_r26_8017E0CC[1] = {
-    { D_neo_ark_r26_8017E19C, NULL, NULL, NULL },
+WorldCollisionRoomResources gNeoArkR26CollisionRooms[1] = {
+    { &_gNeoArkR26FloorCollisionGrid, NULL, NULL, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[1] = {
-    { D_neo_ark_r26_8017E928, D_neo_ark_r26_8017E9EC },
+WorldCoordRoomLighting gNeoArkR26RoomLighting[1] = {
+    { &_gNeoArkR26RoomLights, _gNeoArkR26ViewAmbient },
 };
 
-u8* D_neo_ark_r26_8017E0E4[1] = {
+u8* gNeoArkR26ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_r26_8017E0E8[1] = { 4 };
+ViewCount gNeoArkR26ViewCounts[1] = { ARRAY_SIZE(gNeoArkR26ViewCameras) };
 
-DirectionWarpEntry D_neo_ark_r26_8017E0EC[1] = {
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkR26Warps[1] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkR26Collision00BDCNormals[1] = {
+/// The floor's downward unit normal, with 4096 per unit.
+static SVECTOR _gNeoArkR26FloorCollisionGridNormals[1] = {
 #include "assets/neo_ark_r26_collision_00BDC_normals.inc"
 };
 
-static SVECTOR _gNeoArkR26Collision00BDCVerts[4] = {
+/// Four floor corners in signed room-coordinate units.
+static SVECTOR _gNeoArkR26FloorCollisionGridVerts[4] = {
 #include "assets/neo_ark_r26_collision_00BDC_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkR26Collision00BDCFaces[1] = {
+/// One floor quad selecting normal 0, all four corners and surface class 1.
+static WorldCollisionGridFace _gNeoArkR26FloorCollisionGridFaces[1] = {
 #include "assets/neo_ark_r26_collision_00BDC_faces.inc"
 };
 
-static s16 _gNeoArkR26Collision00BDCCells[16] = {
+/// Eight two-element face lists, each face 0 followed by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkR26FloorCollisionGridCells[16] = {
 #include "assets/neo_ark_r26_collision_00BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkR26Collision00BDCCells[i])
-static s16* _gNeoArkR26Collision00BDCTable[9] = {
+#define GRID_CELL(i) (&_gNeoArkR26FloorCollisionGridCells[i])
+/// X-major 3x3 cell directory: eight floor lists followed by one empty cell.
+static s16* _gNeoArkR26FloorCollisionGridTable[9] = {
 #include "assets/neo_ark_r26_collision_00BDC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_r26_8017E19C[1] = {
-    { NULL, _gNeoArkR26Collision00BDCNormals, _gNeoArkR26Collision00BDCVerts, _gNeoArkR26Collision00BDCFaces, _gNeoArkR26Collision00BDCTable, 4000, 4000, 3, 3, 4000, 1 },
+/// The room's floor quad at Y=0, spanning -4000..4000 on both horizontal axes.
+///
+/// The 3x3 X-major index has eight face lists and an empty final cell.
+/// Activation binds viewCoord; geometry and cell lists remain room-owned.
+static WorldCollisionGrid _gNeoArkR26FloorCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkR26FloorCollisionGridNormals,
+    .vertices    = _gNeoArkR26FloorCollisionGridVerts,
+    .faces       = _gNeoArkR26FloorCollisionGridFaces,
+    .cellFaceIds = _gNeoArkR26FloorCollisionGridTable,
+    .xBias       = 4000,
+    .zBias       = 4000,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkR26FloorCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_r26_8017E1C0[4] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, 257 },
-    { { { { -3897, 0, -1261 }, { 0, 4096, 0 }, { 1261, 0, -3897 } }, { 1260, 1300, -5690 } }, 680 },
+ViewCamera gNeoArkR26ViewCameras[4] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 13000, 0 } }, 257 },
+    { { { { -3897, 0, -1261 }, { 0, ONE, 0 }, { 1261, 0, -3897 } }, { 1260, 1300, -5690 } }, 680 },
     { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
     { { { { 3157, 0, 2608 }, { 2381, 1673, -2882 }, { -1065, 3738, 1289 } }, { -570, 2000, 760 } }, 257 },
 };
 
-SpriteBatch D_neo_ark_r26_8017E250[2] = {
+/// Sprite image pages in VRAM words, the shared palette row and unity modulation.
+enum {
+    NEO_ARK_R26_SPRITE_LEFT_TPAGE         = getTPage(1, 0, 896, 0),
+    NEO_ARK_R26_SPRITE_RIGHT_TPAGE        = getTPage(1, 0, 960, 0),
+    NEO_ARK_R26_SPRITE_CLUT               = getClut(0, 255),
+    NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION = 128,
+};
+
+/// Empty view-1 list; the leading zero count keeps decoded background strips.
+static SpriteBatch _gNeoArkR26View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_r26_8017E260[62] = {
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 16, 0, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 120, 24, 0, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 40, 0, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 136, 40, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 72, 0, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 64, 0, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 16, 0, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 56, 16, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 16, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 32, 16, 0, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 8, 16, 0, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 0, 16, 0, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -24, 16, 0, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -48, 16, 0, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 48, 0, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 48, 0, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 48, 0, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, 48, 0, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 48, 0, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -152, 48, 0, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 16, 0, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -120, 16, 0, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, 16, 0, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 56, 1000, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 64, 1000, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 16, 1000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 24, 1000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 24, 1000, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 40, 1000, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 32, 1000, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, 64, 1000, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 80, 72, 1000, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 40, 80, 1000, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 72, 1000, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 8, 72, 1000, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -24, 64, 1000, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -48, 56, 1000, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 48, 0, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 48, 0, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 48, 0, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 48, 0, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 80, 1000, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 48, 0, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -160, 72, 1000, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 8, 96, 1000, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 40, 96, 1000, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 88, 1000, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 88, 1000, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 96, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -160, 88, 1000, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -120, 72, 1000, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -96, 88, 1000, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, 88, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 0, 80, 1000, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 80, 0, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -32, 80, 0, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -88, 112, 250, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -88, 96, 250, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -88, 80, 250, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -144, 80, 250, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -144, 96, 250, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -144, 112, 250, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
+/// View 2's textured rectangles, in pixels about the view centre with unscaled OT depths.
+static SpriteSource _gNeoArkR26View2SpriteSources[62] = {
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 56, 8 } }, 104, 16, 0, { .fields = { 88, 232 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 40, 16 } }, 120, 24, 0, { .fields = { 104, 216 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 40, 0, { .fields = { 56, 232 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, 40, 0, { .fields = { 112, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 72, 0, { .fields = { 24, 184 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, 64, 0, { .fields = { 8, 192 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 16, 0, { .fields = { 64, 32 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 64 } }, 56, 16, 0, { .fields = { 120, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, 16, 0, { .fields = { 112, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 56 } }, 32, 16, 0, { .fields = { 104, 128 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 56 } }, 8, 16, 0, { .fields = { 104, 184 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 64 } }, 0, 16, 0, { .fields = { 120, 64 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 48 } }, -24, 16, 0, { .fields = { 96, 48 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 40 } }, -48, 16, 0, { .fields = { 80, 136 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -64, 48, 0, { .fields = { 16, 144 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -80, 48, 0, { .fields = { 16, 72 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, 48, 0, { .fields = { 16, 48 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 24 } }, -120, 48, 0, { .fields = { 8, 120 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 48, 0, { .fields = { 40, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 24 } }, -152, 48, 0, { .fields = { 8, 96 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 40, 32 } }, -160, 16, 0, { .fields = { 24, 200 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 40, 32 } }, -120, 16, 0, { .fields = { 64, 216 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 32 } }, -80, 16, 0, { .fields = { 64, 176 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 56, 1000, { .fields = { 40, 64 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, 64, 1000, { .fields = { 64, 40 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 16, 1000, { .fields = { 112, 240 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 40 } }, 72, 24, 1000, { .fields = { 88, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, 24, 1000, { .fields = { 88, 96 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 40, 1000, { .fields = { 16, 216 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, 32, 1000, { .fields = { 112, 96 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 48, 8 } }, 80, 64, 1000, { .fields = { 64, 248 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 16 } }, 80, 72, 1000, { .fields = { 104, 96 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 16 } }, 40, 80, 1000, { .fields = { 112, 128 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 72, 1000, { .fields = { 96, 40 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 24 } }, 8, 72, 1000, { .fields = { 24, 232 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, 64, 1000, { .fields = { 24, 136 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 32 } }, -48, 56, 1000, { .fields = { 40, 168 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, 48, 0, { .fields = { 88, 72 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -72, 48, 0, { .fields = { 24, 48 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 48, 0, { .fields = { 24, 160 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 48, 0, { .fields = { 24, 24 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 8 } }, -136, 80, 1000, { .fields = { 80, 208 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, 48, 0, { .fields = { 32, 160 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 72, 1000, { .fields = { 112, 112 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 24 } }, 8, 96, 1000, { .fields = { 120, 24 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 24 } }, 40, 96, 1000, { .fields = { 0, 168 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 32 } }, 64, 88, 1000, { .fields = { 48, 136 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 32 } }, 96, 88, 1000, { .fields = { 32, 32 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 24 } }, 128, 96, 1000, { .fields = { 8, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 64, 32 } }, -160, 88, 1000, { .fields = { 24, 104 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 72, 16 } }, -120, 72, 1000, { .fields = { 72, 144 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 64, 32 } }, -96, 88, 1000, { .fields = { 24, 72 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 32 } }, -32, 88, 1000, { .fields = { 56, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 40 } }, 0, 80, 1000, { .fields = { 96, 176 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 80, 0, { .fields = { 120, 240 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 32 } }, -32, 80, 0, { .fields = { 104, 96 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 64, 8 } }, -88, 112, 250, { .fields = { 80, 160 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 56, 16 } }, -88, 96, 250, { .fields = { 88, 64 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 48, 16 } }, -88, 80, 250, { .fields = { 96, 80 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 56, 16 } }, -144, 80, 250, { .fields = { 96, 240 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 56, 16 } }, -144, 96, 250, { .fields = { 88, 48 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_LEFT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 56, 8 } }, -144, 112, 250, { .fields = { 80, 16 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_neo_ark_r26_8017E738[4] = {
+/// View 2's background selector, 54-rectangle range and remaining eight-rectangle range.
+///
+/// The main range's retained field_6 bytes are {1,0}; their role is unproven.
+static SpriteBatch _gNeoArkR26View2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 54, 0, 0, { 1, 0 } },
-    { 54, 8, 0, 0, { 0, 0 } },
+    { 0, NEO_ARK_R26_VIEW2_MAIN_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { NEO_ARK_R26_VIEW2_MAIN_SPRITE_COUNT, ARRAY_SIZE(_gNeoArkR26View2SpriteSources) - NEO_ARK_R26_VIEW2_MAIN_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_r26_8017E758[14] = {
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 32, 0, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 40, 0, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 96, 0, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -16, 24, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 8, 40, 1150, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 40, 32, 1375, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 40, 1375, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 48, 1375, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, 32, 961, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// View 3's textured rectangles, in pixels about the view centre with unscaled OT depths.
+static SpriteSource _gNeoArkR26View3SpriteSources[14] = {
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 64 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 8 } }, 8, 32, 0, { .fields = { 72, 56 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 48, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 40, 0, { .fields = { 112, 248 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 96, 0, { .fields = { 112, 240 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 24, 80 } }, -16, 24, 500, { .fields = { 104, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 64 } }, 8, 40, 1150, { .fields = { 80, 144 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 72 } }, 40, 32, 1375, { .fields = { 120, 80 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 32, 64 } }, 48, 40, 1375, { .fields = { 88, 80 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 48 } }, 80, 48, 1375, { .fields = { 96, 208 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 16, 72 } }, -32, 32, 961, { .fields = { 112, 152 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
+    { NEO_ARK_R26_SPRITE_RIGHT_TPAGE, NEO_ARK_R26_SPRITE_CLUT, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, NEO_ARK_R26_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_neo_ark_r26_8017E870[3] = {
+/// View 3's background selector followed by its complete source range and terminator.
+static SpriteBatch _gNeoArkR26View3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkR26View3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_r26_8017E888[2] = {
+/// Empty view-4 list; the leading zero count keeps decoded background strips.
+static SpriteBatch _gNeoArkR26View4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_r26_8017E898[4] = {
-    { { .empty = D_neo_ark_r26_8017E250 }, D_neo_ark_r26_8017E250, NULL },
-    { { .elements = D_neo_ark_r26_8017E260 }, D_neo_ark_r26_8017E738, NULL },
-    { { .elements = D_neo_ark_r26_8017E758 }, D_neo_ark_r26_8017E870, NULL },
-    { { .empty = D_neo_ark_r26_8017E888 }, D_neo_ark_r26_8017E888, NULL },
+SpriteView gNeoArkR26SpriteViews[4] = {
+    { { .empty = _gNeoArkR26View1SpriteBatches }, _gNeoArkR26View1SpriteBatches, NULL },
+    { { .elements = _gNeoArkR26View2SpriteSources }, _gNeoArkR26View2SpriteBatches, NULL },
+    { { .elements = _gNeoArkR26View3SpriteSources }, _gNeoArkR26View3SpriteBatches, NULL },
+    { { .empty = _gNeoArkR26View4SpriteBatches }, _gNeoArkR26View4SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_r26_8017E8C8[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 1640, 820 }, { 0, 0 } }, 7300, 9300 },
+/// One all-view point light at (0,-2500,3000), with 7300/9300-unit falloff radii.
+///
+/// RGB intensities are 12-fractional-bit values. Coordinate composition and
+/// lighting queries mutate the parent, composition cache and attenuation.
+static WorldCoordPointLight _gNeoArkR26PointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2500, 3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 1640, 820 }, { 0, 0 } }, 7300, 9300 },
 };
 
-WorldCoordRoomLights D_neo_ark_r26_8017E928[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_r26_8017E8C8), D_neo_ark_r26_8017E8C8, 0, NULL },
+/// Room 1's single point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gNeoArkR26RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkR26PointLights),
+    .pointLights           = _gNeoArkR26PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-AreaResource D_neo_ark_r26_8017E940[3] = {
-    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
-    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor143900SecondScriptedWalkerTaskDescriptors },
+/// Default-layout recipes for the first and second scripted walkers, then END.
+///
+/// Entry 111 loads actor file 143900; entry 112 loads texture file 660100 and
+/// borrows the second walker's code/models from that same actor package.
+static AreaResource _gNeoArkR26SceneActorResources[3] = {
+    { NEO_ARK_R26_FIRST_WALKER_RESOURCE, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
+    { NEO_ARK_R26_SECOND_WALKER_RESOURCE, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor143900SecondScriptedWalkerTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_neo_ark_r26_8017E964[3] = {
-    { 111, 0, 0, 0, 0, 2850, 2048, 0, 0, 2, 0 },
-    { 112, 0, 0, 0, 0, 855, 0, 0, 2, 4, 0 },
+/// Initial poses and texture offsets for scene actors 0 and 1, then END.
+///
+/// The first walker starts at Z=2850 facing a half turn, the second at Z=855
+/// facing zero. The script subsequently places actor 1 at Z=850. Both spawn
+/// with mode/variant zero; offsets are texture-page columns and CLUT rows.
+static AreaPlacement _gNeoArkR26SceneActorPlacements[3] = {
+    { NEO_ARK_R26_FIRST_WALKER_RESOURCE, 0, 0, 0, 0, 2850, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { NEO_ARK_R26_SECOND_WALKER_RESOURCE, 0, 0, 0, 0, 855, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_neo_ark_r26_8017E994[11] = {
+AreaVariant gNeoArkR26AreaVariants[11] = {
     { NULL, NULL },
-    { D_neo_ark_r26_8017E964, D_neo_ark_r26_8017E940 },
+    { _gNeoArkR26SceneActorPlacements, _gNeoArkR26SceneActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -417,37 +508,64 @@ AreaVariant D_neo_ark_r26_8017E994[11] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5] = {
-    { .viewCount = ARRAY_SIZE(D_neo_ark_r26_8017E9EC) - 1 },
+/// Ambient minima for views 1..4 after the count header, in sixteenths of RGB levels.
+///
+/// Views 1 and 4 use near-black minima; views 2 and 3 share brighter minima.
+/// The fourth colour halfword retains weighted brightness, unused by shading.
+static WorldCoordRoomAmbientEntry _gNeoArkR26ViewAmbient[5] = {
+    { .viewCount = ARRAY_SIZE(_gNeoArkR26ViewAmbient) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1000, 700, 800, 825 } },
     { .color = { 1000, 700, 800, 825 } },
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_r26_8017EA14 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Entry indices in the loaded type-1 bank; each names the first of a cue pair.
+enum {
+    NEO_ARK_R26_FLOOR_WALK_SCRIPT = 0x2D,
+    NEO_ARK_R26_FLOOR_RUN_SCRIPT  = 0x2F,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_r26_8017EA20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Loaded type-1-bank cue bases for floor walking, running and scripted jumps.
+///
+/// Cue 2 uses the base; cue 1 uses base+1. Scripted jumps share the walking pair.
+static WorldCollisionFootstepSounds _gNeoArkR26FloorFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | NEO_ARK_R26_FLOOR_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | NEO_ARK_R26_FLOOR_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | NEO_ARK_R26_FLOOR_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_r26_8017EA28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_r26_8017EA14 },
+/// Blocking surface policy without footstep cues, shared by classes 0 and 2..7.
+///
+/// field_0 is retained as zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gNeoArkR26SilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[8] = {
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA28,
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA20,
-    D_neo_ark_r26_8017EA20,
+/// Blocking floor policy for class 1, with walking/running footstep pairs.
+///
+/// field_0 is retained as zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gNeoArkR26FloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkR26FloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkR26SurfaceProperties[8] = {
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26FloorSurface,
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26SilentSurface,
+    &_gNeoArkR26SilentSurface,
 };
 
 /// Returns to Shelter 1F Tent after the room-entry scene finishes or is skipped.

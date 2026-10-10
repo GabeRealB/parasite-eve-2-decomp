@@ -11,24 +11,60 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_neo_ark_r26_8017E994[11];
+/// Placement layouts indexed directly by saved variant, 0..10.
+///
+/// Only default variant 1 contains actors: the two scripted walkers and their
+/// resource recipes. All other slots are empty. Gameplay borrows this table
+/// and its placement/resource lists while the room overlay is loaded.
+extern AreaVariant gNeoArkR26AreaVariants[11];
 
-// neo_ark_r26
-extern WorldCollisionRoomResources D_neo_ark_r26_8017E0CC[];
+/// Collision resources for room 1: one floor grid and no trigger or occluder lists.
+///
+/// The Neo Ark map directory indexes this array by room - 1. Grid activation
+/// binds its mutable descriptor to the view; keep the room overlay loaded.
+extern WorldCollisionRoomResources gNeoArkR26CollisionRooms[1];
 
-extern WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[];
+/// Lighting for room 1: one point light and ambient minima for four views.
+///
+/// Indexed by room - 1 through the Neo Ark map directory. Light transforms and
+/// attenuation remain writable; all referenced storage belongs to this overlay.
+extern WorldCoordRoomLighting gNeoArkR26RoomLighting[1];
 
-extern u8* D_neo_ark_r26_8017E0E4[];
+/// Room 1's logical-view map, borrowing the gameplay-owned identity map.
+///
+/// The directory is indexed by room - 1; logical views 1..4 select matching
+/// camera, image and sprite indices. Keep both gameplay and this overlay loaded.
+extern u8* gNeoArkR26ViewMaps[1];
 
-extern ViewCount D_neo_ark_r26_8017E0E8[];
+/// Reverse-lookup limit for room 1's four logical views, indexed by room - 1.
+extern ViewCount gNeoArkR26ViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_r26_8017E0EC[];
+/// Arrival warp 1, placing player and companion at the origin facing a half turn.
+///
+/// Starts in view 2 with no sound, scripted-player option or map-marker update.
+/// The Neo Ark warp directory indexes by warp - 1 and borrows this overlay.
+extern DirectionWarpEntry gNeoArkR26Warps[1];
 
-extern ViewCamera D_neo_ark_r26_8017E1C0[];
+/// Cameras for mapped views 1..4, stored at mapped view - 1.
+///
+/// View 1 looks straight down; the entry scene uses views 2..4. Transforms use
+/// world-coordinate units and 4096 per unit rotation; projection distances
+/// are pixels. Keep the overlay loaded until a queued camera has been applied.
+extern ViewCamera gNeoArkR26ViewCameras[4];
 
-extern SpriteView D_neo_ark_r26_8017E898[];
+/// Sprite resources for mapped views 1..4, stored at mapped view - 1.
+///
+/// Views 1 and 4 have no sprites; views 2 and 3 supply 62 and 14 depth-sorted
+/// rectangles. Every batch list retains decoded background strips and ends
+/// with SPRITE_BATCH_END. Source and batch storage belongs to this overlay.
+extern SpriteView gNeoArkR26SpriteViews[4];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[];
+/// Collision policies indexed by room-local surface class, 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 1, used by the floor grid, adds paired footstep cues; the other
+/// classes have no footstep record. All pointers borrow this room overlay.
+extern WorldCollisionSurfaceProperties* gNeoArkR26SurfaceProperties[8];
 
 /// Leaves the room's effect task unchanged each tick.
 ///
