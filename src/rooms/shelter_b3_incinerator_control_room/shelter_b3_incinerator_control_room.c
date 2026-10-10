@@ -8,6 +8,8 @@
 
 #include "shelter_b3_incinerator_control_room_private.h"
 
+#include "actors/actor_142600.h"
+
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/player_state.h"
@@ -52,9 +54,6 @@
 static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
-
-extern EvsCommand D_actor_142600_801360E4[];
-extern EvsCommand D_actor_142600_80136804[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -253,7 +252,7 @@ static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task)
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
         areaApplySavedUpdates(D_shelter_b3_incinerator_control_room_80182A40);
         companionRestoreFullHp();
-        evsStartScriptWithSkip(D_actor_142600_801360E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142600_80136804);
+        evsStartScriptWithSkip(gActor142600IncineratorArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor142600IncineratorArrivalSkipScript);
     }
 }
 

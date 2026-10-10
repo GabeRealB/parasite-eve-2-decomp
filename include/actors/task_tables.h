@@ -121,8 +121,6 @@ extern TaskDesc gActor143000TerminalTasks[2];
 /// Slot export of `gActor02100WatcherTaskDesc` from actor_102100, with the same descriptor contract.
 extern TaskDesc gActor102100WatcherTaskDesc;
 
-extern TaskDesc D_actor_142600_80135E24;
-
 /// Slot export of `gActor02400Tasks` from actor_102400, with the same descriptor contract.
 extern TaskDesc gActor102400Tasks[2];
 
