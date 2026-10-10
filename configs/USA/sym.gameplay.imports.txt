@@ -1607,7 +1607,7 @@ D_shelter_b1_armory_801854E0 = 0x801854E0; // absolute:True owner=shelter_b1_arm
 
 D_shelter_b1_control_room_80183A98 = 0x80183A98; // absolute:True owner=shelter_b1_control_room
 
-D_shelter_b1_control_room_access_tunnel_801825AC = 0x801825AC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelAreaVariants = 0x801825AC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 
 D_shelter_b1_elevator_hall_80184940 = 0x80184940; // absolute:True owner=shelter_b1_elevator_hall
 

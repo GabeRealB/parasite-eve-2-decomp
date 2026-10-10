@@ -12,28 +12,67 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_control_room_access_tunnel_801825AC[22];
+/// Encounter layouts for the tunnel, indexed by the saved area variant (0..21).
+///
+/// Slots 1, 2, 3 and 11 publish actors; slot 21 publishes empty terminated lists.
+/// Other slots are absent. Placements, resources and their task descriptors are
+/// borrowed from loaded overlays and must remain live through loading and spawning.
+extern AreaVariant gShelterB1ControlRoomAccessTunnelAreaVariants[22];
 
-// shelter_b1_control_room_access_tunnel
-extern u8* D_shelter_b1_control_room_access_tunnel_80181F00[];
+/// Room 1's logical-view map, borrowing gameplay's shared identity mapping.
+///
+/// Room and logical-view indices are 1-based. Views 1..3 select the same camera,
+/// image and sprite indices; keep both the room and gameplay overlays loaded.
+extern u8* gShelterB1ControlRoomAccessTunnelRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_control_room_access_tunnel_80181F04[];
+/// Room 1's three logical views, limiting reverse searches in its identity map.
+extern ViewCount gShelterB1ControlRoomAccessTunnelRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_control_room_access_tunnel_80181F08[];
 
-extern WorldCollisionGrid D_shelter_b1_control_room_access_tunnel_80182070;
+/// Tunnel collision mesh with two X cells and one Z cell, each 4000 world units.
+///
+/// Six quads use surface class 0 for the enclosure and class 1 for the floor.
+/// Activation binds the writable descriptor to the current view. Its mesh and
+/// terminated cell lists belong to this overlay and remain live while active.
+extern WorldCollisionGrid gShelterB1ControlRoomAccessTunnelCollisionGrid;
 
-extern ViewCamera D_shelter_b1_control_room_access_tunnel_80182094[];
+/// Cameras for mapped views 1..3, in world coordinates with pixel projection distances.
+///
+/// Indexed by mapped view minus one; borrowed until camera application finishes.
+extern ViewCamera gShelterB1ControlRoomAccessTunnelViewCameras[3];
 
-extern SpriteView D_shelter_b1_control_room_access_tunnel_80182130[];
+/// Decoded-background presentation for mapped views 1..3, without source sprites.
+///
+/// Indexed by mapped view minus one. Each view retains its own zero-count batch
+/// and following terminator, with no clipping list. Descriptors and batch lists
+/// borrow this overlay's lifetime while sprite allocation or drawing uses them.
+extern SpriteView gShelterB1ControlRoomAccessTunnelSpriteViews[3];
 
-extern WorldCoordRoomLights D_shelter_b1_control_room_access_tunnel_801822D4;
+/// Room 1's four point lights, contributing in every logical view.
+///
+/// No directional or cone lights. Coordinates and attenuation remain writable;
+/// keep this overlay loaded while composing or sampling the lights.
+extern WorldCoordRoomLights gShelterB1ControlRoomAccessTunnelRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_control_room_access_tunnel_801822EC[];
+/// Directed view boundaries switching between tunnel views 2 and 3.
+///
+/// Both quads are live; LAST marks the second. Room activation binds and links
+/// the writable records, which must stay loaded until their list is cleared.
+extern WorldCollisionTrigger gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers[2];
 
-extern WorldCollisionTrigger D_shelter_b1_control_room_access_tunnel_80182384[];
+/// Facing-gated exits to the B1 Main Corridor and Control Room.
+///
+/// The corridor exit uses departure slot 1 and arrival slot 2; the control-room
+/// exit uses departure slot 2 and arrival slot 1. LAST includes the second quad.
+/// Records are writable and stay loaded while linked to the action-trigger list.
+extern WorldCollisionTrigger gShelterB1ControlRoomAccessTunnelWarpTriggers[2];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_control_room_access_tunnel_80182678[];
+/// Collision policies for room-local surface classes 0..7.
+///
+/// All block probes, allow weapon impacts and apply pushback. Only class 1
+/// supplies footstep cues. Borrowed records remain valid while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass[8];
 
 /// Runs the Control Room Access Tunnel controller for synchronous room messages.
 ///

@@ -250,16 +250,16 @@ D_shelter_b1_transfer_tunnel_80182DA8 = 0x80182DA8; // absolute:True owner=shelt
 D_shelter_b1_transfer_tunnel_80182ED8 = 0x80182ED8; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 D_shelter_b1_transfer_tunnel_80183184 = 0x80183184; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 shelterB1ControlRoomAccessTunnelRoomTask = 0x8017D68C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
-D_shelter_b1_control_room_access_tunnel_80181F00 = 0x80181F00; // absolute:True owner=shelter_b1_control_room_access_tunnel
-D_shelter_b1_control_room_access_tunnel_80181F04 = 0x80181F04; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelRoomViewMaps = 0x80181F00; // absolute:True owner=shelter_b1_control_room_access_tunnel
+gShelterB1ControlRoomAccessTunnelRoomViewCounts = 0x80181F04; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 D_shelter_b1_control_room_access_tunnel_80181F08 = 0x80181F08; // absolute:True owner=shelter_b1_control_room_access_tunnel
-D_shelter_b1_control_room_access_tunnel_80182070 = 0x80182070; // absolute:True owner=shelter_b1_control_room_access_tunnel
-D_shelter_b1_control_room_access_tunnel_80182094 = 0x80182094; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
-D_shelter_b1_control_room_access_tunnel_80182130 = 0x80182130; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
-D_shelter_b1_control_room_access_tunnel_801822D4 = 0x801822D4; // absolute:True owner=shelter_b1_control_room_access_tunnel
-D_shelter_b1_control_room_access_tunnel_801822EC = 0x801822EC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
-D_shelter_b1_control_room_access_tunnel_80182384 = 0x80182384; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
-D_shelter_b1_control_room_access_tunnel_80182678 = 0x80182678; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelCollisionGrid = 0x80182070; // absolute:True owner=shelter_b1_control_room_access_tunnel
+gShelterB1ControlRoomAccessTunnelViewCameras = 0x80182094; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelSpriteViews = 0x80182130; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelRoomLights = 0x801822D4; // absolute:True owner=shelter_b1_control_room_access_tunnel
+gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers = 0x801822EC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelWarpTriggers = 0x80182384; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass = 0x80182678; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 shelterB2ElevatorRoomTask = 0x8017DB18; // type:func absolute:True owner=shelter_b2_elevator shared=rooms
 D_shelter_b2_elevator_8017DFD8 = 0x8017DFD8; // absolute:True owner=shelter_b2_elevator
 D_shelter_b2_elevator_8017DFDC = 0x8017DFDC; // absolute:True owner=shelter_b2_elevator
@@ -438,7 +438,7 @@ D_shelter_b3_incinerator_control_room_8018192C = 0x8018192C; // absolute:True ow
 D_shelter_b3_incinerator_control_room_80181CC0 = 0x80181CC0; // absolute:True owner=shelter_b3_incinerator_control_room
 gShelterB3IncineratorControlRoomViewCameras = 0x80181CE4; // absolute:True owner=shelter_b3_incinerator_control_room
 gShelterB3IncineratorControlRoomSpriteViews = 0x80182140; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
-gShelterB3IncineratorControlRoomLights = 0x801824A0; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
+gShelterB3IncineratorControlRoomLights = 0x801824A0; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_801824B8 = 0x801824B8; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80182668 = 0x80182668; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 D_shelter_b3_incinerator_control_room_801827E4 = 0x801827E4; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
