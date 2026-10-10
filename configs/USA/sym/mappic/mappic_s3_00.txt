@@ -1,2 +1,3 @@
 // Overlay-local symbols for mappic_s3_00 (file 30300).
 gMappicS300MotelBalconyShape = 0x8012f19c;
+gMappicS300MotelRoom5Shape = 0x8012f084;
