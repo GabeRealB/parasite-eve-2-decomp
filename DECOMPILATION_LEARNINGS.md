@@ -87390,9 +87390,9 @@ s32 flags;
 flags = gameFlagGetNibble(0xE2);
 for (targetIndex = 0; targetIndex < 4; targetIndex++) {
     if (!((flags >> targetIndex) & 1)) {
-        enemySpawnFromTable(&D_mine_cavern_8018EB38, 0, targetIndex, NULL);
+        enemySpawnFromTable(gMineCavernTargetTaskDescs, 0, targetIndex, NULL);
     }
-    enemySpawnFromTable(&D_mine_cavern_8018EB38, 1, targetIndex, NULL);
+    enemySpawnFromTable(gMineCavernTargetTaskDescs, 1, targetIndex, NULL);
 }
 ```
 

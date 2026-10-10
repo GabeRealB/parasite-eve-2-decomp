@@ -1,9 +1,9 @@
 // Overlay-local symbols for mine_cavern.
-D_mine_cavern_8018EB50 = 0x8018EB50; // size:0x4 defined:True
-D_mine_cavern_8018EB54 = 0x8018EB54; // size:0x4 defined:True
+_gMineCavernFirstSceneRequestState = 0x8018EB50; // size:0x4 defined:True
+gMineCavernEventBattleReleaseCount = 0x8018EB54; // size:0x4 defined:True
 _gMineCavernRoomLightPoints = 0x80188F64; // size:0x68 defined:True
 
-D_mine_cavern_8018EB58 = 0x8018EB58; // size:0x4 defined:True
+gMineCavernTargetEffectsDestroyedMask = 0x8018EB58; // size:0x4 defined:True
 _gRoomVisualEffectsHaloShades = 0x80188FCC; // size:0x14 defined:True
 gMineCavernRoomCollisionResources = 0x80188FE0; // size:0x30 defined:True
 gMineCavernRoomLighting = 0x80189010; // size:0x18 defined:True
@@ -87,18 +87,18 @@ gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actor
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor403000TaskDesc = 0x80158D58; // absolute:True owner=actor_403000
-D_mine_cavern_8018EB5C = 0x8018EB5C; // size:0x2 defined:True
-D_mine_cavern_8018E360 = 0x8018E360; // size:0x2 defined:True
-D_mine_cavern_8018E362 = 0x8018E362; // size:0x2 defined:True
-D_mine_cavern_8018E364 = 0x8018E364; // size:0x2 defined:True
-D_mine_cavern_8018E366 = 0x8018E366; // size:0x2 defined:True
-D_mine_cavern_8018E368 = 0x8018E368; // size:0x2 defined:True
-D_mine_cavern_8018E36C = 0x8018E36C; // size:0x30 defined:True
-D_mine_cavern_8018E39C = 0x8018E39C; // size:0x20 defined:True
-D_mine_cavern_8018E3BC = 0x8018E3BC; // size:0x20 defined:True
-D_mine_cavern_8018E3DC = 0x8018E3DC; // size:0x2 defined:True
-D_mine_cavern_8018E3E0 = 0x8018E3E0; // size:0x14 defined:True
-D_mine_cavern_8018E3F4 = 0x8018E3F4; // size:0xC defined:True
+gMineCavernTargetEffectsTicks = 0x8018EB5C; // size:0x2 defined:True
+gMineCavernTargetLightRed = 0x8018E360; // size:0x2 defined:True
+gMineCavernTargetLightGreen = 0x8018E362; // size:0x2 defined:True
+gMineCavernTargetLightBlue = 0x8018E364; // size:0x2 defined:True
+gMineCavernTargetLightInnerRadius = 0x8018E366; // size:0x2 defined:True
+gMineCavernTargetLightBaseOuterRadius = 0x8018E368; // size:0x2 defined:True
+gMineCavernFixedGlowPoints = 0x8018E36C; // size:0x30 defined:True
+gMineCavernTargetEffectPoints = 0x8018E39C; // size:0x20 defined:True
+gMineCavernTargetEffectViews = 0x8018E3BC; // size:0x20 defined:True
+gMineCavernTargetEffectsPreviousView = 0x8018E3DC; // size:0x2 defined:True
+gMineCavernDarknessColors = 0x8018E3E0; // size:0x14 defined:True
+_gMineCavernTargetEffectsTaskDesc = 0x8018E3F4; // size:0xC defined:True
 _gMineCavernModel10F60Skeleton = 0x8018E400; // size:0x24 defined:True
 _gMineCavernModel10F60PartVerts = 0x8018E424; // size:0x4 defined:True
 _gMineCavernModel10F60Verts = 0x8018E428; // size:0xA0 defined:True
@@ -111,11 +111,11 @@ _gMineCavernModel11244Verts = 0x8018E70C; // size:0xA0 defined:True
 _gMineCavernModel11244Normals = 0x8018E7AC; // size:0x58 defined:True
 _gMineCavernModel11244Stream = 0x8018E804; // size:0x2B8 defined:True
 _gMineCavernModel11244 = 0x8018EABC; // size:0x24 defined:True
-D_mine_cavern_8018EAE0 = 0x8018EAE0; // size:0x4 defined:True
-D_mine_cavern_8018EAE4 = 0x8018EAE4; // size:0x10 defined:True
-D_mine_cavern_8018EAF4 = 0x8018EAF4; // size:0x24 defined:True
-D_mine_cavern_8018EB18 = 0x8018EB18; // size:0x20 defined:True
-D_mine_cavern_8018EB38 = 0x8018EB38; // size:0x18 defined:True
+_gMineCavernTargetAttacks = 0x8018EAE0; // size:0x4 defined:True
+gMineCavernTargetParams = 0x8018EAE4; // size:0x10 defined:True
+gMineCavernTargetDamageByAttackRow = 0x8018EAF4; // size:0x24 defined:True
+gMineCavernTargetModelPositions = 0x8018EB18; // size:0x20 defined:True
+gMineCavernTargetTaskDescs = 0x8018EB38; // size:0x18 defined:True
 gMineCavernCaptionProgressTasks = 0x80183CA4; // size:0x18 defined:True
 _gMineCavernAnimation069D8Bank1 = 0x80183CBC; // size:0x48 defined:True
 _gMineCavernAnimation069D8Bank4 = 0x80183D04; // size:0xB8 defined:True
@@ -327,3 +327,4 @@ _gMineCavernTargetEffectsStates = 0x8017d65c;
 _gMineCavernTargetInitialBlastLog = 0x8017d7e8;
 _gMineCavernTargetSecondBlastLog = 0x8017d7f0;
 _gMineCavernTargetStates = 0x8017d7f8;
+_gMineCavernRoomStates = 0x8017d5c4;

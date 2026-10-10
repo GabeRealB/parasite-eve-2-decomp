@@ -14,48 +14,132 @@
 
 #include "main/task_types.h"
 
-/// Colours of the cavern's darkness, one per count of destroyed targets (0-4).
+// Target spots share an index across placements, effects and saved destruction bits.
+enum {
+    MINE_CAVERN_TARGET_COUNT                = 4,
+    MINE_CAVERN_TARGET_EFFECT_VIEW_CAPACITY = 8,
+    MINE_CAVERN_TARGET_DAMAGE_ROW_COUNT     = 36,
+    /// Absent mapped view: ends a short visibility row or initializes the previous view.
+    MINE_CAVERN_TARGET_EFFECT_VIEW_NONE = 0
+};
+
+/// Subtractive darkness RGB selected by the number of destroyed targets, 0..4.
 ///
-/// The colour is what a full-screen quad subtracts from the picture, so a
-/// larger channel is a darker cavern. The rows run from an even grey with all
-/// four targets intact to a weaker wash that leaves red untouched once all are
-/// destroyed. Only the three colour channels are used; `cd` is zero.
-extern CVECTOR D_mine_cavern_8018E3E0[5];
+/// Each byte channel is subtracted by a full-screen quad: larger values darken
+/// more. `cd` is unused and zero. The four saved destruction bits bound the
+/// count; there is no terminator. Keep the cavern loaded through drawing.
+extern CVECTOR gMineCavernDarknessColors[MINE_CAVERN_TARGET_COUNT + 1];
 
-/// How many of the two steps of game flag nibble 0xE6 (values 1 and 2)
-/// `mineCavernReleaseEventBattleHold` has already acted on; `mineCavernResetEventBattleReleaseCount`
-/// resets it.
-extern s32 D_mine_cavern_8018EB54;
+/// Number of credited cavern event battle-hold releases (0 none, 1 first, 2 both).
+///
+/// Reset for the intro, then incremented once per persistent event stage 1/2.
+/// A release is credited even without an active battle hold. Repeated callbacks
+/// do not increment it; it is separate from the saved event-progress nibble.
+extern s32 gMineCavernEventBattleReleaseCount;
 
-extern u16 D_mine_cavern_8018E360;
+/// Red intensity of a destroyed target's transient light, with 12 fractional bits.
+///
+/// Stored as an unsigned halfword and copied into the light's signed RGB channel;
+/// the authored value 6016 is below 32768. Requires the cavern overlay loaded.
+extern u16 gMineCavernTargetLightRed;
 
-extern u16 D_mine_cavern_8018E362;
+/// Green intensity of a destroyed target's transient light, with 12 fractional bits.
+///
+/// The unsigned halfword holds 2048 (half intensity) and is copied into the
+/// light's signed RGB channel. Requires the cavern overlay loaded.
+extern u16 gMineCavernTargetLightGreen;
 
-extern u16 D_mine_cavern_8018E364;
+/// Blue intensity of a destroyed target's transient light, with 12 fractional bits.
+///
+/// The unsigned halfword holds 2048 (half intensity) and is copied into the
+/// light's signed RGB channel. Requires the cavern overlay loaded.
+extern u16 gMineCavernTargetLightBlue;
 
-extern u16 D_mine_cavern_8018E366;
+/// Full-strength radius of a destroyed target's transient light, in world units.
+///
+/// The unsigned halfword supplies 950 units, inside the jittered outer radius.
+/// Requires the cavern overlay loaded.
+extern u16 gMineCavernTargetLightInnerRadius;
 
-extern u16 D_mine_cavern_8018E368;
+/// Base falloff radius of a destroyed target's transient light, in world units.
+///
+/// Each refresh adds 0..2047 units to the authored 2710-unit radius, giving
+/// 2710..4757 units at which the light reaches zero. Requires the cavern loaded.
+extern u16 gMineCavernTargetLightBaseOuterRadius;
 
-extern SVECTOR D_mine_cavern_8018E36C[6];
+/// Six authored fixed-glow centres in whole world-coordinate units.
+///
+/// Every XYZ entry is projected through the view; `pad` is unused and zero.
+/// Entry 3 is suppressed in mapped view 4. This counted array has no terminator
+/// and remains borrowed while the cavern's darkness controller draws.
+extern SVECTOR gMineCavernFixedGlowPoints[6];
 
-extern SVECTOR D_mine_cavern_8018E39C[4];
+/// World centres of the four destroyed targets' glow, light, puff and sound effects.
+///
+/// Index 0..3 is the saved destruction-bit index. XYZ uses whole world units;
+/// `pad` is unused and zero. These are independent of model-root placements in
+/// `gMineCavernTargetModelPositions`. No terminator; keep the cavern loaded.
+extern SVECTOR gMineCavernTargetEffectPoints[MINE_CAVERN_TARGET_COUNT];
 
-extern u8 D_mine_cavern_8018E3BC[4][8];
+/// Mapped views that show each destroyed target's glow and puff effects.
+///
+/// Rows use target index 0..3; each holds up to eight 1-based mapped views
+/// in 1..25. Zero ends a short row; row 0 fills its capacity without a sentinel.
+/// Light and positional-sound updates do not use this visibility filter.
+/// Borrowed by the effects controller while the cavern overlay is loaded.
+extern u8 gMineCavernTargetEffectViews[MINE_CAVERN_TARGET_COUNT][MINE_CAVERN_TARGET_EFFECT_VIEW_CAPACITY];
 
-extern s16 D_mine_cavern_8018E3DC;
+/// Mapped view sampled by the preceding target-effects update (0 before any update).
+///
+/// Later values are mapped views 1..25. A changed view bypasses the puff cadence
+/// test; every update stores the view even while actors are paused or hidden.
+/// Storage resets to its initialized zero when the cavern overlay is loaded.
+extern s16 gMineCavernTargetEffectsPreviousView;
 
-extern EnemyParams D_mine_cavern_8018EAE4;
+/// Intact target parameters: 30 starting HP, one attack row and zero release rewards.
+///
+/// Critical chance, buildup and damage-over-time settings are also zero. Each
+/// intact enemy borrows this record and copies its starting HP; keep the cavern
+/// loaded until the enemies are destroyed. Remains tasks do not install it.
+extern EnemyParams gMineCavernTargetParams;
 
-extern u8 D_mine_cavern_8018EAF4[36];
+/// HP lost by an intact target for attack rows 0..35 of a non-attachment hit.
+///
+/// Indexed by the contact key's low seven bits after rejecting bit 15; callers
+/// must keep that row below 36. The byte replaces the ordinary damage roll's
+/// result, while the roll's side effects are retained. Rows 0 and 33..35 deal
+/// zero. This is a cavern-specific prefix, not the full resident attack table.
+/// Keep the cavern overlay loaded while its target tasks can take hits.
+extern u8 gMineCavernTargetDamageByAttackRow[MINE_CAVERN_TARGET_DAMAGE_ROW_COUNT];
 
-extern SVECTOR D_mine_cavern_8018EB18[4];
+/// World placements shared by the intact and remains models at target spots 0..3.
+///
+/// XYZ uses whole world-coordinate units; `pad` is unused and zero. Spawning
+/// copies XYZ into the model root parented to the view coordinate. The index
+/// also selects the saved destruction bit and target-effects tables.
+/// No terminator; the loaded cavern supplies all four entries.
+extern SVECTOR gMineCavernTargetModelPositions[MINE_CAVERN_TARGET_COUNT];
 
-extern TaskDesc D_mine_cavern_8018EB38[2];
+/// Priority-96 TMD task recipes: index 0 intact target, index 1 remains model.
+///
+/// There is no terminator. The target controller spawns an intact task only
+/// for an unset destruction bit and a remains task at every spot, passing
+/// spot index 0..3 in `spawnArg1`. Models borrow cavern sources through teardown.
+extern TaskDesc gMineCavernTargetTaskDescs[2];
 
-extern s32 D_mine_cavern_8018EB58;
+/// Destruction nibble sampled by the preceding target-effects update, initially zero.
+///
+/// Mirrors `GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED` (bits 0..3 select spots).
+/// A changed mask refreshes destroyed targets' positional sounds. Every update
+/// replaces it, including paused/hidden updates; loading the cavern clears BSS.
+extern s32 gMineCavernTargetEffectsDestroyedMask;
 
-extern u16 D_mine_cavern_8018EB5C;
+/// Running target-effects updates counted modulo 65536, initially zero on load.
+///
+/// Incremented once per controller update while actors run, even with no
+/// destroyed target. Puff cadence tests the signed low halfword modulo nine;
+/// view changes also allow a puff. Paused/hidden updates retain the counter.
+extern u16 gMineCavernTargetEffectsTicks;
 
 /// Bodyless task recipe that commits the final power-panel or passage caption choice.
 ///

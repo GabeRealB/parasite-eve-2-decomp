@@ -2852,11 +2852,11 @@ static inline void _mineCavernRegisterRoomEffects(void)
 /// `destroyedCount` starts at zero; `bitIndex` is a writable signed word,
 /// overwritten by the loop. `destroyedMask` is a stable signed word.
 /// Arguments are evaluated repeatedly and must have no access side effects.
-#define MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, bitIndex)      \
-    for ((bitIndex) = 0; (bitIndex) < ARRAY_SIZE(D_mine_cavern_8018E39C); (bitIndex)++) { \
-        if (((destroyedMask) >> (bitIndex)) & 1) {                                        \
-            (destroyedCount)++;                                                           \
-        }                                                                                 \
+#define MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, bitIndex)             \
+    for ((bitIndex) = 0; (bitIndex) < ARRAY_SIZE(gMineCavernTargetEffectPoints); (bitIndex)++) { \
+        if (((destroyedMask) >> (bitIndex)) & 1) {                                               \
+            (destroyedCount)++;                                                                  \
+        }                                                                                        \
     }
 
 /// Selects room 2 in the live save and session, requesting room-object relinking.
@@ -2893,7 +2893,7 @@ static void _mineCavernPrepareFinalEventBattle(void)
 
 void mineCavernResetEventBattleReleaseCount(void)
 {
-    D_mine_cavern_8018EB54 = 0;
+    gMineCavernEventBattleReleaseCount = 0;
 }
 
 /// Sets visibility of the five cavern sprite batches tied to nursery progress.
@@ -3158,12 +3158,12 @@ static void _mineCavernDrawFixedGlows(void)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     radiusScale = baseRadiusScale;
-    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_mine_cavern_8018E36C); pointIndex++) {
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(gMineCavernFixedGlowPoints); pointIndex++) {
         trigShift = GLOW_TRIG_SHIFT;
         if (pointIndex == 3 && viewId == 4) {
             continue;
         }
-        gte_ldv0(&D_mine_cavern_8018E36C[pointIndex]);
+        gte_ldv0(&gMineCavernFixedGlowPoints[pointIndex]);
         gte_rtps();
         gte_stsxy(&packedScreenPosition);
         gte_stflg(&projectionFlags);
@@ -3195,14 +3195,14 @@ static void _mineCavernRefreshTargetLight(s16 targetIndex)
     WorldCoordPointLight*          pointLight = &lightSlot->light;
 
     lightSlot->framesLeft                              = MINE_CAVERN_TARGET_LIGHT_TICKS;
-    pointLight->inner                                  = D_mine_cavern_8018E366;
-    pointLight->outer                                  = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
-    pointLight->head.color.r                           = D_mine_cavern_8018E360;
-    pointLight->head.color.g                           = D_mine_cavern_8018E362;
-    pointLight->head.color.b                           = D_mine_cavern_8018E364;
-    pointLight->head.transform.lighting.local.t[0]     = D_mine_cavern_8018E39C[targetIndex].vx;
-    pointLight->head.transform.lighting.local.t[1]     = D_mine_cavern_8018E39C[targetIndex].vy;
-    pointLight->head.transform.lighting.local.t[2]     = D_mine_cavern_8018E39C[targetIndex].vz;
+    pointLight->inner                                  = gMineCavernTargetLightInnerRadius;
+    pointLight->outer                                  = gMineCavernTargetLightBaseOuterRadius + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
+    pointLight->head.color.r                           = gMineCavernTargetLightRed;
+    pointLight->head.color.g                           = gMineCavernTargetLightGreen;
+    pointLight->head.color.b                           = gMineCavernTargetLightBlue;
+    pointLight->head.transform.lighting.local.t[0]     = gMineCavernTargetEffectPoints[targetIndex].vx;
+    pointLight->head.transform.lighting.local.t[1]     = gMineCavernTargetEffectPoints[targetIndex].vy;
+    pointLight->head.transform.lighting.local.t[2]     = gMineCavernTargetEffectPoints[targetIndex].vz;
     lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3254,7 +3254,7 @@ static void _mineCavernDrawTargetGlow(s16 targetIndex)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&D_mine_cavern_8018E39C[targetIndex]);
+    gte_ldv0(&gMineCavernTargetEffectPoints[targetIndex]);
     gte_rtps();
     gte_stsxy(&packedScreenPosition);
     gte_stflg(&projectionFlags);
@@ -3298,21 +3298,21 @@ static void _mineCavernUpdateTargetEffects(void)
 
     viewId        = viewGetMappedIndex() & 0xFF;
     destroyedMask = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (targetIndex = 0; targetIndex < ARRAY_SIZE(D_mine_cavern_8018E39C) && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER; targetIndex++) {
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(gMineCavernTargetEffectPoints) && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER; targetIndex++) {
         if (!((destroyedMask >> targetIndex) & 1)) {
             continue;
         }
         _mineCavernRefreshTargetLight(targetIndex);
-        if (gGameSession->viewReady == true || D_mine_cavern_8018EB58 != destroyedMask) {
+        if (gGameSession->viewReady == true || gMineCavernTargetEffectsDestroyedMask != destroyedMask) {
             _mineCavernUpdateTargetSound(targetIndex);
         }
-        for (viewIndex = 0; viewIndex < ARRAY_SIZE(D_mine_cavern_8018E3BC[targetIndex]) && D_mine_cavern_8018E3BC[targetIndex][viewIndex] != 0; viewIndex++) {
-            visibleView = D_mine_cavern_8018E3BC[targetIndex][viewIndex];
+        for (viewIndex = 0; viewIndex < ARRAY_SIZE(gMineCavernTargetEffectViews[targetIndex]) && gMineCavernTargetEffectViews[targetIndex][viewIndex] != MINE_CAVERN_TARGET_EFFECT_VIEW_NONE; viewIndex++) {
+            visibleView = gMineCavernTargetEffectViews[targetIndex][viewIndex];
             if (visibleView != (u8)viewId) {
                 continue;
             }
             _mineCavernDrawTargetGlow(targetIndex);
-            if ((s16)((s16)D_mine_cavern_8018EB5C % MINE_CAVERN_TARGET_PUFF_INTERVAL) != 0 && D_mine_cavern_8018E3DC == visibleView) {
+            if ((s16)((s16)gMineCavernTargetEffectsTicks % MINE_CAVERN_TARGET_PUFF_INTERVAL) != 0 && gMineCavernTargetEffectsPreviousView == visibleView) {
                 continue;
             }
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
@@ -3321,7 +3321,7 @@ static void _mineCavernUpdateTargetEffects(void)
             // This puff uses the placement snapshot and never follows its retained parent pointer.
             gfxSetRotIdentity(&puffCoord.coord);
             puffCoord.parent       = &gGfxViewCoord;
-            targetPoint            = &D_mine_cavern_8018E39C[targetIndex];
+            targetPoint            = &gMineCavernTargetEffectPoints[targetIndex];
             puffCoord.coord.t[0]   = targetPoint->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
             puffCoord.coord.t[1]   = targetPoint->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
             puffCoord.coord.t[2]   = targetPoint->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
@@ -3330,10 +3330,10 @@ static void _mineCavernUpdateTargetEffects(void)
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        D_mine_cavern_8018EB5C++;
+        gMineCavernTargetEffectsTicks++;
     }
-    D_mine_cavern_8018E3DC = viewId;
-    D_mine_cavern_8018EB58 = destroyedMask;
+    gMineCavernTargetEffectsPreviousView  = viewId;
+    gMineCavernTargetEffectsDestroyedMask = destroyedMask;
 }
 
 /// Queues the cavern's subtractive darkness, fixed glows and target glow/smoke passes.
@@ -3364,9 +3364,9 @@ static void _mineCavernDrawDarknessAndEffects(void)
     setSemiTrans(darknessQuad, 1);
 
     MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, targetIndex);
-    darknessQuad->r0 = D_mine_cavern_8018E3E0[destroyedCount].r;
-    darknessQuad->g0 = D_mine_cavern_8018E3E0[destroyedCount].g;
-    darknessQuad->b0 = D_mine_cavern_8018E3E0[destroyedCount].b;
+    darknessQuad->r0 = gMineCavernDarknessColors[destroyedCount].r;
+    darknessQuad->g0 = gMineCavernDarknessColors[destroyedCount].g;
+    darknessQuad->b0 = gMineCavernDarknessColors[destroyedCount].b;
 
     darknessQuad->x0 = -MINE_CAVERN_DARKNESS_HALF_WIDTH;
     darknessQuad->y0 = -MINE_CAVERN_DARKNESS_HALF_HEIGHT;
@@ -3421,9 +3421,9 @@ static void _mineCavernUpdateTargetSound(s16 targetIndex)
 
     viewId                  = viewGetMappedIndex() & 0xFF;
     soundCoord.parent       = &gGfxViewCoord;
-    soundCoord.coord.t[0]   = D_mine_cavern_8018E39C[targetIndex].vx;
-    soundCoord.coord.t[1]   = D_mine_cavern_8018E39C[targetIndex].vy;
-    soundCoord.coord.t[2]   = D_mine_cavern_8018E39C[targetIndex].vz;
+    soundCoord.coord.t[0]   = gMineCavernTargetEffectPoints[targetIndex].vx;
+    soundCoord.coord.t[1]   = gMineCavernTargetEffectPoints[targetIndex].vy;
+    soundCoord.coord.t[2]   = gMineCavernTargetEffectPoints[targetIndex].vz;
     soundCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&soundCoord);
 
@@ -3618,11 +3618,11 @@ static void _mineCavernSpawnTargets(Task* task)
     s32 destroyedMask;
 
     destroyedMask = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (targetIndex = 0; targetIndex < ARRAY_SIZE(D_mine_cavern_8018EB18); targetIndex++) {
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(gMineCavernTargetModelPositions); targetIndex++) {
         if (!((destroyedMask >> targetIndex) & 1)) {
-            enemySpawnFromTable(D_mine_cavern_8018EB38, MINE_CAVERN_TARGET_DESC_INTACT, targetIndex, NULL);
+            enemySpawnFromTable(gMineCavernTargetTaskDescs, MINE_CAVERN_TARGET_DESC_INTACT, targetIndex, NULL);
         }
-        enemySpawnFromTable(D_mine_cavern_8018EB38, MINE_CAVERN_TARGET_DESC_REMAINS, targetIndex, NULL);
+        enemySpawnFromTable(gMineCavernTargetTaskDescs, MINE_CAVERN_TARGET_DESC_REMAINS, targetIndex, NULL);
     }
     task->state++;
 }
@@ -3685,9 +3685,9 @@ static void _mineCavernTargetSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->flags                = 0;
     task->extra.tmd->lightMtx             = &work->light;
     task->extra.tmd->colorMtx             = &work->color;
-    task->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vx;
-    task->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vy;
-    task->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vz;
+    task->extra.tmd->coords->coord.t[0]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vx;
+    task->extra.tmd->coords->coord.t[1]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vy;
+    task->extra.tmd->coords->coord.t[2]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     body                                  = &work->body;
     body->coord                           = task->extra.tmd->coords;
@@ -3716,8 +3716,8 @@ static void _mineCavernTargetSpawn(Enemy* enemy, Task* task)
     worldCollisionInitContacts(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.key    = MINE_CAVERN_TARGET_BLAST_KEY;
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    enemy->hp          = D_mine_cavern_8018EAE4.hpMax;
-    enemy->param       = &D_mine_cavern_8018EAE4;
+    enemy->hp          = gMineCavernTargetParams.hpMax;
+    enemy->param       = &gMineCavernTargetParams;
     MINE_CAVERN_TARGET_UPDATE_LIGHTING(task, worldPosition);
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = MINE_CAVERN_TARGET_CENTER_Y;
@@ -3838,7 +3838,7 @@ static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task)
         hitScratch->playerDistance                  = SquareRoot0(hitScratch->vec.vx * hitScratch->vec.vx + hitScratch->vec.vy * hitScratch->vec.vy + hitScratch->vec.vz * hitScratch->vec.vz);
         // Keep the damage roll's side effects before replacing its result with target damage.
         hitScratch->damage = damageComputePlayerAttack(hitScratch->hitKey, hitScratch->playerDistance, 0, 0);
-        hitScratch->damage = D_mine_cavern_8018EAF4[hitScratch->hitKey & MINE_CAVERN_TARGET_WEAPON_ROW_MASK];
+        hitScratch->damage = gMineCavernTargetDamageByAttackRow[hitScratch->hitKey & MINE_CAVERN_TARGET_WEAPON_ROW_MASK];
         enemy->hp         -= hitScratch->damage;
         worldTargetAddReadoutAmount(&enemy->node, hitScratch->damage, 0);
         if (enemy->hp <= 0) {
@@ -3885,9 +3885,9 @@ static void _mineCavernTargetRemainsSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->flags                = 0;
     task->extra.tmd->lightMtx             = &work->light;
     task->extra.tmd->colorMtx             = &work->color;
-    task->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vx;
-    task->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vy;
-    task->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vz;
+    task->extra.tmd->coords->coord.t[0]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vx;
+    task->extra.tmd->coords->coord.t[1]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vy;
+    task->extra.tmd->coords->coord.t[2]   = gMineCavernTargetModelPositions[(u16)task->spawnArg1.value].vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldPosition.vx = task->extra.tmd->coords->workm.t[0];

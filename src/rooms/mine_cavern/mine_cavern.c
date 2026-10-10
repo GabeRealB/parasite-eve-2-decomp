@@ -1,7 +1,18 @@
 #include "types.h"
 
+enum {
+    MINE_CAVERN_FIRST_SCENE_REQUEST_IDLE     = 0,
+    MINE_CAVERN_FIRST_SCENE_REQUEST_ARMED    = 1,
+    MINE_CAVERN_FIRST_SCENE_REQUEST_CONSUMED = 2
+};
+
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-s32 D_mine_cavern_8018EB50;
+/// Room-lifetime first-scene request (0 idle, 1 armed, 2 consumed).
+///
+/// Room initialization clears it; the first actor event arms it. Starting the
+/// first scene consumes it even if task allocation fails. The second event
+/// does not change it, and re-entering the room does not restore it from saved progress.
+static s32 _gMineCavernFirstSceneRequestState;
 
 #include "rooms/mine_cavern.h"
 
@@ -38,21 +49,20 @@ s32 D_mine_cavern_8018EB50;
 
 #include "mapui/map_shelter.h"
 
-// Message-table callbacks use the argument views required by this TU.
+// All target tasks share this scheduler priority, independently of their body kind.
+enum { MINE_CAVERN_TARGET_TASK_PRIORITY = 96 };
 
-extern TaskDesc D_mine_cavern_8018E3F4;
+u16 gMineCavernTargetLightRed = 6016;
 
-u16 D_mine_cavern_8018E360 = 6016;
+u16 gMineCavernTargetLightGreen = 2048;
 
-u16 D_mine_cavern_8018E362 = 2048;
+u16 gMineCavernTargetLightBlue = 2048;
 
-u16 D_mine_cavern_8018E364 = 2048;
+u16 gMineCavernTargetLightInnerRadius = 950;
 
-u16 D_mine_cavern_8018E366 = 950;
+u16 gMineCavernTargetLightBaseOuterRadius = 2710;
 
-u16 D_mine_cavern_8018E368 = 2710;
-
-SVECTOR D_mine_cavern_8018E36C[6] = {
+SVECTOR gMineCavernFixedGlowPoints[6] = {
     { 200, -2060, 5160, 0 },
     { 9000, -2040, 8710, 0 },
     { 0x4560, -2060, 5000, 0 },
@@ -61,23 +71,23 @@ SVECTOR D_mine_cavern_8018E36C[6] = {
     { 6910, -2780, 3700, 0 },
 };
 
-SVECTOR D_mine_cavern_8018E39C[4] = {
+SVECTOR gMineCavernTargetEffectPoints[MINE_CAVERN_TARGET_COUNT] = {
     { 4550, -700, 340, 0 },
     { 0x3566, -800, 330, 0 },
     { 4340, -800, 8710, 0 },
     { 0x3552, -800, 8710, 0 },
 };
 
-u8 D_mine_cavern_8018E3BC[4][8] = {
+u8 gMineCavernTargetEffectViews[MINE_CAVERN_TARGET_COUNT][MINE_CAVERN_TARGET_EFFECT_VIEW_CAPACITY] = {
     { 4, 22, 5, 23, 24, 25, 18, 19 },
-    { 3, 2, 0, 0, 0, 0, 0, 0 },
-    { 6, 21, 16, 0, 0, 0, 0, 0 },
-    { 7, 8, 20, 17, 0, 0, 0, 0 },
+    { 3, 2, MINE_CAVERN_TARGET_EFFECT_VIEW_NONE },
+    { 6, 21, 16, MINE_CAVERN_TARGET_EFFECT_VIEW_NONE },
+    { 7, 8, 20, 17, MINE_CAVERN_TARGET_EFFECT_VIEW_NONE },
 };
 
-s16 D_mine_cavern_8018E3DC = 0;
+s16 gMineCavernTargetEffectsPreviousView = MINE_CAVERN_TARGET_EFFECT_VIEW_NONE;
 
-CVECTOR D_mine_cavern_8018E3E0[5] = {
+CVECTOR gMineCavernDarknessColors[MINE_CAVERN_TARGET_COUNT + 1] = {
     { 30, 30, 30, 0 },
     { 25, 25, 25, 0 },
     { 17, 21, 22, 0 },
@@ -85,7 +95,16 @@ CVECTOR D_mine_cavern_8018E3E0[5] = {
     { 0, 9, 11, 0 },
 };
 
-TaskDesc D_mine_cavern_8018E3F4 = { { { TASK_BODY_NONE, 96 } }, mineCavernTargetEffectsTask, { .value = 0 } };
+/// Bodyless priority-96 controller that spawns the targets and draws their effects.
+///
+/// The room initializer selects this single recipe at index zero; it has no
+/// terminator. Its data word is ignored because no model or coordinate body
+/// is requested. The task requires the cavern code and resources until teardown.
+static TaskDesc _gMineCavernTargetEffectsTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, MINE_CAVERN_TARGET_TASK_PRIORITY } },
+    .callback = mineCavernTargetEffectsTask,
+    .data     = { .value = 0 }
+};
 
 static TmdBone _gMineCavernModel10F60Skeleton[1] = {
 #include "assets/mine_cavern_model_10F60_skeleton.inc"
@@ -151,13 +170,27 @@ static TmdSource _gMineCavernModel11244 = {
     _gMineCavernModel11244Stream,
 };
 
-DamageAttack D_mine_cavern_8018EAE0[1] = {
-    { 18, 0 },
+/// Single ordinary 18-power attack row retained by the cavern target parameters.
+///
+/// The row is borrowed for the loaded overlay's lifetime. The target's body
+/// keys are assigned directly; neither its intact nor remains task packs this row.
+static DamageAttack _gMineCavernTargetAttacks[1] = {
+    { .power = 18, .reaction = 0 },
 };
 
-EnemyParams D_mine_cavern_8018EAE4 = { D_mine_cavern_8018EAE0, 30, 0, 0, 0, 0, 0, 0, 0 };
+EnemyParams gMineCavernTargetParams = {
+    .attacks              = _gMineCavernTargetAttacks,
+    .hpMax                = 30,
+    .exp                  = 0,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = 0,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0
+};
 
-u8 D_mine_cavern_8018EAF4[36] = {
+u8 gMineCavernTargetDamageByAttackRow[MINE_CAVERN_TARGET_DAMAGE_ROW_COUNT] = {
     0,
     2,
     2,
@@ -196,23 +229,23 @@ u8 D_mine_cavern_8018EAF4[36] = {
     0,
 };
 
-SVECTOR D_mine_cavern_8018EB18[4] = {
+SVECTOR gMineCavernTargetModelPositions[MINE_CAVERN_TARGET_COUNT] = {
     { 4550, 0, 310, 0 },
     { 0x3566, 0, 330, 0 },
     { 4340, 0, 8710, 0 },
     { 0x3552, 0, 8710, 0 },
 };
 
-TaskDesc D_mine_cavern_8018EB38[2] = {
-    { { { TASK_BODY_TMD, 96 } }, mineCavernTargetTask, { .model = &_gMineCavernModel10F60 } },
-    { { { TASK_BODY_TMD, 96 } }, mineCavernTargetRemainsTask, { .model = &_gMineCavernModel11244 } },
+TaskDesc gMineCavernTargetTaskDescs[2] = {
+    { .header = { .fields = { TASK_BODY_TMD, MINE_CAVERN_TARGET_TASK_PRIORITY } }, .callback = mineCavernTargetTask, .data = { .model = &_gMineCavernModel10F60 } },
+    { .header = { .fields = { TASK_BODY_TMD, MINE_CAVERN_TARGET_TASK_PRIORITY } }, .callback = mineCavernTargetRemainsTask, .data = { .model = &_gMineCavernModel11244 } },
 };
 
-s32 D_mine_cavern_8018EB54;
+s32 gMineCavernEventBattleReleaseCount;
 
-s32 D_mine_cavern_8018EB58;
+s32 gMineCavernTargetEffectsDestroyedMask;
 
-u16 D_mine_cavern_8018EB5C;
+u16 gMineCavernTargetEffectsTicks;
 
 static void _mineCavernInitRoom(Task* task);
 static void _mineCavernStartPendingEvent(Task* unusedTask);
@@ -392,7 +425,7 @@ s32 mineCavernAdvanceEvent(Task* task, s32 msgId, s32 unusedEventId, s32 unusedA
         gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_FIRST_STAGE);
-        D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_FIRST_STAGE;
+        _gMineCavernFirstSceneRequestState = MINE_CAVERN_FIRST_SCENE_REQUEST_ARMED;
     } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MINE_CAVERN_POST_EVENT_OBJECTIVE);
         evsStartScriptWithSkip(gMineCavernSecondEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernSecondEventSkipScript);
@@ -469,14 +502,14 @@ static void _mineCavernInitRoom(Task* task)
     } else {
         gStageCountdownMusicEntry = MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY;
     }
-    taskSpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
+    taskSpawnFromTable(&_gMineCavernTargetEffectsTaskDesc, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
         mineCavernSetProgressSpritesHidden(MINE_CAVERN_PROGRESS_SPRITES_HIDDEN);
     } else {
         mineCavernSetProgressSpritesHidden(MINE_CAVERN_PROGRESS_SPRITES_SHOWN);
     }
-    task->state            = task->state + 1;
-    D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_NOT_STARTED;
+    task->state                        = task->state + 1;
+    _gMineCavernFirstSceneRequestState = MINE_CAVERN_FIRST_SCENE_REQUEST_IDLE;
 }
 
 /// Starts the armed first event scene once the attachment wheel has closed.
@@ -491,14 +524,18 @@ static void _mineCavernStartPendingEvent(Task* unusedTask)
 
     eventProgress = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
     // Compare against the armed latch: its stage-1 value is also wheel-open mode.
-    if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (D_mine_cavern_8018EB50 == eventProgress) && (gAttachmentState.mode != D_mine_cavern_8018EB50)) {
+    if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (_gMineCavernFirstSceneRequestState == eventProgress) && (gAttachmentState.mode != _gMineCavernFirstSceneRequestState)) {
         evsStartScriptWithSkip(gMineCavernFirstEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernFirstEventSkipScript);
-        D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_SECOND_STAGE;
+        _gMineCavernFirstSceneRequestState = MINE_CAVERN_FIRST_SCENE_REQUEST_CONSUMED;
     }
 }
 
-/// The room task's state handlers, run by `mineCavernRoomTask`.
-static const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
+/// Room-controller states: 0 initialize, 1 poll the first-scene request, 2 release.
+///
+/// The three Task* callbacks are copied by value and indexed without a bounds
+/// check or terminator. State must stay in 0..2, and cavern code must remain
+/// loaded through dispatch. The last callback releases the task.
+static const TaskFuncTable3 _gMineCavernRoomStates = {
     { _mineCavernInitRoom, _mineCavernStartPendingEvent, taskKill },
 };
 
@@ -506,7 +543,7 @@ void mineCavernRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mine_cavern_8017D5C4;
+    stateHandlers = _gMineCavernRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -524,14 +561,14 @@ static inline void _mineCavernCreditEventBattleRelease(s32 endDelayFrames)
     sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(MINE_CAVERN_EVENT_REWARD_PLACEMENT), 0x1E);
     gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
     gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-    D_mine_cavern_8018EB54                        += 1;
+    gMineCavernEventBattleReleaseCount            += 1;
 }
 
 void mineCavernReleaseEventBattleHold(s32 endDelayFrames)
 {
     // Each persistent event stage consumes at most one scripted battle hold.
-    if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE && D_mine_cavern_8018EB54 == 0) ||
-        (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_SECOND_STAGE && D_mine_cavern_8018EB54 == 1)) {
+    if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE && gMineCavernEventBattleReleaseCount == 0) ||
+        (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_SECOND_STAGE && gMineCavernEventBattleReleaseCount == 1)) {
         _mineCavernCreditEventBattleRelease(endDelayFrames);
         return;
     }
