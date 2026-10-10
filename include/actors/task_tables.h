@@ -516,8 +516,6 @@ extern TaskDesc D_actor_206100_80158B0C[];
 
 extern TaskDesc D_actor_403000_80158D58;
 
-extern TaskDesc D_actor_260500_80159DB0;
-
 extern TaskDesc D_actor_210600_8015A4EC;
 
 /// Scavenger TMD spawn descriptor; priority 96, with automatic model buffers disabled.

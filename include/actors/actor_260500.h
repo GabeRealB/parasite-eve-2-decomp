@@ -1,6 +1,16 @@
 #ifndef ACTORS_ACTOR_260500_H
 #define ACTORS_ACTOR_260500_H
 
+#include "main/task_types.h"
+
+/// Spawn recipe for Jodie, the heliport's nineteen-part quiet conversation walker.
+///
+/// Used at index 0 by the heliport's variant-1 actor resource. Creates a TMD
+/// body at execution priority 192 with automatic model buffers. The spawned task
+/// owns its model and work; keep this package loaded for its callback, messages
+/// and borrowed model and animation data until the task is destroyed.
+extern TaskDesc gActor260500JodieTask;
+
 /// Restores actor 260500's standing placement on heliport entry.
 ///
 /// Requires the initialized scene manager in heliport variant 1 and this
