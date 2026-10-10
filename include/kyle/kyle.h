@@ -25,7 +25,13 @@ extern TmdSource D_kyle_800101_8016CED8;
 /// package loaded until every model using this source has been released.
 extern TmdSource gKyle800101KyleMadiganHandLeftFirstPair;
 
-extern TmdSource D_kyle_800101_8016D81C;
+/// Kyle Madigan's one-part left hand in attachment pair 1 for resource variant 1.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// The held weapon model attaches beneath this hand's root.
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800101KyleMadiganHandLeft;
 
 /// Kyle Madigan's twenty-part companion body for resource variant 3.
 ///
@@ -49,7 +55,13 @@ extern TmdSource D_kyle_800103_8016CED8;
 /// package loaded until every model using this source has been released.
 extern TmdSource gKyle800103KyleMadiganHandLeftFirstPair;
 
-extern TmdSource D_kyle_800103_8016D81C;
+/// Kyle Madigan's one-part left hand in attachment pair 1 for resource variant 3.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// The held weapon model attaches beneath this hand's root.
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800103KyleMadiganHandLeft;
 
 /// Kyle Madigan's twenty-part companion body for resource variant 4.
 ///
@@ -73,7 +85,13 @@ extern TmdSource D_kyle_800104_8016CED8;
 /// package loaded until every model using this source has been released.
 extern TmdSource gKyle800104KyleMadiganHandLeftFirstPair;
 
-extern TmdSource D_kyle_800104_8016D81C;
+/// Kyle Madigan's one-part left hand in attachment pair 1 for resource variant 4.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// The held weapon model attaches beneath this hand's root.
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800104KyleMadiganHandLeft;
 
 /// Kyle Madigan's twenty-part companion body for resource variant 2.
 ///
@@ -106,7 +124,13 @@ extern TmdSource gKyle800101KyleMadiganGun;
 
 extern TmdSource D_kyle_800103_8016DE3C;
 
-extern TmdSource D_kyle_800102_8016E0C0;
+/// Kyle Madigan's one-part left hand in attachment pair 1 for resource variant 2.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// The held weapon model attaches beneath this hand's root.
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800102KyleMadiganHandLeft;
 
 extern TmdSource D_kyle_800104_8016E568;
 

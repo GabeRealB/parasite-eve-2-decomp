@@ -209,7 +209,7 @@ D_kyle_800102_8016D77C = 0x8016D77C; // absolute:True owner=kyle_800102
 gKyle800102KyleMadiganHandLeftFirstPair = 0x8016DBD0; // absolute:True owner=kyle_800102
 gKyle800101KyleMadiganGun = 0x8016DC60; // absolute:True owner=kyle_800101
 D_kyle_800103_8016DE3C = 0x8016DE3C; // absolute:True owner=kyle_800103
-D_kyle_800102_8016E0C0 = 0x8016E0C0; // absolute:True owner=kyle_800102
+gKyle800102KyleMadiganHandLeft = 0x8016E0C0; // absolute:True owner=kyle_800102
 D_kyle_800104_8016E568 = 0x8016E568; // absolute:True owner=kyle_800104
 D_kyle_800102_8016E93C = 0x8016E93C; // absolute:True owner=kyle_800102
 D_kyle_800102_801775A8 = 0x801775A8; // absolute:True owner=kyle_800102
@@ -268,17 +268,17 @@ gKyle800101KyleMadiganBody = 0x8016C594; // absolute:True owner=kyle_800101 shar
 gKyle800101KyleMadiganHandRight = 0x8016C9E8; // absolute:True owner=kyle_800101 shared=kyle
 D_kyle_800101_8016CED8 = 0x8016CED8; // absolute:True owner=kyle_800101 shared=kyle
 gKyle800101KyleMadiganHandLeftFirstPair = 0x8016D32C; // absolute:True owner=kyle_800101 shared=kyle
-D_kyle_800101_8016D81C = 0x8016D81C; // absolute:True owner=kyle_800101 shared=kyle
+gKyle800101KyleMadiganHandLeft = 0x8016D81C; // absolute:True owner=kyle_800101 shared=kyle
 gKyle800103KyleMadiganBody = 0x8016C594; // absolute:True owner=kyle_800103 shared=kyle
 gKyle800103KyleMadiganHandRight = 0x8016C9E8; // absolute:True owner=kyle_800103 shared=kyle
 D_kyle_800103_8016CED8 = 0x8016CED8; // absolute:True owner=kyle_800103 shared=kyle
 gKyle800103KyleMadiganHandLeftFirstPair = 0x8016D32C; // absolute:True owner=kyle_800103 shared=kyle
-D_kyle_800103_8016D81C = 0x8016D81C; // absolute:True owner=kyle_800103 shared=kyle
+gKyle800103KyleMadiganHandLeft = 0x8016D81C; // absolute:True owner=kyle_800103 shared=kyle
 gKyle800104KyleMadiganBody = 0x8016C594; // absolute:True owner=kyle_800104 shared=kyle
 gKyle800104KyleMadiganHandRight = 0x8016C9E8; // absolute:True owner=kyle_800104 shared=kyle
 D_kyle_800104_8016CED8 = 0x8016CED8; // absolute:True owner=kyle_800104 shared=kyle
 gKyle800104KyleMadiganHandLeftFirstPair = 0x8016D32C; // absolute:True owner=kyle_800104 shared=kyle
-D_kyle_800104_8016D81C = 0x8016D81C; // absolute:True owner=kyle_800104 shared=kyle
+gKyle800104KyleMadiganHandLeft = 0x8016D81C; // absolute:True owner=kyle_800104 shared=kyle
 D_map_akropolis_8017A048 = 0x8017A048; // absolute:True owner=map_akropolis
 D_map_dryfield_80179A14 = 0x80179A14; // absolute:True owner=map_dryfield
 D_map_dryfield_full_801799A4 = 0x801799A4; // absolute:True owner=map_dryfield_full
