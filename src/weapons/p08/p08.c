@@ -1645,136 +1645,194 @@ static AnimationSet _gMongooseParasiteEnergyChargeFamily1Animation = {
                            [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyChargeFamily1AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation06398Bank1[8] = {
+/// Family-1 cast translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06398_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation06398Bank4[68] = {
+/// Family-1 cast rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseParasiteEnergyCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06398_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation06398Records[101] = {
+/// Family-1 cast keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseParasiteEnergyCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06398_records.inc"
 };
 
-static u16 _gMongooseAnimation06398Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseParasiteEnergyCastFamily1AnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseParasiteEnergyCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_06398_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation06398 = {
-    _gMongooseAnimation06398Records,
-    _gMongooseAnimation06398Indices,
-    { NULL, _gMongooseAnimation06398Bank1, NULL, NULL, _gMongooseAnimation06398Bank4, NULL, NULL, NULL },
+/// Player's finite family-1 Parasite Energy cast animation in the Mongoose bank.
+///
+/// Native-bank set 31 replaces the family-1 charge when its countdown ends.
+/// The action waits for clip completion before restoring normal control.
+/// This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseParasiteEnergyCastFamily1Animation = {
+    .records           = _gMongooseParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gMongooseParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseParasiteEnergyCastFamily1AnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyCastFamily1AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0664CBank1[5] = {
+/// Part-4 hit translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongoosePart4HitReactionAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0664C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0664CBank4[55] = {
+/// Part-4 hit rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongoosePart4HitReactionAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0664C_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0664CRecords[83] = {
+/// Part-4 hit keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongoosePart4HitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0664C_records.inc"
 };
 
-static u16 _gMongooseAnimation0664CIndices[20] = {
+/// Nineteen part-track starts in `_gMongoosePart4HitReactionAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongoosePart4HitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0664C_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0664C = {
-    _gMongooseAnimation0664CRecords,
-    _gMongooseAnimation0664CIndices,
-    { NULL, _gMongooseAnimation0664CBank1, NULL, NULL, _gMongooseAnimation0664CBank4, NULL, NULL, NULL },
+/// Player's finite reaction to a hit on the model-part-4 collision sphere with the Mongoose bank.
+///
+/// Native-bank set 16 is blended into child tracks for hit region 1; other
+/// body hits select set 17. This set and its arrays stay loaded during playback.
+static AnimationSet _gMongoosePart4HitReactionAnimation = {
+    .records           = _gMongoosePart4HitReactionAnimationRecords,
+    .trackStartIndices = _gMongoosePart4HitReactionAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongoosePart4HitReactionAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongoosePart4HitReactionAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0696CBank1[6] = {
+/// Other-body hit translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseOtherBodyHitReactionAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0696C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0696CBank4[66] = {
+/// Other-body hit rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseOtherBodyHitReactionAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0696C_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0696CRecords[96] = {
+/// Other-body hit keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseOtherBodyHitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0696C_records.inc"
 };
 
-static u16 _gMongooseAnimation0696CIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseOtherBodyHitReactionAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseOtherBodyHitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0696C_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0696C = {
-    _gMongooseAnimation0696CRecords,
-    _gMongooseAnimation0696CIndices,
-    { NULL, _gMongooseAnimation0696CBank1, NULL, NULL, _gMongooseAnimation0696CBank4, NULL, NULL, NULL },
+/// Player's finite reaction to body hits outside the model-part-4 sphere with the Mongoose bank.
+///
+/// Native-bank set 17 is blended into child tracks for other-body hit regions.
+/// This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseOtherBodyHitReactionAnimation = {
+    .records           = _gMongooseOtherBodyHitReactionAnimationRecords,
+    .trackStartIndices = _gMongooseOtherBodyHitReactionAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseOtherBodyHitReactionAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseOtherBodyHitReactionAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation07130Bank1[18] = {
+/// Death translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseDeathAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_07130_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation07130Bank4[184] = {
+/// Death rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseDeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_07130_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation07130Records[239] = {
+/// Death keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseDeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_07130_records.inc"
 };
 
-static u16 _gMongooseAnimation07130Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseDeathAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseDeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_07130_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation07130 = {
-    _gMongooseAnimation07130Records,
-    _gMongooseAnimation07130Indices,
-    { NULL, _gMongooseAnimation07130Bank1, NULL, NULL, _gMongooseAnimation07130Bank4, NULL, NULL, NULL },
+/// Player's finite death animation in the Mongoose bank.
+///
+/// Native-bank set 18 is requested at zero HP with movement and turning stopped.
+/// Tracks hold their final keyframes. This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseDeathAnimation = {
+    .records           = _gMongooseDeathAnimationRecords,
+    .trackStartIndices = _gMongooseDeathAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseDeathAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseDeathAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation083C8Bank1[29] = {
+/// Healthy-idle translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseHealthyIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_083C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation083C8Bank4[450] = {
+/// Healthy-idle rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseHealthyIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_083C8_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation083C8Records[633] = {
+/// Healthy-idle keyframes and loop controls with retained stops; durations count normal-rate frames.
+static const AnimationRecord _gMongooseHealthyIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_083C8_records.inc"
 };
 
-static u16 _gMongooseAnimation083C8Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseHealthyIdleAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseHealthyIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_083C8_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation083C8 = {
-    _gMongooseAnimation083C8Records,
-    _gMongooseAnimation083C8Indices,
-    { NULL, _gMongooseAnimation083C8Bank1, NULL, NULL, _gMongooseAnimation083C8Bank4, NULL, NULL, NULL },
+/// Player's repeating healthy idle animation in the Mongoose bank.
+///
+/// Native-bank set 23 follows 300 idle ticks when HP exceeds half maximum HP.
+/// Its introductory motion leads into repeating track tails.
+/// This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseHealthyIdleAnimation = {
+    .records           = _gMongooseHealthyIdleAnimationRecords,
+    .trackStartIndices = _gMongooseHealthyIdleAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseHealthyIdleAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseHealthyIdleAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation08F40Bank1[12] = {
+/// Critical-idle translation/rotation poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseCriticalIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_08F40_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation08F40Bank4[266] = {
+/// Critical-idle rotation-only poses for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseCriticalIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_08F40_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation08F40Records[412] = {
+/// Critical-idle keyframes and loop controls with retained stops; durations count normal-rate frames.
+static const AnimationRecord _gMongooseCriticalIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_08F40_records.inc"
 };
 
-static u16 _gMongooseAnimation08F40Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseCriticalIdleAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseCriticalIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_08F40_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation08F40 = {
-    _gMongooseAnimation08F40Records,
-    _gMongooseAnimation08F40Indices,
-    { NULL, _gMongooseAnimation08F40Bank1, NULL, NULL, _gMongooseAnimation08F40Bank4, NULL, NULL, NULL },
+/// Player's repeating critical-health idle and paralysis animation in the Mongoose bank.
+///
+/// Native-bank set 25 follows 300 idle ticks at or below the truncated quarter-HP
+/// threshold, and paralysis entry also blends every child track into this set.
+/// Its introductory motion leads into repeating track tails.
+/// This set and its arrays stay loaded during playback.
+static AnimationSet _gMongooseCriticalIdleAnimation = {
+    .records           = _gMongooseCriticalIdleAnimationRecords,
+    .trackStartIndices = _gMongooseCriticalIdleAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseCriticalIdleAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseCriticalIdleAnimationBank4 },
 };
 
 static AnimationPackedPose _gMongooseAnimation0965CBank1[9] = {
@@ -2080,22 +2138,22 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation0B158,
     &_gMongooseAnimation0C59C,
     &_gMongooseAnimation0C59C,
-    &_gMongooseAnimation0664C,
-    &_gMongooseAnimation0696C,
-    &_gMongooseAnimation07130,
+    &_gMongoosePart4HitReactionAnimation,
+    &_gMongooseOtherBodyHitReactionAnimation,
+    &_gMongooseDeathAnimation,
     &_gMongooseUnarmedWalkAnimation,
     &_gMongooseAnimation0C59C,
     &_gMongooseIdleAnimation,
     &_gMongooseIdleAnimation,
-    &_gMongooseAnimation083C8,
+    &_gMongooseHealthyIdleAnimation,
     &_gMongooseAnimation0965C,
-    &_gMongooseAnimation08F40,
+    &_gMongooseCriticalIdleAnimation,
     &_gMongooseParasiteEnergyReleaseFamily0Animation,
     &_gMongooseParasiteEnergyChargeFamily0Animation,
     &_gMongooseParasiteEnergyCastFamily0Animation,
     &_gMongooseParasiteEnergyReleaseFamily1Animation,
     &_gMongooseParasiteEnergyChargeFamily1Animation,
-    &_gMongooseAnimation06398,
+    &_gMongooseParasiteEnergyCastFamily1Animation,
     &_gMongooseAnimation09ADC,
     &_gMongooseAnimation09CB4,
     &_gMongooseAnimation09ADC,
