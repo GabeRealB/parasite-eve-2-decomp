@@ -78,8 +78,8 @@ D_neo_ark_eve_access_tunnel_8017F080 = 0x8017F080; // absolute:True owner=neo_ar
 D_neo_ark_eve_access_tunnel_801800A0 = 0x801800A0; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 D_neo_ark_eve_access_tunnel_80180780 = 0x80180780; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 neoArkEveElevatorRoomTask = 0x8017D6C4; // type:func absolute:True owner=neo_ark_eve_elevator shared=rooms
-D_neo_ark_eve_elevator_8017D74C = 0x8017D74C; // absolute:True owner=neo_ark_eve_elevator shared=rooms
-D_neo_ark_eve_elevator_8017D75C = 0x8017D75C; // absolute:True owner=neo_ark_eve_elevator shared=rooms
+D_neo_ark_eve_elevator_8017D74C = 0x8017D74C; // absolute:True owner=neo_ark_eve_elevator
+D_neo_ark_eve_elevator_8017D75C = 0x8017D75C; // absolute:True owner=neo_ark_eve_elevator
 D_neo_ark_eve_elevator_8017D764 = 0x8017D764; // absolute:True owner=neo_ark_eve_elevator
 D_neo_ark_eve_elevator_8017D768 = 0x8017D768; // absolute:True owner=neo_ark_eve_elevator
 D_neo_ark_eve_elevator_8017D76C = 0x8017D76C; // absolute:True owner=neo_ark_eve_elevator

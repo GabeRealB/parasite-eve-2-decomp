@@ -103,10 +103,15 @@ TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// The room's effect positions in the model's local space. The frame hook
-/// draws a sprite at each of 0-10; 12 and 13 are the two ends of the beam,
-/// and 14-19 the roots and tip directions of the two light shafts.
-SVECTOR gSaloonLightPoints[20] = {
+/// Day-saloon flare centres, beam endpoints and shaft guides in local game-coordinate units.
+///
+/// Points 0..10 are flare centres, 12/13 the beam endpoints, and 14/17 the
+/// shaft roots with guides 15/18 and 16/19. Shaft root offsets are extended
+/// fourfold. Every active point uses the light task's composed coordinate.
+/// Point 11 is unread; its role and coordinate frame are unproven.
+/// XYZ are signed halfwords; the fourth SDK component is unused and zero.
+/// The table stays live with this overlay and drawing leaves it unchanged.
+static SVECTOR _gDryfieldSaloonGREffectPoints[20] = {
     { 4915, -1870, -727, 0 },
     { 4915, -1870, -2339, 0 },
     { 4915, -1870, -4188, 0 },
@@ -828,7 +833,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 #define DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(firstPoint, pointLimit, textureColumn)       \
     for (flareIndex = (firstPoint); flareIndex < (pointLimit); flareIndex++) {            \
         if (viewMask & D_dryfield_saloon_g_r_8017ED84[flareIndex]) {                      \
-            _glowDrawFlareLocal(roomCoord, &gSaloonLightPoints[flareIndex],               \
+            _glowDrawFlareLocal(roomCoord, &_gDryfieldSaloonGREffectPoints[flareIndex],   \
                                 (textureColumn), DRYFIELD_SALOON_G_R_FLARE_RADIUS_SCALE); \
         }                                                                                 \
     }
@@ -848,13 +853,16 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
         _glowDrawTwinShafts(roomCoord);
     }
     if (viewMask & D_dryfield_saloon_g_r_8017ED84[DRYFIELD_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
-        _glowDrawTaperedBeam(roomCoord, &gSaloonLightPoints[DRYFIELD_SALOON_G_R_BEAM_START_POINT],
-                             &gSaloonLightPoints[DRYFIELD_SALOON_G_R_BEAM_END_POINT], DRYFIELD_SALOON_G_R_BEAM_RADIUS_SCALE);
+        _glowDrawTaperedBeam(roomCoord, &_gDryfieldSaloonGREffectPoints[DRYFIELD_SALOON_G_R_BEAM_START_POINT],
+                             &_gDryfieldSaloonGREffectPoints[DRYFIELD_SALOON_G_R_BEAM_END_POINT], DRYFIELD_SALOON_G_R_BEAM_RADIUS_SCALE);
     }
 }
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
+/// Binds this overlay's local shaft points for the shared drawer's inclusion.
+#define GLOW_TWIN_SHAFT_POINTS _gDryfieldSaloonGREffectPoints
 #include "../../shared/glow_draw_twin_shafts.inc.c"
+#undef GLOW_TWIN_SHAFT_POINTS
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"

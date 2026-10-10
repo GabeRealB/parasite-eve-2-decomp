@@ -11,6 +11,14 @@
 
 #include "main/task_types.h"
 
+/// Room-directory extent and logical-view extent of the night-saloon resources.
+///
+/// Both rooms map logical views 1..13 to the same camera and sprite indices.
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT = 2,
+    DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT = 13,
+};
+
 extern AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13];
 
 /// Lighting for night-saloon rooms 1 and 2, sharing one mutable point-light collection.
@@ -28,13 +36,32 @@ extern WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[];
 /// lives with the saloon overlay; the mapping lives with gameplay.
 extern u8* gDryfieldNightSaloonGRViewMaps[2];
 
-extern ViewCount D_dryfield_night_saloon_g_r_801851B8[];
+/// Signed logical-view element counts for night-saloon rooms 1 and 2.
+///
+/// Indexed by room - 1, with no terminator. Each count limits reverse searches
+/// of that room's identity map to views 1..13. The map directory borrows this
+/// array while the saloon overlay is loaded; counts are elements, not bytes.
+extern ViewCount gDryfieldNightSaloonGRViewCounts[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT];
 
 extern DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[];
 
-extern ViewCamera D_dryfield_night_saloon_g_r_80185B74[];
+/// Cameras shared by night-saloon rooms 1 and 2 for mapped views 1..13.
+///
+/// Indexed by mapped view - 1, without a terminator. Rotation uses Q12 (`ONE`
+/// for 1.0); translation is the negated camera origin in world units, applied
+/// before rotation. Projection distance is in pixels. The map directory and
+/// queued camera tasks borrow these records while the saloon overlay is loaded.
+extern ViewCamera gDryfieldNightSaloonGRViewCameras[DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT];
 
-extern SpriteView D_dryfield_night_saloon_g_r_80187FC8[];
+/// Sprite sources and batch lists shared by both night-saloon rooms for mapped views 1..13.
+///
+/// Indexed by mapped view - 1, without a descriptor terminator. Views 1, 8, 12
+/// and 13 retain an empty batch-list address in `sources.empty`; the others
+/// borrow mutable `sources.elements`. All batch lists end at `SPRITE_BATCH_END`
+/// and begin with a zero-count decoded-image selector. All `drawAreas` are NULL.
+/// The map directory borrows this table and its lists while the room overlay
+/// is loaded; every nonterminal range fits its view's source array.
+extern SpriteView gDryfieldNightSaloonGRSpriteViews[DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT];
 
 /// Night-saloon collision and footstep policies indexed by surface class 0..7.
 ///

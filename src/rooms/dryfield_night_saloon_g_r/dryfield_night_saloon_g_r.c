@@ -125,16 +125,6 @@ extern UiObjectDesc gJukeboxPanelDesc;
 /// Descriptor of the jukebox task `_jukeboxHostTask`.
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
-/// The room's effect positions in the model's local space. The frame hook
-/// draws a quad at each of 0-10 and 20-27; 12 and 13 are the two ends
-/// `_dryfieldNightSaloonGRDrawTaperedBeam` is handed; 14-19 are the two
-/// light shafts of `_glowDrawTwinShafts`.
-
-/// One view bitmask per effect, tested against `1 << view`. Entries 0-10 gate
-/// positions 0-10, entries 11 and 12 the two helper effects, and entries 13-20
-/// gate positions 20-27.
-extern s16 D_dryfield_night_saloon_g_r_80185154[];
-
 static void _dryfieldNightSaloonGRInitializeRoom(Task* task);
 static void _dryfieldNightSaloonGRIdleState(Task* task);
 static s32  _dryfieldNightSaloonGRQueueJukebox(s32 unusedArg);
@@ -167,29 +157,29 @@ extern ActorTransform           D_dryfield_night_saloon_g_r_80183AD4;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183AEC;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183B04;
 extern ActorTransform           D_dryfield_night_saloon_g_r_80183B1C;
-extern const char               D_dryfield_night_saloon_g_r_8017D600[22];
-extern const char               D_dryfield_night_saloon_g_r_8017D618[19];
-extern const char               D_dryfield_night_saloon_g_r_8017D62C[14];
-extern const char               D_dryfield_night_saloon_g_r_8017D63C[26];
-extern const char               D_dryfield_night_saloon_g_r_8017D658[24];
-extern const char               D_dryfield_night_saloon_g_r_8017D670[17];
-extern const char               D_dryfield_night_saloon_g_r_8017D684[23];
-extern const char               D_dryfield_night_saloon_g_r_8017D69C[17];
-extern const char               D_dryfield_night_saloon_g_r_8017D6B0[16];
-extern const char               D_dryfield_night_saloon_g_r_8017D6C0[15];
-extern const char               D_dryfield_night_saloon_g_r_8017D6D0[24];
-extern const char               D_dryfield_night_saloon_g_r_8017D6E8[11];
-extern const char               D_dryfield_night_saloon_g_r_8017D6F4[27];
-extern const char               D_dryfield_night_saloon_g_r_8017D710[11];
-extern const char               D_dryfield_night_saloon_g_r_8017D71C[17];
-extern const char               D_dryfield_night_saloon_g_r_8017D730[14];
-extern const char               D_dryfield_night_saloon_g_r_8017D740[11];
-extern const char               D_dryfield_night_saloon_g_r_8017D74C[13];
-extern const char               D_dryfield_night_saloon_g_r_8017D75C[23];
-extern const char               D_dryfield_night_saloon_g_r_8017D774[13];
-extern const char               D_dryfield_night_saloon_g_r_8017D784[17];
-extern const char               D_dryfield_night_saloon_g_r_8017D798[16];
-extern const char               D_dryfield_night_saloon_g_r_8017D7A8[12];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel[22];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel[19];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel[14];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel[26];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel[24];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel[17];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel[23];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel[17];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel[16];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel[15];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel[24];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel[11];
+static const char               _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel[27];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel[11];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel[17];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel[14];
+static const char               _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel[11];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel[13];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel[23];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel[13];
+static const char               _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[17];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[16];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[12];
 extern const char               D_dryfield_night_saloon_g_r_8017D7B4[20];
 extern const char               D_dryfield_night_saloon_g_r_8017D7C8[17];
 extern const char               D_dryfield_night_saloon_g_r_8017D7DC[19];
@@ -935,54 +925,54 @@ EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F0C[3] = {
-    { 20, D_dryfield_night_saloon_g_r_8017D62C },
-    { 23, D_dryfield_night_saloon_g_r_8017D618 },
-    { 49, D_dryfield_night_saloon_g_r_8017D600 },
+    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { 23, _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel },
+    { 49, _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F24[3] = {
-    { 20, D_dryfield_night_saloon_g_r_8017D62C },
-    { 60, D_dryfield_night_saloon_g_r_8017D658 },
-    { 66, D_dryfield_night_saloon_g_r_8017D63C },
+    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { 60, _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel },
+    { 66, _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F3C[3] = {
-    { 20, D_dryfield_night_saloon_g_r_8017D62C },
-    { 22, D_dryfield_night_saloon_g_r_8017D684 },
-    { 74, D_dryfield_night_saloon_g_r_8017D670 },
+    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { 22, _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel },
+    { 74, _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F54[3] = {
-    { 67, D_dryfield_night_saloon_g_r_8017D6C0 },
-    { 82, D_dryfield_night_saloon_g_r_8017D6B0 },
-    { 93, D_dryfield_night_saloon_g_r_8017D69C },
+    { 67, _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel },
+    { 82, _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel },
+    { 93, _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F6C[3] = {
-    { 20, D_dryfield_night_saloon_g_r_8017D62C },
-    { 21, D_dryfield_night_saloon_g_r_8017D6E8 },
-    { 60, D_dryfield_night_saloon_g_r_8017D6D0 },
+    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { 21, _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel },
+    { 60, _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184F84[4] = {
-    { 41, D_dryfield_night_saloon_g_r_8017D730 },
-    { 45, D_dryfield_night_saloon_g_r_8017D71C },
-    { 58, D_dryfield_night_saloon_g_r_8017D710 },
-    { 61, D_dryfield_night_saloon_g_r_8017D6F4 },
+    { 41, _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel },
+    { 45, _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel },
+    { 58, _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel },
+    { 61, _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184FA4[4] = {
-    { 35, D_dryfield_night_saloon_g_r_8017D774 },
-    { 36, D_dryfield_night_saloon_g_r_8017D75C },
-    { 42, D_dryfield_night_saloon_g_r_8017D74C },
-    { 44, D_dryfield_night_saloon_g_r_8017D740 },
+    { 35, _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel },
+    { 36, _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel },
+    { 42, _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel },
+    { 44, _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184FC4[4] = {
     { 31, D_dryfield_night_saloon_g_r_8017D7B4 },
-    { 59, D_dryfield_night_saloon_g_r_8017D7A8 },
-    { 89, D_dryfield_night_saloon_g_r_8017D798 },
-    { 93, D_dryfield_night_saloon_g_r_8017D784 },
+    { 59, _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel },
+    { 89, _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel },
+    { 93, _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel },
 };
 
 JukeboxTrack D_dryfield_night_saloon_g_r_80184FE4[4] = {
@@ -1009,7 +999,15 @@ UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64
 
 TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
 
-SVECTOR gSaloonLightPoints[28] = {
+/// Night-saloon flare centres, beam endpoints and shaft guides in game-coordinate units.
+///
+/// Points 0..10 and 20..27 are world-space flare centres. Points 12/13 are
+/// local-space beam endpoints; 14/17 are the shaft roots, with local guides
+/// 15/18 and 16/19 whose root offsets are extended fourfold. Local points use
+/// the glow task's coordinate. Point 11 is unread; its role and frame are unproven.
+/// XYZ are signed halfwords; the fourth SDK component is unused and zero.
+/// The table stays live with this overlay and drawing leaves it unchanged.
+static SVECTOR _gDryfieldNightSaloonGREffectPoints[28] = {
     { 4915, -1870, -727, 0 },
     { 4915, -1870, -2339, 0 },
     { 4915, -1870, -4188, 0 },
@@ -1040,29 +1038,35 @@ SVECTOR gSaloonLightPoints[28] = {
     { 2000, -2570, 1900, 0 },
 };
 
-s16 D_dryfield_night_saloon_g_r_80185154[22] = {
-    2176,
-    2060,
-    4,
-    1032,
-    560,
-    560,
-    656,
-    2704,
-    2688,
-    2176,
-    2176,
-    656,
-    560,
-    1024,
-    1024,
-    1024,
-    1024,
-    1024,
-    1024,
-    0,
-    512,
-    -3540,
+/// View visibility for the night-saloon flares, beam and twin shafts.
+///
+/// Bit `1 << view` admits logical view 1..13; zero admits none. Entries 0..10
+/// gate the matching flare points, 11 gates the beam, 12 the twin shafts,
+/// and 13..20 gate points 20..27. Signed halfword loads promote before testing.
+/// Entry 21 is unread and its interpretation is unproven; retain its bytes.
+static s16 _gDryfieldNightSaloonGREffectViewMasks[22] = {
+    (1 << 7) | (1 << 11),                       // Flare point 0
+    (1 << 2) | (1 << 3) | (1 << 11),            // Flare point 1
+    (1 << 2),                                   // Flare point 2
+    (1 << 3) | (1 << 10),                       // Flare point 3
+    (1 << 4) | (1 << 5) | (1 << 9),             // Flare point 4
+    (1 << 4) | (1 << 5) | (1 << 9),             // Flare point 5
+    (1 << 4) | (1 << 7) | (1 << 9),             // Flare point 6
+    (1 << 4) | (1 << 7) | (1 << 9) | (1 << 11), // Flare point 7
+    (1 << 7) | (1 << 9) | (1 << 11),            // Flare point 8
+    (1 << 7) | (1 << 11),                       // Flare point 9
+    (1 << 7) | (1 << 11),                       // Flare point 10
+    (1 << 4) | (1 << 7) | (1 << 9),             // Beam endpoints 12/13
+    (1 << 4) | (1 << 5) | (1 << 9),             // Twin shafts, points 14..19
+    (1 << 10),                                  // Flare point 20
+    (1 << 10),                                  // Flare point 21
+    (1 << 10),                                  // Flare point 22
+    (1 << 10),                                  // Flare point 23
+    (1 << 10),                                  // Flare point 24
+    (1 << 10),                                  // Flare point 25
+    0,                                          // Flare point 26
+    (1 << 9),                                   // Flare point 27
+    -3540,                                      // Unread serialized halfword; role unproven
 };
 
 WorldCoordRoomLighting gDryfieldNightSaloonGRRoomLighting[2] = {
@@ -1080,7 +1084,10 @@ u8* gDryfieldNightSaloonGRViewMaps[2] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_saloon_g_r_801851B8[2] = { 13, 13 };
+ViewCount gDryfieldNightSaloonGRViewCounts[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT] = {
+    DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT,
+    DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT,
+};
 
 DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[2] = {
     { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x53120002, 0x53120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
@@ -1113,7 +1120,7 @@ WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1] = {
     { NULL, _gDryfieldNightSaloonGRCollision08590Normals, _gDryfieldNightSaloonGRCollision08590Verts, _gDryfieldNightSaloonGRCollision08590Faces, _gDryfieldNightSaloonGRCollision08590Table, 4500, 5400, 3, 4, 4000, 61 },
 };
 
-ViewCamera D_dryfield_night_saloon_g_r_80185B74[13] = {
+ViewCamera gDryfieldNightSaloonGRViewCameras[DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -680 } }, 519 },
     { { { { -3183, 0, -2576 }, { -1148, 3666, 1418 }, { 2306, 1824, -2850 } }, { 315, 2637, 16 } }, 257 },
     { { { { -4045, 0, -638 }, { -348, 3430, 2210 }, { 534, 2237, -3388 } }, { 724, 3602, -2788 } }, 230 },
@@ -1738,17 +1745,27 @@ static SpriteBatch _gDryfieldNightSaloonGRView11SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_saloon_g_r_80187FA8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 12's decoded-image selector and empty sprite batch list.
+///
+/// A zero-count leading record requests image strips; the following record
+/// ends the ranges. The view also retains this address in its empty source slot.
+/// No source elements or clipping areas are supplied.
+static SpriteBatch _gDryfieldNightSaloonGRView12SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_saloon_g_r_80187FB8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 13's decoded-image selector and empty sprite batch list.
+///
+/// A zero-count leading record requests image strips; the following record
+/// ends the ranges. The view also retains this address in its empty source slot.
+/// No source elements or clipping areas are supplied.
+static SpriteBatch _gDryfieldNightSaloonGRView13SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_saloon_g_r_80187FC8[13] = {
+SpriteView gDryfieldNightSaloonGRSpriteViews[DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT] = {
     { { .empty = _gDryfieldNightSaloonGRView1SpriteBatches }, _gDryfieldNightSaloonGRView1SpriteBatches, NULL },
     { { .elements = _gDryfieldNightSaloonGRView2SpriteSources }, _gDryfieldNightSaloonGRView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightSaloonGRView3SpriteSources }, _gDryfieldNightSaloonGRView3SpriteBatches, NULL },
@@ -1760,8 +1777,8 @@ SpriteView D_dryfield_night_saloon_g_r_80187FC8[13] = {
     { { .elements = _gDryfieldNightSaloonGRView9SpriteSources }, _gDryfieldNightSaloonGRView9SpriteBatches, NULL },
     { { .elements = _gDryfieldNightSaloonGRView10SpriteSources }, _gDryfieldNightSaloonGRView10SpriteBatches, NULL },
     { { .elements = _gDryfieldNightSaloonGRView11SpriteSources }, _gDryfieldNightSaloonGRView11SpriteBatches, NULL },
-    { { .empty = D_dryfield_night_saloon_g_r_80187FA8 }, D_dryfield_night_saloon_g_r_80187FA8, NULL },
-    { { .empty = D_dryfield_night_saloon_g_r_80187FB8 }, D_dryfield_night_saloon_g_r_80187FB8, NULL },
+    { { .empty = _gDryfieldNightSaloonGRView12SpriteBatches }, _gDryfieldNightSaloonGRView12SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightSaloonGRView13SpriteBatches }, _gDryfieldNightSaloonGRView13SpriteBatches, NULL },
 };
 
 /// Seven point lights shared by both night-saloon room entries.
@@ -1842,22 +1859,34 @@ AreaResource D_dryfield_night_saloon_g_r_80188E90[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_saloon_g_r_80188EA8[2] = {
-    { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Blood Suckler resources for night-saloon placement variant 2.
+///
+/// Entry 40 loads actor_104000 and selects descriptor 0 for both placements.
+/// Placement entry IDs select these recipes; `AREA_PLACEMENT_END` ends the list.
+/// The layout borrows this table and the actor descriptors while their overlays
+/// stay loaded through resource loading and actor spawning.
+static AreaResource _gDryfieldNightSaloonGRVariant2Resources[] = {
+    { .entryId = 40, .fileNumber = 40, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor04000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_saloon_g_r_80188EC0[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scavenger and Blood Suckler resources for night-saloon placement variant 3.
+///
+/// Entry 16 loads actor_101600; entry 40 loads actor_204000. Each uses descriptor 0.
+/// Placement entry IDs select these recipes; `AREA_PLACEMENT_END` ends the list.
+/// The layout borrows this table and the actor descriptors while their overlays
+/// stay loaded through resource loading and actor spawning.
+static AreaResource _gDryfieldNightSaloonGRVariant3Resources[] = {
+    { .entryId = 16, .fileNumber = 16, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = 40, .fileNumber = 40, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor204000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
     { NULL, NULL },
     { D_map_dryfield_full_8017BE58, D_dryfield_night_saloon_g_r_80188E90 },
-    { D_map_dryfield_full_8017BE78, D_dryfield_night_saloon_g_r_80188EA8 },
-    { D_map_dryfield_full_8017BEA8, D_dryfield_night_saloon_g_r_80188EC0 },
+    { D_map_dryfield_full_8017BE78, _gDryfieldNightSaloonGRVariant2Resources },
+    { D_map_dryfield_full_8017BEA8, _gDryfieldNightSaloonGRVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -2041,40 +2070,61 @@ static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task)
     taskKill(task);
 }
 
-/// Numbered names the room lists. Nothing in the code refers to them: the
-/// room's data holds them in records that pair each with a small number.
-const char D_dryfield_night_saloon_g_r_8017D600[] = "3. Heaven-sent Killer";
-const char D_dryfield_night_saloon_g_r_8017D618[] = "2. Eager For Blood";
-const char D_dryfield_night_saloon_g_r_8017D62C[] = "1. Crazy King";
-const char D_dryfield_night_saloon_g_r_8017D63C[] = "3. Crawling Waste Emperor";
-const char D_dryfield_night_saloon_g_r_8017D658[] = "2. Pick Up The Gauntlet";
-const char D_dryfield_night_saloon_g_r_8017D670[] = "3. Hunter's Moon";
-const char D_dryfield_night_saloon_g_r_8017D684[] = "2. Quadrumanous Leader";
-const char D_dryfield_night_saloon_g_r_8017D69C[] = "3. Genic Reactor";
-const char D_dryfield_night_saloon_g_r_8017D6B0[] = "2. Rebel Forces";
-const char D_dryfield_night_saloon_g_r_8017D6C0[] = "1. Yellow Rain";
-const char D_dryfield_night_saloon_g_r_8017D6D0[] = "3. Pick Up The Gauntlet";
-const char D_dryfield_night_saloon_g_r_8017D6E8[] = "2. Ambush!";
-const char D_dryfield_night_saloon_g_r_8017D6F4[] = "4. Dark Voice Of The Heart";
-const char D_dryfield_night_saloon_g_r_8017D710[] = "3. Requiem";
-const char D_dryfield_night_saloon_g_r_8017D71C[] = "2. Rock And Fire";
-const char D_dryfield_night_saloon_g_r_8017D730[] = "1. Ghost Town";
-const char D_dryfield_night_saloon_g_r_8017D740[] = "4. Snooper";
-const char D_dryfield_night_saloon_g_r_8017D74C[] = "3. Wild Hunt";
-const char D_dryfield_night_saloon_g_r_8017D75C[] = "2. Lightning Operation";
-const char D_dryfield_night_saloon_g_r_8017D774[] = "1. L.A. Maze";
-const char D_dryfield_night_saloon_g_r_8017D784[] = "4. Genic Reactor";
-const char D_dryfield_night_saloon_g_r_8017D798[] = "3. Mental Agony";
-const char D_dryfield_night_saloon_g_r_8017D7A8[] = "2. Wishwash";
-const char D_dryfield_night_saloon_g_r_8017D7B4[] = "1. Curse Your Fate!";
-const char D_dryfield_night_saloon_g_r_8017D7C8[] = "4. Killing Field";
-const char D_dryfield_night_saloon_g_r_8017D7DC[] = "3. Fool's Paradise";
-const char D_dryfield_night_saloon_g_r_8017D7F0[] = "2. Gazing into The Void";
-const char D_dryfield_night_saloon_g_r_8017D808[] = "1. Man Made Nature";
-const char D_dryfield_night_saloon_g_r_8017D81C[] = "4. Lazing Away the Morning";
-const char D_dryfield_night_saloon_g_r_8017D838[] = "3. Out Of Phase 2";
-const char D_dryfield_night_saloon_g_r_8017D84C[] = "2. The Vagrants";
-const char D_dryfield_night_saloon_g_r_8017D85C[] = "1. Tower Rendezvous";
+/// NUL-terminated ASCII label for jukebox row 3, "Heaven-sent Killer" (MIDI sequence 49).
+static const char _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel[] = "3. Heaven-sent Killer";
+/// NUL-terminated ASCII label for jukebox row 2, "Eager For Blood" (MIDI sequence 23).
+static const char _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel[] = "2. Eager For Blood";
+/// NUL-terminated ASCII label for jukebox row 1, "Crazy King" (MIDI sequence 20).
+static const char _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel[] = "1. Crazy King";
+/// NUL-terminated ASCII label for jukebox row 3, "Crawling Waste Emperor" (MIDI sequence 66).
+static const char _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel[] = "3. Crawling Waste Emperor";
+/// NUL-terminated ASCII label for jukebox row 2, "Pick Up The Gauntlet" (MIDI sequence 60).
+static const char _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel[] = "2. Pick Up The Gauntlet";
+/// NUL-terminated ASCII label for jukebox row 3, "Hunter's Moon" (MIDI sequence 74).
+static const char _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel[] = "3. Hunter's Moon";
+/// NUL-terminated ASCII label for jukebox row 2, "Quadrumanous Leader" (MIDI sequence 22).
+static const char _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel[] = "2. Quadrumanous Leader";
+/// NUL-terminated ASCII label for jukebox row 3, "Genic Reactor" (MIDI sequence 93).
+static const char _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel[] = "3. Genic Reactor";
+/// NUL-terminated ASCII label for jukebox row 2, "Rebel Forces" (MIDI sequence 82).
+static const char _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel[] = "2. Rebel Forces";
+/// NUL-terminated ASCII label for jukebox row 1, "Yellow Rain" (MIDI sequence 67).
+static const char _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel[] = "1. Yellow Rain";
+/// NUL-terminated ASCII label for jukebox row 3, "Pick Up The Gauntlet" (MIDI sequence 60).
+static const char _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel[] = "3. Pick Up The Gauntlet";
+/// NUL-terminated ASCII label for jukebox row 2, "Ambush!" (MIDI sequence 21).
+static const char _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel[] = "2. Ambush!";
+/// NUL-terminated ASCII label for jukebox row 4, "Dark Voice Of The Heart" (MIDI sequence 61).
+static const char _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel[] = "4. Dark Voice Of The Heart";
+/// NUL-terminated ASCII label for jukebox row 3, "Requiem" (MIDI sequence 58).
+static const char _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel[] = "3. Requiem";
+/// NUL-terminated ASCII label for jukebox row 2, "Rock And Fire" (MIDI sequence 45).
+static const char _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel[] = "2. Rock And Fire";
+/// NUL-terminated ASCII label for jukebox row 1, "Ghost Town" (MIDI sequence 41).
+static const char _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel[] = "1. Ghost Town";
+/// NUL-terminated ASCII label for jukebox row 4, "Snooper" (MIDI sequence 44).
+static const char _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel[] = "4. Snooper";
+/// NUL-terminated ASCII label for jukebox row 3, "Wild Hunt" (MIDI sequence 42).
+static const char _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel[] = "3. Wild Hunt";
+/// NUL-terminated ASCII label for jukebox row 2, "Lightning Operation" (MIDI sequence 36).
+static const char _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel[] = "2. Lightning Operation";
+/// NUL-terminated ASCII label for jukebox row 1, "L.A. Maze" (MIDI sequence 35).
+static const char _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel[] = "1. L.A. Maze";
+/// NUL-terminated ASCII label for jukebox row 4, "Genic Reactor" (MIDI sequence 93).
+static const char _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[] = "4. Genic Reactor";
+/// NUL-terminated ASCII label for jukebox row 3, "Mental Agony" (MIDI sequence 89).
+static const char _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[] = "3. Mental Agony";
+/// NUL-terminated ASCII label for jukebox row 2, "Wishwash" (MIDI sequence 59).
+static const char _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[] = "2. Wishwash";
+const char        D_dryfield_night_saloon_g_r_8017D7B4[]            = "1. Curse Your Fate!";
+const char        D_dryfield_night_saloon_g_r_8017D7C8[]            = "4. Killing Field";
+const char        D_dryfield_night_saloon_g_r_8017D7DC[]            = "3. Fool's Paradise";
+const char        D_dryfield_night_saloon_g_r_8017D7F0[]            = "2. Gazing into The Void";
+const char        D_dryfield_night_saloon_g_r_8017D808[]            = "1. Man Made Nature";
+const char        D_dryfield_night_saloon_g_r_8017D81C[]            = "4. Lazing Away the Morning";
+const char        D_dryfield_night_saloon_g_r_8017D838[]            = "3. Out Of Phase 2";
+const char        D_dryfield_night_saloon_g_r_8017D84C[]            = "2. The Vagrants";
+const char        D_dryfield_night_saloon_g_r_8017D85C[]            = "1. Tower Rendezvous";
 
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
@@ -2442,39 +2492,42 @@ void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
     actorRenderComposeCoord(coord);
     // The first eleven flare centres are world positions.
     for (pointIndex = 0; pointIndex < 6; pointIndex++) {
-        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex]) {
-            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
+        if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[pointIndex]) {
+            _glowDrawFlare(&_gDryfieldNightSaloonGREffectPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
         }
     }
     for (pointIndex = 6; pointIndex < 11; pointIndex++) {
-        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex]) {
-            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 1, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_ALTERNATE);
+        if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[pointIndex]) {
+            _glowDrawFlare(&_gDryfieldNightSaloonGREffectPoints[pointIndex], 1, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_ALTERNATE);
         }
     }
     // Beam endpoints use the task transform rather than the flare world frame.
-    if (viewMask & D_dryfield_night_saloon_g_r_80185154[DRYFIELD_NIGHT_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
+    if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[DRYFIELD_NIGHT_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
         _glowDrawTwinShafts(coord);
     }
-    if (viewMask & D_dryfield_night_saloon_g_r_80185154[DRYFIELD_NIGHT_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
-        _dryfieldNightSaloonGRDrawTaperedBeam(coord, &gSaloonLightPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_START_POINT],
-                                              &gSaloonLightPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_END_POINT], DRYFIELD_NIGHT_SALOON_G_R_BEAM_RADIUS_SCALE);
+    if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[DRYFIELD_NIGHT_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
+        _dryfieldNightSaloonGRDrawTaperedBeam(coord, &_gDryfieldNightSaloonGREffectPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_START_POINT],
+                                              &_gDryfieldNightSaloonGREffectPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_END_POINT], DRYFIELD_NIGHT_SALOON_G_R_BEAM_RADIUS_SCALE);
     }
     // Six shaft vertices occupy points 14..19 but just one view-mask entry.
     for (pointIndex = 20; pointIndex < 23; pointIndex++) {
-        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
-            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
+        if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
+            _glowDrawFlare(&_gDryfieldNightSaloonGREffectPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
         }
     }
-    for (pointIndex = 23; pointIndex < (s32)ARRAY_SIZE(gSaloonLightPoints); pointIndex++) {
-        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
-            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_LARGE);
+    for (pointIndex = 23; pointIndex < (s32)ARRAY_SIZE(_gDryfieldNightSaloonGREffectPoints); pointIndex++) {
+        if (viewMask & _gDryfieldNightSaloonGREffectViewMasks[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
+            _glowDrawFlare(&_gDryfieldNightSaloonGREffectPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_LARGE);
         }
     }
 }
 
 #include "../../shared/glow_draw_flare.inc.c"
 
+/// Binds this overlay's local shaft points for the shared drawer's inclusion.
+#define GLOW_TWIN_SHAFT_POINTS _gDryfieldNightSaloonGREffectPoints
 #include "../../shared/glow_draw_twin_shafts.inc.c"
+#undef GLOW_TWIN_SHAFT_POINTS
 
 /// Initializes a grey-to-black Gouraud quad for one beam-cap wedge.
 ///

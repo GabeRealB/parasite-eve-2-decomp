@@ -3,10 +3,12 @@
 /// Draws two additive flickering light shafts from the saloon's local point table.
 ///
 /// Borrows an already composed local-to-world `coord`; it does not refresh it.
-/// The carrier's `gSaloonLightPoints` must contain entries 14..19 in that
-/// coordinate's local space. Both quads share roots 14 and 17; their tip
-/// guides are 15/18 and 16/19. Each tip lies four times the root-to-guide
-/// offset from its root. Local tip construction and transformed world
+/// The carrier binds `GLOW_TWIN_SHAFT_POINTS` to an SVECTOR array or pointer
+/// expression without side effects, with entries 14..19 in that coordinate's local space.
+/// The day and night saloon bind their private effect-point tables around the
+/// inclusion and clear the binding afterwards. Both quads share roots 14 and
+/// 17; their tip guides are 15/18 and 16/19. Each tip lies four times the
+/// root-to-guide offset from its root. Local tip construction and transformed world
 /// positions narrow to signed 16 bits before projection through `GsWSMATRIX`.
 ///
 /// Root intensity alternates between 32 and 48 by animation-frame parity;
@@ -53,30 +55,30 @@ static void _glowDrawTwinShafts(const GfxCoord* coord)
 
     // Transform the shared root edge once; both quads reuse it.
     gte_SetTransMatrix(&GsWSMATRIX);
-    GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT], 0);
+    GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT], 0);
 
-    GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT], 1);
+    GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT], 1);
 
     // Extend each root-to-guide offset fourfold before world projection.
     for (shaftIndex = 0; shaftIndex < GLOW_TWIN_SHAFT_COUNT; shaftIndex++) {
         pointIndex            = shaftIndex + GLOW_TWIN_SHAFT_FIRST_TIP;
-        firstTipPoint         = &gSaloonLightPoints[pointIndex];
-        block->vertices[2].vx = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vx +
-                                ((u16)firstTipPoint->vx - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vx) * GLOW_TWIN_SHAFT_REACH_SCALE;
-        block->vertices[2].vy = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vy +
-                                ((u16)firstTipPoint->vy - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vy) * GLOW_TWIN_SHAFT_REACH_SCALE;
-        block->vertices[2].vz = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vz +
-                                ((u16)firstTipPoint->vz - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_FIRST_ROOT].vz) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        firstTipPoint         = &GLOW_TWIN_SHAFT_POINTS[pointIndex];
+        block->vertices[2].vx = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vx +
+                                ((u16)firstTipPoint->vx - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vx) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        block->vertices[2].vy = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vy +
+                                ((u16)firstTipPoint->vy - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vy) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        block->vertices[2].vz = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vz +
+                                ((u16)firstTipPoint->vz - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_FIRST_ROOT].vz) * GLOW_TWIN_SHAFT_REACH_SCALE;
         GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&block->vertices[2], 2);
 
         pointIndex            = shaftIndex + GLOW_TWIN_SHAFT_SECOND_TIP;
-        secondTipPoint        = &gSaloonLightPoints[pointIndex];
-        block->vertices[3].vx = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vx +
-                                ((u16)secondTipPoint->vx - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vx) * GLOW_TWIN_SHAFT_REACH_SCALE;
-        block->vertices[3].vy = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vy +
-                                ((u16)secondTipPoint->vy - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vy) * GLOW_TWIN_SHAFT_REACH_SCALE;
-        block->vertices[3].vz = (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vz +
-                                ((u16)secondTipPoint->vz - (u16)gSaloonLightPoints[GLOW_TWIN_SHAFT_SECOND_ROOT].vz) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        secondTipPoint        = &GLOW_TWIN_SHAFT_POINTS[pointIndex];
+        block->vertices[3].vx = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vx +
+                                ((u16)secondTipPoint->vx - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vx) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        block->vertices[3].vy = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vy +
+                                ((u16)secondTipPoint->vy - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vy) * GLOW_TWIN_SHAFT_REACH_SCALE;
+        block->vertices[3].vz = (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vz +
+                                ((u16)secondTipPoint->vz - (u16)GLOW_TWIN_SHAFT_POINTS[GLOW_TWIN_SHAFT_SECOND_ROOT].vz) * GLOW_TWIN_SHAFT_REACH_SCALE;
         GLOW_TWIN_SHAFT_TRANSFORM_CORNER(&block->vertices[3], 3);
 
         // Sort and depth-clip by the final tip, retaining each allocated packet.
