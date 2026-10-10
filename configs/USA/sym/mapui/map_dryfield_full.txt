@@ -5,7 +5,7 @@
 // loaded at a slot of its own, so each is absolute.
 dryfieldNightGasStationRoomTask = 0x8017FB70; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 gDryfieldNightGasStationRoomLighting = 0x80189DB0; // absolute:True owner=dryfield_night_gas_station
-D_dryfield_night_gas_station_80189DD0 = 0x80189DD0; // absolute:True owner=dryfield_night_gas_station shared=rooms
+D_dryfield_night_gas_station_80189DD0 = 0x80189DD0; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationViewMaps = 0x80189E70; // absolute:True owner=dryfield_night_gas_station
 D_dryfield_night_gas_station_80189E80 = 0x80189E80; // absolute:True owner=dryfield_night_gas_station
 D_dryfield_night_gas_station_80189E88 = 0x80189E88; // absolute:True owner=dryfield_night_gas_station
@@ -222,7 +222,7 @@ D_dryfield_night_junk_yard_801844C4 = 0x801844C4; // absolute:True owner=dryfiel
 dryfieldNightTrailerCoachRoomTask = 0x801828CC; // type:func absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184CA0; // absolute:True owner=dryfield_night_trailer_coach shared=rooms
 D_dryfield_night_trailer_coach_80189500 = 0x80189500; // absolute:True owner=dryfield_night_trailer_coach shared=rooms
-D_dryfield_night_trailer_coach_80189508 = 0x80189508; // absolute:True owner=dryfield_night_trailer_coach shared=rooms
+D_dryfield_night_trailer_coach_80189508 = 0x80189508; // absolute:True owner=dryfield_night_trailer_coach
 D_dryfield_night_trailer_coach_80189518 = 0x80189518; // absolute:True owner=dryfield_night_trailer_coach
 D_dryfield_night_trailer_coach_8018951C = 0x8018951C; // absolute:True owner=dryfield_night_trailer_coach
 D_dryfield_night_trailer_coach_80189520 = 0x80189520; // absolute:True owner=dryfield_night_trailer_coach
