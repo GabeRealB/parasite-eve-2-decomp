@@ -66,7 +66,7 @@ D_mine_forked_tunnel_8018363C = 0x8018363C; // absolute:True owner=mine_forked_t
 gMineForkedTunnelRoomViewMaps = 0x8018364C; // absolute:True owner=mine_forked_tunnel shared=rooms
 D_mine_forked_tunnel_80183650 = 0x80183650; // absolute:True owner=mine_forked_tunnel shared=rooms
 D_mine_forked_tunnel_80183654 = 0x80183654; // absolute:True owner=mine_forked_tunnel shared=rooms
-D_mine_forked_tunnel_80183D94 = 0x80183D94; // absolute:True owner=mine_forked_tunnel shared=rooms
+D_mine_forked_tunnel_80183D94 = 0x80183D94; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelSpriteViews = 0x80184D64; // absolute:True owner=mine_forked_tunnel shared=rooms
 gMineForkedTunnelSurfacePropertiesByClass = 0x801855C0; // absolute:True owner=mine_forked_tunnel
 mineSecretPassageRoomTask = 0x8017D970; // type:func absolute:True owner=mine_secret_passage shared=rooms

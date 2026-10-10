@@ -12,6 +12,9 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+/// Number of identity-mapped camera and sprite slots in the security room.
+enum { ACROPOLIS_SECURITY_ROOM_VIEW_COUNT = 16 };
+
 extern AreaVariant D_acropolis_security_room_80184088[4];
 
 extern TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0;
@@ -19,19 +22,45 @@ extern TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0;
 // acropolis_security_room
 extern WorldCollisionRoomResources D_acropolis_security_room_801839D0[];
 
-extern u8* D_acropolis_security_room_801839E0[];
+/// Logical-view maps for the security room's sole room.
+///
+/// Room index 0 borrows gameplay's identity map: logical views 1..16 use
+/// the same 1-based camera/image/sprite slots. Both overlays must remain loaded.
+extern u8* gAcropolisSecurityRoomViewMaps[1];
 
-extern ViewCount D_acropolis_security_room_801839E4[];
+/// Logical-view search count for the security room's sole room.
+///
+/// Its signed-halfword count is 16, indexed by room minus one; no terminator.
+extern ViewCount gAcropolisSecurityRoomViewCounts[1];
 
-extern WorldCoordRoomLighting D_acropolis_security_room_801839E8[];
+/// Lighting for the security room's sole room, indexed by room minus one.
+///
+/// Borrows three mutable point lights; NULL ambient data selects the default
+/// ambient minima. Keep the room overlay loaded during lighting queries.
+extern WorldCoordRoomLighting gAcropolisSecurityRoomRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_security_room_801839F0[];
 
-extern SpriteView D_acropolis_security_room_80184C50[];
+/// Sprite sources and batches for security-room mapped views 1..16.
+///
+/// Indexed by mapped view minus one. Batch/source storage is borrowed and
+/// remains writable, including the released-lock visibility in view 6.
+/// No view supplies clipping areas. Keep the room overlay loaded while drawing.
+extern SpriteView gAcropolisSecurityRoomSpriteViews[ACROPOLIS_SECURITY_ROOM_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_security_room_80184D10[];
+/// Cameras for security-room mapped views 1..16.
+///
+/// Indexed by mapped view minus one. Rotation uses ONE (4096) per unit,
+/// translation is the negated world-space camera origin, and projection
+/// distance is in pixels. Keep storage loaded until queued application finishes.
+extern ViewCamera gAcropolisSecurityRoomViewCameras[ACROPOLIS_SECURITY_ROOM_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[];
+/// Security-room collision policies indexed by surface class 0..7.
+///
+/// Class 4 has floor footsteps; the other classes are silent. All classes
+/// block probes, enable weapon impacts and apply pushback. The directory
+/// borrows room-overlay records that remain live while collision uses them.
+extern WorldCollisionSurfaceProperties* gAcropolisSecurityRoomSurfacePropertiesByClass[8];
 
 /// Updates the security monitor's four feed palettes and draws their pictures or glows.
 ///
