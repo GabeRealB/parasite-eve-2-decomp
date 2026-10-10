@@ -30,6 +30,7 @@ Encode is not implemented: pack prefers ``raw/spk/`` for bit-identity.
 
 from __future__ import annotations
 
+import os
 import json
 import struct
 import wave
@@ -343,13 +344,17 @@ def materialize_spk(
     rate: int = 22050,
     names: list[str] | None = None,
     sample_dir: Path | None = None,
+    sample_path=None,
 ) -> tuple[Path, SpkInfo]:
     """Write ``meta.json`` under ``dest_dir``, and the bank's samples.
 
     With ``names`` (the manifest's name for each slot) every sample is written
-    once, as ``sample_dir/<name>.wav``, and the bank's meta lists its slots by
-    name: a sound several banks hold is one file. Without them the samples go
-    beside the meta as ``sample_XX.wav``, as before.
+    once and the bank's meta lists its slots by name: a sound several banks
+    hold is one file. ``sample_path(name)`` says where that file is - the
+    extractor passes the asset table's answer, so a sample with a group goes
+    under it - and without it the file is ``sample_dir/<name>.wav``. The meta
+    names each file by its path from ``dest_dir``, wherever the two are.
+    Without names the samples go beside the meta as ``sample_XX.wav``.
 
     Returns ``(meta_path, info)``.
     """
@@ -362,12 +367,14 @@ def materialize_spk(
         meta["stem"] = stem
     samples = extract_samples(data, info)
     meta["samples"] = []
-    shared = names is not None and sample_dir is not None and len(names) == len(samples)
+    shared = (names is not None and (sample_dir is not None or sample_path is not None)
+              and len(names) == len(samples))
     for i, (addr, pcm) in enumerate(samples):
         if shared:
-            name = f"{names[i]}.wav"
-            if not (Path(sample_dir) / name).is_file():
-                write_wav(Path(sample_dir) / name, pcm, rate=rate)
+            wav = Path(sample_path(names[i])) if sample_path is not None else Path(sample_dir) / f"{names[i]}.wav"
+            if not wav.is_file():
+                write_wav(wav, pcm, rate=rate)
+            name = Path(os.path.relpath(wav, dest_dir)).as_posix()
         else:
             name = f"sample_{i:02d}.wav"
             write_wav(dest_dir / name, pcm, rate=rate)
@@ -375,7 +382,7 @@ def materialize_spk(
             {
                 "index": i,
                 **({"name": names[i]} if shared else {}),
-                "file": f"../../sample/{name}" if shared else name,
+                "file": name,
                 "wave_addr": addr,
                 "frames": len(pcm),
                 "duration_sec": round(len(pcm) / rate, 4),

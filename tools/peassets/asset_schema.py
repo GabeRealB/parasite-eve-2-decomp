@@ -40,13 +40,20 @@ is emitted under to the asset placed there, and the chunk's index is its
 position: the key has to be usable as part of a constant's name, and must not
 be spelled twice.
 
+Where an asset is extracted is decided here too, and nowhere else: `asset_dir`,
+`decoded_rel` and `decoded_files` below. An asset with a `group` is written
+under that subtree of the extraction; one without keeps its type's directory.
+
     python3 tools/peassets/asset_schema.py --check     # fail on any problem
     python3 tools/peassets/asset_schema.py --deps KEY   # what KEY requires
+    python3 tools/peassets/asset_schema.py --where KEY  # where KEY is extracted
 """
 from __future__ import annotations
 
 import argparse
 import ast
+import os
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -251,6 +258,343 @@ def ancestors_of(key: str, assets: dict, tree: dict) -> list[str]:
     return out
 
 
+# --------------------------------------------------------------------------
+# Where an asset is extracted
+# --------------------------------------------------------------------------
+RAW_ROOT = "raw"
+# The directory of a type, under `raw/` for the stored bytes and at the root of the extraction for the decoded
+# form. A type names its directory by its extension; one not listed is filed under the extension itself.
+TYPE_DIR_BY_EXT: dict[str, str] = {
+    ".pe2pkg": "pe2pkg",
+    ".pe2img": "pe2img",
+    ".pe2clut": "pe2clut",
+    ".pe2cap2": "pe2cap2",
+    ".bs": "bs",
+    ".spk": "spk",
+    ".txt": "txt",
+    ".mcsave": "mcsave",
+    ".tmd": "model",
+    ".anim": "animation",
+    ".wav": "sample",
+}
+# The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
+EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2cap2": ".pe2cap2",
+                               "bs": ".bs", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
+PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png and <name><ext>.json
+DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
+RAW_ONLY_EXTS = frozenset({".tmd", ".anim"})               # located but not decoded: raw/ holds the only form
+# Decoded forms that are addressed by their type's path and so never move, whatever the group.
+PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
+# Directories the extraction owns at its root that hold no manifest asset. With the type directories, the names a
+# group may not start with.
+EXTRACTION_ROOTS = frozenset({RAW_ROOT, "incbin", "audio", "movie"})
+STAGE_ROOT = re.compile(r"stage\d+\Z")
+SPK_META = "meta.json"
+
+
+def use_table(path: Path | str):
+    """Read the asset table from another file than `asset_data.py` (a copy under test) for this process.
+
+    Every tool imports the table as `asset_data`, so the copy is installed under that name. Call it before any
+    of them is imported.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("asset_data", str(path))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    sys.modules["asset_data"] = module
+    return module
+
+
+def type_dir_for_ext(ext: str) -> str:
+    """The type directory of a stored extension (`.pe2img` -> `pe2img`, `.tmd` -> `model`)."""
+    ext = ext if ext.startswith(".") else f".{ext}"
+    return TYPE_DIR_BY_EXT.get(ext, ext.lstrip(".") or "bin")
+
+
+def stored_ext(rec: dict[str, Any]) -> str:
+    """The extension an asset's bytes are stored under in `raw/`; a sample has none there and answers `.wav`."""
+    return rec.get("ext") or EXT_BY_TYPE.get(rec.get("type", ""), "." + rec.get("type", "bin"))
+
+
+def type_dir_of(rec: dict[str, Any]) -> str:
+    """The type directory of a manifest record."""
+    return type_dir_for_ext(stored_ext(rec))
+
+
+def record_of(key: str, type_dir: str | None = None, tables: tuple[dict, dict] | None = None) -> dict[str, Any] | None:
+    """The manifest record filed as `key`, in ASSETS or EMBEDDED_ASSETS.
+
+    `type_dir` is given by a caller that holds a file rather than a record (the extractor, a directory scan): a
+    name the store made up for bytes the manifest does not know (`pe2img_12`, `<key>_2`) must not pick up the
+    record of a different asset that happens to be spelled the same, so only a record of that type answers.
+    """
+    assets, embedded = tables if tables is not None else load()
+    for table in (assets, embedded):
+        rec = table.get(key)
+        if isinstance(rec, dict) and (type_dir is None or type_dir_of(rec) == type_dir):
+            return rec
+    return None
+
+
+def group_of(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
+             tables: tuple[dict, dict] | None = None) -> str | None:
+    """The group an asset is extracted under, or None where its type's directory holds it."""
+    if rec is None:
+        rec = record_of(key, type_dir, tables)
+    if not rec or not rec.get("group"):
+        return None
+    ext = stored_ext(rec)
+    if ext in RAW_ONLY_EXTS or type_dir_for_ext(ext) in PINNED_TYPE_DIRS:
+        return None
+    return rec["group"]
+
+
+def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
+              tables: tuple[dict, dict] | None = None) -> str:
+    """The directory an asset's decoded form lives in, relative to the root of the extraction (`assets/USA`).
+
+    This is the one place that decides it. The rule:
+
+    * an asset with a `group` lives in `<group>/` ("weapons/m4a1");
+    * an asset without one lives in its type's directory (`pe2img/`, `bs/`, `spk/`, `sample/`, `txt/`, ...),
+      and so does any file the manifest does not know (`type_dir` says which type it is).
+
+    What a group does NOT move, because the build or the tooling addresses it by its type's path:
+
+    * everything under `raw/`. The stored bytes stay at `raw/<type>/<name><ext>` (`raw_rel`): `pack`,
+      `dump_asset_db.py` and every tool that reads bytes look there, and so does the build, which takes an
+      `include`-marked embedded asset from `raw/<type>/<id><ext>` (`ninja_config.asset_includes`,
+      `tools/gen_asset_inc.py`).
+    * an inflated package, `pe2pkg/<name>.pe2pkg` (`PINNED_TYPE_DIRS`). The overlay configs are built from that
+      path (`gen_overlay_configs.PACKAGE_DIR`, the `target_path` of the hand-written configs), the model,
+      collision and animation initializers are generated from it, and `room_scene.py`, `asset_residency.py`,
+      `pkg_model.py` and others read packages there.
+    * a type that is located but not decoded (`RAW_ONLY_EXTS`: models and animation banks). `raw/` holds its
+      only form, and that is the directory answered here.
+    * what is not a manifest asset at all, and so has no group to carry: `main.exe`, the CD streams in `audio/`
+      and `movie/`, the pack sidecars under `stage<N>/`, `stages.json` and the ISO manifests.
+
+    A group may not start with a name the extraction already uses at its root (`reserved_roots`), so a group
+    directory never has to be told apart from a type's.
+    """
+    if rec is None:
+        rec = record_of(key, type_dir, tables)
+    if rec is not None:
+        type_dir = type_dir_of(rec)
+    if type_dir is None:
+        raise KeyError(f"{key} is not in the asset table, and no type was given for it")
+    if rec is not None and stored_ext(rec) in RAW_ONLY_EXTS:
+        return f"{RAW_ROOT}/{type_dir}"
+    return group_of(key, rec) or type_dir
+
+
+def raw_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None, ext: str | None = None,
+            tables: tuple[dict, dict] | None = None) -> str | None:
+    """Where an asset's stored bytes are, `raw/<type>/<name><ext>`: never under a group. None for a sample,
+    which is stored only inside its banks."""
+    if rec is None:
+        rec = record_of(key, type_dir, tables)
+    if rec is not None:
+        if rec.get("type") == "sample":
+            return None
+        ext = stored_ext(rec)
+        type_dir = type_dir_of(rec)
+    if ext is None or type_dir is None:
+        raise KeyError(f"{key} is not in the asset table, and no type was given for it")
+    return f"{RAW_ROOT}/{type_dir}/{key}{ext}"
+
+
+def decoded_names(key: str, ext: str) -> list[str]:
+    """The entries an asset's decoded form occupies in its directory, the one a manifest names first.
+
+    The last of a picture's is its stored bytes, which the extractor leaves there only when the decode failed.
+    A bank's directory is one entry; the samples it lists are assets of their own.
+    """
+    if ext in RAW_ONLY_EXTS:
+        return [f"{key}{ext}"]
+    if ext in PNG_EXTS:
+        return [f"{key}.png", f"{key}{ext}.json", f"{key}{ext}"]
+    if ext in DIRECTORY_EXTS:
+        return [key, f"{key}{ext}"]
+    return [f"{key}{ext}"]
+
+
+def decoded_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None, ext: str | None = None,
+                tables: tuple[dict, dict] | None = None) -> str:
+    """The file an asset's decoded form is opened by, relative to the root of the extraction.
+
+    This is the `path` `stages.json` records: `<dir>/<name>.png` for an image, a CLUT or a background,
+    `<dir>/<name>/meta.json` for a bank or the save header, `<dir>/<name>.wav` for a sample,
+    `<dir>/<name><ext>` for anything decoded in its own form, and the raw file for a type that is not decoded.
+    """
+    if rec is None:
+        rec = record_of(key, type_dir, tables)
+    if rec is not None:
+        ext = stored_ext(rec)
+    if ext is None:
+        raise KeyError(f"{key} is not in the asset table, and no extension was given for it")
+    where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
+    if ext in DIRECTORY_EXTS:
+        return f"{where}/{key}/{SPK_META}"
+    return f"{where}/{decoded_names(key, ext)[0]}"
+
+
+def decoded_files(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
+                  ext: str | None = None, where: str | None = None,
+                  tables: tuple[dict, dict] | None = None) -> list[str]:
+    """Every entry of the extraction that is this asset's decoded form: files, and for a bank its directory.
+
+    `where` answers for a directory other than the asset's own - what the same files are called in the place a
+    move takes them from. Nothing is listed for a type that is not decoded: its only form is under `raw/`.
+    """
+    if rec is None:
+        rec = record_of(key, type_dir, tables)
+    if rec is not None:
+        ext = stored_ext(rec)
+    if ext is None:
+        raise KeyError(f"{key} is not in the asset table, and no extension was given for it")
+    if ext in RAW_ONLY_EXTS:
+        return []
+    if where is None:
+        where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
+    return [f"{where}/{name}" for name in decoded_names(key, ext)]
+
+
+def sample_rel(name: str, tables: tuple[dict, dict] | None = None) -> str:
+    """Where a named sample is decoded to: one file, however many banks hold the sound."""
+    return decoded_rel(name, type_dir="sample", ext=".wav", tables=tables)
+
+
+def bank_sample_file(bank_dir: str, sample: str) -> str:
+    """How a bank's `meta.json` names one of its samples: the path from the bank's directory to the file.
+
+    Both are relative to the root of the extraction, and either may be under a group.
+    """
+    return posixpath.relpath(sample, bank_dir)
+
+
+def url_dir(key: str, rec: dict[str, Any] | None = None, tables: tuple[dict, dict] | None = None) -> str | None:
+    """The asset's directory where it is not its type's, for a page that otherwise builds `<type>/<name>`."""
+    if rec is None:
+        rec = record_of(key, None, tables)
+    return group_of(key, rec) if rec else None
+
+
+# The extension behind each chunk type a `stages.json` entry states.
+STAGES_TYPE_EXT: dict[str, str] = {"room_pkg": ".pe2pkg", "image": ".pe2img", "clut": ".pe2clut", "music": ".spk",
+                                   "ascii": ".txt", "cap2": ".pe2cap2", "room_background": ".bs"}
+
+
+def manifest_asset(path: str) -> tuple[str, str] | None:
+    """(asset name, what follows its directory) of a decoded path a manifest records.
+
+    `bs/view_a.png` is `view_a` and `view_a.png`; `weapons/m4a1/m4a1_fire/meta.json` is the bank `m4a1_fire`
+    and `m4a1_fire/meta.json`. None for a path that is not a decoded asset: one under `raw/`, a sidecar.
+    """
+    parts = path.replace("\\", "/").split("/")
+    if len(parts) < 2 or parts[0] == RAW_ROOT or STAGE_ROOT.match(parts[0]):
+        return None
+    if parts[-1] == SPK_META and len(parts) >= 3:
+        return parts[-2], "/".join(parts[-2:])
+    return parts[-1].split(".", 1)[0], parts[-1]
+
+
+def manifest_path(path: str, type_id: str, tables: tuple[dict, dict] | None = None) -> str:
+    """The path a `stages.json` entry should record for the same decoded file, by today's asset table.
+
+    Only the directory is the table's to say; the file's own name is kept, so an entry that names the stored
+    bytes left by a failed decode (`pe2img/x.pe2img`) keeps naming them.
+    """
+    found = manifest_asset(path)
+    ext = STAGES_TYPE_EXT.get(type_id)
+    if found is None or ext is None:
+        return path
+    key, tail = found
+    return f"{asset_dir(key, type_dir=type_dir_for_ext(ext), tables=tables)}/{tail}"
+
+
+def type_dir_at(path: str, tables: tuple[dict, dict] | None = None) -> str | None:
+    """The type of the file at a path of the extraction, as its type's directory name.
+
+    A file under `raw/` or under a type's directory says so itself. One under a group does not - `weapons/m4a1/`
+    holds pictures, palettes, banks and sounds side by side - so the asset table is asked whose file it is.
+    None for a path that is no asset's.
+    """
+    parts = path.replace("\\", "/").split("/")
+    if len(parts) < 2:
+        return None
+    if parts[0] == RAW_ROOT:
+        return parts[1] if len(parts) > 2 else None
+    assets, embedded = tables if tables is not None else load()
+    if parts[0] in reserved_roots((assets, embedded)):
+        return parts[0]
+    for key, where in ((parts[-2], "/".join(parts[:-2])), (parts[-1].split(".", 1)[0], "/".join(parts[:-1]))):
+        for table in (assets, embedded):
+            rec = table.get(key)
+            if rec is not None and group_of(key, rec) == where and (
+                    (parts[-2] == key) == (stored_ext(rec) in DIRECTORY_EXTS)):
+                return type_dir_of(rec)
+    return None
+
+
+def grouped_of_type(type_dir: str, tables: tuple[dict, dict] | None = None) -> list[tuple[str, dict[str, Any]]]:
+    """(key, record) of every asset of a type that a group has taken out of the type's directory."""
+    assets, embedded = tables if tables is not None else load()
+    return [(key, rec) for table in (assets, embedded) for key, rec in table.items()
+            if rec.get("group") and type_dir_of(rec) == type_dir and group_of(key, rec)]
+
+
+_RESERVED: dict[int, tuple[int, frozenset[str]]] = {}
+
+
+def reserved_roots(tables: tuple[dict, dict] | None = None) -> set[str]:
+    """The names at the root of an extraction that a group may not start with: every type's directory, `raw/`
+    and the other directories the extraction makes for itself (`stage<N>` is matched by `STAGE_ROOT`)."""
+    assets, embedded = tables if tables is not None else load()
+    cached = _RESERVED.get(id(embedded))
+    if cached is None or cached[0] != len(embedded):
+        out = set(EXTRACTION_ROOTS) | set(TYPE_DIR_BY_EXT.values()) | set(SCHEMA)
+        out.update(type_dir_of(rec) for rec in embedded.values())
+        cached = _RESERVED[id(embedded)] = (len(embedded), frozenset(out))
+    return set(cached[1])
+
+
+def layout_problems(assets: dict, embedded: dict) -> list[str]:
+    """Groups that cannot be laid out: one named like a directory the extraction uses, or two assets that would
+    be written to the same place (a bank's directory is a place, and so is every directory above a group)."""
+    tables = (assets, embedded)
+    problems: list[str] = []
+    reserved = None
+    owner: dict[str, str] = {}
+    groups: dict[str, str] = {}
+    for table in tables:
+        for key, rec in table.items():
+            group = rec.get("group")
+            if not isinstance(group, str) or not GROUP.fullmatch(group):
+                continue
+            if reserved is None:
+                reserved = reserved_roots(tables)
+            root = group.split("/", 1)[0]
+            if root in reserved or STAGE_ROOT.match(root):
+                problems.append(f"{key}: group {group!r} starts with {root!r}, a directory the extraction uses itself")
+                continue
+            if group_of(key, rec) is None:
+                continue                         # a package, a model: the group files it, and moves nothing
+            groups.setdefault(group, key)
+            for path in decoded_files(key, rec, tables=tables):
+                if owner.setdefault(path, key) != key:
+                    problems.append(f"{key}: would be extracted to {path}, which is {owner[path]}'s")
+    for group, key in groups.items():
+        parts = group.split("/")
+        for n in range(1, len(parts) + 1):
+            path = "/".join(parts[:n])
+            if path in owner:
+                problems.append(f"{key}: group {group!r} runs through {path}, where {owner[path]} is extracted")
+    return problems
+
+
 def validate(assets: dict, embedded: dict) -> list[str]:
     """Every way the manifest can break the schema, one line each."""
     problems: list[str] = []
@@ -334,8 +678,11 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: an embedded {kind} has no attribute {field!r}")
         if ("x" in rec) != ("y" in rec) or (("x" in rec) and "w" not in rec):
             problems.append(f"{key}: a position is x and y together, with the size")
+        if "group" in rec and not (isinstance(rec["group"], str) and GROUP.fullmatch(rec["group"])):
+            problems.append(f"{key}: group {rec['group']!r} is not a path of lower-case names")
         if "deps" in rec:
             check_deps(key, kind, rec["deps"], key)
+    problems += layout_problems(assets, embedded)
     return problems
 
 
@@ -344,8 +691,25 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="exit 1 when the manifest breaks the schema")
     ap.add_argument("--deps", metavar="KEY", help="list what KEY directly requires")
     ap.add_argument("--variant", help="with --deps: as this variant")
+    ap.add_argument("--where", metavar="KEY", help="list where KEY is extracted, relative to assets/<version>")
+    ap.add_argument("--table", type=Path, help="read the asset table from this file instead of asset_data.py")
     args = ap.parse_args()
+    if args.table:
+        use_table(args.table)
     assets, embedded = load()
+    if args.where:
+        records = [table[args.where] for table in (assets, embedded) if args.where in table]
+        if not records:
+            print(f"{args.where} is not in the manifest", file=sys.stderr)
+            return 1
+        for rec in records:
+            stored = raw_rel(args.where, rec)
+            print(f"{rec['type']}: directory {asset_dir(args.where, rec)}/"
+                  + (f", group {group_of(args.where, rec)}" if group_of(args.where, rec) else "")
+                  + (f", stored bytes {stored}" if stored else ""))
+            for path in decoded_files(args.where, rec):
+                print(f"  {path}")
+        return 0
     if args.deps:
         if args.deps not in assets and args.deps not in embedded:
             print(f"{args.deps} is not in the manifest", file=sys.stderr)

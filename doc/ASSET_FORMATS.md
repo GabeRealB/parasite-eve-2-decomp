@@ -43,10 +43,12 @@ raw/pe2pkg/ pe2img/ …   deduplicated **on-disc** clean payloads
                          name = ASSETS id (sha1), else {type}_{n}
 pe2pkg/ pe2img/ …        **inflated** edit forms (one per unique raw)
                          pe2pkg = LZSS-decoded; pe2img/pe2clut = PNG + meta
+weapons/m4a1/ …          the inflated forms of the assets whose `group` is
+                         `weapons/m4a1`, in place of their type directory (§13)
 raw/audio/ audio/        MTS CD streams (not file chunks)
 raw/movie/ movie/        STR movies from INTER*.STR / STAGE*.CDF
 stage0/ stageN/          pack sidecars only (trailer.bin, layout.json, …)
-stages.json              pack manifest (paths into inflated type dirs)
+stages.json              pack manifest (the paths of the inflated forms)
 ```
 
 Duplicate payloads are stored once under `raw/{type}/`. Inflate walks unique
@@ -1021,7 +1023,10 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
   named `<bank>_sample_<slot>` after the first bank holding it. What a slot
   adds - root key, envelope, volume, pan - is the bank's, in its layer records.
 - Extract: `raw/spk/*.spk` → `spk/{stem}/meta.json`, whose `samples` list the
-  slots by name, and each sample once as `sample/{name}.wav`.
+  slots by name, and each sample once as `sample/{name}.wav`. A bank and a
+  sample are separate assets, each filed by its own `group` (§13), so a slot's
+  `file` is the path from the bank's directory to the sample's file:
+  `../../sample/{name}.wav` when neither has a group.
 - Pack always uses `raw/spk/` (no WAV→SPK encoder).
 
 #### What works today
@@ -1207,7 +1212,7 @@ allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
 
 | Key | Required | Allowed on | Notes |
 |-----|----------|------------|--------|
-| `path` | **yes** | all | Relative to assets root (type store) |
+| `path` | **yes** | all | Relative to assets root: the inflated file, under its type directory or its group (§13) |
 | `type` | **yes** | all | See type table below |
 | `sector_len` | no | all | Omit if `0x800`. Range `(0x10, 0x800]` |
 | `load_addr` | **yes** (non-zero) | **`room_pkg`, `cap2` only** | RAM load address; retail never uses `0` |
@@ -1287,6 +1292,64 @@ root (inflated). Dedup is by SHA-1 of the **raw** clean payload:
 Pack sees them via `stages.json` content entries (same path for every
 duplicate reference). See §12 for the full schema.
 
+### Groups
+
+An asset in `asset_data.py` (`ASSETS` or `EMBEDDED_ASSETS`) may carry a
+`group`, a path of lower-case names such as `'group': 'weapons/m4a1'`. Its
+inflated form is then written under that subtree of the extraction instead of
+its type directory; an asset without a group keeps the type directory, which
+is the fallback for everything.
+
+```text
+weapons/m4a1/pe2img_20.png              an image with the group, + pe2img_20.pe2img.json
+weapons/m4a1/pe2clut_19.png             its CLUT, + pe2clut_19.pe2clut.json
+weapons/m4a1/spk_7/meta.json            a bank: the directory moves as one
+weapons/m4a1/spk_7_sample_00.wav        a sample that has the group itself
+sample/spk_7_sample_01.wav              a sample of that bank that has none
+pe2img/pe2img_21.png                    an image without a group
+pe2pkg/m4a1.pe2pkg                      the package: never moved
+raw/pe2img/pe2img_20.pe2img             the stored bytes: never moved
+```
+
+One function decides the directory, `asset_dir` in
+`tools/peassets/asset_schema.py`, with `decoded_rel` / `decoded_files` for the
+files in it; the extractor, `regroup.py`, the asset map and the viewer all ask
+it, and nothing else spells `<type>/<name>`. What a group does **not** move:
+
+- everything under `raw/`. Pack, `dump_asset_db.py` and every tool that reads
+  bytes address `raw/<type>/<name><ext>`, and so does the build for an
+  `include`-marked embedded asset (§7.7).
+- an inflated package, `pe2pkg/<name>.pe2pkg`: the overlay configs and the
+  generated model, collision and animation initializers are built from that
+  path.
+- a type that is located but not decoded (models, animation banks): `raw/` is
+  its only form.
+- what is not an asset of the table: `main.exe`, the CD streams in `audio/` and
+  `movie/`, the pack sidecars in `stage*/`, `stages.json`, the ISO manifests.
+
+So the build reads the same files whatever the groups are. A group may not
+start with a name the extraction uses at its root (a type directory, `raw`,
+`incbin`, `audio`, `movie`, `stage<N>`), and two assets may not resolve to the
+same file; `asset_schema.py --check` reports both, and
+`asset_schema.py --where KEY` prints where an asset is filed.
+
+Groups are written into the table by `apply_groups.py`. An extraction follows
+the table as it is written; an existing one is brought into line without
+extracting again:
+
+```bash
+python3 tools/peassets/regroup.py --dry-run     # what would move
+python3 tools/peassets/regroup.py               # move it
+```
+
+`regroup.py` moves each asset's inflated files between its type directory and
+its group directory, in either direction or from one group to another, then
+rewrites the two records of those places: the `file` of each slot in a bank's
+`meta.json`, and the `path` of each chunk in `stages.json`. It is idempotent,
+removes a group directory it emptied, and does not overwrite: a file whose
+destination holds different bytes is left where it is, with its records
+unchanged, and the run exits 1.
+
 ### Overlays (pe2pkg store)
 
 Room packages used by the decomp build live under `pe2pkg/` and are listed
@@ -1306,7 +1369,8 @@ in `stages.json` (`type: room_pkg`, `path`, `load_addr`).
 ```text
 Extract:
   STAGE*.CDF  →  raw/{type}/ (unique on-disc payloads)
-              →  pe2pkg|pe2img|…/ (inflate unique raw only)
+              →  pe2pkg|pe2img|…/ (inflate unique raw only; an asset with a
+                                    group goes to <group>/ instead, §13)
               →  raw/audio + audio/  (MTS from STAGE*.CDF)
               →  raw/movie + movie/  (STR from INTER*.STR / CDF)
               →  stage*/ (pack sidecars) + stages.json
@@ -1317,7 +1381,7 @@ Extract:
 Pack:
   matching  raw/{type}/ LZSS + inflated non-LZSS  →  STAGE*
   raw       raw/{type}/ only                        →  STAGE*
-  hybrid/decoded  inflated type dirs (re-encode)    →  STAGE*
+  hybrid/decoded  inflated files, by their stages.json path (re-encode)  →  STAGE*
 ```
 
 Commands (from repo root):

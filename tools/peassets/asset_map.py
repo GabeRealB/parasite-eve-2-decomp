@@ -33,6 +33,9 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+# The extraction whose decoded files the page shows (pictures, sounds, texts). Its packages and stored bytes are
+# read from ROOT/assets/USA whatever this is.
+EXTRACTED = ROOT / "assets" / "USA"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_residency as residency  # noqa: E402
 import asset_schema  # noqa: E402
@@ -584,7 +587,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "room": int(bool(first["stage"])), "stage": first["stage"] or 0, "addr": address.get(package),
             "carrier": [index[p] for p in supply.carrier[package]]}
 
-    extracted = ROOT / "assets" / "USA"
+    extracted = EXTRACTED
     side = write_side_data(out.with_name(out.stem + "_data"), assets, embedded) if pixels else {"mesh": [], "track": {}, "holds": {}}
     try:
         banks = animation_tables(embedded)
@@ -592,10 +595,25 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         print(f"no animation tables: {exc}", file=sys.stderr)
         banks = {}
     sounds, sample_ids, sample_homes = {}, {}, {}
-    if (extracted / "spk").is_dir():
-        for folder in (extracted / "spk").iterdir():
-            if folder.is_dir():
-                sounds[folder.name] = len((assets.get(folder.name) or {}).get("samples") or ()) or sum(1 for f in folder.iterdir() if f.suffix == ".wav")
+    # Where the extraction filed each asset is asset_schema's to say: under its group, else under its type's directory.
+    # The page builds `<type>/<name>` itself, so it is told only of the assets that are somewhere else - and only of
+    # those the extraction has in fact put there, since a group given since the last extraction or regroup.py run
+    # has moved nothing yet.
+    dirs, unmoved = {}, 0
+    for records in (assets, embedded):
+        for key, rec in records.items():
+            group = asset_schema.url_dir(key, rec)
+            if group:
+                here = (extracted / asset_schema.decoded_rel(key, rec)).exists()
+                dirs.update({key: group} if here else {})
+                unmoved += not here and any((extracted / f).exists() for f in asset_schema.decoded_files(key, rec, where=asset_schema.type_dir_of(rec)))
+    if unmoved:
+        print(f"{unmoved} grouped assets are still under their type's directory in {extracted}: run tools/peassets/regroup.py", file=sys.stderr)
+    bank_folders = [p for p in (extracted / "spk").iterdir()] if (extracted / "spk").is_dir() else []
+    bank_folders += [extracted / dirs[key] / key for key, rec in assets.items() if rec.get("type") == "spk" and key in dirs]
+    for folder in bank_folders:
+        if folder.is_dir():
+            sounds[folder.name] = len((assets.get(folder.name) or {}).get("samples") or ()) or sum(1 for f in folder.iterdir() if f.suffix == ".wav")
     # A bank is a container of samples (tools/peassets/asset_data.py): each slot names one, and one sample can sit in many banks.
     for key, rec in assets.items():
         if rec.get("type") == "spk" and rec.get("samples"):
@@ -723,7 +741,8 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             if meta.with_suffix(".wav").is_file():
                 catalogue[meta.stem] = ["stream", {"seconds": info.get("duration_sec"), "rate": info.get("sample_rate"), "channels": info.get("channels")}]
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
-    saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
+    save_dir = extracted / dirs.get("mc_save_header", "mcsave") / "mc_save_header"
+    saves = sorted(p.name for p in save_dir.glob("*.png")) if save_dir.is_dir() else []
     return {
         "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "names": names, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
@@ -732,7 +751,8 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         "pairs": {image: [[bpp, clut, row, pal, column, sorted(users)[:8]] for (bpp, clut, row, pal, column), users in sorted(found.items(), key=str)] for image, found in pairs.items()},
         "regions": [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"], r["note"]] for r in table], "layers": residency.LAYERS,
         "stagemap": {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")},
-        "pictures": os.path.relpath(extracted.resolve(), out.parent.resolve()) if (extracted / "pe2img").is_dir() else "", "pixels": pixels,
+        "pictures": os.path.relpath(extracted.resolve(), out.parent.resolve()) if (extracted / "pe2img").is_dir() or dirs else "", "pixels": pixels,
+        "dirs": dirs,
     }
 
 

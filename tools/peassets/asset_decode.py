@@ -300,24 +300,36 @@ def encode_bs_from_png_path(content_path: Path) -> bytes | None:
     return png_files_to_bs(content_path, meta)
 
 
-def materialize_spk_asset(src: Path, dest_dir: Path) -> Path:
+def materialize_spk_asset(src: Path, dest_dir: Path, *, assets_root: Path | None = None) -> Path:
     """Write SPK bank → ``dest_dir/meta.json``, and its samples.
 
     A bank the manifest knows lists its slots by sample name (``samples``), and
-    each sample is written once as ``<assets>/sample/<name>.wav``; a bank it does
-    not know keeps its samples beside the meta as ``sample_*.wav``.
+    each sample is written once, where the asset table files that sample
+    (``asset_schema.sample_rel``: ``<group>/<name>.wav`` if the sample has a
+    group, else ``sample/<name>.wav``); a bank it does not know keeps its
+    samples beside the meta as ``sample_*.wav``.
+
+    ``assets_root`` is the root of the extraction. Without it the bank is taken
+    to sit in its type's directory, ``<assets>/spk/<stem>/``.
 
     Returns the meta path. Pack still prefers ``raw/spk/`` (no WAV→SPK encoder).
     """
     from spk_codec import materialize_spk
 
     data = src.read_bytes()
+    dest_dir = Path(dest_dir)
+    if assets_root is None:
+        assets_root = dest_dir.parent.parent
     names = None
+    sample_path = None
     try:
         import asset_data
+        import asset_schema
+
         names = (asset_data.ASSETS.get(src.stem) or {}).get("samples")
+        sample_path = lambda name: Path(assets_root) / asset_schema.sample_rel(name)  # noqa: E731
     except Exception:  # noqa: BLE001 - the manifest is optional here
         names = None
     meta_path, _info = materialize_spk(data, dest_dir, stem=src.stem, names=names,
-                                       sample_dir=Path(dest_dir).parent.parent / "sample")
+                                       sample_dir=Path(assets_root) / "sample", sample_path=sample_path)
     return meta_path

@@ -38,6 +38,7 @@ from asset_db import (  # noqa: E402
     validate_asset_db,
 )
 from parallel_util import default_jobs, run_jobs  # noqa: E402
+import asset_schema  # noqa: E402
 
 
 @dataclass
@@ -355,32 +356,24 @@ def read_file(data: BinaryIO, offset: int) -> File | None:
     return File(chunks=chunks)
 
 
-# Type directory names (under raw/ and at assets root for inflated).
-TYPE_DIR_BY_EXT: dict[str, str] = {
-    ".pe2pkg": "pe2pkg",
-    ".pe2img": "pe2img",
-    ".pe2clut": "pe2clut",
-    ".pe2cap2": "pe2cap2",
-    ".bs": "bs",
-    ".spk": "spk",
-    ".txt": "txt",
-    ".mcsave": "mcsave",
-    ".tmd": "model",
-    ".anim": "animation",
-}
+# Where each asset goes is asset_schema's to say (`asset_dir`, `decoded_rel`):
+# under its group when the asset table gives it one, else under its type's
+# directory. Nothing here spells `<type>/<name>` for a decoded file.
+# Type directory names (under raw/, and at assets root for an ungrouped asset).
+TYPE_DIR_BY_EXT: dict[str, str] = asset_schema.TYPE_DIR_BY_EXT
 
 IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
-# Types that inflate to PNG under the type store (edit form).
-PNG_INFLATE_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})
+# Types that inflate to PNG (edit form).
+PNG_INFLATE_EXTS = asset_schema.PNG_EXTS
 # Sound banks inflate to a directory of WAV + meta.
 SPK_INFLATE_EXT = ".spk"
 # Assets embedded in the executables; inflate to a directory like SPK does.
 EMBEDDED_INFLATE_EXTS = frozenset({".mcsave"})
-# Types we can locate but not yet decode: stored raw, with no type-dir form, so
-# nothing implies a decode that does not exist. Drop an ext from here once its
-# materialize branch lands.
-RAW_ONLY_EXTS = frozenset({".tmd", ".anim"})
-RAW_ROOT_NAME = "raw"
+# Types we can locate but not yet decode: stored raw, with no decoded form, so
+# nothing implies a decode that does not exist. Drop an ext from
+# asset_schema.RAW_ONLY_EXTS once its materialize branch lands.
+RAW_ONLY_EXTS = asset_schema.RAW_ONLY_EXTS
+RAW_ROOT_NAME = asset_schema.RAW_ROOT
 
 
 class AssetStore:
@@ -395,12 +388,16 @@ class AssetStore:
           pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
           pe2img/pe2img_0.png         # + meta (from unique raw only)
           bs/bs_0.png                 # + meta (from unique raw only)
+          weapons/m4a1/…              # the decoded form of every asset whose
+                                      # `group` is weapons/m4a1, in place of
+                                      # its type directory (asset_schema.asset_dir;
+                                      # raw/ and pe2pkg/ never move)
           raw/audio/*.mts             # MTS CD audio (not a file chunk)
           audio/*.wav + streams.json
           raw/movie/*.str             # STR video (INTER*/CDF, not a file chunk)
           movie/*.mp4 + movies.json
           stage0/…/trailer.bin        # pack sidecars only
-          stages.json                 # pack manifest (paths into type dirs)
+          stages.json                 # pack manifest (the decoded paths)
 
     Dedup is by SHA-1 of the **raw** clean payload. Inflated assets are
     produced once per unique raw file via :meth:`materialize_inflated`.
@@ -426,8 +423,7 @@ class AssetStore:
 
     @staticmethod
     def type_dir_for(ext: str) -> str:
-        ext = ext if ext.startswith(".") else f".{ext}"
-        return TYPE_DIR_BY_EXT.get(ext, ext.lstrip(".") or "bin")
+        return asset_schema.type_dir_for_ext(ext)
 
     def _allocate_stem(
         self,
@@ -463,19 +459,19 @@ class AssetStore:
 
     @staticmethod
     def _inflated_rel(type_dir: str, stem: str, ext: str) -> str:
-        """Relative path of the edit/inflated asset under assets root."""
-        if ext in PNG_INFLATE_EXTS:
-            return f"{type_dir}/{stem}.png"
-        if ext == SPK_INFLATE_EXT:
-            # Directory of meta.json + sample_*.wav
-            return f"{type_dir}/{stem}/meta.json"
-        if ext in EMBEDDED_INFLATE_EXTS:
-            # Directory of meta.json + the decoded images
-            return f"{type_dir}/{stem}/meta.json"
-        if ext in RAW_ONLY_EXTS:
-            # Located but not decoded: the raw file is the only form.
-            return f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
-        return f"{type_dir}/{stem}{ext}"
+        """Relative path of the edit/inflated asset under assets root.
+
+        The asset table decides the directory: the asset's group, else its
+        type's (``asset_schema.decoded_rel``). A PNG type answers
+        ``<dir>/<stem>.png``, a bank or the save header ``<dir>/<stem>/meta.json``,
+        a type that is located but not decoded its raw file.
+        """
+        return asset_schema.decoded_rel(stem, type_dir=type_dir, ext=ext)
+
+    @staticmethod
+    def _fallback_rel(type_dir: str, stem: str, ext: str) -> str:
+        """Where the stored bytes are left when an asset's decode fails."""
+        return f"{asset_schema.asset_dir(stem, type_dir=type_dir)}/{stem}{ext}"
 
     def _map_entry(
         self,
@@ -640,13 +636,16 @@ class AssetStore:
     ) -> int:
         """Build inflated type-store files from unique raw assets only.
 
-        * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg``
-        * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under type dir
-        * ``.spk`` — ``spk/{stem}/meta.json`` listing its slots by sample name, and each
-          sample once as ``sample/{name}.wav`` (SPU-ADPCM); a bank the manifest does
+        Each goes to its asset's directory: its group's, else its type's
+        (``asset_schema.asset_dir``; written ``{dir}`` below).
+
+        * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg`` (never grouped)
+        * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under ``{dir}``
+        * ``.spk`` — ``{dir}/{stem}/meta.json`` listing its slots by sample name, and each
+          sample once as ``{its own dir}/{name}.wav`` (SPU-ADPCM); a bank the manifest does
           not know keeps ``sample_*.wav`` beside its meta
         * ``.txt`` — strip zero pad (text only, no trailing NUL)
-        * other — hardlink/copy raw → type dir (same bytes)
+        * other — hardlink/copy raw → ``{dir}`` (same bytes)
 
         If ``only_pe2pkg_stems`` is set (minimal / CI mode), only those pe2pkg
         stems are inflated (typically :data:`names.REQUIRED_OVERLAY_STEMS`);
@@ -677,6 +676,7 @@ class AssetStore:
                     "stem": stem,
                     "ext": ext,
                     "out_rel": self._inflated_rel(type_dir, stem, ext),
+                    "fallback_rel": self._fallback_rel(type_dir, stem, ext),
                     "canon_key": canon_key,
                 }
             )
@@ -737,6 +737,8 @@ def _materialize_one_job(job: dict) -> dict:
     stem = job["stem"]
     ext = job["ext"]
     out_rel = job["out_rel"]
+    # Both come from asset_schema: the asset's group directory, else its type's.
+    fallback_rel = job.get("fallback_rel") or AssetStore._fallback_rel(type_dir, stem, ext)
     raw_path = assets_root / raw_rel
     out_path = assets_root / out_rel
 
@@ -780,7 +782,7 @@ def _materialize_one_job(job: dict) -> dict:
                 if pe2_dest.exists() and pe2_dest != out_path:
                     pe2_dest.unlink()
             except Exception as ex:
-                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback = assets_root / fallback_rel
                 fallback.parent.mkdir(parents=True, exist_ok=True)
                 if fallback.exists() or fallback.is_symlink():
                     fallback.unlink()
@@ -788,14 +790,14 @@ def _materialize_one_job(job: dict) -> dict:
                     fallback.hardlink_to(raw_path)
                 except OSError:
                     fallback.write_bytes(raw_path.read_bytes())
-                path_override = f"{type_dir}/{stem}{ext}"
+                path_override = fallback_rel
                 log = f"image decode failed {raw_rel}: {ex}; raw pe2 copied"
         elif ext == ".bs":
             log = f"decode bs {raw_rel} → {out_rel}"
             try:
                 materialize_bs_asset(raw_path, out_path.with_suffix(".bs"))
             except Exception as ex:
-                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback = assets_root / fallback_rel
                 fallback.parent.mkdir(parents=True, exist_ok=True)
                 if fallback.exists() or fallback.is_symlink():
                     fallback.unlink()
@@ -803,17 +805,17 @@ def _materialize_one_job(job: dict) -> dict:
                     fallback.hardlink_to(raw_path)
                 except OSError:
                     fallback.write_bytes(raw_path.read_bytes())
-                path_override = f"{type_dir}/{stem}{ext}"
+                path_override = fallback_rel
                 log = f"BS decode failed {raw_rel}: {ex}; raw .bs copied"
         elif ext in EMBEDDED_INFLATE_EXTS:
             log = f"decode embedded {raw_rel} → {out_rel}"
-            dest_dir = assets_root / type_dir / stem
+            dest_dir = out_path.parent
             try:
                 from exe_assets import materialize_save_header_asset
 
                 materialize_save_header_asset(raw_path, dest_dir)
             except Exception as ex:
-                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback = assets_root / fallback_rel
                 fallback.parent.mkdir(parents=True, exist_ok=True)
                 if fallback.exists() or fallback.is_symlink():
                     fallback.unlink()
@@ -821,15 +823,15 @@ def _materialize_one_job(job: dict) -> dict:
                     fallback.hardlink_to(raw_path)
                 except OSError:
                     fallback.write_bytes(raw_path.read_bytes())
-                path_override = f"{type_dir}/{stem}{ext}"
+                path_override = fallback_rel
                 log = f"embedded decode failed {raw_rel}: {ex}; raw copied"
         elif ext == SPK_INFLATE_EXT:
             log = f"decode spk {raw_rel} → {out_rel}"
-            dest_dir = assets_root / type_dir / stem
+            dest_dir = out_path.parent
             try:
-                materialize_spk_asset(raw_path, dest_dir)
+                materialize_spk_asset(raw_path, dest_dir, assets_root=assets_root)
             except Exception as ex:
-                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback = assets_root / fallback_rel
                 fallback.parent.mkdir(parents=True, exist_ok=True)
                 if fallback.exists() or fallback.is_symlink():
                     fallback.unlink()
@@ -837,7 +839,7 @@ def _materialize_one_job(job: dict) -> dict:
                     fallback.hardlink_to(raw_path)
                 except OSError:
                     fallback.write_bytes(raw_path.read_bytes())
-                path_override = f"{type_dir}/{stem}{ext}"
+                path_override = fallback_rel
                 log = f"SPK decode failed {raw_rel}: {ex}; raw .spk copied"
         else:
             log = f"link {raw_rel} → {out_rel}"
@@ -1279,9 +1281,10 @@ def main():
     validate_asset_db()
 
     # raw/{type}/     — unique clean on-disc payloads (ASSETS id or type_N)
-    # pe2pkg/ pe2img/… — inflated edit forms (one per unique raw)
+    # pe2pkg/ pe2img/… — inflated edit forms (one per unique raw); an asset
+    #                    with a group goes under <group>/ instead
     # raw/audio/ movie/ — MTS + STR streams (from STAGE*.CDF / INTER*.STR)
-    # stages.json     — pack manifest (paths into inflated type dirs)
+    # stages.json     — pack manifest (paths of the inflated forms)
     # stage0/…        — pack sidecars only (trailers, layout, streaming)
     store = AssetStore(output_path)
 
@@ -1353,7 +1356,7 @@ def main():
         missing = [
             s
             for s in sorted(REQUIRED_OVERLAY_STEMS)
-            if not (output_path / "pe2pkg" / f"{s}.pe2pkg").exists()
+            if not (output_path / AssetStore._inflated_rel("pe2pkg", s, ".pe2pkg")).exists()
         ]
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)

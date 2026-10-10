@@ -150,6 +150,11 @@ def path_under_raw_type_store(
     ``pe2pkg/gameplay.pe2pkg`` → ``raw/pe2pkg/gameplay.pe2pkg``
     ``pe2img/foo.png`` → ``raw/pe2img/foo.pe2img``
     ``spk/spk_0/meta.json`` → ``raw/spk/spk_0.spk``
+
+    Only the asset's name is read from the path and the type comes from the
+    chunk, so an asset the table files under a group
+    (``weapons/m4a1/foo.png``, ``asset_schema.asset_dir``) maps the same way:
+    ``raw/`` is never grouped.
     """
     p = Path(path_str)
     # Already under raw/

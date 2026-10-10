@@ -37,6 +37,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import asset_schema  # noqa: E402
 import mesh_view  # noqa: E402
 import pkg_overlay  # noqa: E402
 from asset_db import (  # noqa: E402
@@ -299,6 +300,39 @@ def _load_stages(assets_root: Path) -> dict[str, Any] | None:
         return None
 
 
+def path_type_dir(assets_root: Path, path: Path) -> str | None:
+    """The type directory a file of the extraction belongs to (``pe2img``, ``bs``, ``spk``, …).
+
+    A decoded file is under its type's directory unless the asset table gives it
+    a group, and then its path does not say what it is (``weapons/m4a1/x.png``
+    may be an image, a CLUT or a background): ``asset_schema`` is asked. A path
+    outside the extraction is judged by the directories it names, as before.
+    """
+    try:
+        rel = path.resolve().relative_to(assets_root.resolve()) if path.is_absolute() else path
+    except (OSError, ValueError):
+        rel = None
+    if rel is not None:
+        try:
+            found = asset_schema.type_dir_at(rel.as_posix())
+        except Exception:  # noqa: BLE001 - the asset table is optional for the viewer
+            found = None
+        if found is not None:
+            return found
+    for name in reversed(path.parts[:-1]):
+        if name in TYPE_DIRS:
+            return name
+    return None
+
+
+def decoded_dir(assets_root: Path, type_dir: str, stem: str) -> Path:
+    """Where the decoded form of ``raw/<type_dir>/<stem>.*`` is: its group's directory, else its type's."""
+    try:
+        return assets_root / asset_schema.asset_dir(stem, type_dir=type_dir)
+    except Exception:  # noqa: BLE001 - the asset table is optional for the viewer
+        return assets_root / type_dir
+
+
 def prefer_raw_blob(assets_root: Path, path: Path) -> Path:
     """Prefer ``raw/{type}/stem.pe2*`` over inflated PNG/duplicates.
 
@@ -328,15 +362,17 @@ def prefer_raw_blob(assets_root: Path, path: Path) -> Path:
         raw = assets_root / "raw" / "bs" / f"{stem}.bs"
         return raw if raw.exists() else path
     if suf == ".png":
-        # pe2img/foo.png, pe2clut/foo.png, or bs/foo.png
-        if "bs" in path.parts or path.parent.name == "bs":
+        # pe2img/foo.png, pe2clut/foo.png, or bs/foo.png - or any of them
+        # under the asset's group directory.
+        tdir = path_type_dir(assets_root, path)
+        if tdir == "bs":
             raw = assets_root / "raw" / "bs" / f"{stem}.bs"
             return raw if raw.exists() else path
-        if "pe2img" in path.parts or path.parent.name == "pe2img":
+        if tdir == "pe2img":
             raw = assets_root / "raw" / "pe2img" / f"{stem}.pe2img"
             if raw.exists():
                 return raw
-        if "pe2clut" in path.parts or path.parent.name == "pe2clut":
+        if tdir == "pe2clut":
             raw = assets_root / "raw" / "pe2clut" / f"{stem}.pe2clut"
             if raw.exists():
                 return raw
@@ -351,15 +387,15 @@ def _resolve_on_disk(
         return None
     stem = Path(rel).stem
     parts = Path(rel).parts
+    # The type's directory, which is parts[0] only for an asset without a group.
+    rel_tdir = path_type_dir(assets_root, Path(rel)) if parts else None
 
     # Prefer raw for image / clut (decode-ready payloads).
-    if type_id in ("image", "clut") or (
-        parts and parts[0] in ("pe2img", "pe2clut")
-    ):
+    if type_id in ("image", "clut") or rel_tdir in ("pe2img", "pe2clut"):
         if type_id in _TYPE_RAW_EXT:
             tdir, ext = _TYPE_RAW_EXT[type_id]
-        elif parts:
-            tdir = parts[0]
+        elif rel_tdir:
+            tdir = rel_tdir
             ext = ".pe2img" if tdir == "pe2img" else ".pe2clut"
         else:
             tdir, ext = "pe2img", ".pe2img"
@@ -376,8 +412,10 @@ def _resolve_on_disk(
         raw = assets_root / "raw" / tdir / f"{stem}{ext}"
         if raw.exists():
             return raw
-    if len(parts) >= 2 and parts[0] in TYPE_DIRS:
-        tdir = parts[0]
+    if len(parts) >= 2 and rel_tdir in TYPE_DIRS:
+        tdir = rel_tdir
+        if Path(rel).name == "meta.json":
+            stem = Path(rel).parent.name
         for ext in (
             ".pe2img",
             ".pe2clut",
@@ -445,10 +483,12 @@ def build_image_clut_index(
             if path is None:
                 continue
             is_img = t == "image" or path.suffix.lower() == ".pe2img" or (
-                path.suffix.lower() == ".png" and "pe2img" in path.parts
+                path.suffix.lower() == ".png"
+                and path_type_dir(assets_root, path) == "pe2img"
             )
             is_clut = t == "clut" or path.suffix.lower() == ".pe2clut" or (
-                path.suffix.lower() == ".png" and "pe2clut" in path.parts
+                path.suffix.lower() == ".png"
+                and path_type_dir(assets_root, path) == "pe2clut"
             )
             if is_img:
                 path = prefer_raw_blob(assets_root, path)
@@ -505,7 +545,8 @@ def build_image_canon_index(
             t = ent.get("type")
             rel = ent.get("path") or ""
             is_img = t == "image" or str(rel).endswith(".pe2img") or (
-                str(rel).endswith(".png") and "pe2img" in str(rel).replace("\\", "/")
+                str(rel).endswith(".png")
+                and path_type_dir(Path("."), Path(str(rel).replace("\\", "/"))) == "pe2img"
             )
             if not is_img:
                 continue
@@ -576,13 +617,50 @@ def pe2img_path_for_preview(assets_root: Path, path: Path) -> Path | None:
     return None
 
 
+def grouped_type_items(assets_root: Path, type_dir: str) -> list[AssetItem]:
+    """The assets of a type that the asset table files under a group, where the extraction has them there.
+
+    They are listed with their type all the same: the type tree is by type, and
+    the label says which group holds the file.
+    """
+    try:
+        grouped = asset_schema.grouped_of_type(type_dir)
+    except Exception:  # noqa: BLE001 - the asset table is optional for the viewer
+        return []
+    out: list[AssetItem] = []
+    for key, rec in sorted(grouped, key=lambda kv: asset_name_key(kv[0])):
+        path = assets_root / asset_schema.decoded_rel(key, rec)
+        if not path.is_file():
+            fallback = assets_root / asset_schema.asset_dir(key, rec) / f"{key}{asset_schema.stored_ext(rec)}"
+            if not fallback.is_file():
+                continue                      # not extracted, or still under its type's directory
+            path = fallback
+        label = key if path.name == "meta.json" else path.name
+        out.append(
+            AssetItem(
+                path=path,
+                label=f"{label}  [{asset_schema.group_of(key, rec)}]",
+                kind=type_dir,
+                source="inflated",
+            )
+        )
+    return out
+
+
 def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
-    """Group assets by type dir, preferring inflated over raw of the same name."""
+    """Group assets by type dir, preferring inflated over raw of the same name.
+
+    An asset with a group is not under its type's directory; it is listed with
+    its type from where ``asset_schema`` says the group put it.
+    """
     by_type: dict[str, list[AssetItem]] = {t: [] for t in TYPE_DIRS}
     for type_dir in TYPE_DIRS:
         infl_dir = assets_root / type_dir
         raw_dir = assets_root / "raw" / type_dir
         seen_stems: set[str] = set()
+        for item in grouped_type_items(assets_root, type_dir):
+            seen_stems.add(item.path.parent.name if item.path.name == "meta.json" else item.path.stem)
+            by_type[type_dir].append(item)
 
         if infl_dir.is_dir():
             # CD audio streams: audio/{stem}.wav + {stem}.json (+ raw/audio/*.mts)
@@ -710,11 +788,12 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                 if p.stem in seen_stems:
                     continue
                 # Inflated PNG / SPK dir / same-suffix opaque
-                if (assets_root / type_dir / f"{p.stem}.png").exists():
+                home = decoded_dir(assets_root, type_dir, p.stem)
+                if (home / f"{p.stem}.png").exists():
                     continue
-                if (assets_root / type_dir / p.stem).is_dir():
+                if (home / p.stem).is_dir():
                     continue
-                if (assets_root / type_dir / f"{p.stem}{p.suffix}").exists():
+                if (home / f"{p.stem}{p.suffix}").exists():
                     continue
                 if type_dir == "audio" and (
                     assets_root / type_dir / f"{p.stem}.wav"
@@ -1822,7 +1901,7 @@ class AssetViewer(tk.Tk):
         if (
             suf == ".spk"
             or kind in ("spk", "music")
-            or (path.name == "meta.json" and "spk" in path.parts)
+            or (path.name == "meta.json" and path_type_dir(self.assets_root, path) == "spk")
         ):
             self._set_clut_controls_enabled(False)
             if self._show_spk(path, data):
@@ -1902,14 +1981,15 @@ class AssetViewer(tk.Tk):
         if parts and parts[0] == "raw" and len(parts) >= 3:
             # Viewing raw — try inflate counterpart
             type_dir, name = parts[1], parts[-1]
-            infl = self.assets_root / type_dir / name
+            home = decoded_dir(self.assets_root, type_dir, Path(name).stem)
+            infl = home / name
             # png for images
             if not infl.exists() and Path(name).suffix in (
                 ".pe2img",
                 ".pe2clut",
                 ".bs",
             ):
-                infl = self.assets_root / type_dir / f"{Path(name).stem}.png"
+                infl = home / f"{Path(name).stem}.png"
             if not infl.exists() and Path(name).suffix == ".pe2pkg":
                 # inflated pe2pkg keeps same name
                 infl = self.assets_root / type_dir / name
@@ -1941,10 +2021,10 @@ class AssetViewer(tk.Tk):
                 defl_path, defl_data = path, data
             return raw_path, raw_data, defl_path, defl_data
 
-        if parts and parts[0] in TYPE_DIRS:
+        type_dir = path_type_dir(self.assets_root, path)
+        if parts and type_dir in TYPE_DIRS:
             # Viewing inflated — find raw
-            type_dir = parts[0]
-            stem = path.stem
+            stem = path.parent.name if path.name == "meta.json" else path.stem
             ext_candidates = [
                 path.suffix,
                 ".pe2img",
