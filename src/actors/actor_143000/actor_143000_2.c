@@ -488,9 +488,9 @@ static void _actor143000TerminalSessionTask(Task* task)
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_143000_TERMINAL_COMPLETE_OBJECTIVE);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, ACTOR_143000_TERMINAL_PROGRESS_COMPLETE);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
-                areaApplySavedUpdates(D_shelter_b2_laboratory_80186488);
+                areaApplySavedUpdates(gShelterB2LaboratoryQuizCompletionAreaUpdates);
                 if (gameFlagGetNibble(GAME_FLAG_083) == 0) {
-                    areaApplySavedUpdates(D_shelter_b2_laboratory_8018649C);
+                    areaApplySavedUpdates(gShelterB2LaboratoryPodTunnelAreaUpdates);
                 }
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE);

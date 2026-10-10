@@ -14,7 +14,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Extents of the laboratory's view colours and collision-surface directory.
+/// Extents of the laboratory's view resources and collision-surface directory.
 enum {
     SHELTER_B2_LABORATORY_VIEW_COUNT          = 15,
     SHELTER_B2_LABORATORY_SURFACE_CLASS_COUNT = 8,
@@ -22,11 +22,29 @@ enum {
 
 extern TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0;
 
-extern AreaApplyRec D_shelter_b2_laboratory_80186488[5];
+/// Saved-area changes committed when the laboratory terminal quiz succeeds.
+///
+/// Selects layout 3 and marks the mine secret passage, B1 north maintenance
+/// walkway and B2 elevator hall; selects layout 12 and clears the night water
+/// tank's mark. Applies in every save mode and removes saved enemy poses in
+/// those areas. Four updates followed by `AREA_APPLY_END`; borrowed from the
+/// loaded laboratory overlay by the terminal actor.
+extern AreaApplyRec gShelterB2LaboratoryQuizCompletionAreaUpdates[5];
 
-extern AreaApplyRec D_shelter_b2_laboratory_8018649C[2];
+/// Conditional post-quiz saved-layout change for the pod-tunnel destination R47.
+///
+/// Selects layout 2, clears its map mark and removes saved enemy poses in every
+/// save mode. The terminal applies it only while `GAME_FLAG_083` is clear.
+/// One update followed by `AREA_APPLY_END`; keep the laboratory overlay loaded.
+extern AreaApplyRec gShelterB2LaboratoryPodTunnelAreaUpdates[2];
 
-extern AreaVariant D_shelter_b2_laboratory_80186360[11];
+/// Laboratory placement layouts indexed by the saved variant, 0..10.
+///
+/// Only variant 1 supplies placements and resources: a terminal package anchor
+/// whose bodyless task immediately dies after loading the actor resources.
+/// Slots 0 and 2..10 are empty. No terminator; gameplay borrows these records
+/// and their tables while this room overlay is loaded.
+extern AreaVariant gShelterB2LaboratoryAreaVariants[11];
 
 /// Logical-view maps for the laboratory's single room.
 ///
@@ -35,9 +53,20 @@ extern AreaVariant D_shelter_b2_laboratory_80186360[11];
 /// room overlay and gameplay's shared map loaded while using this directory.
 extern u8* gShelterB2LaboratoryRoomViewMaps[1];
 
-extern ViewCount D_shelter_b2_laboratory_80182C0C[];
+/// Reverse-lookup view count for the laboratory's single room.
+///
+/// Room 1 searches fifteen logical-view entries. This count is independent of
+/// the shared identity map's capacity; no terminator follows it. The stage map
+/// borrows this array while the laboratory overlay is loaded.
+extern ViewCount gShelterB2LaboratoryRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_laboratory_80182C10[];
+/// Laboratory arrival/departure endpoints for the main corridor and operating room.
+///
+/// Warp IDs 1 and 2 select entries 0 and 1, arriving in views 2 and 4.
+/// The corridor endpoint sets map-marker nibble 451; the operating-room
+/// endpoint has no map flag. Both place player and companion together and use
+/// room-bank arrival/departure sounds. No terminator; borrowed while loaded.
+extern DirectionWarpEntry gShelterB2LaboratoryWarpEntries[2];
 
 /// Laboratory collision mesh indexed by a 4-by-3 XZ grid of 4000-unit cells.
 ///
@@ -46,9 +75,20 @@ extern DirectionWarpEntry D_shelter_b2_laboratory_80182C10[];
 /// mesh and cell lists stay borrowed while this room overlay is loaded.
 extern WorldCollisionGrid gShelterB2LaboratoryCollisionGrid;
 
-extern ViewCamera D_shelter_b2_laboratory_80183580[];
+/// Cameras for the laboratory's fifteen identity-mapped logical views.
+///
+/// Entry `view - 1` supplies Q12 world-to-camera rotation, negated origin in
+/// world units and projection distance in pixels. No terminator; queued camera
+/// tasks borrow the selected record until application, so keep this overlay loaded.
+extern ViewCamera gShelterB2LaboratoryViewCameras[SHELTER_B2_LABORATORY_VIEW_COUNT];
 
-extern SpriteView D_shelter_b2_laboratory_801854D0[];
+/// Sprite and clipping descriptors for the laboratory's fifteen mapped views.
+///
+/// Entry `view - 1` borrows this overlay's mutable sources, sentinel-ended
+/// batches and optional draw areas. Views 1, 6 and 10..14 have no source sprites;
+/// every view retains decoded image strips. Keep this overlay loaded through
+/// packet allocation, linking and any edits to the borrowed records.
+extern SpriteView gShelterB2LaboratorySpriteViews[SHELTER_B2_LABORATORY_VIEW_COUNT];
 
 /// Laboratory model-lighting collection, containing ten point lights for all views.
 ///
@@ -57,9 +97,20 @@ extern SpriteView D_shelter_b2_laboratory_801854D0[];
 /// borrowed pointers before unloading it.
 extern WorldCoordRoomLights gShelterB2LaboratoryRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_laboratory_8018595C[];
+/// Fourteen directed boundaries switching between laboratory logical views.
+///
+/// Seven pairs connect views 2/4, 2/3, 5/6, 5/2, 7/8, 7/6 and 15/5.
+/// The last included quad carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup
+/// binds and links these mutable records; keep their storage loaded until unlinked.
+extern WorldCollisionTrigger gShelterB2LaboratoryViewBoundaryTriggers[14];
 
-extern WorldCollisionTrigger D_shelter_b2_laboratory_80185D84[];
+/// Laboratory interaction quads for exits, CAP commands and the console.
+///
+/// Nineteen included records end with `WORLD_COLLISION_TRIGGER_LAST` on the
+/// final quad. The first two warp to the main corridor and operating room;
+/// room-command 4 and directed-action 1 drive the console. Room setup borrows
+/// and links the mutable records; keep this overlay loaded until unlinked.
+extern WorldCollisionTrigger gShelterB2LaboratoryActionTriggers[19];
 
 /// Minimum model ambient colours for the laboratory's fifteen logical views.
 ///
