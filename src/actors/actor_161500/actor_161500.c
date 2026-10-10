@@ -1853,6 +1853,12 @@ void actor161500RestoreCompanionRequestScene(void)
     }
 }
 
+/// Selects this package's two-entry TaskDesc table for the stride-walk spawn fragment.
+///
+/// Slot 0 is the body and slot 1 its optional rifle. The identifier is evaluated
+/// once when a nonzero first spawn payload requests the child. Keep the table
+/// live through spawning and its callbacks and model data live until teardown.
+/// Bind only around the fragment inclusion, then undefine it.
 #define STRIDE_WALK_TASKS gActor161500SoldierBTasks
 #include "../../shared/stride_walk_spawn.inc.c"
 #undef STRIDE_WALK_TASKS

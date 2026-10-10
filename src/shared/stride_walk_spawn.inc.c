@@ -1,9 +1,11 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/* STRIDE_WALK_TASKS names this carrier's declared TaskDesc table. Element 1
- * creates the optional carried model; the table and its resources must be live.
- * Both actor_161500 and actor_460200 bind their own package's table. The binding
- * is an object identifier with no side effects, evaluated once when spawning. */
+/* STRIDE_WALK_TASKS must name this carrier's declared two-entry TaskDesc table:
+ * body at 0, optional carried model at 1, with no terminator. actor_161500 and
+ * actor_460200 each bind their own table only around this inclusion. The object
+ * identifier has no side effects and is evaluated once on an armed spawn.
+ * The table must be live during spawning; its callbacks and model data must
+ * outlive the spawned tasks. */
 #ifndef STRIDE_WALK_TASKS
 #error "Bind STRIDE_WALK_TASKS before including this fragment"
 #endif
@@ -40,8 +42,9 @@ static inline void _strideWalkInitializeModelLighting(TmdObject* model, StrideWa
 static void _strideWalkSpawn(Enemy* enemy, Task* task)
 {
     enum {
-        STRIDE_WALK_ANIM_UNARMED_IDLE = 1,
-        STRIDE_WALK_ANIM_ARMED_IDLE   = 2
+        STRIDE_WALK_ANIM_UNARMED_IDLE  = 1,
+        STRIDE_WALK_ANIM_ARMED_IDLE    = 2,
+        STRIDE_WALK_TASK_CARRIED_MODEL = 1,
     };
     StrideWalkWork* work;
     GfxCoord*       rootCoord;
@@ -65,7 +68,7 @@ static void _strideWalkSpawn(Enemy* enemy, Task* task)
     model->otOffset                  = 1;
     work->enemy                      = enemy;
     if (task->spawnArg1.value != 0) {
-        pairedEnemy = enemySpawnFromTable(STRIDE_WALK_TASKS, 1, 0, enemy);
+        pairedEnemy = enemySpawnFromTable(STRIDE_WALK_TASKS, STRIDE_WALK_TASK_CARRIED_MODEL, 0, enemy);
         taskReparent(task, pairedEnemy->task);
         work->pairTask  = pairedEnemy->task;
         work->st.animId = STRIDE_WALK_ANIM_ARMED_IDLE;

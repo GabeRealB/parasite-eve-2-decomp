@@ -10,6 +10,17 @@
 /// stay loaded until the spawned task is torn down.
 extern TaskDesc gActor460200SoldierATaskDesc;
 
+/// Spawn recipes for Soldier B's body (0) and optional carried rifle (1).
+///
+/// The Shelter 1F tent places descriptor 0 as actor 1 with a zero first spawn
+/// payload, leaving him unarmed. A nonzero first payload creates descriptor 1
+/// as his child, attached to body part 7 and borrowing the body's lighting.
+/// Spawn the body through the enemy spawner, which supplies its live Enemy in
+/// the second payload. Both entries use priority 96 and suppress automatic
+/// model buffers. Keep this package's code, models and clips loaded until the
+/// tasks are released. The two-entry table has no terminator.
+extern TaskDesc gActor460200SoldierBTasks[2];
+
 /// Spawn recipe for Soldier C, placed as actor 0 in the Shelter 1F tent.
 ///
 /// A single priority-96 TMD entry selected at index 0. The callback borrows a
