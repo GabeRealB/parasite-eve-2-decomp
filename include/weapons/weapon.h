@@ -93,8 +93,6 @@ extern TmdSource D_tonfa_baton_8011E5EC;
 
 extern TmdSource D_m4a1_bayonet_8011E9FC;
 
-extern TmdSource D_m4a1_grenade_8011EA2C;
-
 extern TmdSource D_mp5a5_8011EAFC;
 
 /// Held Gunblade geometry and initial one-part pose.
@@ -117,7 +115,5 @@ extern TmdSource D_m4a1_javelin_8012071C;
 extern TmdSource D_grenade_pistol_8012B5A4;
 
 extern TmdSource D_mm1_8012D444;
-
-extern TmdSource D_m4a1_grenade_8012E1FC;
 
 #endif // INCLUDE_WEAPONS_WEAPON_H

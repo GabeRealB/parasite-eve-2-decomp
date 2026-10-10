@@ -34,7 +34,6 @@
 #include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
@@ -503,124 +502,212 @@ void m4a1GrenadeShellTask(Task* task)
     stateHandlers[task->state](task);
 }
 
-static TmdBone _gM4a1GrenadeModel01134Skeleton[1] = {
+/// Initial local transform and self-parented root for `gM4a1GrenadeWeaponModel`.
+///
+/// Object creation copies this pose into each model instance; parent indices select model parts.
+static TmdBone _gM4a1GrenadeWeaponModelSkeleton[] = {
 #include "assets/m4a1_grenade_model_01134_skeleton.inc"
 };
 
-static u32 _gM4a1GrenadeModel01134PartVerts[1] = {
+/// Part-local vertex count for `gM4a1GrenadeWeaponModel`.
+///
+/// One entry per skeleton part; the sole group spans the complete vertex array.
+static u32 _gM4a1GrenadeWeaponModelPartVerts[] = {
 #include "assets/m4a1_grenade_model_01134_partVerts.inc"
 };
 
-static SVECTOR _gM4a1GrenadeModel01134Verts[66] = {
+/// Integer part-local vertices of `gM4a1GrenadeWeaponModel`.
+///
+/// Borrowed by model instances for their lifetime; coordinates use the model's integer units.
+static SVECTOR _gM4a1GrenadeWeaponModelVerts[] = {
 #include "assets/m4a1_grenade_model_01134_verts.inc"
 };
 
-static SVECTOR _gM4a1GrenadeModel01134Normals[62] = {
+/// Lighting normals of `gM4a1GrenadeWeaponModel`, indexed independently of its vertices.
+///
+/// Borrowed by model instances for their lifetime; components use 4096 per unit.
+static SVECTOR _gM4a1GrenadeWeaponModelNormals[] = {
 #include "assets/m4a1_grenade_model_01134_normals.inc"
 };
 
-static u32 _gM4a1GrenadeModel01134Stream[462] = {
+/// Writable draw-command words for `gM4a1GrenadeWeaponModel`, through the stream terminator.
+///
+/// Model creation resolves draw-handler slots in place. This storage must remain
+/// writable and loaded until every referring model instance is released.
+static u32 _gM4a1GrenadeWeaponModelStream[] = {
 #include "assets/m4a1_grenade_model_01134_stream.inc"
 };
 
-TmdSource D_m4a1_grenade_8011EA2C = {
-    0,
-    3356,
-    0,
-    1,
-    _gM4a1GrenadeModel01134PartVerts,
-    _gM4a1GrenadeModel01134Verts,
-    _gM4a1GrenadeModel01134Normals,
-    _gM4a1GrenadeModel01134Skeleton,
-    _gM4a1GrenadeModel01134Stream,
+TmdSource gM4a1GrenadeWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = 3356,
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1GrenadeWeaponModelSkeleton),
+    .partVertexCounts    = _gM4a1GrenadeWeaponModelPartVerts,
+    .verts               = _gM4a1GrenadeWeaponModelVerts,
+    .normals             = _gM4a1GrenadeWeaponModelNormals,
+    .skeleton            = _gM4a1GrenadeWeaponModelSkeleton,
+    .stream              = _gM4a1GrenadeWeaponModelStream,
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation01A20Bank1[2] = {
+/// Translation/rotation poses (encoding 1): integer coordinates and 1/4096-turn angles.
+///
+/// Read-only playback data for `_gM4a1GrenadeIdleAnimation`; borrowed while this package is loaded.
+static AnimationPackedPose _gM4a1GrenadeIdleAnimationBank1[] = {
 #include "assets/m4a1_grenade_animation_01A20_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation01A20Bank4[8] = {
+/// Packed rotation poses (encoding 4): signed 11/10/11-bit angles in eight-unit steps.
+///
+/// Read-only playback data for `_gM4a1GrenadeIdleAnimation`; borrowed while this package is loaded.
+static AnimationPackedRotation _gM4a1GrenadeIdleAnimationBank4[] = {
 #include "assets/m4a1_grenade_animation_01A20_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation01A20Records[76] = {
+/// Keyframes and track controls; pose offsets count four-byte words.
+///
+/// Read-only playback data for `_gM4a1GrenadeIdleAnimation`; borrowed while this package is loaded.
+static AnimationRecord _gM4a1GrenadeIdleAnimationRecords[] = {
 #include "assets/m4a1_grenade_animation_01A20_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation01A20Indices[20] = {
+/// Nineteen track-start record indices followed by one retained export halfword.
+///
+/// Read-only playback data for `_gM4a1GrenadeIdleAnimation`; borrowed while this package is loaded.
+static u16 _gM4a1GrenadeIdleAnimationIndices[] = {
 #include "assets/m4a1_grenade_animation_01A20_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation01A20 = {
-    _gM4a1GrenadeAnimation01A20Records,
-    _gM4a1GrenadeAnimation01A20Indices,
-    { NULL, _gM4a1GrenadeAnimation01A20Bank1, NULL, NULL, _gM4a1GrenadeAnimation01A20Bank4, NULL, NULL, NULL },
+/// Standing idle pose for the M4A1 grenade-launcher player bank.
+///
+/// Bank slots 1, 21, 22 and 41 share this constant pose.
+/// Supplies 19 model-part tracks. Playback reads the clip and its word-aligned
+/// pose banks without modifying them; the package must remain loaded while
+/// slots or cached record pointers refer to it.
+static AnimationSet _gM4a1GrenadeIdleAnimation = {
+    .records           = _gM4a1GrenadeIdleAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeIdleAnimationIndices,
+    .poseBanks         = { [1] = _gM4a1GrenadeIdleAnimationBank1, [4] = _gM4a1GrenadeIdleAnimationBank4 },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation020C4Bank1[12] = {
+/// Translation/rotation poses (encoding 1): integer coordinates and 1/4096-turn angles.
+///
+/// Read-only playback data for `_gM4a1GrenadeUnarmedWalkAnimation`; borrowed while this package is loaded.
+static AnimationPackedPose _gM4a1GrenadeUnarmedWalkAnimationBank1[] = {
 #include "assets/m4a1_grenade_animation_020C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation020C4Bank4[151] = {
+/// Packed rotation poses (encoding 4): signed 11/10/11-bit angles in eight-unit steps.
+///
+/// Read-only playback data for `_gM4a1GrenadeUnarmedWalkAnimation`; borrowed while this package is loaded.
+static AnimationPackedRotation _gM4a1GrenadeUnarmedWalkAnimationBank4[] = {
 #include "assets/m4a1_grenade_animation_020C4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation020C4Records[218] = {
+/// Keyframes and track controls; pose offsets count four-byte words.
+///
+/// Read-only playback data for `_gM4a1GrenadeUnarmedWalkAnimation`; borrowed while this package is loaded.
+static AnimationRecord _gM4a1GrenadeUnarmedWalkAnimationRecords[] = {
 #include "assets/m4a1_grenade_animation_020C4_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation020C4Indices[20] = {
+/// Nineteen track-start record indices followed by one retained export halfword.
+///
+/// Read-only playback data for `_gM4a1GrenadeUnarmedWalkAnimation`; borrowed while this package is loaded.
+static u16 _gM4a1GrenadeUnarmedWalkAnimationIndices[] = {
 #include "assets/m4a1_grenade_animation_020C4_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation020C4 = {
-    _gM4a1GrenadeAnimation020C4Records,
-    _gM4a1GrenadeAnimation020C4Indices,
-    { NULL, _gM4a1GrenadeAnimation020C4Bank1, NULL, NULL, _gM4a1GrenadeAnimation020C4Bank4, NULL, NULL, NULL },
+/// Forward walk while the M4A1 grenade-launcher weapon model is absent.
+///
+/// Bank slot 19 is selected when equipment slot 1 contains no weapon task.
+/// Supplies 19 model-part tracks. Playback reads the clip and its word-aligned
+/// pose banks without modifying them; the package must remain loaded while
+/// slots or cached record pointers refer to it.
+static AnimationSet _gM4a1GrenadeUnarmedWalkAnimation = {
+    .records           = _gM4a1GrenadeUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeUnarmedWalkAnimationIndices,
+    .poseBanks         = { [1] = _gM4a1GrenadeUnarmedWalkAnimationBank1, [4] = _gM4a1GrenadeUnarmedWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation02924Bank1[19] = {
+/// Translation/rotation poses (encoding 1): integer coordinates and 1/4096-turn angles.
+///
+/// Read-only playback data for `_gM4a1GrenadeNegativeTurnAnimation`; borrowed while this package is loaded.
+static AnimationPackedPose _gM4a1GrenadeNegativeTurnAnimationBank1[] = {
 #include "assets/m4a1_grenade_animation_02924_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation02924Bank4[169] = {
+/// Packed rotation poses (encoding 4): signed 11/10/11-bit angles in eight-unit steps.
+///
+/// Read-only playback data for `_gM4a1GrenadeNegativeTurnAnimation`; borrowed while this package is loaded.
+static AnimationPackedRotation _gM4a1GrenadeNegativeTurnAnimationBank4[] = {
 #include "assets/m4a1_grenade_animation_02924_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation02924Records[290] = {
+/// Keyframes and track controls; pose offsets count four-byte words.
+///
+/// Read-only playback data for `_gM4a1GrenadeNegativeTurnAnimation`; borrowed while this package is loaded.
+static AnimationRecord _gM4a1GrenadeNegativeTurnAnimationRecords[] = {
 #include "assets/m4a1_grenade_animation_02924_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation02924Indices[20] = {
+/// Nineteen track-start record indices followed by one retained export halfword.
+///
+/// Read-only playback data for `_gM4a1GrenadeNegativeTurnAnimation`; borrowed while this package is loaded.
+static u16 _gM4a1GrenadeNegativeTurnAnimationIndices[] = {
 #include "assets/m4a1_grenade_animation_02924_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation02924 = {
-    _gM4a1GrenadeAnimation02924Records,
-    _gM4a1GrenadeAnimation02924Indices,
-    { NULL, _gM4a1GrenadeAnimation02924Bank1, NULL, NULL, _gM4a1GrenadeAnimation02924Bank4, NULL, NULL, NULL },
+/// Stationary turn with a negative yaw step in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 5 accompanies negative stationary turning.
+/// Supplies 19 model-part tracks. Playback reads the clip and its word-aligned
+/// pose banks without modifying them; the package must remain loaded while
+/// slots or cached record pointers refer to it.
+static AnimationSet _gM4a1GrenadeNegativeTurnAnimation = {
+    .records           = _gM4a1GrenadeNegativeTurnAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeNegativeTurnAnimationIndices,
+    .poseBanks         = { [1] = _gM4a1GrenadeNegativeTurnAnimationBank1, [4] = _gM4a1GrenadeNegativeTurnAnimationBank4 },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation03188Bank1[19] = {
+/// Translation/rotation poses (encoding 1): integer coordinates and 1/4096-turn angles.
+///
+/// Read-only playback data for `_gM4a1GrenadePositiveTurnAnimation`; borrowed while this package is loaded.
+static AnimationPackedPose _gM4a1GrenadePositiveTurnAnimationBank1[] = {
 #include "assets/m4a1_grenade_animation_03188_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation03188Bank4[170] = {
+/// Packed rotation poses (encoding 4): signed 11/10/11-bit angles in eight-unit steps.
+///
+/// Read-only playback data for `_gM4a1GrenadePositiveTurnAnimation`; borrowed while this package is loaded.
+static AnimationPackedRotation _gM4a1GrenadePositiveTurnAnimationBank4[] = {
 #include "assets/m4a1_grenade_animation_03188_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation03188Records[290] = {
+/// Keyframes and track controls; pose offsets count four-byte words.
+///
+/// Read-only playback data for `_gM4a1GrenadePositiveTurnAnimation`; borrowed while this package is loaded.
+static AnimationRecord _gM4a1GrenadePositiveTurnAnimationRecords[] = {
 #include "assets/m4a1_grenade_animation_03188_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation03188Indices[20] = {
+/// Nineteen track-start record indices followed by one retained export halfword.
+///
+/// Read-only playback data for `_gM4a1GrenadePositiveTurnAnimation`; borrowed while this package is loaded.
+static u16 _gM4a1GrenadePositiveTurnAnimationIndices[] = {
 #include "assets/m4a1_grenade_animation_03188_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation03188 = {
-    _gM4a1GrenadeAnimation03188Records,
-    _gM4a1GrenadeAnimation03188Indices,
-    { NULL, _gM4a1GrenadeAnimation03188Bank1, NULL, NULL, _gM4a1GrenadeAnimation03188Bank4, NULL, NULL, NULL },
+/// Stationary turn with a positive yaw step in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 6 accompanies positive stationary turning.
+/// Supplies 19 model-part tracks. Playback reads the clip and its word-aligned
+/// pose banks without modifying them; the package must remain loaded while
+/// slots or cached record pointers refer to it.
+static AnimationSet _gM4a1GrenadePositiveTurnAnimation = {
+    .records           = _gM4a1GrenadePositiveTurnAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePositiveTurnAnimationIndices,
+    .poseBanks         = { [1] = _gM4a1GrenadePositiveTurnAnimationBank1, [4] = _gM4a1GrenadePositiveTurnAnimationBank4 },
 };
 
 static AnimationPackedPose _gM4a1GrenadeAnimation0349CBank1[3] = {
@@ -1373,12 +1460,12 @@ static AnimationSet _gM4a1GrenadeAnimation10D68 = {
 
 AnimationBank D_m4a1_grenade_8012DF50 = { { {
     NULL,
-    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeIdleAnimation,
     &_gM4a1GrenadeAnimation0FBF4,
     &_gM4a1GrenadeAnimation10394,
     &_gM4a1GrenadeAnimation10D68,
-    &_gM4a1GrenadeAnimation02924,
-    &_gM4a1GrenadeAnimation03188,
+    &_gM4a1GrenadeNegativeTurnAnimation,
+    &_gM4a1GrenadePositiveTurnAnimation,
     &_gM4a1GrenadeAnimation0EDC4,
     &_gM4a1GrenadeAnimation0F33C,
     &_gM4a1GrenadeAnimation0A204,
@@ -1391,10 +1478,10 @@ AnimationBank D_m4a1_grenade_8012DF50 = { { {
     &_gM4a1GrenadeAnimation05DEC,
     &_gM4a1GrenadeAnimation0610C,
     &_gM4a1GrenadeAnimation068D0,
-    &_gM4a1GrenadeAnimation020C4,
+    &_gM4a1GrenadeUnarmedWalkAnimation,
     &_gM4a1GrenadeAnimation0C388,
-    &_gM4a1GrenadeAnimation01A20,
-    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeIdleAnimation,
+    &_gM4a1GrenadeIdleAnimation,
     &_gM4a1GrenadeAnimation07B68,
     &_gM4a1GrenadeAnimation08DFC,
     &_gM4a1GrenadeAnimation086E0,
@@ -1413,7 +1500,7 @@ AnimationBank D_m4a1_grenade_8012DF50 = { { {
     &_gM4a1GrenadeAnimation049E4,
     &_gM4a1GrenadeAnimation04654,
     &_gM4a1GrenadeAnimation0349C,
-    &_gM4a1GrenadeAnimation01A20,
+    &_gM4a1GrenadeIdleAnimation,
     &_gM4a1GrenadeAnimation099B8,
     &_gM4a1GrenadeAnimation09BAC,
     &_gM4a1GrenadeAnimation0A02C,
@@ -1458,34 +1545,50 @@ AnimationBank D_m4a1_grenade_8012DF50 = { { {
 /// this has to link between the two runs of split data around it.
 u16 D_m4a1_grenade_8012E08C[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
 
-static TmdBone _gM4a1GrenadeModel10F7CSkeleton[1] = {
+/// Initial local transform and self-parented root for `gM4a1GrenadeProjectileModel`.
+///
+/// Object creation copies this pose into each model instance; parent indices select model parts.
+static TmdBone _gM4a1GrenadeProjectileModelSkeleton[] = {
 #include "assets/m4a1_grenade_model_10F7C_skeleton.inc"
 };
 
-static u32 _gM4a1GrenadeModel10F7CPartVerts[1] = {
+/// Part-local vertex count for `gM4a1GrenadeProjectileModel`.
+///
+/// One entry per skeleton part; the sole group spans the complete vertex array.
+static u32 _gM4a1GrenadeProjectileModelPartVerts[] = {
 #include "assets/m4a1_grenade_model_10F7C_partVerts.inc"
 };
 
-static SVECTOR _gM4a1GrenadeModel10F7CVerts[8] = {
+/// Integer part-local vertices of `gM4a1GrenadeProjectileModel`.
+///
+/// Borrowed by model instances for their lifetime; coordinates use the model's integer units.
+static SVECTOR _gM4a1GrenadeProjectileModelVerts[] = {
 #include "assets/m4a1_grenade_model_10F7C_verts.inc"
 };
 
-static SVECTOR _gM4a1GrenadeModel10F7CNormals[8] = {
+/// Lighting normals of `gM4a1GrenadeProjectileModel`, indexed independently of its vertices.
+///
+/// Borrowed by model instances for their lifetime; components use 4096 per unit.
+static SVECTOR _gM4a1GrenadeProjectileModelNormals[] = {
 #include "assets/m4a1_grenade_model_10F7C_normals.inc"
 };
 
-static u32 _gM4a1GrenadeModel10F7CStream[48] = {
+/// Writable draw-command words for `gM4a1GrenadeProjectileModel`, through the stream terminator.
+///
+/// Model creation resolves draw-handler slots in place. This storage must remain
+/// writable and loaded until every referring model instance is released.
+static u32 _gM4a1GrenadeProjectileModelStream[] = {
 #include "assets/m4a1_grenade_model_10F7C_stream.inc"
 };
 
-TmdSource D_m4a1_grenade_8012E1FC = {
-    0,
-    312,
-    0,
-    1,
-    _gM4a1GrenadeModel10F7CPartVerts,
-    _gM4a1GrenadeModel10F7CVerts,
-    _gM4a1GrenadeModel10F7CNormals,
-    _gM4a1GrenadeModel10F7CSkeleton,
-    _gM4a1GrenadeModel10F7CStream,
+TmdSource gM4a1GrenadeProjectileModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = 312,
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1GrenadeProjectileModelSkeleton),
+    .partVertexCounts    = _gM4a1GrenadeProjectileModelPartVerts,
+    .verts               = _gM4a1GrenadeProjectileModelVerts,
+    .normals             = _gM4a1GrenadeProjectileModelNormals,
+    .skeleton            = _gM4a1GrenadeProjectileModelSkeleton,
+    .stream              = _gM4a1GrenadeProjectileModelStream,
 };

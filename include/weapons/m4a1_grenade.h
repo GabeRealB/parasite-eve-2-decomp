@@ -2,6 +2,22 @@
 #define INCLUDE_WEAPONS_M4A1_GRENADE_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Held M4A1 rifle with its grenade-launcher attachment.
+///
+/// One model part with 66 vertices and 62 normals. Each primitive-buffer half
+/// holds 3356 bytes. Objects borrow the source and
+/// its writable command stream; keep this package loaded until they are released.
+extern TmdSource gM4a1GrenadeWeaponModel;
+
+/// Fired 40mm grenade model used during flight and the blast countdown.
+///
+/// One model part with eight vertices, eight normals and six textured quads.
+/// Each primitive-buffer half holds 312 bytes. Objects
+/// borrow the source and its writable command stream for their whole lifetime,
+/// so this package must remain loaded until the projectile task is released.
+extern TmdSource gM4a1GrenadeProjectileModel;
 
 /// Runs the M4A1 grenade launcher's rifle burst or single grenade attack.
 ///
