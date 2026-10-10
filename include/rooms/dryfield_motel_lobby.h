@@ -10,22 +10,60 @@
 
 #include "main/task_types.h"
 
-// dryfield_motel_lobby
-extern WorldCollisionRoomResources D_dryfield_motel_lobby_8017F838[];
+/// Collision resources for the lobby's single room, indexed by room minus one.
+///
+/// Borrows the mutable grid, four view boundaries and seven action triggers;
+/// there are no sight occluders. Keep the lobby overlay loaded while the grid
+/// is active and until its triggers have been unlinked.
+extern WorldCollisionRoomResources gDryfieldMotelLobbyRoomCollisionResources[1];
 
-extern u8* D_dryfield_motel_lobby_8017F848[];
+/// Logical-view map for the lobby's single room, indexed by room minus one.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..5 select the same 1-based
+/// camera, image and sprite indices. The room directory and gameplay map
+/// must remain loaded during lookup.
+extern u8* gDryfieldMotelLobbyRoomViewMaps[1];
 
-extern ViewCount D_dryfield_motel_lobby_8017F84C[];
+/// Logical-view reverse-search count for the lobby's single room.
+///
+/// Indexed by room minus one. Searches five entries of the borrowed identity
+/// map; this count is independent of that map's capacity.
+extern ViewCount gDryfieldMotelLobbyRoomViewCounts[1];
 
-extern WorldCoordRoomLighting D_dryfield_motel_lobby_8017F850[];
+/// Lighting for the lobby's single room, indexed by room minus one.
+///
+/// Borrows five mutable point lights and uses the default ambient minima.
+/// The room overlay owns the collection and stays loaded through shading
+/// and coordinate updates.
+extern WorldCoordRoomLighting gDryfieldMotelLobbyRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_motel_lobby_8017F858[];
+/// The parking-lot door's arrival and departure descriptor, warp slot 1.
+///
+/// Both actors arrive at (2940, 0, 316), yaw zero, in lobby view 2. Uses the
+/// lobby-bank arrival/departure sounds and map flag 481, with no blocked sound
+/// or special warp flags. Lookup copies the full record from the loaded overlay.
+extern DirectionWarpEntry gDryfieldMotelLobbyWarpEntries[1];
 
-extern ViewCamera D_dryfield_motel_lobby_8017FC08[];
+/// Cameras for the lobby's mapped views 1..5, stored at index minus one.
+///
+/// Rotations use Q12 coefficients, translations world units, and projection
+/// distances pixels. A queued application borrows its camera until dispatch;
+/// keep the lobby overlay loaded until that application completes.
+extern ViewCamera gDryfieldMotelLobbyViewCameras[5];
 
-extern SpriteView D_dryfield_motel_lobby_80180AB0[];
+/// Sprite descriptors for the lobby's mapped views 1..5, indexed by view minus one.
+///
+/// Views 2..4 supply 50, 52 and 71 depth-sorted rectangles; views 1 and 5
+/// select none. Every view retains decoded image strips and has no draw-area
+/// clips. The mutable sources and batches belong to the loaded lobby overlay.
+extern SpriteView gDryfieldMotelLobbySpriteViews[5];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_motel_lobby_80181044[];
+/// Collision policies and footstep cues for the lobby's surface classes 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Class 1 is the main floor and supplies footstep cues; the other classes
+/// share a silent record. Keep the lobby overlay loaded while using its records.
+extern WorldCollisionSurfaceProperties* gDryfieldMotelLobbySurfacePropertiesByClass[8];
 
 /// Updates the motel-lobby telephone's save menu and optional play statistics.
 ///

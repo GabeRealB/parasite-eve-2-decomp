@@ -45,7 +45,7 @@ gDryfieldBackStreetRoomLighting = 0x8017F9CC; // absolute:True owner=dryfield_ba
 gDryfieldBackStreetWarpEntries = 0x8017F9D4; // absolute:True owner=dryfield_back_street
 gDryfieldBackStreetViewCameras = 0x801802A8; // absolute:True owner=dryfield_back_street shared=rooms
 gDryfieldBackStreetSpriteViews = 0x80180484; // absolute:True owner=dryfield_back_street shared=rooms
-gDryfieldBackStreetSurfaceProperties = 0x80181034; // absolute:True owner=dryfield_back_street shared=rooms
+gDryfieldBackStreetSurfaceProperties = 0x80181034; // absolute:True owner=dryfield_back_street
 dryfieldSouvenirShopRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_souvenir_shop shared=rooms
 gDryfieldSouvenirShopRoomCollisionResources = 0x8017E0BC; // absolute:True owner=dryfield_souvenir_shop shared=rooms
 gDryfieldSouvenirShopRoomViewMaps = 0x8017E0CC; // absolute:True owner=dryfield_souvenir_shop shared=rooms
@@ -136,14 +136,14 @@ gDryfieldToiletViewCameras = 0x80181428; // absolute:True owner=dryfield_toilet 
 gDryfieldToiletSpriteViews = 0x801821F8; // absolute:True owner=dryfield_toilet shared=rooms
 gDryfieldToiletSurfaceClasses = 0x8018660C; // absolute:True owner=dryfield_toilet shared=rooms
 dryfieldMotelLobbyTask = 0x8017F498; // type:func absolute:True owner=dryfield_motel_lobby
-D_dryfield_motel_lobby_8017F838 = 0x8017F838; // absolute:True owner=dryfield_motel_lobby
-D_dryfield_motel_lobby_8017F848 = 0x8017F848; // absolute:True owner=dryfield_motel_lobby shared=rooms
-D_dryfield_motel_lobby_8017F84C = 0x8017F84C; // absolute:True owner=dryfield_motel_lobby shared=rooms
-D_dryfield_motel_lobby_8017F850 = 0x8017F850; // absolute:True owner=dryfield_motel_lobby shared=rooms
-D_dryfield_motel_lobby_8017F858 = 0x8017F858; // absolute:True owner=dryfield_motel_lobby
-D_dryfield_motel_lobby_8017FC08 = 0x8017FC08; // absolute:True owner=dryfield_motel_lobby
-D_dryfield_motel_lobby_80180AB0 = 0x80180AB0; // absolute:True owner=dryfield_motel_lobby
-D_dryfield_motel_lobby_80181044 = 0x80181044; // absolute:True owner=dryfield_motel_lobby
+gDryfieldMotelLobbyRoomCollisionResources = 0x8017F838; // absolute:True owner=dryfield_motel_lobby
+gDryfieldMotelLobbyRoomViewMaps = 0x8017F848; // absolute:True owner=dryfield_motel_lobby shared=rooms
+gDryfieldMotelLobbyRoomViewCounts = 0x8017F84C; // absolute:True owner=dryfield_motel_lobby shared=rooms
+gDryfieldMotelLobbyRoomLighting = 0x8017F850; // absolute:True owner=dryfield_motel_lobby shared=rooms
+gDryfieldMotelLobbyWarpEntries = 0x8017F858; // absolute:True owner=dryfield_motel_lobby
+gDryfieldMotelLobbyViewCameras = 0x8017FC08; // absolute:True owner=dryfield_motel_lobby
+gDryfieldMotelLobbySpriteViews = 0x80180AB0; // absolute:True owner=dryfield_motel_lobby
+gDryfieldMotelLobbySurfacePropertiesByClass = 0x80181044; // absolute:True owner=dryfield_motel_lobby
 dryfieldSaloonGRRoomTask = 0x8017DA18; // type:func absolute:True owner=dryfield_saloon_g_r shared=rooms
 gDryfieldSaloonGRRoomCollisionResources = 0x8017EDA0; // absolute:True owner=dryfield_saloon_g_r
 gDryfieldSaloonGRRoomViewMaps = 0x8017EDD0; // absolute:True owner=dryfield_saloon_g_r
