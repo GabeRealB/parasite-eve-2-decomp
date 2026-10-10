@@ -76,10 +76,6 @@ extern TaskDesc D_shelter_b1_access_tunnel_8017E710;
 /// Message table `_shelterB1AccessTunnelInitializeRoom` installs on its task.
 extern TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[];
 
-extern SVECTOR D_shelter_b1_access_tunnel_8017E744[];
-extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
-extern SVECTOR D_shelter_b1_access_tunnel_8017E7D4[];
-
 extern AreaApplyRec    D_shelter_b1_access_tunnel_8017FF44[];
 extern RoomFadeStorage gRoomEventFade;
 
@@ -121,7 +117,17 @@ TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b1_access_tunnel_8017E744[14] = {
+enum {
+    SHELTER_B1_ACCESS_TUNNEL_VIEW5_GLOW_FIRST_ENDPOINT = 14,
+    SHELTER_B1_ACCESS_TUNNEL_VIEW4_GLOW_FIRST_ENDPOINT = 18,
+};
+
+/// World-space capsule endpoints shared by mapped views 2 through 5.
+///
+/// Consecutive points form ten pairs. Views 2/3 use the leading pairs; view 4
+/// uses the final pair and pairs beginning at 10 and 12. View 5 uses pairs at
+/// 14 and 16. The drawer borrows these word-aligned points during each call.
+static SVECTOR _gShelterB1AccessTunnelGlowEndpoints[20] = {
     { 0x2E22, -2650, 7090, 0 },
     { 0x2E22, -2240, 7090, 0 },
     { 0x2E22, -1150, 7090, 0 },
@@ -136,25 +142,19 @@ SVECTOR D_shelter_b1_access_tunnel_8017E744[14] = {
     { 3920, -2610, 8330, 0 },
     { 2060, -2610, 7660, 0 },
     { 2060, -2610, 8330, 0 },
-};
-
-SVECTOR D_shelter_b1_access_tunnel_8017E7B4[4] = {
     { 9210, -2050, -140, 0 },
     { 9210, -1500, -140, 0 },
     { 0x2A30, -2050, -140, 0 },
     { 0x2A30, -1500, -140, 0 },
-};
-
-SVECTOR D_shelter_b1_access_tunnel_8017E7D4[2] = {
     { 1240, -2510, 8940, 0 },
     { 750, -2510, 8940, 0 },
 };
 
-u8* D_shelter_b1_access_tunnel_8017E7E4[1] = {
+u8* gShelterB1AccessTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_access_tunnel_8017E7E8[1] = { 5 };
+ViewCount gShelterB1AccessTunnelRoomViewCounts[1] = { SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT };
 
 DirectionWarpEntry D_shelter_b1_access_tunnel_8017E7EC[4] = {
     { { { .word = 0 }, 9953, 0, 1474 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, 0x54130002, 0x54130001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 453 },
@@ -187,20 +187,28 @@ static s16* _gShelterB1AccessTunnelCollision01564Table[9] = {
 
 WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24 = { NULL, _gShelterB1AccessTunnelCollision01564Normals, _gShelterB1AccessTunnelCollision01564Verts, _gShelterB1AccessTunnelCollision01564Faces, _gShelterB1AccessTunnelCollision01564Table, -10, -670, 3, 3, 4000, 15 };
 
-ViewCamera D_shelter_b1_access_tunnel_8017EB48[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x61A8, -5000 } }, 541 },
+ViewCamera gShelterB1AccessTunnelViewCameras[SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5000, 0x61A8, -5000 } }, 541 },
     { { { { -1316, 0, -3878 }, { -647, 4038, 219 }, { 3824, 683, -1298 } }, { -5060, 1800, -8530 } }, 289 },
     { { { { -751, 0, -4026 }, { -312, 4083, 58 }, { 4014, 318, -749 } }, { -110, 1580, -8360 } }, 289 },
     { { { { -348, 0, 4081 }, { 275, 4086, 23 }, { -4071, 276, -347 } }, { -7110, 1580, -8400 } }, 289 },
     { { { { -3977, 0, 976 }, { -126, 4061, -515 }, { -968, -530, -3944 } }, { -0x2846, 830, -8490 } }, 289 },
 };
 
-SpriteBatch D_shelter_b1_access_tunnel_8017EBFC[2] = {
+/// View 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; its retained source
+/// address is never read as sprite elements.
+static SpriteBatch _gShelterB1AccessTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_access_tunnel_8017EC0C[22] = {
+/// View 2's 22 foreground texture rectangles, selected in source-element ranges.
+///
+/// Positions and dimensions are pixels; depth is the unscaled OT sorting value.
+/// The sprite renderer borrows this mutable array while the room is loaded.
+static SpriteSource _gShelterB1AccessTunnelView2SpriteSources[22] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 700, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 700, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 800, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -225,7 +233,12 @@ SpriteSource D_shelter_b1_access_tunnel_8017EC0C[22] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -120, 1000, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_access_tunnel_8017EDC4[5] = {
+/// View 2's three foreground ranges following a decoded-background header.
+///
+/// Ranges [0,13), [13,16) and [16,22) cover every source rectangle; the final
+/// record carries `SPRITE_BATCH_END`. The two trailing serialized bytes retain
+/// their authored values; their meaning is unproven.
+static SpriteBatch _gShelterB1AccessTunnelView2SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 3, 0, 0, { 2, 0 } },
@@ -233,7 +246,11 @@ SpriteBatch D_shelter_b1_access_tunnel_8017EDC4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_access_tunnel_8017EDEC[74] = {
+/// View 3's 74 foreground texture rectangles, selected in source-element ranges.
+///
+/// Positions and dimensions are pixels; depth is the unscaled OT sorting value.
+/// The sprite renderer borrows this mutable array while the room is loaded.
+static SpriteSource _gShelterB1AccessTunnelView3SpriteSources[74] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -24, -16, 2050, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 1000, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1000, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
@@ -310,7 +327,12 @@ SpriteSource D_shelter_b1_access_tunnel_8017EDEC[74] = {
     { 142, 0x3FC0, { .fields = { 24, 48 } }, 40, 24, 1525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_access_tunnel_8017F3B4[9] = {
+/// View 3's foreground ranges following a decoded-background header.
+///
+/// Live ranges cover [0,16), [16,18), [18,26), [26,40), [40,61) and [61,74).
+/// A zero-count record at 18 is retained before the third range; only the final
+/// `SPRITE_BATCH_END` ends the list. Trailing serialized-byte roles are unproven.
+static SpriteBatch _gShelterB1AccessTunnelView3SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 3, 0 } },
     { 16, 2, 0, 0, { 4, 0 } },
@@ -322,7 +344,11 @@ SpriteBatch D_shelter_b1_access_tunnel_8017F3B4[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_access_tunnel_8017F3FC[31] = {
+/// View 4's 31 foreground texture rectangles, selected in source-element ranges.
+///
+/// Positions and dimensions are pixels; depth is the unscaled OT sorting value.
+/// The sprite renderer borrows this mutable array while the room is loaded.
+static SpriteSource _gShelterB1AccessTunnelView4SpriteSources[31] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -32, 550, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 550, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -120, 550, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
@@ -356,7 +382,11 @@ SpriteSource D_shelter_b1_access_tunnel_8017F3FC[31] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -24, -120, 1550, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_access_tunnel_8017F668[5] = {
+/// View 4's three foreground ranges following a decoded-background header.
+///
+/// Ranges [0,4), [4,20) and [20,31) cover every source rectangle; the final
+/// record carries `SPRITE_BATCH_END`. Trailing serialized-byte roles are unproven.
+static SpriteBatch _gShelterB1AccessTunnelView4SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 16, 0, 0, { 2, 0 } },
@@ -364,35 +394,47 @@ SpriteBatch D_shelter_b1_access_tunnel_8017F668[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_access_tunnel_8017F690[2] = {
+/// View 5's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; its retained source
+/// address is never read as sprite elements.
+static SpriteBatch _gShelterB1AccessTunnelView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_access_tunnel_8017F6A0[5] = {
-    { { .empty = D_shelter_b1_access_tunnel_8017EBFC }, D_shelter_b1_access_tunnel_8017EBFC, NULL },
-    { { .elements = D_shelter_b1_access_tunnel_8017EC0C }, D_shelter_b1_access_tunnel_8017EDC4, NULL },
-    { { .elements = D_shelter_b1_access_tunnel_8017EDEC }, D_shelter_b1_access_tunnel_8017F3B4, NULL },
-    { { .elements = D_shelter_b1_access_tunnel_8017F3FC }, D_shelter_b1_access_tunnel_8017F668, NULL },
-    { { .empty = D_shelter_b1_access_tunnel_8017F690 }, D_shelter_b1_access_tunnel_8017F690, NULL },
+SpriteView gShelterB1AccessTunnelSpriteViews[SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT] = {
+    { { .empty = _gShelterB1AccessTunnelView1SpriteBatches }, _gShelterB1AccessTunnelView1SpriteBatches, NULL },
+    { { .elements = _gShelterB1AccessTunnelView2SpriteSources }, _gShelterB1AccessTunnelView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1AccessTunnelView3SpriteSources }, _gShelterB1AccessTunnelView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1AccessTunnelView4SpriteSources }, _gShelterB1AccessTunnelView4SpriteBatches, NULL },
+    { { .empty = _gShelterB1AccessTunnelView5SpriteBatches }, _gShelterB1AccessTunnelView5SpriteBatches, NULL },
 };
 
-WorldCoordLight D_shelter_b1_access_tunnel_8017F6DC[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 409, 409 }, { 0, 0 } },
+/// Four all-view directional model lights with white RGB intensities.
+///
+/// Translation supplies each direction in room axes; RGB uses 12 fractional
+/// bits. Lighting updates the coordinates and attenuation in place.
+static WorldCoordLight _gShelterB1AccessTunnelDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 409, 409 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b1_access_tunnel_8017F83C[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4500, -2620, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3200, -2159, -922 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2220, 3442 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -766, -2000, -4618 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1319, 2059 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1240, -5082, 2801 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 7000, 7001 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
+/// Five all-view white point lights for models in the access tunnel.
+///
+/// Positions and inner/outer falloff radii are world units; RGB uses 12
+/// fractional bits. Lighting updates coordinates and attenuation in place.
+static WorldCoordPointLight _gShelterB1AccessTunnelPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4500, -2620, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3200, -2159, -922 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 2220, 3442 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -766, -2000, -4618 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1319, 2059 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1240, -5082, 2801 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 7000, 7001 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3966, -2581, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1800, 3001 },
 };
 
-WorldCoordRoomLights D_shelter_b1_access_tunnel_8017FA1C = { ARRAY_SIZE(D_shelter_b1_access_tunnel_8017F6DC), D_shelter_b1_access_tunnel_8017F6DC, ARRAY_SIZE(D_shelter_b1_access_tunnel_8017F83C), D_shelter_b1_access_tunnel_8017F83C, 0, NULL };
+WorldCoordRoomLights gShelterB1AccessTunnelRoomLights = { ARRAY_SIZE(_gShelterB1AccessTunnelDirectionalLights), _gShelterB1AccessTunnelDirectionalLights, ARRAY_SIZE(_gShelterB1AccessTunnelPointLights), _gShelterB1AccessTunnelPointLights, 0, NULL };
 
 WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[6] = {
     { NULL, NULL, NULL, { 0x2711, -1536, 5121, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -414,92 +456,116 @@ WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[1] = {
     { NULL, NULL, { 5152, -1440, 4400, 0 }, { { -3488, 2464, -2192, 0 }, { 3488, 2464, 2192, 0 }, { -3488, -2464, -2192, 0 }, { 3488, -2464, 2192, 0 } }, { -2188, 0, 3480, 0 }, 4775, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_access_tunnel_8017FD68[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+enum {
+    SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY         = 21,
+    SHELTER_B1_ACCESS_TUNNEL_KNIGHT_RESOURCE_ENTRY          = 22,
+    SHELTER_B1_ACCESS_TUNNEL_BISHOP_RESOURCE_ENTRY          = 39,
+    SHELTER_B1_ACCESS_TUNNEL_WATCHER_VARIANT                = 1,
+    SHELTER_B1_ACCESS_TUNNEL_KNIGHT_VARIANT                 = 11,
+    SHELTER_B1_ACCESS_TUNNEL_BISHOP_VARIANT                 = 17,
+    SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT = 4,
+    SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW         = 7,
+};
+
+/// Variant 1's Watcher resource recipe and terminal entry.
+///
+/// Entry 21 loads actor_102100's base file and spawns its Watcher descriptor.
+/// Loading and spawning borrow this room-owned recipe and its actor descriptor.
+static AreaResource _gShelterB1AccessTunnelWatcherResources[2] = {
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_access_tunnel_8017FD80[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
+/// Variant 11's Knight GOLEM resource recipe and terminal entry.
+///
+/// Entry 22 loads actor_402200's base file and spawns its Knight descriptor.
+/// Loading and spawning borrow this room-owned recipe and its actor descriptor.
+static AreaResource _gShelterB1AccessTunnelKnightResources[2] = {
+    { SHELTER_B1_ACCESS_TUNNEL_KNIGHT_RESOURCE_ENTRY, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_access_tunnel_8017FD98[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
+/// Variant 17's Bishop GOLEM resource recipe and terminal entry.
+///
+/// Entry 39 loads actor_403900's base file and spawns its Bishop descriptor.
+/// Loading and spawning borrow this room-owned recipe and its actor descriptor.
+static AreaResource _gShelterB1AccessTunnelBishopResources[2] = {
+    { SHELTER_B1_ACCESS_TUNNEL_BISHOP_RESOURCE_ENTRY, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b1_access_tunnel_8017FDB0[6] = {
-    { 21, 4, 0, 9300, -2200, 700, 0, 0, 0, 2, 7 },
-    { 21, 4, 0, 0x2A30, -2200, 700, 0, 0, 0, 2, 7 },
-    { 21, 4, 0, 0x2AF8, -2400, 8500, 3072, 0, 0, 2, 7 },
-    { 21, 4, 0, 0x2AF8, -2400, 7600, 3072, 0, 0, 2, 7 },
-    { 21, 4, 0, 0x2AF8, -2600, 5100, 3072, 0, 0, 2, 7 },
+/// Five Watcher placements for area variant 1, followed by `AREA_PLACEMENT_END`.
+///
+/// Positions are world units and yaw uses 4096 units per turn. All borrow
+/// resource entry 21, stationary gun variant 4 and sight-range row 7 (8000
+/// world units), using the base file and CLUT row offset 2. Live actors retain
+/// these room-owned placements; their placement roll is zero.
+static AreaPlacement _gShelterB1AccessTunnelWatcherPlacements[6] = {
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT, 0, 9300, -2200, 700, 0, 0, 0, 2, SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW },
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT, 0, 0x2A30, -2200, 700, 0, 0, 0, 2, SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW },
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT, 0, 0x2AF8, -2400, 8500, 3072, 0, 0, 2, SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW },
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT, 0, 0x2AF8, -2400, 7600, 3072, 0, 0, 2, SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW },
+    { SHELTER_B1_ACCESS_TUNNEL_WATCHER_RESOURCE_ENTRY, SHELTER_B1_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN_VARIANT, 0, 0x2AF8, -2600, 5100, 3072, 0, 0, 2, SHELTER_B1_ACCESS_TUNNEL_WATCHER_SIGHT_8000_ROW },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_access_tunnel_8017FE10[2] = {
-    { 22, 0, 0, 0x2710, 0, 8000, 3072, 0, 0, 2, 0 },
+/// Variant 11's single Knight GOLEM placement and terminal record.
+///
+/// Starts at world (10000, 0, 8000), yaw 3072/4096 turns, using resource entry
+/// 22's base file and CLUT row offset 2. The live actor borrows this placement.
+static AreaPlacement _gShelterB1AccessTunnelKnightPlacements[2] = {
+    { SHELTER_B1_ACCESS_TUNNEL_KNIGHT_RESOURCE_ENTRY, 0, 0, 0x2710, 0, 8000, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_access_tunnel_8017FE30[2] = {
-    { 39, 0, 0, 0x2710, 0, 8000, 3072, 0, 0, 2, 0 },
+/// Variant 17's single Bishop GOLEM placement and terminal record.
+///
+/// Starts at world (10000, 0, 8000), yaw 3072/4096 turns, using resource entry
+/// 39's base file and CLUT row offset 2. The live actor borrows this placement.
+static AreaPlacement _gShelterB1AccessTunnelBishopPlacements[2] = {
+    { SHELTER_B1_ACCESS_TUNNEL_BISHOP_RESOURCE_ENTRY, 0, 0, 0x2710, 0, 8000, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b1_access_tunnel_8017FE50[22] = {
-    { NULL, NULL },
-    { D_shelter_b1_access_tunnel_8017FDB0, D_shelter_b1_access_tunnel_8017FD68 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_access_tunnel_8017FE10, D_shelter_b1_access_tunnel_8017FD80 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_access_tunnel_8017FE30, D_shelter_b1_access_tunnel_8017FD98 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB1AccessTunnelAreaVariants[22] = {
+    [SHELTER_B1_ACCESS_TUNNEL_WATCHER_VARIANT] = { _gShelterB1AccessTunnelWatcherPlacements, _gShelterB1AccessTunnelWatcherResources },
+    [SHELTER_B1_ACCESS_TUNNEL_KNIGHT_VARIANT]  = { _gShelterB1AccessTunnelKnightPlacements, _gShelterB1AccessTunnelKnightResources },
+    [SHELTER_B1_ACCESS_TUNNEL_BISHOP_VARIANT]  = { _gShelterB1AccessTunnelBishopPlacements, _gShelterB1AccessTunnelBishopResources },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_access_tunnel_8017FF00 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+enum {
+    SHELTER_B1_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT = 0x5D,
+    SHELTER_B1_ACCESS_TUNNEL_FOOTSTEP_RUN_SCRIPT  = 0x5F,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_access_tunnel_8017FF0C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walk, run and scripted-jump cue bases shared by surface classes 1 and 2.
+///
+/// Loaded type-1 bank entries 93/95/93 select cue 2; cue 1 adds one, and a
+/// companion adds 100. Surface records borrow these cues while the room is loaded.
+static WorldCollisionFootstepSounds _gShelterB1AccessTunnelFootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_ACCESS_TUNNEL_FOOTSTEP_RUN_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_access_tunnel_8017FF14[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_access_tunnel_8017FF00 },
-};
+/// Probe-blocking surface with weapon impacts and pushback, without footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1AccessTunnelSilentSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties D_shelter_b1_access_tunnel_8017FF1C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_access_tunnel_8017FF00 },
-};
+/// Probe-blocking surface with weapon impacts, pushback and the room's footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1AccessTunnelSolidFootstepSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB1AccessTunnelFootstepSounds };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[8] = {
-    D_shelter_b1_access_tunnel_8017FF0C,
-    D_shelter_b1_access_tunnel_8017FF14,
-    D_shelter_b1_access_tunnel_8017FF1C,
-    D_shelter_b1_access_tunnel_8017FF0C,
-    D_shelter_b1_access_tunnel_8017FF0C,
-    D_shelter_b1_access_tunnel_8017FF0C,
-    D_shelter_b1_access_tunnel_8017FF0C,
-    D_shelter_b1_access_tunnel_8017FF0C,
+/// Probe-passable surface with pushback and footsteps, suppressing weapon impacts.
+static WorldCollisionSurfaceProperties _gShelterB1AccessTunnelProbePassFootstepSurface = { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB1AccessTunnelFootstepSounds };
+
+WorldCollisionSurfaceProperties* gShelterB1AccessTunnelSurfacePropertiesByClass[8] = {
+    &_gShelterB1AccessTunnelSilentSurface,
+    &_gShelterB1AccessTunnelSolidFootstepSurface,
+    &_gShelterB1AccessTunnelProbePassFootstepSurface,
+    &_gShelterB1AccessTunnelSilentSurface,
+    &_gShelterB1AccessTunnelSilentSurface,
+    &_gShelterB1AccessTunnelSilentSurface,
+    &_gShelterB1AccessTunnelSilentSurface,
+    &_gShelterB1AccessTunnelSilentSurface,
 };
 
 AreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
@@ -723,14 +789,14 @@ void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
     switch (viewIndex) {
         case 2: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_access_tunnel_8017E744;
+            lightPoints = _gShelterB1AccessTunnelGlowEndpoints;
             _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_BLUE_TINT);
             _glowDrawCapsule(&lightPoints[4], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             break;
         }
         case 3: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_access_tunnel_8017E744;
+            lightPoints = _gShelterB1AccessTunnelGlowEndpoints;
             _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_BLUE_TINT);
             _glowDrawCapsule(&lightPoints[4], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             _glowDrawCapsule(&lightPoints[6], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 2 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
@@ -740,17 +806,16 @@ void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
         }
         case 4: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_access_tunnel_8017E7D4;
+            lightPoints = &_gShelterB1AccessTunnelGlowEndpoints[SHELTER_B1_ACCESS_TUNNEL_VIEW4_GLOW_FIRST_ENDPOINT];
             _glowDrawCapsule(&lightPoints[0], SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_GREEN_TINT);
-            // Select the last two pairs of the fourteen-point array, across the
-            // intervening four-point array, using PS1 integer byte addresses.
-            _glowDrawCapsule((const SVECTOR*)((u32)lightPoints - 8 * sizeof(*lightPoints)), SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
-            _glowDrawCapsule((const SVECTOR*)((u32)lightPoints - 6 * sizeof(*lightPoints)), SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 3 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            // Reuse two earlier pairs from the same endpoint pool.
+            _glowDrawCapsule(&lightPoints[-8], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            _glowDrawCapsule(&lightPoints[-6], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 3 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             break;
         }
         case 5: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_access_tunnel_8017E7B4;
+            lightPoints = &_gShelterB1AccessTunnelGlowEndpoints[SHELTER_B1_ACCESS_TUNNEL_VIEW5_GLOW_FIRST_ENDPOINT];
             _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_CYAN_TINT);
             break;
         }

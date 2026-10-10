@@ -173,7 +173,7 @@ D_neo_ark_south_promenade_8017F6F4 = 0x8017F6F4; // absolute:True owner=neo_ark_
 gNeoArkSouthPromenadeViewMaps = 0x8017F704; // absolute:True owner=neo_ark_south_promenade shared=rooms
 gNeoArkSouthPromenadeViewCounts = 0x8017F708; // absolute:True owner=neo_ark_south_promenade shared=rooms
 D_neo_ark_south_promenade_8017F70C = 0x8017F70C; // absolute:True owner=neo_ark_south_promenade
-gNeoArkSouthPromenadeViewCameras = 0x8017FDB0; // absolute:True owner=neo_ark_south_promenade shared=rooms
+gNeoArkSouthPromenadeViewCameras = 0x8017FDB0; // absolute:True owner=neo_ark_south_promenade
 gNeoArkSouthPromenadeSpriteViews = 0x801803E4; // absolute:True owner=neo_ark_south_promenade shared=rooms
 gNeoArkSouthPromenadeSurfaceProperties = 0x801809AC; // absolute:True owner=neo_ark_south_promenade shared=rooms
 neoArkAltarRoomTask = 0x8017D9E8; // type:func absolute:True owner=neo_ark_altar shared=rooms

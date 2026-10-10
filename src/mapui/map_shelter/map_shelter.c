@@ -640,7 +640,7 @@ static WorldCoordRoomLighting D_map_shelter_8017ADEC[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADF4[1] = {
-    { &D_shelter_b1_access_tunnel_8017FA1C, NULL },
+    { &gShelterB1AccessTunnelRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADFC[1] = {
@@ -864,7 +864,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b1_sterilization_room_801893D8,
     D_shelter_b1_pod_access_tunnel_80183A18,
     D_shelter_b1_control_room_80181C74,
-    D_shelter_b1_access_tunnel_8017E7E8,
+    gShelterB1AccessTunnelRoomViewCounts,
     D_shelter_b1_underground_parking_8018793C,
     gShelterB1GolemFreezer1ViewCounts,
     D_shelter_b2_pod_bottom_80181D30,
@@ -1089,7 +1089,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b1_sterilization_room_80189E68,
     D_shelter_b1_pod_access_tunnel_80183C48,
     D_shelter_b1_control_room_8018211C,
-    D_shelter_b1_access_tunnel_8017EB48,
+    gShelterB1AccessTunnelViewCameras,
     D_shelter_b1_underground_parking_80189778,
     gShelterB1GolemFreezer1ViewCameras,
     D_shelter_b2_pod_bottom_80182B80,
@@ -1147,7 +1147,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     D_shelter_b1_sterilization_room_801893CC,
     D_shelter_b1_pod_access_tunnel_80183A14,
     D_shelter_b1_control_room_80181C70,
-    D_shelter_b1_access_tunnel_8017E7E4,
+    gShelterB1AccessTunnelRoomViewMaps,
     D_shelter_b1_underground_parking_8018791C,
     gShelterB1GolemFreezer1ViewMaps,
     D_shelter_b2_pod_bottom_80181D2C,
@@ -1205,7 +1205,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b1_sterilization_room_8018B00C,
     D_shelter_b1_pod_access_tunnel_8018462C,
     D_shelter_b1_control_room_801833BC,
-    D_shelter_b1_access_tunnel_8017F6A0,
+    gShelterB1AccessTunnelSpriteViews,
     D_shelter_b1_underground_parking_8018AB9C,
     gShelterB1GolemFreezer1SpriteViews,
     D_shelter_b2_pod_bottom_80185904,
@@ -1259,7 +1259,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b1_sterilization_room_8018C314,
     D_shelter_b1_pod_access_tunnel_80184CDC,
     D_shelter_b1_control_room_80183BC0,
-    D_shelter_b1_access_tunnel_8017FF24,
+    gShelterB1AccessTunnelSurfacePropertiesByClass,
     D_shelter_b1_underground_parking_8018D724,
     gShelterB1GolemFreezer1SurfacePropertiesByClass,
     gShelterB2PodBottomSurfaceProperties,

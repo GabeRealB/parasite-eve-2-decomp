@@ -12,22 +12,56 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_access_tunnel_8017FE50[22];
+/// Access-tunnel layouts indexed by the saved placement variant (0..21).
+///
+/// Variant 1 places five Watchers, 11 one Knight GOLEM and 17 one Bishop GOLEM.
+/// Other slots are absent. Placement/resource lists end with
+/// `AREA_PLACEMENT_END`; the descriptor table itself has no terminator.
+/// Gameplay borrows these records and actors retain placements while this
+/// room overlay is loaded.
+extern AreaVariant gShelterB1AccessTunnelAreaVariants[22];
 
-// shelter_b1_access_tunnel
-extern u8* D_shelter_b1_access_tunnel_8017E7E4[];
+/// Number of mapped camera and sprite views in the access tunnel.
+enum { SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT = 5 };
 
-extern ViewCount D_shelter_b1_access_tunnel_8017E7E8[];
+/// Logical-view map for the access tunnel's single room slot.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..5 select the same
+/// 1-based camera, image and sprite indices. The shared mapping has its own
+/// larger capacity; this directory remains valid while the room is loaded.
+extern u8* gShelterB1AccessTunnelRoomViewMaps[1];
+
+/// Reverse-search length for room 1's logical-view map, in byte entries.
+///
+/// The signed count covers logical views 1..5, independently of the identity
+/// map's capacity. It has no terminator and borrows this overlay's lifetime.
+extern ViewCount gShelterB1AccessTunnelRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_access_tunnel_8017E7EC[];
 
 extern WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24;
 
-extern ViewCamera D_shelter_b1_access_tunnel_8017EB48[];
+/// Access-tunnel cameras, indexed by the mapped 1-based view minus one.
+///
+/// Rotation uses `ONE` per unit, translation is the negated world-space camera
+/// origin and perspective distance is pixels. Keep the room overlay loaded
+/// until queued camera application has copied its selected record.
+extern ViewCamera gShelterB1AccessTunnelViewCameras[SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT];
 
-extern SpriteView D_shelter_b1_access_tunnel_8017F6A0[];
+/// Background and depth-sorted foreground sprites for the tunnel's five views.
+///
+/// Indexed by mapped view minus one. Views 2/3/4 select 22/74/31 source
+/// rectangles; views 1/5 have empty batch lists. All keep decoded background
+/// strips and have no clipping list. The mutable lists and descriptors remain
+/// borrowed from this overlay while allocating or drawing their packets.
+extern SpriteView gShelterB1AccessTunnelSpriteViews[SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_shelter_b1_access_tunnel_8017FA1C;
+/// Access-tunnel model lighting: four directional and five point lights.
+///
+/// Every source contributes in all views; there are no cone lights. Lighting
+/// parents and composes the mutable coordinates and updates attenuation.
+/// The descriptor and arrays must remain loaded while lighting uses them.
+extern WorldCoordRoomLights gShelterB1AccessTunnelRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[];
 
@@ -35,7 +69,13 @@ extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[];
 
 extern WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[];
+/// Collision policies and footstep cues indexed by tunnel surface class 0..7.
+///
+/// All classes apply pushback. Class 2 passes probes and suppresses weapon
+/// impacts; other classes block probes and allow impacts. Classes 1/2 share
+/// footstep cues; classes 0 and 3..7 have none. The directory, property records
+/// and cues remain borrowed from the loaded access-tunnel overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1AccessTunnelSurfacePropertiesByClass[8];
 
 /// Runs the access tunnel's room-message receiver.
 ///
