@@ -8,7 +8,7 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
 
-s32 D_dryfield_night_motel_lobby_801844D4;
+s32 gDryfieldNightMotelLobbyPreviousMasterkeyCollected;
 
 enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_COUNT = 7 };
 
@@ -70,12 +70,6 @@ static u8 _gDryfieldNightMotelLobbyCashRegisterDigits[DRYFIELD_NIGHT_MOTEL_LOBBY
 
 #include "rooms/room_common.h"
 
-/// Task descriptor of the examine child task `_dryfieldNightMotelLobbyCashRegisterInitialize`
-/// spawns.
-extern TaskDesc D_dryfield_night_motel_lobby_80182814[];
-
-extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
-
 static s16  _dryfieldNightMotelLobbyCashRegisterHasValidCode(void);
 static void _actionPromptResetDefault(Task* task);
 static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -102,57 +96,76 @@ static void _dryfieldNightMotelLobbyCashRegisterStartCompletionCap(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task);
 
-/// The eleven states of the room's cash-register task, run by
-/// `_dryfieldNightMotelLobbyCashRegisterTask`.
-static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
+/// Cash-register controller handlers indexed by the shared state constants.
+///
+/// Cancellation restores play immediately; accepted entry commits saved-area
+/// changes, requests sound and CAP playback, then restores play after one tick.
+/// The dispatcher copies all eleven callback pointers before selecting one.
+static const TaskFuncTable11 _gDryfieldNightMotelLobbyCashRegisterStates = {
     {
-        _dryfieldNightMotelLobbyCashRegisterInitialize,
-        _dryfieldNightMotelLobbyCashRegisterArmCursor,
-        dryfieldNightMotelLobbyCashRegisterScanTask,
-        _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
-        _dryfieldNightMotelLobbyCashRegisterAnswerPrompt,
-        _actionPromptEventEnd,
-        _dryfieldNightMotelLobbyCashRegisterAcceptCode,
-        _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound,
-        _dryfieldNightMotelLobbyCashRegisterStartCompletionCap,
-        _dryfieldNightMotelLobbyCashRegisterExitDelay,
-        _dryfieldNightMotelLobbyCashRegisterFinish,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_INITIALIZE]           = _dryfieldNightMotelLobbyCashRegisterInitialize,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ARM_CURSOR]           = _dryfieldNightMotelLobbyCashRegisterArmCursor,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_SCAN]                 = dryfieldNightMotelLobbyCashRegisterScanTask,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_OPEN_PROMPT]          = _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ANSWER_PROMPT]        = _dryfieldNightMotelLobbyCashRegisterAnswerPrompt,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_CANCEL]               = _actionPromptEventEnd,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ACCEPT_CODE]          = _dryfieldNightMotelLobbyCashRegisterAcceptCode,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PLAY_ACCEPT_SOUND]    = _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_START_COMPLETION_CAP] = _dryfieldNightMotelLobbyCashRegisterStartCompletionCap,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_EXIT_DELAY]           = _dryfieldNightMotelLobbyCashRegisterExitDelay,
+        [DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_FINISH]               = _dryfieldNightMotelLobbyCashRegisterFinish,
     },
 };
 
-// Indexed views below share one contiguous table.
-extern WorldCollisionGrid         D_dryfield_night_motel_lobby_80182DB4[1];
-extern WorldCollisionTrigger      D_dryfield_night_motel_lobby_80184034[4];
-extern WorldCollisionTrigger      D_dryfield_night_motel_lobby_80184164[8];
+static WorldCollisionGrid         _gDryfieldNightMotelLobbyCollisionGrid;
+static WorldCollisionTrigger      _gDryfieldNightMotelLobbyViewBoundaryTriggers[4];
+static WorldCollisionTrigger      _gDryfieldNightMotelLobbyActionTriggers[8];
 static WorldCoordRoomAmbientEntry _gDryfieldNightMotelLobbyRoomAmbientTable[8];
 static WorldCoordRoomLights       _gDryfieldNightMotelLobbyRoomLights;
 
 static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task);
 
-TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelLobbyCashRegisterCursorTask, { .value = 0 } },
+/// Execution priority and first command-menu row of the register's task recipes and keys.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY  = 192,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE = 0,
 };
 
-ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[15] = {
-    { -48, -62, 20, 22, 7, 0, 0 },
-    { -20, -62, 20, 22, 8, 0, 0 },
-    { 8, -62, 20, 22, 9, 0, 0 },
-    { -48, -34, 20, 22, 4, 0, 0 },
-    { -20, -34, 20, 22, 5, 0, 0 },
-    { 8, -34, 20, 22, 6, 0, 0 },
-    { -48, -6, 20, 22, 1, 0, 0 },
-    { -20, -6, 20, 22, 2, 0, 0 },
-    { 8, -6, 20, 22, 3, 0, 0 },
-    { -48, 22, 20, 22, 0, 0, 0 },
-    { -20, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO, 0, 0 },
-    { 8, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH, 0, 0 },
-    { -20, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR, 0, 0 },
-    { 42, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_TOTAL, 0, 0 },
+/// Bodyless cursor-child recipe for the cash-register interaction.
+///
+/// Spawn index zero with spawnArg1.value 1 to move port 0 after resetting
+/// both ports. The controller retains and kills the independent child;
+/// its callbacks and cursor graphics require the lobby and gameplay to stay loaded.
+static TaskDesc _gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY } },
+    .callback = _dryfieldNightMotelLobbyCashRegisterCursorTask,
+    .data     = { .value = 0 },
+};
+
+ActionPromptHotspot gDryfieldNightMotelLobbyCashRegisterHotspots[15] = {
+    { -48, -62, 20, 22, 7, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -20, -62, 20, 22, 8, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { 8, -62, 20, 22, 9, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -48, -34, 20, 22, 4, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -20, -34, 20, 22, 5, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { 8, -34, 20, 22, 6, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -48, -6, 20, 22, 1, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -20, -6, 20, 22, 2, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { 8, -6, 20, 22, 3, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -48, 22, 20, 22, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -20, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { 8, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { -20, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
+    { 42, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_TOTAL, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_dryfield_night_motel_lobby_801828D4 = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelLobbyCashRegisterTask, { .value = 0 } };
+TaskDesc gDryfieldNightMotelLobbyCashRegisterTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY } },
+    .callback = _dryfieldNightMotelLobbyCashRegisterTask,
+    .data     = { .value = 0 },
+};
 
 /// Five world-space centres for the lobby's projected light glows and flares.
 ///
@@ -167,8 +180,13 @@ static SVECTOR _gDryfieldNightMotelLobbyGlowCenters[] = {
     { 1500, -2570, 4500, 0 },
 };
 
-WorldCollisionRoomResources D_dryfield_night_motel_lobby_80182908[1] = {
-    { D_dryfield_night_motel_lobby_80182DB4, D_dryfield_night_motel_lobby_80184034, D_dryfield_night_motel_lobby_80184164, NULL },
+WorldCollisionRoomResources gDryfieldNightMotelLobbyRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldNightMotelLobbyCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightMotelLobbyViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightMotelLobbyActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 WorldCoordRoomLighting gDryfieldNightMotelLobbyRoomLighting[1] = {
@@ -181,34 +199,82 @@ u8* gDryfieldNightMotelLobbyViewMaps[1] = {
 
 ViewCount gDryfieldNightMotelLobbyViewCounts[1] = { 7 };
 
-DirectionWarpEntry D_dryfield_night_motel_lobby_80182928[1] = {
-    { { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2940, 0, 316 }, { 0, 0, 0, 0 }, 0x53110002, 0x53110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 481 },
+/// The door endpoint's sound scripts, initial view and optional map-marker nibble.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_ARRIVAL_SOUND_ENTRY   = 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_DEPARTURE_SOUND_ENTRY = 1,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_INITIAL_VIEW          = 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_MAP_FLAG              = 481,
 };
 
-static SVECTOR _gDryfieldNightMotelLobbyCollision057F4Normals[9] = {
+DirectionWarpEntry gDryfieldNightMotelLobbyWarpEntries[1] = {
+    {
+        .player         = { { .word = 0 }, 2940, 0, 316 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2940, 0, 316 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_ARRIVAL_SOUND_ENTRY),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_DEPARTURE_SOUND_ENTRY),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_INITIAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_MOTEL_LOBBY_WARP_MAP_FLAG,
+    },
+};
+
+/// Dimensions of the lobby mesh's X-major spatial index, in room-coordinate units.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_X   = 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_Z   = 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELL_SIZE = 4000,
+};
+
+/// Room-space face normals, using 4096 for unit length.
+static SVECTOR _gDryfieldNightMotelLobbyCollisionGridNormals[] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightMotelLobbyCollision057F4Verts[53] = {
+/// Room-space vertex pool in signed game-coordinate units.
+static SVECTOR _gDryfieldNightMotelLobbyCollisionGridVerts[] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightMotelLobbyCollision057F4Faces[33] = {
+/// Indexed triangles and quads selecting lobby surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldNightMotelLobbyCollisionGridFaces[] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_faces.inc"
 };
 
-static s16 _gDryfieldNightMotelLobbyCollision057F4Cells[100] = {
+/// Four concatenated signed face-index lists, each ended by -1.
+static s16 _gDryfieldNightMotelLobbyCollisionGridCells[] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelLobbyCollision057F4Cells[i])
-static s16* _gDryfieldNightMotelLobbyCollision057F4Table[4] = {
+// The generated table supplies constant halfword offsets into the cell-list pool.
+#define GRID_CELL(i) (&_gDryfieldNightMotelLobbyCollisionGridCells[i])
+/// X-major cell pointers, with Z as the inner index.
+static s16* _gDryfieldNightMotelLobbyCollisionGridTable[DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_X * DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_Z] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_lobby_80182DB4[1] = {
-    { NULL, _gDryfieldNightMotelLobbyCollision057F4Normals, _gDryfieldNightMotelLobbyCollision057F4Verts, _gDryfieldNightMotelLobbyCollision057F4Faces, _gDryfieldNightMotelLobbyCollision057F4Table, 0, 0, 2, 2, 4000, 33 },
+/// Full collision mesh for the nighttime motel lobby's sole room.
+///
+/// Contains 33 faces, 53 vertices, nine normals and a 2-by-2 XZ cell index.
+/// Coordinates and 4000-unit cells use integer room units; normals use 4096
+/// per unit. Activation binds the view coordinate. The descriptor and pools
+/// remain writable and owned by the loaded lobby while this mesh is active.
+static WorldCollisionGrid _gDryfieldNightMotelLobbyCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightMotelLobbyCollisionGridNormals,
+    .vertices    = _gDryfieldNightMotelLobbyCollisionGridVerts,
+    .faces       = _gDryfieldNightMotelLobbyCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightMotelLobbyCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_X,
+    .cellCountZ  = DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_Z,
+    .cellSize    = DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelLobbyCollisionGridFaces),
 };
 
 ViewCamera gDryfieldNightMotelLobbyViewCameras[8] = {
@@ -635,22 +701,42 @@ static WorldCoordRoomLights _gDryfieldNightMotelLobbyRoomLights = {
     .pointLights     = _gDryfieldNightMotelLobbyPointLights,
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_lobby_80184034[4] = {
-    { NULL, NULL, NULL, { 2241, -896, 3011, 0 }, { { -1888, 1024, 0, 0 }, { 1888, 1024, 0, 0 }, { -1888, -1024, 0, 0 }, { 1888, -1024, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2144, -864, 3392, 0 }, { { 1888, 1024, 0, 0 }, { -1888, 1024, 0, 0 }, { 1888, -1024, 0, 0 }, { -1888, -1024, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4000, -896, 5264, 0 }, { { 0, 1024, 848, 0 }, { 0, 1024, -848, 0 }, { 0, -1024, 848, 0 }, { 0, -1024, -848, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4095, -896, 5248, 0 }, { { 2, 1024, -848, 0 }, { -1, 1024, 848, 0 }, { 2, -1024, -848, 0 }, { -1, -1024, 848, 0 } }, { -4103, 0, -10, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view changes between lobby views 2 and 3, and between views 3 and 4.
+///
+/// The final boundary carries LAST and is linked with the other three.
+/// Setup mutates links, coordinates and enable bits; contact scans latch hits.
+/// Positions and radii use room units, normals use 4096 per unit. Keep the
+/// writable array loaded until all view boundaries are unlinked.
+static WorldCollisionTrigger _gDryfieldNightMotelLobbyViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 2241, -896, 3011, 0 }, { { -1888, 1024, 0, 0 }, { 1888, 1024, 0, 0 }, { -1888, -1024, 0, 0 }, { 1888, -1024, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, ONE, 0 }, 2141, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2144, -864, 3392, 0 }, { { 1888, 1024, 0, 0 }, { -1888, 1024, 0, 0 }, { 1888, -1024, 0, 0 }, { -1888, -1024, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, ONE, 0 }, 2141, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4000, -896, 5264, 0 }, { { 0, 1024, 848, 0 }, { 0, 1024, -848, 0 }, { 0, -1024, 848, 0 }, { 0, -1024, -848, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, ONE, 0 }, 1324, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4095, -896, 5248, 0 }, { { 2, 1024, -848, 0 }, { -1, 1024, 848, 0 }, { 2, -1024, -848, 0 }, { -1, -1024, 848, 0 } }, { -4103, 0, -10, 0 }, { 0, 0, ONE, 0 }, 1324, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_lobby_80184164[8] = {
-    { NULL, NULL, NULL, { 2992, -48, 320, 0 }, { { -848, 0, -256, 0 }, { 848, 0, -256, 0 }, { -848, 0, 256, 0 }, { 848, 0, 256, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 884, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5872, -64, 3104, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4091, 0, 201, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4656, -64, 2280, 0 }, { { -1200, 0, -744, 0 }, { 816, 0, -712, 0 }, { -432, 0, 728, 0 }, { 816, 0, 728, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1408, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4016, -64, 3504, 0 }, { { -816, 0, -464, 0 }, { 816, 0, -464, 0 }, { -816, 0, 464, 0 }, { 816, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 938, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5808, -64, 976, 0 }, { { -320, 0, -880, 0 }, { 320, 0, -880, 0 }, { -320, 0, 880, 0 }, { 320, 0, 880, 0 } }, { 0, 4119, 0, 0 }, { -4096, 0, 0, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5312, -64, 4928, 0 }, { { -320, 0, -624, 0 }, { 320, 0, -624, 0 }, { -320, 0, 624, 0 }, { 320, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5888, -64, 3984, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4497, -64, 4464, 0 }, { { -608, 0, -496, 0 }, { 608, 0, -496, 0 }, { -608, 0, 496, 0 }, { 608, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 4091, 0, -201, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Door warp slots (departure 1, parking-lot arrival 2) and room interaction selectors.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_PARKING_LOT_WARP_SLOTS = (1 << 4) | 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_ACTION   = 1,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_VISIT_COMMAND          = 3,
+};
+
+/// Eight lobby interaction quads, including the door and cash register.
+///
+/// Entry zero warps to the parking lot. Five entries request CAP commands
+/// 1, 2, 4, 5 and 6; another sends visit command 3 to the room receiver.
+/// The last sends cash-register action 1 and carries LAST, so it is linked
+/// before setup stops. Positions/radii use room units and normals use 4096
+/// per unit. The loaded overlay owns the mutable links, enable bits and hits.
+static WorldCollisionTrigger _gDryfieldNightMotelLobbyActionTriggers[8] = {
+    { NULL, NULL, NULL, { 2992, -48, 320, 0 }, { { -848, 0, -256, 0 }, { 848, 0, -256, 0 }, { -848, 0, 256, 0 }, { 848, 0, 256, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ONE, 0 }, 884, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, DRYFIELD_NIGHT_MOTEL_LOBBY_PARKING_LOT_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5872, -64, 3104, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, ONE, 0, 0 }, { -4091, 0, 201, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4656, -64, 2280, 0 }, { { -1200, 0, -744, 0 }, { 816, 0, -712, 0 }, { -432, 0, 728, 0 }, { 816, 0, 728, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, ONE, 0 }, 1408, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_LOBBY_VISIT_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4016, -64, 3504, 0 }, { { -816, 0, -464, 0 }, { 816, 0, -464, 0 }, { -816, 0, 464, 0 }, { 816, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, ONE, 0 }, 938, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5808, -64, 976, 0 }, { { -320, 0, -880, 0 }, { 320, 0, -880, 0 }, { -320, 0, 880, 0 }, { 320, 0, 880, 0 } }, { 0, 4119, 0, 0 }, { -ONE, 0, 0, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5312, -64, 4928, 0 }, { { -320, 0, -624, 0 }, { 320, 0, -624, 0 }, { -320, 0, 624, 0 }, { 320, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5888, -64, 3984, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4497, -64, 4464, 0 }, { { -608, 0, -496, 0 }, { 608, 0, -496, 0 }, { -608, 0, 496, 0 }, { 608, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 4091, 0, -201, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_ROOM, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 AreaVariant gDryfieldNightMotelLobbyAreaVariants[11] = { 0 };
@@ -743,20 +829,32 @@ WorldCollisionSurfaceProperties* gDryfieldNightMotelLobbySurfacePropertyTable[8]
     &_gDryfieldNightMotelLobbyDefaultSurfaceProperties,
 };
 
-AreaApplyRec D_dryfield_night_motel_lobby_801844AC[8] = {
-    { 3, 1, 2, 0 },
-    { 3, 3, 2, 1 },
-    { 3, 5, 4, 1 },
-    { 3, 9, 4, 1 },
-    { 3, 26, 4, 17 },
-    { 3, 26, 7, 33 },
-    { 3, 29, 3, 1 },
-    { 255, 0, 0, 0 },
+/// Map-mark policy bits used by the register's saved-area updates.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_CLEAR = 0,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET   = 1,
 };
 
-Task* D_dryfield_night_motel_lobby_801844CC = NULL;
+/// Seven saved-area updates committed when the cash-register code is accepted.
+///
+/// Resets enemy poses and selects placement variants in six night Dryfield
+/// areas, clearing the gas-station map mark and setting the others. Junk-yard
+/// variant 4 is for normal/replay and Scavenger, variant 7 for Bounty and
+/// Nightmare. The final stage byte ends the list; it is read synchronously.
+static AreaApplyRec _gDryfieldNightMotelLobbyCashRegisterAreaUpdates[8] = {
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_CLEAR },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 4, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE, 4, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_MOTEL_LOBBY_AREA_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
+};
 
-RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
+Task* gDryfieldNightMotelLobbyCashRegisterTask = NULL;
+
+RoomCutsceneRec gDryfieldNightMotelLobbyRevisitCutscene;
 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -983,7 +1081,7 @@ static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task)
 {
     TaskFuncTable11 states;
 
-    states = D_dryfield_night_motel_lobby_8017D6B0;
+    states = _gDryfieldNightMotelLobbyCashRegisterStates;
     states.funcs[task->state](task);
 }
 
@@ -1001,7 +1099,7 @@ static inline void _dryfieldNightMotelLobbyResetCashRegisterInput(void)
     u8                   emptyDigit;
     s32                  digitIndex;
 
-    for (hotspot = D_dryfield_night_motel_lobby_80182820; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = gDryfieldNightMotelLobbyCashRegisterHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
     // Fill backwards with a byte value and a separately initialized signed index.
@@ -1032,7 +1130,7 @@ static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0, NULL);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0, NULL);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_VIEW;
     task->state++;
@@ -1067,7 +1165,6 @@ static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task)
 /// pixels. The cursor child remains live while the command menu is open.
 static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
 {
-    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER = 4 };
     ActionPrompt*                            prompt = gActionPromptSlots;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
@@ -1075,7 +1172,7 @@ static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER;
+    task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ANSWER_PROMPT;
 }
 
 /// Returns from the cash-register command menu to keypad scanning.
@@ -1085,8 +1182,7 @@ static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
 /// starts CAP slot 9; either answer returns to scan state 2 on this tick.
 static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task)
 {
-    enum { CASH_REGISTER_SCAN_STATE = 2,
-           EXAMINED_CAP_SLOT        = 9 };
+    enum { EXAMINED_CAP_SLOT = 9 };
     ActionPrompt*                            prompt = gActionPromptSlots;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
@@ -1097,7 +1193,7 @@ static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task)
         work->examined = true;
         capStartSequenceSlot(EXAMINED_CAP_SLOT, 0, 0);
     }
-    task->state = CASH_REGISTER_SCAN_STATE;
+    task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_SCAN;
 }
 
 #include "../../shared/action_prompt_event_end.inc.c"
@@ -1112,7 +1208,7 @@ static void _dryfieldNightMotelLobbyCashRegisterAcceptCode(Task* task)
 {
     enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_EVENT_ACTIVE = 1 };
 
-    areaApplySavedUpdates(D_dryfield_night_motel_lobby_801844AC);
+    areaApplySavedUpdates(_gDryfieldNightMotelLobbyCashRegisterAreaUpdates);
     gGameSession->eventState = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_EVENT_ACTIVE;
     taskKill(task->spawnArg2.pointer);
     gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN, true);

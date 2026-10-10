@@ -42,20 +42,64 @@ typedef struct {
 } DryfieldNightMotelLobbyCashRegisterWork;
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelLobbyCashRegisterWork, 0xA);
 
-/// The lobby's hotspot table: fifteen `ActionPromptHotspot` entries, the last of them
-/// (index 14) the `ACTION_PROMPT_HOTSPOT_END` terminator the scans stop on. The room's init
-/// clears every entry's `hit` flag on the way in.
-extern ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[];
+/// Controller state indices in the cash register's eleven-handler dispatch table.
+///
+/// Cancel releases the cursor and presentation holds directly. Accepted entry
+/// instead runs the saved-area, sound and CAP sequence before restoring play.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_INITIALIZE           = 0,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ARM_CURSOR           = 1,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_SCAN                 = 2,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_OPEN_PROMPT          = 3,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ANSWER_PROMPT        = 4,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_CANCEL               = 5,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ACCEPT_CODE          = 6,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PLAY_ACCEPT_SOUND    = 7,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_START_COMPLETION_CAP = 8,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_EXIT_DELAY           = 9,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_FINISH               = 10,
+};
 
-extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
+/// Fourteen cash-register key rectangles followed by a hotspot terminator.
+///
+/// Bounds use screen-center pixels with inclusive far edges; ids 0..13 select
+/// the digit and special keys. Every key initially offers Examine. Hit testing
+/// rewrites the hit bytes, and each interaction clears them before scanning.
+/// Both room translation units borrow this writable overlay storage.
+extern ActionPromptHotspot gDryfieldNightMotelLobbyCashRegisterHotspots[15];
 
-extern Task* D_dryfield_night_motel_lobby_801844CC;
+/// Bodyless cash-register controller recipe with execution priority 192.
+///
+/// Its polling owner spawns index zero; the callback allocates its own work
+/// and independent cursor child. The recipe is read only during spawning,
+/// while the controller's callbacks require the lobby to remain loaded.
+extern TaskDesc gDryfieldNightMotelLobbyCashRegisterTaskDesc;
+
+/// Controller handle retained by the cash register's polling owner.
+///
+/// NULL before the first spawn. Polling assumes that spawning and controller
+/// work initialization both succeeded; the owner handles neither failure.
+/// The owner leaves the released handle here, so it is stale after teardown
+/// and must not be polled again until the next spawn replaces it.
+extern Task* gDryfieldNightMotelLobbyCashRegisterTask;
 
 extern Task* gRoomCutsceneSoundTask;
 
-extern s32 D_dryfield_night_motel_lobby_801844D4;
+/// Previous zero-or-one result of the persistent Bronco masterkey collection bit.
+///
+/// Room initialization seeds one to suppress an objective update for a key
+/// collected before entry. Monitoring records objective 20 on a zero-to-one
+/// change and replaces this signed word with the current result each tick.
+extern s32 gDryfieldNightMotelLobbyPreviousMasterkeyCollected;
 
-extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
+/// Borrowed playback record for the lobby's revisit telephone scene.
+///
+/// Uses view 5 and CAP slot 1, with CAP file 1 at VRAM word X 896 before
+/// story chapter 4 or file 2 at X 960 thereafter; texture-page Y remains zero.
+/// Area-bank sounds 3..6 accompany playback and restoration. The command
+/// handler fills this record before spawning the runner and must keep it
+/// unchanged and the lobby loaded until playback ends.
+extern RoomCutsceneRec gDryfieldNightMotelLobbyRevisitCutscene;
 
 /// Updates and draws the cash register's seven-slot digit display.
 ///

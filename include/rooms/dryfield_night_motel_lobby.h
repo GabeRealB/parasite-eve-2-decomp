@@ -17,8 +17,13 @@
 /// two NULL pointers. Gameplay publishes this loaded-room table for area 17.
 extern AreaVariant gDryfieldNightMotelLobbyAreaVariants[11];
 
-// dryfield_night_motel_lobby
-extern WorldCollisionRoomResources D_dryfield_night_motel_lobby_80182908[];
+/// Collision resources for the nighttime lobby's sole room (room ID 1).
+///
+/// Borrows one mesh, four view boundaries and eight action triggers; there
+/// are no sight occluders. The night Dryfield map directory selects this
+/// array for area 17. Grid binding and trigger linking mutate the resources,
+/// which must remain loaded while active or linked.
+extern WorldCollisionRoomResources gDryfieldNightMotelLobbyRoomCollisionResources[1];
 
 /// Model lighting for the nighttime lobby's sole room (room ID 1).
 ///
@@ -38,7 +43,13 @@ extern u8* gDryfieldNightMotelLobbyViewMaps[1];
 /// map's capacity and the eight camera/sprite records retained by the overlay.
 extern ViewCount gDryfieldNightMotelLobbyViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_lobby_80182928[];
+/// The nighttime lobby's sole warp endpoint, indexed by warp ID 1 minus one.
+///
+/// Places player and companion at (2940, 0, 316), yaw zero, with initial view 2.
+/// Uses area-bank sound 2 on arrival and 1 on departure, no blocked sound or
+/// spawn/departure flags, and map-marker nibble 481. Direction code copies
+/// the complete entry while this overlay is loaded; no terminator follows it.
+extern DirectionWarpEntry gDryfieldNightMotelLobbyWarpEntries[1];
 
 /// Eight world-to-camera records for the lobby's mapped view indices 1..8.
 ///

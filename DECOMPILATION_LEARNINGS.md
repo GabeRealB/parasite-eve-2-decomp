@@ -88625,7 +88625,7 @@ that register into the add, `addsi3_internal` matches the register/register
 form, and `$v1` stays live into the flag store:
 
 ```c
-D_dryfield_night_motel_lobby_801844D4 = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
+gDryfieldNightMotelLobbyPreviousMasterkeyCollected = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
 task->state                           = task->state + 1;
 ```
 

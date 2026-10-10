@@ -153,20 +153,20 @@ static inline void _dryfieldNightMotelLobbyPrepareRevisitCutscene(void)
            LATE_CAP_TPAGE_X      = 960,
            EARLY_CAP_FILE        = 1,
            LATE_CAP_FILE         = 2 };
-    D_dryfield_night_motel_lobby_801844E0.view    = REVISIT_VIEW;
-    D_dryfield_night_motel_lobby_801844E0.capSlot = REVISIT_CAP_SLOT;
+    gDryfieldNightMotelLobbyRevisitCutscene.view    = REVISIT_VIEW;
+    gDryfieldNightMotelLobbyRevisitCutscene.capSlot = REVISIT_CAP_SLOT;
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < REVISIT_CHAPTER_SPLIT) {
-        D_dryfield_night_motel_lobby_801844E0.capTPageX = EARLY_CAP_TPAGE_X;
-        D_dryfield_night_motel_lobby_801844E0.capFile   = EARLY_CAP_FILE;
+        gDryfieldNightMotelLobbyRevisitCutscene.capTPageX = EARLY_CAP_TPAGE_X;
+        gDryfieldNightMotelLobbyRevisitCutscene.capFile   = EARLY_CAP_FILE;
     } else {
-        D_dryfield_night_motel_lobby_801844E0.capTPageX = LATE_CAP_TPAGE_X;
-        D_dryfield_night_motel_lobby_801844E0.capFile   = LATE_CAP_FILE;
+        gDryfieldNightMotelLobbyRevisitCutscene.capTPageX = LATE_CAP_TPAGE_X;
+        gDryfieldNightMotelLobbyRevisitCutscene.capFile   = LATE_CAP_FILE;
     }
-    D_dryfield_night_motel_lobby_801844E0.skipScene       = 0;
-    D_dryfield_night_motel_lobby_801844E0.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 3);
-    D_dryfield_night_motel_lobby_801844E0.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 4);
-    D_dryfield_night_motel_lobby_801844E0.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 5);
-    D_dryfield_night_motel_lobby_801844E0.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 6);
+    gDryfieldNightMotelLobbyRevisitCutscene.skipScene       = 0;
+    gDryfieldNightMotelLobbyRevisitCutscene.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 3);
+    gDryfieldNightMotelLobbyRevisitCutscene.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 4);
+    gDryfieldNightMotelLobbyRevisitCutscene.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 5);
+    gDryfieldNightMotelLobbyRevisitCutscene.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 6);
 }
 
 /// Starts first-visit or chapter-dependent revisit playback for lobby command 3.
@@ -190,7 +190,7 @@ static s32 _dryfieldNightMotelLobbyCommandMsg(Task* unusedTask, s32 unusedMessag
         }
         // Revisit playback selects the CAP file for the current story chapter.
         _dryfieldNightMotelLobbyPrepareRevisitCutscene();
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_PRIORITY, &D_dryfield_night_motel_lobby_801844E0);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_PRIORITY, &gDryfieldNightMotelLobbyRevisitCutscene);
     }
     return 0;
 }
@@ -247,11 +247,11 @@ static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task)
 
     switch (task->state) {
         case SPAWN_REGISTER:
-            D_dryfield_night_motel_lobby_801844CC = taskSpawnFromTable(&D_dryfield_night_motel_lobby_801828D4, 0, 0, 0);
+            gDryfieldNightMotelLobbyCashRegisterTask = taskSpawnFromTable(&gDryfieldNightMotelLobbyCashRegisterTaskDesc, 0, 0, 0);
             task->state++;
             return;
         case WAIT_REGISTER:
-            if (taskPollKill(D_dryfield_night_motel_lobby_801844CC, &childResult) != 0) {
+            if (taskPollKill(gDryfieldNightMotelLobbyCashRegisterTask, &childResult) != 0) {
                 taskKill(task);
             }
             return;
@@ -269,8 +269,8 @@ static void _dryfieldNightMotelLobbyInitializeRoomTask(Task* task)
 
     task->msgTable = D_dryfield_night_motel_lobby_801827CC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_dryfield_night_motel_lobby_801844D4 = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
-    task->state                           = task->state + 1;
+    gDryfieldNightMotelLobbyPreviousMasterkeyCollected = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
+    task->state                                        = task->state + 1;
 }
 
 /// Updates the objective when the Bronco masterkey collection bit turns on.
@@ -284,10 +284,10 @@ static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask)
     s32 masterkeyCollected;
 
     masterkeyCollected = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
-    if ((masterkeyCollected != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
+    if ((masterkeyCollected != 0) && (gDryfieldNightMotelLobbyPreviousMasterkeyCollected == 0)) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MASTERKEY_COLLECTED_OBJECTIVE);
     }
-    D_dryfield_night_motel_lobby_801844D4 = masterkeyCollected;
+    gDryfieldNightMotelLobbyPreviousMasterkeyCollected = masterkeyCollected;
 }
 
 /// The three states of the task `dryfieldNightMotelLobbyRoomTask` runs:
@@ -316,24 +316,20 @@ void dryfieldNightMotelLobbyRoomTask(Task* task)
 /// hotspot and selects state 3, which opens the menu. Leaves input latches intact.
 static inline void _dryfieldNightMotelLobbyCashRegisterLatchHotspot(Task* task, DryfieldNightMotelLobbyCashRegisterWork* work, ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
-    enum { CASH_REGISTER_STATE_OPEN_PROMPT = 3 };
-
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     work->hotspotId     = hotspot->id;
     work->promptKind    = hotspot->promptKind;
-    task->state         = CASH_REGISTER_STATE_OPEN_PROMPT;
+    task->state         = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_OPEN_PROMPT;
 }
 
 void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
 {
-    enum { CASH_REGISTER_STATE_CANCEL      = 5,
-           CASH_REGISTER_STATE_ACCEPT_CODE = 6,
-           CASH_REGISTER_ACCEPTED_VIEW     = 7,
-           CASH_REGISTER_CONFIRM_SLOT      = 0,
-           CASH_REGISTER_CANCEL_SLOT       = 1 };
+    enum { CASH_REGISTER_ACCEPTED_VIEW = 7,
+           CASH_REGISTER_CONFIRM_SLOT  = 0,
+           CASH_REGISTER_CANCEL_SLOT   = 1 };
     DryfieldNightMotelLobbyCashRegisterWork* work    = task->work;
-    ActionPromptHotspot*                     hotspot = D_dryfield_night_motel_lobby_80182820;
+    ActionPromptHotspot*                     hotspot = gDryfieldNightMotelLobbyCashRegisterHotspots;
     ActionPrompt*                            prompt  = gActionPromptSlots;
 
     // A key clear belongs to one drawn frame; reset its latch before scanning.
@@ -366,7 +362,7 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
                         dryfieldNightMotelLobbyPressCashRegisterKey(task, hotspot->id);
                         if (work->codeAccepted != 0) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = CASH_REGISTER_ACCEPTED_VIEW;
-                            task->state                                                = CASH_REGISTER_STATE_ACCEPT_CODE;
+                            task->state                                                = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ACCEPT_CODE;
                             dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }
@@ -379,7 +375,7 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
             prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
         if (prompt->buttons.slots[CASH_REGISTER_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            task->state = CASH_REGISTER_STATE_CANCEL;
+            task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_CANCEL;
         }
     }
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
