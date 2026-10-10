@@ -13,12 +13,20 @@
 
 extern AreaVariant D_mine_secret_passage_80183340[12];
 
-// mine_secret_passage
-extern WorldCoordRoomLighting D_mine_secret_passage_80180F9C[];
+/// Lighting for passage room 1, indexed by room minus one.
+///
+/// Borrows ten mutable point lights and minimum ambient colours for views 1..8.
+/// The Shelter map borrows this directory while the passage overlay is loaded.
+extern WorldCoordRoomLighting gMineSecretPassageRoomLighting[1];
 
 extern WorldCollisionRoomResources D_mine_secret_passage_80180FA4[];
 
-extern u8* D_mine_secret_passage_80180FB4[];
+/// Logical-view mapping for passage room 1, indexed by room minus one.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..8 select camera/image/sprite
+/// indices 1..8 at view minus one, without a terminator. The directory requires
+/// the passage loaded; the shared byte map requires gameplay loaded.
+extern u8* gMineSecretPassageRoomViewMaps[1];
 
 extern ViewCount D_mine_secret_passage_80180FB8[];
 
@@ -26,9 +34,21 @@ extern DirectionWarpEntry D_mine_secret_passage_80180FBC[];
 
 extern ViewCamera D_mine_secret_passage_80181604[];
 
-extern SpriteView D_mine_secret_passage_80182994[];
+/// Sprite resources for passage mapped views 1..8, indexed by view minus one.
+///
+/// Views 1, 2 and 8 retain their empty batch-list addresses as source slots.
+/// Views 3..7 borrow mutable sprite sources. Every batch list begins with a
+/// zero count, retaining decoded background strips, and ends at `SPRITE_BATCH_END`.
+/// No view has clipping commands. The directory and lists require the passage loaded.
+extern SpriteView gMineSecretPassageSpriteViews[8];
 
-extern WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[];
+/// Passage collision policies indexed directly by surface class 0..7.
+///
+/// Class 1 passes probes and suppresses weapon impacts; other classes block
+/// probes and allow impacts. Every class applies pushback. Classes 2 and 3
+/// supply distinct footstep cues; classes 0, 1 and 4..7 are silent. The directory,
+/// borrowed records and cues require the passage overlay to remain loaded.
+extern WorldCollisionSurfaceProperties* gMineSecretPassageSurfacePropertiesByClass[8];
 
 /// Runs the passage's expanding orange disc and glow inside a fading ring.
 ///

@@ -39,6 +39,7 @@
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -60,15 +61,12 @@ extern SVECTOR D_mine_secret_passage_80180ED8[];
 extern SVECTOR D_mine_secret_passage_80180EE8[];
 extern SVECTOR D_mine_secret_passage_80180F08[];
 
-/// Shift per colour channel for each of the halo's tints, indexed by the tint
-/// selector the spawn argument carries.
-
-extern WorldCollisionGrid         D_mine_secret_passage_801815E0[1];
+static WorldCollisionGrid         _gMineSecretPassageCollisionGrid;
 extern WorldCollisionOccluder     D_mine_secret_passage_801831A8[2];
 extern WorldCollisionTrigger      D_mine_secret_passage_80182DCC[10];
 extern WorldCollisionTrigger      D_mine_secret_passage_801830C4[3];
-extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
-extern WorldCoordRoomLights       D_mine_secret_passage_80182DB4[1];
+static WorldCoordRoomAmbientEntry _gMineSecretPassageAmbientByView[9];
+static WorldCoordRoomLights       _gMineSecretPassageRoomLights;
 
 TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mineSecretPassageResolveRoomTransition },
@@ -133,15 +131,15 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-WorldCoordRoomLighting D_mine_secret_passage_80180F9C[1] = {
-    { D_mine_secret_passage_80182DB4, D_mine_secret_passage_801833A0 },
+WorldCoordRoomLighting gMineSecretPassageRoomLighting[1] = {
+    { .lights = &_gMineSecretPassageRoomLights, .ambientTable = _gMineSecretPassageAmbientByView },
 };
 
 WorldCollisionRoomResources D_mine_secret_passage_80180FA4[1] = {
-    { D_mine_secret_passage_801815E0, D_mine_secret_passage_80182DCC, D_mine_secret_passage_801830C4, D_mine_secret_passage_801831A8 },
+    { &_gMineSecretPassageCollisionGrid, D_mine_secret_passage_80182DCC, D_mine_secret_passage_801830C4, D_mine_secret_passage_801831A8 },
 };
 
-u8* D_mine_secret_passage_80180FB4[1] = {
+u8* gMineSecretPassageRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -152,30 +150,54 @@ DirectionWarpEntry D_mine_secret_passage_80180FBC[2] = {
     { { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, 0x54080004, 0x54080003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineSecretPassageCollision04020Normals[21] = {
+enum {
+    MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_X = 6,
+    MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_Z = 4
+};
+
+/// Room-space Q12 normals for the passage's collision mesh.
+static SVECTOR _gMineSecretPassageCollisionGridNormals[21] = {
 #include "assets/mine_secret_passage_collision_04020_normals.inc"
 };
 
-static SVECTOR _gMineSecretPassageCollision04020Verts[66] = {
+/// Room-space vertices in game-coordinate units for the passage's collision mesh.
+static SVECTOR _gMineSecretPassageCollisionGridVerts[66] = {
 #include "assets/mine_secret_passage_collision_04020_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineSecretPassageCollision04020Faces[27] = {
+/// Passage collision quads, indexing the vertex/normal pools and surface classes 0..3.
+static WorldCollisionGridFace _gMineSecretPassageCollisionGridFaces[27] = {
 #include "assets/mine_secret_passage_collision_04020_faces.inc"
 };
 
-static s16 _gMineSecretPassageCollision04020Cells[172] = {
+/// Packed face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gMineSecretPassageCollisionGridCells[172] = {
 #include "assets/mine_secret_passage_collision_04020_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineSecretPassageCollision04020Cells[i])
-static s16* _gMineSecretPassageCollision04020Table[24] = {
+#define GRID_CELL(i) (&_gMineSecretPassageCollisionGridCells[i])
+/// X-major cell pointers: four Z cells per X row, each borrowing a terminated list.
+static s16* _gMineSecretPassageCollisionGridTable[MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_X * MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_secret_passage_collision_04020_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_secret_passage_801815E0[1] = {
-    { NULL, _gMineSecretPassageCollision04020Normals, _gMineSecretPassageCollision04020Verts, _gMineSecretPassageCollision04020Faces, _gMineSecretPassageCollision04020Table, 1210, -30, 6, 4, 4000, 27 },
+/// Passage collision mesh and its 6-by-4 spatial index of 4000-unit square cells.
+///
+/// Activation binds the mutable descriptor to the current view. Mesh pools and
+/// signed face-index lists remain borrowed while the passage overlay is loaded.
+static WorldCollisionGrid _gMineSecretPassageCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMineSecretPassageCollisionGridNormals,
+    .vertices    = _gMineSecretPassageCollisionGridVerts,
+    .faces       = _gMineSecretPassageCollisionGridFaces,
+    .cellFaceIds = _gMineSecretPassageCollisionGridTable,
+    .xBias       = 1210,
+    .zBias       = -30,
+    .cellCountX  = MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMineSecretPassageCollisionGridFaces),
 };
 
 ViewCamera D_mine_secret_passage_80181604[9] = {
@@ -190,325 +212,379 @@ ViewCamera D_mine_secret_passage_80181604[9] = {
     { { { { 4008, 0, -844 }, { -11, 4095, -55 }, { 844, 57, 4007 } }, { -599, 1432, -5060 } }, 282 },
 };
 
-SpriteBatch D_mine_secret_passage_80181748[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+// Encoded 8-bit texture pages and palette rows used by the passage's view images.
+enum {
+    MINE_SECRET_PASSAGE_SPRITE_PAGE_0        = getTPage(1, 0, 896, 0),
+    MINE_SECRET_PASSAGE_SPRITE_PAGE_1        = getTPage(1, 0, 960, 0),
+    MINE_SECRET_PASSAGE_SPRITE_CLUT          = getClut(0, 255),
+    MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT    = getClut(0, 256),
+    MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR = 128
 };
 
-SpriteBatch D_mine_secret_passage_80181758[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite list for mapped passage view 1, retaining decoded background strips.
+static SpriteBatch _gMineSecretPassageView1SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_mine_secret_passage_80181768[48] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -40, 1940, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -32, 1983, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 16, 2017, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -120, 889, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -64, 867, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, -160, -8, 866, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, -160, 56, 841, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -120, 48, 952, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -120, -16, 1024, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -120, -72, 1020, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -56, 1127, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -96, -16, 1132, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -96, 1122, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -120, 1118, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, -104, 1052, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, -120, 1050, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -120, 1407, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -72, -80, 1385, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -72, -16, 1327, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, 40, 1109, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 72, 1043, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 40, 1170, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 40, 1344, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 40, 1362, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 64, 1151, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, 56, 1177, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 64, 1078, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, -72, 1629, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, -16, 1425, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 48, 1484, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1530, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, 40, 1744, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, 24, 1849, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, 24, 1941, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 1941, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -48, -80, 1674, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -80, 1898, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, -80, 1969, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -64, 1908, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -16, 1907, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -56, 2896, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, -24, 1988, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -120, 1497, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -96, 1637, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -120, 1649, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -96, 1849, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, -120, 1937, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -96, 1937, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+/// Empty sprite list for mapped passage view 2, retaining decoded background strips.
+static SpriteBatch _gMineSecretPassageView2SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_mine_secret_passage_80181B28[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 48, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// 48 opaque source rectangles for mapped passage view 3.
+///
+/// Upper-left positions are view-centred pixels; depth is the unscaled OT sorting
+/// value. Batches select source elements, and cached packets snapshot their geometry.
+static SpriteSource _gMineSecretPassageView3SpriteSources[48] = {
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, -40, 1940, { .fields = { 24, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, -32, 1983, { .fields = { 24, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, 16, 2017, { .fields = { 40, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 56 } }, -160, -120, 889, { .fields = { 24, 56 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 56 } }, -160, -64, 867, { .fields = { 24, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 64 } }, -160, -8, 866, { .fields = { 64, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 64 } }, -160, 56, 841, { .fields = { 88, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 64 } }, -120, 48, 952, { .fields = { 104, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 64 } }, -120, -16, 1024, { .fields = { 104, 64 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 56 } }, -120, -72, 1020, { .fields = { 64, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 40 } }, -96, -56, 1127, { .fields = { 24, 152 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 56 } }, -96, -16, 1132, { .fields = { 64, 120 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 40 } }, -96, -96, 1122, { .fields = { 40, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, -120, 1118, { .fields = { 8, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 32 } }, -120, -104, 1052, { .fields = { 8, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, -120, -120, 1050, { .fields = { 120, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 40 } }, -72, -120, 1407, { .fields = { 48, 160 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 64 } }, -72, -80, 1385, { .fields = { 104, 128 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 56 } }, -72, -16, 1327, { .fields = { 64, 64 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, 40, 1109, { .fields = { 16, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -96, 72, 1043, { .fields = { 0, 24 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 40, 1170, { .fields = { 0, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -56, 40, 1344, { .fields = { 32, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 40, 1362, { .fields = { 0, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, 64, 1151, { .fields = { 8, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 56, 1177, { .fields = { 120, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -80, 64, 1078, { .fields = { 32, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, -48, -72, 1629, { .fields = { 88, 120 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, -48, -16, 1425, { .fields = { 88, 64 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 48, 1484, { .fields = { 0, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 40, 1530, { .fields = { 8, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 40, 1744, { .fields = { 120, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 24, 1849, { .fields = { 120, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -16, 24, 1941, { .fields = { 8, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 0, 1941, { .fields = { 120, 64 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, -80, 1674, { .fields = { 120, 16 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -80, 1898, { .fields = { 120, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -16, -80, 1969, { .fields = { 16, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, -64, 1908, { .fields = { 48, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -16, 1907, { .fields = { 32, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -16, -56, 2896, { .fields = { 40, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -16, -24, 1988, { .fields = { 16, 24 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, -56, -120, 1497, { .fields = { 64, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, -56, -96, 1637, { .fields = { 0, 96 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -32, -120, 1649, { .fields = { 8, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -96, 1849, { .fields = { 88, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -16, -120, 1937, { .fields = { 8, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, -96, 1937, { .fields = { 48, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_mine_secret_passage_80181B40[50] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -48, 3070, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -8, 3071, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, -80, 3070, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 72 } }, -16, -96, 3071, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 0, 2765, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -8, -104, 2765, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 88 } }, 0, -120, 2765, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 88 } }, 40, -120, 2685, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2765, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 104 } }, 40, -32, 2685, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 88, 730, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 88, 755, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 88, -120, 968, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 88, -16, 973, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 96, -120, 926, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 96, -16, 936, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, 104, -120, 900, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 104, -16, 914, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 72, -120, 1073, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 80, -120, 1021, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 72, -16, 1087, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 80, -16, 1027, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 120, -80, 889, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 128, -80, 884, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 916, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 120, -24, 921, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 24, 926, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 128, 40, 909, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 144, 40, 949, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 128, 24, 866, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 144, 24, 796, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, -88, 920, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -104, 8, 926, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -112, -120, 846, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -112, -16, 830, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -120, -120, 778, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -120, -8, 784, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -128, -120, 754, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -128, -8, 764, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -160, -120, 741, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -144, -64, 749, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -64, 729, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -160, -40, 748, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -144, 16, 756, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, 16, 736, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, 32, 691, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 32, 624, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, 56, 740, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, 96, 733, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 72 } }, -144, 40, 760, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// View 3 background selector, one full source range and its terminal record.
+static SpriteBatch _gMineSecretPassageView3SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gMineSecretPassageView3SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_mine_secret_passage_80181F28[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 1, 0 } },
-    { 10, 40, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// 50 opaque source rectangles for mapped passage view 4.
+///
+/// Upper-left positions are view-centred pixels; depth is the unscaled OT sorting
+/// value. Batches select source elements, and cached packets snapshot their geometry.
+static SpriteSource _gMineSecretPassageView4SpriteSources[50] = {
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, -48, 3070, { .fields = { 96, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -16, -8, 3071, { .fields = { 96, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -24, -80, 3070, { .fields = { 32, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, -16, -96, 3071, { .fields = { 104, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, 0, 2765, { .fields = { 104, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, -8, -104, 2765, { .fields = { 56, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 88 } }, 0, -120, 2765, { .fields = { 112, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 88 } }, 40, -120, 2685, { .fields = { 112, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 80 } }, 0, -32, 2765, { .fields = { 112, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 104 } }, 40, -32, 2685, { .fields = { 32, 104 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 88, 730, { .fields = { 120, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -152, 88, 755, { .fields = { 120, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 88, -120, 968, { .fields = { 40, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 88, -16, 973, { .fields = { 48, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 96, -120, 926, { .fields = { 88, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 96, -16, 936, { .fields = { 96, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 104 } }, 104, -120, 900, { .fields = { 80, 104 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 112 } }, 104, -16, 914, { .fields = { 96, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 72, -120, 1073, { .fields = { 72, 104 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 80, -120, 1021, { .fields = { 64, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 96 } }, 72, -16, 1087, { .fields = { 32, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, 80, -16, 1027, { .fields = { 80, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, 120, -80, 889, { .fields = { 104, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 32, 56 } }, 128, -80, 884, { .fields = { 80, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -120, 916, { .fields = { 40, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 48 } }, 120, -24, 921, { .fields = { 56, 208 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, 120, 24, 926, { .fields = { 24, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 128, 40, 909, { .fields = { 40, 208 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 144, 40, 949, { .fields = { 80, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 24, 866, { .fields = { 88, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 24, 796, { .fields = { 56, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 96 } }, -104, -88, 920, { .fields = { 24, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 88 } }, -104, 8, 926, { .fields = { 24, 96 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 104 } }, -112, -120, 846, { .fields = { 72, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 120 } }, -112, -16, 830, { .fields = { 120, 120 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 112 } }, -120, -120, 778, { .fields = { 112, 120 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 120 } }, -120, -8, 784, { .fields = { 120, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 112 } }, -128, -120, 754, { .fields = { 104, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 120 } }, -128, -8, 764, { .fields = { 112, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 32, 56 } }, -160, -120, 741, { .fields = { 72, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -144, -64, 749, { .fields = { 64, 208 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, -64, 729, { .fields = { 64, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 32, 56 } }, -160, -40, 748, { .fields = { 72, 128 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -144, 16, 756, { .fields = { 80, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 16, 736, { .fields = { 56, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -152, 32, 691, { .fields = { 32, 208 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, 32, 624, { .fields = { 112, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, 56, 740, { .fields = { 64, 40 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 96, 733, { .fields = { 64, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 72 } }, -144, 40, 760, { .fields = { 96, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_mine_secret_passage_80181F48[55] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -8, 16, 1431, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 16, 1409, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -128, 16, 1943, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -120, 16, 1830, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -112, 16, 1790, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -104, 16, 1725, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -96, 16, 1700, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -88, 16, 1674, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -80, 16, 1641, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 16, 1575, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, 16, 1555, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -48, 16, 1542, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -40, 16, 1525, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 16, 1516, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 40, 1479, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -24, 16, 1454, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -16, 16, 1450, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 0, 32, 1386, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 8, 16, 1368, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, 16, 1368, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 112, 8, 1311, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 8, 1188, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, 128, 8, 1153, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 144, 8, 1123, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -24, 24, 1012, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -16, 24, 972, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 0, 24, 950, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, 24, 912, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 24, 24, 877, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 40, 24, 875, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 48, 24, 881, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 56, 24, 911, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 64, 24, 950, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 72, 16, 1058, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 80, 16, 1156, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 88, 16, 1178, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 48, 1165, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 56, 1019, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, -16, 24, 1064, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, -8, 24, 1108, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 0, 16, 1163, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 8, 16, 1245, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 16, 16, 1302, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 24, 16, 1389, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, -160, -120, 1538, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -112, -64, 1720, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -104, -64, 1736, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 1771, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -112, -40, 1822, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 80 } }, -160, -32, 1525, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 72 } }, -160, 48, 1515, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, -120, -40, 3125, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, -80, -40, 3125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 48 } }, 144, 24, 1138, { .fields = { 88, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 24, 48 } }, 120, 24, 1174, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// View 4 background selector, source ranges of 10 and 40 sprites, and the terminator.
+///
+/// Nonzero trailing metadata bytes are retained; their role is unproven.
+static SpriteBatch _gMineSecretPassageView4SpriteBatches[4] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 10, .field_6 = { 1, 0 } },
+    { .firstSprite = 10, .spriteCount = 40 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_mine_secret_passage_80182394[9] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 3, 0 } },
-    { 20, 4, 0, 0, { 4, 0 } },
-    { 24, 13, 0, 0, { 1, 0 } },
-    { 37, 7, 0, 0, { 5, 0 } },
-    { 44, 7, 0, 0, { 0, 0 } },
-    { 51, 2, 0, 0, { 6, 0 } },
-    { 53, 2, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// 55 source rectangles for mapped passage view 5; the last two are semitransparent.
+///
+/// Upper-left positions are view-centred pixels; depth is the unscaled OT sorting
+/// value. Batches select source elements, and cached packets snapshot their geometry.
+static SpriteSource _gMineSecretPassageView5SpriteSources[55] = {
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, 16, 1431, { .fields = { 112, 128 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, 0, 16, 1409, { .fields = { 40, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -128, 16, 1943, { .fields = { 96, 96 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 16, 1830, { .fields = { 80, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, 16, 1790, { .fields = { 88, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -104, 16, 1725, { .fields = { 24, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -96, 16, 1700, { .fields = { 104, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -88, 16, 1674, { .fields = { 96, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -80, 16, 1641, { .fields = { 96, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -72, 16, 1575, { .fields = { 32, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, -64, 16, 1555, { .fields = { 112, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -48, 16, 1542, { .fields = { 80, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -40, 16, 1525, { .fields = { 104, 96 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 16, 1516, { .fields = { 104, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 40, 1479, { .fields = { 96, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 64 } }, -24, 16, 1454, { .fields = { 8, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -16, 16, 1450, { .fields = { 88, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, 0, 32, 1386, { .fields = { 88, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 8, 16, 1368, { .fields = { 88, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 16, 16, 1368, { .fields = { 8, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, 112, 8, 1311, { .fields = { 16, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, 120, 8, 1188, { .fields = { 24, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 64 } }, 128, 8, 1153, { .fields = { 120, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 88 } }, 144, 8, 1123, { .fields = { 48, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, 24, 1012, { .fields = { 104, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 80 } }, -16, 24, 972, { .fields = { 32, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 0, 24, 950, { .fields = { 40, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 72 } }, 8, 24, 912, { .fields = { 24, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 88 } }, 24, 24, 877, { .fields = { 64, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 40, 24, 875, { .fields = { 104, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, 48, 24, 881, { .fields = { 32, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 56, 24, 911, { .fields = { 48, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 64, 24, 950, { .fields = { 56, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 72, 16, 1058, { .fields = { 64, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 80, 16, 1156, { .fields = { 72, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 72 } }, 88, 16, 1178, { .fields = { 8, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 48, 1165, { .fields = { 16, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 56, 1019, { .fields = { 8, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -16, 24, 1064, { .fields = { 112, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -8, 24, 1108, { .fields = { 112, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 0, 16, 1163, { .fields = { 104, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 64 } }, 8, 16, 1245, { .fields = { 0, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, 16, 16, 1302, { .fields = { 0, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, 24, 16, 1389, { .fields = { 120, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 88 } }, -160, -120, 1538, { .fields = { 40, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -112, -64, 1720, { .fields = { 80, 160 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, -64, 1736, { .fields = { 80, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -64, 1771, { .fields = { 80, 112 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -112, -40, 1822, { .fields = { 112, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 80 } }, -160, -32, 1525, { .fields = { 80, 176 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 72 } }, -160, 48, 1515, { .fields = { 112, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 88 } }, -120, -40, 3125, { .fields = { 88, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 88 } }, -80, -40, 3125, { .fields = { 80, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 48 } }, 144, 24, 1138, { .fields = { 88, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 24, 48 } }, 120, 24, 1174, { .fields = { 80, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteSource D_mine_secret_passage_801823DC[55] = {
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -88, -120, 1000, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, -48, -120, 1000, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 88 } }, -160, -120, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 48, 1372, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, 48, 1350, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, 56, 1334, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 56, 1322, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, 64, 1301, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 64, 1298, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 56, 1311, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -104, 48, 1331, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, 40, 1362, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, 32, 1386, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, 24, 1430, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -72, 16, 1462, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, 8, 1495, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, 8, 1502, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 16, 1488, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 40, 1416, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, 32, 1450, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 24, 1484, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, 16, 1511, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -128, 8, 1537, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, 0, 1568, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -8, 1610, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, -8, 1647, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 8, 1684, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 8, 1596, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, -32, 1725, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -32, 1705, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, -24, 1689, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, -24, 1671, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, -16, 1650, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -16, 1629, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, -16, 1611, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -40, -8, 1584, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, 16, 1432, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, 16, 1405, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -8, 16, 1379, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 8, 24, 1352, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 24, 32, 1331, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 40, 1307, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 56, 48, 1280, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 56, 1251, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 56, 1244, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 56, 1380, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 48, 1423, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -32, 16, 1493, { .fields = { 8, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -16, 24, 1448, { .fields = { 0, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 8, 40, 1415, { .fields = { 24, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 24, 40, 1386, { .fields = { 24, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 40, 48, 1367, { .fields = { 16, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 56, 56, 1340, { .fields = { 24, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 72, 64, 1323, { .fields = { 8, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 88, 72, 1296, { .fields = { 56, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// View 5 background selector, seven contiguous source ranges and the terminator.
+///
+/// Nonzero trailing metadata bytes are retained; their role is unproven.
+static SpriteBatch _gMineSecretPassageView5SpriteBatches[9] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 20, .field_6 = { 3, 0 } },
+    { .firstSprite = 20, .spriteCount = 4, .field_6 = { 4, 0 } },
+    { .firstSprite = 24, .spriteCount = 13, .field_6 = { 1, 0 } },
+    { .firstSprite = 37, .spriteCount = 7, .field_6 = { 5, 0 } },
+    { .firstSprite = 44, .spriteCount = 7 },
+    { .firstSprite = 51, .spriteCount = 2, .field_6 = { 6, 0 } },
+    { .firstSprite = 53, .spriteCount = 2, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_mine_secret_passage_80182828[8] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 3, 0 } },
-    { 3, 15, 0, 0, { 0, 0 } },
-    { 18, 9, 0, 0, { 5, 0 } },
-    { 27, 8, 0, 0, { 1, 0 } },
-    { 35, 12, 0, 0, { 4, 0 } },
-    { 47, 8, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// 55 source rectangles for mapped passage view 6; the last eight are semitransparent.
+///
+/// Upper-left positions are view-centred pixels; depth is the unscaled OT sorting
+/// value. Batches select source elements, and cached packets snapshot their geometry.
+static SpriteSource _gMineSecretPassageView6SpriteSources[55] = {
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 72 } }, -88, -120, 1000, { .fields = { 88, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 40 } }, -48, -120, 1000, { .fields = { 120, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 72, 88 } }, -160, -120, 1000, { .fields = { 56, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -160, 48, 1372, { .fields = { 72, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -152, 48, 1350, { .fields = { 8, 40 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, 56, 1334, { .fields = { 8, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -136, 56, 1322, { .fields = { 8, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -128, 64, 1301, { .fields = { 16, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -120, 64, 1298, { .fields = { 96, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -112, 56, 1311, { .fields = { 40, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -104, 48, 1331, { .fields = { 40, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -96, 40, 1362, { .fields = { 48, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -88, 32, 1386, { .fields = { 88, 160 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -80, 24, 1430, { .fields = { 48, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -72, 16, 1462, { .fields = { 64, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -64, 8, 1495, { .fields = { 80, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -56, 8, 1502, { .fields = { 104, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -48, 16, 1488, { .fields = { 32, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -160, 40, 1416, { .fields = { 48, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -152, 32, 1450, { .fields = { 0, 192 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 24, 1484, { .fields = { 88, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -136, 16, 1511, { .fields = { 72, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -128, 8, 1537, { .fields = { 80, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -120, 0, 1568, { .fields = { 56, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -112, -8, 1610, { .fields = { 56, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -104, -8, 1647, { .fields = { 16, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 8, 1684, { .fields = { 40, 240 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, 8, 1596, { .fields = { 32, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -160, -32, 1725, { .fields = { 0, 40 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -152, -32, 1705, { .fields = { 112, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -144, -24, 1689, { .fields = { 0, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, -24, 1671, { .fields = { 120, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -128, -16, 1650, { .fields = { 0, 104 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, -16, 1629, { .fields = { 16, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, -16, 1611, { .fields = { 0, 136 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_0, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, -8, 1584, { .fields = { 120, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, -40, 16, 1432, { .fields = { 24, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, 16, 1405, { .fields = { 40, 144 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, -8, 16, 1379, { .fields = { 72, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 8, 24, 1352, { .fields = { 40, 96 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, 24, 32, 1331, { .fields = { 96, 160 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 40, 40, 1307, { .fields = { 40, 48 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 56 } }, 56, 48, 1280, { .fields = { 112, 160 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, 56, 1251, { .fields = { 64, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, 56, 1244, { .fields = { 56, 184 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 56, 1380, { .fields = { 32, 40 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, 112, 48, 1423, { .fields = { 24, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, -32, 16, 1493, { .fields = { 8, 104 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 24, 32 } }, -16, 24, 1448, { .fields = { 0, 72 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, 8, 40, 1415, { .fields = { 24, 216 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, 24, 40, 1386, { .fields = { 24, 120 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, 40, 48, 1367, { .fields = { 16, 40 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, 56, 56, 1340, { .fields = { 24, 152 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 32 } }, 72, 64, 1323, { .fields = { 8, 200 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_BLEND_CLUT, { .fields = { 16, 24 } }, 88, 72, 1296, { .fields = { 56, 232 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteSource D_mine_secret_passage_80182868[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -48, 1397, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1397, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 72, -120, 1398, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 72, 32, 1398, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 72, -40, 1398, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 80 } }, 112, -120, 1398, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, 112, -40, 1398, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, 112, 32, 1398, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 56, -120, 1397, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -40, 1397, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 48, 8, 1397, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 1397, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, -80, 1432, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+/// View 6 background selector, six contiguous source ranges and the terminator.
+///
+/// Nonzero trailing metadata bytes are retained; their role is unproven.
+static SpriteBatch _gMineSecretPassageView6SpriteBatches[8] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 3, .field_6 = { 3, 0 } },
+    { .firstSprite = 3, .spriteCount = 15 },
+    { .firstSprite = 18, .spriteCount = 9, .field_6 = { 5, 0 } },
+    { .firstSprite = 27, .spriteCount = 8, .field_6 = { 1, 0 } },
+    { .firstSprite = 35, .spriteCount = 12, .field_6 = { 4, 0 } },
+    { .firstSprite = 47, .spriteCount = 8, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_mine_secret_passage_8018296C[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// 13 opaque source rectangles for mapped passage view 7.
+///
+/// Upper-left positions are view-centred pixels; depth is the unscaled OT sorting
+/// value. Batches select source elements, and cached packets snapshot their geometry.
+static SpriteSource _gMineSecretPassageView7SpriteSources[13] = {
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -48, 1397, { .fields = { 112, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 8, 1397, { .fields = { 120, 248 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 80 } }, 72, -120, 1398, { .fields = { 40, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 80 } }, 72, 32, 1398, { .fields = { 72, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 40, 72 } }, 72, -40, 1398, { .fields = { 32, 152 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 80 } }, 112, -120, 1398, { .fields = { 80, 88 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 72 } }, 112, -40, 1398, { .fields = { 8, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 48, 88 } }, 112, 32, 1398, { .fields = { 80, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 80 } }, 56, -120, 1397, { .fields = { 112, 168 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 56, -40, 1397, { .fields = { 24, 0 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 24, 72 } }, 48, 8, 1397, { .fields = { 56, 80 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, 40, 1397, { .fields = { 64, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_SECRET_PASSAGE_SPRITE_PAGE_1, MINE_SECRET_PASSAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, -80, 1432, { .fields = { 48, 224 } }, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, MINE_SECRET_PASSAGE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_secret_passage_80182984[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 7 background selector, one full source range and its terminal record.
+static SpriteBatch _gMineSecretPassageView7SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gMineSecretPassageView7SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_mine_secret_passage_80182994[8] = {
-    { { .empty = D_mine_secret_passage_80181748 }, D_mine_secret_passage_80181748, NULL },
-    { { .empty = D_mine_secret_passage_80181758 }, D_mine_secret_passage_80181758, NULL },
-    { { .elements = D_mine_secret_passage_80181768 }, D_mine_secret_passage_80181B28, NULL },
-    { { .elements = D_mine_secret_passage_80181B40 }, D_mine_secret_passage_80181F28, NULL },
-    { { .elements = D_mine_secret_passage_80181F48 }, D_mine_secret_passage_80182394, NULL },
-    { { .elements = D_mine_secret_passage_801823DC }, D_mine_secret_passage_80182828, NULL },
-    { { .elements = D_mine_secret_passage_80182868 }, D_mine_secret_passage_8018296C, NULL },
-    { { .empty = D_mine_secret_passage_80182984 }, D_mine_secret_passage_80182984, NULL },
+/// Empty sprite list for mapped passage view 8, retaining decoded background strips.
+static SpriteBatch _gMineSecretPassageView8SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-WorldCoordPointLight D_mine_secret_passage_801829F4[10] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 527, -2289, 0x3098 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1301, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -246, -2470, 4900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2879, -2470, 8762 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3063, -2690, 4838 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4700 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8663, -2470, 4778 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1728, -1859, 3259 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1261, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3F20, -2470, 2820 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4D52, -2250, 2756 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -246, -2470, 8762 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7287, -2470, 2020 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4800 },
+SpriteView gMineSecretPassageSpriteViews[8] = {
+    { { .empty = _gMineSecretPassageView1SpriteBatches }, _gMineSecretPassageView1SpriteBatches, NULL },
+    { { .empty = _gMineSecretPassageView2SpriteBatches }, _gMineSecretPassageView2SpriteBatches, NULL },
+    { { .elements = _gMineSecretPassageView3SpriteSources }, _gMineSecretPassageView3SpriteBatches, NULL },
+    { { .elements = _gMineSecretPassageView4SpriteSources }, _gMineSecretPassageView4SpriteBatches, NULL },
+    { { .elements = _gMineSecretPassageView5SpriteSources }, _gMineSecretPassageView5SpriteBatches, NULL },
+    { { .elements = _gMineSecretPassageView6SpriteSources }, _gMineSecretPassageView6SpriteBatches, NULL },
+    { { .elements = _gMineSecretPassageView7SpriteSources }, _gMineSecretPassageView7SpriteBatches, NULL },
+    { { .empty = _gMineSecretPassageView8SpriteBatches }, _gMineSecretPassageView8SpriteBatches, NULL },
 };
 
-WorldCoordRoomLights D_mine_secret_passage_80182DB4[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_secret_passage_801829F4), D_mine_secret_passage_801829F4, 0, NULL },
+/// Ten authored point lights contributing in every passage view.
+///
+/// Positions and falloff radii use world units; RGB intensity has 12 fractional
+/// bits. Room-light updates bind and compose the coordinates, and queries replace
+/// attenuation. Storage stays writable and live while the passage is loaded.
+static WorldCoordPointLight _gMineSecretPassagePointLights[10] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 527, -2289, 0x3098 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1301, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -246, -2470, 4900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2879, -2470, 8762 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3063, -2690, 4838 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4700 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8663, -2470, 4778 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1728, -1859, 3259 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1261, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3F20, -2470, 2820 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 0, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4D52, -2250, 2756 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 0, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -246, -2470, 8762 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7287, -2470, 2020 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4800 },
+};
+
+/// Passage room 1's authored lighting, containing only its ten point lights.
+static WorldCoordRoomLights _gMineSecretPassageRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMineSecretPassagePointLights),
+    .pointLights           = _gMineSecretPassagePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_mine_secret_passage_80182DCC[10] = {
@@ -594,8 +670,12 @@ AreaVariant D_mine_secret_passage_80183340[12] = {
     { D_mine_secret_passage_80183300, D_mine_secret_passage_80183268 },
 };
 
-WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9] = {
-    { .viewCount = ARRAY_SIZE(D_mine_secret_passage_801833A0) - 1 },
+/// Minimum ambient colours for passage views 1..8, preceded by their count.
+///
+/// RGB uses 16 units per 8-bit colour level. Views 4 and 5 have brighter minima;
+/// other views use 16 per channel. Stored weighted brightness is not read by lighting.
+static WorldCoordRoomAmbientEntry _gMineSecretPassageAmbientByView[9] = {
+    { .viewCount = ARRAY_SIZE(_gMineSecretPassageAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -606,43 +686,78 @@ WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_mine_secret_passage_801833E8 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+enum {
+    MINE_SECRET_PASSAGE_CLASS2_WALK_SCRIPT = 0x15,
+    MINE_SECRET_PASSAGE_CLASS2_RUN_SCRIPT  = 0x17,
+    MINE_SECRET_PASSAGE_CLASS3_WALK_SCRIPT = 0x41,
+    MINE_SECRET_PASSAGE_CLASS3_RUN_SCRIPT  = 0x43
 };
 
-WorldCollisionFootstepSounds D_mine_secret_passage_801833F4 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Walk, run and scripted-jump cue bases for passage surface class 2.
+///
+/// Type-1 requests select the loaded bank; the paired animation cue adds one.
+/// Scripted jumps reuse the walk base. The surface borrows this record while loaded.
+static WorldCollisionFootstepSounds _gMineSecretPassageClass2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS2_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS2_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS2_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_mine_secret_passage_80183400[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walk, run and scripted-jump cue bases for passage surface class 3.
+///
+/// Type-1 requests select the loaded bank; the paired animation cue adds one.
+/// Scripted jumps reuse the walk base. The surface borrows this record while loaded.
+static WorldCollisionFootstepSounds _gMineSecretPassageClass3FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS3_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS3_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_SECRET_PASSAGE_CLASS3_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_mine_secret_passage_80183408[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled, silent policy shared by passage classes 0 and 4..7.
+static WorldCollisionSurfaceProperties _gMineSecretPassageSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_mine_secret_passage_80183410[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_secret_passage_801833E8 },
+/// Passage class 1's silent policy: passes probes, ignores impacts and applies pushback.
+static WorldCollisionSurfaceProperties _gMineSecretPassageProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_mine_secret_passage_80183418[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_secret_passage_801833F4 },
+/// Passage class 2's blocking, impact-enabled policy with its own footstep cues.
+static WorldCollisionSurfaceProperties _gMineSecretPassageClass2Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMineSecretPassageClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[8] = {
-    D_mine_secret_passage_80183400,
-    D_mine_secret_passage_80183408,
-    D_mine_secret_passage_80183410,
-    D_mine_secret_passage_80183418,
-    D_mine_secret_passage_80183400,
-    D_mine_secret_passage_80183400,
-    D_mine_secret_passage_80183400,
-    D_mine_secret_passage_80183400,
+/// Passage class 3's blocking, impact-enabled policy with its own footstep cues.
+static WorldCollisionSurfaceProperties _gMineSecretPassageClass3Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMineSecretPassageClass3FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMineSecretPassageSurfacePropertiesByClass[8] = {
+    &_gMineSecretPassageSolidSurface,
+    &_gMineSecretPassageProbePassSurface,
+    &_gMineSecretPassageClass2Surface,
+    &_gMineSecretPassageClass3Surface,
+    &_gMineSecretPassageSolidSurface,
+    &_gMineSecretPassageSolidSurface,
+    &_gMineSecretPassageSolidSurface,
+    &_gMineSecretPassageSolidSurface,
 };
 
 RoomFadeStorage D_mine_secret_passage_80183440;
