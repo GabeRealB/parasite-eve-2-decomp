@@ -526,7 +526,7 @@ AreaRecord D_8010CF14[50] = {
     { D_mine_cavern_8018E238, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
     { D_mine_tunnel_entrance_8017F32C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     { D_mine_tunnel_801801CC, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { D_mine_gorge_80183544, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    { gMineGorgeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     { D_mine_refuge_80182A00, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
     { D_mine_forked_tunnel_80185504, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
     { D_mine_secret_passage_80183340, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },

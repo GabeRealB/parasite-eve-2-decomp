@@ -1537,7 +1537,7 @@ D_mine_cavern_8018E238 = 0x8018E238; // absolute:True owner=mine_cavern
 
 D_mine_forked_tunnel_80185504 = 0x80185504; // absolute:True owner=mine_forked_tunnel
 
-D_mine_gorge_80183544 = 0x80183544; // absolute:True owner=mine_gorge
+gMineGorgeAreaVariants = 0x80183544; // absolute:True owner=mine_gorge
 
 gMineMesaAreaVariants = 0x801898F4; // absolute:True owner=mine_mesa
 

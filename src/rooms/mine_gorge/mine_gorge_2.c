@@ -33,21 +33,9 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// Per-view halfword table, indexed 1-based by `viewGetMappedIndex()`. The value
-/// the room publishes as its `gRoomEffectState->roomEffectMode` variant index.
-extern u16 D_mine_gorge_8017E760[];
-
-/// The gorge's per-view prop placements, one `SVECTOR` per position, 8 bytes
-/// apart and overlapping: the run a view draws starts at whichever of these
-/// four bases its case names and reaches at most `0x20` past `E778`.
-extern SVECTOR D_mine_gorge_8017E778[];
-extern SVECTOR D_mine_gorge_8017E788[];
-extern SVECTOR D_mine_gorge_8017E790[];
-extern SVECTOR D_mine_gorge_8017E798[];
-
-extern WorldCollisionGrid         D_mine_gorge_8017F184[1];
-extern WorldCollisionGrid         D_mine_gorge_8017F9F0[1];
-extern WorldCollisionTrigger      D_mine_gorge_80182AD4[8];
+static WorldCollisionGrid         _gMineGorgeRoom1Collision;
+static WorldCollisionGrid         _gMineGorgeRoom2Collision;
+static WorldCollisionTrigger      _gMineGorgeViewBoundaryTriggers[8];
 extern WorldCollisionTrigger      D_mine_gorge_80182D34[8];
 extern WorldCollisionTrigger      D_mine_gorge_80182F94[5];
 static WorldCoordRoomAmbientEntry _gMineGorgeViewAmbientTable[12];
@@ -58,38 +46,41 @@ enum {
     MINE_GORGE_FLARE_RADIUS_SCALE   = 0x300 // Pixel half-extent = scale * 39 / (camera Z / 4).
 };
 
-u16 D_mine_gorge_8017E760[12] = {
-    0,
-    2,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Ambient-effect gates for mapped gorge views 1..11.
+///
+/// Indexed by mapped view minus one; views 2 and 6 enable movement dust.
+/// The trailing disabled entry is retained storage outside the valid views.
+/// Unsigned halfwords are copied into the resident room-effect mode each frame.
+static u16 _gMineGorgeViewEffectModes[MINE_GORGE_VIEW_COUNT + 1] = {
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
 };
 
-SVECTOR D_mine_gorge_8017E778[2] = {
+/// Six fixed world-space flare centres, borrowed by the current view's drawer.
+///
+/// Mapped view 2 uses indices 4..5; views 3 and 7 use 0..4; views 4, 5 and 9
+/// use 2..5; view 6 uses 0..1; view 8 uses 2, 4 and 5; views 10 and 11 use 3.
+/// View 1 selects none. Components use signed game-coordinate units. Storage
+/// remains live while the gorge is loaded.
+static SVECTOR _gMineGorgeFlarePositions[6] = {
     { 980, -2030, 3720, 0 },
     { 2950, -2150, 260, 0 },
-};
-
-SVECTOR D_mine_gorge_8017E788[1] = {
     { 8960, -420, 930, 0 },
-};
-
-SVECTOR D_mine_gorge_8017E790[1] = {
     { 0x2ADA, -460, 2080, 0 },
-};
-
-SVECTOR D_mine_gorge_8017E798[2] = {
     { 0x3B42, -1970, 450, 0 },
     { 0x4628, -1670, 3650, 0 },
 };
+STATIC_ASSERT_SIZEOF(_gMineGorgeFlarePositions, 0x30);
 
 WorldCoordRoomLighting gMineGorgeRoomLighting[2] = {
     { &_gMineGorgeRoomLights, _gMineGorgeViewAmbientTable },
@@ -97,8 +88,8 @@ WorldCoordRoomLighting gMineGorgeRoomLighting[2] = {
 };
 
 WorldCollisionRoomResources D_mine_gorge_8017E7B8[2] = {
-    { D_mine_gorge_8017F184, D_mine_gorge_80182AD4, D_mine_gorge_80182D34, NULL },
-    { D_mine_gorge_8017F9F0, D_mine_gorge_80182AD4, D_mine_gorge_80182F94, NULL },
+    { &_gMineGorgeRoom1Collision, _gMineGorgeViewBoundaryTriggers, D_mine_gorge_80182D34, NULL },
+    { &_gMineGorgeRoom2Collision, _gMineGorgeViewBoundaryTriggers, D_mine_gorge_80182F94, NULL },
 };
 
 /// Logical-view to camera/image/sprite indices after the oak board is laid.
@@ -126,7 +117,7 @@ u8* gMineGorgeRoomViewMaps[2] = {
     _gMineGorgeRoom2ViewMap,
 };
 
-ViewCount D_mine_gorge_8017E7EC[2] = { 11, 11 };
+ViewCount gMineGorgeRoomViewCounts[MINE_GORGE_ROOM_COUNT] = { MINE_GORGE_VIEW_COUNT, MINE_GORGE_VIEW_COUNT };
 
 DirectionWarpEntry D_mine_gorge_8017E7F0[3] = {
     { { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, 0x54050002, 0x54050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
@@ -134,60 +125,100 @@ DirectionWarpEntry D_mine_gorge_8017E7F0[3] = {
     { { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, 0x54050006, 0x54050005, 0x54050008, 6, DIRECTION_WARP_FLAG_NONE, 448 },
 };
 
-static SVECTOR _gMineGorgeCollision01BC4Normals[30] = {
+/// Room-1 mesh normals, with 4096 representing unit length.
+static SVECTOR _gMineGorgeRoom1CollisionNormals[30] = {
 #include "assets/mine_gorge_collision_01BC4_normals.inc"
 };
 
-static SVECTOR _gMineGorgeCollision01BC4Verts[120] = {
+/// Room-1 mesh vertices in signed room-local game coordinates.
+static SVECTOR _gMineGorgeRoom1CollisionVerts[120] = {
 #include "assets/mine_gorge_collision_01BC4_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineGorgeCollision01BC4Faces[49] = {
+/// Room-1 indexed collision faces using the room's surface classes 0..4.
+static WorldCollisionGridFace _gMineGorgeRoom1CollisionFaces[49] = {
 #include "assets/mine_gorge_collision_01BC4_faces.inc"
 };
 
-static s16 _gMineGorgeCollision01BC4Cells[224] = {
+/// Room-1 cell face-index lists, each ending in WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMineGorgeRoom1CollisionCells[224] = {
 #include "assets/mine_gorge_collision_01BC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineGorgeCollision01BC4Cells[i])
-static s16* _gMineGorgeCollision01BC4Table[12] = {
+#define GRID_CELL(i) (&_gMineGorgeRoom1CollisionCells[i])
+/// Room-1 X-major cell directory, indexed as x * 2 + z for x in 0..5 and z in 0..1.
+static s16* _gMineGorgeRoom1CollisionTable[12] = {
 #include "assets/mine_gorge_collision_01BC4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_gorge_8017F184[1] = {
-    { NULL, _gMineGorgeCollision01BC4Normals, _gMineGorgeCollision01BC4Verts, _gMineGorgeCollision01BC4Faces, _gMineGorgeCollision01BC4Table, 1244, 2085, 6, 2, 4000, 49 },
+/// Room-1 collision mesh before the oak board is laid.
+///
+/// Owns 49 faces and a 6-by-2 X-major cell table. Cells span 4000 game units,
+/// with grid origin (-1244, -2085) in XZ; vertices use game units and normals
+/// use 4096 per unit. Activation borrows the mesh and binds its view coordinate.
+static WorldCollisionGrid _gMineGorgeRoom1Collision = {
+    .viewCoord   = NULL,
+    .normals     = _gMineGorgeRoom1CollisionNormals,
+    .vertices    = _gMineGorgeRoom1CollisionVerts,
+    .faces       = _gMineGorgeRoom1CollisionFaces,
+    .cellFaceIds = _gMineGorgeRoom1CollisionTable,
+    .xBias       = 1244,
+    .zBias       = 2085,
+    .cellCountX  = 6,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMineGorgeRoom1CollisionFaces),
 };
 
-static SVECTOR _gMineGorgeCollision02430Normals[28] = {
+/// Room-2 mesh normals, with 4096 representing unit length.
+static SVECTOR _gMineGorgeRoom2CollisionNormals[28] = {
 #include "assets/mine_gorge_collision_02430_normals.inc"
 };
 
-static SVECTOR _gMineGorgeCollision02430Verts[108] = {
+/// Room-2 mesh vertices in signed room-local game coordinates.
+static SVECTOR _gMineGorgeRoom2CollisionVerts[108] = {
 #include "assets/mine_gorge_collision_02430_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineGorgeCollision02430Faces[46] = {
+/// Room-2 indexed collision faces using the room's surface classes 0..4.
+static WorldCollisionGridFace _gMineGorgeRoom2CollisionFaces[46] = {
 #include "assets/mine_gorge_collision_02430_faces.inc"
 };
 
-static s16 _gMineGorgeCollision02430Cells[216] = {
+/// Room-2 cell face-index lists, each ending in WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMineGorgeRoom2CollisionCells[216] = {
 #include "assets/mine_gorge_collision_02430_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineGorgeCollision02430Cells[i])
-static s16* _gMineGorgeCollision02430Table[12] = {
+#define GRID_CELL(i) (&_gMineGorgeRoom2CollisionCells[i])
+/// Room-2 X-major cell directory, indexed as x * 2 + z for x in 0..5 and z in 0..1.
+static s16* _gMineGorgeRoom2CollisionTable[12] = {
 #include "assets/mine_gorge_collision_02430_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_gorge_8017F9F0[1] = {
-    { NULL, _gMineGorgeCollision02430Normals, _gMineGorgeCollision02430Verts, _gMineGorgeCollision02430Faces, _gMineGorgeCollision02430Table, 1244, 2085, 6, 2, 4000, 46 },
+/// Room-2 collision mesh after the oak board is laid.
+///
+/// Owns 46 faces and a 6-by-2 X-major cell table. Cells span 4000 game units,
+/// with grid origin (-1244, -2085) in XZ; vertices use game units and normals
+/// use 4096 per unit. Activation borrows the mesh and binds its view coordinate.
+static WorldCollisionGrid _gMineGorgeRoom2Collision = {
+    .viewCoord   = NULL,
+    .normals     = _gMineGorgeRoom2CollisionNormals,
+    .vertices    = _gMineGorgeRoom2CollisionVerts,
+    .faces       = _gMineGorgeRoom2CollisionFaces,
+    .cellFaceIds = _gMineGorgeRoom2CollisionTable,
+    .xBias       = 1244,
+    .zBias       = 2085,
+    .cellCountX  = 6,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMineGorgeRoom2CollisionFaces),
 };
 
-ViewCamera D_mine_gorge_8017FA14[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -9000, 0x4B64, -2000 } }, 289 },
+ViewCamera gMineGorgeViewCameras[MINE_GORGE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -9000, 0x4B64, -2000 } }, 289 },
     { { { { 718, 0, -4032 }, { -1123, 3933, -200 }, { 3872, 1141, 689 } }, { -0x2DF4, 2237, -1133 } }, 257 },
     { { { { 844, 0, 4007 }, { 1410, 3834, -297 }, { -3751, 1441, 790 } }, { -0x4405, 2242, -988 } }, 246 },
     { { { { 2333, 0, -3365 }, { 1255, 3800, 870 }, { 3123, -1527, 2165 } }, { -5868, -921, 827 } }, 269 },
@@ -949,7 +980,7 @@ static SpriteBatch _gMineGorgeView11SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_gorge_801827F8[11] = {
+SpriteView gMineGorgeSpriteViews[MINE_GORGE_VIEW_COUNT] = {
     { { .empty = _gMineGorgeView1SpriteBatches }, _gMineGorgeView1SpriteBatches, NULL },
     { { .elements = _gMineGorgeView2SpriteSources }, _gMineGorgeView2SpriteBatches, NULL },
     { { .elements = _gMineGorgeView3SpriteSources }, _gMineGorgeView3SpriteBatches, NULL },
@@ -991,15 +1022,21 @@ static WorldCoordRoomLights _gMineGorgeRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_mine_gorge_80182AD4[8] = {
-    { NULL, NULL, NULL, { 0x3AD2, -1392, 2112, 0 }, { { -16, -2368, -2704, 0 }, { 16, -2368, 2704, 0 }, { -16, 2368, -2704, 0 }, { 16, 2368, 2704, 0 } }, { 4097, 0, -25, 0 }, { 0, 0, 4096, 0 }, 3593, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3BC1, -1552, 1984, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3080, -864, 1952, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, 4096, 0 }, 3865, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x31A1, -1280, 1984, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8160, -1216, 1792, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, 4096, 0 }, 3865, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8353, -1344, 1792, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4672, -1312, 1728, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4513, -1408, 1857, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, 4096, 0 }, 3865, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Eight directed view-boundary quads shared by both gorge room states.
+///
+/// Pairs connect logical views 2<->3, 3<->4, 4<->5 and 5<->6; camera remapping
+/// does not change these IDs. The final quad carries LAST and is active, not a
+/// sentinel-only record. Room binding fills coordinates and mutable list links;
+/// collision latches hits. Keep this array loaded until the runtime list is cleared.
+static WorldCollisionTrigger _gMineGorgeViewBoundaryTriggers[8] = {
+    { NULL, NULL, NULL, { 0x3AD2, -1392, 2112, 0 }, { { -16, -2368, -2704, 0 }, { 16, -2368, 2704, 0 }, { -16, 2368, -2704, 0 }, { 16, 2368, 2704, 0 } }, { 4097, 0, -25, 0 }, { 0, 0, ONE, 0 }, 3593, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3BC1, -1552, 1984, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3080, -864, 1952, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, ONE, 0 }, 3865, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x31A1, -1280, 1984, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8160, -1216, 1792, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, ONE, 0 }, 3865, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8353, -1344, 1792, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4672, -1312, 1728, 0 }, { { 0, -2272, 2720, 0 }, { 0, -2272, -2720, 0 }, { 0, 2272, 2720, 0 }, { 0, 2272, -2720, 0 } }, { -4110, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4513, -1408, 1857, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, ONE, 0 }, 3865, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCollisionTrigger D_mine_gorge_80182D34[8] = {
@@ -1021,119 +1058,181 @@ WorldCollisionTrigger D_mine_gorge_80182F94[5] = {
     { NULL, NULL, NULL, { 2752, -64, 3712, 0 }, { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_gorge_80183110[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+enum {
+    MINE_GORGE_BAT_RESOURCE_ID                   = 37,
+    MINE_GORGE_MIND_SUCKLER_RESOURCE_ID          = 15,
+    MINE_GORGE_MOTH_RESOURCE_ID                  = 8,
+    MINE_GORGE_BAT_FILE_NUMBER                   = 37,
+    MINE_GORGE_MIND_SUCKLER_FILE_NUMBER          = 15,
+    MINE_GORGE_MOTH_FILE_NUMBER                  = 7,
+    MINE_GORGE_BAT_MODE_WANDER                   = 0,
+    MINE_GORGE_BAT_MODE_WAIT_WAVE_11             = 20,
+    MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH = 2,
+    MINE_GORGE_AREA_VARIANT_BAT_WAVE             = 1,
+    MINE_GORGE_AREA_VARIANT_BATS                 = 2,
+    MINE_GORGE_AREA_VARIANT_MIND_SUCKLERS        = 3,
+    MINE_GORGE_AREA_VARIANT_MIND_SUCKLERS_MOTHS  = 4,
+    MINE_GORGE_AREA_VARIANT_BATS_TURN_ROW_6      = 11
+};
+
+/// Variant-1 bat loading and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Resource ID 37 selects global file 103700 and descriptor zero in the loaded
+/// actor_103700 package. This table and its placement pair stay live for loading
+/// and actor spawning; its separately stored copies serve other variants.
+static AreaResource _gMineGorgeVariant1Resources[2] = {
+    { .entryId = MINE_GORGE_BAT_RESOURCE_ID, .fileNumber = MINE_GORGE_BAT_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_gorge_80183128[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+/// Variant-2 bat loading and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Resource ID 37 selects global file 103700 and descriptor zero in the loaded
+/// actor_103700 package. Borrowed by loading and spawning while the gorge is loaded.
+static AreaResource _gMineGorgeVariant2Resources[2] = {
+    { .entryId = MINE_GORGE_BAT_RESOURCE_ID, .fileNumber = MINE_GORGE_BAT_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_gorge_80183140[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Variant-3 Mind Suckler loading and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Resource ID 15 selects global file 101500 and descriptor zero in the loaded
+/// actor_101500 package. Borrowed by loading and spawning while the gorge is loaded.
+static AreaResource _gMineGorgeVariant3Resources[2] = {
+    { .entryId = MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, .fileNumber = MINE_GORGE_MIND_SUCKLER_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_gorge_80183158[3] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
+/// Variant-4 Mind Suckler and moth recipes, followed by AREA_PLACEMENT_END.
+///
+/// Resource IDs 15 and 8 select files 101500 and 200700, each using descriptor
+/// zero in its loaded actor package. Borrowed by loading and spawning while the
+/// gorge is loaded; resource IDs need not equal their decimal file numbers.
+static AreaResource _gMineGorgeVariant4Resources[3] = {
+    { .entryId = MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, .fileNumber = MINE_GORGE_MIND_SUCKLER_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor01500MindSucklerTaskDesc },
+    { .entryId = MINE_GORGE_MOTH_RESOURCE_ID, .fileNumber = MINE_GORGE_MOTH_FILE_NUMBER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_gorge_8018317C[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+/// Variant-11 bat loading and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Resource ID 37 selects global file 103700 and descriptor zero in the loaded
+/// actor_103700 package. Borrowed by loading and spawning while the gorge is loaded.
+static AreaResource _gMineGorgeVariant11Resources[2] = {
+    { .entryId = MINE_GORGE_BAT_RESOURCE_ID, .fileNumber = MINE_GORGE_BAT_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_gorge_80183194[13] = {
-    { 37, 0, 20, 6300, 2500, -600, 600, 0, 0, 2, 5 },
-    { 37, 0, 20, 8000, 1200, 2500, 1250, 0, 0, 2, 5 },
-    { 37, 0, 20, 8500, 1300, 3000, 1500, 0, 0, 2, 5 },
-    { 37, 0, 20, 9500, 1500, 2500, 2048, 0, 0, 2, 5 },
-    { 37, 0, 20, 9500, 1400, 3500, 2048, 0, 0, 2, 5 },
-    { 37, 0, 20, 0x2904, 1100, 3000, 2700, 0, 0, 2, 5 },
-    { 37, 0, 20, 6700, 2400, -800, 400, 0, 0, 2, 5 },
-    { 37, 0, 20, 8500, 1200, 0, 500, 0, 0, 2, 5 },
-    { 37, 0, 20, 9500, 1300, 500, 0, 0, 0, 2, 5 },
-    { 37, 0, 20, 9500, 1400, -500, 0, 0, 0, 2, 5 },
-    { 37, 0, 20, 0x2904, 1500, 0, 3300, 0, 0, 2, 5 },
-    { 37, 0, 20, 6000, 2700, -400, 900, 0, 0, 2, 5 },
+/// Twelve variant-1 bats held for encounter wave 11, then AREA_PLACEMENT_END.
+///
+/// Positions use world units and yaw uses 4096 per turn. Mode 20 waits for the
+/// encounter counter to reach 11; turn-rate row 5 is within the bat's eight rows.
+/// Base files use texture page offset 0 and CLUT row offset 2. Spawned actors
+/// borrow these placements, so the gorge must stay loaded for their lifetimes.
+static AreaPlacement _gMineGorgeVariant1Placements[13] = {
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 6300, 2500, -600, 600, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 8000, 1200, 2500, 1250, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 8500, 1300, 3000, 1500, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 9500, 1500, 2500, 2048, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 9500, 1400, 3500, 2048, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 0x2904, 1100, 3000, 2700, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 6700, 2400, -800, 400, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 8500, 1200, 0, 500, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 9500, 1300, 500, 0, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 9500, 1400, -500, 0, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 0x2904, 1500, 0, 3300, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WAIT_WAVE_11, 6000, 2700, -400, 900, 0, 0, 2, 5 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_gorge_80183264[13] = {
-    { 37, 0, 0, 4000, -1300, 3500, 2600, 0, 0, 2, 5 },
-    { 37, 0, 0, 3500, -1500, 2900, 2800, 0, 0, 2, 5 },
-    { 37, 0, 0, 5000, -1600, 2500, 2900, 0, 0, 2, 5 },
-    { 37, 0, 0, 5500, -1700, 3000, 2800, 0, 0, 2, 5 },
-    { 37, 0, 0, 6500, -1300, 2500, 2100, 0, 0, 2, 5 },
-    { 37, 0, 0, 6500, -1400, 3500, 2900, 0, 0, 2, 5 },
-    { 37, 0, 0, 7500, -1600, 3000, 3100, 0, 0, 2, 5 },
-    { 37, 0, 0, 5000, -1800, -500, 3600, 0, 0, 2, 5 },
-    { 37, 0, 0, 5500, -1700, 0, 3200, 0, 0, 2, 5 },
-    { 37, 0, 0, 6500, -1300, 500, 3900, 0, 0, 2, 5 },
-    { 37, 0, 0, 6500, -1500, -500, 3500, 0, 0, 2, 5 },
-    { 37, 0, 0, 7500, -1300, 0, 3300, 0, 0, 2, 5 },
+/// Twelve immediately wandering variant-2 bats, then AREA_PLACEMENT_END.
+///
+/// Positions use world units and yaw uses 4096 per turn; turn-rate row 5 is
+/// within the bat's eight rows. Base files use texture page offset 0 and CLUT
+/// row offset 2. Spawned actors borrow these placements while the gorge is loaded.
+static AreaPlacement _gMineGorgeVariant2Placements[13] = {
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 4000, -1300, 3500, 2600, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 3500, -1500, 2900, 2800, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 5000, -1600, 2500, 2900, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 5500, -1700, 3000, 2800, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6500, -1300, 2500, 2100, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6500, -1400, 3500, 2900, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 7500, -1600, 3000, 3100, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 5000, -1800, -500, 3600, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 5500, -1700, 0, 3200, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6500, -1300, 500, 3900, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6500, -1500, -500, 3500, 0, 0, 2, 5 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 7500, -1300, 0, 3300, 0, 0, 2, 5 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_gorge_80183334[7] = {
-    { 15, 0, 2, 3000, -2300, 4000, 0, 0, 0, 2, 0 },
-    { 15, 0, 2, 4000, -1800, 4000, 0, 0, 0, 2, 0 },
-    { 15, 0, 2, 2500, -1600, 0, 2048, 0, 0, 2, 0 },
-    { 15, 0, 2, 3000, -2200, 0, 2048, 0, 0, 2, 0 },
-    { 15, 0, 2, 0x3E1C, -2000, 500, 2048, 0, 0, 2, 0 },
-    { 15, 0, 2, 0x3DEA, -2200, 3800, 0, 0, 0, 2, 0 },
+/// Six wall-perched variant-3 Mind Sucklers, then AREA_PLACEMENT_END.
+///
+/// Positions use world units and yaw uses 4096 per turn. Actor variant 0 and
+/// mode 2 start on a wall and prevent later wall settling. Base files use texture
+/// page offset 0 and CLUT row offset 2; parameter row 0 has no observed reader.
+/// Spawned actors borrow these placements while the gorge is loaded.
+static AreaPlacement _gMineGorgeVariant3Placements[7] = {
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 3000, -2300, 4000, 0, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 4000, -1800, 4000, 0, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 2500, -1600, 0, 2048, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 3000, -2200, 0, 2048, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 0x3E1C, -2000, 500, 2048, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 0x3DEA, -2200, 3800, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_gorge_801833A4[13] = {
-    { 15, 0, 2, 3000, -2000, 4000, 0, 0, 0, 2, 0 },
-    { 15, 0, 2, 4000, -2000, 4000, 0, 0, 0, 2, 0 },
-    { 15, 0, 2, 2000, -2000, 0, 2048, 0, 0, 2, 0 },
-    { 15, 0, 2, 3000, -2500, 0, 2048, 0, 0, 2, 0 },
-    { 8, 0, 0, 8000, -2000, 2000, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 9000, -2000, 2000, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 8000, -1000, 2000, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 9000, -1000, 2000, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 8000, -2000, 0, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 9000, -2000, 0, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 8000, -1000, 0, 3072, 0, 2, 4, 0 },
-    { 8, 0, 0, 9000, -1000, 0, 3072, 0, 2, 4, 0 },
+/// Four wall-perched Mind Sucklers and eight moths for variant 4, then AREA_PLACEMENT_END.
+///
+/// Positions use world units and yaw uses 4096 per turn. Mind Sucklers use
+/// actor variant 0/mode 2 to prevent later wall settling, and texture offsets
+/// (0 pages, 2 CLUT rows). Moths use (2 pages, 4 CLUT rows) before their spawn
+/// adjustment and pursuit-speed row 0, within their eight rows. Spawned actors
+/// borrow these placements while the gorge is loaded.
+static AreaPlacement _gMineGorgeVariant4Placements[13] = {
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 3000, -2000, 4000, 0, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 4000, -2000, 4000, 0, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 2000, -2000, 0, 2048, 0, 0, 2, 0 },
+    { MINE_GORGE_MIND_SUCKLER_RESOURCE_ID, 0, MINE_GORGE_MIND_SUCKLER_MODE_WALL_NO_REPERCH, 3000, -2500, 0, 2048, 0, 0, 2, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 8000, -2000, 2000, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 9000, -2000, 2000, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 8000, -1000, 2000, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 9000, -1000, 2000, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 8000, -2000, 0, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 9000, -2000, 0, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 8000, -1000, 0, 3072, 0, 2, 4, 0 },
+    { MINE_GORGE_MOTH_RESOURCE_ID, 0, 0, 9000, -1000, 0, 3072, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_gorge_80183474[13] = {
-    { 37, 0, 0, 6300, -500, -600, 600, 0, 0, 2, 6 },
-    { 37, 0, 0, 8000, -1800, 2500, 1250, 0, 0, 2, 6 },
-    { 37, 0, 0, 8500, -1700, 3000, 1500, 0, 0, 2, 6 },
-    { 37, 0, 0, 9500, -1500, 2500, 2048, 0, 0, 2, 6 },
-    { 37, 0, 0, 9500, -1600, 3500, 2048, 0, 0, 2, 6 },
-    { 37, 0, 0, 0x2904, -1900, 3000, 2700, 0, 0, 2, 6 },
-    { 37, 0, 0, 6700, -600, -800, 400, 0, 0, 2, 6 },
-    { 37, 0, 0, 8500, -1800, 0, 500, 0, 0, 2, 6 },
-    { 37, 0, 0, 9500, -1700, 500, 0, 0, 0, 2, 6 },
-    { 37, 0, 0, 9500, -1600, -500, 0, 0, 0, 2, 6 },
-    { 37, 0, 0, 0x2904, -1500, 0, 3300, 0, 0, 2, 6 },
-    { 37, 0, 0, 6000, -300, -400, 900, 0, 0, 2, 6 },
+/// Twelve immediately wandering variant-11 bats, then AREA_PLACEMENT_END.
+///
+/// Positions use world units and yaw uses 4096 per turn. Their XZ/yaw values
+/// match variant 1, with Y shifted by -3000; turn-rate row 6 is within the bat's
+/// eight rows. Base files use texture page offset 0 and CLUT row offset 2.
+/// Spawned actors borrow these placements while the gorge is loaded.
+static AreaPlacement _gMineGorgeVariant11Placements[13] = {
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6300, -500, -600, 600, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 8000, -1800, 2500, 1250, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 8500, -1700, 3000, 1500, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 9500, -1500, 2500, 2048, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 9500, -1600, 3500, 2048, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 0x2904, -1900, 3000, 2700, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6700, -600, -800, 400, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 8500, -1800, 0, 500, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 9500, -1700, 500, 0, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 9500, -1600, -500, 0, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 0x2904, -1500, 0, 3300, 0, 0, 2, 6 },
+    { MINE_GORGE_BAT_RESOURCE_ID, 0, MINE_GORGE_BAT_MODE_WANDER, 6000, -300, -400, 900, 0, 0, 2, 6 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_gorge_80183544[12] = {
-    { NULL, NULL },
-    { D_mine_gorge_80183194, D_mine_gorge_80183110 },
-    { D_mine_gorge_80183264, D_mine_gorge_80183128 },
-    { D_mine_gorge_80183334, D_mine_gorge_80183140 },
-    { D_mine_gorge_801833A4, D_mine_gorge_80183158 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_mine_gorge_80183474, D_mine_gorge_8018317C },
+AreaVariant gMineGorgeAreaVariants[MINE_GORGE_AREA_VARIANT_COUNT] = {
+    [MINE_GORGE_AREA_VARIANT_BAT_WAVE]            = { .placements = _gMineGorgeVariant1Placements, .resources = _gMineGorgeVariant1Resources },
+    [MINE_GORGE_AREA_VARIANT_BATS]                = { .placements = _gMineGorgeVariant2Placements, .resources = _gMineGorgeVariant2Resources },
+    [MINE_GORGE_AREA_VARIANT_MIND_SUCKLERS]       = { .placements = _gMineGorgeVariant3Placements, .resources = _gMineGorgeVariant3Resources },
+    [MINE_GORGE_AREA_VARIANT_MIND_SUCKLERS_MOTHS] = { .placements = _gMineGorgeVariant4Placements, .resources = _gMineGorgeVariant4Resources },
+    [MINE_GORGE_AREA_VARIANT_BATS_TURN_ROW_6]     = { .placements = _gMineGorgeVariant11Placements, .resources = _gMineGorgeVariant11Resources },
 };
 
 /// Minimum ambient RGB levels for logical gorge views 1..11.
@@ -1275,16 +1374,16 @@ static inline void _mineGorgeDrawFlarePair(const SVECTOR worldPoints[2])
 void mineGorgeDrawViewFlaresTask(Task* unusedTask)
 {
     // Gate ambient effects independently of the fixed flares visible in this view.
-    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(u8)viewGetMappedIndex() - 1];
+    gRoomEffectState->roomEffectMode = _gMineGorgeViewEffectModes[(u8)viewGetMappedIndex() - 1];
     switch ((u8)viewGetMappedIndex()) {
         case 2: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E798;
+            const SVECTOR* flarePositions = &_gMineGorgeFlarePositions[4];
             _mineGorgeDrawFlarePair(flarePositions);
             break;
         }
         case 3:
         case 7: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E778;
+            const SVECTOR* flarePositions = _gMineGorgeFlarePositions;
             _mineGorgeDrawFlarePair(flarePositions);
             _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
@@ -1294,19 +1393,19 @@ void mineGorgeDrawViewFlaresTask(Task* unusedTask)
         case 4:
         case 5:
         case 9: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E788;
+            const SVECTOR* flarePositions = &_gMineGorgeFlarePositions[2];
             _mineGorgeDrawFlarePair(flarePositions);
             _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E778;
+            const SVECTOR* flarePositions = _gMineGorgeFlarePositions;
             _mineGorgeDrawFlarePair(flarePositions);
             break;
         }
         case 8: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E788;
+            const SVECTOR* flarePositions = &_gMineGorgeFlarePositions[2];
             _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
@@ -1314,7 +1413,7 @@ void mineGorgeDrawViewFlaresTask(Task* unusedTask)
         }
         case 10:
         case 11: {
-            const SVECTOR* flarePositions = D_mine_gorge_8017E790;
+            const SVECTOR* flarePositions = &_gMineGorgeFlarePositions[3];
             _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }

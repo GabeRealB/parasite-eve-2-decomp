@@ -11,7 +11,21 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_gorge_80183544[12];
+/// Extents of the gorge's room, mapped-view and encounter-variant directories.
+enum {
+    MINE_GORGE_ROOM_COUNT         = 2,
+    MINE_GORGE_VIEW_COUNT         = 11,
+    MINE_GORGE_AREA_VARIANT_COUNT = 12
+};
+
+/// Encounter layouts indexed directly by the saved area variant, 0..11.
+///
+/// Slots 1, 2 and 11 contain twelve bats each; slot 1 waits for the encounter
+/// wave. Slot 3 contains six Mind Sucklers; slot 4 contains four Mind Sucklers
+/// and eight moths. Slot 0 and slots 5..10 are absent, with both pointers NULL.
+/// Each populated pair borrows terminated placement/resource tables from the
+/// loaded gorge and must outlive loading and the actors that retain placements.
+extern AreaVariant gMineGorgeAreaVariants[MINE_GORGE_AREA_VARIANT_COUNT];
 
 /// Lighting for the gorge's two room states, indexed by room ID minus one.
 ///
@@ -30,13 +44,31 @@ extern WorldCollisionRoomResources D_mine_gorge_8017E7B8[];
 /// loaded gorge; the identity map belongs to gameplay. Neither has a terminator.
 extern u8* gMineGorgeRoomViewMaps[2];
 
-extern ViewCount D_mine_gorge_8017E7EC[];
+/// Logical reverse-search counts for the gorge's two room states.
+///
+/// Signed halfword element counts, indexed by room ID minus one; both search
+/// eleven logical-view map bytes. There is no terminator. Counts and maps are
+/// independent of the retained trailing map byte and remain live while loaded.
+extern ViewCount gMineGorgeRoomViewCounts[MINE_GORGE_ROOM_COUNT];
 
 extern DirectionWarpEntry D_mine_gorge_8017E7F0[];
 
-extern ViewCamera D_mine_gorge_8017FA14[];
+/// Cameras indexed by the gorge's mapped resource view minus one, for views 1..11.
+///
+/// Rotation uses 4096 per unit; translation is the negated world camera origin,
+/// and perspective distances are pixels. Pairs 3/7, 4/8 and 5/9 share camera
+/// values; slots 10 and 11 also match. Queued view tasks borrow a record until application,
+/// so the gorge must remain loaded. The array has no terminator.
+extern ViewCamera gMineGorgeViewCameras[MINE_GORGE_VIEW_COUNT];
 
-extern SpriteView D_mine_gorge_801827F8[];
+/// Sprite descriptors indexed by mapped gorge resource view minus one, for views 1..11.
+///
+/// Slots 1, 5, 10 and 11 have no source sprites and retain their batch-list
+/// addresses in `sources.empty`; all other slots select source elements.
+/// Every slot has a terminated batch list and no draw-area list. Descriptors
+/// borrow gorge-owned mutable arrays that must remain loaded while drawing;
+/// this directory itself has no terminator.
+extern SpriteView gMineGorgeSpriteViews[MINE_GORGE_VIEW_COUNT];
 
 /// Collision policies and footstep cues for the gorge's surface classes 0..7.
 ///

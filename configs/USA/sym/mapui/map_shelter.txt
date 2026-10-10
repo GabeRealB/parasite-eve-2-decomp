@@ -44,10 +44,10 @@ mineGorgeRoomTask = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shar
 gMineGorgeRoomLighting = 0x8017E7A8; // absolute:True owner=mine_gorge
 D_mine_gorge_8017E7B8 = 0x8017E7B8; // absolute:True owner=mine_gorge shared=rooms
 gMineGorgeRoomViewMaps = 0x8017E7E4; // absolute:True owner=mine_gorge shared=rooms
-D_mine_gorge_8017E7EC = 0x8017E7EC; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeRoomViewCounts = 0x8017E7EC; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7F0 = 0x8017E7F0; // absolute:True owner=mine_gorge shared=rooms
-D_mine_gorge_8017FA14 = 0x8017FA14; // absolute:True owner=mine_gorge
-D_mine_gorge_801827F8 = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeViewCameras = 0x8017FA14; // absolute:True owner=mine_gorge
+gMineGorgeSpriteViews = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
 gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
 mineRefugeRoomTask = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
 D_mine_refuge_801818F0 = 0x801818F0; // absolute:True owner=mine_refuge
@@ -209,7 +209,7 @@ D_shelter_b1_underground_parking_80189778 = 0x80189778; // absolute:True owner=s
 D_shelter_b1_underground_parking_8018AB9C = 0x8018AB9C; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018D724 = 0x8018D724; // absolute:True owner=shelter_b1_underground_parking
 shelterB1GolemFreezer1RoomTask = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
-gShelterB1GolemFreezer1ViewMaps = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1ViewMaps = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1
 gShelterB1GolemFreezer1ViewCounts = 0x8017E794; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E798 = 0x8017E798; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 gShelterB1GolemFreezer1RoomCollision = 0x8017E9C0; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
@@ -292,7 +292,7 @@ D_shelter_b2_south_maintenance_walkway_80182A0C = 0x80182A0C; // absolute:True o
 D_shelter_b2_south_maintenance_walkway_80183018 = 0x80183018; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 D_shelter_b2_south_maintenance_walkway_80183294 = 0x80183294; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_801832AC = 0x801832AC; // absolute:True owner=shelter_b2_south_maintenance_walkway
-D_shelter_b2_south_maintenance_walkway_80183474 = 0x80183474; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
+D_shelter_b2_south_maintenance_walkway_80183474 = 0x80183474; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_8018385C = 0x8018385C; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_801838B4 = 0x801838B4; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 shelterB2OperatingRoomTask = 0x8017DD60; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
