@@ -79,18 +79,6 @@ typedef struct {
     s8 placementIndex; // Entry of the room's door placement table the player is placed at
 } _ShelterB1SterilizationRoomDoorDestination;
 
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry   D_shelter_b1_sterilization_room_80184E40[6];
-extern TaskDesc           D_shelter_b1_sterilization_room_80184E70;
-extern s32                D_shelter_b1_sterilization_room_80184E7C;
-extern s16                D_shelter_b1_sterilization_room_80184E80[3];
-extern WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28;
-
-extern AnimationPlayRequest                       D_shelter_b1_sterilization_room_80188624;
-extern ActorTransform                             D_shelter_b1_sterilization_room_80188668[];
-extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0 "
 #include "../../shared/telephone.h"
 
@@ -131,6 +119,25 @@ enum {
 
 /// Door room actions 3..10 map to zero-based destination entries 0..7.
 enum { SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION = 3 };
+
+/// Priority of the room's bodyless event and presentation tasks.
+enum { SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY = 192 };
+
+/// Actor 0's command word for latching its smoking behavior.
+enum { SHELTER_B1_STERILIZATION_ROOM_ACTOR_START_SMOKING = 1 };
+
+/// Player-bank indices installed by the room's eight-word trap extension.
+///
+/// The first word clears index 47; the seven sets occupy indices 48..54.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_BEGIN    = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_VIEW_11  = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_CAP_CUE  = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_PLACED   = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ESCAPE_BEGIN   = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ESCAPE_VIEW_18 = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_DAMAGE         = ANIMATION_BANK_BASE_SET_COUNT + 7,
+};
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -178,7 +185,11 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
+/// Synchronous room receivers for transitions, key items, actions, CAP commands and sound.
+///
+/// Installed on the room task through its lifetime. The final END entry makes
+/// unsupported message IDs return zero; payload types belong to each receiver.
+static TaskMessageEntry _gShelterB1SterilizationRoomMessageTable[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1SterilizationRoomResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1SterilizationRoomRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SterilizationRoomHandleActionMessage },
@@ -187,35 +198,70 @@ TaskMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomScriptedPresentationTask, { .value = 0 } };
+/// Bodyless task recipe for playing CAP command 12 or 13 between player presentation clips.
+///
+/// Spawn at index zero with the CAP command in spawnArg1 and player control held.
+static TaskDesc _gShelterB1SterilizationRoomScriptedPresentationTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } },
+    .callback = _shelterB1SterilizationRoomScriptedPresentationTask,
+    .data     = { .value = 0 },
+};
 
-s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
+/// Starts the placed event soldier smoking on entry to room variant 5.
+///
+/// Borrowed for synchronous actor-command dispatch; the receiver ignores the
+/// Mine/Shelter area context and latches command 1. Retains word alignment.
+static ActorCommand _gShelterB1SterilizationRoomStartSmokingCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM } },
+    .command = SHELTER_B1_STERILIZATION_ROOM_ACTOR_START_SMOKING,
+};
 
-s16 D_shelter_b1_sterilization_room_80184E80[3] = { 0 };
+/// Room-axis XYZ translation added to the event actor's obstacle in whole game units.
+///
+/// Three signed halfwords, with no fourth vector component. X/Z stay zero;
+/// initialization selects Y=0 when active or Y=10000 to move it out of reach.
+static s16 _gShelterB1SterilizationRoomEventActorObstacleOffset[3] = { 0 };
 
-static SVECTOR _gShelterB1SterilizationRoomCollision07968Normals[4] = {
+static SVECTOR _gShelterB1SterilizationRoomEventActorObstacleGridNormals[4] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_normals.inc"
 };
 
-static SVECTOR _gShelterB1SterilizationRoomCollision07968Verts[8] = {
+static SVECTOR _gShelterB1SterilizationRoomEventActorObstacleGridVerts[8] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1SterilizationRoomCollision07968Faces[4] = {
+static WorldCollisionGridFace _gShelterB1SterilizationRoomEventActorObstacleGridFaces[4] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_faces.inc"
 };
 
-static s16 _gShelterB1SterilizationRoomCollision07968Cells[6] = {
+static s16 _gShelterB1SterilizationRoomEventActorObstacleGridCells[6] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollision07968Cells[i])
-static s16* _gShelterB1SterilizationRoomCollision07968Table[1] = {
+#define GRID_CELL(i) (&_gShelterB1SterilizationRoomEventActorObstacleGridCells[i])
+static s16* _gShelterB1SterilizationRoomEventActorObstacleGridTable[1] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28 = { NULL, _gShelterB1SterilizationRoomCollision07968Normals, _gShelterB1SterilizationRoomCollision07968Verts, _gShelterB1SterilizationRoomCollision07968Faces, _gShelterB1SterilizationRoomCollision07968Table, 641, 540, 1, 1, 4000, 4 };
+/// Local four-face obstacle copied into the leading entries of the live room grid.
+///
+/// Eight game-unit vertices and four Q12 normals are transformed by the event
+/// actor's model root, with an optional room-axis offset. Its authored one-cell
+/// index is retained with the asset; rebuilding reads only the geometry pools.
+static WorldCollisionGrid _gShelterB1SterilizationRoomEventActorObstacleGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1SterilizationRoomEventActorObstacleGridNormals,
+    .vertices    = _gShelterB1SterilizationRoomEventActorObstacleGridVerts,
+    .faces       = _gShelterB1SterilizationRoomEventActorObstacleGridFaces,
+    .cellFaceIds = _gShelterB1SterilizationRoomEventActorObstacleGridTable,
+    .xBias       = 641,
+    .zBias       = 540,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1SterilizationRoomEventActorObstacleGridFaces),
+};
 
 static AnimationPackedPose _gShelterB1SterilizationRoomAnimation07C68Bank1[6] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
@@ -371,19 +417,23 @@ static AnimationSet _gShelterB1SterilizationRoomAnimation0AF1C = {
     { NULL, _gShelterB1SterilizationRoomAnimation0AF1CBank1, NULL, NULL, _gShelterB1SterilizationRoomAnimation0AF1CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomCrossfadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomTrapEscapePromptTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomDoorPassageTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomDoorNoticeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomTrapDialogueTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomSceneDialogueTask, { .value = 0 } },
+TaskDesc gShelterB1SterilizationRoomEventTaskDescs[SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_DESC_COUNT] = {
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomCrossfadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomTrapEscapePromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomDoorPassageTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomDoorNoticeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomTrapDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomSceneDialogueTask, { .value = 0 } },
 };
 
-AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
+/// Null clip 47 followed by the trap-entry, escape and damage clips 48..54.
+///
+/// Copied into the equipped weapon bank; the sets and their track data remain
+/// borrowed from this overlay for playback. The first null is a slot, not END.
+static AnimationSet* _gShelterB1SterilizationRoomTrapAnimationSets[] = {
     NULL,
     &_gShelterB1SterilizationRoomAnimation07C68,
     &_gShelterB1SterilizationRoomAnimation07E1C,
@@ -394,29 +444,92 @@ AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
     &_gShelterB1SterilizationRoomAnimation0AF1C,
 };
 
-AnimationBankCopyRequest D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, ARRAY_SIZE(D_shelter_b1_sterilization_room_80188570) };
+AnimationBankCopyRequest gShelterB1SterilizationRoomTrapAnimationBankCopyRequest = {
+    .source    = { .sets = _gShelterB1SterilizationRoomTrapAnimationSets },
+    .wordCount = ARRAY_SIZE(_gShelterB1SterilizationRoomTrapAnimationSets),
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_80188598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced bank-1, clip-1 reset request with world collision enabled.
+///
+/// Its intended use is unproven; the record remains in the authored data layout.
+static AnimationPlayRequest D_shelter_b1_sterilization_room_80188598 = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_801885AC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryBeginAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_BEGIN,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 30,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_801885C0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryView11AnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_VIEW_11,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 5,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_801885D4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryCapCueAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_CAP_CUE,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 5,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_801885E8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryPlacedAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ENTRY_PLACED,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_801885FC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEscapeBeginAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ESCAPE_BEGIN,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_80188610 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gShelterB1SterilizationRoomTrapEscapeView18AnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_ESCAPE_VIEW_18,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_sterilization_room_80188624 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Survivor reaction to each periodic trap hit: clip 54 with a ten-frame blend.
+///
+/// The damage task writes the equipped weapon's bank selector before dispatch.
+/// Playback disables world collision and borrows the installed room clip data.
+static AnimationPlayRequest _gShelterB1SterilizationRoomTrapDamageAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_DAMAGE,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
+ActorTransform gShelterB1SterilizationRoomTrapEntryPlayerPlacement = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
 
-ActorTransform D_shelter_b1_sterilization_room_80188650 = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
+ActorTransform gShelterB1SterilizationRoomTrapEscapePlayerPlacement = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
 
-ActorTransform D_shelter_b1_sterilization_room_80188668[8] = {
+/// Player transforms on the far side of the room's eight internal doors.
+///
+/// Indexed by each destination's placementIndex (0..7), rather than door action.
+/// Positions use room-axis game units and Euler angles use 4096 units per turn.
+/// Placement dispatch consumes the transform synchronously.
+static ActorTransform _gShelterB1SterilizationRoomDoorPlacements[] = {
     { { 4885, 0, 6391, 0 }, { 0, 0, 0, 0 } },
     { { 4885, 0, 10522, 0 }, { 0, 2047, 0, 0 } },
     { { 2066, 0, 6626, 0 }, { 0, 0, 0, 0 } },
@@ -427,7 +540,12 @@ ActorTransform D_shelter_b1_sterilization_room_80188668[8] = {
     { { 4995, 0, 11566, 0 }, { 0, 0, 0, 0 } },
 };
 
-_ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[8] = {
+/// Destination view and player-placement index for internal door actions 3..10.
+///
+/// Indexed by room action minus SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION.
+/// All placement indices select entries 0..7 of the door placement table; both
+/// tables remain live with the overlay through the fade and placement sequence.
+static _ShelterB1SterilizationRoomDoorDestination _gShelterB1SterilizationRoomDoorDestinations[] = {
     { 9, 7 },
     { 5, 1 },
     { 8, 6 },
@@ -451,10 +569,11 @@ void shelterB1SterilizationRoomTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// The three states of the room's main task, run by
-/// `shelterB1SterilizationRoomTask`: set-up, the per-frame
-/// handler and the kill.
-static const TaskFuncTable3 D_shelter_b1_sterilization_room_8017D6A4 = {
+/// Main room-task handlers: 0 initialize, 1 update event-actor visibility, 2 teardown.
+///
+/// Copied by value before dispatch; state must stay in 0..2. Initialization
+/// advances to the persistent update state. There is no terminator.
+static const TaskFuncTable3 _gShelterB1SterilizationRoomStateHandlers = {
     {
         _shelterB1SterilizationRoomInitializeState,
         _shelterB1SterilizationRoomUpdateState,
@@ -486,7 +605,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
     };
     Task* placedActor;
 
-    task->msgTable = D_shelter_b1_sterilization_room_80184E40;
+    task->msgTable = _gShelterB1SterilizationRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Start the first variant-5 event before installing its actor obstacle.
     if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ENTRY_EVENT_UNSEEN) {
@@ -508,7 +627,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
     if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
         placedActor = sceneFindPlacedActor(SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_PLACEMENT);
         if (placedActor != NULL) {
-            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gShelterB1SterilizationRoomStartSmokingCommand, 0);
         }
     }
     if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != ENTRY_EVENT_WITHOUT_COMPANION) {
@@ -518,7 +637,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
         eventTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     if (gGameSession->location.loc.variant == FIRST_ENTRY_VARIANT) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_RESET_SPAWN_MASK, 0, 0);
+        taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_RESET_SPAWN_MASK, 0, 0);
     }
     task->state++;
 }
@@ -604,7 +723,7 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
         case ACTION_ESCAPE_PROMPT:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED) {
                 if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_ESCAPE_PROMPT, 0, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_ESCAPE_PROMPT, 0, 0);
                 } else {
                     capRunCommandWithTransition(CAP_ESCAPED_TRAP_NOTICE);
                 }
@@ -622,7 +741,7 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
                     capRunCommandWithTransition(capCommand);
                     gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN, shownNotes | noteMask);
                 }
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+                taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             } else {
                 capRunCommandWithTransition(CAP_TRAP_BLOCKS_DOOR);
             }
@@ -632,7 +751,7 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
         case ACTION_NOTICE_DOOR_7:
         case ACTION_NOTICE_DOOR_10:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_NOTICE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+                taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_NOTICE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             } else {
                 capRunCommandWithTransition(CAP_TRAP_BLOCKS_DOOR);
             }
@@ -640,31 +759,31 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
         case ACTION_SCENE_DOOR_9:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149) == TRAP_DIALOGUE_NOT_STARTED) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_FIRST, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_FIRST, 0);
                 } else {
                     if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE) == ACTION_SCENE_UNSEEN) {
-                        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_REPEAT, 0);
+                        taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_REPEAT, 0);
                         gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE, ACTION_SCENE_FIRST_STARTED);
                     }
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
                 }
             }
             break;
         case ACTION_SCENE_DOOR_4:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
                 if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) == ACTION_SCENE_UNSEEN) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_BEFORE_ESCAPE, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_BEFORE_ESCAPE, 0);
                     gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, ACTION_SCENE_FIRST_STARTED);
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) < ACTION_SCENE_POST_ESCAPE_STARTED) {
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A) == TRAP_DIALOGUE_NOT_STARTED) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_FIRST, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_FIRST, 0);
                 } else {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_REPEAT, 0);
+                    taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_REPEAT, 0);
                 }
                 gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, ACTION_SCENE_POST_ESCAPE_STARTED);
             }
-            taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+            taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             break;
     }
     return 0;
@@ -730,10 +849,10 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
         capRunCommandWithTransition(command);
     }
     if (command == SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_DIALOGUE) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_PRIMARY, 0);
+        taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_PRIMARY, 0);
     }
     if (command == SHELTER_B1_STERILIZATION_ROOM_COMMAND_ALTERNATE_TRAP_DIALOGUE) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_ALTERNATE, 0);
+        taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_ALTERNATE, 0);
     }
     if (command == COMMAND_TRAP_EXCHANGE) {
         if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
@@ -742,7 +861,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
                 evsStartScriptWithSkip(gShelterB1SterilizationRoomTrapExchangeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_FIRST_STARTED);
             } else {
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_REPEAT_TRAP_EXCHANGE, 0);
+                taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_REPEAT_TRAP_EXCHANGE, 0);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_REPEAT_STARTED);
             }
         } else {
@@ -752,7 +871,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
     if (command == COMMAND_PRESENTATION_12 || command == COMMAND_PRESENTATION_13) {
         if (gGameSession->location.loc.room == PRESENTATION_ROOM) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_shelter_b1_sterilization_room_80184E70, 0, command, 0);
+            taskSpawnFromTable(&_gShelterB1SterilizationRoomScriptedPresentationTaskDesc, 0, command, 0);
         }
     }
     return 0;
@@ -851,14 +970,14 @@ static void _shelterB1SterilizationRoomInitializeActorObstacle(s32 unused)
     }
     if (placedActor != NULL) {
         if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_ACTIVE) {
-            D_shelter_b1_sterilization_room_80184E80[1] = 0;
+            _gShelterB1SterilizationRoomEventActorObstacleOffset[1] = 0;
         } else {
-            D_shelter_b1_sterilization_room_80184E80[1] = SHELTER_B1_STERILIZATION_ROOM_INACTIVE_OBSTACLE_HEIGHT;
+            _gShelterB1SterilizationRoomEventActorObstacleOffset[1] = SHELTER_B1_STERILIZATION_ROOM_INACTIVE_OBSTACLE_HEIGHT;
         }
     } else {
-        D_shelter_b1_sterilization_room_80184E80[1] = SHELTER_B1_STERILIZATION_ROOM_INACTIVE_OBSTACLE_HEIGHT;
+        _gShelterB1SterilizationRoomEventActorObstacleOffset[1] = SHELTER_B1_STERILIZATION_ROOM_INACTIVE_OBSTACLE_HEIGHT;
     }
-    _shelterB1SterilizationRoomRebuildActorObstacle(modelActor->extra.tmd->coords, D_shelter_b1_sterilization_room_80184E80);
+    _shelterB1SterilizationRoomRebuildActorObstacle(modelActor->extra.tmd->coords, _gShelterB1SterilizationRoomEventActorObstacleOffset);
 }
 
 /// Refuses every room key-item request without consuming the selected item.
@@ -939,7 +1058,7 @@ void shelterB1SterilizationRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b1_sterilization_room_8017D6A4;
+    states = _gShelterB1SterilizationRoomStateHandlers;
     states.funcs[task->state](task);
 }
 
@@ -963,7 +1082,7 @@ static void _shelterB1SterilizationRoomRebuildActorObstacle(const GfxCoord* mode
     SVECTOR*                  destinationVector;
     SVECTOR*                  sourceVector;
     WorldCollisionGrid*       roomGrid       = &gShelterB1SterilizationRoomCollisionGrid;
-    const WorldCollisionGrid* obstacleSource = &D_shelter_b1_sterilization_room_80184F28;
+    const WorldCollisionGrid* obstacleSource = &_gShelterB1SterilizationRoomEventActorObstacleGrid;
 
     /// Restores the reserved obstacle's XYZ vectors and complete faces.
     ///
@@ -1180,11 +1299,11 @@ static void _shelterB1SterilizationRoomDoorPassageTask(Task* task)
             break;
         case SHELTER_B1_STERILIZATION_ROOM_DOOR_PLACE_PLAYER:
             // Switch the view and placement while the screen is fully dark.
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->location.loc.view                            = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
+            gGameSession->location.loc.view                            = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
             gGameSession->viewDirty                                    = 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE,
-                                          &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].placementIndex],
+                                          &_gShelterB1SterilizationRoomDoorPlacements[_gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].placementIndex],
                                           0);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
             fadeDrawOverlay(SHELTER_B1_STERILIZATION_ROOM_DOOR_FADE_MAX_SHADE, SHELTER_B1_STERILIZATION_ROOM_DOOR_FADE_MAX_SHADE, SHELTER_B1_STERILIZATION_ROOM_DOOR_FADE_MAX_SHADE, GPU_BLEND_SUBTRACT);
@@ -1246,9 +1365,9 @@ static void _shelterB1SterilizationRoomTrapDamageTask(Task* task)
                         // Delay the reaction until the tick after damage; a fatal hit skips it.
                         if (gPlayerStatus.hp > 0) {
                             playerRoot = playerTask->extra.tmd->coords;
-                            TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
-                            playerActorWriteWeaponAnimationBankIndex(&D_shelter_b1_sterilization_room_80188624.source.index);
-                            TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest, 0);
+                            playerActorWriteWeaponAnimationBankIndex(&_gShelterB1SterilizationRoomTrapDamageAnimationRequest.source.index);
+                            TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &_gShelterB1SterilizationRoomTrapDamageAnimationRequest, 0);
                             audioPan = (s8)worldCoordGetOriginAudioPan(playerRoot);
                             sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, audioPan, (s8)worldCoordGetOriginAudioDepth(playerRoot));
                             task->killCountdown = 0;
@@ -1277,14 +1396,15 @@ void shelterB1SterilizationRoomSpawnTaskOnce(s32 descriptorIndex)
 {
     if (!((gShelterB1SterilizationRoomOnceSpawnMask >> descriptorIndex) & 1)) {
         gShelterB1SterilizationRoomOnceSpawnMask |= 1 << descriptorIndex;
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, descriptorIndex, 0, 0);
+        taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, descriptorIndex, 0, 0);
     }
 }
 
-/// The four states of the backdrop task run by
-/// `_shelterB1SterilizationRoomCrossfadeTask`: copy the frame buffer into
-/// the backdrop, wait for the view, fade the copy out and kill.
-static const TaskFuncTable4 D_shelter_b1_sterilization_room_8017D700 = {
+/// Crossfade handlers: 0 capture the old frame, 1 wait for the view, 2 fade, 3 teardown.
+///
+/// Copied by value before dispatch; state must stay in 0..3. Capture and view
+/// readiness advance the task, then the 16-tick fade advances to teardown.
+static const TaskFuncTable4 _gShelterB1SterilizationRoomCrossfadeStateHandlers = {
     {
         _shelterB1SterilizationRoomCaptureCrossfadeState,
         _shelterB1SterilizationRoomWaitCrossfadeViewState,
@@ -1304,7 +1424,7 @@ static void _shelterB1SterilizationRoomCrossfadeTask(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_shelter_b1_sterilization_room_8017D700;
+    states = _gShelterB1SterilizationRoomCrossfadeStateHandlers;
     states.funcs[task->state](task);
 }
 

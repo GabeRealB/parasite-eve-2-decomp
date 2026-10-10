@@ -12,8 +12,16 @@
 
 #include "rooms/room.h"
 
-/// The room's task descriptor table; its spawners pick an entry by index.
-extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
+/// Number of indexed recipes in the room's event-task table; there is no END entry.
+enum { SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_DESC_COUNT = 9 };
+
+/// Bodyless priority-192 recipes for room transitions, trap tasks and CAP dialogue.
+///
+/// Indices 0..8 are the SHELTER_B1_STERILIZATION_ROOM_TASK_* values below.
+/// Spawning copies the recipe; the callbacks and their resources must stay live.
+/// Door passage takes the action-minus-three door index; dialogue tasks take
+/// their route or CAP command in spawnArg1. Other recipes ignore both payloads.
+extern TaskDesc gShelterB1SterilizationRoomEventTaskDescs[SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_DESC_COUNT];
 
 /// Latches requests made through the room's two once-spawn helpers.
 ///
@@ -23,23 +31,59 @@ extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
 /// without stopping live tasks. The signed 32-bit shifts are retained.
 extern s32 gShelterB1SterilizationRoomOnceSpawnMask;
 
-extern AnimationBankCopyRequest D_shelter_b1_sterilization_room_80188590;
+/// Installs the room's eight-word trap extension at player-bank indices 47..54.
+///
+/// Index 47 becomes NULL; 48..54 borrow the seven trap clips. Copies exactly
+/// eight pointer words into the equipped weapon's writable bank. Keep the room's
+/// sets and track data loaded until their playback ends; dispatch itself retains
+/// neither this request nor the source table.
+extern AnimationBankCopyRequest gShelterB1SterilizationRoomTrapAnimationBankCopyRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885AC;
+/// Trap-entry opening clip 48, blending over 30 frames with world collision enabled.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryBeginAnimationRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885C0;
+/// Trap-entry clip 49 in view 11, blending over five frames with world collision enabled.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryView11AnimationRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885D4;
+/// Trap-entry clip 50 at the first CAP cue in view 16, with a five-frame blend.
+///
+/// Keeps world collision enabled; event playback resolves the equipped weapon
+/// bank in a copy of this request. Requires the room's installed trap extension.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryCapCueAnimationRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885E8;
+/// Trap-entry clip 51 after placing the player in view 14, resetting playback.
+///
+/// Keeps world collision enabled; event playback resolves the equipped weapon
+/// bank in a copy of this request. Requires the room's installed trap extension.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEntryPlacedAnimationRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_801885FC;
+/// Escape opening clip 52, resetting playback and disabling world collision.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request;
+/// the room's trap extension and clip data must remain loaded during playback.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEscapeBeginAnimationRequest;
 
-extern AnimationPlayRequest D_shelter_b1_sterilization_room_80188610;
+/// Escape clip 53 in view 18, resetting playback and disabling world collision.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request;
+/// the room's trap extension and clip data must remain loaded during playback.
+extern AnimationPlayRequest gShelterB1SterilizationRoomTrapEscapeView18AnimationRequest;
 
-extern ActorTransform D_shelter_b1_sterilization_room_80188638;
+/// Player placement shared by the normal and skipped trap-entry sequences.
+///
+/// Room-axis position (5540,0,8600), yaw 2047 in 4096 units per turn.
+/// The placement message consumes the full transform synchronously.
+extern ActorTransform gShelterB1SterilizationRoomTrapEntryPlayerPlacement;
 
-extern ActorTransform D_shelter_b1_sterilization_room_80188650;
+/// Player placement shared by the normal and skipped escape-to-Dumping-Hole sequences.
+///
+/// Room-axis position (5876,0,10450), yaw 512 in 4096 units per turn.
+/// The placement message consumes the full transform synchronously.
+extern ActorTransform gShelterB1SterilizationRoomTrapEscapePlayerPlacement;
 
 /// The repeating trap's category-4 attack: base power 25, ordinary hit reaction.
 ///
