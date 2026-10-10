@@ -16,11 +16,22 @@ extern AreaVariant D_dryfield_main_street_80184F20[13];
 // dryfield_main_street
 extern WorldCollisionRoomResources D_dryfield_main_street_80181BBC[];
 
-extern u8* D_dryfield_main_street_80181BCC[];
+/// Logical-view map directory for Main Street's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..13 select the same
+/// camera, image and sprite indices. The shared map has its own capacity;
+/// the room's view count limits reverse searches. Keep this directory live
+/// while the Main Street overlay is loaded.
+extern u8* gDryfieldMainStreetRoomViewMaps[1];
 
 extern ViewCount D_dryfield_main_street_80181BD0[];
 
-extern WorldCoordRoomLighting D_dryfield_main_street_80181BD4[];
+/// Lighting directory for Main Street's single room.
+///
+/// Room 1 borrows sixteen mutable point lights, eligible in every view, and
+/// uses gameplay's default ambient minima. The directory and light storage
+/// remain valid only while the Main Street overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldMainStreetRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_main_street_80181BDC[];
 
@@ -28,7 +39,13 @@ extern ViewCamera D_dryfield_main_street_80182CC0[];
 
 extern SpriteView D_dryfield_main_street_80184308[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[];
+/// Main Street's collision and footstep policies, indexed by surface class 0..7.
+///
+/// Classes 0 and 5..7 share a silent blocking record. Class 1 passes probes
+/// and ignores weapon impacts; classes 2..4 block probes and supply distinct
+/// footstep cue sets. All classes apply pushback. Records and cue sets are
+/// borrowed from this room overlay and must not outlive it.
+extern WorldCollisionSurfaceProperties* gDryfieldMainStreetSurfacePropertiesByClass[8];
 
 /// Animates and drifts one daytime main street puff (effect 0x601B1).
 ///

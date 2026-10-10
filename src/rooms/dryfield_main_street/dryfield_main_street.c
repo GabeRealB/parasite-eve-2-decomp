@@ -142,10 +142,10 @@ static void _dryfieldMainStreetInitialize(Task* task);
 static void _dryfieldMainStreetIdle(Task* task);
 static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg);
 
-extern WorldCollisionGrid    D_dryfield_main_street_80182C9C[1];
+static WorldCollisionGrid    _gDryfieldMainStreetCollisionGrid;
 extern WorldCollisionTrigger D_dryfield_main_street_801843A4[26];
 extern WorldCollisionTrigger D_dryfield_main_street_80184B5C[10];
-extern WorldCoordRoomLights  D_dryfield_main_street_80185588[1];
+static WorldCoordRoomLights  _gDryfieldMainStreetLights;
 
 extern AnimationPlayRequest D_dryfield_main_street_801815AC;
 extern AnimationPlayRequest D_dryfield_main_street_801815C0;
@@ -351,17 +351,17 @@ SVECTOR D_dryfield_main_street_80181BA4 = { -850, -1320, 9770, 0 };
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_dryfield_main_street_80181BBC[1] = {
-    { D_dryfield_main_street_80182C9C, D_dryfield_main_street_801843A4, D_dryfield_main_street_80184B5C, NULL },
+    { &_gDryfieldMainStreetCollisionGrid, D_dryfield_main_street_801843A4, D_dryfield_main_street_80184B5C, NULL },
 };
 
-u8* D_dryfield_main_street_80181BCC[1] = {
+u8* gDryfieldMainStreetRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_main_street_80181BD0[1] = { 13 };
 
-WorldCoordRoomLighting D_dryfield_main_street_80181BD4[1] = {
-    { D_dryfield_main_street_80185588, NULL },
+WorldCoordRoomLighting gDryfieldMainStreetRoomLighting[1] = {
+    { .lights = &_gDryfieldMainStreetLights, .ambientTable = NULL },
 };
 
 DirectionWarpEntry D_dryfield_main_street_80181BDC[7] = {
@@ -374,30 +374,50 @@ DirectionWarpEntry D_dryfield_main_street_80181BDC[7] = {
     { { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, 0x52020002, 0x52020001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 482 },
 };
 
-static SVECTOR _gDryfieldMainStreetCollision056DCNormals[20] = {
+/// Collision face normals in room space, with ONE (4096) for unit length.
+static SVECTOR _gDryfieldMainStreetCollisionGridNormals[20] = {
 #include "assets/dryfield_main_street_collision_056DC_normals.inc"
 };
 
-static SVECTOR _gDryfieldMainStreetCollision056DCVerts[180] = {
+/// Collision mesh vertices in signed room-coordinate game units.
+static SVECTOR _gDryfieldMainStreetCollisionGridVerts[180] = {
 #include "assets/dryfield_main_street_collision_056DC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldMainStreetCollision056DCFaces[85] = {
+/// Indexed collision faces selecting room-local surface classes 0..4.
+static WorldCollisionGridFace _gDryfieldMainStreetCollisionGridFaces[85] = {
 #include "assets/dryfield_main_street_collision_056DC_faces.inc"
 };
 
-static s16 _gDryfieldMainStreetCollision056DCCells[554] = {
+/// Halfword face-index pool containing lists ended by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gDryfieldMainStreetCollisionGridCells[554] = {
 #include "assets/dryfield_main_street_collision_056DC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldMainStreetCollision056DCCells[i])
-static s16* _gDryfieldMainStreetCollision056DCTable[42] = {
+#define GRID_CELL(i) (&_gDryfieldMainStreetCollisionGridCells[i])
+/// X-major cell pointers into the face-index pool for the 6 by 7 grid.
+static s16* _gDryfieldMainStreetCollisionGridTable[42] = {
 #include "assets/dryfield_main_street_collision_056DC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_main_street_80182C9C[1] = {
-    { NULL, _gDryfieldMainStreetCollision056DCNormals, _gDryfieldMainStreetCollision056DCVerts, _gDryfieldMainStreetCollision056DCFaces, _gDryfieldMainStreetCollision056DCTable, 0x2EE6, 0x2C4C, 6, 7, 4000, 85 },
+/// Main Street's collision mesh and its 6 by 7 XZ cell index.
+///
+/// Cells are 4000 game units wide, with origin (-12006, -11340) on XZ.
+/// Activation binds the mutable descriptor to the current view coordinate.
+/// The mesh pools and cell lists live with the Main Street overlay.
+static WorldCollisionGrid _gDryfieldMainStreetCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldMainStreetCollisionGridNormals,
+    .vertices    = _gDryfieldMainStreetCollisionGridVerts,
+    .faces       = _gDryfieldMainStreetCollisionGridFaces,
+    .cellFaceIds = _gDryfieldMainStreetCollisionGridTable,
+    .xBias       = 12006,
+    .zBias       = 11340,
+    .cellCountX  = 6,
+    .cellCountZ  = 7,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldMainStreetCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_main_street_80182CC0[13] = {
@@ -416,250 +436,300 @@ ViewCamera D_dryfield_main_street_80182CC0[13] = {
     { { { { -4080, 0, 356 }, { 15, 4092, 177 }, { -355, 177, -4076 } }, { 1060, 1050, 30 } }, 257 },
 };
 
-SpriteBatch D_dryfield_main_street_80182E94[2] = {
+/// View 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END; no source elements
+/// are selected, even though the view retains this list in its source slot.
+static SpriteBatch _gDryfieldMainStreetView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_80182EA4[51] = {
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, -160, -120, 1250, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -160, -16, 1250, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 152 } }, -72, -120, 2350, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -112, -120, 2250, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 80 } }, -160, -24, 1250, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -128, -24, 1750, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -112, -24, 1875, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -104, -24, 2350, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -96, 16, 2375, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, -24, 1131, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -144, -16, 2375, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 16, -16, 2500, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, -16, 1133, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, -8, 1136, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 0, 2375, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, 0, 1138, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 8, 2375, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 8, 1091, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 16, 1112, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -160, -32, 2375, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -136, -24, 2250, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -128, 0, 2375, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -128, 16, 2375, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, -24, 2375, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -96, -32, 2375, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -88, 0, 2375, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, -16, 2375, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -48, -32, 2375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -40, 8, 2375, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -16, -24, 2500, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 8, 2500, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 32, -24, 2500, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 0, -24, 2500, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, -80, 2250, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, 16, -72, 2275, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, -88, 2250, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 152 } }, 56, -120, 2344, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, -8, 2425, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 152 } }, 96, -120, 2300, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, -96, 1294, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 104, -112, 1237, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 168 } }, 112, -112, 1190, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 96, 0, 1339, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 104, 0, 1311, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 176 } }, 120, -112, 1166, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 176 } }, 128, -112, 1128, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 184 } }, 136, -120, 1130, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 144, -120, 1094, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 152, -120, 1006, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, 144, 8, 1039, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 88, 32, 1250, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit sprite pages, palette row 255 and neutral RGB modulation.
+enum {
+    DRYFIELD_MAIN_STREET_SPRITE_PAGE_896           = getTPage(1, 0, 896, 0),
+    DRYFIELD_MAIN_STREET_SPRITE_PAGE_960           = getTPage(1, 0, 960, 0),
+    DRYFIELD_MAIN_STREET_SPRITE_CLUT               = getClut(0, 255),
+    DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION = 128,
 };
 
-SpriteBatch D_dryfield_main_street_801832A0[8] = {
+/// View 2's 51 mutable textured rectangles for depth-sorted scene drawing.
+///
+/// Positions and dimensions use drawing pixels, UVs use texels and depth is
+/// an unscaled sorting value. Keep the sources live while packets are built
+/// and linked; cached packets snapshot geometry but read source depth each frame.
+static SpriteSource _gDryfieldMainStreetView2SpriteSources[51] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 104 } }, -160, -120, 1250, { .fields = { 48, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 80 } }, -160, -16, 1250, { .fields = { 96, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 152 } }, -72, -120, 2350, { .fields = { 80, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 96 } }, -112, -120, 2250, { .fields = { 32, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 80 } }, -160, -24, 1250, { .fields = { 120, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 80 } }, -128, -24, 1750, { .fields = { 104, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -112, -24, 1875, { .fields = { 120, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -104, -24, 2350, { .fields = { 96, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 16, 2375, { .fields = { 112, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, -24, 1131, { .fields = { 104, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -144, -16, 2375, { .fields = { 104, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, -16, 2500, { .fields = { 88, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, -16, 1133, { .fields = { 88, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, -8, 1136, { .fields = { 120, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, 0, 2375, { .fields = { 0, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 0, 1138, { .fields = { 112, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -152, 8, 2375, { .fields = { 40, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 8, 1091, { .fields = { 96, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 16, 1112, { .fields = { 8, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -160, -32, 2375, { .fields = { 96, 128 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, -136, -24, 2250, { .fields = { 64, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, -128, 0, 2375, { .fields = { 64, 200 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 16 } }, -128, 16, 2375, { .fields = { 56, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, -112, -24, 2375, { .fields = { 24, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -96, -32, 2375, { .fields = { 96, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 32 } }, -88, 0, 2375, { .fields = { 40, 112 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, -16, 2375, { .fields = { 72, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -48, -32, 2375, { .fields = { 96, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 8, 2375, { .fields = { 120, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 32 } }, -16, -24, 2500, { .fields = { 64, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 8, 2500, { .fields = { 0, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 48 } }, 32, -24, 2500, { .fields = { 72, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 48 } }, 0, -24, 2500, { .fields = { 80, 160 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, -80, 2250, { .fields = { 104, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 104 } }, 16, -72, 2275, { .fields = { 72, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -88, 2250, { .fields = { 72, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 152 } }, 56, -120, 2344, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -8, 2425, { .fields = { 64, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 152 } }, 96, -120, 2300, { .fields = { 16, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, 96, -96, 1294, { .fields = { 16, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, -112, 1237, { .fields = { 88, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 168 } }, 112, -112, 1190, { .fields = { 96, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 56 } }, 96, 0, 1339, { .fields = { 88, 120 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, 0, 1311, { .fields = { 88, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 176 } }, 120, -112, 1166, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 176 } }, 128, -112, 1128, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 184 } }, 136, -120, 1130, { .fields = { 120, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, 144, -120, 1094, { .fields = { 24, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -120, 1006, { .fields = { 80, 112 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 64 } }, 144, 8, 1039, { .fields = { 80, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 56, 24 } }, 88, 32, 1250, { .fields = { 24, 40 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+};
+
+/// View 2's six sprite ranges covering all 51 source elements in order.
+///
+/// The zero-count first record retains decoded background strips; the last
+/// record is SPRITE_BATCH_END. Ranges start visible and included in cached
+/// packet processing. The final two bytes retain values whose role is unproven.
+static SpriteBatch _gDryfieldMainStreetView2SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 7, 0, 0, { 0, 0 } },
     { 9, 24, 0, 0, { 5, 0 } },
     { 33, 6, 0, 0, { 1, 0 } },
     { 39, 11, 0, 0, { 4, 0 } },
-    { 50, 1, 0, 0, { 2, 0 } },
+    { 50, ARRAY_SIZE(_gDryfieldMainStreetView2SpriteSources) - 50, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_801832E0[26] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 920, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -120, 1006, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, -120, 1060, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, -80, 931, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -80, 936, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -80, 991, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, -8, 938, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -8, 967, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -8, 1000, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -136, -8, 1088, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -128, -8, 1117, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -8, 1132, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 16, 1142, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -32, -80, 2087, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -24, -72, 2128, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -16, -72, 2165, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -8, 2002, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -24, -8, 2138, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -8, 2178, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 8, -56, 3120, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 16, -56, 3144, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -56, 3099, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -16, 3102, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 104, -64, 2647, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, -16, 2685, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 48, 696, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+/// View 3's 26 mutable rectangles: drawing pixels, texture texels and sorting depths.
+///
+/// Sources live with the room while cached packets are built and linked.
+static SpriteSource _gDryfieldMainStreetView3SpriteSources[26] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -120, 920, { .fields = { 112, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 40 } }, -144, -120, 1006, { .fields = { 80, 104 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, -120, 1060, { .fields = { 72, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -160, -80, 931, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -152, -80, 936, { .fields = { 104, 72 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -144, -80, 991, { .fields = { 112, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -160, -8, 938, { .fields = { 120, 72 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -152, -8, 967, { .fields = { 120, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -144, -8, 1000, { .fields = { 120, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -136, -8, 1088, { .fields = { 112, 72 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -128, -8, 1117, { .fields = { 96, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -120, -8, 1132, { .fields = { 88, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 16, 1142, { .fields = { 88, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -32, -80, 2087, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -24, -72, 2128, { .fields = { 104, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -16, -72, 2165, { .fields = { 96, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 32 } }, -40, -8, 2002, { .fields = { 80, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -24, -8, 2138, { .fields = { 80, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -16, -8, 2178, { .fields = { 104, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, 8, -56, 3120, { .fields = { 96, 128 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, 16, -56, 3144, { .fields = { 96, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, -56, 3099, { .fields = { 104, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, 24, -16, 3102, { .fields = { 72, 24 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 48 } }, 104, -64, 2647, { .fields = { 72, 56 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 32 } }, 96, -16, 2685, { .fields = { 64, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 56 } }, 144, 48, 696, { .fields = { 80, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_801834E8[3] = {
+/// View 3's range list: decoded background strips, all sources, then SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldMainStreetView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 26, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldMainStreetView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_80183500[17] = {
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -160, -120, 960, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, -120, 998, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, -120, 1037, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, -8, 968, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -152, -8, 1071, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, -8, 1089, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 32, 1107, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -64, -88, 1943, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -56, -80, 1928, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -8, 1842, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, -8, 1952, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -48, -80, 1950, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -8, 1970, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -40, -80, 1907, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, -88, 1620, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 96, -56, 1623, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 72, -8, 1706, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+/// View 4's 17 mutable rectangles: drawing pixels, texture texels and sorting depths.
+///
+/// Sources live with the room while cached packets are built and linked.
+static SpriteSource _gDryfieldMainStreetView4SpriteSources[17] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 112 } }, -160, -120, 960, { .fields = { 120, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -152, -120, 998, { .fields = { 104, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, -144, -120, 1037, { .fields = { 96, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -160, -8, 968, { .fields = { 112, 80 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -152, -8, 1071, { .fields = { 104, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -144, -8, 1089, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, -136, 32, 1107, { .fields = { 96, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 80 } }, -64, -88, 1943, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, -56, -80, 1928, { .fields = { 112, 152 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, -8, 1842, { .fields = { 120, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -56, -8, 1952, { .fields = { 112, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 104 } }, -48, -80, 1950, { .fields = { 120, 112 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 32 } }, -40, -8, 1970, { .fields = { 88, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, -40, -80, 1907, { .fields = { 96, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 32 } }, 80, -88, 1620, { .fields = { 64, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 48 } }, 96, -56, 1623, { .fields = { 88, 128 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 40 } }, 72, -8, 1706, { .fields = { 64, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_80183654[3] = {
+/// View 4's range list: decoded background strips, all sources, then SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldMainStreetView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldMainStreetView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_8018366C[27] = {
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -8, -120, 1375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, -8, 1475, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 16, -56, 1489, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 24, -56, 1482, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 120, -120, 329, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -72, 366, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, -72, 322, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, 24, 612, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 96, 24, 600, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 24, 500, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 72, 48, 625, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 96, 48, 600, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 48, 500, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 64, 64, 650, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 88, 64, 600, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 64, 500, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 80, 690, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 80, 675, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 80, 675, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 80, 80, 650, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 650, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -8, -72, 1412, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -8, -40, 1475, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 96, 0, 600, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 0, 550, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -40, 550, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, -40, 500, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+/// View 5's 27 mutable rectangles: drawing pixels, texture texels and sorting depths.
+///
+/// Sources live with the room while cached packets are built and linked.
+static SpriteSource _gDryfieldMainStreetView5SpriteSources[27] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 48 } }, -8, -120, 1375, { .fields = { 104, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, -8, 1475, { .fields = { 104, 40 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 48 } }, 16, -56, 1489, { .fields = { 120, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 40 } }, 24, -56, 1482, { .fields = { 96, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 48 } }, 120, -120, 329, { .fields = { 88, 48 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 32 } }, 112, -72, 366, { .fields = { 64, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 32 } }, 136, -72, 322, { .fields = { 72, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 24 } }, 72, 24, 612, { .fields = { 56, 56 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 24 } }, 96, 24, 600, { .fields = { 48, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 24 } }, 128, 24, 500, { .fields = { 48, 136 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 16 } }, 72, 48, 625, { .fields = { 48, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 16 } }, 96, 48, 600, { .fields = { 48, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 16 } }, 128, 48, 500, { .fields = { 48, 80 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 16 } }, 64, 64, 650, { .fields = { 40, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 16 } }, 88, 64, 600, { .fields = { 24, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 16 } }, 128, 64, 500, { .fields = { 40, 200 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 80, 690, { .fields = { 80, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, 80, 675, { .fields = { 80, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 40 } }, 72, 80, 675, { .fields = { 120, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 40 } }, 80, 80, 650, { .fields = { 88, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 40 } }, 112, 80, 650, { .fields = { 80, 144 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 32 } }, -8, -72, 1412, { .fields = { 104, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 32 } }, -8, -40, 1475, { .fields = { 80, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 24 } }, 96, 0, 600, { .fields = { 48, 160 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 24 } }, 128, 0, 550, { .fields = { 48, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 40 } }, 104, -40, 550, { .fields = { 64, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 40 } }, 136, -40, 500, { .fields = { 96, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_80183888[3] = {
+/// View 5's range list: decoded background strips, all sources, then SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldMainStreetView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 27, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldMainStreetView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_801838A0[26] = {
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, -24, -64, 1801, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, -72, 1617, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, -80, 1450, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, -88, 1314, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, -96, 1201, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, -104, 1106, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 0, -112, 1026, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 0, -120, 956, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -40, -48, 2867, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 0, 2867, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -120, 750, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 224 } }, 48, -120, 775, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 112, 550, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 120 } }, 104, 0, 512, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 0, 512, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 88, 512, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 0, 797, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 40, 0, 800, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 24, 875, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, 48, 873, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 224 } }, 64, -120, 700, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 232 } }, 80, -120, 600, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 232 } }, 88, -120, 525, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 96, 568, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 16, 1791, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 120, 56, 623, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+/// View 6's 26 mutable rectangles: drawing pixels, texture texels and sorting depths.
+///
+/// Sources live with the room while cached packets are built and linked.
+static SpriteSource _gDryfieldMainStreetView6SpriteSources[26] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 104 } }, -24, -64, 1801, { .fields = { 48, 120 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 8 } }, -24, -72, 1617, { .fields = { 16, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 8 } }, -16, -80, 1450, { .fields = { 24, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, -88, 1314, { .fields = { 8, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 8 } }, -8, -96, 1201, { .fields = { 40, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 8 } }, -8, -104, 1106, { .fields = { 8, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 8 } }, 0, -112, 1026, { .fields = { 0, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 8 } }, 0, -120, 956, { .fields = { 0, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 72 } }, -40, -48, 2867, { .fields = { 32, 88 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, 0, 2867, { .fields = { 104, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -120, 750, { .fields = { 120, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 224 } }, 48, -120, 775, { .fields = { 72, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, 88, 112, 550, { .fields = { 56, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 120 } }, 104, 0, 512, { .fields = { 48, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 0, 512, { .fields = { 80, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, 128, 88, 512, { .fields = { 88, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, 0, 797, { .fields = { 72, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 88 } }, 40, 0, 800, { .fields = { 40, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, 24, 875, { .fields = { 72, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, 32, 48, 873, { .fields = { 96, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 224 } }, 64, -120, 700, { .fields = { 88, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 232 } }, 80, -120, 600, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 232 } }, 88, -120, 525, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 96, 568, { .fields = { 80, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 16, 1791, { .fields = { 48, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 48 } }, 120, 56, 623, { .fields = { 16, 160 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_80183AA8[6] = {
+/// View 6's three sprite ranges and retained empty range at the source-array end.
+///
+/// The leading zero count retains background strips; SPRITE_BATCH_END ends
+/// the list. All ranges initially participate in cached drawing. The final
+/// two bytes retain values whose role is unproven.
+static SpriteBatch _gDryfieldMainStreetView6SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 15, 0, 0, { 0, 0 } },
-    { 23, 3, 0, 0, { 2, 0 } },
-    { 26, 0, 0, 0, { 1, 0 } },
+    { 23, ARRAY_SIZE(_gDryfieldMainStreetView6SpriteSources) - 23, 0, 0, { 2, 0 } },
+    { ARRAY_SIZE(_gDryfieldMainStreetView6SpriteSources), 0, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_80183AD8[31] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 0, 2025, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 64 } }, -80, -24, 2025, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 8, 2041, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -24, -24, 2025, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 72 } }, 24, -24, 2025, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 32, 2000, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 88, 2000, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, -80, 1875, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -152, -120, 2004, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 200 } }, -128, -104, 2000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 136 } }, -160, -16, 358, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 128 } }, -136, -8, 402, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 240 } }, -128, -120, 468, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 240 } }, -88, -120, 565, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 104 } }, -72, -120, 574, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -16, 581, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 112 } }, -72, 0, 582, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 104 } }, -64, 0, 642, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 96 } }, -56, 0, 669, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 128, 16 } }, -48, -120, 1053, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 120, 16 } }, -40, -104, 1206, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 104, 16 } }, -24, -88, 1221, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 96, 8 } }, -16, -72, 1400, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 88, 8 } }, -8, -64, 1678, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -8, -56, 1653, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 96 } }, 0, -48, 1750, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, 16, -16, 1750, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 24, 8, 1750, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 40, 48, 1750, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 120 } }, 72, -56, 1750, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 184 } }, 80, -120, 1750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+/// View 7's 31 mutable rectangles: drawing pixels, texture texels and sorting depths.
+///
+/// Sources live with the room while cached packets are built and linked.
+static SpriteSource _gDryfieldMainStreetView7SpriteSources[31] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, 0, 2025, { .fields = { 64, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 64 } }, -80, -24, 2025, { .fields = { 104, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, 8, 2041, { .fields = { 56, 200 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 72 } }, -24, -24, 2025, { .fields = { 16, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 72 } }, 24, -24, 2025, { .fields = { 0, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -136, 32, 2000, { .fields = { 64, 224 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -136, 88, 2000, { .fields = { 64, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, -80, 1875, { .fields = { 24, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 16 } }, -152, -120, 2004, { .fields = { 80, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 200 } }, -128, -104, 2000, { .fields = { 56, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 136 } }, -160, -16, 358, { .fields = { 80, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 128 } }, -136, -8, 402, { .fields = { 72, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 40, 240 } }, -128, -120, 468, { .fields = { 72, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 240 } }, -88, -120, 565, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 104 } }, -72, -120, 574, { .fields = { 72, 136 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, -16, 581, { .fields = { 72, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 112 } }, -72, 0, 582, { .fields = { 88, 136 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 104 } }, -64, 0, 642, { .fields = { 64, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, -56, 0, 669, { .fields = { 64, 104 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 128, 16 } }, -48, -120, 1053, { .fields = { 88, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 120, 16 } }, -40, -104, 1206, { .fields = { 56, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 104, 16 } }, -24, -88, 1221, { .fields = { 72, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 96, 8 } }, -16, -72, 1400, { .fields = { 80, 56 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 88, 8 } }, -8, -64, 1678, { .fields = { 88, 48 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, -56, 1653, { .fields = { 120, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 96 } }, 0, -48, 1750, { .fields = { 48, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, 16, -16, 1750, { .fields = { 56, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 40 } }, 24, 8, 1750, { .fields = { 8, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, 48, 1750, { .fields = { 16, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 120 } }, 72, -56, 1750, { .fields = { 96, 136 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 80, 184 } }, 80, -120, 1750, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_80183D44[5] = {
+/// View 7's three sprite ranges covering all 31 source elements in order.
+///
+/// The leading zero count retains background strips; SPRITE_BATCH_END ends
+/// the list. All ranges initially participate in cached drawing. The final
+/// two bytes retain values whose role is unproven.
+static SpriteBatch _gDryfieldMainStreetView7SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
     { 5, 5, 0, 0, { 2, 0 } },
-    { 10, 21, 0, 0, { 0, 0 } },
+    { 10, ARRAY_SIZE(_gDryfieldMainStreetView7SpriteSources) - 10, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -770,13 +840,13 @@ SpriteBatch D_dryfield_main_street_801842D8[6] = {
 };
 
 SpriteView D_dryfield_main_street_80184308[13] = {
-    { { .empty = D_dryfield_main_street_80182E94 }, D_dryfield_main_street_80182E94, NULL },
-    { { .elements = D_dryfield_main_street_80182EA4 }, D_dryfield_main_street_801832A0, NULL },
-    { { .elements = D_dryfield_main_street_801832E0 }, D_dryfield_main_street_801834E8, NULL },
-    { { .elements = D_dryfield_main_street_80183500 }, D_dryfield_main_street_80183654, NULL },
-    { { .elements = D_dryfield_main_street_8018366C }, D_dryfield_main_street_80183888, NULL },
-    { { .elements = D_dryfield_main_street_801838A0 }, D_dryfield_main_street_80183AA8, NULL },
-    { { .elements = D_dryfield_main_street_80183AD8 }, D_dryfield_main_street_80183D44, NULL },
+    { { .empty = _gDryfieldMainStreetView1SpriteBatches }, _gDryfieldMainStreetView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView2SpriteSources }, _gDryfieldMainStreetView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView3SpriteSources }, _gDryfieldMainStreetView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView4SpriteSources }, _gDryfieldMainStreetView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView5SpriteSources }, _gDryfieldMainStreetView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView6SpriteSources }, _gDryfieldMainStreetView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView7SpriteSources }, _gDryfieldMainStreetView7SpriteBatches, NULL },
     { { .empty = D_dryfield_main_street_80183D6C }, D_dryfield_main_street_80183D6C, NULL },
     { { .empty = D_dryfield_main_street_80183D7C }, D_dryfield_main_street_80183D7C, NULL },
     { { .elements = D_dryfield_main_street_80183D8C }, D_dryfield_main_street_80183E7C, NULL },
@@ -877,76 +947,151 @@ AreaVariant D_dryfield_main_street_80184F20[13] = {
     { NULL, NULL },
 };
 
-WorldCoordPointLight D_dryfield_main_street_80184F88[16] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3910, -4583, -2531 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4642, 3808, 3733 }, { 0, 0 } }, 2050, 0x312B },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5600, -2355, -4127 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4097, 3734, 3714 }, { 0, 0 } }, 1303, 3024 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5140, -2738, -5045 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3502, 3033, 2983 }, { 0, 0 } }, 1421, 3621 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4637, -2215, -5198 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3359, 2922, 2821 }, { 0, 0 } }, 701, 1211 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4405, -2155, -5380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3274, 2784, 2741 }, { 0, 0 } }, 1063, 2153 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5104, -900, -5740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3163, 2621, 2539 }, { 0, 0 } }, 100, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5037, -900, -5783 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3003, 2621, 2539 }, { 0, 0 } }, 100, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2794, -4433, 5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4193, 3948, 3953 }, { 0, 0 } }, 1792, 7511 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5464, -4865, -456 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4304, 3842, 3575 }, { 0, 0 } }, 1755, 6785 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1367, -4865, 872 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3848, 2949, 2931 }, { 0, 0 } }, 9220, 0x450B },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1162, -3422, -5474 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3969, 3722, 3700 }, { 0, 0 } }, 283, 4826 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3332, -3624, -6033 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4112, 3810, 3716 }, { 0, 0 } }, 1463, 4128 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4925, -2543, -2722 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3254, 2855, 2829 }, { 0, 0 } }, 705, 2774 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4029, -3246, -2729 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2792, 2483, 2445 }, { 0, 0 } }, 1132, 2911 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3765, -3608, -7108 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3324, 2700, 2611 }, { 0, 0 } }, 480, 1328 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3265, -2641, -2536 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3170, 2745, 2730 }, { 0, 0 } }, 822, 2975 },
+/// Sixteen authored point lights eligible in every Main Street view.
+///
+/// Placements and falloff radii use integer world-coordinate units; RGB uses
+/// ONE (4096) for unit intensity. Coordinate parents, composition caches and
+/// attenuation are mutable gameplay state. Storage lives with the room overlay.
+static WorldCoordPointLight _gDryfieldMainStreetPointLights[16] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3910, -4583, -2531 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4642, 3808, 3733 }, { 0, 0 } }, 2050, 0x312B },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5600, -2355, -4127 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4097, 3734, 3714 }, { 0, 0 } }, 1303, 3024 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5140, -2738, -5045 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3502, 3033, 2983 }, { 0, 0 } }, 1421, 3621 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4637, -2215, -5198 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3359, 2922, 2821 }, { 0, 0 } }, 701, 1211 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4405, -2155, -5380 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3274, 2784, 2741 }, { 0, 0 } }, 1063, 2153 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5104, -900, -5740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3163, 2621, 2539 }, { 0, 0 } }, 100, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5037, -900, -5783 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3003, 2621, 2539 }, { 0, 0 } }, 100, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2794, -4433, 5 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4193, 3948, 3953 }, { 0, 0 } }, 1792, 7511 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5464, -4865, -456 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4304, 3842, 3575 }, { 0, 0 } }, 1755, 6785 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1367, -4865, 872 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3848, 2949, 2931 }, { 0, 0 } }, 9220, 0x450B },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1162, -3422, -5474 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3969, 3722, 3700 }, { 0, 0 } }, 283, 4826 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3332, -3624, -6033 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4112, 3810, 3716 }, { 0, 0 } }, 1463, 4128 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4925, -2543, -2722 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3254, 2855, 2829 }, { 0, 0 } }, 705, 2774 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4029, -3246, -2729 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2792, 2483, 2445 }, { 0, 0 } }, 1132, 2911 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3765, -3608, -7108 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3324, 2700, 2611 }, { 0, 0 } }, 480, 1328 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3265, -2641, -2536 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3170, 2745, 2730 }, { 0, 0 } }, 822, 2975 },
 };
 
-WorldCoordRoomLights D_dryfield_main_street_80185588[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_main_street_80184F88), D_dryfield_main_street_80184F88, 0, NULL },
+/// Main Street's mutable point-light collection, without directional or cone lights.
+///
+/// Light queries borrow the complete point-light array while this overlay is loaded.
+static WorldCoordRoomLights _gDryfieldMainStreetLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldMainStreetPointLights),
+    .pointLights           = _gDryfieldMainStreetPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_dryfield_main_street_801855A0 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Type-1 footstep cue bases selecting scripts from the currently loaded bank.
+enum {
+    DRYFIELD_MAIN_STREET_CLASS4_WALK_FOOTSTEP_SOUND = 0x10000049,
+    DRYFIELD_MAIN_STREET_CLASS4_RUN_FOOTSTEP_SOUND  = 0x1000004B,
+    DRYFIELD_MAIN_STREET_CLASS2_WALK_FOOTSTEP_SOUND = 0x1000003D,
+    DRYFIELD_MAIN_STREET_CLASS2_RUN_FOOTSTEP_SOUND  = 0x1000003F,
+    DRYFIELD_MAIN_STREET_CLASS3_WALK_FOOTSTEP_SOUND = 0x1000002D,
+    DRYFIELD_MAIN_STREET_CLASS3_RUN_FOOTSTEP_SOUND  = 0x1000002F,
 };
 
-WorldCollisionFootstepSounds D_dryfield_main_street_801855AC = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Surface class 4's walking, running and scripted-jump cue bases.
+///
+/// Walk and jump use entry 0x49; running uses 0x4B. Animation cue 1 adds one,
+/// and a companion adds 100. Keep this table and the current sound bank loaded.
+static WorldCollisionFootstepSounds _gDryfieldMainStreetSurfaceClass4FootstepSounds = {
+    .walk         = DRYFIELD_MAIN_STREET_CLASS4_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_MAIN_STREET_CLASS4_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_MAIN_STREET_CLASS4_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionFootstepSounds D_dryfield_main_street_801855B8 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Surface class 2's walking, running and scripted-jump cue bases.
+///
+/// Walk and jump use entry 0x3D; running uses 0x3F. Animation cue 1 adds one,
+/// and a companion adds 100. Keep this table and the current sound bank loaded.
+static WorldCollisionFootstepSounds _gDryfieldMainStreetSurfaceClass2FootstepSounds = {
+    .walk         = DRYFIELD_MAIN_STREET_CLASS2_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_MAIN_STREET_CLASS2_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_MAIN_STREET_CLASS2_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_main_street_801855C4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 3's walking, running and scripted-jump cue bases.
+///
+/// Walk and jump use entry 0x2D; running uses 0x2F. Animation cue 1 adds one,
+/// and a companion adds 100. Keep this table and the current sound bank loaded.
+static WorldCollisionFootstepSounds _gDryfieldMainStreetSurfaceClass3FootstepSounds = {
+    .walk         = DRYFIELD_MAIN_STREET_CLASS3_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_MAIN_STREET_CLASS3_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_MAIN_STREET_CLASS3_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_main_street_801855CC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_main_street_801855A0 },
+/// Classes 0 and 5..7: blocked probes, enabled weapon impacts and silent footsteps.
+///
+/// Applies pushback. The unused first byte retains its authored zero; its role
+/// is unproven. The room overlay owns this shared policy record.
+static WorldCollisionSurfaceProperties _gDryfieldMainStreetSilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_main_street_801855D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_main_street_801855AC },
+/// Class 4: blocked probes, enabled weapon impacts, pushback and class-4 footstep cues.
+///
+/// The unused first byte retains zero with unproven meaning. Both this policy
+/// and its borrowed footstep table live with the room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldMainStreetSurfaceClass4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMainStreetSurfaceClass4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_main_street_801855DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_main_street_801855B8 },
+/// Class 2: blocked probes, enabled weapon impacts, pushback and class-2 footstep cues.
+///
+/// The unused first byte retains zero with unproven meaning. Both this policy
+/// and its borrowed footstep table live with the room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldMainStreetSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMainStreetSurfaceClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_main_street_801855E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3: blocked probes, enabled weapon impacts, pushback and class-3 footstep cues.
+///
+/// The unused first byte retains zero with unproven meaning. Both this policy
+/// and its borrowed footstep table live with the room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldMainStreetSurfaceClass3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMainStreetSurfaceClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[8] = {
-    D_dryfield_main_street_801855C4,
-    D_dryfield_main_street_801855E4,
-    D_dryfield_main_street_801855D4,
-    D_dryfield_main_street_801855DC,
-    D_dryfield_main_street_801855CC,
-    D_dryfield_main_street_801855C4,
-    D_dryfield_main_street_801855C4,
-    D_dryfield_main_street_801855C4,
+/// Class 1: probes pass, weapon impacts are ignored, pushback applies and footsteps are silent.
+///
+/// The unused first byte retains zero with unproven meaning. This policy record
+/// lives with the room overlay; probe passage does not suppress grid pushback.
+static WorldCollisionSurfaceProperties _gDryfieldMainStreetProbePassThroughSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldMainStreetSurfacePropertiesByClass[8] = {
+    &_gDryfieldMainStreetSilentBlockingSurface,
+    &_gDryfieldMainStreetProbePassThroughSurface,
+    &_gDryfieldMainStreetSurfaceClass2Properties,
+    &_gDryfieldMainStreetSurfaceClass3Properties,
+    &_gDryfieldMainStreetSurfaceClass4Properties,
+    &_gDryfieldMainStreetSilentBlockingSurface,
+    &_gDryfieldMainStreetSilentBlockingSurface,
+    &_gDryfieldMainStreetSilentBlockingSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
