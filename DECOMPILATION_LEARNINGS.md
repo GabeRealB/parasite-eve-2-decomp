@@ -119075,7 +119075,7 @@ of sitting just before its `beqz`. Moving the tail into
 ```c
 static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
-    D_mine_mesa_80189B48 = 0;
+    _gMineMesaStagedEventStartAttempted = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         ...
     }
