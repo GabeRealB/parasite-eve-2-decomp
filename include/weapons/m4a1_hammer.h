@@ -1,8 +1,20 @@
 #ifndef INCLUDE_WEAPONS_M4A1_HAMMER_H
 #define INCLUDE_WEAPONS_M4A1_HAMMER_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Player animation bank for the equipped M4A1 Hammer.
+///
+/// The 47 native slots contain clip pointers or NULL; slots 1..44 select 37
+/// distinct clips, with aliases for shared actions. The 32 extension words
+/// start zeroed and remain writable for borrowed clips and raw message payloads.
+/// Only extension words containing clip pointers or NULL may be used for playback.
+/// Keep the Hammer overlay and any copied clip resources loaded while playback
+/// borrows the bank, its descriptors or their data.
+extern AnimationBank gM4a1HammerPlayerAnimationBank;
 
 /// Single-part held M4A1 Hammer weapon model and its shared writable command stream.
 ///

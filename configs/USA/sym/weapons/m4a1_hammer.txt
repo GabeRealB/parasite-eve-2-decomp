@@ -12,3 +12,4 @@ _gM4a1HammerGlowLocalOffset = 0x8011eb60;
 _gM4a1HammerSparkState = 0x8012d630;
 _gM4a1HammerGlowTask = 0x8012d660;
 _gM4a1HammerAttachmentOrigin = 0x8012d668;
+gM4a1HammerPlayerAnimationBank = 0x8012d4f4;
