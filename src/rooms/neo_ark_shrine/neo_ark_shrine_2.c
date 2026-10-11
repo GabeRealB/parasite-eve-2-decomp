@@ -1630,8 +1630,8 @@ static void _neoArkShrineBeginPuzzleEnemyRelease(Task* task)
 {
     NeoArkShrinePuzzleWork* work;
 
-    work                      = task->work;
-    D_neo_ark_shrine_8018686A = true;
+    work                                    = task->work;
+    gNeoArkShrinePuzzleLayoutRestorePending = true;
     neoArkShrineDrawPuzzleFrame();
     taskKill(task->spawnArg2.pointer);
     work->timer = 0;
@@ -1772,8 +1772,8 @@ void neoArkShrineResetPuzzle(void)
     s32 tileIndex;
     s32 cellIndex;
 
-    D_neo_ark_shrine_8018686A       = false;
-    gNeoArkShrinePuzzleLayoutActive = false;
+    gNeoArkShrinePuzzleLayoutRestorePending = false;
+    gNeoArkShrinePuzzleLayoutActive         = false;
     // Restore per-tile drawn positions before reseeding the cell-to-tile board.
     for (tileIndex = 0; tileIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleDrawnOrigins); tileIndex++) {
         gNeoArkShrinePuzzleDrawnOrigins[tileIndex].x = D_neo_ark_shrine_8018256C[tileIndex].x;
@@ -1891,7 +1891,7 @@ static void _neoArkShrineDropFirstProp(Task* task)
 static void _neoArkShrineWaitFirstPropLayoutRestore(Task* task)
 {
     _neoArkShrineUpdateFallingPropLighting(task);
-    if (D_neo_ark_shrine_8018686A == false) {
+    if (gNeoArkShrinePuzzleLayoutRestorePending == false) {
         task->state++;
     }
 }

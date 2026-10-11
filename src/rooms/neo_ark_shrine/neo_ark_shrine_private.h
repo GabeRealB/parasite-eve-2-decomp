@@ -61,10 +61,16 @@ extern TaskDesc D_neo_ark_shrine_80182508[];
 /// Stored as a signed halfword, independently of the pending restore request.
 extern s16 gNeoArkShrinePuzzleLayoutActive;
 
-/// Set by the cap script step that ends the prompt task. The puzzle's step
-/// check consumes it to switch the room's layout, and the first falling prop
-/// waits for it to clear.
-extern s16 D_neo_ark_shrine_8018686A;
+/// Pending base-layout restore request from the shrine puzzle's enemy release.
+///
+/// Signed halfword (0 none, 1 pending), independent of the active-layout latch.
+/// Survives puzzle-controller teardown. A later successful tile move consumes
+/// exactly 1 after the activation, active-layout and solved checks, before the
+/// enemy-release check. Consumption selects base layout 1, or 4 after the first
+/// reveal, and requests a room-object rebuild; board reset also clears it.
+/// The landed first prop waits for exactly 0 before teardown, without waiting
+/// for the rebuild to finish. Requires the room overlay to remain loaded.
+extern s16 gNeoArkShrinePuzzleLayoutRestorePending;
 
 /// Extents of the 4x4 board and its corresponding per-tile position arrays.
 enum {
@@ -129,7 +135,7 @@ void neoArkShrineAnimateAndDrawPuzzle(void);
 /// or their task, which is ignored; their argument setup is present in the binary.
 void neoArkShrineDrawPuzzleFrame();
 
-/// Restores the starting tile origins and cell-to-tile order and clears both layout latches.
+/// Restores the starting tile origins and cell-to-tile order and clears the layout latch and restore request.
 ///
 /// Resets all sixteen drawn origins and board cells, including tile zero (the
 /// gap). The next drawing frame reconstructs target origins from this board.

@@ -669,7 +669,7 @@ static inline void _neoArkShrineRestorePuzzleLayout(void)
         NEO_ARK_SHRINE_RESTORE_RUMBLE_END    = 96,
     };
 
-    D_neo_ark_shrine_8018686A = false;
+    gNeoArkShrinePuzzleLayoutRestorePending = false;
     if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_LAYOUT_BASE;
         gGameSession->location.loc.room                            = NEO_ARK_SHRINE_LAYOUT_BASE;
@@ -719,7 +719,7 @@ static s16 _neoArkShrineCheckPuzzleArrangement(void)
         return NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED;
     }
     // Consume the pending restore only after the higher-priority pattern checks.
-    restoreRequest = D_neo_ark_shrine_8018686A;
+    restoreRequest = gNeoArkShrinePuzzleLayoutRestorePending;
     if (restoreRequest == true) {
         _neoArkShrineRestorePuzzleLayout();
     }

@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_shrine.
-D_neo_ark_shrine_8018686A = 0x8018686A; // type:s16 size:0x2
+gNeoArkShrinePuzzleLayoutRestorePending = 0x8018686A; // type:s16 size:0x2
 D_neo_ark_shrine_801825AC = 0x801825AC; // size:0x40 defined:True
 D_neo_ark_shrine_801825EC = 0x801825EC; // size:0xA0 defined:True
 _gNeoArkShrineFlarePositions = 0x8018268C; // size:0x88 defined:True
