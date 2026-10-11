@@ -12,6 +12,10 @@
 #                 `check` lists the ones it finds, ready to paste.
 #   exit_capture  what to record at a return; default ["v0"]
 #   image         the package holding the function, when it is in neither the executable nor gameplay
+#   drain         true: the buffer is read each time this event is over (at its returns if `exits` is given,
+#                 otherwise right after its entry). Give it to something rare, such as a file load; without any,
+#                 the log is only written when the buffer fills or the tracer detaches.
+#   render        the name of a renderer (see [renderer]) that writes this event instead of the raw captures
 
 # Where the tool sets everything up. Start the game paused, then the tool: it continues the game to the first of
 # these addresses and only there writes the blob and the hooks - by then memory is initialised. Each later hit
@@ -23,6 +27,10 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
+# Python files that register renderers (`@renderer("name")`); paths are beside this file or from the repository root.
+[renderer]
+files = ["renderers/pe2.py"]
+
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
 bytes = 0x100000         # the buffer. The game stops only when it is full, for as long as reading it takes
@@ -31,7 +39,9 @@ bytes = 0x100000         # the buffer. The game stops only when it is full, for 
 id = 1
 name = "file_load"
 address = 0x8002265C     # fsLoadFile(key, mode, page offset, row offset)
-capture = ["a0:8", "a1", "a2", "a3", "ra"]
+capture = ["a0:4", "a1", "a2", "a3", "ra"]
+drain = true             # a load pauses the game anyway: the log is brought up to date at each one
+render = "file_load"
 
 [[event]]
 id = 2
@@ -39,6 +49,7 @@ name = "sound_request"
 address = 0x8005414C     # sndEvtRequestScriptStart(id, pan, depth)
 capture = ["a0", "a1", "a2", "ra"]
 exits = [0x17C]          # its one return: v0 is the id when the request was taken
+render = "sound_request"
 
 [[event]]
 id = 3
@@ -51,6 +62,7 @@ id = 4
 name = "variant_set"
 address = 0x800B5B30     # areaSetPlacementVariant(key, variant, resetMode)
 capture = ["a0:8", "a1", "a2", "ra"]
+render = "variant_set"
 
 [[event]]
 id = 5

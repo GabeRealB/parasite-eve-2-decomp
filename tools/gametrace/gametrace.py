@@ -44,8 +44,15 @@ or a jump there (see `movable`).
 The blob needs memory of its own (`blob.address`); by default just above 2 MB, which a target has only with more
 than the console's 2 MB. The tool refuses to write where that memory is a mirror of lower memory.
 
+The buffer is read when it is full, when the tracer detaches (Ctrl-C: what is left is read, the hooks are taken
+out and the game runs on), and after every event marked `drain = true` - at its returns where the config gives
+them, otherwise straight after its entry. A rare event, such as a room load, makes a good one: the log then
+arrives in pieces as the game goes, without a stop for each sound.
+
 A record is one JSON line: id, name, phase ("enter" or "exit"), then each capture under its own text; a captured
-`ra` also gives `from`, the function it returns into.
+`ra` also gives `from`, the function it returns into. An event with `render = "name"` is written by a renderer
+instead: a python function, registered under that name by one of the files the config's `[renderer]` section
+lists, which gets the captures as numbers and bytes and returns what the log should say (see `renderer`).
 """
 from __future__ import annotations
 
@@ -53,6 +60,7 @@ import argparse
 import json
 import re
 import select
+import signal
 import socket
 import struct
 import subprocess
@@ -117,12 +125,10 @@ def load(path: Path) -> dict:
         if event.get("id") in seen:
             problems.append(f"event id {event['id']} is used by {seen[event['id']]} and {event.get('name')}")
         seen[event.get("id")] = event.get("name")
-        for old in ("patch", "ret", "stack", "mem"):
-            if old in event:
-                problems.append(f"{event.get('name')}: `{old}` is gone - every event is a hook now; list what to record in `capture`, and returns in `exits`")
         event.setdefault("capture", ["a0", "a1", "a2", "a3", "ra"])
         event.setdefault("exits", [])
         event.setdefault("exit_capture", ["v0"])
+        event.setdefault("drain", False)
         try:
             event["_enter"] = [parse_capture(c) for c in event["capture"]]
             event["_exit"] = [parse_capture(c) for c in event["exit_capture"]]
@@ -133,6 +139,47 @@ def load(path: Path) -> dict:
     if problems:
         raise SystemExit("\n".join(problems))
     return cfg
+
+
+# ---- renderers: python the config names, which turns an event's captures into what the log should say
+
+RENDERERS: dict[str, object] = {}
+
+
+def renderer(name: str):
+    """Register a function as the renderer `name`. An event asks for it with `render = "name"`.
+
+        from gametrace import renderer
+
+        @renderer("file_load")
+        def file_load(record, trace):
+            ...
+
+    `record` is the event as captured: `id`, `name`, `phase`, and each capture under its own text - a register as
+    an int, memory as bytes. `trace` gives `trace.symbol(address)` (the function an address is in), `trace.write(text)`
+    (a line of its own in the log) and `trace.out` (the log file). What the function returns is what is logged:
+    a dict is written as a JSON line, a string as a line of text, and None means the renderer wrote what it
+    wanted itself, or wants the event left out."""
+    def register(function):
+        RENDERERS[name] = function
+        return function
+    return register
+
+
+def load_renderers(cfg: dict, config_path: Path) -> None:
+    import importlib.util
+    sys.modules.setdefault("gametrace", sys.modules[__name__])       # so a renderer file can `from gametrace import renderer`
+    files = (cfg.get("renderer") or {}).get("files", [])
+    for n, name in enumerate([files] if isinstance(files, str) else files):
+        path = next((p for p in (config_path.parent / name, ROOT / name, Path(name)) if p.is_file()), None)
+        if path is None:
+            raise SystemExit(f"renderer file {name} not found (looked beside the config and from the repository root)")
+        spec = importlib.util.spec_from_file_location(f"gametrace_renderer_{n}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    missing = sorted({e["render"] for e in cfg.get("event", []) if e.get("render") and e["render"] not in RENDERERS})
+    if missing:
+        raise SystemExit(f"no renderer named {', '.join(missing)}; the renderer files register: {', '.join(sorted(RENDERERS)) or 'none'}")
 
 
 def record_size(captures: list[dict]) -> int:
@@ -304,13 +351,14 @@ def stub_source(cfg: dict, sites: dict) -> str:
         lines += [f"# event {event['id']}: {event['name']} at {event['address']:#010x}", f"gt_enter_{event['id']}:"]
         lines += record_code(event, 0, event["_enter"], f"e{event['id']}", largest)
         lines += [f"    .word {first:#010x}          # the function's own first instruction", f"    .word {second:#010x}          # and its second",
+                  f"gt_enter_{event['id']}_done:",
                   f"    j     {event['address'] + 8:#010x}", "    nop", ""]
         for k, offset in enumerate(event["exits"]):
             _jr, delay = sites[(event["id"], "exit", offset)]
             lines += [f"# event {event['id']}: {event['name']} returns at +{offset:#x}", f"gt_exit_{event['id']}_{k}:",
                       f"    .word {delay:#010x}          # the return's delay-slot instruction, which ran before the return did"]
             lines += record_code(event, 1, event["_exit"], f"x{event['id']}_{k}", largest)
-            lines += ["    jr    $ra", "    nop", ""]
+            lines += [f"gt_exit_{event['id']}_{k}_done:", "    jr    $ra", "    nop", ""]
     lines += ["    .balign 4", "gt_buffer:", f"    .space {blob['bytes']}", "gt_end:", ""]
     return "\n".join(lines)
 
@@ -570,6 +618,7 @@ class Session:
         self.events = cfg.get("event", [])
         self.count = 0
         self.ready = self.running = False
+        self.drains: set[int] = set()
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
         self.layout = {}                              # a record's first word -> (event, phase, captures)
@@ -584,6 +633,41 @@ class Session:
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
         self.count += 1
+
+    def symbol(self, address: int) -> str:
+        """The function an address is in, as `name+0xoffset`."""
+        return self.names.at(address)
+
+    def write(self, text: str) -> None:
+        """A line of its own in the log, for a renderer."""
+        self.out.write(text.rstrip("\n") + "\n")
+        self.count += 1
+
+    def log(self, event: dict, record: dict) -> None:
+        """One captured event into the log: through its renderer, or as it is - registers in hex, memory as hex bytes."""
+        render = RENDERERS.get(event.get("render") or "")
+        if render is not None:
+            try:
+                shown = render(record, self)
+            except Exception as error:  # noqa: BLE001 - a renderer's mistake must not cost the capture
+                shown = {"render_error": f"{type(error).__name__}: {error}", **record}
+            if shown is None:
+                return
+            if isinstance(shown, str):
+                self.write(shown)
+                return
+            record = shown
+        plain = {}
+        for key, value in record.items():
+            if isinstance(value, (bytes, bytearray)):
+                plain[key] = bytes(value).hex()
+            elif isinstance(value, int) and not isinstance(value, bool) and key not in ("id",):
+                plain[key] = f"{value:#010x}" if key in REGS or key == "ret" else value
+                if key == "ra" and "from" not in record:
+                    plain["from"] = self.names.at(value)
+            else:
+                plain[key] = value
+        self.emit(plain)
 
     def start(self) -> None:
         """Wait for the game to reach the first `install_at` address (it is continued to there), then set up."""
@@ -604,6 +688,15 @@ class Session:
         except OSError as error:
             raise SystemExit(f"{error}\nThe blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
         self.gdb.breakpoint(self.symbols["gt_full"])
+        # An event marked `drain` has the buffer read each time it is over: at its returns where the config gives
+        # them, and otherwise straight after its entry record.
+        self.drains = set()
+        for event in self.events:
+            if event["drain"]:
+                ends = [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]
+                self.drains |= {self.symbols[name] for name in ends}
+        for address in self.drains:
+            self.gdb.breakpoint(address)
         self.ready = True
         print(f"{self.install()} of {len(self.hooks)} hooks in place; the rest are written when their code is loaded", file=sys.stderr)
 
@@ -667,15 +760,9 @@ class Session:
             event, phase, captures = known
             record, field = {"id": event["id"], "name": event["name"], "phase": phase}, at + 4
             for c in captures:
-                if c["kind"] == "reg":
-                    value = struct.unpack_from("<I", data, field)[0]
-                    record[c["text"]] = f"{value:#010x}"
-                    if c["reg"] == "ra":
-                        record["from"] = self.names.at(value)
-                else:
-                    record[c["text"]] = data[field:field + c["length"]].hex()
+                record[c["text"]] = struct.unpack_from("<I", data, field)[0] if c["kind"] == "reg" else data[field:field + c["length"]]
                 field += c["size"]
-            self.emit(record)
+            self.log(event, record)
             at = field
         self.out.flush()
         if reset:
@@ -710,6 +797,9 @@ class Session:
             elif self.ready and pc == self.symbols["gt_full"]:
                 self.drain(reset=False)
                 self.install()
+            elif self.ready and pc in self.drains:
+                self.drain(reset=True)
+                self.install()
 
 
 def main() -> int:
@@ -722,6 +812,7 @@ def main() -> int:
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
+    load_renderers(cfg, args.config)
     if args.host:
         cfg["gdb"]["host"] = args.host
     if args.port:
@@ -735,7 +826,7 @@ def main() -> int:
         for event in cfg.get("event", []):
             found = returns_in(event, names)
             print(f"{event['id']:>5}  {event['name']:<24} {event['address']:#010x}  {names.at(event['address'])}")
-            print(f"       enter: {', '.join(event['capture'])}  ({record_size(event['_enter'])} bytes)")
+            print(f"       enter: {', '.join(event['capture'])}  ({record_size(event['_enter'])} bytes)" + (f"   rendered by {event['render']}" if event.get("render") else "") + ("   drains the buffer" if event["drain"] else ""))
             if event["exits"]:
                 print(f"       exit at {', '.join(f'+{o:#x}' for o in event['exits'])}: {', '.join(event['exit_capture'])}  ({record_size(event['_exit'])} bytes)")
             missing = [o for o in found if o not in event["exits"]]
@@ -753,6 +844,7 @@ def main() -> int:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
     except OSError as error:
         raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Start the server, or give its address with --host and --port.")
+    signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))   # detach as Ctrl-C does
     with args.out.open("a", encoding="utf-8") as out:
         session = Session(cfg, gdb, out)
         try:
