@@ -12,7 +12,6 @@
 #include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -46,9 +45,11 @@
 
 #include "../../shared/pyke_flame.h"
 
-/// Translation of the Pyke's effect coordinate frame inside its parent frame
-/// (the muzzle), `(0, 0x200, 0x40)`.
-static SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
+/// Nozzle glow and flame-launch origin relative to the held weapon's root.
+///
+/// XYZ are signed integer model-coordinate units, copied into the effect's
+/// local translation beneath the weapon coordinate; this is not a world offset.
+static SVECTOR _gM4a1PykeNozzleOffset = { 0, 512, 64, 0 };
 
 void m4a1PykeNozzleTask(Task* task)
 {
@@ -90,9 +91,9 @@ void m4a1PykeNozzleTask(Task* task)
         case M4A1_PYKE_NOZZLE_STATE_INIT:
             nozzleCoord->parent = effectWork->parent;
             gfxSetRotIdentity(&nozzleCoord->coord);
-            nozzleCoord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
-            nozzleCoord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
-            nozzleCoord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
+            nozzleCoord->coord.t[0]   = _gM4a1PykeNozzleOffset.vx;
+            nozzleCoord->coord.t[1]   = _gM4a1PykeNozzleOffset.vy;
+            nozzleCoord->coord.t[2]   = _gM4a1PykeNozzleOffset.vz;
             nozzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(nozzleCoord);
             task->state = M4A1_PYKE_NOZZLE_STATE_UPDATE;
@@ -1804,150 +1805,198 @@ static AnimationSet _gM4a1PykeAimExitAnimation = {
     .poseBanks         = { NULL, _gM4a1PykeAimExitAnimationBank1, NULL, NULL, _gM4a1PykeAimExitAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0F1A4Bank1[18] = {
+/// Pose-bank selectors used by the Pyke player's locomotion tracks.
+enum {
+    M4A1_PYKE_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M4A1_PYKE_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Translation and full-angle keyframes for the player's forward walk.
+///
+/// Tracks 0 and 1 use integer model-coordinate units and 4096-unit-turn angles.
+/// Read-only data retains its serialized position in .data.
+static const AnimationPackedPose _gM4a1PykeForwardWalkAnimationBank1[18] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F1A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0F1A4Bank4[201] = {
+/// Rotation-only keyframes for the player's forward walk.
+///
+/// Tracks 2..18 use signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeForwardWalkAnimationBank4[201] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F1A4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0F1A4Records[283] = {
+/// Keyframes, paired footstep cues and loop/stop controls for the forward walk.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Jump targets are absolute record indices. Track 1 carries the footstep cues.
+static const AnimationRecord _gM4a1PykeForwardWalkAnimationRecords[283] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F1A4_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0F1A4Indices[20] = {
+/// Absolute track-start record indices for the player's forward walk.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeForwardWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F1A4_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0F1A4 = {
-    _gM4a1PykeAnimation0F1A4Records,
-    _gM4a1PykeAnimation0F1A4Indices,
-    { NULL, _gM4a1PykeAnimation0F1A4Bank1, NULL, NULL, _gM4a1PykeAnimation0F1A4Bank4, NULL, NULL, NULL },
+/// Player forward walk clip in native Pyke bank slot 2.
+///
+/// Selected for forward walking with the weapon model attached; scripted
+/// movement also uses this clip.
+/// Child tracks 1..18 loop; root displacement comes from the actor's movement
+/// step. Borrows nineteen track starts and word-aligned pose banks; keep the
+/// package loaded while playback or a cached record pointer refers to the clip.
+static AnimationSet _gM4a1PykeForwardWalkAnimation = {
+    .records           = _gM4a1PykeForwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1PykeForwardWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_PYKE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1PykeForwardWalkAnimationBank1,
+        [M4A1_PYKE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1PykeForwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0F944Bank1[16] = {
+/// Translation and full-angle keyframes for the player's backward walk.
+///
+/// Tracks 0 and 1 use integer model-coordinate units and 4096-unit-turn angles.
+/// Read-only data retains its serialized position in .data.
+static const AnimationPackedPose _gM4a1PykeBackwardWalkAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F944_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0F944Bank4[157] = {
+/// Rotation-only keyframes for the player's backward walk.
+///
+/// Tracks 2..18 use signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeBackwardWalkAnimationBank4[157] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F944_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0F944Records[263] = {
+/// Keyframes, paired footstep cues and loop/stop controls for the backward walk.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Jump targets are absolute record indices. Track 1 carries the footstep cues.
+static const AnimationRecord _gM4a1PykeBackwardWalkAnimationRecords[263] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F944_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0F944Indices[20] = {
+/// Absolute track-start record indices for the player's backward walk.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeBackwardWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0F944_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0F944 = {
-    _gM4a1PykeAnimation0F944Records,
-    _gM4a1PykeAnimation0F944Indices,
-    { NULL, _gM4a1PykeAnimation0F944Bank1, NULL, NULL, _gM4a1PykeAnimation0F944Bank4, NULL, NULL, NULL },
+/// Player backward walk clip in native Pyke bank slot 3.
+///
+/// Selected for backward movement in normal locomotion.
+/// Child tracks 1..18 loop; root displacement comes from the actor's movement
+/// step. Borrows nineteen track starts and word-aligned pose banks; keep the
+/// package loaded while playback or a cached record pointer refers to the clip.
+static AnimationSet _gM4a1PykeBackwardWalkAnimation = {
+    .records           = _gM4a1PykeBackwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1PykeBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_PYKE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1PykeBackwardWalkAnimationBank1,
+        [M4A1_PYKE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1PykeBackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation10318Bank1[25] = {
+/// Translation and full-angle keyframes for the player's run.
+///
+/// Tracks 0 and 1 use integer model-coordinate units and 4096-unit-turn angles.
+/// Read-only data retains its serialized position in .data.
+static const AnimationPackedPose _gM4a1PykeRunAnimationBank1[25] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_10318_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation10318Bank4[223] = {
+/// Rotation-only keyframes for the player's run.
+///
+/// Tracks 2..18 use signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeRunAnimationBank4[223] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_10318_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation10318Records[311] = {
+/// Keyframes, paired footstep cues and loop/stop controls for the run.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Jump targets are absolute record indices. Track 1 carries the footstep cues.
+static const AnimationRecord _gM4a1PykeRunAnimationRecords[311] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_10318_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation10318Indices[20] = {
+/// Absolute track-start record indices for the player's run.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeRunAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_10318_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation10318 = {
-    _gM4a1PykeAnimation10318Records,
-    _gM4a1PykeAnimation10318Indices,
-    { NULL, _gM4a1PykeAnimation10318Bank1, NULL, NULL, _gM4a1PykeAnimation10318Bank4, NULL, NULL, NULL },
+/// Player run clip in native Pyke bank slot 4.
+///
+/// Selected for forward running in normal locomotion and scripted run-to
+/// movement.
+/// Child tracks 1..18 loop; root displacement comes from the actor's movement
+/// step. Borrows nineteen track starts and word-aligned pose banks; keep the
+/// package loaded while playback or a cached record pointer refers to the clip.
+static AnimationSet _gM4a1PykeRunAnimation = {
+    .records           = _gM4a1PykeRunAnimationRecords,
+    .trackStartIndices = _gM4a1PykeRunAnimationIndices,
+    .poseBanks         = {
+        [M4A1_PYKE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1PykeRunAnimationBank1,
+        [M4A1_PYKE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1PykeRunAnimationBank4,
+    },
 };
 
-AnimationBank D_m4a1_pyke_8012D500 = { { {
-    NULL,
-    &_gM4a1PykeIdleAnimation,
-    &_gM4a1PykeAnimation0F1A4,
-    &_gM4a1PykeAnimation0F944,
-    &_gM4a1PykeAnimation10318,
-    &_gM4a1PykeTurnLeftAnimation,
-    &_gM4a1PykeTurnRightAnimation,
-    &_gM4a1PykeAimEntryAnimation,
-    &_gM4a1PykeAimExitAnimation,
-    &_gM4a1PykeAimIdleAnimation,
-    &_gM4a1PykeRifleFireAnimation,
-    &_gM4a1PykeFlameFireAnimation,
-    &_gM4a1PykeAimForwardAnimation,
-    &_gM4a1PykeAimBackwardOrTurnAnimation,
-    &_gM4a1PykePrimaryReloadAnimation,
-    &_gM4a1PykeFlameReleaseAnimation,
-    &_gM4a1PykeHitPart4Animation,
-    &_gM4a1PykeHitOtherBodyAnimation,
-    &_gM4a1PykeDeathAnimation,
-    &_gM4a1PykeUnarmedWalkAnimation,
-    &_gM4a1PykePrimaryReloadAnimation,
-    &_gM4a1PykeIdleAnimation,
-    &_gM4a1PykeIdleAnimation,
-    &_gM4a1PykeHighHealthIdleAnimation,
-    &_gM4a1PykeMidHealthIdleAnimation,
-    &_gM4a1PykeLowHealthIdleAnimation,
-    &_gM4a1PykeParasiteEnergyReleaseFamily0Animation,
-    &_gM4a1PykeParasiteEnergyChargeFamily0Animation,
-    &_gM4a1PykeParasiteEnergyCastFamily0Animation,
-    &_gM4a1PykeParasiteEnergyReleaseFamily1Animation,
-    &_gM4a1PykeParasiteEnergyChargeFamily1Animation,
-    &_gM4a1PykeParasiteEnergyCastFamily1Animation,
-    &_gM4a1PykeEventEntryAnimation,
-    &_gM4a1PykeEventExitAnimation,
-    &_gM4a1PykeEventEntryAnimation,
-    &_gM4a1PykeEventExitAnimation,
-    &_gM4a1PykeStairAscentAnimation,
-    &_gM4a1PykeStairDescentAnimation,
-    &_gM4a1PykeStairAscentFinishEvenAnimation,
-    &_gM4a1PykeStairAscentFinishOddAnimation,
-    &_gM4a1PykeItemUseAnimation,
-    &_gM4a1PykeIdleAnimation,
-    &_gM4a1PykeParasiteEnergyReleaseFamily2Animation,
-    &_gM4a1PykeParasiteEnergyChargeFamily2Animation,
-    &_gM4a1PykeParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gM4a1PykePlayerAnimationBank = {
+    .table = {
+        .sets = {
+            [0]  = NULL,
+            [1]  = &_gM4a1PykeIdleAnimation,
+            [2]  = &_gM4a1PykeForwardWalkAnimation,
+            [3]  = &_gM4a1PykeBackwardWalkAnimation,
+            [4]  = &_gM4a1PykeRunAnimation,
+            [5]  = &_gM4a1PykeTurnLeftAnimation,
+            [6]  = &_gM4a1PykeTurnRightAnimation,
+            [7]  = &_gM4a1PykeAimEntryAnimation,
+            [8]  = &_gM4a1PykeAimExitAnimation,
+            [9]  = &_gM4a1PykeAimIdleAnimation,
+            [10] = &_gM4a1PykeRifleFireAnimation,
+            [11] = &_gM4a1PykeFlameFireAnimation,
+            [12] = &_gM4a1PykeAimForwardAnimation,
+            [13] = &_gM4a1PykeAimBackwardOrTurnAnimation,
+            [14] = &_gM4a1PykePrimaryReloadAnimation,
+            [15] = &_gM4a1PykeFlameReleaseAnimation,
+            [16] = &_gM4a1PykeHitPart4Animation,
+            [17] = &_gM4a1PykeHitOtherBodyAnimation,
+            [18] = &_gM4a1PykeDeathAnimation,
+            [19] = &_gM4a1PykeUnarmedWalkAnimation,
+            [20] = &_gM4a1PykePrimaryReloadAnimation,
+            [21] = &_gM4a1PykeIdleAnimation,
+            [22] = &_gM4a1PykeIdleAnimation,
+            [23] = &_gM4a1PykeHighHealthIdleAnimation,
+            [24] = &_gM4a1PykeMidHealthIdleAnimation,
+            [25] = &_gM4a1PykeLowHealthIdleAnimation,
+            [26] = &_gM4a1PykeParasiteEnergyReleaseFamily0Animation,
+            [27] = &_gM4a1PykeParasiteEnergyChargeFamily0Animation,
+            [28] = &_gM4a1PykeParasiteEnergyCastFamily0Animation,
+            [29] = &_gM4a1PykeParasiteEnergyReleaseFamily1Animation,
+            [30] = &_gM4a1PykeParasiteEnergyChargeFamily1Animation,
+            [31] = &_gM4a1PykeParasiteEnergyCastFamily1Animation,
+            [32] = &_gM4a1PykeEventEntryAnimation,
+            [33] = &_gM4a1PykeEventExitAnimation,
+            [34] = &_gM4a1PykeEventEntryAnimation,
+            [35] = &_gM4a1PykeEventExitAnimation,
+            [36] = &_gM4a1PykeStairAscentAnimation,
+            [37] = &_gM4a1PykeStairDescentAnimation,
+            [38] = &_gM4a1PykeStairAscentFinishEvenAnimation,
+            [39] = &_gM4a1PykeStairAscentFinishOddAnimation,
+            [40] = &_gM4a1PykeItemUseAnimation,
+            [41] = &_gM4a1PykeIdleAnimation,
+            [42] = &_gM4a1PykeParasiteEnergyReleaseFamily2Animation,
+            [43] = &_gM4a1PykeParasiteEnergyChargeFamily2Animation,
+            [44] = &_gM4a1PykeParasiteEnergyCastFamily2Animation,
+            // Base slots 45/46 and the writable extension start cleared.
+        },
+    },
+};

@@ -1,8 +1,28 @@
 #ifndef INCLUDE_WEAPONS_M4A1_PYKE_H
 #define INCLUDE_WEAPONS_M4A1_PYKE_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Native player animation bank for the M4A1 rifle with the Pyke attachment.
+///
+/// The primary character selects bank index 29 for weapon 28. Base slots
+/// 1..44 contain 38 distinct player clips; slots 0, 45 and 46 are NULL.
+/// Slots 2/3/4 are forward walk, backward walk and run; the other base slots
+/// cover idle/turn, aim, attacks, reload, hit/death, Parasite Energy, scripted
+/// presentation, stairs and item use. Slots 20, 21/22/41 and 34/35 alias
+/// primary reload, idle and the paired presentation clips respectively.
+/// Slot 15 serves flame release and the secondary-reload request.
+///
+/// The 32 extension words (47..78) start cleared and remain writable for
+/// scripted copies, including payloads that are not clip pointers. A copy
+/// replaces only its requested prefix; later words retain their previous values.
+/// Play extension slots only when they hold loaded clips. Keep this weapon
+/// package and all borrowed clip data loaded while the bank or playback retains
+/// them; replacing the package invalidates the bank and its extension.
+extern AnimationBank gM4a1PykePlayerAnimationBank;
 
 /// Equipped M4A1 rifle with the Pyke flamethrower attachment.
 ///

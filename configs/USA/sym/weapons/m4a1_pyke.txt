@@ -8,3 +8,5 @@ _pykeFlameDrawBlob = 0x8011DCEC; // type:func
 _pykeFlameDrawSplash = 0x8011E168; // type:func
 _pykeFlameRelease = 0x8011E4AC; // type:func
 m4a1PykeAttackState = 0x8011e4f8; // type:func
+_gM4a1PykeNozzleOffset = 0x8011e90c;
+gM4a1PykePlayerAnimationBank = 0x8012d500;

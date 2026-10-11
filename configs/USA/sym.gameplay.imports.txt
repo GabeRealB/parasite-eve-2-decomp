@@ -445,7 +445,7 @@ gGunbladePlayerAnimationBank = 0x8012E108; // absolute:True owner=gunblade
 gM4a1HammerPlayerAnimationBank = 0x8012D4F4; // absolute:True owner=m4a1_hammer
 D_m4a1_bayonet_8012D25C = 0x8012D25C; // absolute:True owner=m4a1_bayonet
 D_m4a1_grenade_8012DF50 = 0x8012DF50; // absolute:True owner=m4a1_grenade
-D_m4a1_pyke_8012D500 = 0x8012D500; // absolute:True owner=m4a1_pyke
+gM4a1PykePlayerAnimationBank = 0x8012D500; // absolute:True owner=m4a1_pyke
 gM4a1JavelinPlayerAnimationBank = 0x8012EA20; // absolute:True owner=m4a1_javelin
 D_mp5a5_8012B3CC = 0x8012B3CC; // absolute:True owner=mp5a5
 gAya10400EyesRestSequence = 0x8011CC94; // absolute:True owner=aya_10400
