@@ -59,13 +59,13 @@ static void _desertChaserRoam(Task* task)
     s32                      playerFacingDifference;
     u16                      unsignedPatrolTurn;
     work = task->work;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
     enemy = task->spawnArg2.pointer; /* also read by the look-around below */
 #endif
     if (work->stateEntered != 0) {
         model   = task->extra.tmd;
         scratch = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserRoamScratch);
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
         enemy = task->spawnArg2.pointer;
 #endif
         enemy->node.state.parts.flags = 0;
@@ -73,13 +73,13 @@ static void _desertChaserRoam(Task* task)
         tmdAllocPrimitiveBuffer(model);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         work->blendActive                                    = 0;
         work->animId                                         = DESERT_CHASER_CLIP_PATROL;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         _desertChaserAnimTick(task);
@@ -185,7 +185,7 @@ static void _desertChaserRoam(Task* task)
         }
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
     if (_playerDetectionSightBlocked(task) != 1)
 #endif
     {
@@ -196,7 +196,7 @@ static void _desertChaserRoam(Task* task)
         detectionOffset->vz  = gPlayerStatus.coordMtx->t[2] - detectionCoord->coord.t[2];
         if (work->stateCounter > work->roamLookDelay) {
             if (work->chaseHoldoff <= 0) {
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
                 /* each chaser looks on its own frame of fifteen */
                 if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % DESERT_CHASER_SIGHT_FRAME_PERIOD))
 #endif
@@ -224,7 +224,7 @@ static void _desertChaserRoam(Task* task)
                         playerFacingDifference = -playerFacingDifference;
                     }
                     if ((playerFacingDifference >= DESERT_CHASER_ROAM_PLAYER_FACING_LIMIT + 1)
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
                         || (worldTargetGetActorLockMask(&enemy->node) == 0)
 #endif
                     ) {
@@ -232,14 +232,14 @@ static void _desertChaserRoam(Task* task)
                     }
                 }
             }
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
             else {
                 work->chaseHoldoff -= 1;
             }
 #endif
         }
     }
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
     if ((work->chaseHoldoff <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
         work->state = DESERT_CHASER_STATE_PURSUE;
     }
@@ -247,7 +247,7 @@ static void _desertChaserRoam(Task* task)
     _actor421600PushOutsideArenaCenter(task->extra.tmd->coords);
 #endif
     SCRATCH_STACK_RELEASE_BLOCK(DesertChaserRoamScratch);
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
 }

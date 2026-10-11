@@ -4491,7 +4491,7 @@ static void _actor421600LungeRecoveryState(Task* task)
     _desertChaserAnimTick(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         nextState = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
-        if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+        if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
             nextState = DESERT_CHASER_STATE_FLEE;
         } else {
             nextState = ACTOR421600_STATE_TRACK_ARENA_ROUTE;

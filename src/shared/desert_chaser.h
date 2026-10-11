@@ -26,17 +26,39 @@
 #include "actors/actor.h"
 #include "actors/hit_effect.h"
 
+#include "gameplay/scene_combat.h"
+
 #include "main/areas.h"
 #include "main/task_types.h"
 
-#define DESERT_CHASER_CUTSCENE    1
-#define DESERT_CHASER_REGULAR     2
+#include "rooms/dryfield_water_tower.h"
+
+/// Scripted, noncombat build selected by actor_323000 and actor_323400.
+///
+/// Bind `DESERT_CHASER_BUILD` to this preprocessor value before including the
+/// shared interface and fragments; it selects work layout and implementation.
+#define DESERT_CHASER_CUTSCENE 1
+
+/// Ordinary combat build selected by actor_00100 for actor_400100 and actor_407500.
+///
+/// Bind `DESERT_CHASER_BUILD` before including the shared interface and fragments.
+/// This build supplies collision bodies, combat states and placement-dependent rates.
+#define DESERT_CHASER_REGULAR 2
+
+/// Arena and timed mechanism-run build selected by actor_421600.
+///
+/// Bind `DESERT_CHASER_BUILD` before including the shared interface and fragments.
+/// This selects the compiled layout and behavior, independently of a live room command.
 #define DESERT_CHASER_WATER_TOWER 3
 #ifndef DESERT_CHASER_BUILD
 #error "define DESERT_CHASER_BUILD (DESERT_CHASER_CUTSCENE, _REGULAR or _WATER_TOWER) before including desert_chaser.h"
 #endif
 
-/// The slot flag that ends the blend context's cross-fade.
+/// Secondary slot-1 status bit that stops mixing the two animation rigs.
+///
+/// The cutscene build stops on the tick reaching a boundary; armed builds also
+/// accept later ticks holding that boundary pose. Test against slot flags, not
+/// a playback request or blend weight.
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
 #define DESERT_CHASER_BLEND_DONE ANIMATION_SLOT_REACHED_BOUNDARY
 #else
@@ -132,44 +154,129 @@ STATIC_ASSERT_SIZEOF(DesertChaserEffectArgStorage, 96);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
-/* The armed builds. DESERT_CHASER_RUN_SEQUENCE is the Water Tower run: one
- * more state ahead of the turn states, hits that only reply to the player
- * while the chaser lives and rumble the pad, and the hit effect offset built on
- * the stack. The regular build instead keeps the effect offset in the work
- * block, checks the Mine region before backing off, and tells the scene when
- * it starts its lunge. */
+/// Element count of each armed chaser sphere's and wall probe's contact table.
+///
+/// Includes the final record marked `WORLD_COLLISION_CONTACT_LAST`, which can
+/// itself hold a contact. Initialization covers the whole array; scans stop
+/// sooner at a zero key. This is independent of the avoidance bearing capacity.
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#define DESERT_CHASER_CONTACTS         5
-#define DESERT_CHASER_AVOID_BEARINGS   16 /* bearings the avoid walk's scratch block holds */
-#define DESERT_CHASER_STATE_COUNT      39 /* handlers `DesertChaserWork::state` indexes */
-#define DESERT_CHASER_RUN_SEQUENCE     0
+#define DESERT_CHASER_CONTACTS 5
+#else
+#define DESERT_CHASER_CONTACTS 12
+#endif
+
+/// Capacity of the avoidance scratch block's paired bearing and retention arrays.
+///
+/// One player or enemy body contact contributes one bearing, in 4096 units per
+/// turn. Collection stops once the array fills, even if more contacts remain.
+/// This fixes the scratch layout: 16 slots in regular combat, 8 in Water Tower.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_AVOID_BEARINGS 16
+#else
+#define DESERT_CHASER_AVOID_BEARINGS 8
+#endif
+
+/// Element count of the armed behavior dispatch table, including its NULL slots.
+///
+/// `DesertChaserWork::state` indexes 0..38 in regular combat or 0..39 in Water
+/// Tower, with no bounds check; a NULL slot must never be dispatched. The frame
+/// driver copies the entire table. This does not count `Task::state` handlers.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_STATE_COUNT 39
+#else
+#define DESERT_CHASER_STATE_COUNT 40
+#endif
+
+/// Compile-time selector for the Water Tower armed behavior (0 regular, 1 Water Tower).
+///
+/// Requires an armed `DESERT_CHASER_BUILD`. It selects room-specific movement,
+/// catch timing, live-HP damage gating and rumble even outside the timed run;
+/// it does not test whether the room's START_RUN command is active.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_WATER_TOWER_BEHAVIOR 0
+#else
+#define DESERT_CHASER_WATER_TOWER_BEHAVIOR 1
+#endif
+
+/// Behavior-table index of the right-turn clip and backward shuffle state.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #define DESERT_CHASER_STATE_TURN_RIGHT 8
-#define DESERT_CHASER_STATE_TURN_LEFT  9
-#define DESERT_CHASER_CLIP_STAGGER     0x10
-#define DESERT_CHASER_CLIP_COLLAPSE    0x13
-#define DESERT_CHASER_CLIP_STUNNED     0x15
-#define DESERT_CHASER_CLIP_TURN_STEP   0x11
-#define DESERT_CHASER_CLIP_TURN_PROBE  0x12
-#define DESERT_CHASER_SLOT_RATE(work)  ((work)->baseRate) /* the chaser's own rate */
-/* seeing the player raises the alert and starts the chase */
-#define DESERT_CHASER_NOTICE(work) (sceneEngageBattle(1), (work)->state = 0x26)
-/* how near the player has to be before a steering chaser closes in */
+#else
+#define DESERT_CHASER_STATE_TURN_RIGHT 9
+#endif
+
+/// Behavior-table index of the left-turn clip and forward shuffle state.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_STATE_TURN_LEFT 9
+#else
+#define DESERT_CHASER_STATE_TURN_LEFT 10
+#endif
+
+/// Carrier-bank clip index for the stagger reaction before rise, stun or death.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_CLIP_STAGGER 0x10
+#else
+#define DESERT_CHASER_CLIP_STAGGER 0x13
+#endif
+
+/// Carrier-bank clip index for the fatal collapse before corpse death.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_CLIP_COLLAPSE 0x13
+#else
+#define DESERT_CHASER_CLIP_COLLAPSE 0x16
+#endif
+
+/// Carrier-bank clip index whose cue 12 supplies the rocking damage-buildup stun pose.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_CLIP_STUNNED 0x15
+#else
+#define DESERT_CHASER_CLIP_STUNNED 0x18
+#endif
+
+/// Carrier-bank clip index for the right turn and backward shuffle.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_CLIP_TURN_RIGHT 0x11
+#else
+#define DESERT_CHASER_CLIP_TURN_RIGHT 0x14
+#endif
+
+/// Carrier-bank clip index for the left turn and forward shuffle.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_CLIP_TURN_LEFT 0x12
+#else
+#define DESERT_CHASER_CLIP_TURN_LEFT 0x15
+#endif
+
+/// Initial patrol, roam, steering and knock-down playback rate, in sixteenths of a frame.
+///
+/// Regular combat reads `baseRate` (15 or 17) through an initialized
+/// `DesertChaserWork` pointer, evaluating `work` once and yielding a u16 lvalue.
+/// Water Tower yields the integer normal-rate constant without evaluating `work`.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_SLOT_RATE(work) ((work)->baseRate)
+#else
+#define DESERT_CHASER_SLOT_RATE(work) ANIMATION_RATE_ONE
+#endif
+
+/// Responds to patrol detection by choosing roam in regular combat or pursuit in Water Tower.
+///
+/// Evaluates the writable `DesertChaserWork` pointer once. Regular combat first
+/// engages an idle battle, then assigns the state; Water Tower only assigns.
+/// The expression yields the stored state and leaves entry tracking to the frame driver.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#define DESERT_CHASER_NOTICE(work) (sceneEngageBattle(1), (work)->state = DESERT_CHASER_STATE_ROAM)
+#else
+#define DESERT_CHASER_NOTICE(work) ((work)->state = DESERT_CHASER_STATE_PURSUE)
+#endif
+
+/// Horizontal player radius at which steering selects the resume-pursuit state.
+///
+/// Uses the roots' common parent-coordinate units and ignores Y. Equality is
+/// outside the radius: 2000 units in regular combat, 1500 in Water Tower.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #define DESERT_CHASER_CLOSE_IN 2000
 #else
-#define DESERT_CHASER_CONTACTS         12
-#define DESERT_CHASER_AVOID_BEARINGS   8  /* half the regular build's, though its tables hold more contacts */
-#define DESERT_CHASER_STATE_COUNT      40 /* the run adds one state to the regular build's */
-#define DESERT_CHASER_RUN_SEQUENCE     1
-#define DESERT_CHASER_STATE_TURN_RIGHT 9
-#define DESERT_CHASER_STATE_TURN_LEFT  10
-#define DESERT_CHASER_CLIP_STAGGER     0x13 /* three more clips before these */
-#define DESERT_CHASER_CLIP_COLLAPSE    0x16
-#define DESERT_CHASER_CLIP_STUNNED     0x18
-#define DESERT_CHASER_CLIP_TURN_STEP   0x14
-#define DESERT_CHASER_CLIP_TURN_PROBE  0x15
-#define DESERT_CHASER_SLOT_RATE(work)  0x10 /* every runner alike */
-#define DESERT_CHASER_NOTICE(work)     ((work)->state = 0x1C)
-#define DESERT_CHASER_CLOSE_IN         1500
+#define DESERT_CHASER_CLOSE_IN 1500
 #endif
 
 /// One of the armed chaser's collision spheres, with the contact table it
@@ -231,17 +338,27 @@ typedef union {
 } DesertChaserLastCommand;
 STATIC_ASSERT_SIZEOF(DesertChaserLastCommand, 0x4);
 
-/// The bits of `DesertChaserLastCommand::word` that hold the command, leaving
-/// out the frame counter above them.
+/// Low 24-bit stage/area/command key mask, excluding the independent catch-frame byte.
+///
+/// Apply to `DesertChaserLastCommand::word` before a packed command comparison;
+/// changing `catchFrames` does not change the selected command.
 #define DESERT_CHASER_COMMAND_MASK 0xFFFFFF
-/// The value those bits hold for command `command` of the stage/area
-/// namespace: stage in bits 0-7, area in bits 8-15, command in bits 16-23.
+
+/// Packs unsigned-byte stage, area and command values into a low 24-bit key.
+///
+/// Integer arguments must be in 0..255; there is no masking or truncation.
+/// Each is evaluated once, with ordinary integer promotions and unspecified
+/// operand order. Stage occupies bits 0..7, area 8..15 and command 16..23;
+/// the catch-frame byte is zero. This packs a key, not an `ActorCommand` record.
 #define DESERT_CHASER_COMMAND(stage, area, command) ((stage) | ((area) << 8) | ((command) << 16))
-/// Command 1 of the Dryfield Water Tower, which the room broadcasts as its
-/// timed mechanism step starts. While it is the last command received, a chaser
-/// that has landed its strike or finished aiming goes to state 5 instead of
-/// following the player.
-#define DESERT_CHASER_COMMAND_WATER_TOWER_1 DESERT_CHASER_COMMAND(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 1)
+
+/// Packed Dryfield Water Tower command that starts the timed mechanism run.
+///
+/// While this remains the last command, completed catch/throw reactions choose
+/// flee instead of their ordinary recovery. Compare after `DESERT_CHASER_COMMAND_MASK`;
+/// the namespace distinguishes this from actor-pack command 1.
+#define DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN \
+    DESERT_CHASER_COMMAND(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN)
 
 #endif
 

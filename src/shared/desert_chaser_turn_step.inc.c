@@ -29,7 +29,7 @@ static void _desertChaserTurnRightState(Task* task)
     enemy   = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         model = task->extra.tmd;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->hitFlag = 0;
 #endif
         model->flags                                          = 0;
@@ -37,7 +37,7 @@ static void _desertChaserTurnRightState(Task* task)
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags                         = 0;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-        work->animId                                          = DESERT_CHASER_CLIP_TURN_STEP;
+        work->animId                                          = DESERT_CHASER_CLIP_TURN_RIGHT;
         work->animRate                                        = ANIMATION_RATE_ONE;
         work->stateTimer                                      = 0;
     }
@@ -72,7 +72,7 @@ static void _desertChaserTurnRightState(Task* task)
     task->extra.tmd->coords->coord.t[0] += scratch->offset.vx;
     task->extra.tmd->coords->coord.t[2] += scratch->offset.vz;
     _actorMovementStepForward(task->extra.tmd->coords, -8);
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
     _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
 #endif
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

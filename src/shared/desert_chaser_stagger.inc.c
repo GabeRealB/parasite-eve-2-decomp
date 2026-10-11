@@ -15,7 +15,7 @@ static void _desertChaserStagger(Task* task)
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         model = task->extra.tmd;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->hitFlag = 0;
 #endif
         model->flags                                          = 0;

@@ -23,13 +23,13 @@ static void _desertChaserSteer(Task* task)
         tmdAllocPrimitiveBuffer(model);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_RESET;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         work->blendActive                                    = 0;
         work->animId                                         = DESERT_CHASER_CLIP_STEER;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         _desertChaserAnimTick(task);

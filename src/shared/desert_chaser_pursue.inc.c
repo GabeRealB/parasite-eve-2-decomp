@@ -1,12 +1,5 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/* Dust anchor offset storage: stack-local in Water Tower, work-owned in the regular build. */
-#if DESERT_CHASER_RUN_SEQUENCE
-#define DESERT_CHASER_FX_OFFSET dustOffset
-#else
-#define DESERT_CHASER_FX_OFFSET work->effectOffset
-#endif
-
 /// Prepares the held player's animation and move request before starting playback.
 ///
 /// Requires a live held player and initialized chaser work with its front/rear
@@ -26,7 +19,7 @@ static __inline__ void _desertChaserBeginPlayerHold(Task* playerTask, DesertChas
     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
     work->playerMove.keepControl       = 1;
     work->playerHeld                   = 1;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
     work->lastCommand.fields.catchFrames = 0;
 #endif
     TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
@@ -77,7 +70,7 @@ static void _desertChaserPursue(Task* task)
     };
     PlayerStatus* playerStatus = &gPlayerStatus;
     SVECTOR       entryPlayerOffset;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
     SVECTOR dustOffset;
 #endif
     DesertChaserWork*          work;
@@ -147,7 +140,7 @@ static void _desertChaserPursue(Task* task)
         scratch->pushLengthSquared = pushLengthSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;
         relativeYaw                = _actorAngleTurnToOffset(task->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
         if ((abs(relativeYaw) >= DESERT_CHASER_LUNGE_BACKWARD_YAW_LIMIT + 1) && (scratch->pushLengthSquared >= (u32)DESERT_CHASER_LUNGE_MIN_PUSH_SQUARED)) {
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
             if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) && _actor00100IsInMesaDropRegion(task)) {
                 if (_actor00100FacesMesaDrop(task->extra.tmd->coords)) {
                     work->state = DESERT_CHASER_STATE_MESA_FALL;
@@ -177,7 +170,7 @@ static void _desertChaserPursue(Task* task)
         relativeYaw                       = _actorAngleNormalizeYaw(catchYaw);
         scratch->catchYaw                 = relativeYaw;
         if (abs(relativeYaw) < DESERT_CHASER_CATCH_YAW_LIMIT) {
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
             printf("EM01 PLAYER WORK %d, %d\n", playerActor->mode, playerActor->state);
 #endif
             if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
@@ -204,7 +197,7 @@ static void _desertChaserPursue(Task* task)
                 work->playerPlacement.pos.vz = playerTask->extra.tmd->coords->coord.t[2];
                 TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
                 if (work->lungeDistance < DESERT_CHASER_CLOSE_CATCH_TRAVEL) {
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
                     if (enemy->hp > 0)
 #endif
                     {
@@ -218,11 +211,11 @@ static void _desertChaserPursue(Task* task)
                         _desertChaserBeginPlayerHold(playerTask, work, DESERT_CHASER_PLAYER_CLIP_CLOSE_CATCH);
                     }
                     work->state = DESERT_CHASER_STATE_CLOSE_CATCH;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
                     padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
 #endif
                 } else {
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
                     if (enemy->hp > 0)
 #endif
                     {
@@ -238,7 +231,7 @@ static void _desertChaserPursue(Task* task)
                     }
                     _desertChaserBeginPlayerHold(playerTask, work, DESERT_CHASER_PLAYER_CLIP_THROW);
                     work->state = DESERT_CHASER_STATE_THROW;
-#if DESERT_CHASER_RUN_SEQUENCE
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
                     padScriptSpawnVariableMotorRamp(8, 0xFF, 8);
 #endif
                 }
@@ -288,7 +281,7 @@ static void _desertChaserPursue(Task* task)
                 work->animRequest = animationId;
                 audioPan          = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 sndEvtRequestScriptStart(SOUND_DESERT_CHASER_LUNGE, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
                 work->broadcast.context.loc.stage = DESERT_CHASER_BROADCAST_STAGE_KEY;
                 work->broadcast.context.loc.area  = DESERT_CHASER_BROADCAST_AREA_KEY;
                 work->broadcast.command           = DESERT_CHASER_BROADCAST_LUNGING;
@@ -305,38 +298,63 @@ static void _desertChaserPursue(Task* task)
         }
     }
     if (work->animId == DESERT_CHASER_CLIP_LUNGE) {
+        // Dust uses limb-local XYZ: stack storage in Water Tower, work storage in regular combat.
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 5:
-                emitDust                   = 1;
-                effectPart                 = 7;
-                dustArguments              = DESERT_CHASER_LUNGE_DUST_PART_7;
-                DESERT_CHASER_FX_OFFSET.vz = 0;
-                DESERT_CHASER_FX_OFFSET.vx = 0;
-                DESERT_CHASER_FX_OFFSET.vy = 0x2BC;
+                emitDust      = 1;
+                effectPart    = 7;
+                dustArguments = DESERT_CHASER_LUNGE_DUST_PART_7;
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 0x2BC;
+#else
+                work->effectOffset.vz = 0;
+                work->effectOffset.vx = 0;
+                work->effectOffset.vy = 0x2BC;
+#endif
                 break;
             case 8:
-                emitDust                   = 1;
-                effectPart                 = 9;
-                dustArguments              = DESERT_CHASER_LUNGE_DUST_PART_9;
-                DESERT_CHASER_FX_OFFSET.vz = 0;
-                DESERT_CHASER_FX_OFFSET.vx = 0;
-                DESERT_CHASER_FX_OFFSET.vy = 0x2BC;
+                emitDust      = 1;
+                effectPart    = 9;
+                dustArguments = DESERT_CHASER_LUNGE_DUST_PART_9;
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 0x2BC;
+#else
+                work->effectOffset.vz = 0;
+                work->effectOffset.vx = 0;
+                work->effectOffset.vy = 0x2BC;
+#endif
                 break;
             case 10:
-                emitDust                   = 1;
-                effectPart                 = 14;
-                dustArguments              = DESERT_CHASER_LUNGE_DUST_PART_14;
-                DESERT_CHASER_FX_OFFSET.vz = 0;
-                DESERT_CHASER_FX_OFFSET.vx = 0;
-                DESERT_CHASER_FX_OFFSET.vy = 0x258;
+                emitDust      = 1;
+                effectPart    = 14;
+                dustArguments = DESERT_CHASER_LUNGE_DUST_PART_14;
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 0x258;
+#else
+                work->effectOffset.vz = 0;
+                work->effectOffset.vx = 0;
+                work->effectOffset.vy = 0x258;
+#endif
                 break;
             case 13:
-                emitDust                   = 1;
-                effectPart                 = 17;
-                dustArguments              = DESERT_CHASER_LUNGE_DUST_PART_17;
-                DESERT_CHASER_FX_OFFSET.vz = 0;
-                DESERT_CHASER_FX_OFFSET.vx = 0;
-                DESERT_CHASER_FX_OFFSET.vy = 0x258;
+                emitDust      = 1;
+                effectPart    = 17;
+                dustArguments = DESERT_CHASER_LUNGE_DUST_PART_17;
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 0x258;
+#else
+                work->effectOffset.vz = 0;
+                work->effectOffset.vx = 0;
+                work->effectOffset.vy = 0x258;
+#endif
                 break;
             default:
                 emitDust      = 0;
@@ -345,10 +363,12 @@ static void _desertChaserPursue(Task* task)
                 break;
         }
         if ((gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (emitDust == 1)) {
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[effectPart], dustArguments | DESERT_CHASER_CUE_DUST_RECURSIVE, &DESERT_CHASER_FX_OFFSET);
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[effectPart], dustArguments | DESERT_CHASER_CUE_DUST_RECURSIVE, &dustOffset);
+#else
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[effectPart], dustArguments | DESERT_CHASER_CUE_DUST_RECURSIVE, &work->effectOffset);
+#endif
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(DesertChaserPursueScratch);
 }
-
-#undef DESERT_CHASER_FX_OFFSET

@@ -97389,7 +97389,7 @@ nextState local and let the arms reassign it, so the test reads X and the fold's
 
 ```c
 nextState = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
-if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
     nextState = DESERT_CHASER_STATE_FLEE;
 } else {
     nextState = ACTOR421600_STATE_TRACK_ARENA_ROUTE;
@@ -111311,7 +111311,7 @@ that is what was written first (99.915%, `regs=3`):
 ```c
 if (work->field_68 & 0x100) {
     state = 0x1F;                                     /* -> $a1, not $v0 */
-    if ((work->lastCommand.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+    if ((work->lastCommand.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
         state = 5;
     }
     work->state = state;
@@ -111326,7 +111326,7 @@ constants land in `$v0` and the store reads it:
 
 ```c
 state = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
-if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+if (state == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
     state = 5;
 } else {
     state = 0x1F;

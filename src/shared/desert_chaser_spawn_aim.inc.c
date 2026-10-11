@@ -40,7 +40,7 @@ static void _desertChaserThrowPlayer(Task* task)
     if (work->stateEntered != 0) {
         model                         = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->hitFlag = 0;
 #endif
         model->flags = 0;
@@ -55,7 +55,7 @@ static void _desertChaserThrowPlayer(Task* task)
         _desertChaserAnimTick(task);
         // The frame driver sends this facing-aligned push to the held player.
         gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, throwStep);
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->playerAnimFrames = 0;
 #endif
         work->stateTimer = 0;
@@ -76,7 +76,7 @@ static void _desertChaserThrowPlayer(Task* task)
         work->playerMove.displacement.vz   = z;
         entryPan                           = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(SOUND_COMMON(7), (s32)entryPan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         padScriptSpawnVariableMotorRamp(8, 0xFF, 8);
 #endif
     }
@@ -92,11 +92,11 @@ static void _desertChaserThrowPlayer(Task* task)
     }
     _desertChaserAnimTick(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->state = DESERT_CHASER_STATE_LEAP_BACK;
 #else
         nextState = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
-        if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+        if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
             nextState = DESERT_CHASER_STATE_FLEE;
         } else {
             nextState = DESERT_CHASER_STATE_LEAP_BACK;

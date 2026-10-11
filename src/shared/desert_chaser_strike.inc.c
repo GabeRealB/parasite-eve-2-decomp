@@ -54,7 +54,7 @@ static void _desertChaserCloseCatchState(Task* task)
         work->blendActive                                     = 0;
         work->animId                                          = DESERT_CHASER_CLIP_CLOSE_CATCH;
         work->waistYawTarget                                  = 0;
-#if !DESERT_CHASER_RUN_SEQUENCE
+#if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
         work->playerAnimFrames = 0;
 #endif
         work->stateTimer                                     = 0;
@@ -74,8 +74,8 @@ static void _desertChaserCloseCatchState(Task* task)
         work->playerMove.keepControl       = 1;
         work->wallProbe.shape.ends[1].vz   = DESERT_CHASER_LUNGE_PROBE_REACH;
         work->playerMove.displacement.vz   = moveZ;
-#if DESERT_CHASER_RUN_SEQUENCE
-        if ((work->lastCommand.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+#if DESERT_CHASER_WATER_TOWER_BEHAVIOR
+        if ((work->lastCommand.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_START_RUN) {
             work->state = DESERT_CHASER_STATE_FLEE;
         }
 #else
