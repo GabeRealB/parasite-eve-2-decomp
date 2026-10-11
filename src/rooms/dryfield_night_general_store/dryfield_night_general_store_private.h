@@ -28,8 +28,14 @@ extern ScreenFade gGeneralStoreUnderpassFade;
 /// snapshot unchanged and loaded until the task commits its destination.
 extern RoomEventMsg gRoomEventMsg;
 
-/// Selects this overlay's externally linked transition snapshot for the shared event code.
-#define ROOM_EVENT_MSG gRoomEventMsg
+/// Selects the night General Store's retained destination for deferred room events.
+///
+/// Include before `room_events.h` in both room translation units. The binding
+/// is a writable `RoomEventMsg` lvalue with no side effects; it allocates no
+/// storage. The gate replaces all eight bytes on eligible execution, even if
+/// task allocation fails; queries leave them unchanged. Keep the snapshot
+/// loaded and unchanged until the task commits area/warp/room and requests reload.
+#define ROOM_EVENT_DESTINATION (gRoomEventMsg)
 
 extern u8 gRoomEventActive;
 

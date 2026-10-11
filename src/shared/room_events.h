@@ -27,9 +27,9 @@
  *   RoomFadeStorage   gRoomEventFade      the staged task's fade record (`fade`)
  *   RoomDeparture     gRoomDeparture      the departure the handler staged
  *
- * The message is private to each carrier unless another room translation unit
- * defines its storage. Those overlays declare `gRoomEventMsg` in their
- * private headers and bind `ROOM_EVENT_MSG` there; local carriers define
+ * The destination snapshot is private to each carrier unless another room
+ * translation unit defines its storage. Those overlays declare `gRoomEventMsg` in their
+ * private headers and bind `ROOM_EVENT_DESTINATION` there; local carriers define
  * `static RoomEventMsg _gRoomEventMsg` before including the fragments.
  *
  * Some rooms' copies of the flag, the request, the latched event or the
@@ -38,10 +38,10 @@
  * the bindings below. A room whose symbol is the wider object, or whose fade
  * is the bare record, defines the binding before including this header.
  *
- *   ROOM_EVENT_MSG      lvalue `RoomEventMsg`. Default `_gRoomEventMsg`.
+ *   ROOM_EVENT_DESTINATION lvalue `RoomEventMsg`. Default `_gRoomEventMsg`.
  *                       Cross-TU storage binds `gRoomEventMsg`; the gate copies
  *                       the entire eight-byte record and the task reads it
- *                       through reload.
+ *                       until requesting reload.
  *   ROOM_EVENT_STAGED_DESTINATION lvalue `RoomEventMsg`. Default `_gRoomEventStagedMsg`.
  *                       Cross-TU storage binds `gRoomEventStagedDestination`.
  *                       The complete snapshot stays live through staged reload.
@@ -90,16 +90,25 @@ enum { ROOM_EVENT_TASK_PRIORITY = 32 };
 #define ROOM_EVENT_TASK_DESC gRoomEventTaskDesc
 #endif
 
-#ifndef ROOM_EVENT_MSG
-/// Complete room-owned transition snapshot copied by the gate and read through reload.
+#ifndef ROOM_EVENT_DESTINATION
+/// Selects the room-owned destination retained for the gate's deferred transition.
 ///
-/// Requires an initialized, writable `RoomEventMsg` lvalue defined before the
-/// event fragments. The default is the carrier's static `_gRoomEventMsg`;
-/// an overlay-private header may bind externally linked `gRoomEventMsg` instead.
-/// Another accepted start replaces the snapshot; keep its eight bytes stable
-/// and loaded until the task finishes. The binding evaluates its lvalue once
-/// per copy or field access and allocates no storage.
-#define ROOM_EVENT_MSG _gRoomEventMsg
+/// Requires a writable `RoomEventMsg` lvalue naming stable storage without
+/// side effects, declared before the event fragments. The default is the
+/// carrier's static `_gRoomEventMsg`; the night factory, night General Store,
+/// B1 armory and B3 elevator hall bind their cross-TU `gRoomEventMsg` in private
+/// headers included before this header. Writers and readers use the same binding;
+/// the macro declares no object and allocates no storage.
+///
+/// Eligible execution copies the complete eight-byte input before spawning,
+/// even if task allocation fails. Queries and bypassed/refused events leave
+/// the snapshot unchanged; another eligible execution replaces it. Keep it
+/// loaded and unchanged until the task commits its destination and requests
+/// reload. Only area, arrival warp and room are committed within the current
+/// stage; the remaining message bytes are copied but not interpreted by the
+/// task. Area narrows to the saved byte and room keeps its low eight bits.
+/// The lvalue is evaluated once per copy and separately for each field read.
+#define ROOM_EVENT_DESTINATION (_gRoomEventMsg)
 #endif
 #ifndef ROOM_EVENT_STAGED_DESTINATION
 /// Selects the room-owned destination retained during staged playback for session reload.
@@ -144,7 +153,7 @@ enum { ROOM_EVENT_TASK_PRIORITY = 32 };
 static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* message);
 /// Plays the latched door-event command and sounds, then reloads its destination.
 ///
-/// Requires live room-owned `ROOM_EVENT_REQ` and `ROOM_EVENT_MSG` snapshots that
+/// Requires live room-owned `ROOM_EVENT_REQ` and `ROOM_EVENT_DESTINATION` snapshots that
 /// remain unchanged until state 5. State must be 0..5; spawn arguments are unused.
 /// Pauses actors and holds the player; each zero sound ID skips that voice wait.
 /// The command is started with a display transition, without a separate CAP wait.
