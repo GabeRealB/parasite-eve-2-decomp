@@ -5,3 +5,4 @@ gKyle800103KyleMadiganHandRightSecondPair = 0x8016CED8; // model named by a task
 gKyle800103KyleMadiganM950 = 0x8016DE3C; // Kyle Madigan's M950, companion resource variant 3
 gKyle800103KyleMadiganHandLeftFirstPair = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
 gKyle800103KyleMadiganHandLeft = 0x8016D81C; // model named by a task descriptor
+gKyle800103KyleMadiganAnimationBank = 0x8017567c;

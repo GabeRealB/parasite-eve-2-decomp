@@ -5,6 +5,27 @@
 
 #include "main/tmd_types.h"
 
+/// Kyle Madigan's native companion animation bank for resource variant 1.
+///
+/// Saved variants 0 and 1 select this bank. The first
+/// `ANIMATION_BANK_BASE_SET_COUNT` entries are package-owned clips or NULL;
+/// the following `ANIMATION_BANK_EXTENSION_CAPACITY` words start zeroed and
+/// remain writable for borrowed scripted clips and other raw words. Play an
+/// extension entry only when it holds a valid set pointer. Body playback uses
+/// tracks 1..19 of the twenty-track clips. Keep this package and any copied
+/// clip data loaded while playback or cached records borrow it.
+extern AnimationBank gKyle800101KyleMadiganAnimationBank;
+
+/// Kyle Madigan's native companion animation bank for resource variant 3.
+///
+/// The first `ANIMATION_BANK_BASE_SET_COUNT` entries are package-owned clips
+/// or NULL. The following `ANIMATION_BANK_EXTENSION_CAPACITY` words start
+/// zeroed and remain writable for borrowed scripted clips and other raw words;
+/// play an extension entry only when it holds a valid set pointer.
+/// Body playback uses tracks 1..19 of the twenty-track clips. Keep this package
+/// and any copied clip data loaded while playback or cached records borrow it.
+extern AnimationBank gKyle800103KyleMadiganAnimationBank;
+
 /// Kyle Madigan's twenty-part companion body for resource variant 1.
 ///
 /// Borrows this package's geometry and writable command stream. Keep the

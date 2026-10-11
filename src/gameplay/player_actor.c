@@ -659,10 +659,6 @@ extern GpuImageUpload* D_aya_10400_8011CCD4[];
 
 extern GpuImageUpload* D_aya_10300_8011CD5C[];
 
-extern AnimationBank D_kyle_800101_801756D0;
-
-extern AnimationBank D_kyle_800103_8017567C;
-
 /// Weapon overlay entry points, at fixed addresses.
 
 void func_p08_snail_8011D1D8(Task* arg0);
@@ -1260,7 +1256,7 @@ u16            Gp_AllyIdBase[4] = {
     7,
     0,
 };
-AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_kyle_800101_801756D0, &D_kyle_800101_801756D0, &gKyle800102CompanionAnimationBank, &D_kyle_800103_8017567C, &gKyle800104KyleMadiganAnimationBank, &gActor800200CompanionAnimationBank, &gActor800300CompanionAnimationBank };
+AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &gKyle800101KyleMadiganAnimationBank, &gKyle800101KyleMadiganAnimationBank, &gKyle800102CompanionAnimationBank, &gKyle800103KyleMadiganAnimationBank, &gKyle800104KyleMadiganAnimationBank, &gActor800200CompanionAnimationBank, &gActor800300CompanionAnimationBank };
 /// Five observed flag entries; the final F0 EE EF bytes have no known reader.
 /// Their meaning and relationship to the flag array are unconfirmed.
 u8 D_80113388[8] = {

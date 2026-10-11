@@ -472,9 +472,9 @@ D_aya_10400_8011CCD4 = 0x8011CCD4; // absolute:True owner=aya_10400
 D_aya_10300_8011CD5C = 0x8011CD5C; // absolute:True owner=aya_10300
 gAya10200MouthRestSequence = 0x8011D0D4; // absolute:True owner=aya_10200
 gAya10500MouthRestSequence = 0x8011D1A8; // absolute:True owner=aya_10500
-D_kyle_800101_801756D0 = 0x801756D0; // absolute:True owner=kyle_800101
+gKyle800101KyleMadiganAnimationBank = 0x801756D0; // absolute:True owner=kyle_800101
 gKyle800102CompanionAnimationBank = 0x801772E8; // absolute:True owner=kyle_800102
-D_kyle_800103_8017567C = 0x8017567C; // absolute:True owner=kyle_800103
+gKyle800103KyleMadiganAnimationBank = 0x8017567C; // absolute:True owner=kyle_800103
 gKyle800104KyleMadiganAnimationBank = 0x80176C1C; // absolute:True owner=kyle_800104
 gActor800200CompanionAnimationBank = 0x8016F208; // absolute:True owner=actor_800200
 gActor800300CompanionAnimationBank = 0x8016CB98; // absolute:True owner=actor_800300
