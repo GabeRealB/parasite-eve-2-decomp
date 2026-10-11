@@ -905,7 +905,7 @@ static void _shelterB1SterilizationRoomScriptedPresentationTask(Task* task)
     };
     switch (task->state) {
         case PRESENTATION_ENTER:
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(SCENE_FILE_ORDINAL);
             capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, PLAYER_PRESENTATION_ENTER_CLIP, 0);

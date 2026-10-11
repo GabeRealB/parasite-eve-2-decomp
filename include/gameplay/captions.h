@@ -153,7 +153,13 @@ void capActionPromptExitTask(Task* task);
 /// arguments are unused here.
 void capPlaybackTask(Task* task);
 
-extern CapFile* Gp_CapFile;
+/// Borrowed selected CAP resource, relocated in place when valid.
+///
+/// Selection takes a loaded filesystem slot's data; reset and resource changes
+/// clear the pointer without freeing it. Keep the resource loaded while playback
+/// or its published command entries are used. Failed relocation can leave the
+/// last successful command entries selected after this pointer has changed.
+extern CapFile* gCapFile;
 
 /// In-place playback's actor-control restoration choices.
 enum {
@@ -173,7 +179,7 @@ extern s32 D_80115694;
 /// Borrowed command-reference entries of the last successfully selected CAP table.
 ///
 /// Successful relocation publishes `CapCommandTable.entries`; a failed magic
-/// check leaves this pointer intact even if `Gp_CapFile` has changed. The owning
+/// check leaves this pointer intact even if `gCapFile` has changed. The owning
 /// CAP resource must stay loaded while entries, commands or sequences are used.
 /// Every index must be nonnegative, below that table's count and fit 0..32767
 /// for the signed-halfword playback interface. Dispatch does not check bounds;

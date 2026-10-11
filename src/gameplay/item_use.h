@@ -23,8 +23,6 @@ extern InventoryBattleReward* D_8010F9F4[];
 /// `GameSession.location.loc.stage`.
 extern InventoryBattleReward* D_8010FA0C[];
 
-extern const char Gp_StrGetLockPosNull[];
-
 /// Draws equipped armor and its attachments, and handles attachment item use.
 ///
 /// Spawn argument 2 borrows the owning live `UiObject`. State 0 clears pending

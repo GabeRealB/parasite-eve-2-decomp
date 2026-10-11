@@ -186,7 +186,7 @@ static inline void _shelterB1SleepingQuartersSelectAlternateCap(void)
         SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TEXTURE_X = 704,
     };
 
-    Gp_CapFile = NULL;
+    gCapFile = NULL;
     capSelectLoadedFile(SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_RESOURCE);
     capSetTexturePage(SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TEXTURE_X, 0);
 }

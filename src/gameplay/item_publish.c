@@ -19,13 +19,13 @@ u16 Gp_PubItemReady;
 
 u32 gPlanarReflectionLocationKey;
 
-u16 Gp_PubItemQty;
+u16 gItemPickupPublishedQuantity;
 
-InventoryItemRow* Gp_SelItemRec;
+InventoryItemRow* gItemMenuSelectedRow;
 
 s32 D_80114DD8;
 
-u16 Gp_PubItemLoc;
+u16 gItemPickupPublishedKind;
 
 u16 D_80114DDE;
 
@@ -40,8 +40,8 @@ u16 Gp_PubItemId;
 #include "items.h"
 #include "planar_reflection.h"
 
-EquipmentWeaponLoadOptionsTable Gp_RelatedQty0           = { { { 32, { 160, 161, 162 } }, { 20, { 160, 161, 162 } }, { 100, { 160, 161, 162 } }, { 7, { 160, 161, 162 } }, { 12, { 160, 161, 162 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 6, { 166, 167, 168 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 12, { 169, 170, 171 } }, { 3, { 172, 173, 174 } }, { 7, { 172, 173, 174 } }, { 20, { 172, 173, 174 } }, { 30, { 175, 176, 177 } }, { 200, { 175, 176, 177 } }, { 0, { 0, 0, 0 } }, { 1, { 0, 0, 0 } }, { 60, { 175, 176, 177 } }, { 90, { 175, 176, 177 } }, { 100, { 181, 185, 187 } }, { 12, { 172, 173, 174 } }, { 0, { 0, 0, 0 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 160, 161, 162 } }, { 60, { 160, 161, 162 } }, { 90, { 160, 161, 162 } } } };
-ArmorStats                      gEquipmentArmorStats[32] = {
+EquipmentWeaponLoadOptionsTable gEquipmentWeaponPrimaryLoadOptions = { { { 32, { 160, 161, 162 } }, { 20, { 160, 161, 162 } }, { 100, { 160, 161, 162 } }, { 7, { 160, 161, 162 } }, { 12, { 160, 161, 162 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 6, { 166, 167, 168 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 12, { 169, 170, 171 } }, { 3, { 172, 173, 174 } }, { 7, { 172, 173, 174 } }, { 20, { 172, 173, 174 } }, { 30, { 175, 176, 177 } }, { 200, { 175, 176, 177 } }, { 0, { 0, 0, 0 } }, { 1, { 0, 0, 0 } }, { 60, { 175, 176, 177 } }, { 90, { 175, 176, 177 } }, { 100, { 181, 185, 187 } }, { 12, { 172, 173, 174 } }, { 0, { 0, 0, 0 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 160, 161, 162 } }, { 60, { 160, 161, 162 } }, { 90, { 160, 161, 162 } } } };
+ArmorStats                      gEquipmentArmorStats[32]           = {
     { ARMOR_FEATURE_RESIST_PARALYSIS, 10, 3, 0, 0 },
     { ARMOR_FEATURE_MOTION_DETECTOR | ARMOR_FEATURE_MEDICAL_INSPECTION, 60, 8, 30, 0 },
     { ARMOR_FEATURE_MOTION_DETECTOR | ARMOR_FEATURE_RESIST_SILENCE, 40, 5, 10, 0 },
@@ -76,7 +76,7 @@ ArmorStats                      gEquipmentArmorStats[32] = {
     { 0, 0, 4, 0, 0 },
     { 0, 0, 4, 0, 0 },
 };
-InventoryConsumableStack Gp_StackLimits[32] = {
+InventoryConsumableStack gInventoryConsumableStacks[INVENTORY_CONSUMABLE_ITEM_COUNT] = {
     { 50, 0, 500 },
     { 50, 0, 500 },
     { 50, 0, 500 },
@@ -133,7 +133,7 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
     s32                             found;
 
     stageIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    room       = Gp_Bit2Banks[stageIndex].rooms;
+    room       = gAreaObjectStages[stageIndex].rooms;
     found      = 0;
     // Search the saved stage's room records, preserving the lookup terminator.
     if (room != NULL) {
@@ -144,37 +144,37 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
                 roomMatched = 0;
                 if (place != NULL) {
                     if (place->flagIndex != placeListEnd) {
-                        consumableStacks = Gp_StackLimits;
+                        consumableStacks = gInventoryConsumableStacks;
 
                         do {
                             if (place->flagIndex == flagIndex) {
-                                objectKind    = place->kind;
-                                placeState    = place->state;
-                                Gp_PubItemId  = flagIndex;
-                                Gp_PubItemLoc = objectKind;
-                                D_80114DDE    = placeState;
+                                objectKind               = place->kind;
+                                placeState               = place->state;
+                                Gp_PubItemId             = flagIndex;
+                                gItemPickupPublishedKind = objectKind;
+                                D_80114DDE               = placeState;
                                 // Publish item quantity only for the item bank.
                                 if (objectKind < ITEM_PICKUP_ITEM_BANK_END) {
                                     if (inventoryIsItemLimitReached(place->kind) != 0) {
                                         if ((u32)(place->kind - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_PICKUP_WEAPON_COUNT) {
-                                            Gp_PubItemLoc = ITEM_PICKUP_DUPLICATE_WEAPON_REPLACEMENT;
+                                            gItemPickupPublishedKind = ITEM_PICKUP_DUPLICATE_WEAPON_REPLACEMENT;
                                         } else {
-                                            Gp_PubItemLoc = ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT;
+                                            gItemPickupPublishedKind = ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT;
                                         }
-                                        Gp_PubItemQty   = 1;
-                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
+                                        gItemPickupPublishedQuantity = 1;
+                                        Gp_PubItemReady              = ITEM_PICKUP_PUBLICATION_READY;
                                     } else if ((u32)(place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
                                         if (areaGetCurrentObjectState(flagIndex) != ITEM_PICKUP_FULL_STACK_STATE) {
-                                            consumableIndex = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
-                                            Gp_PubItemQty   = consumableStacks[consumableIndex].packQty;
+                                            consumableIndex              = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
+                                            gItemPickupPublishedQuantity = consumableStacks[consumableIndex].packQty;
                                         } else {
-                                            consumableIndex = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
-                                            Gp_PubItemQty   = consumableStacks[consumableIndex].maxHeld;
+                                            consumableIndex              = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
+                                            gItemPickupPublishedQuantity = consumableStacks[consumableIndex].maxHeld;
                                         }
                                         Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
                                     } else {
-                                        Gp_PubItemQty   = 1;
-                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
+                                        gItemPickupPublishedQuantity = 1;
+                                        Gp_PubItemReady              = ITEM_PICKUP_PUBLICATION_READY;
                                     }
                                 }
                                 found       = 1;

@@ -124,7 +124,7 @@ static void _roomCutsceneTask(Task* task)
             break;
         case ROOM_CUTSCENE_STATE_SELECT_CAP:
             if (cutscene->capFile != 0) {
-                Gp_CapFile = NULL;
+                gCapFile = NULL;
                 capSelectLoadedFile(cutscene->capFile);
                 tpageX = cutscene->capTPageX;
                 tpageY = 0;

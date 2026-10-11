@@ -2467,7 +2467,7 @@ static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
     };
 
     if (dataResourceOrdinal != ACTOR_460200_DEFAULT_CAP_RESOURCE) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(dataResourceOrdinal);
         capSetTexturePage(ACTOR_460200_CUTSCENE_CAP_VRAM_X, ACTOR_460200_CUTSCENE_CAP_VRAM_Y);
         return;

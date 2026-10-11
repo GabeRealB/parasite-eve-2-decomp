@@ -3175,7 +3175,7 @@ static inline s32 _dryfieldNightGasStationHasRoomEventTriggerHit(void)
 {
     const WorldCollisionTrigger* trigger;
 
-    trigger = Gp_PendingObj4C;
+    trigger = gWorldCollisionActionTriggerListHead;
     while (trigger != NULL) {
         if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
             return 1;

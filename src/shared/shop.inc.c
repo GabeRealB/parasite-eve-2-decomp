@@ -120,7 +120,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object);
 /// the gameplay image is loaded; no inventory contents are read or changed.
 static inline const InventoryConsumableStack* _inventoryGetConsumableStackInfo(s32 consumableItemId)
 {
-    return &Gp_StackLimits[consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
+    return &gInventoryConsumableStacks[consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
 }
 
 /// Borrows the stock set for a packed stock-set/category selector.

@@ -2,6 +2,7 @@
 
 #include "gameplay/attachment_state.h"
 #include "hud.h"
+#include "game_debug_types.h"
 
 #include "main/mc.h"
 #include "main/session.h"
@@ -9,23 +10,24 @@
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-HudHpMp Gp_HpMpWork;
+HudHpMp gHudDisplayedVitals;
 
-u8 Gp_DebugAttachLevels[18];
+u8 gAttachmentTrainingLevels[ATTACHMENT_AREA_ABILITY_COUNT];
 
-u16 Gp_ReplayButtons;
+u16 gGameDebugReplayButtons;
 
-u16 Gp_ReplayFramesLeft;
+u16 gGameDebugReplayFramesRemaining;
 
 AttachmentState gAttachmentState;
 
 InventoryItemRow gInventoryBattleRewardRows[5];
 
-s32 D_80114C34;
+s32 gAttachmentSoundQueueTicks;
 
-u16* Gp_ReplayCursor;
+const GameDebugReplayRecord* gGameDebugReplayCursor;
 
 #include "attachments.h"
+#include "game_debug.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/damage.h"
@@ -122,7 +124,7 @@ u16 attachmentGetActiveLevelValue(s32 column)
         if (usesTrainingLevels == 0) {
             learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
-            learnedLevels = Gp_DebugAttachLevels;
+            learnedLevels = gAttachmentTrainingLevels;
         }
         level = learnedLevels[abilityIndex];
         if (level == 0) {

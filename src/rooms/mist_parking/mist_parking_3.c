@@ -224,12 +224,12 @@ void mistParkingSelectDialogueResource(s32 resourceOrdinal)
     capReset();
     switch (resourceOrdinal) {
         case MIST_PARKING_DIALOGUE_DEPARTURE_MENU:
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(MIST_PARKING_DIALOGUE_DEPARTURE_MENU);
             capSetTexturePage(MIST_PARKING_DEPARTURE_FONT_VRAM_X, MIST_PARKING_DEPARTURE_FONT_VRAM_Y);
             break;
         case MIST_PARKING_DIALOGUE_PRIZES:
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(MIST_PARKING_DIALOGUE_PRIZES);
             capSetTexturePage(MIST_PARKING_PRIZE_FONT_VRAM_X, MIST_PARKING_PRIZE_FONT_VRAM_Y);
             break;

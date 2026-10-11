@@ -323,7 +323,16 @@ extern s16 gCapDisplayFramesRemaining;
 /// record byte and adjusted for scene-sync lateness with halfword truncation.
 extern s16 gCapPauseFramesRemaining;
 
-extern u8 D_8011569C;
+/// CAP sequence view-selector interpretation; every nonzero byte selects direct.
+enum { CAP_VIEW_SELECTOR_LOGICAL = 0,
+       CAP_VIEW_SELECTOR_DIRECT  = 1 };
+
+/// Uses direct sequence view indices when nonzero, logical view ids when zero.
+///
+/// EVS stores the low operand byte. Reset and interpreter startup/end select
+/// logical ids; logical selector zero bypasses mapping. Direct mode preserves
+/// the record's full view byte. Applies to sequence view-control records only.
+extern u8 gCapUseDirectViewIndex;
 
 /// Advances the selected CAP record's text, choice, action and view-control playback.
 ///

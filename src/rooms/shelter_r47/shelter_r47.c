@@ -1056,7 +1056,7 @@ static void _shelterR47PlayCapCommandTask(Task* task)
 {
     switch (task->state) {
         case SHELTER_R47_CAP_START:
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(SHELTER_R47_CAP_MAIN_RESOURCE);
             capSetTexturePage(SHELTER_R47_CAP_MAIN_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
             capRunCommandWithTransition(task->spawnArg1.value);
@@ -1123,7 +1123,7 @@ static void _shelterR47PlayEntryScene8Task(Task* task)
     switch (task->state) {
         case SHELTER_R47_CAP_START:
             capReset();
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(SHELTER_R47_CAP_MAIN_RESOURCE);
             capSetTexturePage(SHELTER_R47_CAP_MAIN_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
             capRunCommandWithTransition(SHELTER_R47_ENTRY_COMMAND);
@@ -1155,7 +1155,7 @@ static void _shelterR47PlayEntryScene7Task(Task* task)
     switch (task->state) {
         case SHELTER_R47_CAP_START:
             capReset();
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(SHELTER_R47_CAP_ALTERNATE_RESOURCE);
             capSetTexturePage(SHELTER_R47_CAP_ALTERNATE_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
             capRunCommandWithTransition(SHELTER_R47_ALTERNATE_ENTRY_COMMAND);

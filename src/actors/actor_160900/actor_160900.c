@@ -2088,7 +2088,7 @@ static void _actor160900CutsceneTask(Task* task)
                 work->kyleFreeHand = taskSpawnFromTable(gActor160900TaskDescriptors, ACTOR_160900_TASK_KYLE_FREE_HAND, ACTOR_160900_KYLE_FREE_HAND, work->kyle);
             }
             // Caption setup and the state increment also run after allocation failure.
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(ACTOR_160900_CAP_FILE);
             capSetTexturePage(ACTOR_160900_CAP_TEXTURE_X, ACTOR_160900_CAP_TEXTURE_Y);
             task->state += 1;

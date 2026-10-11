@@ -573,7 +573,7 @@ void itemMenuCommandTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     list           = &D_8010EA30;
     if (task->state == ITEM_MENU_COMMAND_INITIAL) {
-        selectedRow = Gp_SelItemRec;
+        selectedRow = gItemMenuSelectedRow;
         itemId      = INVENTORY_ITEM_NONE;
         if (selectedRow != NULL) {
             itemId = selectedRow->itemId;
@@ -668,14 +668,14 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
         object->panel.bounds.unsignedRect.x = -(panelWidth >> 1);
         object->panel.bounds.unsignedRect.y = -(panelHeight >> 1) - 0x10;
         previousHp                          = player->hp;
-        displayedStats                      = &Gp_HpMpWork;
+        displayedStats                      = &gHudDisplayedVitals;
         displayedStats->hp                  = previousHp;
         previousMp                          = player->mp;
         displayedStats->mp                  = previousMp;
         if (healingId < ITEM_TEXT_KEY_ID_FIRST) {
             if (healingId < ITEM_MENU_HEALING_RECOVERY_3 + 1) {
                 if (previousHp < player->hpMax) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, gItemMenuSelectedRow, 1);
                 }
                 if (healingId == ITEM_MENU_HEALING_RECOVERY_3) {
                     player->hp = player->hpMax;
@@ -686,13 +686,13 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
                 }
             } else if (healingId == ITEM_MENU_HEALING_COLA) {
                 if ((previousMp < player->mpMax) || (previousHp < player->hpMax)) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, gItemMenuSelectedRow, 1);
                 }
                 player->mp = player->mp + 0x50;
                 player->hp = player->hp + 0x14;
             } else if ((u32)(healingId - ITEM_MENU_HEALING_MP_BOOST_1) < (u32)ITEM_MENU_HEALING_MP_BOOST_COUNT) {
                 if (previousMp < player->mpMax) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, gItemMenuSelectedRow, 1);
                 }
                 if (healingId == ITEM_MENU_HEALING_MP_BOOST_2) {
                     player->mp = player->mpMax;
@@ -701,7 +701,7 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
                 }
             } else if (healingId == ITEM_MENU_HEALING_RINGERS_SOLUTION) {
                 if ((previousMp < player->mpMax) || (previousHp < player->hpMax)) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, gItemMenuSelectedRow, 1);
                 }
                 player->mp = player->mpMax;
                 player->hp = player->hpMax;
@@ -722,16 +722,16 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
     // Start the dismissal countdown only after both displayed values catch up.
     itemMenuDrawPlayerStats(&object->panel, 0);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Gp_HpMpWork.hp == player->hp) {
-            if (Gp_HpMpWork.mp == player->mp) {
+        if (gHudDisplayedVitals.hp == player->hp) {
+            if (gHudDisplayedVitals.mp == player->mp) {
                 task->killCountdown = task->killCountdown - 1;
             }
         }
         if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (task->killCountdown < 0)) {
-            Gp_HpMpWork.hp      = player->hp;
-            Gp_HpMpWork.mp      = player->mp;
-            object->result      = USER_INTERFACE_RESULT_DISMISS;
-            task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
+            gHudDisplayedVitals.hp = player->hp;
+            gHudDisplayedVitals.mp = player->mp;
+            object->result         = USER_INTERFACE_RESULT_DISMISS;
+            task->killCountdown    = ITEM_MENU_COMPLETED_COUNTDOWN;
         }
     }
 }
@@ -883,7 +883,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
             newWork             = memCalloc(sizeof(_ItemMenuWeaponCreateWork), 0);
             carriedItemsForSwap = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             task->work          = newWork;
-            inventoryRemoveItemRow(carriedItemsForSwap, Gp_SelItemRec, 1);
+            inventoryRemoveItemRow(carriedItemsForSwap, gItemMenuSelectedRow, 1);
             weaponRow->itemId = createdWeaponItemId;
             equipmentClearSelectedRemovableLoads(createdWeaponItemId, EQUIPMENT_CLEAR_LOAD_BOTH);
             createdWeaponLoad->primaryItemId = previousWeaponLoad->primaryItemId;
@@ -1028,7 +1028,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
     itemName = itemGetText(itemId, ITEM_TEXT_NAME, 0);
     if (task->state == ITEM_MENU_INVOKE_STATE_INIT) {
         _itemMenuSizeInvocationPanel(&object->panel, itemName);
-        inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
+        inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, gItemMenuSelectedRow, 1);
 
         // Decode the ordinary item into its element, ability slot and one-based level.
         abilityIndex = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
@@ -1042,10 +1042,10 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
             save->state.attachLevels[elementAbilityIndex + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT] = level;
         }
         equipmentRecalculateMaxMp();
-        player->mp          = player->mpMax;
-        Gp_HpMpWork.mp      = player->mp;
-        task->killCountdown = ITEM_MENU_RESULT_NOTICE_UPDATES;
-        task->state         = task->state + 1;
+        player->mp             = player->mpMax;
+        gHudDisplayedVitals.mp = player->mp;
+        task->killCountdown    = ITEM_MENU_RESULT_NOTICE_UPDATES;
+        task->state            = task->state + 1;
     }
 
     uiDrawPanelLabel(&(object)->panel, Gp_StrInvoke);
@@ -1360,14 +1360,14 @@ void itemPickupPanelTask(Task* task)
         pickupPanelDescs = D_8010F02C;
         uiSpawnObject(pickupPanelDescs, 0, 0, 1, object);
         if (task->spawnArg1.value != 0) {
-            inventorySetCollectedBit(Gp_PubItemLoc);
+            inventorySetCollectedBit(gItemPickupPublishedKind);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             // The separate obtained recipe immediately follows the three-entry table.
-            noticeObject = uiSpawnObject(pickupPanelDescs + ARRAY_SIZE(D_8010F02C), Gp_PubItemLoc | ITEM_PICKUP_PANEL_TIMEOUT_ONLY, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
+            noticeObject = uiSpawnObject(pickupPanelDescs + ARRAY_SIZE(D_8010F02C), gItemPickupPublishedKind | ITEM_PICKUP_PANEL_TIMEOUT_ONLY, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
             if (noticeObject != NULL) {
                 noticeObject->resultValue = USER_INTERFACE_LIST_COMMAND_YES;
             }
-        } else if (inventoryCanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_PubItemLoc) != 0) {
+        } else if (inventoryCanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, gItemPickupPublishedKind) != 0) {
             uiSpawnObject(pickupPanelDescs + 1, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
         } else {
             uiSpawnObject(pickupPanelDescs + 2, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
@@ -1449,7 +1449,7 @@ static void _itemPickupPreviewTask(Task* task)
     s32         itemId;
     s32         previewFlags;
 
-    itemId         = Gp_PubItemLoc;
+    itemId         = gItemPickupPublishedKind;
     object         = task->spawnArg2.pointer;
     cdQueue        = &gCdCmdQueue;
     object->result = USER_INTERFACE_RESULT_NONE;
@@ -1515,7 +1515,7 @@ static void _itemPickupTitleTask(Task* task)
     s32         textBaseY;
     s32         itemId;
 
-    itemId         = Gp_PubItemLoc;
+    itemId         = gItemPickupPublishedKind;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (itemId < ITEM_PICKUP_KEY_ITEM_FIRST) {
@@ -1538,7 +1538,7 @@ static void _itemPickupTitleTask(Task* task)
         ITEM_MENU_DRAW_UNMARKED_ROW_CONTENTS(object, nameRequest, x, y, itemId, textColorRgb, textBaseY, energyLevelIndex);
     }
     if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        _itemMenuDrawQuantity(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, Gp_PubItemQty, ITEM_MENU_PANEL_TEXT_COLOR);
+        _itemMenuDrawQuantity(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemPickupPublishedQuantity, ITEM_MENU_PANEL_TEXT_COLOR);
     }
 }
 
@@ -1608,20 +1608,20 @@ static void _itemPickupAskTask(Task* task)
                 if (task->state == ITEM_PICKUP_ASK_STATE_WAIT_ANSWER) {
                     // Recheck capacity before granting the published item.
                     if (childObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
-                        if (Gp_PubItemLoc < (u32)(INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
+                        if (gItemPickupPublishedKind < (u32)(INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
                             carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                            if (inventoryCanAddItem(carriedItems, Gp_PubItemLoc) != 0) {
-                                inventoryGiveItem(carriedItems, Gp_PubItemLoc, Gp_PubItemQty);
+                            if (inventoryCanAddItem(carriedItems, gItemPickupPublishedKind) != 0) {
+                                inventoryGiveItem(carriedItems, gItemPickupPublishedKind, gItemPickupPublishedQuantity);
                             } else {
                                 childObject->resultValue = USER_INTERFACE_LIST_COMMAND_NO;
                             }
-                        } else if (Gp_PubItemLoc < (u32)ITEM_PICKUP_COLLECTION_ID_LIMIT) {
-                            inventorySetCollectedBit(Gp_PubItemLoc);
+                        } else if (gItemPickupPublishedKind < (u32)ITEM_PICKUP_COLLECTION_ID_LIMIT) {
+                            inventorySetCollectedBit(gItemPickupPublishedKind);
                         }
                     }
                     object->resultValue = childObject->resultValue;
                     if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
-                        uiSpawnObject(&D_8010F080, (s32)Gp_PubItemLoc, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                        uiSpawnObject(&D_8010F080, (s32)gItemPickupPublishedKind, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                         uiStartTreeClosing(childObject, childObject->owner);
                         task->state = task->state + 1;
@@ -1891,7 +1891,7 @@ void itemMenuClearPreviewItems(void)
 
 /// Opens the selected item's information child and consumes the parent's input focus.
 ///
-/// Borrows a live parent and nonempty `Gp_SelItemRec` with a valid item id.
+/// Borrows a live parent and nonempty `gItemMenuSelectedRow` with a valid item id.
 /// Requests confirmation sound before reading that row, then copies the id
 /// into a task-owned information child that opens after one nominal 60-Hz tick.
 /// Preview/caption loading must already have been requested. Parent input is
@@ -1902,14 +1902,14 @@ static inline void _itemMenuOpenSelectedInfoChild(UiObject* parentObject)
            ITEM_MENU_INFO_OPEN_DELAY_TICKS = 1 };
 
     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-    uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_INFO_PANEL_DESCRIPTOR], (s32)Gp_SelItemRec->itemId,
+    uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_INFO_PANEL_DESCRIPTOR], (s32)gItemMenuSelectedRow->itemId,
                   USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_INFO_OPEN_DELAY_TICKS, parentObject);
     parentObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
 }
 
 void itemMenuOpenInfoOnTriangle(UiObject* parentObject)
 {
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (gItemMenuSelectedRow != NULL) && (gItemMenuSelectedRow->itemId != INVENTORY_ITEM_NONE)) {
         _itemMenuOpenSelectedInfoChild(parentObject);
     }
 }
@@ -1921,7 +1921,7 @@ void itemPickupOpenPromptTask(Task* task)
 
     task->killCountdown--;
     if (task->killCountdown <= 0) {
-        switch (Gp_PubItemLoc >> 8) {
+        switch (gItemPickupPublishedKind >> 8) {
             case ITEM_PICKUP_PLACE_BANK_ITEM:
             case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
                 descriptor = &gItemMenuPanelDescriptors[ITEM_PICKUP_PANEL_DESCRIPTOR];
@@ -1929,7 +1929,7 @@ void itemPickupOpenPromptTask(Task* task)
             case ITEM_PICKUP_PLACE_BANK_SAVE_POINT:
                 playerCaptureSaveState();
                 descriptor                                         = &D_8010D348;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = Gp_PubItemLoc;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = gItemPickupPublishedKind;
                 break;
             default:
                 stageEnsureHeapTaskPrimitiveBuffer();
@@ -1967,7 +1967,7 @@ void itemPickupHandleResultTask(Task* task)
             }
             // Fall through to the common prompt-closing path.
         case USER_INTERFACE_RESULT_CONFIRM:
-            switch (Gp_PubItemLoc >> 8) {
+            switch (gItemPickupPublishedKind >> 8) {
                 case ITEM_PICKUP_BANK_ITEM:
                 case ITEM_PICKUP_BANK_KEY_ITEM:
                     if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {

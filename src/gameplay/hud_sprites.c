@@ -15,6 +15,7 @@
 #include "area_entry.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "game_debug.h"
 #include "attachments.h"
 #include "gameplay/display.h"
 #include "ending.h"
@@ -926,7 +927,7 @@ const u8* attachmentGetLearnedLevels(void)
     if (training == 0) {
         return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
-    return Gp_DebugAttachLevels;
+    return gAttachmentTrainingLevels;
 }
 
 s32 attachmentIsTrainingMode(void)
@@ -967,7 +968,7 @@ void hudReset(HudState* hud)
 
     // Start from the live vitals without retaining a previous radar preview.
     player                                = &gPlayerStatus;
-    displayedVitals                       = &Gp_HpMpWork;
+    displayedVitals                       = &gHudDisplayedVitals;
     displayedVitals->hp                   = player->hp;
     displayedVitals->mp                   = player->mp;
     hud->radarRangeIcon                   = HUD_RADAR_RANGE_NONE;
@@ -1018,13 +1019,13 @@ static void _gameDebugStartInputReplay(void)
 
     // The resource prefix is serialized bytes; only the input stream is u16 data.
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
-        Gp_ReplayCursor = (u16*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Force the first record to install its duration before the countdown steps.
-    Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
-    Gp_ReplayFramesLeft                = 1;
+    gGameDebugReplayButtons            = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+    gGameDebugReplayFramesRemaining    = 1;
     gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 
@@ -1194,7 +1195,7 @@ s32 attachmentGetEffectiveLevel(s32 abilityIndex)
         if (training == 0) {
             learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
-            learnedLevels = Gp_DebugAttachLevels;
+            learnedLevels = gAttachmentTrainingLevels;
         }
         level = learnedLevels[abilityIndex];
         if (level == 0) {
@@ -1227,7 +1228,7 @@ static s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
     if (training == 0) {
         levels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        levels = Gp_DebugAttachLevels;
+        levels = gAttachmentTrainingLevels;
     }
     if (steps != 0) {
         liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

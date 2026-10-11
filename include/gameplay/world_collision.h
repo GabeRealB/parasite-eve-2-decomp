@@ -87,7 +87,13 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
 /// state and retains no pointers.
 s32 worldCollisionTestOccluderSegment(const WorldCollisionOccluder* occluder, const SVECTOR* start, const SVECTOR* end, const VECTOR* direction);
 
-extern WorldCollisionTrigger* Gp_PendingObj4C;
+/// First borrowed record in the live action-trigger list, or NULL when empty.
+///
+/// Room and actor arrays link through next/prev; keep their storage live until
+/// unlinked or the area lists reset. Collision latches each trigger's hit byte;
+/// action consumers read its control and parameters. Reset abandons the head
+/// without freeing records. View-boundary triggers use a separate list.
+extern WorldCollisionTrigger* gWorldCollisionActionTriggerListHead;
 
 /// Returns 1 when any enabled sight occluder crosses the segment, else 0.
 ///

@@ -2193,7 +2193,7 @@ static inline u16 _objectFieldGetAttackHitReaction(s32 attackId)
         OBJECT_FIELD_ATTACK_ROW_MASK        = 0x7F
     };
     if ((attackId & OBJECT_FIELD_ATTACK_ATTACHMENT_FLAG) == 0) {
-        return Gp_IdParamLo[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].hitReaction;
+        return gWeaponAttackRows[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].hitReaction;
     }
     return gAttachmentLevelTable.rows[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }

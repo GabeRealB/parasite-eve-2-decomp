@@ -1430,7 +1430,7 @@ static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile)
 
     capReset();
     if (selectSceneFile == SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(SCENE_FILE_ORDINAL);
         capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
     }
@@ -1450,7 +1450,7 @@ static inline void _shelterB1SterilizationRoomSelectSceneCap(void)
            SCENE_TEXTURE_VRAM_Y = 256 };
 
     capReset();
-    Gp_CapFile = NULL;
+    gCapFile = NULL;
     capSelectLoadedFile(SCENE_FILE_ORDINAL);
     capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
 }

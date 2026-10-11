@@ -3443,7 +3443,7 @@ static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions)
     };
 
     if (useNurseryCaptions != 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(ACTOR_450800_NURSERY_CAP_RESOURCE);
         capSetTexturePage(ACTOR_450800_NURSERY_TEXT_VRAM_X, ACTOR_450800_NURSERY_TEXT_VRAM_Y);
         return;

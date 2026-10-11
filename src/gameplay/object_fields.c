@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include "gameplay/attachments.h"
+#include "weapon_data.h"
 #include "attachments.h"
 #include "item_menu.h"
 #include "gameplay/enemy_params.h"
@@ -108,7 +109,7 @@ s32 damageGetPlayerAttackReaction(s32 attackKey)
     u16 reaction;
 
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
-        reaction = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
+        reaction = gWeaponAttackRows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     } else {
         reaction = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
     }
@@ -120,7 +121,7 @@ u16 damageGetPlayerAttackEffectId(s32 attackKey)
     u16 effectId;
 
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
-        effectId = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].effectId;
+        effectId = gWeaponAttackRows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].effectId;
     } else {
         effectId = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.effectId;
     }
@@ -162,7 +163,7 @@ s32 damageTickEnemyDamageOverTime(Enemy* enemy)
         enemy->damageOverTimePulse++;
         _damageReseedEnemyDamageOverTimeDelay(enemy);
         maxHp         = enemy->param->hpMax;
-        damagePercent = D_80113D38[enemy->damageOverTimeGrade];
+        damagePercent = gDamageEnemyPoisonPulseDamagePercent[enemy->damageOverTimeGrade];
         damage        = (maxHp * damagePercent) / 100;
         if (damage == 0) {
             damage = 1;
@@ -184,7 +185,7 @@ s32 damageIsEnemyDamageOverTimeExpired(const Enemy* enemy)
     if (pulseLimit == 0) {
         return 0;
     }
-    pulseLimit = (pulseLimit * D_80113D28[enemy->damageOverTimeGrade]) / 100;
+    pulseLimit = (pulseLimit * gDamageEnemyPoisonPulseLimitPercent[enemy->damageOverTimeGrade]) / 100;
     if (enemy->damageOverTimePulse >= pulseLimit) {
         expired = 1;
     }
@@ -225,7 +226,7 @@ s32 damageTickEnemyBuildup(Enemy* enemy)
     if (baseSteps == 0) {
         return expired;
     }
-    stepPercent = D_80113D30[enemy->buildupGrade];
+    stepPercent = gDamageEnemyBuildupStepLimitPercent[enemy->buildupGrade];
     stepLimit   = (baseSteps * stepPercent) / 100;
     // Accumulate full steps before starting the final hold countdown.
     if (enemy->buildupStep < stepLimit) {
@@ -254,7 +255,7 @@ s32 damageGetPlayerAttackHitCooldown(s32 attackKey)
     u16 cooldownFrames;
 
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
-        cooldownFrames = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitCooldown;
+        cooldownFrames = gWeaponAttackRows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitCooldown;
     } else {
         cooldownFrames = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.hitCooldown;
     }

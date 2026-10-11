@@ -5,6 +5,12 @@
 
 #include "gameplay/world_targets_types.h"
 
+/// Diagnostic printed when a body-position query receives a NULL target.
+///
+/// The NUL-terminated message occupies 34 bytes. Its two trailing stored bytes
+/// preserve the read-only object and are not part of the printed text.
+extern const char gWorldTargetNullBodyPositionDiagnostic[36];
+
 /// First node on the list of enemies the targeting passes track.
 ///
 /// NULL when the list is empty. Lock-on, the reticle, the radar and the area

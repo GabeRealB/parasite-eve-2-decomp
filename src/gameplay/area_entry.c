@@ -171,8 +171,8 @@ static void _sceneBattleResultTask(Task* task)
                 if (resultPanel->result == USER_INTERFACE_RESULT_CONFIRM) {
                     uiStartTreeClosing(resultPanel, resultPanel->owner);
                     if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
-                        Gp_PubItemLoc           = SCENE_BATTLE_RESULT_ITEM_PLACE_KIND;
-                        task->spawnArg2.pointer = uiSpawnObject(&D_8010D6D8, SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                        gItemPickupPublishedKind = SCENE_BATTLE_RESULT_ITEM_PLACE_KIND;
+                        task->spawnArg2.pointer  = uiSpawnObject(&D_8010D6D8, SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                         task->state++;
                     } else {
                         task->killCountdown = SCENE_BATTLE_RESULT_CLOSE_FRAMES;

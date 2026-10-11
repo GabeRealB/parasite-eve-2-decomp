@@ -84,7 +84,7 @@ static inline const u16* _itemMenuGetWeaponStats(s32 weaponItemId)
 /// The pointer belongs to the gameplay image and is not retained by the drawer.
 static inline const u16* _itemMenuGetConsumablePower(s32 consumableItemId)
 {
-    return &Gp_IdParamLo[consumableItemId - ITEM_MENU_CONSUMABLE_POWER_NONE].amount;
+    return &gWeaponAttackRows[consumableItemId - ITEM_MENU_CONSUMABLE_POWER_NONE].amount;
 }
 
 /// Draws `item`'s name, its equipment status marker in `mode`, the variant
@@ -468,8 +468,8 @@ void itemMenuEquipmentDetailTask(Task* task)
     } else {
         uiDrawPanelLabel(&object->panel, (const char*)gItemMenuAttachmentsTitle);
         omitStats = true;
-        if (Gp_SelItemRec != NULL) {
-            itemId = Gp_SelItemRec->itemId;
+        if (gItemMenuSelectedRow != NULL) {
+            itemId = gItemMenuSelectedRow->itemId;
         }
     }
 
@@ -948,8 +948,8 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
     rowCount      = 0;
     // Keep catalogue order, including separate occurrences in the two loads.
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
-        for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); choiceIndex++) {
-            consumableItemId = Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex];
+        for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows[0].acceptedItemIds); choiceIndex++) {
+            consumableItemId = gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex];
             if (consumableItemId != INVENTORY_ITEM_NONE) {
                 availableQuantity = _itemMenuGetLoadableQuantity(carriedItems, weaponLoad, loadSelection, consumableItemId, 0);
                 if (availableQuantity > 0) {
@@ -960,8 +960,8 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
         }
     }
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY) {
-        for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds); choiceIndex++) {
-            consumableItemId = Gp_RelatedQty1.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex];
+        for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(gEquipmentWeaponSecondaryLoadOptions.rows[0].acceptedItemIds); choiceIndex++) {
+            consumableItemId = gEquipmentWeaponSecondaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex];
             if (consumableItemId != INVENTORY_ITEM_NONE) {
                 availableQuantity = _itemMenuGetLoadableQuantity(carriedItems, weaponLoad, loadSelection, consumableItemId, 1);
                 if (availableQuantity > 0) {

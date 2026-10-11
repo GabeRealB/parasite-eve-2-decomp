@@ -1310,7 +1310,7 @@ static void _actor260400SelectConversationCaptions(s32 useConversationFile)
     };
 
     if (useConversationFile != 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(ACTOR_260400_CONVERSATION_CAP_FILE_ORDINAL);
         capSetTexturePage(ACTOR_260400_CONVERSATION_TEXTURE_VRAM_X, ACTOR_260400_CONVERSATION_TEXTURE_VRAM_Y);
         return;

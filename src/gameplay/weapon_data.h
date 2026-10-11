@@ -20,4 +20,14 @@ typedef struct {
 } WeaponAttackRow;
 STATIC_ASSERT_SIZEOF(WeaponAttackRow, 0xA);
 
+/// Base damage, hit reaction, effect and cooldown for category-2 weapon attacks.
+///
+/// With bit 15 clear, the low seven key bits select a row in 0..46. Row 0 is
+/// empty; ammunition ids 0xA0..0xBF select rows 1..32 by itemId - 0x9F.
+/// Built-in weapon strikes also use these rows. Rows 33..46 include enemy
+/// blast/projectile attacks that hurt other enemies. The distance/critical
+/// scale row in key bits 8..13 is independent of this power/reaction index.
+/// The catalogue is borrowed for the gameplay image's lifetime.
+extern WeaponAttackRow gWeaponAttackRows[47];
+
 #endif // GAMEPLAY_PRIVATE_WEAPON_DATA_H

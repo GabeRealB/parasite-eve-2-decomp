@@ -7079,9 +7079,9 @@ register AreaObjectStage* tmp asm("a1");
 register AreaObjectStage* banks asm("t1");
 
 sess = &gMcSaveData.location.loc;
-asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
+asm("lui %0, %%hi(gAreaObjectStages)" : "=r"(hi));
 idx8 = sess->stage;
-asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
+asm("addiu %0, %1, %%lo(gAreaObjectStages)" : "=r"(tmp) : "r"(hi));
 lists = tmp[idx8].rooms;
 ...
 banks = tmp;
@@ -8860,7 +8860,7 @@ and inserts a dead `li v0,-1` in the `beqz` delay slot.
 
 ```c
 /* BAD ~83%: p = &arr[arg0] in the for-init */
-for (i = arg0, p = &Gp_ItemMaps[arg0]; i < 8; i++) {
+for (i = arg0, p = &gEquipmentWeaponSupplies[arg0]; i < 8; i++) {
     if (func(scan, p->field_1)) {
         return i;
     }
@@ -8869,7 +8869,7 @@ for (i = arg0, p = &Gp_ItemMaps[arg0]; i < 8; i++) {
 
 /* GOOD: assign inside the body; GCC still emits p++ */
 for (i = arg0; i < 8; i++) {
-    p = &Gp_ItemMaps[i];
+    p = &gEquipmentWeaponSupplies[i];
     if (func(scan, p->field_1)) {
         return i;
     }
@@ -8903,10 +8903,10 @@ the walking `s0`:
 ```c
 ds = &gDisplayState;          /* explicit: a3 first */
 for (; i < 50; i++) {
-    out  = &Gp_CapFile;       /* hoist 1: lui s1, %hi */
+    out  = &gCapFile;       /* hoist 1: lui s1, %hi */
     slot = &gFsResourceSlots[i];    /* hoist 2: lui v0 / addiu s0 */
     ...
-    Gp_CapFile = slot->data; /* sw %lo(Gp_CapFile)(s1) */
+    gCapFile = slot->data; /* sw %lo(gCapFile)(s1) */
 }
 ```
 
@@ -25050,7 +25050,7 @@ return (word & (3 << shift)) >> shift;
 ### Natural C replacement for `areaGetCurrentObjectState` (2026-09-27)
 
 The one-argument reader above no longer needs either hack. Read the stage into
-a local, take `p = &Gp_Bit2Banks[stage].objectStates[index >> 4]`, and update the
+a local, take `p = &gAreaObjectStages[stage].objectStates[index >> 4]`, and update the
 loaded word before returning it:
 
 ```c
@@ -25116,7 +25116,7 @@ delay:
 temp = 3;
 mask = temp << shift;
 temp = gMcSaveData.field_7;
-p = Gp_Bit2Banks[temp].objectStates;
+p = gAreaObjectStages[temp].objectStates;
 p += arg0 >> 4;
 ```
 
@@ -25775,7 +25775,7 @@ the table base:
 ```c
 UiObjectTaskFunc* useHandlerSlot;
 
-itemId = Gp_SelItemRec->itemId;
+itemId = gItemMenuSelectedRow->itemId;
 useHandlerSlot = &D_8010D3A0[itemId];
 if (*useHandlerSlot != NULL) {
     ...
@@ -28037,7 +28037,7 @@ it:
 register s32 tmp asm("v0");
 AreaObjectStage*  bank;
 
-tmp  = (s32)Gp_Bit2Banks;
+tmp  = (s32)gAreaObjectStages;
 bank = (AreaObjectStage*)tmp + arg0;
 tmp  = 3;
 val  = (u32)bank->rooms; /* keeps the first lw in $a1 */
@@ -28048,7 +28048,7 @@ if (arg0 == tmp) {
 table = (AreaObjectRoom*)val; /* delay-slot move a3, a1 */
 ```
 
-`areaSeedStageObjectStates` is the example. `bank = &Gp_Bit2Banks[index]; tmp = 3`
+`areaSeedStageObjectStates` is the example. `bank = &gAreaObjectStages[index]; tmp = 3`
 stuck at 90–94.5% with only that prologue different. This is the
 inverse of the `mask = 1` before `ptr->arr[i]` rule: here `$v0` must
 hold the *address* first so `3` cannot be reused as the shift.
@@ -28121,7 +28121,7 @@ if (task->state == 1) {
     GameSession*         sess;
 
     sess  = gGameSession;
-    banks = Gp_Bit2Banks;
+    banks = gAreaObjectStages;
     p     = banks[sess->location.loc.stage].objectStates;
     p    += id >> 4;
 }
@@ -29615,7 +29615,7 @@ move   a2,a1
 Assign the load first:
 
 ```c
-val = *Gp_SelItemRec;
+val = *gItemMenuSelectedRow;
 sndEvtRequestScriptStart(3, 0, 0);
 ```
 
@@ -30836,8 +30836,8 @@ Loading a stream pointer, subtracting a base, then using the same pointer
 later:
 
 ```c
-rec    = Gp_ReplayCursor;
-cursorOffsetBytes = (u8*)rec - gFsActorBuffer2Base;
+rec    = gGameDebugReplayCursor;
+cursorOffsetBytes = (const u8*)rec - gFsActorBuffer2Base;
 ```
 
 loads the two globals sequentially (`lw a2, ptr` then `lui`/`lw` of the
@@ -30846,17 +30846,17 @@ expression so the two `%hi`/`lw` pairs interleave and CSE keeps the
 pointer in `$a0`:
 
 ```c
-cursorOffsetBytes = (u8*)Gp_ReplayCursor - gFsActorBuffer2Base;
+cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - gFsActorBuffer2Base;
 if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-    cursorOffsetBytes = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
+    cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
 }
-/* later: Gp_ReplayCursor[0] */
+/* later: gGameDebugReplayCursor->buttons */
 ```
 
 ```
-lui   v0, %hi(Gp_ReplayCursor)
+lui   v0, %hi(gGameDebugReplayCursor)
 lui   v1, %hi(gFsActorBuffer2Base)
-lw    a0, %lo(Gp_ReplayCursor)(v0)
+lw    a0, %lo(gGameDebugReplayCursor)(v0)
 lw    v0, %lo(gFsActorBuffer2Base)(v1)
 subu  a2, a0, v0
 ```
@@ -30882,16 +30882,17 @@ store), the load is `MEM_IN_STRUCT_P` at a varying address, so
 `fixed_scalar_and_varying_struct_p` says it cannot alias the store to the
 scalar global `ptr`, and sched2 hoists the `lhu` above the `addiu`/`sw` as soon
 as its destination register is free. A pin and an empty `asm volatile("")`
-only imitate the missing dependence. The real one appears when the stream is a
-`u16 *` and the test is a bare dereference - `*p` of a pointer variable is the
+only imitate the missing dependence. The real dependence appears when the next record's first button halfword is
+read through a `const u16*` and the test is a bare dereference - `*p` of a pointer variable is the
 one `INDIRECT_REF` form expand leaves without the in-struct flag (expr.c:5533):
 
 ```c
-u16* next = ptr + 2;
+const GameDebugReplayRecord* nextRecord = gGameDebugReplayCursor + 1;
+const u16* nextButtons = &nextRecord->buttons;
 
-cached = 0xFFFF;
-ptr    = next;
-if (*next == 0xFFFF) {
+gGameDebugReplayButtons = 0xFFFF;
+gGameDebugReplayCursor = nextRecord;
+if (*nextButtons == 0xFFFF) {
 ```
 
 Reading the pointer into a local *before* the `cached` store matters too: it
@@ -31339,7 +31340,7 @@ walker = (GpItemRec*)((start2 << 2) + (s32)table2);
 The quantity-aware sibling (`_inventoryCanAddItemQuantity`) is the same two walks plus a
 live `quantity`, so every temp shifts one register (`table` `$t0`→`$t1`,
 `occupiedRows` `$a2`→`$a3`, `requiredRows` `$t1`→`$t2`). After the second table
-select, `if (quantity < 0) quantity = Gp_StackLimits[itemId-INVENTORY_CONSUMABLE_ITEM_FIRST].packQty` parks the
+select, `if (quantity < 0) quantity = gInventoryConsumableStacks[itemId-INVENTORY_CONSUMABLE_ITEM_FIRST].packQty` parks the
 `lui` in the `bgez` delay. The stack check wants
 
 ```
@@ -33054,13 +33055,13 @@ wants that `li` between the second and third `lui`:
 
 ```
 li    s8, 0xffff
-lui   s6, %hi(Gp_PubItemLoc)
-lui   s4, %hi(Gp_PubItemQty)
+lui   s6, %hi(gItemPickupPublishedKind)
+lui   s4, %hi(gItemPickupPublishedQuantity)
 li    s1, 1
 lui   s5, %hi(Gp_PubItemReady)
 ```
 
-Write the stores as a literal `1` (`Gp_PubItemQty = 1; Gp_PubItemReady = 1;`)
+Write the stores as a literal `1` (`gItemPickupPublishedQuantity = 1; Gp_PubItemReady = 1;`)
 and do **not** introduce a `one` temp. GCC CSE's the constant into `$s1`
 and places `li s1, 1` in first-use order among the hoisted `%hi`s.
 
@@ -33432,7 +33433,7 @@ so the address is a loop invariant, not an early named assignment.
 scans = Gp_ScanPtrs;
 do {
     if (i == 0) {
-        item       = Gp_PubItemLoc;
+        item       = gItemPickupPublishedKind;
         src        = scans[item & 0xFF];
         Gp_MoveItemKey = item;
     } else {
@@ -33762,7 +33763,7 @@ skip_count:
 ```
 
 A later straight-line `&gMcSaveData` (no incoming `bne` to fill) still
-needs the split `lui $v0` / `addiu $a0` pair from the Gp_Bit2Banks note,
+needs the split `lui $v0` / `addiu $a0` pair from the gAreaObjectStages note,
 so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
 the pointer already in `$a0` for `uiStartTreeClosing`. `_sceneBattleResultTask` is
@@ -34420,12 +34421,12 @@ if (count != 0) {
 `itemMenuApplyMpBoostPanel` `jal`s `equipmentRecalculateMaxMp` then `status->mp = status->mpMax`,
 so `status`/`save` live in `$s0`/`$s1`. The HP sibling must write the
 `_equipmentRecalculateMaxHp` body inline (no `jal`): `status` stays in `$a1`, `save` in
-`$t0`. Cache original `hp` in an `s32` so the `Gp_HpMpWork` store is
+`$t0`. Cache original `hp` in an `s32` so the `gHudDisplayedVitals` store is
 `lh a3` / `sw a3` and the clamp is `slt v0, v0, a3`:
 
 ```c
 previousHp      = status->hp;
-Gp_HpMpWork.hp = previousHp;
+gHudDisplayedVitals.hp = previousHp;
 ...
 if (status->hpMax < previousHp) {
     status->hp = status->hpMax;
@@ -34472,7 +34473,7 @@ asm volatile("" ::"r"(table));
 inventoryAddItem(dest, item, 1);
 ```
 
-A 4x3 byte-clear of `Gp_DebugAttachLevels` then wants `addu v0, v0, a2` (index first).
+A 4x3 byte-clear of `gAttachmentTrainingLevels` then wants `addu v0, v0, a2` (index first).
 `levels[col + i] = 0` is `addu v0, a2, v0`. Write
 `*(u8*)((col + i) + (s32)levels) = 0` inside `for (; item < 4; item++, i += 3)`.
 `inventoryInitializeShootingGalleryLoadout` is the example.
@@ -34636,7 +34637,7 @@ Keep a `u16` temp, barrier it, then widen:
 
 ```c
 if ((id & 0x8000) == 0) {
-    raw = Gp_IdParamLo[id & 0x7F].hitReaction;
+    raw = gWeaponAttackRows[id & 0x7F].hitReaction;
     asm volatile("" : "+r"(raw));
     kind = raw;
 } else {
@@ -35040,7 +35041,7 @@ long live range loses `$v1` to `mask` (`id` in `$a1`, `sllv` for
 coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
 `li v1, 3`, but the extra live range of `idx` overlaps `sess` and the
 `UiObject*` from `spawnArg2`, swapping `$t0`/`$a3` (obj vs off) and
-`$v0`/`$v1` (gGameSession vs `Gp_Bit2Banks`). Nested
+`$v0`/`$v1` (gGameSession vs `gAreaObjectStages`). Nested
 `register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
 the earlier `uiSpawnObject` `xori a1, 1`. `itemPickupActionPromptTask` is the
 example; not fully matched.
@@ -39518,13 +39519,13 @@ block, not after it.
 
 ## Ternary assignment leaves the `move` copies and lets combine drop a later `andi`
 
-`damageRollCriticalHit` (gameplay/3A34) picks a distance class from `D_80113864` into a
+`damageRollCriticalHit` (gameplay/3A34) picks a distance class from `_gDamageDistanceBandClasses` into a
 `u16` variable, then uses it as an array index in two later branches. The
 target is:
 
 ```
 beqz  v0,.L_else
-lui   v1,%hi(D_80113864)
+lui   v1,%hi(_gDamageDistanceBandClasses)
 ...
 lhu   v0,0(v0)
 j     .L_join
@@ -39533,12 +39534,12 @@ li    v0,5
 move  a2,v0         # <- explicit copy
 ```
 
-Written as `if (sel < 0x10) sel = D_80113864[sel]; else sel = 5;` GCC 2.8.1
+Written as `if (sel < 0x10) sel = _gDamageDistanceBandClasses[sel]; else sel = 5;` GCC 2.8.1
 writes the destination register directly (`lhu a2,0(v0)` / `li a2,5`) and there
 is no copy to remove — 96.8%. Written as the conditional expression
 
 ```c
-sel = sel < 0x10 ? D_80113864[sel] : 5;
+sel = sel < 0x10 ? _gDamageDistanceBandClasses[sel] : 5;
 ```
 
 `expand_expr` evaluates each arm into its own temp and then copies it to the
@@ -39561,12 +39562,12 @@ Same function, last diff. With a named local:
 ```c
 lo = arg1 & 0x7F;
 ...
-if (Gp_IdParamLo[lo].hitReaction == 6)
+if (gWeaponAttackRows[lo].hitReaction == 6)
 ```
 
 GCC emits the `andi` first and the table's `lui/addiu %hi/%lo` after it. The
 target loads the base first. Dropping the local and writing
-`Gp_IdParamLo[value & 0x7F].hitReaction` moves the mask to the point of use, so the
+`gWeaponAttackRows[value & 0x7F].hitReaction` moves the mask to the point of use, so the
 base address is materialised before the index — 99.1% → 100%. This is the
 non-call sibling of the "ternary second arg schedules `arr[idx]`
 base-before-index" note above: a named index local pins the index computation
@@ -39714,7 +39715,7 @@ whole timeout. Always pass the thread count as a separate argument.
 ## When a hard pin fixes allocation but flips `addu` operands, pin the other half of the pair
 
 `itemMenuDrawPlayerStats` had a clean two-register permutation: the target put the
-`xOff + 6` local in `$s0` and the CSE'd `%hi(Gp_HpMpWork)` (later reused for a
+`xOff + 6` local in `$s0` and the CSE'd `%hi(gHudDisplayedVitals)` (later reused for a
 `y + 0x24` local) in `$s2`; GCC swapped them. No source reordering moved it —
 the two quantities' `n_refs / live_length` priorities are too close.
 
@@ -42203,7 +42204,7 @@ real symbol and violates the struct rule in `CLAUDE.md` at the same time:
 
 | Removed | Real name |
 |---|---|
-| `D_80114BEC` | `Gp_HpMpWork.field_4` |
+| `D_80114BEC` | `gHudDisplayedVitals.field_4` |
 | `D_801153F1`–`F4` | `gSceneCombatState.signals.bytes.endDelayFrames`–`gSceneCombatState.actorControl` |
 | `D_8011541B` | `gSceneCombatState.difficulty` |
 
@@ -50183,7 +50184,7 @@ of the function at once.
 
 ## A `4 x 3` clear loop: keep the row offset a plain biv and pin its per-row copy
 
-`mistShootingGalleryPrepareTrainingLoadout` zeroes `Gp_DebugAttachLevels` with a
+`mistShootingGalleryPrepareTrainingLoadout` zeroes `gAttachmentTrainingLevels` with a
 nested loop whose target shape has three loop registers — a count-up row
 counter, an offset that steps by 3, and a *copy* of that offset made once per
 row:
@@ -50294,7 +50295,7 @@ the head of the block and delay-slot filling takes it:
 ```c
 carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
 equippedWeapon   = &gPlayerStatus.weapon;      /* only the lui moves up */
-loadOptions      = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+loadOptions      = &gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 ammoItemId       = loadOptions->acceptedItemIds[0];
 *equippedWeapon  = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
 ```
@@ -50314,7 +50315,7 @@ the `sb` up with the `lui` and costs more than it gains.
 The same function needed the second half of the trick: `arr[i].field` forms the
 symbol address before the index (`lui`, `addiu`, `sll`, `addu`), while the
 target wants `sll` first. Splitting the row out as its own statement -
-`loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST]; ammoItemId = loadOptions->acceptedItemIds[0];` - reverses those two.
+`loadOptions = &gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST]; ammoItemId = loadOptions->acceptedItemIds[0];` - reverses those two.
 Together they took `_mistShootingGalleryWeaponRow` from 97.9% to 100%.
 
 ## A dead `if` still splits the block for `sched1`
@@ -50630,7 +50631,7 @@ symptom here was `reorder`, not `regs`.
 
 ## A global read at two widths belongs in a union, not a second `extern`
 
-`Gp_StatRows` is declared once in `include/gameplay/268.h`, but the two TUs that
+`gEquipmentModeBaseStats` is declared once in `include/gameplay/268.h`, but the two TUs that
 read its head field disagree about the width: gameplay's `equipmentRecalculateMaxHp` does
 `lhu v0, 0(v0)` (the value enters a `u16` accumulator before the `s16` maximum), while the
 Mist shooting gallery's STATUS panel does `lw s2, 0(v0)` and compares it with
@@ -51012,12 +51013,12 @@ leftover survives every statement permutation, look for a local assigned twice
 and split it; the diff is in the tie-break, not in the source order.
 
 The same rule sank `itemPickupActionPromptTask`, a give-up seed stuck at 98.2% with the
-Bit2-flag read `p = Gp_Bit2Banks[i].objectStates; p += id >> 4;` scheduled before
+Bit2-flag read `p = gAreaObjectStages[i].objectStates; p += id >> 4;` scheduled before
 the `id` shifts instead of after. `sched.c`'s `birthing_insn_p` grants the
 boost only when `REG_N_SETS (pseudo) == 1`, so the `lw` *and* the `addu` both
 kept priority 3-4 and lost to every boosted insn around them. Writing it as one
-expression, `p = Gp_Bit2Banks[i].objectStates + (id >> 4);`, gives each value its
-own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
+expression, `p = gAreaObjectStages[i].objectStates + (id >> 4);`, gives each value its
+own single-set pseudo and matched; dropping the `banks = gAreaObjectStages` local
 (which pulled the table's `lui` ahead of the `gGameSession` one) was the other
 half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
 priority next to a column of `7f000001`.
@@ -65664,7 +65665,7 @@ walking `previewItemIds` itself reached 100% without pins or empty asm.
 The `.jump2` dump identified the extra pointer copy; `.lreg` and `.greg`
 showed the separate initialization and loop pseudos. Nonzero branch penalties
 here came from changed instruction offsets, with the same branch topology.
-Cache `Gp_PubItemLoc` in an `s32` before the state check: directly comparing
+Cache `gItemPickupPublishedKind` in an `s32` before the state check: directly comparing
 the declared `u16` global against `-1U` removes the target's comparison.
 
 ## sndScriptKeyOffType1AndArea: split branch-local type checks to constrain delay slots
@@ -65933,7 +65934,7 @@ keeps the record pointer in `$v0` through a `nop`, loads the byte into `$v1`,
 then materialises the descriptor address in `$v0`.
 
 ```c
-selectedRec = Gp_SelItemRec;
+selectedRec = gItemMenuSelectedRow;
 selected = *selectedRec;
 USE_REG(selectedRec);
 if (!(gItemDescriptors[selected].flags & ITEM_FLAG_NO_ATTACHMENT)) { /* ... */ }
@@ -65978,7 +65979,7 @@ slot.
 
 The final table is four consecutive `UiList`s at `0x80114DF8`. Neighbour
 expressions `&lists[index] +/- 1` or `+/- 2` fold into relocated bases that splat
-names as nearby symbols, including `Gp_SelItemRec` at `lists - 1`. That does not
+names as nearby symbols, including `gItemMenuSelectedRow` at `lists - 1`. That does not
 make the selected-item pointer a list. Using the real array changes only eight
 symbolic operands in the scratch diff (`99.856%, regs=8`), while the rebuilt
 and linked gameplay overlay checksums exactly. Inspect operands before treating
@@ -68369,10 +68370,10 @@ does *not* work. When a block materialises two independent global addresses, GCC
 one of them `$v0`:
 
 ```
-lui   v0, %hi(Gp_RelatedQty0)
-addiu t6, v0, %lo(Gp_RelatedQty0)
-lui   v0, %hi(Gp_RelatedQty1)     <- second high, still $v0
-addiu t5, v0, %lo(Gp_RelatedQty1)
+lui   v0, %hi(gEquipmentWeaponPrimaryLoadOptions)
+addiu t6, v0, %lo(gEquipmentWeaponPrimaryLoadOptions)
+lui   v0, %hi(gEquipmentWeaponSecondaryLoadOptions)     <- second high, still $v0
+addiu t5, v0, %lo(gEquipmentWeaponSecondaryLoadOptions)
 ```
 
 Three facts make that unconditional, and they are worth knowing before spending
@@ -85550,7 +85551,7 @@ void _actor161500SelectCaptionFile(s32 captionFile)
     s8 variantCaptionFile;
 
     if (captionFile != 0) {
-        Gp_CapFile = 0;
+        gCapFile = 0;
         if (captionFile <= 0) {
             variantCaptionFile = 1;
             if (gGameSession->location.loc.variant == 1) {
@@ -90105,7 +90106,7 @@ element's *address* folds it. `gEquipmentArmorStats[armor + 0x5F].features` keep
 `addiu 0x5f` before the `sll 3`, whereas `attr = &gEquipmentArmorStats[armor + 0x5F];
 attr->features` (`&` of an ARRAY_REF is rebuilt as `pointer + int`) emits
 `sll 3; addu` against `%lo(gEquipmentArmorStats+0x2f8)` (equipmentHasEffect). Where splat
-names that folded address after an unrelated symbol (`Gp_RelatedQty0+0x78`),
+names that folded address after an unrelated symbol (`gEquipmentWeaponPrimaryLoadOptions+0x78`),
 a matched function had been hand-building `armor * 8 + &sym` with pins; the
 address-of form removed them.
 
@@ -142477,12 +142478,12 @@ plus integer adds) existed only to hide the constant.
 
 When the target has `addu v0,tbl,shift ; lbu 0x200(v0)` with `tbl` being the
 same register another address uses as `shift+tbl`, check whether splat's
-symbol is a *virtual base*: here `Gp_QtyById0` is `Gp_RelatedQty0 - 0x200`,
+symbol is a *virtual base*: here `Gp_QtyById0` is `gEquipmentWeaponPrimaryLoadOptions - 0x200`,
 pointing into unrelated data, and the real object is the 32-entry array.
 Indexing that array with a separate offset variable, the way
-`equipmentGetWeaponLoadCapacity` does (`weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST; Gp_RelatedQty0.rows[weaponIndex].capacity`),
+`equipmentGetWeaponLoadCapacity` does (`weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST; gEquipmentWeaponPrimaryLoadOptions.rows[weaponIndex].capacity`),
 makes CSE rebuild it from the base register as `(tbl + 0x200)` via its
-related-value lookup, with the order the target has; `&Gp_RelatedQty0.rows[item -
+related-value lookup, with the order the target has; `&gEquipmentWeaponPrimaryLoadOptions.rows[item -
 0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
 both places instead lets `fold` merge the two addresses into one.
 
@@ -142823,14 +142824,14 @@ with its own locals gives each copy separate pseudos and cannot reproduce it.
 the shift to `$v0` before an `if` choosing a table pointer, and hand-built the `+0x200`.
 
 **Cause.** The original wrote each arm in full against the *slice* symbol that starts
-0x80 entries into the table: `row = &Gp_RelatedQty0.rows[id - 0x80]; max = _equipmentGetWeaponLoadCapacity(id, 0);`
+0x80 entries into the table: `row = &gEquipmentWeaponPrimaryLoadOptions.rows[id - 0x80]; max = _equipmentGetWeaponLoadCapacity(id, 0);`
 (and the `1` arm likewise). `sym[id - k]` folds to `(sym - k*4) + id*4`, so each arm
 loads `sym - 0x200` into one register and the helper's `sym[idx]` becomes `0x200` off it.
 jump2 cross-jumps the two identical helper tails into one, and reorg puts the `sll` that
 both arms start with into the branch's delay slot. Selecting a table pointer first and
 indexing it afterwards cannot reproduce this: local-alloc always gives the arm's `%hi`
 temp `$v0`, so the shift loses `$v0`. Only the relocation spelling differs
-(`%lo(Gp_RelatedQty0-0x200)` vs `%lo(Gp_QtyById0)`), and the linked bytes are the same.
+(`%lo(gEquipmentWeaponPrimaryLoadOptions-0x200)` vs `%lo(Gp_QtyById0)`), and the linked bytes are the same.
 ## A statement written in both arms adds a reference that cross-jumping later removes (itemMenuDrawEquippedWeaponRow, 2026-09-26)
 
 `REG_N_REFS` is fixed by flow, long before jump2 merges identical tails. So
@@ -143129,7 +143130,7 @@ scan->rowCount; i++, row++) table[row].x = 0;`. `row` is a biv used only in a
 `DEST_REG` giv, so it is eliminated, and strength reduction emits the base as
 `(mult row 4) + table` in the preheader, in the target's order.
 
-The same function zeroes the `4 x 3` `Gp_DebugAttachLevels` block with a plain
+The same function zeroes the `4 x 3` `gAttachmentTrainingLevels` block with a plain
 `for (i..4) for (j..3) levels[j + i * 3] = 0;`, matching without the pinned
 per-row copy the "A `4 x 3` clear loop" entry needed in its overlay; that
 entry's two traps are not universal.
@@ -144673,7 +144674,7 @@ a function. The target loads the bits pointer into `$v0` and computes
 to `$v0` and the bank base pinned to `$t1`.
 
 **Fix.** A `static inline` helper whose pointer is one address expression,
-`p = &Gp_Bit2Banks[stage].objectStates[index >> 4];`, followed by
+`p = &gAreaObjectStages[stage].objectStates[index >> 4];`, followed by
 `word = *p; word &= 3 << shift; word >>= shift;` as separate statements.
 Splitting the pointer (`p = …objectStates; p += index >> 4;`) scheduled the shift
 after the load (94%), and folding the mask and shift into one `return`
@@ -146410,7 +146411,7 @@ allocation of every pseudo in the block.
 A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
 
 ## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (itemMenuDrawArmorAttachmentRow, 2026-09-27)
-The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(gItemDescriptors)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `gItemDescriptors[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &gItemDescriptors[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&gItemDescriptors[id]` does too.
+The target read `lw v0,gItemMenuSelectedRow; nop; lbu v1,0(v0); lui v0,%hi(gItemDescriptors)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `gItemDescriptors[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &gItemDescriptors[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&gItemDescriptors[id]` does too.
 
 ## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (_inventoryFindNthReorderableRow, 2026-09-27)
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.
@@ -151835,9 +151836,9 @@ merged. Written as a cursor,
 
 ```c
 lineY = contentTop + ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
-_itemMenuDrawPrefixedItemName(object, textX, lineY, Gp_StrMore, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
+_itemMenuDrawPrefixedItemName(object, textX, lineY, _gItemMenuPouchMoreText, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
 lineY += ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
-textDrawUiLine(object, textX, lineY, Gp_StrAttachAvail, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+textDrawUiLine(object, textX, lineY, _gItemMenuPouchAttachmentsAvailableText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 ```
 
 cse folds the second assignment to `lineY = contentTop + 30` (`fold_rtx` associates
@@ -152257,7 +152258,7 @@ length is a property of the scheduled layout, not of the source position:
 - the second set one block earlier (before the `/ 64` branch): 89 insns,
   0.1573, every register right - and the `addiu` stays in that block, in the
   `bgez` delay slot. The first set before the first bar call: `y2` then
-  overlaps `%hi(Gp_HpMpWork)`, which loses `$s2`.
+  overlaps `%hi(gHudDisplayedVitals)`, which loses `$s2`.
 
 So with the target's layout `y2` is 7 / 71 and `x` has to reach 12 references
 within 182 insns. `x += 0x6C` for the BP column gives the 12 but leaves an
@@ -152976,7 +152977,7 @@ lifts it past another pseudo in global-alloc's order and swaps `$s6`/`$s7`),
 the same around `textColor = K` (identical to the code with no branch: two
 equal register sets do not leave a boundary).
 `recBase` / `recIndex` / `rec` in the same block are still needed as written:
-`&Gp_IdParamLo[item - 0x9F]` and the rvalue forms scale the index first or fold
+`&gWeaponAttackRows[item - 0x9F]` and the rvalue forms scale the index first or fold
 the bias into the symbol.
 
 **Use.** When a barrier only keeps a constant, a string address or an argument

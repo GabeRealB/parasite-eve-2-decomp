@@ -3084,7 +3084,7 @@ static void _actor215100SetConversationCap(s32 enabled)
     };
 
     if (enabled != 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(ACTOR_215100_CONVERSATION_CAP_RESOURCE_ORDINAL);
         capSetTexturePage(ACTOR_215100_CONVERSATION_CAP_VRAM_X, ACTOR_215100_CONVERSATION_CAP_VRAM_Y);
         return;

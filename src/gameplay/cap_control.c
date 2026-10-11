@@ -115,8 +115,8 @@ void capUpdateControlTask(Task* unusedTask)
         func_80724120();
         func_80724324();
     }
-    if (Gp_CapFile != NULL) {
-        capRelocateFile(Gp_CapFile);
+    if (gCapFile != NULL) {
+        capRelocateFile(gCapFile);
     }
     _capTickSceneSync();
 }

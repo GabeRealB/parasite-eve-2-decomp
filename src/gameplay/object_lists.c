@@ -165,7 +165,7 @@ enum {
 };
 
 /* Define BSS before API headers to preserve first-declaration order. */
-WorldCollisionTrigger* Gp_PendingObj4C;
+WorldCollisionTrigger* gWorldCollisionActionTriggerListHead;
 
 WorldCollisionBody* gWorldCollisionPlayerBodyListHead;
 
@@ -235,7 +235,7 @@ static WorldCollisionBody** _gWorldCollisionBodyListHeads[] = {
     &gWorldCollisionBlastListHead,
 };
 WorldCollisionTrigger** Gp_Obj4ALists[2] = {
-    &Gp_PendingObj4C,
+    &gWorldCollisionActionTriggerListHead,
     &gWorldCollisionViewBoundaryListHead,
 };
 WorldCollisionOccluder** Gp_Obj3ALists[1] = {
@@ -244,20 +244,20 @@ WorldCollisionOccluder** Gp_Obj3ALists[1] = {
 
 void worldCollisionResetListsAndGrid(void)
 {
-    gWorldCollisionPlayerBodyListHead   = NULL;
-    gWorldCollisionPlayerAttackListHead = NULL;
-    gWorldCollisionEnemyBodyListHead    = NULL;
-    gWorldCollisionEnemyAttackListHead  = NULL;
-    gWorldCollisionPropListHead         = NULL;
-    _gWorldCollisionBodyList5Head       = NULL;
-    gWorldCollisionBodyList6Head        = NULL;
-    gWorldCollisionGridOnlyListHead     = NULL;
-    gWorldCollisionBlastListHead        = NULL;
-    gWorldCollisionActiveGrid           = NULL;
-    Gp_PendingObj4C                     = NULL;
-    gWorldCollisionViewBoundaryListHead = NULL;
-    gWorldCollisionOccluderListHead     = NULL;
-    Gp_PendingObj4CFlag                 = 0;
+    gWorldCollisionPlayerBodyListHead    = NULL;
+    gWorldCollisionPlayerAttackListHead  = NULL;
+    gWorldCollisionEnemyBodyListHead     = NULL;
+    gWorldCollisionEnemyAttackListHead   = NULL;
+    gWorldCollisionPropListHead          = NULL;
+    _gWorldCollisionBodyList5Head        = NULL;
+    gWorldCollisionBodyList6Head         = NULL;
+    gWorldCollisionGridOnlyListHead      = NULL;
+    gWorldCollisionBlastListHead         = NULL;
+    gWorldCollisionActiveGrid            = NULL;
+    gWorldCollisionActionTriggerListHead = NULL;
+    gWorldCollisionViewBoundaryListHead  = NULL;
+    gWorldCollisionOccluderListHead      = NULL;
+    Gp_PendingObj4CFlag                  = 0;
 }
 
 s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd)
@@ -374,7 +374,7 @@ void worldCollisionScanActionTriggers(const WorldCollisionBody* body, s32 flagsM
     WorldCollisionTrigger* trigger;
 
     // This cursor is shared across the body walk, so only the first match tests it.
-    trigger = Gp_PendingObj4C;
+    trigger = gWorldCollisionActionTriggerListHead;
     for (; body != NULL; body = body->next) {
         if ((body->flags & flagsMask) == (u16)flagsMatch) {
             for (; trigger != NULL; trigger = trigger->next) {
@@ -492,7 +492,7 @@ void worldCollisionClearActionHits(void)
 {
     WorldCollisionTrigger* trigger;
 
-    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
         if (trigger->hit != 0) {
             trigger->hit = 0;
         }
@@ -1188,7 +1188,7 @@ s32 worldCollisionReadActionHit(u16* controlOut, u8* parameter0Out, u8* paramete
 {
     WorldCollisionTrigger* trigger;
 
-    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
         if (trigger->hit != 0) {
             Gp_PendingObj4CFlag = 1;
             *controlOut         = trigger->control;

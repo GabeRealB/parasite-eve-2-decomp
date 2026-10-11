@@ -145,7 +145,7 @@ WorldCollisionFaceEdge gWorldCollisionFaceEdges[5] = {
 /// old stock, trying only armor slots 1..3 before exchanging attachment positions.
 /// Medicines change player state now and queue the menu-exit notification;
 /// successful medicine uses clear the whole row, independently of quantity.
-/// Flare, Pepper Spray and Combat Light retain the row in `Gp_SelItemRec` for
+/// Flare, Pepper Spray and Combat Light retain the row in `gItemMenuSelectedRow` for
 /// their queued attachment action, so its storage must survive that action.
 static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
 {
@@ -375,16 +375,16 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                     case INVENTORY_ITEM_PEPPER_SPRAY:
                         attachmentSoundLoadStub((u8)((itemId - INVENTORY_ITEM_FLARE) * ATTACHMENT_AREA_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
                         attachmentQueueIndex(itemId - (INVENTORY_ITEM_FLARE - ATTACHMENT_INDEX_FLARE));
-                        Gp_SelItemRec = attachedRow;
-                        consumeRow    = 0;
-                        applied       = 1;
+                        gItemMenuSelectedRow = attachedRow;
+                        consumeRow           = 0;
+                        applied              = 1;
                         break;
                     case INVENTORY_ITEM_COMBAT_LIGHT:
                         attachmentSoundLoadStub(ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX);
                         attachmentQueueIndex(ATTACHMENT_INDEX_COMBAT_LIGHT);
-                        Gp_SelItemRec = attachedRow;
-                        consumeRow    = 0;
-                        applied       = 1;
+                        gItemMenuSelectedRow = attachedRow;
+                        consumeRow           = 0;
+                        applied              = 1;
                         break;
                     case INVENTORY_ITEM_RINGERS_SOLUTION:
                         if (player->mp < player->mpMax || player->hp < player->hpMax) {
@@ -798,7 +798,7 @@ const u8 gWorldCoordLightProbeMarkerText[4] = {
     0x00,
     0x42,
 };
-const char Gp_StrGetLockPosNull[] = {
+const char gWorldTargetNullBodyPositionDiagnostic[36] = {
     '#',
     '#',
     '#',

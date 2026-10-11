@@ -368,19 +368,19 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 gSpriteAreaTables = 0x8010CB68; // absolute:True
 gWorldCollisionSurfacePropertiesTables = 0x8010CBB8; // absolute:True
 Gp_AreaTables = 0x8010CBCC; // absolute:True
-Gp_StatRows = 0x8010D328; // absolute:True
+gEquipmentModeBaseStats = 0x8010D328; // absolute:True
 Gp_ScanPtrs = 0x8010D550; // absolute:True size:0x30
 gItemDescriptors = 0x8010D838; // absolute:True
 Gp_QtyById0 = 0x8010E038; // absolute:True
 Gp_StrEmpty = 0x8010F8D0; // absolute:True
-Gp_DebugAttachLevels = 0x80114BF0; // absolute:True
+gAttachmentTrainingLevels = 0x80114BF0; // absolute:True
 gAttachmentState = 0x80114C08; // absolute:True
 gWorldCoordTransientPointLights = 0x80114F30; // absolute:True
 gSceneCombatState = 0x801153F0; // absolute:True
 gWorldCollisionSurfacePushbackSuppression = 0x80115428; // absolute:True
 gWorldCollisionActiveGrid = 0x80115448; // absolute:True
-Gp_PendingObj4C = 0x8011556C; // absolute:True
-Gp_CapFile = 0x8011568C; // absolute:True
+gWorldCollisionActionTriggerListHead = 0x8011556C; // absolute:True
+gCapFile = 0x8011568C; // absolute:True
 gCapCommandEntries = 0x801156A0; // absolute:True
 D_801156F9 = 0x801156F9; // absolute:True
 Gp_MenuLockDelay = 0x80115716; // absolute:True
@@ -617,8 +617,8 @@ mapAkropolisWasDryfieldMapSelected = 0x8017A038; // type:func absolute:True owne
 func_807245E4 = 0x807245E4; // type:func absolute:True
 func_80724608 = 0x80724608; // type:func absolute:True
 
-Gp_StackLimits = 0x8010E3B8; // absolute:True
-Gp_RelatedQty0 = 0x8010E238; // absolute:True
+gInventoryConsumableStacks = 0x8010E3B8; // absolute:True
+gEquipmentWeaponPrimaryLoadOptions = 0x8010E238; // absolute:True
 
 D_8010D6F4 = 0x8010D6F4; // absolute:True size:0x134
 

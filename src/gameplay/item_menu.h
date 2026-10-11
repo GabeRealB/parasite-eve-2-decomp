@@ -6,7 +6,6 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/map.h"
 #include "menu.h"
-#include "weapon_data.h"
 
 #include "main/mc_types.h"
 #include "main/task_types.h"
@@ -257,7 +256,7 @@ extern const char Gp_StrSpecs2[16];
 ///
 /// object and task must remain live; spawnArg1 selects SMG/Rifle Clip Holder,
 /// Snail Magazine, Hammer, Pyke, Javelin, M203 or M9. State 0 consumes the
-/// selected carried row in `Gp_SelItemRec`, changes the carried weapon variant,
+/// selected carried row in `gItemMenuSelectedRow`, changes the carried weapon variant,
 /// transfers its loads and gives back displaced add-ons. The task owns the
 /// allocated result work. Refusal delegates to `itemMenuNoticeTask` without
 /// consuming the item. Active result updates count down from 188; timeout or
@@ -311,7 +310,7 @@ void itemMenuCommandTask(Task* task);
 ///
 /// object and task must remain live through the panel updates. healingId is
 /// Recovery1/2/3 (1..3), Cola (5), MP Boost1/2 (6..7), Ringer's Solution (61),
-/// or a validated packed Healing P.E. id. Item use borrows `Gp_SelItemRec`
+/// or a validated packed Healing P.E. id. Item use borrows `gItemMenuSelectedRow`
 /// and consumes one only when the affected HP/MP is below maximum. Spell use
 /// requires the caller to check MP affordability. State 0 applies the effect
 /// once; later updates wait for the displayed HP/MP to catch up, then count
@@ -322,7 +321,7 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId);
 /// Consumes a selected item, raises one ordinary P.E. level and refills MP.
 ///
 /// itemId must be an ordinary P.E. item id 15..50; it identifies one of twelve
-/// abilities and a level 1..3. State 0 consumes `Gp_SelItemRec` once, raises the
+/// abilities and a level 1..3. State 0 consumes `gItemMenuSelectedRow` once, raises the
 /// saved level only if lower, recalculates maximum MP and fills live/displayed
 /// MP. object and task must stay live. The 188-update countdown runs even while
 /// inactive; active Menu returns CANCEL, and timeout or Confirm/Cancel returns
@@ -424,10 +423,6 @@ void itemPickupRestoreFrameTimingTask(Task* task);
 /// stage task primitive buffer and requests the stage mode task's exit, in that
 /// order. The pickup must have finished using that buffer before this state.
 void itemPickupExitTask(Task* task);
-
-/// 10-byte records selected by `damageGetPlayerAttackHitCooldown` when the id's 0x8000 bit is
-/// clear. Indexed by `id & 0x7F`.
-extern WeaponAttackRow Gp_IdParamLo[];
 
 /// Sends the selected collected item to the room and displays its use result.
 ///
@@ -656,7 +651,7 @@ void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object);
 
 /// Applies the selected inventory recovery item through its task-owned healing panel.
 ///
-/// Borrows the live `Gp_SelItemRec`; its item id must satisfy
+/// Borrows the live `gItemMenuSelectedRow`; its item id must satisfy
 /// `itemMenuApplyHealingPanel`'s inventory-item contract. The dispatch supplies
 /// object == task->spawnArg2.pointer and task == object->owner.
 void itemMenuApplySelectedHealingItem(UiObject* object, Task* task);
@@ -1185,7 +1180,7 @@ extern s32 gItemMenuRoomRestorePending;
 /// Carried-item destination protocol (0 browse commands, 1 choose a destination).
 ///
 /// Inventory initialization resets it; an accepted Move/Switch command sets 1.
-/// `Gp_SelItemRec` must then retain the live saved source row while inventory,
+/// `gItemMenuSelectedRow` must then retain the live saved source row while inventory,
 /// equipment or attachment rows select its destination. Completion or Cancel
 /// restores 0. The global owns no row; leaving the menu adds no separate reset.
 extern s32 gItemMenuDestinationSelectionMode;

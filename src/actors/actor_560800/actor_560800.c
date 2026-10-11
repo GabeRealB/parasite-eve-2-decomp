@@ -6192,7 +6192,7 @@ static void _actor560800CutsceneTask(Task* task)
                 return;
             }
             _actor560800InitializeCutscene(task);
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(0);
             capSetTexturePage(ACTOR_560800_CAP_TEXTURE_VRAM_X, ACTOR_560800_CAP_TEXTURE_VRAM_Y);
             task->state++;
@@ -6745,7 +6745,7 @@ static void _actor560800AwaitScenePlaybackTask(Task* task)
 /// resource remains borrowed for subsequent dialogue playback.
 static void _actor560800SelectSecondCapFile(void)
 {
-    Gp_CapFile = NULL;
+    gCapFile = NULL;
     capSelectLoadedFile(1);
     capSetTexturePage(ACTOR_560800_CAP_TEXTURE_VRAM_X, ACTOR_560800_CAP_TEXTURE_VRAM_Y);
 }
@@ -6758,7 +6758,7 @@ static void _actor560800SelectSecondCapFile(void)
 /// resource remains borrowed for subsequent dialogue playback.
 static void _actor560800SelectThirdCapFile(void)
 {
-    Gp_CapFile = NULL;
+    gCapFile = NULL;
     capSelectLoadedFile(2);
     capSetTexturePage(ACTOR_560800_CAP_TEXTURE_VRAM_X, ACTOR_560800_CAP_TEXTURE_VRAM_Y);
 }

@@ -65,19 +65,19 @@ enum {
     INVENTORY_ITEM_GPS            = 0x40
 };
 
-extern u8 Gp_StrMore[];
-
-extern u8 Gp_StrAttachAvail[];
-
-extern UiObjectDesc Gp_BoostPanelDesc;
-
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
 
 static inline void _gpClearEquipSlot(s32 item);
 
-u8           Gp_StrMore[]        = "More ";
-u8           Gp_StrAttachAvail[] = "attachments available.";
-UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20, 30, 40 }, 12, 0, TASK_BODY_NONE, 192, itemMenuPlayerStatsPanelTask, 0 };
+/// Prefix before the equipped armor's name in the successful Belt Pouch notice.
+static u8 _gItemMenuPouchMoreText[] = "More ";
+/// Second line of the successful Belt Pouch attachment-capacity notice.
+static u8 _gItemMenuPouchAttachmentsAvailableText[] = "attachments available.";
+/// Player HP/MP summary panel opened by a permanent HP or MP boost.
+///
+/// Borrows the boost notice as its owner and animates the displayed pre-boost
+/// vitals toward the updated player stats; its content argument is unused.
+static UiObjectDesc _gItemMenuBoostStatsPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20, 30, 40 }, 12, 0, TASK_BODY_NONE, 192, itemMenuPlayerStatsPanelTask, 0 };
 
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)
@@ -109,18 +109,18 @@ static inline void _gpClearEquipSlot(s32 item)
 
     slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        if (item == Gp_ItemMaps[i].weaponItemId) {
+        if (item == gEquipmentWeaponSupplies[i].weaponItemId) {
             found = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+    if ((found == 0) || (gEquipmentWeaponSupplies[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         slot->primaryItemId = INVENTORY_ITEM_NONE;
         slot->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+    if ((found == 0) || (gEquipmentWeaponSupplies[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
@@ -235,8 +235,8 @@ static inline void _itemMenuSizePouchNotice(UiObject* object, s32 armorItemId)
     s32 contentWidth;
     s32 secondLineWidth;
 
-    contentWidth    = textMeasureLineWidth(itemGetText(armorItemId, ITEM_TEXT_NAME, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
-    secondLineWidth = textMeasureLineWidth(Gp_StrAttachAvail);
+    contentWidth    = textMeasureLineWidth(itemGetText(armorItemId, ITEM_TEXT_NAME, 0)) + textMeasureLineWidth(_gItemMenuPouchMoreText) + 4;
+    secondLineWidth = textMeasureLineWidth(_gItemMenuPouchAttachmentsAvailableText);
     if (contentWidth < secondLineWidth) {
         contentWidth = secondLineWidth;
     }
@@ -350,7 +350,7 @@ static inline void _equipmentRecalculateMaxHp(void)
     u16                        maximumHp;
 
     status        = &gPlayerStatus;
-    modeStats     = Gp_StatRows;
+    modeStats     = gEquipmentModeBaseStats;
     save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     maximumHp     = modeStats[save->state.gameMode].baseHp.hp;
     status->hpMax = maximumHp;
@@ -442,7 +442,7 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
         }
         if (task->status == ITEM_MENU_POUCH_STATUS_APPLIED) {
             _itemMenuSizePouchNotice(object, armorItemId);
-            _inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
+            _inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, gItemMenuSelectedRow, 1);
             task->killCountdown = ITEM_MENU_POUCH_DISPLAY_UPDATES;
             task->state++;
         }
@@ -461,9 +461,9 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
     uiDrawPanelLabel(&object->panel, Gp_StrNotice2);
     textColorRgb = ITEM_MENU_POUCH_TEXT_COLOR_RGB;
     lineY        = contentTop + ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
-    _itemMenuDrawPrefixedItemName(object, textX, lineY, Gp_StrMore, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
+    _itemMenuDrawPrefixedItemName(object, textX, lineY, _gItemMenuPouchMoreText, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
     lineY += ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
-    textDrawUiLine(object, textX, lineY, Gp_StrAttachAvail, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, textX, lineY, _gItemMenuPouchAttachmentsAvailableText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     // Opening and inactive panels draw the notice without advancing its timeout.
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -486,17 +486,17 @@ void itemMenuApplyMpBoostPanel(UiObject* object, Task* task)
 
     if (task->state == ITEM_MENU_BOOST_STATE_INIT) {
         // Capture the before-values, then apply and consume this one-time boost.
-        status         = &gPlayerStatus;
-        Gp_HpMpWork.hp = status->hp;
-        save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.mp = status->mp;
+        status                 = &gPlayerStatus;
+        gHudDisplayedVitals.hp = status->hp;
+        save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        gHudDisplayedVitals.mp = status->mp;
         if (save->state.mpBonus < ITEM_MENU_BOOST_BONUS_LIMIT) {
             save->state.mpBonus = save->state.mpBonus + ITEM_MENU_BOOST_MP_INCREMENT;
         }
         equipmentRecalculateMaxMp();
         status->mp = status->mpMax;
-        _inventoryRemoveItemRow(NULL, Gp_SelItemRec, 1);
-        uiSpawnObject(&Gp_BoostPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
+        _inventoryRemoveItemRow(NULL, gItemMenuSelectedRow, 1);
+        uiSpawnObject(&_gItemMenuBoostStatsPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
     }
     // The notice advances this task; restore the caller's item argument afterwards.
     savedSpawnArg         = task->spawnArg1.value;
@@ -514,18 +514,18 @@ void itemMenuApplyHpBoostPanel(UiObject* object, Task* task)
 
     if (task->state == ITEM_MENU_BOOST_STATE_INIT) {
         // Preserve the displayed before-values; the bonus threshold precedes addition.
-        status         = &gPlayerStatus;
-        previousHp     = status->hp;
-        Gp_HpMpWork.hp = previousHp;
-        save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.mp = status->mp;
+        status                 = &gPlayerStatus;
+        previousHp             = status->hp;
+        gHudDisplayedVitals.hp = previousHp;
+        save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        gHudDisplayedVitals.mp = status->mp;
         if (save->state.hpBonus < ITEM_MENU_BOOST_BONUS_LIMIT) {
             save->state.hpBonus = save->state.hpBonus + ITEM_MENU_BOOST_HP_INCREMENT;
         }
         _equipmentRecalculateMaxHp();
         status->hp = status->hpMax;
-        _inventoryRemoveItemRow(NULL, Gp_SelItemRec, 1);
-        uiSpawnObject(&Gp_BoostPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
+        _inventoryRemoveItemRow(NULL, gItemMenuSelectedRow, 1);
+        uiSpawnObject(&_gItemMenuBoostStatsPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
     }
     // The notice advances this task; restore the caller's item argument afterwards.
     savedSpawnArg         = task->spawnArg1.value;
@@ -682,10 +682,10 @@ void inventoryInitializeShootingGalleryLoadout(void)
     // Reset only the twelve wheel spells, leaving the six item-cast slots intact.
     for (elementIndex = 0; elementIndex < ATTACHMENT_TRAINING_ELEMENT_COUNT; elementIndex++) {
         for (spellIndex = 0; spellIndex < ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT; spellIndex++) {
-            Gp_DebugAttachLevels[spellIndex + elementIndex * ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT] = 0;
+            gAttachmentTrainingLevels[spellIndex + elementIndex * ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT] = 0;
         }
     }
-    Gp_DebugAttachLevels[ATTACHMENT_INDEX_PYROKINESIS] = ATTACHMENT_TRAINING_INITIAL_LEVEL;
+    gAttachmentTrainingLevels[ATTACHMENT_INDEX_PYROKINESIS] = ATTACHMENT_TRAINING_INITIAL_LEVEL;
 
     gAttachmentState.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
     gAttachmentState.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
@@ -764,8 +764,8 @@ void areaSeedStageObjectStates(s32 stageId)
     const AreaObjectRoom* rooms;
     u32*                  objectStates;
 
-    rooms        = Gp_Bit2Banks[stageId].rooms;
-    objectStates = Gp_Bit2Banks[stageId].objectStates;
+    rooms        = gAreaObjectStages[stageId].rooms;
+    objectStates = gAreaObjectStages[stageId].objectStates;
     // Night Dryfield shares the daytime words, so its first visit must keep them.
     if (stageId == GAME_STAGE_DRYFIELD_NIGHT) {
         return;
@@ -783,7 +783,7 @@ void areaSetCurrentObjectState(s32 objectId, u8 state)
     stateShift  = (objectId & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
     stateMask   = AREA_OBJECT_PLACE_STATE_MASK << stateShift;
     stageId     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    stateWord   = &Gp_Bit2Banks[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
+    stateWord   = &gAreaObjectStages[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
     *stateWord &= ~stateMask;
     stateMask   = state << stateShift;
     *stateWord |= stateMask;
@@ -949,19 +949,19 @@ void equipmentClearRemovableLoads(s32 weaponItemId)
 
     load = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
-        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+        if (weaponItemId == gEquipmentWeaponSupplies[supplyIndex].weaponItemId) {
             hasBuiltInSupply = 1;
             break;
         }
     }
 
     // A built-in supply keeps both its selection and its remaining charge.
-    if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+    if ((hasBuiltInSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         load->primaryItemId = INVENTORY_ITEM_NONE;
         load->primaryQty    = 0;
     }
 
-    if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+    if ((hasBuiltInSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             load->secondaryItemId = INVENTORY_ITEM_NONE;
         }
@@ -981,21 +981,21 @@ void equipmentClearSelectedRemovableLoads(s32 weaponItemId, s32 loadSelection)
 
     load = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
-        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+        if (weaponItemId == gEquipmentWeaponSupplies[supplyIndex].weaponItemId) {
             hasBuiltInSupply = 1;
             break;
         }
     }
 
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
-        if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+        if ((hasBuiltInSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
             load->primaryItemId = INVENTORY_ITEM_NONE;
             load->primaryQty    = 0;
         }
     }
 
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY) {
-        if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+        if ((hasBuiltInSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
             if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 load->secondaryItemId = INVENTORY_ITEM_NONE;
             }
@@ -1065,7 +1065,7 @@ s32 areaGetCurrentObjectState(s32 objectId)
     s32        stateShift;
 
     stageId       = gGameSession->location.loc.stage;
-    stateWord     = &Gp_Bit2Banks[stageId].objectStates[objectId >> 4];
+    stateWord     = &gAreaObjectStages[stageId].objectStates[objectId >> 4];
     stateShift    = (objectId & 0xF) * 2;
     packedStates  = *stateWord;
     packedStates &= AREA_OBJECT_PLACE_STATE_MASK << stateShift;

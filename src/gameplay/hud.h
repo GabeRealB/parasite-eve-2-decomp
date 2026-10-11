@@ -37,6 +37,13 @@ typedef struct {
 } HudHpMp;
 STATIC_ASSERT_SIZEOF(HudHpMp, 0x8);
 
+/// Player HP/MP values currently displayed by the HUD and item-menu summary.
+///
+/// Signed widened values may lag the live stats during one-point animation.
+/// Reset/equipment changes synchronize them; healing and boost panels retain
+/// the before-values for the animation. This gameplay singleton owns no save data.
+extern HudHpMp gHudDisplayedVitals;
+
 /// `HudState.battleStep`: how far a battle has got between its start and its results.
 enum {
     HUD_BATTLE_STEP_START           = 0, // Requests the battle-start transition, which moves the step on itself

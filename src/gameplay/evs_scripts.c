@@ -344,7 +344,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 if (D_801156CA != 0) {
                     streamFinishScene();
                 }
-                D_8011569C = 0;
+                gCapUseDirectViewIndex = CAP_VIEW_SELECTOR_LOGICAL;
                 return;
 
             case EVENT_SCRIPT_OPCODE_START_FLASH:
@@ -635,7 +635,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS:
-                D_8011569C = (u8)work->command->operand0.value;
+                gCapUseDirectViewIndex = (u8)work->command->operand0.value;
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_STAGE_SOUND:
@@ -826,7 +826,7 @@ static void _evsInitializeInterpreterTask(Task* task)
     work->primaryEffectTask = NULL;
     work->secondaryFadeTask = NULL;
     work->returnDepth       = 0;
-    D_8011569C              = 0;
+    gCapUseDirectViewIndex  = CAP_VIEW_SELECTOR_LOGICAL;
     task->state++;
 }
 

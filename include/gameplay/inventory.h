@@ -11,12 +11,12 @@ enum {
     EQUIPMENT_WEAPON_SUPPLY_SECONDARY = 1  // `secondaryItemId` and `secondaryQty`
 };
 
-/// Number of `Gp_ItemMaps` rows, one per weapon with a built-in supply.
+/// Number of `gEquipmentWeaponSupplies` rows, one per weapon with a built-in supply.
 enum { EQUIPMENT_WEAPON_SUPPLY_COUNT = 8 };
 
 /// Built-in rechargeable supply for one weapon.
 ///
-/// `Gp_ItemMaps` has one row per weapon that keeps this charge in
+/// `gEquipmentWeaponSupplies` has one row per weapon that keeps this charge in
 /// `EquipmentWeaponLoad`. The catalogue names the supplies Battery or Fuel.
 /// Shops refill the load `supplyLoad` selects up to that load's capacity.
 /// Clearing removable ammunition leaves the supply loaded. `supplyItemId` is
@@ -32,8 +32,8 @@ STATIC_ASSERT_SIZEOF(EquipmentWeaponSupply, 0x4);
 /// Capacity and consumable choices for one weapon's primary or secondary load.
 ///
 /// The gameplay tables have one four-byte row per weapon id 0x80..0x9F,
-/// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`: `Gp_RelatedQty0`
-/// describes the primary load and `Gp_RelatedQty1` the secondary load in
+/// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`: `gEquipmentWeaponPrimaryLoadOptions`
+/// describes the primary load and `gEquipmentWeaponSecondaryLoadOptions` the secondary load in
 /// `EquipmentWeaponLoad`. Quantities count rounds or rechargeable supply units.
 /// All three choices are searched, including slots after an unused zero;
 /// the first choice supplies the ammunition icon and shooting-gallery load.
@@ -46,7 +46,7 @@ STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptions, 0x4);
 
 /// Catalogue of load options for every weapon item id 0x80..0x9F.
 ///
-/// `Gp_RelatedQty0` is the primary load and `Gp_RelatedQty1` the secondary,
+/// `gEquipmentWeaponPrimaryLoadOptions` is the primary load and `gEquipmentWeaponSecondaryLoadOptions` the secondary,
 /// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`. Each row is that
 /// weapon's capacity and the consumables its load accepts.
 typedef struct {
@@ -62,7 +62,7 @@ enum {
 
 /// Pack size and stack capacity for one consumable item (ids 0xA0..0xBF).
 ///
-/// `Gp_StackLimits` holds one row per consumable, indexed by item id minus
+/// `gInventoryConsumableStacks` holds one row per consumable, indexed by item id minus
 /// 0xA0. A pack is the quantity one pickup, one shop purchase or a default
 /// grant adds; the capacity bounds the quantity of the item's single stack
 /// row in an item table. Row pointers borrow the table for the gameplay
@@ -90,7 +90,7 @@ STATIC_ASSERT_SIZEOF(PlayerModeBaseHp, 0x4);
 
 /// Starting maximum HP and starting MP for one game mode.
 ///
-/// `Gp_StatRows` holds one row for each save game mode (0 normal/replay, 1 Bounty,
+/// `gEquipmentModeBaseStats` holds one row for each save game mode (0 normal/replay, 1 Bounty,
 /// 2 Scavenger, 3 Nightmare). Maximum HP begins at `baseHp`, before the saved HP
 /// bonus and armour. Maximum MP adds `baseMp` after Parasite Energy levels and
 /// armour, and before the saved MP bonus. The shooting-gallery status panel

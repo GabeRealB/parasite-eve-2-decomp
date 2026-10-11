@@ -347,7 +347,7 @@ static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 
-static const VECTOR D_80093A28;
+static const VECTOR _gAnimationHeadAimLocalOffset;
 
 static const TaskFuncTable3 _gFadePulseStates;
 
@@ -487,7 +487,6 @@ _CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
 TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, _loadingRestartPresentationTask, { NULL } };
 
 static const TaskFuncTable3 Gp_StageLoadStates;
-static const VECTOR         D_80093A28;
 
 /// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
 ///
@@ -1763,7 +1762,7 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
 
     // Accumulate both five-part chains, including the head-local offset.
     partIndex      = 0;
-    headOffset     = D_80093A28;
+    headOffset     = _gAnimationHeadAimLocalOffset;
     yawLimit       = aim->yawLimit;
     pitchLimit     = aim->pitchLimit;
     blendWeight    = aim->rate;
@@ -4442,7 +4441,7 @@ void sceneFreeActorPrimitiveBuffers(void)
 /// Reads one saved two-bit object state from the current session's stage bank.
 ///
 /// `flagIndex` is 0..63: sixteen states per u32, low pair first. The session's
-/// stage must index `Gp_Bit2Banks` and publish live object-state words; stage zero
+/// stage must index `gAreaObjectStages` and publish live object-state words; stage zero
 /// has no bank. Returns 0..3 without interpreting the state's gameplay meaning.
 /// Reads only the saved words, with no ownership or lifetime change.
 static inline s32 _areaGetCurrentObjectState(s32 flagIndex)
@@ -4455,7 +4454,7 @@ static inline s32 _areaGetCurrentObjectState(s32 flagIndex)
     u32        stateBits;
     s32        bitShift;
 
-    stateWord   = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[flagIndex >> AREA_OBJECT_STATE_WORD_INDEX_SHIFT];
+    stateWord   = &gAreaObjectStages[gGameSession->location.loc.stage].objectStates[flagIndex >> AREA_OBJECT_STATE_WORD_INDEX_SHIFT];
     bitShift    = (flagIndex & ((1 << AREA_OBJECT_STATE_WORD_INDEX_SHIFT) - 1)) * AREA_OBJECT_STATE_BITS;
     stateBits   = *stateWord;
     stateBits  &= AREA_OBJECT_PLACE_STATE_MASK << bitShift;
@@ -4537,11 +4536,11 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
 
     item -= EQUIPMENT_WEAPON_ITEM_FIRST;
     ret   = 0;
-    if ((u32)item < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+    if ((u32)item < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
         if (bank == 0) {
-            ret = Gp_RelatedQty0.rows[item].capacity;
+            ret = gEquipmentWeaponPrimaryLoadOptions.rows[item].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[item].capacity;
+            ret = gEquipmentWeaponSecondaryLoadOptions.rows[item].capacity;
         }
     }
     return ret;
@@ -4587,7 +4586,11 @@ static const TaskFuncTable3 Gp_StageLoadStates = { {
     _loadingFinishRestart,
 } };
 
-static const VECTOR D_80093A28 = { 0, -100, 0, 0 };
+/// Head-local aim point, 100 world units along negative Y from the head joint.
+///
+/// Both five-part head chains transform this same point into world axes before
+/// computing the subject's pitch and yaw toward the target.
+static const VECTOR _gAnimationHeadAimLocalOffset = { 0, -100, 0, 0 };
 
 /// Full-screen pulse states: initialize, draw the pulse, then exit.
 ///
@@ -4628,7 +4631,14 @@ static TaskMessageEntry _gSceneManagerMessages[5] = {
     { SCENE_MESSAGE_BROADCAST_TO_ACTORS, _sceneBroadcastToPlacedActors },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { gMapAkropolisObjectRooms, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapDryfieldObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapDryfieldFullObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapShelterObjectRooms, gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapNeoArkObjectRooms, gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates } };
+AreaObjectStage gAreaObjectStages[6] = {
+    { NULL, NULL },                                                                                         // No stage.
+    { gMapAkropolisObjectRooms, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },   // Acropolis.
+    { gMapDryfieldObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },     // Day Dryfield.
+    { gMapDryfieldFullObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, // Night Dryfield, shared states.
+    { gMapShelterObjectRooms, gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },   // Mine/Shelter.
+    { gMapNeoArkObjectRooms, gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },         // Shelter/Neo Ark.
+};
 
 /// Registers the scene manager and its actor-message routes, then enters running state.
 ///

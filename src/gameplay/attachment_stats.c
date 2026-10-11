@@ -128,7 +128,7 @@ u16 D_80113CFC[8] = {
     50,
     0,
 };
-u16 D_80113D0C[7][2] = {
+AttachmentEnergyShotComboScale gAttachmentEnergyShotComboScales[7] = {
     { 100, 100 },
     { 130, 125 },
     { 140, 140 },
@@ -137,20 +137,20 @@ u16 D_80113D0C[7][2] = {
     { 150, 125 },
     { 160, 140 },
 };
-u16 D_80113D28[4] = {
+u16 gDamageEnemyPoisonPulseLimitPercent[4] = {
     120,
     80,
     80,
     80,
 };
-u16 D_80113D30[4] = {
+u16 gDamageEnemyBuildupStepLimitPercent[4] = {
     200,
     100,
     120,
     150,
 };
 
-u16 D_80113D38[4] = {
+u16 gDamageEnemyPoisonPulseDamagePercent[4] = {
     16,
     4,
     6,
@@ -288,7 +288,7 @@ u16 D_80113F54[30] = {
     4,
     4,
 };
-u16 D_80113F90[6] = {
+u16 gDamageAttackDifficultyPercent[6] = {
     100,
     75,
     75,
@@ -340,7 +340,7 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
             if (usesTrainingLevels == 0) {                                                                                                                                            \
                 learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                                \
             } else {                                                                                                                                                                  \
-                learnedLevels = Gp_DebugAttachLevels;                                                                                                                                 \
+                learnedLevels = gAttachmentTrainingLevels;                                                                                                                            \
             }                                                                                                                                                                         \
             (level) = learnedLevels[(abilityIndex)];                                                                                                                                  \
             if ((level) == 0) {                                                                                                                                                       \
@@ -607,7 +607,7 @@ static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
         if (usesTrainingLevels == 0) {
             learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
-            learnedLevels = Gp_DebugAttachLevels;
+            learnedLevels = gAttachmentTrainingLevels;
         }
         level = learnedLevels[abilityIndex];
         if (level == 0) {
@@ -732,7 +732,7 @@ static void _attachmentArmCast(s32 abilityIndex)
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
     attachment->soundStep          = ATTACHMENT_SOUND_QUEUED;
     attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
-    D_80114C34                     = 0;
+    gAttachmentSoundQueueTicks     = 0;
     attachment->flags             &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
 }
 
@@ -754,7 +754,7 @@ static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 
     if (usesTrainingLevels == 0) {
         learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        learnedLevels = Gp_DebugAttachLevels;
+        learnedLevels = gAttachmentTrainingLevels;
     }
     if (steps != 0) {
         do {
@@ -799,7 +799,7 @@ static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
     if (usesTrainingLevels == 0) {
         learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        learnedLevels = Gp_DebugAttachLevels;
+        learnedLevels = gAttachmentTrainingLevels;
     }
     if (steps != 0) {
         liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -902,7 +902,7 @@ static s32 _attachmentUpdateAndDrawWheel(HudState* hud, s32 panelX, s32 panelY)
     if (usesTrainingLevels == 0) {
         learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        learnedLevels = Gp_DebugAttachLevels;
+        learnedLevels = gAttachmentTrainingLevels;
     }
     for (levelBytesRemaining = ATTACHMENT_SPELL_COUNT - 1; levelBytesRemaining >= 0; levelBytesRemaining--, learnedLevels++) {
         if (*learnedLevels != 0) {
@@ -1177,7 +1177,7 @@ static __inline__ const u8* _attachmentGetLearnedLevels(void)
     if (usesTrainingLevels == 0) {
         return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
-    return Gp_DebugAttachLevels;
+    return gAttachmentTrainingLevels;
 }
 
 /// Tests whether player action and input gates permit opening a HUD category.
@@ -1315,7 +1315,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     hud->previewCastCost = 0;
     // Complete the armed cast's sound request before processing wheel input.
     if (gAttachmentState.soundStep == ATTACHMENT_SOUND_QUEUED) {
-        if (++D_80114C34 > 0) {
+        if (++gAttachmentSoundQueueTicks > 0) {
             activeLevel    = _attachmentGetEffectiveLevel(gAttachmentState.activeIndex);
             soundFileIndex = gAttachmentState.activeIndex * ATTACHMENT_AREA_LEVEL_COUNT + activeLevel;
             if (_sceneIsBattleActive()) {
@@ -1323,7 +1323,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
             }
             gAttachmentState.soundStep    = ATTACHMENT_SOUND_PLAYED;
             gAttachmentState.previewSound = 0;
-            D_80114C34                    = 0;
+            gAttachmentSoundQueueTicks    = 0;
         }
     }
 
@@ -1429,8 +1429,8 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
                     }
                 }
                 if (gAttachmentState.activeIndex >= ATTACHMENT_SPELL_COUNT) {
-                    itemSetIdentified(Gp_SelItemRec->itemId, 1);
-                    inventoryRemoveItemRow(NULL, Gp_SelItemRec, 0);
+                    itemSetIdentified(gItemMenuSelectedRow->itemId, 1);
+                    inventoryRemoveItemRow(NULL, gItemMenuSelectedRow, 0);
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[gAttachmentState.activeIndex] < ATTACHMENT_USE_COUNT_LIMIT) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[gAttachmentState.activeIndex]++;

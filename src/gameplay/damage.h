@@ -32,6 +32,31 @@ typedef struct {
 } DamageReceivedScaleRow;
 STATIC_ASSERT_SIZEOF(DamageReceivedScaleRow, 0x14);
 
+/// Enemy poison pulse-count percentages, indexed by reaction grade 0..3.
+///
+/// Grade 0 is a non-PE attack; grades 1..3 are the active PE cast's level.
+/// Scales the enemy kind's base pulse count, not its inter-pulse frame delay.
+/// The reaction must retain a valid grade until it ends; rows live with gameplay.
+extern u16 gDamageEnemyPoisonPulseLimitPercent[4];
+
+/// Enemy buildup step-count percentages, indexed by reaction grade 0..3.
+///
+/// Grade 0 is a non-PE attack or the ungraded PE-row exception; 1..3 are
+/// the active cast's level. Scales the base count of 31-frame buildup steps.
+extern u16 gDamageEnemyBuildupStepLimitPercent[4];
+
+/// Percent of maximum enemy HP removed by each poison pulse, by grade 0..3.
+///
+/// Grade 0 uses 16 percent; PE levels 1/2/3 use 4/6/8 percent. The tick
+/// consumer rounds down and substitutes one HP when the result is zero.
+extern u16 gDamageEnemyPoisonPulseDamagePercent[4];
+
+/// Final outgoing weapon/PE damage percentages, indexed by difficulty 0..4.
+///
+/// Rows are Normal, Bounty, Scavenger, Nightmare and replay (100/75/75/60/100).
+/// The sixth stored halfword is zero; it is outside the live difficulty domain.
+extern u16 gDamageAttackDifficultyPercent[6];
+
 /// Computes HP damage received by the player or companion from an attack key.
 ///
 /// Category 4 keys carry 12-bit power and a 4-bit victim reaction. Other

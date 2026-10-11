@@ -170,7 +170,7 @@ static inline s32 _areaReadModelObjectState(const Task* task)
     u32                    word;
 
     session = gGameSession;
-    stages  = Gp_Bit2Banks;
+    stages  = gAreaObjectStages;
     enemy   = task->spawnArg2.pointer;
     // Placed models use the current stage and the key's low-byte flag index.
     flagIndex    = (u8)enemy->placeKey;
@@ -427,7 +427,7 @@ void areaSetObjectState(s32 objectId, u8 state, s32 stageId)
 
     stateShift  = (objectId & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
     stateMask   = AREA_OBJECT_PLACE_STATE_MASK << stateShift;
-    stateWord   = &Gp_Bit2Banks[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
+    stateWord   = &gAreaObjectStages[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
     *stateWord &= ~stateMask;
     stateMask   = state << stateShift;
     *stateWord |= stateMask;
@@ -440,11 +440,11 @@ s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection)
 
     weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
     capacity    = 0;
-    if ((u32)weaponIndex < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+    if ((u32)weaponIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
         if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-            capacity = Gp_RelatedQty0.rows[weaponIndex].capacity;
+            capacity = gEquipmentWeaponPrimaryLoadOptions.rows[weaponIndex].capacity;
         } else {
-            capacity = Gp_RelatedQty1.rows[weaponIndex].capacity;
+            capacity = gEquipmentWeaponSecondaryLoadOptions.rows[weaponIndex].capacity;
         }
     }
     return capacity;
@@ -456,7 +456,7 @@ s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection)
 /// Night Dryfield shares daytime Dryfield's words. The location is borrowed.
 static s32 _areaGetObjectState(const GameLocationKey* location, s32 objectId)
 {
-    return _areaReadObjectState(Gp_Bit2Banks[location->stage].objectStates, objectId);
+    return _areaReadObjectState(gAreaObjectStages[location->stage].objectStates, objectId);
 }
 
 void playerCaptureSaveState(void)
@@ -563,7 +563,7 @@ s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex)
         return EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND;
     }
     for (supplyIndex = firstSupplyIndex; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
-        supply = &Gp_ItemMaps[supplyIndex];
+        supply = &gEquipmentWeaponSupplies[supplyIndex];
         if (inventoryGetItemQuantity(range, supply->weaponItemId)) {
             return supplyIndex;
         }
@@ -573,7 +573,7 @@ s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex)
 
 const EquipmentWeaponSupply* equipmentGetWeaponSupply(s32 supplyIndex)
 {
-    return &Gp_ItemMaps[supplyIndex];
+    return &gEquipmentWeaponSupplies[supplyIndex];
 }
 
 s32 equipmentHasCarriedWeaponSupply(void)
@@ -585,7 +585,7 @@ s32 equipmentHasCarriedWeaponSupply(void)
 
     found = 0;
     range = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    for (supplyIndex = 0, supply = Gp_ItemMaps; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
+    for (supplyIndex = 0, supply = gEquipmentWeaponSupplies; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
         if (inventoryGetItemQuantity(range, supply->weaponItemId)) {
             found = 1;
             break;
@@ -745,7 +745,7 @@ void equipmentRecalculateMaxHp(void)
 
     // Preserve 16-bit narrowing before the signed maximum is capped.
     status        = &gPlayerStatus;
-    modeStats     = Gp_StatRows;
+    modeStats     = gEquipmentModeBaseStats;
     save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     maximumHp     = modeStats[save->state.gameMode].baseHp.hp;
     status->hpMax = maximumHp;

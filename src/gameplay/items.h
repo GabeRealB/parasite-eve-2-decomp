@@ -12,11 +12,19 @@
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
-/// Qty table indexed by raw item id. `Gp_RelatedQty1` is the 0x80–0x9F slice
-/// at +0x200 (`equipmentLoadCarriedWeaponConsumable`).
-extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty1;
+/// Secondary weapon-load capacities and accepted consumables.
+///
+/// Indexed by weapon item id minus EQUIPMENT_WEAPON_ITEM_FIRST (0..31),
+/// independently of possession. Capacity counts rounds or supply units; all
+/// three choices are searched, including after zero slots. Rows live with gameplay.
+extern EquipmentWeaponLoadOptionsTable gEquipmentWeaponSecondaryLoadOptions;
 
-extern EquipmentWeaponSupply Gp_ItemMaps[];
+/// Built-in rechargeable weapon supplies, in the shop's cycling order.
+///
+/// Each row identifies a weapon, its permanent Battery/Fuel item and its primary
+/// or secondary load. Initialization fills these loads to catalogue capacity;
+/// removable-load clearing preserves them. Row pointers borrow gameplay data.
+extern EquipmentWeaponSupply gEquipmentWeaponSupplies[EQUIPMENT_WEAPON_SUPPLY_COUNT];
 
 extern const char Gp_StrNotice2[8];
 
@@ -51,7 +59,7 @@ s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32
 /// The equipped armor selector must be 1..32 and remain unchanged while open;
 /// object and its owner task must remain live. State 0 adds one permanent bonus
 /// slot below the ten-slot cap and consumes the selected writable pouch row in
-/// `Gp_SelItemRec`. At the cap it shows "No further modifications" without consuming.
+/// `gItemMenuSelectedRow`. At the cap it shows "No further modifications" without consuming.
 /// Success counts down 188 active updates; timeout or Confirm/Cancel yields
 /// DISMISS, and Menu yields CANCEL. The capped path uses `itemMenuNoticeTask`'s
 /// countdown contract. The task's item-id spawn argument is preserved.
@@ -344,13 +352,34 @@ extern ArmorStats gEquipmentArmorStats[32];
 // Shared item-publication work.
 extern u16 Gp_PubItemReady;
 
-extern u16 Gp_PubItemQty;
+/// Item units offered by the current placed-object pickup.
+///
+/// Row items and duplicate replacements offer one; consumables normally use
+/// packQty, or maxHeld for full-stack placement state 3. Non-item bank publication
+/// can leave the previous quantity intact. Stable while pickup children display
+/// and accept it; inventory capacity handling decides how many units are added.
+extern u16 gItemPickupPublishedQuantity;
 
-extern InventoryItemRow* Gp_SelItemRec;
+/// Borrowed inventory row selected for item-menu commands or item use.
+///
+/// May be NULL for an empty equipment selection. Points into the active range
+/// (or its selected backing table), rather than a copied item record. Commands,
+/// reordering and armor attachment selection share it; some attached-item uses
+/// publish their carried row too. Keep that table live while consumers run.
+/// Removal may clear the pointed row without clearing this pointer, and table
+/// reordering may change its contents; selection must be refreshed before reuse.
+extern InventoryItemRow* gItemMenuSelectedRow;
 
 extern s32 D_80114DD8;
 
-extern u16 Gp_PubItemLoc;
+/// Placed-object kind selected for the current pickup/action prompt.
+///
+/// Copies AreaObjectPlace.kind or Enemy.workType: high byte is the bank and
+/// low byte its subtype. Bank 0 is an inventory item id, bank 1 a collected
+/// item, bank 8 a save point; other banks select their action interfaces. Owned
+/// armor/weapon pickups substitute duplicate-item ids. Publication overwrites
+/// this gameplay singleton; keep it stable while its prompt children run.
+extern u16 gItemPickupPublishedKind;
 
 extern u16 D_80114DDE;
 

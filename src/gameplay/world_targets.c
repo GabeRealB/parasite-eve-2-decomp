@@ -945,7 +945,7 @@ void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPositio
     MATRIX*                      bodyToWorld;
 
     if (node == NULL) {
-        printf(Gp_StrGetLockPosNull);
+        printf(gWorldTargetNullBodyPositionDiagnostic);
         outPosition->vx = 0;
         outPosition->vy = 0;
         outPosition->vz = 0;

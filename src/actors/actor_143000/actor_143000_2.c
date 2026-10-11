@@ -358,7 +358,7 @@ static void _actor143000TerminalSessionTask(Task* task)
             fade->phase = SCREEN_FADE_RETURN;
             srand(gDisplayState.gameTick);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(ACTOR_143000_TERMINAL_CAP_DATA_ORDINAL);
             capSetTexturePage(ACTOR_143000_TERMINAL_CAP_VRAM_X, 0);
             itemSetIdentified(INVENTORY_COLLECTION_ID_BOWMANS_CARD, 1);
@@ -577,7 +577,7 @@ static void _actor143000SelectSceneCaptions(void)
            ACTOR_143000_CAP_VRAM_X             = 384,
            ACTOR_143000_CAP_VRAM_Y             = 256 };
 
-    Gp_CapFile = 0;
+    gCapFile = 0;
     capSelectLoadedFile(ACTOR_143000_SCENE_CAP_DATA_ORDINAL);
     capSetTexturePage(ACTOR_143000_CAP_VRAM_X, ACTOR_143000_CAP_VRAM_Y);
 }

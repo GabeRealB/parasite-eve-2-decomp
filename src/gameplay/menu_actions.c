@@ -554,8 +554,8 @@ static UiObject* _itemMenuOpenCommandPopup(UiList* list, UiObject* parent, Inven
     };
     UiObject* popup;
 
-    popup         = NULL;
-    Gp_SelItemRec = selectedRow;
+    popup                = NULL;
+    gItemMenuSelectedRow = selectedRow;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         popup = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COMMAND_POPUP_DESCRIPTOR], commandMode, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS, parent);
@@ -858,7 +858,7 @@ static s32 _itemMenuGetNthUnloadedConsumable(const InventoryItemRange* range, s3
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
         choiceIndex = 0;
         // Keep the row byte offset separate from the consumable-choice index.
-        primaryOptionBytes = (const u8*)Gp_RelatedQty0.rows;
+        primaryOptionBytes = (const u8*)gEquipmentWeaponPrimaryLoadOptions.rows;
         weaponIndex        = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
         do {
             choiceByteOffset = choiceIndex + weaponIndex * (s32)sizeof(EquipmentWeaponLoadOptions);
@@ -872,12 +872,12 @@ static s32 _itemMenuGetNthUnloadedConsumable(const InventoryItemRange* range, s3
                 }
             }
             choiceIndex++;
-        } while (choiceIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
+        } while (choiceIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows[0].acceptedItemIds));
     }
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY) {
         if (choiceOrdinal >= 0) {
             choiceIndex          = 0;
-            secondaryOptionBytes = (const u8*)Gp_RelatedQty1.rows;
+            secondaryOptionBytes = (const u8*)gEquipmentWeaponSecondaryLoadOptions.rows;
             weaponIndex          = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
             do {
                 choiceByteOffset = choiceIndex + weaponIndex * (s32)sizeof(EquipmentWeaponLoadOptions);
@@ -891,7 +891,7 @@ static s32 _itemMenuGetNthUnloadedConsumable(const InventoryItemRange* range, s3
                     }
                 }
                 choiceIndex++;
-            } while (choiceIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds));
+            } while (choiceIndex < ARRAY_SIZE(gEquipmentWeaponSecondaryLoadOptions.rows[0].acceptedItemIds));
         }
     }
     return selectedItemId;
@@ -1005,7 +1005,7 @@ void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object)
 
 void itemMenuApplySelectedHealingItem(UiObject* object, Task* task)
 {
-    itemMenuApplyHealingPanel(object, task, Gp_SelItemRec->itemId);
+    itemMenuApplyHealingPanel(object, task, gItemMenuSelectedRow->itemId);
 }
 
 void itemMenuUseItemTask(Task* task)
@@ -1123,7 +1123,7 @@ static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent)
     s32               activeMode;
     UiObjectTaskFunc* useHandlerSlot;
 
-    itemId         = Gp_SelItemRec->itemId;
+    itemId         = gItemMenuSelectedRow->itemId;
     useHandlerSlot = &D_8010D3A0[itemId];
     if (*useHandlerSlot != NULL) {
         activeMode = USER_INTERFACE_PANEL_ACTIVE;
@@ -2483,7 +2483,7 @@ void itemMenuDiscardTask(Task* task)
     const u8*         promptText;
     UiObject*         confirmationMenu;
 
-    selectedRow = Gp_SelItemRec;
+    selectedRow = gItemMenuSelectedRow;
     itemId      = selectedRow->itemId;
 
     object            = task->spawnArg2.pointer;
@@ -2943,9 +2943,9 @@ void itemMenuPeUpgradeTask(Task* task)
                         player->exp                                                                                                                                                                                                                                            -= purchaseCost & 0xFFFF;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT) + ((abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT] = (abilityId & ATTACHMENT_MENU_LEVEL_MASK) + 1;
                         equipmentRecalculateMaxMp();
-                        player->mp     = player->mpMax;
-                        Gp_HpMpWork.mp = player->mp;
-                        object->result = USER_INTERFACE_RESULT_DISMISS;
+                        player->mp             = player->mpMax;
+                        gHudDisplayedVitals.mp = player->mp;
+                        object->result         = USER_INTERFACE_RESULT_DISMISS;
                     }
                 } else {
                     object->result = USER_INTERFACE_RESULT_DISMISS;

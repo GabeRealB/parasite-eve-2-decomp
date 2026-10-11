@@ -565,7 +565,7 @@ static void _itemMenuTransferScreenTask(Task* task)
         work->field_C   = 0;
         do {
             if (paneIndex == ITEM_MENU_PANE_CONTAINER) {
-                placeKind      = Gp_PubItemLoc;
+                placeKind      = gItemPickupPublishedKind;
                 sourceRange    = containerRanges[placeKind & ITEM_MENU_TRANSFER_CONTAINER_INDEX_MASK];
                 Gp_MoveItemKey = placeKind;
             } else {
@@ -637,7 +637,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         // Browsing opens commands/details; swap selection checks the candidate partner.
-        Gp_SelItemRec = row;
+        gItemMenuSelectedRow = row;
         if (object->owner->state == ITEM_MENU_PANE_BROWSING) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -1223,7 +1223,7 @@ static void _itemMenuAmmoSplitTask(Task* task)
         split->carriedInitialQty   = carriedInitialQty;
         split->loadedQty           = equipmentGetLoadedConsumableQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
-        split->stackLimit = Gp_StackLimits[task->spawnArg1.value - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
+        split->stackLimit = gInventoryConsumableStacks[task->spawnArg1.value - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
         task->state       = task->state + 1;
     }
     split = task->work;
@@ -1819,24 +1819,24 @@ void itemPickupPublishPlacedObjectTask(Task* task)
     s32          packQuantity;
 
     // Publish the place flag index and kind before selecting pickup quantity.
-    Gp_PubItemId  = (u8)enemy->placeKey;
-    Gp_PubItemLoc = enemy->workType;
+    Gp_PubItemId             = (u8)enemy->placeKey;
+    gItemPickupPublishedKind = enemy->workType;
     if (enemy->workType < INVENTORY_CONSUMABLE_ITEM_FIRST) {
-        if (Gp_PubItemLoc >= ITEM_MENU_ARMOR_ITEM_FIRST && Gp_PubItemLoc < EQUIPMENT_WEAPON_ITEM_FIRST) {
-            if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
-                Gp_PubItemLoc = ITEM_MENU_DUPLICATE_ARMOR_ITEM_ID;
+        if (gItemPickupPublishedKind >= ITEM_MENU_ARMOR_ITEM_FIRST && gItemPickupPublishedKind < EQUIPMENT_WEAPON_ITEM_FIRST) {
+            if (inventoryIsItemLimitReached(gItemPickupPublishedKind) != 0) {
+                gItemPickupPublishedKind = ITEM_MENU_DUPLICATE_ARMOR_ITEM_ID;
             }
-        } else if (Gp_PubItemLoc >= EQUIPMENT_WEAPON_ITEM_FIRST && Gp_PubItemLoc < INVENTORY_CONSUMABLE_ITEM_FIRST) {
-            if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
-                Gp_PubItemLoc = ITEM_MENU_DUPLICATE_WEAPON_ITEM_ID;
+        } else if (gItemPickupPublishedKind >= EQUIPMENT_WEAPON_ITEM_FIRST && gItemPickupPublishedKind < INVENTORY_CONSUMABLE_ITEM_FIRST) {
+            if (inventoryIsItemLimitReached(gItemPickupPublishedKind) != 0) {
+                gItemPickupPublishedKind = ITEM_MENU_DUPLICATE_WEAPON_ITEM_ID;
             }
         }
-        Gp_PubItemQty   = 1;
-        Gp_PubItemReady = 1;
+        gItemPickupPublishedQuantity = 1;
+        Gp_PubItemReady              = 1;
     } else {
-        packQuantity    = Gp_StackLimits[Gp_PubItemLoc - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
-        Gp_PubItemReady = 1;
-        Gp_PubItemQty   = packQuantity;
+        packQuantity                 = gInventoryConsumableStacks[gItemPickupPublishedKind - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
+        Gp_PubItemReady              = 1;
+        gItemPickupPublishedQuantity = packQuantity;
     }
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     gUiPromptObject     = NULL;

@@ -77,7 +77,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
+    p      = &gAreaObjectStages[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;
@@ -280,7 +280,7 @@ static void _areaSpawnRoomObjectByFlagIndex(u16 flagIndex)
     u16                    placeFlagIndex;
 
     savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    stageRooms    = Gp_Bit2Banks[savedLocation->stage].rooms;
+    stageRooms    = gAreaObjectStages[savedLocation->stage].rooms;
     if (stageRooms == NULL) {
         return;
     }
@@ -338,7 +338,7 @@ void areaSpawnRoomObjects(const GameLocationKey* location)
     u16              tableEnd;
     u16              spawnKind;
 
-    areaObjects = Gp_Bit2Banks[location->stage].rooms;
+    areaObjects = gAreaObjectStages[location->stage].rooms;
     if (areaObjects == NULL) {
         return;
     }

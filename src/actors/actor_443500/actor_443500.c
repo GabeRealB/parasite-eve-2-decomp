@@ -3257,7 +3257,7 @@ static WorldCollisionGrid _gActor443500PierceCollision = {
 static void _actor443500SelectEventCap(s32 useEventCap)
 {
     if (useEventCap != 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(ACTOR_443500_EVENT_CAP_FILE_ORDINAL);
         capSetTexturePage(ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_X, ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_Y);
         return;
@@ -3273,7 +3273,7 @@ static void _actor443500SelectEventCapAfterPowerPlantClear(s32 useEventCap)
 {
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
         if (useEventCap != 0) {
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(ACTOR_443500_EVENT_CAP_FILE_ORDINAL);
             capSetTexturePage(ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_X, ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_Y);
             return;

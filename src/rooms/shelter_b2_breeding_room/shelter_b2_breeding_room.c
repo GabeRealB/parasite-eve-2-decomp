@@ -145,7 +145,7 @@ static s32 _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 c
             if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == SHELTER_B2_BREEDING_ROOM_OBJECTIVE_BEFORE_SCENE) {
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_BREEDING_ROOM_OBJECTIVE_AFTER_SCENE);
             }
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(SHELTER_B2_BREEDING_ROOM_CAP_FILE);
             capSetTexturePage(SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_X, SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_Y);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);

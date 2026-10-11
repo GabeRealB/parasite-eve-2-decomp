@@ -21,7 +21,7 @@ extern WorldCollisionPairHandler Gp_PairHandlers[5];
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
-/// Set to 1 by `worldCollisionReadActionHit` when a pending `Gp_PendingObj4C` node is found;
+/// Set to 1 by `worldCollisionReadActionHit` when a pending `gWorldCollisionActionTriggerListHead` node is found;
 /// `worldCollisionUpdateTask` then calls `worldCollisionClearActionHits` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
 

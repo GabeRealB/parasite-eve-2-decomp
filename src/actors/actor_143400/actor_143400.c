@@ -917,7 +917,7 @@ static void _actor143400SelectSceneCaptions(s32 enable)
            SCENE_CAP_TEXTURE_Y = 256 };
 
     if (enable != 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(SCENE_CAP_RESOURCE);
         capSetTexturePage(SCENE_CAP_TEXTURE_X, SCENE_CAP_TEXTURE_Y);
         return;

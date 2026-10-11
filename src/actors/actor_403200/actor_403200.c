@@ -6544,7 +6544,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
         work->state                  = ACTOR_403200_STATE_DEATH_HANDOFF;
         gSceneCombatState.battleRefs = 1;
         // Dumping Hole room variant 1 installs ten contiguous triggers quads.
-        triggers              = Gp_PendingObj4C;
+        triggers              = gWorldCollisionActionTriggerListHead;
         triggers[9].origin.vx = task->extra.tmd->coords->coord.t[0] + 0xFA0;
         exitOrigin            = &triggers[9].origin;
         exitOrigin->vy        = task->extra.tmd->coords->coord.t[1] - 0x64;

@@ -929,10 +929,10 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
     // Reset the twelve spell entries; the other six debug entries remain untouched.
     for (spellRow = 0; spellRow < ATTACHMENT_SPELL_COUNT / 3; spellRow++) {
         for (spellColumn = 0; spellColumn < 3; spellColumn++) {
-            Gp_DebugAttachLevels[spellColumn + spellRow * 3] = 0;
+            gAttachmentTrainingLevels[spellColumn + spellRow * 3] = 0;
         }
     }
-    Gp_DebugAttachLevels[ATTACHMENT_INDEX_PYROKINESIS] = 1;
+    gAttachmentTrainingLevels[ATTACHMENT_INDEX_PYROKINESIS] = 1;
 
     switch (courseLevel) {
         case 1:
@@ -948,8 +948,8 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1)->attachSlot  = MIST_SHOOTING_GALLERY_TRAINING_GPS_ATTACHMENT_SLOT;
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT1;
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT2;
-            Gp_DebugAttachLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                                           = 1;
-            Gp_DebugAttachLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX]                        = 1;
+            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                                      = 1;
+            gAttachmentTrainingLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX]                   = 1;
             break;
         case 5:
             itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
@@ -961,8 +961,8 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
             inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
-            Gp_DebugAttachLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                    = 1;
-            Gp_DebugAttachLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX] = 1;
+            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                    = 1;
+            gAttachmentTrainingLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX] = 1;
             break;
     }
     equipmentRestoreHpMp();
@@ -1017,7 +1017,7 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             equippedWeapon   = &gPlayerStatus.weapon;
-            loadOptions      = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+            loadOptions      = &gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
             ammoItemId       = loadOptions->acceptedItemIds[0];
             *equippedWeapon  = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
             // Replace the training loadout and attach its ammunition in slot one.
@@ -1573,7 +1573,7 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
     contentTop     = object->panel.contentTop.signedValue;
     rowY           = contentTop + 0xF;
-    displayedValue = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
+    displayedValue = gEquipmentModeBaseStats[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
     captionX       = object->panel.contentLeft.signedValue + 6;
     if (displayedValue < MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD) {
         valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
@@ -1583,7 +1583,7 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY           = contentTop + 0x1E;
-    displayedValue = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
+    displayedValue = gEquipmentModeBaseStats[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
     valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
     if (displayedValue < MIST_SHOOTING_GALLERY_BASE_MP_WARNING_THRESHOLD) {
         valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
@@ -1910,7 +1910,7 @@ static void _mistShootingGalleryCapPlaybackTask(Task* task)
 
     switch (task->state) {
         case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_START:
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             // Select the relocated CAP file and its VRAM texture-page origin.
             if (task->spawnArg2.value == MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS) {
                 capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);

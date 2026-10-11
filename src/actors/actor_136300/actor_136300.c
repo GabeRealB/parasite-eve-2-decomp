@@ -2169,7 +2169,7 @@ static void _actor136300SelectSceneCaptions(s32 restoreDefaults)
         ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_Y = 256,
     };
     if (restoreDefaults == 0) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         capSelectLoadedFile(ACTOR_136300_SCENE_CAP_FILE_ORDINAL);
         capSetTexturePage(ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_X, ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_Y);
         return;

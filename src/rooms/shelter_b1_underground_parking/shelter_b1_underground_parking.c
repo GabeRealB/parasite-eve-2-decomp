@@ -2281,7 +2281,7 @@ static inline s32 _shelterB1UndergroundParkingRoomTriggerHit(void)
 {
     WorldCollisionTrigger* trigger;
 
-    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
         if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
             return 1;
         }
@@ -2478,7 +2478,7 @@ static void _shelterB1UndergroundParkingAlternateCapTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_START:
-            Gp_CapFile = 0;
+            gCapFile = 0;
             capSelectLoadedFile(SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_RESOURCE);
             capSetTexturePage(SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_VRAM_X, 0);
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);

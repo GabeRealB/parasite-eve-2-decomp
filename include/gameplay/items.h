@@ -10,7 +10,12 @@
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
-extern PlayerModeBaseStats Gp_StatRows[];
+/// Starting maximum HP and MP before equipment, PE levels and saved bonuses.
+///
+/// Indexed by saved gameMode 0..3: normal/replay 100/30, Bounty 100/30,
+/// Scavenger 100/10, Nightmare 50/30 HP/MP. The shooting-gallery summary
+/// shows these same base figures. Rows remain live with gameplay.
+extern PlayerModeBaseStats gEquipmentModeBaseStats[4];
 
 /// Installs and fully charges every built-in weapon supply in the live save.
 ///
@@ -385,10 +390,19 @@ enum { ITEM_KEY_DESCRIPTOR_COUNT = 0x80 };
 /// enforce this bound; ids 0x180..0x2FF are outside this object's extent.
 extern ItemDesc gItemKeyDescriptors[ITEM_KEY_DESCRIPTOR_COUNT];
 
-/// Weapon quantity/related-id rows, indexed by item id minus 0x80.
-extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty0;
+/// Primary weapon-load capacities and accepted consumables.
+///
+/// Indexed by weapon item id minus EQUIPMENT_WEAPON_ITEM_FIRST (0..31),
+/// independently of possession. Capacity counts rounds or supply units; all
+/// three choices are searched, including after zero slots. Rows live with gameplay.
+extern EquipmentWeaponLoadOptionsTable gEquipmentWeaponPrimaryLoadOptions;
 
-extern InventoryConsumableStack Gp_StackLimits[];
+/// Consumable pickup pack sizes and per-stack quantity limits.
+///
+/// Indexed by item id minus INVENTORY_CONSUMABLE_ITEM_FIRST, for ids 0xA0..0xBF
+/// only. A default grant uses packQty; a full-stack placed pickup uses maxHeld.
+/// Rows remain readable throughout the gameplay image's lifetime.
+extern InventoryConsumableStack gInventoryConsumableStacks[INVENTORY_CONSUMABLE_ITEM_COUNT];
 
 /// Returns 1 if an item has a free row or its first consumable stack has room.
 ///

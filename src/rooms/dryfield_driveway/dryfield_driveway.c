@@ -894,7 +894,7 @@ static inline s32 _dryfieldDrivewayRoomTriggerHit(void)
 {
     WorldCollisionTrigger* trigger;
 
-    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
         if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
             return 1;
         }

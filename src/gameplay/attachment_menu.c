@@ -838,7 +838,7 @@ void itemMenuDrawLoadRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             // Capture the selected row before the sound request; it remains the dialog payload.
-            selectedItemId = Gp_SelItemRec->itemId;
+            selectedItemId = gItemMenuSelectedRow->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if ((u32)(selectedItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
                 gItemMenuWeaponLoadSelection = EQUIPMENT_CLEAR_LOAD_BOTH;
@@ -874,8 +874,8 @@ void itemMenuDrawExchangeRow(UiList* list, UiObject* object)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             selectedItemId = INVENTORY_ITEM_NONE;
-            if (Gp_SelItemRec != NULL) {
-                selectedItemId = Gp_SelItemRec->itemId;
+            if (gItemMenuSelectedRow != NULL) {
+                selectedItemId = gItemMenuSelectedRow->itemId;
             }
             // An empty or consumable slot chooses ammunition for the equipped weapon.
             if (((u32)(selectedItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) || (selectedItemId == INVENTORY_ITEM_NONE)) {

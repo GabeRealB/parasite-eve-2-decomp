@@ -16,6 +16,8 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/message.h"
+#include "gameplay/damage.h"
+#include "gameplay/room_effects.h"
 #include "weapon_data.h"
 
 #include "main/display.h"
@@ -102,54 +104,62 @@ enum {
         gte_stsv(size);                             \
     } while (0)
 
-WeaponAttackRow Gp_IdParamLo[47] = {
-    { 0, 0, 0, 0, 0 },
-    { 10, 0, 0, 1, 0 },
-    { 15, 0, 0, 1, 0 },
-    { 20, 0, 0, 1, 0 },
-    { 9999, 0, 0, 0, 0 },
-    { 9999, 0, 0, 0, 0 },
-    { 9999, 0, 0, 0, 0 },
-    { 40, 0, 0, 1, 0 },
-    { 70, 0, 3, 2, 0 },
-    { 999, 0, 3, 2, 0 },
-    { 270, 0, 4, 3, 10 },
-    { 220, 0, 6, 4, 3 },
-    { 60, 0, 9, 0, 10 },
-    { 40, 0, 6, 4, 0 },
-    { 70, 0, 7, 3, 0 },
-    { 90, 0, 5, 5, 0 },
-    { 22, 0, 0, 1, 0 },
-    { 1, 0, 2, 0, 0 },
-    { 1, 0, 9, 0, 0 },
-    { 9999, 0, 0, 0, 0 },
-    { 9999, 0, 0, 0, 0 },
-    { 10, 0, 0, 6, 11 },
-    { 0, 0, 8, 0, 0 },
-    { 10, 0, 0, 6, 8 },
-    { 1500, 0, 6, 4, 9 },
-    { 2000, 0, 7, 3, 9 },
-    { 2000, 0, 1, 7, 10 },
-    { 100, 0, 1, 8, 9 },
-    { 80, 0, 1, 15, 0 },
-    { 90, 0, 0, 8, 10 },
-    { 35, 0, 7, 16, 5 },
-    { 25, 0, 0, 10, 5 },
-    { 2500, 0, 5, 5, 9 },
-    { 60, 0, 6, 4, 2 },
-    { 80, 0, 6, 4, 2 },
-    { 100, 0, 6, 4, 2 },
-    { 15, 0, 7, 3, 5 },
-    { 30, 0, 1, 0, 1 },
-    { 45, 0, 1, 10, 0 },
-    { 80, 0, 1, 10, 0 },
-    { 45, 0, 2, 7, 0 },
-    { 45, 0, 1, 10, 0 },
-    { 12, 0, 0, 1, 0 },
-    { 40, 0, 1, 1, 1 },
-    { 60, 0, 1, 1, 1 },
-    { 60, 0, 7, 3, 1 },
-    { 100, 0, 7, 3, 1 },
+/// Ammunition SPECIAL labels whose shared victim-response semantics remain separate.
+enum {
+    WEAPON_ATTACK_ATTRIBUTE_BURST    = 4,
+    WEAPON_ATTACK_ATTRIBUTE_PIERCING = 5,
+    WEAPON_ATTACK_ATTRIBUTE_FLASH    = 9,
+    WEAPON_ATTACK_NO_HIT_EFFECT      = 0
+};
+
+WeaponAttackRow gWeaponAttackRows[47] = {
+    { 0, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 10, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },
+    { 15, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },
+    { 20, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },
+    { 9999, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 9999, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 9999, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 40, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },
+    { 70, 0, DAMAGE_PLAYER_REACTION_POISON, EFFECT_HIT_KIND_TINTED_PUFF, 0 },
+    { 999, 0, DAMAGE_PLAYER_REACTION_POISON, EFFECT_HIT_KIND_TINTED_PUFF, 0 },
+    { 270, 0, WEAPON_ATTACK_ATTRIBUTE_BURST, EFFECT_HIT_KIND_BLAST, 10 },
+    { 220, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 3 },
+    { 60, 0, WEAPON_ATTACK_ATTRIBUTE_FLASH, WEAPON_ATTACK_NO_HIT_EFFECT, 10 },
+    { 40, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 0 },
+    { 70, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_BLAST, 0 }, // Firefly ammunition.
+    { 90, 0, WEAPON_ATTACK_ATTRIBUTE_PIERCING, EFFECT_HIT_KIND_SPLATTER, 0 },
+    { 22, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },
+    { 1, 0, DAMAGE_PLAYER_REACTION_BUILDUP, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 1, 0, WEAPON_ATTACK_ATTRIBUTE_FLASH, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 9999, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 9999, 0, DAMAGE_PLAYER_REACTION_NONE, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 10, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_SPARK_AND_PUFFS, 11 },
+    { 0, 0, 8, WEAPON_ATTACK_NO_HIT_EFFECT, 0 },
+    { 10, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_SPARK_AND_PUFFS, 8 },
+    { 1500, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 9 },
+    { 2000, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_BLAST, 9 },
+    { 2000, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_SPARK_BURST, 10 },
+    { 100, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_DENSE_PUFFS, 9 },
+    { 80, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_HAMMER_FLASH, 0 },
+    { 90, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_DENSE_PUFFS, 10 },
+    { 35, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_WEAPON_BLAST, 5 }, // M4A1 Pyke flame.
+    { 25, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_CONTROL_E3, 5 },
+    { 2500, 0, WEAPON_ATTACK_ATTRIBUTE_PIERCING, EFFECT_HIT_KIND_SPLATTER, 9 },
+    { 60, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 2 },  // Actor 01200 burst; mine-cavern target blast.
+    { 80, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 2 },  // Actor 04000 burst.
+    { 100, 0, DAMAGE_PLAYER_REACTION_EXPLOSION, EFFECT_HIT_KIND_PARTICLE_EMITTER, 2 }, // Sucklerceph blast.
+    { 15, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_BLAST, 5 },            // Maggot/Caterpillar flame.
+    { 30, 0, DAMAGE_PLAYER_REACTION_STAGGER, WEAPON_ATTACK_NO_HIT_EFFECT, 1 },         // Attack producer unproven.
+    { 45, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_CONTROL_E3, 0 },          // Watcher beam variant 0.
+    { 80, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_CONTROL_E3, 0 },          // Watcher beam variant 1.
+    { 45, 0, DAMAGE_PLAYER_REACTION_BUILDUP, EFFECT_HIT_KIND_SPARK_BURST, 0 },         // Watcher beam variant 2.
+    { 45, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_CONTROL_E3, 0 },          // Watcher beam variant 3.
+    { 12, 0, DAMAGE_PLAYER_REACTION_NONE, EFFECT_HIT_KIND_WEAPON_PUFF, 0 },            // Watcher gun.
+    { 40, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_WEAPON_PUFF, 1 },         // GOLEM grenade.
+    { 60, 0, DAMAGE_PLAYER_REACTION_STAGGER, EFFECT_HIT_KIND_WEAPON_PUFF, 1 },         // Attack producer unproven.
+    { 60, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_BLAST, 1 },            // Amoeba fireball variant 0.
+    { 100, 0, DAMAGE_PLAYER_REACTION_INCENDIARY, EFFECT_HIT_KIND_BLAST, 1 },           // Amoeba fireball variant 1.
 };
 
 /// Draws an item's name, icon and ordinary P.E. level without an equipment mark.
@@ -596,7 +606,7 @@ void itemMenuInfoTask(Task* task)
                     categoryRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                     categoryRequest.drawMode   = TEXT_DRAW_OUTLINED;
                     textDrawString(&categoryRequest, gItemMenuCaliberTexts[caliberIndex]);
-                    attackTable = Gp_IdParamLo;
+                    attackTable = gWeaponAttackRows;
                     attackIndex = itemId - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1);
                     attack      = attackTable + attackIndex;
                     textItoaSigned(quantityText, attack->amount);
@@ -618,7 +628,7 @@ void itemMenuInfoTask(Task* task)
                     powerValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                     textDrawString(&powerValueRequest, quantityText);
                     textItoaSigned(quantityText, inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId));
-                    textItoaSigned(stackLimitText, Gp_StackLimits[consumableIndex].maxHeld);
+                    textItoaSigned(stackLimitText, gInventoryConsumableStacks[consumableIndex].maxHeld);
                     textAppendString(quantityText, gItemMenuFractionSeparatorText);
                     textAppendString(quantityText, stackLimitText);
                     rowY                            = contentTop + 0x3C;

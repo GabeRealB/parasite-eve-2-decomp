@@ -85,7 +85,7 @@ void itemPickupActionPromptTask(Task* task)
             taskKill(task);
             return;
         }
-        switch (Gp_PubItemLoc >> 8) {
+        switch (gItemPickupPublishedKind >> 8) {
             case ITEM_PICKUP_PLACE_BANK_ITEM:
             case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
                 descriptor = &gItemMenuPanelDescriptors[ITEM_PICKUP_PANEL_DESCRIPTOR];
@@ -98,7 +98,7 @@ void itemPickupActionPromptTask(Task* task)
                 save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                 save->state.playerExp  = player->exp;
                 save->state.playerBp   = player->bp;
-                save->state.savePoint  = Gp_PubItemLoc;
+                save->state.savePoint  = gItemPickupPublishedKind;
                 stageEnsureHeapTaskPrimitiveBuffer();
                 descriptor = &D_8010D348;
                 break;
@@ -124,17 +124,17 @@ void itemPickupActionPromptTask(Task* task)
         if (rootTask != NULL) {
             rootObject = rootTask->spawnArg2.pointer;
             if (rootObject->result == USER_INTERFACE_RESULT_CANCEL || rootObject->result == USER_INTERFACE_RESULT_CONFIRM) {
-                switch (Gp_PubItemLoc >> 8) {
+                switch (gItemPickupPublishedKind >> 8) {
                     case ITEM_PICKUP_PLACE_BANK_ITEM:
                     case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
                         if (rootObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
                             // Session state gates the write to the saved stage bank.
                             flagIndex        = request->actionId;
-                            sessionStateWord = Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
+                            sessionStateWord = gAreaObjectStages[gGameSession->location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
                             bitShift         = (flagIndex & ITEM_PICKUP_ACTION_STATE_INDEX_MASK) * ITEM_PICKUP_ACTION_STATE_BITS;
                             stateMask        = ITEM_PICKUP_ACTION_STATE_MASK << bitShift;
                             if (((*sessionStateWord & stateMask) >> bitShift) != ITEM_PICKUP_ACTION_REPLENISHABLE_STATE) {
-                                savedStateWord  = Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
+                                savedStateWord  = gAreaObjectStages[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
                                 *savedStateWord = (*savedStateWord & ~stateMask) | (ITEM_PICKUP_ACTION_COLLECTED_STATE << bitShift);
                             }
                             request->accepted = 1;

@@ -38,19 +38,12 @@ void attachmentAddTargetContact(const struct Enemy* enemy, s32 attackKey);
 /// Returns the low 16 bits in s32 and does not change saved or table state.
 s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column);
 
-// Shared HUD/replay work.
-extern HudHpMp Gp_HpMpWork;
-
-/// Current replay buttons and remaining frame count.
-extern u16 Gp_ReplayButtons;
-
-extern u16 Gp_ReplayFramesLeft;
-
-/// Word cleared by _attachmentArmCast and incremented by _attachmentUpdateAndDrawHud.
-extern s32 D_80114C34;
-
-/// Read position in the recorded demo pad stream: button/count pairs.
-extern u16* Gp_ReplayCursor;
+/// Elapsed attachment-HUD updates while an armed cast's sound is queued.
+///
+/// Arming clears this signed word. Queued updates increment it; the first
+/// positive result completes the sound request and clears it again, including
+/// outside battle when no sound file is enqueued.
+extern s32 gAttachmentSoundQueueTicks;
 
 /// Returns one level parameter of the active spell or item attachment.
 ///
@@ -82,18 +75,6 @@ enum { ATTACHMENT_TARGET_PREVIEW = 0,
 /// Healing outside battle uses the row minimum; battle rolls a 1/256 blend.
 void attachmentApplySelfEffect(s32 releaseEffects);
 
-/// Percentages `damageIsEnemyDamageOverTimeExpired` scales an enemy's `param->damageOverTimeTicks` by,
-/// one per `Enemy.damageOverTimeGrade`: how long the damage-over-time reaction lasts.
-extern u16 D_80113D28[];
-
-/// Percentages `damageTickEnemyBuildup` scales an enemy's `param->buildupSteps` by, one
-/// per `Enemy.buildupGrade`: how far the buildup reaction builds up.
-extern u16 D_80113D30[];
-
-/// Percentages of an enemy's `param->hpMax` that one pulse of the
-/// damage-over-time reaction removes, one per `Enemy.damageOverTimeGrade`.
-extern u16 D_80113D38[];
-
 /// Damage-scale rows used by `damageComputeReceived`. Indexed by `gSceneCombatState.difficulty`.
 extern DamageReceivedScaleRow Gp_DmgRows[];
 
@@ -104,14 +85,20 @@ extern u16 D_80113F54[];
 /// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
 extern u16 D_80113CFC[];
 
-/// Percent scale table used by `damageComputePlayerAttack` / `damageRollCriticalHit` when
-/// `gAttachmentState.energyShotCombo` is non-zero. Indexed by
-/// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `damageComputePlayerAttack` reads
-/// `field_0` and `damageRollCriticalHit` reads `field_2` of each 4-byte slot.
-extern u16 D_80113D0C[][2];
+/// Damage and critical-chance percentages for one Energy Shot combo.
+typedef struct {
+    u16 damagePercent;   // Multiplier of weapon HP damage, in whole percent.
+    u16 criticalPercent; // Multiplier of critical chance, in whole percent.
+} AttachmentEnergyShotComboScale;
+STATIC_ASSERT_SIZEOF(AttachmentEnergyShotComboScale, 4);
 
-/// Final percent scale applied by `damageComputePlayerAttack`, indexed by `gSceneCombatState.difficulty`.
-extern u16 D_80113F90[];
+/// Energy Shot weapon-damage and critical-chance scales for level/stack combos.
+///
+/// Row 0 is the neutral 100/100 scale. With an active combo, level 1..3 and
+/// stack 1..2 select `(level - 1) * 2 + stack` (rows 1..6). The high nibble
+/// holds the latest cast's level and the low nibble the accumulated stack.
+/// A cleared combo skips the table. Borrowed rows live with gameplay.
+extern AttachmentEnergyShotComboScale gAttachmentEnergyShotComboScales[7];
 
 extern const char D_800938AC[8];
 
@@ -294,7 +281,7 @@ void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object);
 
 /// Draws Load and opens a weapon-slot or compatible-weapon choice on active Confirm.
 ///
-/// `Gp_SelItemRec` must remain a live carried row. A weapon id 0x80..0x9F
+/// `gItemMenuSelectedRow` must remain a live carried row. A weapon id 0x80..0x9F
 /// opens its load-slot list and resets the removal selector to both slots;
 /// a consumable id 0xA0..0xBF opens the compatible-weapon list. Other ids only
 /// play the confirmation sound. A recognized request consumes row input and

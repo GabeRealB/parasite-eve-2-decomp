@@ -12,6 +12,7 @@
 
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "game_debug.h"
 #include "attachments.h"
 #include "gameplay/game_debug.h"
 #include "hud_sprites.h"
@@ -2791,9 +2792,6 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         GAME_DEBUG_REPLAY_CURSOR_LIMIT_BYTES = 0x17FDF,
         GAME_DEBUG_REPLAY_BUTTONS_INVALID    = 0xFFFF,
         GAME_DEBUG_REPLAY_BUTTONS_END        = GAME_DEBUG_REPLAY_BUTTONS_INVALID,
-        GAME_DEBUG_REPLAY_BUTTONS_HALFWORD   = 0,
-        GAME_DEBUG_REPLAY_DURATION_HALFWORD  = 1,
-        GAME_DEBUG_REPLAY_RECORD_HALFWORDS   = 2
     };
     u16 remainingFrames;
     u16 recordedButtons;
@@ -2804,36 +2802,38 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         return;
     }
 
-    // The cursor addresses halfwords, but the buffer limit is a byte offset.
-    cursorOffsetBytes = (u8*)Gp_ReplayCursor - gFsActorBuffer2Base;
+    // The cursor advances in records, but the buffer limit is a byte offset.
+    cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - gFsActorBuffer2Base;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        cursorOffsetBytes = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
+        cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
     if (cursorOffsetBytes <= GAME_DEBUG_REPLAY_CURSOR_LIMIT_BYTES) {
         if (GameMain_HaltFlags != 0) {
-            *buttons = Gp_ReplayButtons;
+            *buttons = gGameDebugReplayButtons;
             return;
         }
-        recordedButtons = Gp_ReplayCursor[GAME_DEBUG_REPLAY_BUTTONS_HALFWORD];
-        if (recordedButtons != Gp_ReplayButtons) {
-            Gp_ReplayButtons    = recordedButtons;
-            Gp_ReplayFramesLeft = Gp_ReplayCursor[GAME_DEBUG_REPLAY_DURATION_HALFWORD];
+        recordedButtons = gGameDebugReplayCursor->buttons;
+        if (recordedButtons != gGameDebugReplayButtons) {
+            gGameDebugReplayButtons         = recordedButtons;
+            gGameDebugReplayFramesRemaining = gGameDebugReplayCursor->durationFrames;
         }
         if (*buttons & PAD_BUTTON_START) {
-            *buttons                    = Gp_ReplayButtons | PAD_BUTTON_START;
+            *buttons                    = gGameDebugReplayButtons | PAD_BUTTON_START;
             Wip_SysFlags.skipTitleIntro = 1;
         } else {
-            *buttons = Gp_ReplayButtons;
+            *buttons = gGameDebugReplayButtons;
         }
-        remainingFrames     = Gp_ReplayFramesLeft - 1;
-        Gp_ReplayFramesLeft = remainingFrames;
+        remainingFrames                 = gGameDebugReplayFramesRemaining - 1;
+        gGameDebugReplayFramesRemaining = remainingFrames;
         if (remainingFrames == 0) {
-            u16* nextRecord = Gp_ReplayCursor + GAME_DEBUG_REPLAY_RECORD_HALFWORDS;
+            const GameDebugReplayRecord* nextRecord  = gGameDebugReplayCursor + 1;
+            const u16*                   nextButtons = &nextRecord->buttons;
 
-            // Invalidate the cache so the next record installs its duration.
-            Gp_ReplayButtons = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
-            Gp_ReplayCursor  = nextRecord;
-            if (*nextRecord == GAME_DEBUG_REPLAY_BUTTONS_END) {
+            // Publish the next record before testing its first button halfword.
+            // Invalidating the cache makes that record install its duration.
+            gGameDebugReplayButtons = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+            gGameDebugReplayCursor  = nextRecord;
+            if (*nextButtons == GAME_DEBUG_REPLAY_BUTTONS_END) {
                 Wip_SysFlags.skipTitleIntro        = 0;
                 gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
@@ -2872,13 +2872,13 @@ static inline void _gameDebugInitializePlayReplay(DisplayState* display)
     display->vsyncCount      = 0;
     display->loopTicks       = 0;
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
-        Gp_ReplayCursor = (u16*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Invalidate the button cache so the first record installs its duration.
-    Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
-    Gp_ReplayFramesLeft                = GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT;
+    gGameDebugReplayButtons            = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+    gGameDebugReplayFramesRemaining    = GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT;
     gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 

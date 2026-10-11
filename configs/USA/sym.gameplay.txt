@@ -1237,9 +1237,9 @@ _gModelObjectSavedModelList = 0x80114B80; // size:0x8 defined:True
 _gModelObjectSavedDisp2dList = 0x80114B88; // size:0x8 defined:True
 _gModelObjectTemporaryDrawTask = 0x80114B90; // size:0x4 defined:True
 _gActorRenderLastFullChainCoord = 0x80114B9C; // size:0x4 defined:True
-Gp_ReplayButtons = 0x80114C02; // size:0x2 defined:True
-Gp_ReplayFramesLeft = 0x80114C04; // size:0x2 defined:True
-Gp_ReplayCursor = 0x80114C38; // size:0x4 defined:True
+gGameDebugReplayButtons = 0x80114C02; // size:0x2 defined:True
+gGameDebugReplayFramesRemaining = 0x80114C04; // size:0x2 defined:True
+gGameDebugReplayCursor = 0x80114C38; // size:0x4 defined:True
 
 // Gameplay naming pass 2 (SPRT/HUD, area, anim, flags/msg)
 _gSpriteViewCachedPacketBuffers = 0x8010CAE8; // size:0x8 defined:True
@@ -1251,7 +1251,7 @@ _gSpriteViewCachedPacketCursor = 0x80114CC8; // size:0x4 defined:True
 
 // Gameplay naming pass 3 (link nodes, items, room coords, area flags)
 Gp_StrWeapon                = 0x80097454;
-Gp_StrGetLockPosNull        = 0x80097460;
+gWorldTargetNullBodyPositionDiagnostic        = 0x80097460;
 Gp_StrItemObtained          = 0x8010CA08; // defined:True
 Gp_StrBonusItem             = 0x8010CA18; // defined:True
 gWorldCoordRoomLightingTables = 0x8010CBA4; // size:0x14 defined:True
@@ -1267,7 +1267,7 @@ gPlayerActorTasks               = 0x80115760; // size:0x8 defined:True
 
 // Gameplay naming pass 4 (inventory, obj lists, view-count)
 Gp_ViewCountTables = 0x8010CB40; // size:0x14 defined:True
-Gp_Bit2Banks = 0x8010D230; // size:0x30 defined:True
+gAreaObjectStages = 0x8010D230; // size:0x30 defined:True
 // Gameplay-owned Dryfield object-placement lists shared by the day and night maps.
 gAreaDryfieldGasStationObjectPlaces = 0x80114588; // defined:True
 gAreaDryfieldMainStreetObjectPlaces = 0x801145F8; // defined:True
@@ -1297,7 +1297,7 @@ _gWorldCollisionBodyListHeads = 0x8010FA8C; // size:0x24 defined:True
 Gp_Obj4ALists = 0x8010FAB0; // size:0x8 defined:True
 Gp_Obj3ALists = 0x8010FAB8; // size:0x4 defined:True
 Gp_CollectedIds = 0x80114AE0; // size:0x52 defined:True
-Gp_DebugAttachLevels = 0x80114BF0; // size:0x12 defined:True
+gAttachmentTrainingLevels = 0x80114BF0; // size:0x12 defined:True
 _gWorldTargetReadouts = 0x80115270; // size:0x180 defined:True
 
 // Gameplay naming pass 5 (item UI, load-wait, remaining getters)
@@ -1316,8 +1316,8 @@ Gp_FadeTiles = 0x80114C80; // size:0x20 defined:True
 Gp_FadeTpages = 0x80114CA0; // size:0x10 defined:True
 Gp_ItemMoveWork             = 0x80114D78; // size:0x4 defined:True
 Gp_PubItemReady = 0x80114DC8; // size:0x2 defined:True
-Gp_PubItemQty = 0x80114DD0; // size:0x2 defined:True
-Gp_PubItemLoc = 0x80114DDC; // size:0x2 defined:True
+gItemPickupPublishedQuantity = 0x80114DD0; // size:0x2 defined:True
+gItemPickupPublishedKind = 0x80114DDC; // size:0x2 defined:True
 Gp_PubItemId = 0x80114DEC; // size:0x2 defined:True
 
 // Gameplay naming pass 6 (player/ally, CAP, map, pair ids)
@@ -1348,7 +1348,7 @@ gDirectionWarpRequest                  = 0x80114CE8; // size:0x8 defined:True
 gWorldCollisionSurfacePushbackSuppression = 0x80115428; // size:0x20 defined:True
 
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
-Gp_ItemMaps = 0x8010D2F8; // size:0x20 defined:True
+gEquipmentWeaponSupplies = 0x8010D2F8; // size:0x20 defined:True
 gMenuMapStageAreaCounts = 0x8010CAF0; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // size:0x32 defined:True
 Gp_DefaultScan = 0x8010D520; // size:0x4 defined:True
@@ -1359,10 +1359,10 @@ Gp_ItemSortKey0 = 0x80114A40; // size:0x48 defined:True
 Gp_ItemSortKey60 = 0x80114A88; // size:0xF defined:True
 Gp_ItemSortKey80 = 0x80114A98; // size:0x21 defined:True
 Gp_ItemSortKeyA0 = 0x80114ABC; // size:0x21 defined:True
-Gp_RelatedQty0 = 0x8010E238; // size:0x80 defined:True
-Gp_RelatedQty1 = 0x8010D278; // size:0x80 defined:True
+gEquipmentWeaponPrimaryLoadOptions = 0x8010E238; // size:0x80 defined:True
+gEquipmentWeaponSecondaryLoadOptions = 0x8010D278; // size:0x80 defined:True
 gWorldCollisionViewBoundaryListHead = 0x80115554; // size:0x4 defined:True
-Gp_PendingObj4C = 0x8011556C; // size:0x4 defined:True
+gWorldCollisionActionTriggerListHead = 0x8011556C; // size:0x4 defined:True
 Gp_PendingObj4CFlag = 0x80115424; // size:0x4 defined:True
 gWorldCollisionActiveGrid = 0x80115448; // size:0x4 defined:True
 gWorldCoordAmbientColorOverrideEnabled          = 0x80114F18; // size:0x1 defined:True
@@ -1378,15 +1378,15 @@ Gp_BtnMap1                  = 0x8010FBFC; // size:0x10 defined:True
 Gp_BtnMap2                  = 0x8010FC0C; // size:0x10 defined:True
 Gp_BtnMap2Alt               = 0x8010FC1C; // size:0x10 defined:True
 gWorldCoordTransientPointLights = 0x80114F30; // size:0x320 defined:True
-Gp_StatRows                 = 0x8010D328; // size:0x20 defined:True
-Gp_StackLimits = 0x8010E3B8; // size:0x80 defined:True
+gEquipmentModeBaseStats                 = 0x8010D328; // size:0x20 defined:True
+gInventoryConsumableStacks = 0x8010E3B8; // size:0x80 defined:True
 
 // Gameplay naming pass 10 (held equip, cap evt, light, id tables)
 // gNmcNamesEnemyNameTable lives in another overlay (0x801D6484); import is in
 // configs/USA/sym.gameplay.imports.txt (absolute:True).
 gEquipmentArmorStats = 0x8010E2B8; // size:0x100 defined:True
 Gp_ItemAttrs                = 0x8010DFB8;
-Gp_IdParamLo = 0x80113390; // size:0x1D6 defined:True
+gWeaponAttackRows = 0x80113390; // size:0x1D6 defined:True
 gAttachmentLevelTable = 0x8011398C; // size:0x370 defined:True
 Gp_IdField0 = 0x80114028; // size:0x2C defined:True
 Gp_IdField1 = 0x80114054; // size:0x42 defined:True
@@ -1434,8 +1434,8 @@ gItemPickupQuestionText             = 0x8010E564; // defined:True
 gItemPickupInventoryFullText               = 0x8010E578; // defined:True
 Gp_StrSort                  = 0x8010E58C; // defined:True
 gItemMenuAmmoLabelText              = 0x8010E594; // defined:True
-Gp_StrMore = 0x8010D364; // size:0x6 defined:True
-Gp_StrAttachAvail = 0x8010D36C; // size:0x17 defined:True
+_gItemMenuPouchMoreText = 0x8010D364; // size:0x6 defined:True
+_gItemMenuPouchAttachmentsAvailableText = 0x8010D36C; // size:0x17 defined:True
 Gp_StrMove2                 = 0x8010D580; // defined:True
 Gp_StrSetAmmoHelp           = 0x8010D590; // defined:True
 Gp_StrAmmoLocked            = 0x8010D5D0; // defined:True
@@ -1581,16 +1581,16 @@ Gp_StrDetachArmorHelp = 0x8010F9A4; // size:0x19 defined:True
 // Gameplay naming pass 15 (StateF0, play clock, load-wait, lock)
 gSceneCombatState = 0x801153F0; // size:0x2C defined:True
 gAttachmentState = 0x80114C08; // size:0x18 defined:True
-Gp_HpMpWork = 0x80114BE8; // size:0x8 defined:True
+gHudDisplayedVitals = 0x80114BE8; // size:0x8 defined:True
 gRoomEffectState                  = 0x80115740; // size:0x4 defined:True
 gItemMenuPreviewItemIds             = 0x8010E8F8; // size:0x14 defined:True
-Gp_SelItemRec = 0x80114DD4; // size:0x4 defined:True
-Gp_BoostPanelDesc = 0x8010D384; // size:0x1C defined:True
+gItemMenuSelectedRow = 0x80114DD4; // size:0x4 defined:True
+_gItemMenuBoostStatsPanelDesc = 0x8010D384; // size:0x1C defined:True
 Gp_QtyById0                 = 0x8010E038;
 Gp_QtyById1                 = 0x8010D078;
 
 // Gameplay naming pass 16 (cap load, child anim, HP band)
-Gp_CapFile = 0x8011568C; // size:0x4 defined:True
+gCapFile = 0x8011568C; // size:0x4 defined:True
 Gp_PlayerAnimBlkTbl = 0x80112D6C; // size:0x88 defined:True
 
 // Gameplay naming pass 18 (pad scripts, caret, State1C)
@@ -2061,7 +2061,7 @@ gCapPreserveActorControl = 0x80115690; // size:0x1 defined:True
 D_80115694 = 0x80115694; // type:s32 size:0x4 defined:True
 
 gCapDisplayFramesRemaining = 0x80115698; // size:0x2 defined:True
-D_8011569C = 0x8011569C; // size:0x1 defined:True
+gCapUseDirectViewIndex = 0x8011569C; // size:0x1 defined:True
 D_801156A4 = 0x801156A4; // size:0x1 defined:True
 gCapConfirmedChoiceIndex = 0x801156A8; // size:0x4 defined:True
 
@@ -2077,7 +2077,7 @@ D_80114BB0 = 0x80114BB0; // size:0x20 defined:True
 D_80114BD0 = 0x80114BD0; // size:0x8 defined:True
 D_80114BD8 = 0x80114BD8; // size:0x4 defined:True
 
-D_80114C34 = 0x80114C34; // size:0x4 defined:True
+gAttachmentSoundQueueTicks = 0x80114C34; // size:0x4 defined:True
 
 D_80114C40 = 0x80114C40; // size:0x2 defined:True
 
@@ -2246,20 +2246,20 @@ D_80113340 = 0x80113340; // size:0x18 defined:True
 D_80113358 = 0x80113358; // size:0x8 defined:True
 D_80113388 = 0x80113388; // size:0x8 defined:True
 
-D_80113568 = 0x80113568; // size:0x2F0 defined:True
-D_80113858 = 0x80113858; // size:0xC defined:True
-D_80113864 = 0x80113864; // size:0x20 defined:True
+_gDamageAttackDistanceCriticalPercent = 0x80113568; // size:0x2F0 defined:True
+_gDamageExplosionCriticalDistancePercent = 0x80113858; // size:0xC defined:True
+_gDamageDistanceBandClasses = 0x80113864; // size:0x20 defined:True
 
 Gp_WeaponStats = 0x80113884; // size:0x108 defined:True
 
 D_80113CFC = 0x80113CFC; // size:0x10 defined:True
-D_80113D0C = 0x80113D0C; // size:0x1C defined:True
-D_80113D28 = 0x80113D28; // size:0x8 defined:True
-D_80113D30 = 0x80113D30; // size:0x8 defined:True
-D_80113D38 = 0x80113D38; // size:0x8 defined:True
+gAttachmentEnergyShotComboScales = 0x80113D0C; // size:0x1C defined:True
+gDamageEnemyPoisonPulseLimitPercent = 0x80113D28; // size:0x8 defined:True
+gDamageEnemyBuildupStepLimitPercent = 0x80113D30; // size:0x8 defined:True
+gDamageEnemyPoisonPulseDamagePercent = 0x80113D38; // size:0x8 defined:True
 Gp_AttachParams = 0x80113D40; // size:0x1B0 defined:True
 D_80113F54 = 0x80113F54; // size:0x3C defined:True
-D_80113F90 = 0x80113F90; // size:0xC defined:True
+gDamageAttackDifficultyPercent = 0x80113F90; // size:0xC defined:True
 
 D_80113F9C = 0x80113F9C; // size:0x8C defined:True
 
@@ -2317,3 +2317,4 @@ gItemMenuPeUpgradeMpLabel = 0x80097220;
 gItemMenuNoArmorBonusText = 0x8009707c;
 _gObjectTaskRoomStates = 0x800974c8;
 gCapTextLayout = 0x80097518;
+_gAnimationHeadAimLocalOffset = 0x80093a28;

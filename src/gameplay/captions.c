@@ -29,7 +29,7 @@
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 gCapSuppressViewChanges;
 
-CapFile* Gp_CapFile;
+CapFile* gCapFile;
 
 u8 gCapPreserveActorControl;
 
@@ -40,7 +40,7 @@ s16 gCapDisplayFramesRemaining;
 
 s16 gCapPauseFramesRemaining;
 
-u8 D_8011569C;
+u8 gCapUseDirectViewIndex;
 
 CapCommandRef* gCapCommandEntries;
 
@@ -321,7 +321,7 @@ void capUpdatePlaybackTask(Task* task)
         if (matchingScenePhase != 0) {
             D_801156A4 = controlFlags & (CAP_PLAYBACK_BYTE_MASK ^ CAP_EVENT_SCRIPT_WAITING_FOR_CUE);
         }
-        if (D_8011569C == 0) {
+        if (gCapUseDirectViewIndex == CAP_VIEW_SELECTOR_LOGICAL) {
             recordViewIndex = gCapSelectedSequence[(s16)gCapRecordIndex].control.scene.view;
             logicalViewId   = recordViewIndex & CAP_PLAYBACK_BYTE_MASK;
             if (logicalViewId != 0) {
@@ -1338,8 +1338,8 @@ void capSelectLoadedFile(s32 dataResourceOrdinal)
                 if (gDisplayState.debugMode != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = gFsResourceSlots[resourceSlotIndex].data;
-                capRelocateFile(Gp_CapFile);
+                gCapFile = gFsResourceSlots[resourceSlotIndex].data;
+                capRelocateFile(gCapFile);
                 break;
             }
             dataResourceIndex++;
@@ -1360,9 +1360,9 @@ void capReset(void)
     gCapConfirmedChoiceIndex = 0;
     D_8011565A               = 0;
     capSetTexturePage(CAP_DEFAULT_TEXTURE_VRAM_X, CAP_DEFAULT_TEXTURE_VRAM_Y);
-    Gp_CapFile = NULL;
+    gCapFile = NULL;
     capSelectLoadedFile(CAP_DEFAULT_FILE_ORDINAL);
-    D_8011569C = 0;
+    gCapUseDirectViewIndex = CAP_VIEW_SELECTOR_LOGICAL;
 }
 
 void capSetTextUpdateCallback(CapTextUpdateCallback callback)

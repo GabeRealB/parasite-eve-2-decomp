@@ -1095,7 +1095,7 @@ static void _shelterR36ArrivalSceneTask(Task* task)
             if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
                 sequenceSlot = SHELTER_R36_CAP_INITIAL_SLOT;
             } else {
-                Gp_CapFile = NULL;
+                gCapFile = NULL;
                 capSelectLoadedFile(SHELTER_R36_CAP_PROGRESS_FILE);
                 capSetTexturePage(SHELTER_R36_CAP_PROGRESS_TEXTURE_X, SHELTER_R36_CAP_PROGRESS_TEXTURE_Y);
                 sequenceSlot = SHELTER_R36_CAP_PROGRESS_SLOT;
@@ -1202,7 +1202,7 @@ static void _shelterR36SelectCapFile(s32 capFileId)
     s16 textureX;
 
     if (capFileId != SHELTER_R36_CAP_RESET) {
-        Gp_CapFile = 0;
+        gCapFile = 0;
         capSelectLoadedFile(capFileId);
         textureX = SHELTER_R36_CAP_OTHER_TEXTURE_X;
         if (capFileId == SHELTER_R36_CAP_FIRST_FILE) {

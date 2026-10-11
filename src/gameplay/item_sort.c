@@ -414,12 +414,12 @@ static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 ite
         stackFirstRow = range->firstRow;
         stackTable    = _inventoryGetRangeTable(range);
         if (quantity < 0) {
-            quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
+            quantity = gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
         }
         rangeIndex    = 0;
         stackRowCount = range->rowCount;
         if (stackRowCount != 0) {
-            stackCatalogue  = Gp_StackLimits;
+            stackCatalogue  = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
             stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
             stackRow        = gpItemRowAt(stackTable, stackFirstRow);
@@ -500,7 +500,7 @@ s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
         rangeIndex    = 0;
         stackRowCount = range->rowCount;
         if (stackRowCount != 0) {
-            stackCatalogue  = Gp_StackLimits;
+            stackCatalogue  = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
             stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
             stackRow        = gpItemRowAt(stackTable, stackFirstRow);
@@ -605,9 +605,9 @@ InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, 
     if (quantity < 0) {
         if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
             if (quantity == INVENTORY_ADD_FULL_STACK) {
-                quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
+                quantity = gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
             } else {
-                quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
+                quantity = gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
             }
         } else {
             quantity = 1;
@@ -621,8 +621,8 @@ InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, 
         for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, rowIndex++) {
             if (table[rowIndex].itemId == itemId) {
                 quantity += table[rowIndex].qty;
-                if (Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
-                    quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
+                if (gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
+                    quantity = gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
                 }
                 table[rowIndex].qty = quantity;
                 addedRow            = &table[rowIndex];
@@ -637,8 +637,8 @@ InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, 
         for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, rowIndex++) {
             if (table[rowIndex].itemId == INVENTORY_ITEM_NONE) {
                 table[rowIndex].itemId = itemId;
-                if (Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
-                    quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
+                if (gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
+                    quantity = gInventoryConsumableStacks[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
                 }
                 addedRow             = &table[rowIndex];
                 addedRow->qty        = quantity;
@@ -759,20 +759,20 @@ s32 inventoryGetNthWeaponForConsumable(const InventoryItemRange* range, s32 matc
     playerStatus = &gPlayerStatus;
     // Count each load separately, just as the weapon-list counter does.
     while (matchIndex >= 0) {
-        if ((u8)(table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        if ((u8)(table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
             if (consumableItemId == INVENTORY_ITEM_NONE) {
                 matchIndex--;
             } else {
-                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); choiceIndex++) {
-                    if (Gp_RelatedQty0.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
+                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows[0].acceptedItemIds); choiceIndex++) {
+                    if (gEquipmentWeaponPrimaryLoadOptions.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
                         if (table[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || playerStatus->weapon == table[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
                             matchIndex--;
                         }
                         break;
                     }
                 }
-                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds); choiceIndex++) {
-                    if (Gp_RelatedQty1.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
+                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(gEquipmentWeaponSecondaryLoadOptions.rows[0].acceptedItemIds); choiceIndex++) {
+                    if (gEquipmentWeaponSecondaryLoadOptions.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
                         if (table[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || playerStatus->weapon == table[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
                             matchIndex--;
                         }
@@ -803,18 +803,18 @@ static inline void _equipmentClearRemovableLoads(s32 weaponItemId)
 
     loads = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
-        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+        if (weaponItemId == gEquipmentWeaponSupplies[supplyIndex].weaponItemId) {
             hasSupply = 1;
             break;
         }
     }
 
-    if ((hasSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+    if ((hasSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
         loads->primaryItemId = INVENTORY_ITEM_NONE;
         loads->primaryQty    = 0;
     }
 
-    if ((hasSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+    if ((hasSupply == 0) || (gEquipmentWeaponSupplies[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
         if (loads->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             loads->secondaryItemId = INVENTORY_ITEM_NONE;
         }

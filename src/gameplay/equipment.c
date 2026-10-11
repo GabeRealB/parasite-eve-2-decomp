@@ -75,11 +75,11 @@ static inline s32 _equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSele
 
     weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
     capacity    = 0;
-    if ((u32)weaponIndex < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+    if ((u32)weaponIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
         if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-            capacity = Gp_RelatedQty0.rows[weaponIndex].capacity;
+            capacity = gEquipmentWeaponPrimaryLoadOptions.rows[weaponIndex].capacity;
         } else {
-            capacity = Gp_RelatedQty1.rows[weaponIndex].capacity;
+            capacity = gEquipmentWeaponSecondaryLoadOptions.rows[weaponIndex].capacity;
         }
     }
     return capacity;
@@ -110,8 +110,8 @@ static inline s16 _inventoryGetItemPresenceOrStackQuantity(const InventoryItemRo
     return present;
 }
 
-EquipmentWeaponLoadOptionsTable Gp_RelatedQty1                             = { { { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 50, { 181, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 40, { 187, 0, 0 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 30, { 189, 0, 0 } }, { 60, { 190, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } } } };
-EquipmentWeaponSupply           Gp_ItemMaps[EQUIPMENT_WEAPON_SUPPLY_COUNT] = {
+EquipmentWeaponLoadOptionsTable gEquipmentWeaponSecondaryLoadOptions                    = { { { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 50, { 181, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 40, { 187, 0, 0 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 30, { 189, 0, 0 } }, { 60, { 190, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } } } };
+EquipmentWeaponSupply           gEquipmentWeaponSupplies[EQUIPMENT_WEAPON_SUPPLY_COUNT] = {
     { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x84, 0xB5, 0 }, // P229, Battery
     { EQUIPMENT_WEAPON_SUPPLY_PRIMARY, 0x95, 0xB9, 0 },   // Hypervelocity, Battery
     { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x98, 0xBB, 0 }, // M4A1 Hammer, Battery
@@ -130,8 +130,8 @@ void equipmentInitializeWeaponSupplies(void)
     s32                          weaponItemId;
 
     // Install each built-in supply at its load's capacity.
-    for (supplyIndex = 0; supplyIndex < ARRAY_SIZE(Gp_ItemMaps); supplyIndex++) {
-        supply       = &Gp_ItemMaps[supplyIndex];
+    for (supplyIndex = 0; supplyIndex < ARRAY_SIZE(gEquipmentWeaponSupplies); supplyIndex++) {
+        supply       = &gEquipmentWeaponSupplies[supplyIndex];
         weaponItemId = supply->weaponItemId;
         weaponLoad   = _equipmentGetWeaponLoad(weaponItemId);
         if (supply->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
@@ -182,17 +182,17 @@ s32 equipmentLoadCarriedWeaponConsumable(s32 loadSelection, s32 weaponItemId, s3
 
     range         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     inventoryRows = inventoryGetRangeTable(range);
-    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
         return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
     if (_inventoryGetItemPresenceOrStackQuantity(inventoryRows, range, weaponItemId) <= 0) {
         return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
     if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-        loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        loadOptions = &gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
         capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
-        loadOptions = &Gp_RelatedQty1.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        loadOptions = &gEquipmentWeaponSecondaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
         capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
     for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
@@ -257,13 +257,13 @@ s32 equipmentLoadWeaponConsumable(const InventoryItemRange* range, s32 weaponIte
 
     inventoryRows = inventoryGetRangeTable(range);
     loadSelection = EQUIPMENT_WEAPON_SUPPLY_PRIMARY;
-    if ((u32)(consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) >= INVENTORY_CONSUMABLE_ITEM_COUNT || (u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+    if ((u32)(consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) >= INVENTORY_CONSUMABLE_ITEM_COUNT || (u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
         return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
     if (_inventoryGetItemPresenceOrStackQuantity(inventoryRows, range, weaponItemId) <= 0) {
         return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    loadOptions = &gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
         if (loadOptions->acceptedItemIds[choiceIndex] == consumableItemId) {
@@ -272,7 +272,7 @@ s32 equipmentLoadWeaponConsumable(const InventoryItemRange* range, s32 weaponIte
     }
     if (choiceIndex == ARRAY_SIZE(loadOptions->acceptedItemIds)) {
         loadSelection = EQUIPMENT_WEAPON_SUPPLY_SECONDARY;
-        loadOptions   = &Gp_RelatedQty1.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        loadOptions   = &gEquipmentWeaponSecondaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
         capacity      = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
         for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
             if (loadOptions->acceptedItemIds[choiceIndex] == consumableItemId) {
@@ -339,11 +339,11 @@ u8 D_8010D320[2] = { 0x80, 0x83 };
 
 u8 D_8010D324[3] = { 0x9D, 0x9E, 0x9F };
 
-PlayerModeBaseStats Gp_StatRows[4] = {
-    { { 100 }, 30 },
-    { { 100 }, 30 },
-    { { 100 }, 10 },
-    { { 50 }, 30 },
+PlayerModeBaseStats gEquipmentModeBaseStats[4] = {
+    { { 100 }, 30 }, // Normal/replay
+    { { 100 }, 30 }, // Bounty
+    { { 100 }, 10 }, // Scavenger
+    { { 50 }, 30 },  // Nightmare
 };
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
@@ -511,7 +511,7 @@ void equipmentRecalculateMaxMp(void)
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         maximumMp += gEquipmentArmorStats[status->armor - 1].mpBonus;
     }
-    modeStats     = Gp_StatRows;
+    modeStats     = gEquipmentModeBaseStats;
     save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     maximumMp    += modeStats[save->state.gameMode].baseMp;
     maximumMp    += save->state.mpBonus;
@@ -558,7 +558,7 @@ void equipmentEquipCarriedArmor(s32 armorItemId)
                     const PlayerModeBaseStats* modeStats;
 
                     playerStatus = &gPlayerStatus;
-                    modeStats    = Gp_StatRows;
+                    modeStats    = gEquipmentModeBaseStats;
                     save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                     _equipmentRecalculateMaxHp(playerStatus, modeStats, save);
 
@@ -605,15 +605,15 @@ void equipmentEquipCarriedArmor(s32 armorItemId)
         McSaveData*                save;
         const PlayerModeBaseStats* modeStats;
 
-        modeStats = Gp_StatRows;
+        modeStats = gEquipmentModeBaseStats;
         save      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         _equipmentRecalculateMaxHp(status, modeStats, save);
         equipmentRecalculateMaxMp();
     } else {
         return;
     }
-    Gp_HpMpWork.hp = status->hp;
-    Gp_HpMpWork.mp = status->mp;
+    gHudDisplayedVitals.hp = status->hp;
+    gHudDisplayedVitals.mp = status->mp;
 }
 
 const char Gp_StrNotice2[8] = "Notice\0F";

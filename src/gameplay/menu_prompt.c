@@ -348,7 +348,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
         paletteIndex  = ITEM_MENU_ICON_PALETTE_OTHER_ITEM;
         categoryIndex = ITEM_MENU_ICON_CATEGORY_ARMOR;
     } else if (itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
-        firstConsumableItemId = Gp_RelatedQty0.rows[itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[0];
+        firstConsumableItemId = gEquipmentWeaponPrimaryLoadOptions.rows[itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[0];
         if (firstConsumableItemId == INVENTORY_ITEM_NONE) {
             paletteIndex = ITEM_MENU_ICON_PALETTE_FALLBACK;
         } else {
@@ -672,18 +672,18 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     valueX     += 6;
     firstRowY   = panel->contentTop.signedValue + topOffset;
     // Menu healing advances the displayed values upward by one per draw.
-    if (Gp_HpMpWork.hp < player->hp) {
-        Gp_HpMpWork.hp = Gp_HpMpWork.hp + 1;
+    if (gHudDisplayedVitals.hp < player->hp) {
+        gHudDisplayedVitals.hp = gHudDisplayedVitals.hp + 1;
     }
-    if (Gp_HpMpWork.mp < player->mp) {
-        Gp_HpMpWork.mp = Gp_HpMpWork.mp + 1;
+    if (gHudDisplayedVitals.mp < player->mp) {
+        gHudDisplayedVitals.mp = gHudDisplayedVitals.mp + 1;
     }
     textColorRgb = ITEM_MENU_STAT_TEXT_COLOR;
 
     hpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
     hpValueText.y = panel->contentOriginY.unsignedValue + firstRowY;
     ITEM_MENU_INIT_STATS_TEXT(hpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&hpValueText, textItoaUnsigned(numberText, Gp_HpMpWork.hp));
+    textDrawString(&hpValueText, textItoaUnsigned(numberText, gHudDisplayedVitals.hp));
 
     hpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     hpSeparatorText.y = panel->contentOriginY.unsignedValue + firstRowY;
@@ -697,13 +697,13 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
 
     maximum    = player->hpMax;
     meterBaseX = contentLeft + 7;
-    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 5, maximum, Gp_HpMpWork.hp, ITEM_MENU_STAT_METER_COLOR);
+    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 5, maximum, gHudDisplayedVitals.hp, ITEM_MENU_STAT_METER_COLOR);
 
     rowY          = firstRowY + 0x12;
     mpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
     mpValueText.y = panel->contentOriginY.unsignedValue + rowY;
     ITEM_MENU_INIT_STATS_TEXT(mpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&mpValueText, textItoaUnsigned(numberText, Gp_HpMpWork.mp));
+    textDrawString(&mpValueText, textItoaUnsigned(numberText, gHudDisplayedVitals.mp));
 
     mpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     mpSeparatorText.y = panel->contentOriginY.unsignedValue + rowY;
@@ -716,7 +716,7 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     textDrawString(&mpMaximumText, textItoaUnsigned(numberText, player->mpMax));
 
     maximum = player->mpMax;
-    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 0x17, maximum, Gp_HpMpWork.mp, ITEM_MENU_STAT_METER_COLOR);
+    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 0x17, maximum, gHudDisplayedVitals.mp, ITEM_MENU_STAT_METER_COLOR);
 
     rowY             = firstRowY + 0x24;
     experienceText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
@@ -825,10 +825,10 @@ void itemMenuPlayerSummaryTask(Task* task)
     object = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_PANEL_INITIAL) {
         uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_WEAPON_SUMMARY_DESCRIPTOR], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
-        player         = &gPlayerStatus;
-        Gp_HpMpWork.hp = player->hp;
-        Gp_HpMpWork.mp = player->mp;
-        task->state    = task->state + 1;
+        player                 = &gPlayerStatus;
+        gHudDisplayedVitals.hp = player->hp;
+        gHudDisplayedVitals.mp = player->mp;
+        task->state            = task->state + 1;
     }
     _itemMenuDrawPlayerSummaryContents(&object->panel);
 }
@@ -1361,7 +1361,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
 
     if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_DESTINATION_SELECT) {
         if (list->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
-            if (carriedRow == Gp_SelItemRec) {
+            if (carriedRow == gItemMenuSelectedRow) {
                 list->colorRgb = ITEM_MENU_ROW_SOURCE_COLOR_RGB;
             }
         }
@@ -1374,7 +1374,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
     // Row pointers borrow saved storage; convert both before moving the range.
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_SELECT) {
-            Gp_SelItemRec = carriedRow;
+            gItemMenuSelectedRow = carriedRow;
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 dialog = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ROW_COMMAND_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROW_DIALOG_DELAY_TICKS, object);
@@ -1388,7 +1388,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             InventoryItemRange* carriedRange;
             carriedRange        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            sourceRowIndex      = inventoryIndexOfRow(carriedRange, Gp_SelItemRec);
+            sourceRowIndex      = inventoryIndexOfRow(carriedRange, gItemMenuSelectedRow);
             destinationRowIndex = inventoryIndexOfRow(carriedRange, carriedRow);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (sourceRowIndex >= 0) {
@@ -1416,7 +1416,7 @@ void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId)
     player   = &gPlayerStatus;
     rowIndex = carried->firstRow;
     for (scannedRows = 0; scannedRows < carried->rowCount; scannedRows++) {
-        if ((u8)(rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        if ((u8)(rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows)) {
             rowIndex++;
             continue;
         }
@@ -1424,16 +1424,16 @@ void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId)
             choiceCount++;
         } else {
             // Search the primary, then the secondary load choices of this weapon.
-            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); acceptedItemIndex++) {
-                if (Gp_RelatedQty0.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
+            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows[0].acceptedItemIds); acceptedItemIndex++) {
+                if (gEquipmentWeaponPrimaryLoadOptions.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
                     if (rows[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || player->weapon == rows[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
                         choiceCount++;
                     }
                     break;
                 }
             }
-            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds); acceptedItemIndex++) {
-                if (Gp_RelatedQty1.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
+            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(gEquipmentWeaponSecondaryLoadOptions.rows[0].acceptedItemIds); acceptedItemIndex++) {
+                if (gEquipmentWeaponSecondaryLoadOptions.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
                     if (rows[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || player->weapon == rows[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
                         choiceCount++;
                     }
@@ -1735,9 +1735,9 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
                         break;
                     }
                 }
-                Gp_SelItemRec = carriedRow;
+                gItemMenuSelectedRow = carriedRow;
             } else {
-                Gp_SelItemRec = NULL;
+                gItemMenuSelectedRow = NULL;
             }
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 itemMenuSetWeaponChoiceRows(&gItemMenuWeaponChoiceList, INVENTORY_ITEM_NONE);
@@ -1758,13 +1758,13 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
             }
         } else if (orderMode == rowInputEnabled) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-                if ((u8)(Gp_SelItemRec->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) {
+                if ((u8)(gItemMenuSelectedRow->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) {
                     PlayerStatus*     livePlayer;
                     InventoryItemRow* selectedRow;
 
                     livePlayer = &gPlayerStatus;
                     equipmentClearSelectedRemovableLoads(itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
-                    selectedRow        = Gp_SelItemRec;
+                    selectedRow        = gItemMenuSelectedRow;
                     livePlayer->weapon = selectedRow->itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
                     itemSetIdentified(selectedRow->itemId, 1);
                     gItemMenuDestinationSelectionMode = ITEM_MENU_ROW_MODE_SELECT;
@@ -1929,7 +1929,7 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
             if (itemId != INVENTORY_ITEM_NONE) {
                 carriedRow = inventoryFindLastCarriedItemRow(itemId);
             }
-            Gp_SelItemRec = carriedRow;
+            gItemMenuSelectedRow = carriedRow;
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 s32 currentWeaponItemId;
                 s32 yOffset;
@@ -1949,8 +1949,8 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
             }
         } else if (orderMode == rowInputEnabled) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-                if (equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, Gp_SelItemRec->itemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY) >= 0) {
-                    itemSetIdentified(Gp_SelItemRec->itemId, 1);
+                if (equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, gItemMenuSelectedRow->itemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY) >= 0) {
+                    itemSetIdentified(gItemMenuSelectedRow->itemId, 1);
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     gItemMenuDestinationSelectionMode = ITEM_MENU_ROW_MODE_SELECT;
                 } else {
@@ -2266,11 +2266,11 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
         if (orderMode == rowInputEnabled) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 const ItemDesc* selectedDescriptor;
-                selectedDescriptor = &gItemDescriptors[Gp_SelItemRec->itemId];
+                selectedDescriptor = &gItemDescriptors[gItemMenuSelectedRow->itemId];
                 if (!(selectedDescriptor->flags & ITEM_FLAG_NO_ATTACHMENT)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    if (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE) {
-                        Gp_SelItemRec->attachSlot = list->currentItemIndex + 1;
+                    if (gItemMenuSelectedRow->itemId != INVENTORY_ITEM_NONE) {
+                        gItemMenuSelectedRow->attachSlot = list->currentItemIndex + 1;
                     }
                     if (itemId != INVENTORY_ITEM_NONE) {
                         inventoryDetachItem(carriedRow);
@@ -2301,9 +2301,9 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
                     }
                     object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
-                Gp_SelItemRec = carriedRow;
+                gItemMenuSelectedRow = carriedRow;
             } else {
-                Gp_SelItemRec = carriedRow;
+                gItemMenuSelectedRow = carriedRow;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     dialogObject = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ROW_COMMAND_DESCRIPTOR], ITEM_MENU_COMMAND_ATTACHED_ITEM, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROW_DIALOG_DELAY_TICKS, object);
@@ -2476,9 +2476,9 @@ void itemMenuArmorPanelTask(Task* task)
                     carriedRow   = &carriedRow[carriedRange->firstRow];
                     for (rowIndex = 0; rowIndex < carriedRange->rowCount; rowIndex++, carriedRow++) {
                         if (carriedRow->itemId == armorItemId) {
-                            scratch.rowX  = object->panel.contentLeft.signedValue + 2;
-                            Gp_SelItemRec = carriedRow;
-                            scratch.rowY  = object->panel.contentTop.unsignedValue + 0xF;
+                            scratch.rowX         = object->panel.contentLeft.signedValue + 2;
+                            gItemMenuSelectedRow = carriedRow;
+                            scratch.rowY         = object->panel.contentTop.unsignedValue + 0xF;
                             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                                 itemMenuSizeUnequippedArmorList(&D_8010E9F4, object);
@@ -2506,10 +2506,10 @@ void itemMenuArmorPanelTask(Task* task)
                         }
                     }
                 } else if ((orderMode == controlWord) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
-                    if ((u32)(Gp_SelItemRec->itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_ARMOR_ITEM_COUNT) {
+                    if ((u32)(gItemMenuSelectedRow->itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_ARMOR_ITEM_COUNT) {
                         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                        equipmentEquipCarriedArmor(Gp_SelItemRec->itemId);
-                        itemSetIdentified(Gp_SelItemRec->itemId, 1);
+                        equipmentEquipCarriedArmor(gItemMenuSelectedRow->itemId);
+                        itemSetIdentified(gItemMenuSelectedRow->itemId, 1);
                         gItemMenuDestinationSelectionMode = ITEM_MENU_ROW_MODE_SELECT;
                     } else {
                         Task* parentTask;

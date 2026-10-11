@@ -219,14 +219,14 @@ def stage_rooms() -> dict[int, dict[int, str]]:
 def map_room_models(images: "Images") -> dict[tuple[str, int], str]:
     """(map, address of a descriptor's model word) -> the room that descriptor belongs to.
 
-    Gameplay's `Gp_Bit2Banks[stage]` points at the stage map's room table, one
+    Gameplay's `gAreaObjectStages[stage]` points at the stage map's room table, one
     8-byte pair per room index; the pair's second word is that room's
     descriptor list, 16-byte entries of a key and a `TaskDesc`, ended by a key
     of 0xFFFF. A descriptor there describes something in its room, so the room
     is known from the table rather than from matching addresses.
     """
     syms = (ROOT / "configs/USA/sym.gameplay.txt").read_text()
-    banks = int(re.search(r"^Gp_Bit2Banks\s*=\s*(0x[0-9A-Fa-f]+)", syms, re.M).group(1), 16)
+    banks = int(re.search(r"^gAreaObjectStages\s*=\s*(0x[0-9A-Fa-f]+)", syms, re.M).group(1), 16)
     rooms = stage_rooms()
     out = {}
     for stage, map_pkg in stage_maps().items():

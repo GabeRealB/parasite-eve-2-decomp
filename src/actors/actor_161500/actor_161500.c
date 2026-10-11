@@ -1942,7 +1942,7 @@ static void _actor161500SelectCaptionFile(s32 captionFile)
     s8 variantCaptionFile;
 
     if (captionFile != ACTOR_161500_CAPTION_RESET) {
-        Gp_CapFile = NULL;
+        gCapFile = NULL;
         if (captionFile <= 0) {
             variantCaptionFile = ACTOR_161500_CAPTION_FILE_STANDARD;
             if (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) {

@@ -41,11 +41,10 @@ enum {
 
 /// Distance classes and table columns of the critical-hit calculation.
 enum {
-    DAMAGE_DISTANCE_BAND_UNITS                 = 1000,
-    DAMAGE_DISTANCE_FARTHEST_CLASS             = 5,
-    DAMAGE_CRITICAL_PERCENT_COLUMN             = 6,
-    DAMAGE_ALTERNATE_CRITICAL_PERCENT_COLUMN   = 7,
-    DAMAGE_ENERGY_SHOT_CRITICAL_PERCENT_COLUMN = 1,
+    DAMAGE_DISTANCE_BAND_UNITS               = 1000,
+    DAMAGE_DISTANCE_FARTHEST_CLASS           = 5,
+    DAMAGE_CRITICAL_PERCENT_COLUMN           = 6,
+    DAMAGE_ALTERNATE_CRITICAL_PERCENT_COLUMN = 7,
 };
 
 /// Scratch-stack block for measuring how far an enemy's body is from the player.
@@ -68,21 +67,6 @@ typedef struct {
 } _DamagePlayerDistanceScratch;
 STATIC_ASSERT_SIZEOF(_DamagePlayerDistanceScratch, 0x20);
 
-/// Per-sub-id damage rows used by `damageComputePlayerAttack`. The row is the id's
-/// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
-/// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
-extern u16 D_80113568[][8];
-
-/// Column table used for explosions (`WeaponAttackRow::hitReaction` 6), indexed
-/// by the distance class picked from `D_80113864`. Scaled `<< 12` then / 100
-/// by `damageRollCriticalHit`.
-extern u16 D_80113858[];
-
-/// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
-/// `SquareRoot0(distance) / 1000` in `damageRollCriticalHit`) when that value is
-/// below 0x10. `damageComputePlayerAttack` only keeps the low byte of the entry.
-extern u16 D_80113864[];
-
 static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey);
 
 /// Reads the weapon/PE reaction selected by a player attack key.
@@ -93,7 +77,7 @@ static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey);
 static inline u16 _damageGetPlayerAttackReaction(s32 attackKey)
 {
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
-        return Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
+        return gWeaponAttackRows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     }
     return gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }
@@ -153,7 +137,14 @@ static inline s32 _damageMeasurePlayerDistance(const Enemy* enemy, const Task* p
                        scratch->offset.vy * scratch->offset.vy + scratch->offset.vz * scratch->offset.vz);
 }
 
-u16 D_80113568[47][8] = {
+/// Attack-key distance and critical-hit percentages.
+///
+/// Rows 0..46 use key bits 8..13, independently of the low-seven-bit power row.
+/// Columns 0..5 scale weapon damage and non-explosion critical chance by distance
+/// class; columns 6/7 scale ordinary/bit-14 critical chance. Values are whole
+/// percentages, converted to Q8 for damage or Q12 for chance. Row 0 is empty;
+/// rows 33..46 include enemy attacks that can damage other enemies.
+static u16 _gDamageAttackDistanceCriticalPercent[47][8] = {
     { 0, 0, 0, 0, 0, 0, 0, 0 },
     { 100, 100, 90, 80, 80, 80, 40, 0 },
     { 100, 80, 70, 60, 50, 50, 30, 10 },
@@ -187,22 +178,26 @@ u16 D_80113568[47][8] = {
     { 70, 70, 60, 50, 40, 40, 0, 0 },
     { 70, 70, 60, 50, 40, 40, 0, 0 },
     { 70, 70, 60, 50, 40, 40, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
-    { 100, 100, 100, 100, 100, 100, 0, 0 },
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Actor 01200 burst; mine-cavern target blast.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Actor 04000 burst.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Sucklerceph blast.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Maggot/Caterpillar flame.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Attack producer unproven.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Watcher beam variant 0.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Watcher beam variant 1.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Watcher beam variant 2.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Watcher beam variant 3.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Watcher gun.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // GOLEM grenade.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Attack producer unproven.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Amoeba fireball variant 0.
+    { 100, 100, 100, 100, 100, 100, 0, 0 }, // Amoeba fireball variant 1.
 };
-u16 D_80113858[6] = {
+/// Explosion critical-chance percentages for distance classes 0..5.
+///
+/// Replaces the attack row's distance percentage for reaction EXPLOSION only;
+/// the ordinary or alternate critical percentage still comes from that row.
+static u16 _gDamageExplosionCriticalDistancePercent[6] = {
     120,
     100,
     80,
@@ -210,7 +205,13 @@ u16 D_80113858[6] = {
     40,
     40,
 };
-u16 D_80113864[16] = {
+/// Maps 1000-world-unit distance bands to attack distance classes.
+///
+/// Classes 0/1/2/3/4 cover 0..999, 1000..1999, 2000..3999, 4000..7999 and
+/// 8000..15999 units; later bands use class 5 in the consumers. Damage narrows
+/// the band and selected class to u8; critical chance narrows the band to u16.
+/// These unsigned halfwords preserve both consumers' distinct access widths.
+static u16 _gDamageDistanceBandClasses[16] = {
     0,
     1,
     2,
@@ -242,7 +243,6 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
         DAMAGE_BERSERKER_PERCENT                 = 150,
         DAMAGE_SKULL_CRYSTAL_PERCENT             = 120,
         DAMAGE_OFUDA_PERCENT                     = 150,
-        DAMAGE_ENERGY_SHOT_DAMAGE_PERCENT_COLUMN = 0,
     };
     u8  applyPlayerWeaponModifiers;
     u32 damage;
@@ -272,7 +272,7 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
         // After saving the weapon row, only the distance-scale row remains needed.
         weaponRow    = attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK;
         attackKey    = (attackKey >> DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT) & DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK;
-        baseDamageQ8 = Gp_IdParamLo[weaponRow].amount << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS;
+        baseDamageQ8 = gWeaponAttackRows[weaponRow].amount << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS;
         if (applyPlayerWeaponModifiers != 0) {
             if ((gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
                 baseDamageQ8 = baseDamageQ8 * DAMAGE_BERSERKER_PERCENT / 100;
@@ -286,16 +286,16 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
 
         // Retain byte narrowing of both the distance bucket and its mapped class.
         distanceBand = playerDistance / DAMAGE_DISTANCE_BAND_UNITS;
-        if (distanceBand < ARRAY_SIZE(D_80113864)) {
-            distanceClass = (u8)D_80113864[distanceBand];
+        if (distanceBand < ARRAY_SIZE(_gDamageDistanceBandClasses)) {
+            distanceClass = (u8)_gDamageDistanceBandClasses[distanceBand];
         } else {
             distanceClass = DAMAGE_DISTANCE_FARTHEST_CLASS;
         }
-        distanceScaleQ8 = (D_80113568[attackKey][distanceClass] << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS) / 100;
+        distanceScaleQ8 = (_gDamageAttackDistanceCriticalPercent[attackKey][distanceClass] << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS) / 100;
 
         if (scaledReaction == 0) {
             reactionScaleQ8 = DAMAGE_PLAYER_ATTACK_SCALE_ONE;
-        } else if (Gp_IdParamLo[weaponRow].hitReaction == scaledReaction) {
+        } else if (gWeaponAttackRows[weaponRow].hitReaction == scaledReaction) {
             reactionScaleQ8 = reactionScale;
         } else {
             reactionScaleQ8 = DAMAGE_PLAYER_ATTACK_SCALE_ONE;
@@ -308,14 +308,14 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
         if (applyPlayerWeaponModifiers != 0) {
             energyShotCombo = gAttachmentState.energyShotCombo;
             if (energyShotCombo != 0) {
-                damage = damage * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_DAMAGE_PERCENT_COLUMN] / 100;
+                damage = damage * gAttachmentEnergyShotComboScales[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))].damagePercent / 100;
             }
             if (equipmentHasEffect(EQUIPMENT_EFFECT_SKULL_CRYSTAL) != 0) {
                 damage = damage * DAMAGE_SKULL_CRYSTAL_PERCENT / 100;
             }
         }
 
-        damage = damage * D_80113F90[gSceneCombatState.difficulty] / 100;
+        damage = damage * gDamageAttackDifficultyPercent[gSceneCombatState.difficulty] / 100;
         if (damage == 0) {
             if (baseDamageQ8 != 0) {
                 damage = 1;
@@ -345,7 +345,7 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
             damage = damage * DAMAGE_OFUDA_PERCENT / 100;
         }
 
-        damage = damage * D_80113F90[gSceneCombatState.difficulty] / 100;
+        damage = damage * gDamageAttackDifficultyPercent[gSceneCombatState.difficulty] / 100;
     }
     return damage;
 }
@@ -423,14 +423,14 @@ s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplie
     playerDistance = _damageMeasurePlayerDistance(enemy, playerTask, scratch);
 
     distanceClass = playerDistance / DAMAGE_DISTANCE_BAND_UNITS;
-    distanceClass = distanceClass < ARRAY_SIZE(D_80113864) ? D_80113864[distanceClass] : DAMAGE_DISTANCE_FARTHEST_CLASS;
+    distanceClass = distanceClass < ARRAY_SIZE(_gDamageDistanceBandClasses) ? _gDamageDistanceBandClasses[distanceClass] : DAMAGE_DISTANCE_FARTHEST_CLASS;
 
     // Distance and the attack's critical column scale the enemy's Q12 base chance.
     distanceRow = (attackKey >> DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT) & DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK;
-    if (Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction == DAMAGE_PLAYER_REACTION_EXPLOSION) {
-        distanceScale = (D_80113858[distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
+    if (gWeaponAttackRows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction == DAMAGE_PLAYER_REACTION_EXPLOSION) {
+        distanceScale = (_gDamageExplosionCriticalDistancePercent[distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
     } else {
-        distanceScale = (D_80113568[distanceRow][distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
+        distanceScale = (_gDamageAttackDistanceCriticalPercent[distanceRow][distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
     }
 
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ALTERNATE_CRITICAL) != 0) {
@@ -439,7 +439,7 @@ s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplie
         criticalColumn = DAMAGE_CRITICAL_PERCENT_COLUMN;
     }
 
-    chance = (((D_80113568[distanceRow][criticalColumn] << DAMAGE_CHANCE_FRACTION_BITS) / 100) * baseChance >> DAMAGE_CHANCE_FRACTION_BITS) *
+    chance = (((_gDamageAttackDistanceCriticalPercent[distanceRow][criticalColumn] << DAMAGE_CHANCE_FRACTION_BITS) / 100) * baseChance >> DAMAGE_CHANCE_FRACTION_BITS) *
                  distanceScale >>
              DAMAGE_CHANCE_FRACTION_BITS;
     if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
@@ -448,7 +448,7 @@ s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplie
 
     energyShotCombo = gAttachmentState.energyShotCombo;
     if (energyShotCombo != 0) {
-        chance = chance * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_CRITICAL_PERCENT_COLUMN] / 100;
+        chance = chance * gAttachmentEnergyShotComboScales[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))].criticalPercent / 100;
     }
     if (chanceMultiplier != 0) {
         chance *= chanceMultiplier;

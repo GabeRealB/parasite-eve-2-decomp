@@ -2033,7 +2033,7 @@ static void _neoArkObservatoryCapEventTask(Task* task)
 
     switch (task->state) {
         case CAP_EVENT_START:
-            Gp_CapFile = NULL;
+            gCapFile = NULL;
             capSelectLoadedFile(CAP_RESOURCE_ORDINAL);
             capSetTexturePage(CAP_TEXTURE_VRAM_X, CAP_TEXTURE_VRAM_Y);
             capSpawnEventIfIdle(task->spawnArg1.value, CAP_EVENT_NO_FLAGS);

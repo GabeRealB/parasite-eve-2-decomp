@@ -10,7 +10,14 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-extern AreaObjectStage Gp_Bit2Banks[];
+/// Placed-object room directories and live two-bit object states by stage.
+///
+/// Indices are GAME_STAGE_NONE through GAME_STAGE_SHELTER_NEO_ARK (0..5);
+/// stage zero contains two NULL pointers. Each other entry borrows its map
+/// overlay's terminated room directory and main's live saved-state words.
+/// Day and night Dryfield have distinct directories but share the daytime
+/// Dryfield object-state bank. Keep the selected map overlay loaded during lookup.
+extern AreaObjectStage gAreaObjectStages[6];
 
 extern TaskDesc D_8010D1FC;
 

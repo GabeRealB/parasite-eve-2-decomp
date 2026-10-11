@@ -24,7 +24,14 @@ s32 attachmentIsTrainingMode(void);
 /// The catalogue remains live with gameplay and owns no overlay pointers.
 extern AttachmentLevelTable gAttachmentLevelTable;
 
-extern u8 Gp_DebugAttachLevels[18];
+/// Separate learned spell levels used by M.I.S.T. shooting-gallery training.
+///
+/// Slots 0..11 are fire/wind/water/earth groups of three spells, storing levels
+/// 0..3. Training resets those twelve and grants selected level-one spells.
+/// The eighteen-byte backing object remains live with gameplay; its final six
+/// bytes are not read or initialized by the known training consumers and have
+/// no established role. Ordinary saved levels are unaffected.
+extern u8 gAttachmentTrainingLevels[ATTACHMENT_AREA_ABILITY_COUNT];
 
 /// Gameplay's shared attachment selection, casting and timed protection state.
 ///

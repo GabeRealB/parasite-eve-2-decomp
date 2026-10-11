@@ -541,8 +541,8 @@ void hudDrawStatusBlock(const HudState* hud)
     }
 
     // Numeric readouts use live values; the bars chase changes one point per draw.
-    _hudStepDisplayedStat(&Gp_HpMpWork.hp, playerStatus->hp);
-    displayedStats = &Gp_HpMpWork;
+    _hudStepDisplayedStat(&gHudDisplayedVitals.hp, playerStatus->hp);
+    displayedStats = &gHudDisplayedVitals;
     _hudStepDisplayedStat(&displayedStats->mp, playerStatus->mp);
 
     x  = HUD_STATUS_BLOCK_LEFT;
@@ -560,8 +560,8 @@ void hudDrawStatusBlock(const HudState* hud)
     }
 
     colorRgb = HUD_STATUS_BLOCK_TEXT_COLOR;
-    hp       = Gp_HpMpWork.hp;
-    mp       = Gp_HpMpWork.mp;
+    hp       = gHudDisplayedVitals.hp;
+    mp       = gHudDisplayedVitals.mp;
 
     _hudDrawHpMpValue(x + 0x2B, y + 0xA, colorRgb, playerStatus->hp);
     _hudDrawHpMpValue(x + 0x56, y + 0xA, colorRgb, playerStatus->mp);
