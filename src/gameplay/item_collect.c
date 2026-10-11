@@ -701,7 +701,7 @@ static void _itemInitializeIdentification(void)
     do {
         fieldsRemaining = ITEM_IDENTIFIED_TEXT_FIELD_COUNT;
         if (itemId < ITEM_IDENTIFICATION_KEY_ITEM_FIRST) {
-            descriptor = &Gp_ItemDescs[itemId];
+            descriptor = &gItemDescriptors[itemId];
         } else {
             descriptor = &Gp_KeyItemDescs[itemId - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
         }

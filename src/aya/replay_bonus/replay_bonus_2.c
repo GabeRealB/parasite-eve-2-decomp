@@ -298,7 +298,7 @@ static s32 _replayBonusGetShopCatalogueBp(void)
     do {
         itemColumn = 0;
         do {
-            totalBp += Gp_ItemDescs[tier->items[itemColumn]].price;
+            totalBp += gItemDescriptors[tier->items[itemColumn]].price;
             itemColumn++;
         } while (itemColumn < ARRAY_SIZE(tier->items));
         tierIndex++;

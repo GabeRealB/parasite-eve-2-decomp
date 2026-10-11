@@ -82,7 +82,7 @@ itemMenuDrawItemRow = 0x800CD924; // type:func absolute:True
 itemMenuSetPreviewItem = 0x800CDE80; // type:func absolute:True
 itemMenuClearPreviewItems = 0x800CDEF4; // type:func absolute:True
 itemMenuSpawnNotice = 0x800D4E40; // type:func absolute:True
-Gp_ItemDescs = 0x8010D838; // absolute:True
+gItemDescriptors = 0x8010D838; // absolute:True
 gAttachmentLevelTable = 0x8011398C; // absolute:True
 
 // --- still unnamed in their own overlay (10)

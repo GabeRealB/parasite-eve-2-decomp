@@ -336,7 +336,7 @@ if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_PREVIEW_EQUIPMENT_IT
 
 The preview load selects file `20100 + fileIndex`; weapon overlays use
 `10300 + fileIndex`. Thus **item `0x80 + n` is package `10301 + n`**, and the name comes from
-`Gp_ItemDescs[id].textFields`. Three independent facts agree with that mapping,
+`gItemDescriptors[id].textFields`. Three independent facts agree with that mapping,
 which is what rules out an off-by-one:
 
 * The variant groups line up. `10316`/`10320`/`10321` share one animation
@@ -434,7 +434,7 @@ The 40 file ids are only **15 packages**, headers `0x30`–`0x3E`. Each package 
 loaded by three consecutive ids that differ only in the SPK they pair with, so
 the code is shared by the three and the sound is per-id.
 
-`Gp_ItemDescs` is what identifies them. It carries the twelve PE spells at items
+`gItemDescriptors` is what identifies them. It carries the twelve PE spells at items
 15–50, each as three consecutive entries — the three spell levels — and those
 twelve are, in order, exactly the twelve packages in the contiguous run:
 

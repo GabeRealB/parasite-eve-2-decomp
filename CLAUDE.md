@@ -686,7 +686,7 @@ such as text in several translations, may be better produced by a build step
 from an extracted source than hard-coded in C.
 
 **Not assets, so eligible for C:** program tables such as the item and balance
-tables (`Gp_ItemDescs`, `gAttachmentLevelTable`), function-pointer dispatch tables
+tables (`gItemDescriptors`, `gAttachmentLevelTable`), function-pointer dispatch tables
 (`Display_TaskStates`, `_gMcLoadDialogStates`, `Gp_ItemMenuStates`), index
 tables such as `gWorldCollisionFaceEdges`, constants, UI strings and zero-initialised
 state. Declaring one in C means placing it in the unit that owns it, at the

@@ -14,68 +14,6 @@
 #include "main/wipsys.h"
 
 /* Item names and descriptions shared by the inventory tables. */
-extern const u8 D_80096268[];
-
-extern const u8 D_800962C4[];
-
-extern const u8 D_80096348[];
-
-extern const u8 D_80096378[];
-
-extern const u8 D_800963A4[];
-
-extern const u8 D_8009641C[];
-
-extern const u8 D_80096458[];
-
-extern const u8 D_800964E4[];
-
-extern const u8 D_80096518[];
-
-extern const u8 D_80096578[];
-
-extern const u8 D_800965D8[];
-
-extern const u8 D_8009660C[];
-
-extern const u8 D_80096678[];
-
-extern const u8 D_800966C0[];
-
-extern const u8 D_80096718[];
-
-extern const u8 D_80096740[];
-
-extern const u8 D_8009676C[];
-
-extern const u8 D_800967D0[];
-
-extern const u8 D_80096828[];
-
-extern const u8 D_80096874[];
-
-extern const u8 D_800968C0[];
-
-extern const u8 D_800968DC[];
-
-extern const u8 D_80096928[];
-
-extern const u8 D_8009694C[];
-
-extern const u8 D_8009698C[];
-
-extern const u8 D_80096A00[];
-
-extern const u8 D_80096A3C[];
-
-extern const u8 D_80096A84[];
-
-extern const u8 D_80096ADC[];
-
-extern const u8 D_80096B24[];
-
-extern const u8 D_80096B6C[];
-
 extern const u8 D_80096BC4[];
 
 extern const u8 D_80096C0C[];
@@ -98,6 +36,16 @@ extern const u8 D_80096E38[];
 
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
+
+/// High-nibble catalogue groups; low-nibble subtypes depend on the group.
+enum {
+    ITEM_DESCRIPTOR_CATEGORY_ARMOR      = 0x10,
+    ITEM_DESCRIPTOR_CATEGORY_WEAPON     = 0x20,
+    ITEM_DESCRIPTOR_CATEGORY_AMMUNITION = 0x30
+};
+
+/// Ammunition subtype of the built-in M4A1 Pyke fuel supply.
+enum { ITEM_DESCRIPTOR_AMMUNITION_FUEL = 9 };
 
 /// Saves a complete moved row and marks its former slot free, retaining the slot metadata.
 ///
@@ -1744,37 +1692,347 @@ static const u8 _gItemM4a1JavelinBatteryTextFields[] =
     "\n"
     "\n";
 
-const u8 D_80096268[]   = "Parthenon Key\nIt opened the cafeteria...\n\nCafeteria Key\nCafeteria key from SWAT officer.\n\n";
-const u8 D_800962C4[]   = "Micro Device\nPierce's modified NMC implant.\nDisplays my position on a monitor.\nMetallic Implant\nObject implanted in NMC's skull.\n\n";
-const u8 D_80096348[]   = "Red Key\nKey on a skull-shaped key chain.\n\n\n\n\n";
-const u8 D_80096378[]   = "Blue Key\nKey on a feather key chain.\n\n\n\n\n";
-const u8 D_800963A4[]   = "Armory Cardkey\nKey to the shelter armory.\nThat man stored weapons here.\nBlack Card\nCard dropped by the SWAT imitator.\n\n";
-const u8 D_8009641C[]   = "MIST Badge\nMIST ID card.\nLooks a lot like an FBI badge.\n\n\n\n";
-const u8 D_80096458[]   = "Mendel (Sept. issue)\nThis month's feature: Mitochondria.\nA popular topic these days.\nScientific Journal\nMendel-- popular science journal.\n\n";
-const u8 D_800964E4[]   = "Clipboard\nAgent Baldwin always carries this.\n\n\n\n\n";
-const u8 D_80096518[]   = "MIST Search Warrant\nAuthorizes any search in Dryfield.\nIncludes private property searches.\n\n\n\n";
-const u8 D_80096578[]   = "NMC Photo\nSo this was a picture of an NMC.\n\nUMA Photograph\nLooks a little big for a cougar...\n\n";
-const u8 D_800965D8[]   = "Manual\nMIST civilian disinformation manual.\n\n\n\n\n";
-const u8 D_8009660C[]   = "Dryfield Map\nMap of part of the Mojave Desert.\nThere's only one town on the road.\nMap\nMap of Dryfield.\n\n";
-const u8 D_80096678[]   = "Motel Key No.6\nMotel room key from Mr. Douglas.\nThe tag says \"6.\"\n\n\n\n";
-const u8 D_800966C0[]   = "Saloon Key\nKey to \"Gene & Roy's\" saloon.\n\nKey Taken from Corpse\nIt's engraved, \"G&R.\"\n\n";
-const u8 D_80096718[]   = "Monkey Wrench\nAdjustable wrench.\n\n\n\n\n";
-const u8 D_80096740[]   = "Lobby Key\nLobby key from Mr. Douglas.\n\n\n\n\n";
-const u8 D_8009676C[]   = "Bronco Masterkey\nShould open all the motel rooms.\n\nKey Found in the Lobby\nThe tag says \"Bronco.\"\n\n";
-const u8 D_800967D0[]   = "Wire Rope\nA sturdy rope.\nThis should support my weight.\nRope\nThis could be useful.\n\n";
-const u8 D_80096828[]   = "Factory Key\nKey to Mr. Douglas's garage.\nThis key is a real antique!\n\n\n\n";
-const u8 D_80096874[]   = "Truck Key\nTruck key from Mr. Douglas.\nThis is my ticket to the shelter.\n\n\n\n";
-const u8 D_800968C0[]   = "Jerry Can\nIt's empty.\n\n\n\n\n";
-const u8 D_800968DC[]   = "Gasoline\nGasoline (in the gas can).\nThis should get the truck running.\n\n\n\n";
-const u8 D_80096928[]   = "Ice Bag\nBag filled with ice.\n\n\n\n\n";
-const u8 D_8009694C[]   = "Bag of Water\nAll the ice melted.\nNo use for this anymore.\n\n\n\n";
-const u8 D_8009698C[]   = "Bottlecap Magnet\nMagnet shaped like a cola cap.\nThe back is magnetized.\nMagnet\nI used to collect these in school.\n\n";
-const u8 D_80096A00[]   = "SUV Key\nKey to Pierce's SUV.\nIt's on a cute key chain.\n\n\n\n";
-const u8 D_80096A3C[]   = "Oak Board\nThere are footprints on it.\n\nBoard\nA sturdy-looking board.\n\n";
-const u8 D_80096A84[]   = "Jumper Plug\nElectrical switchboard component.\n\nPlug\nLooks like a headphone jack...\n\n";
-const u8 D_80096ADC[]   = "Bowman's Card\nThis belonged to a researcher.\n\nCard\nA plastic card.\n\n";
-const u8 D_80096B24[]   = "Yoshida's Card\nThis belonged to a programmer.\n\nCard\nA plastic card.\n\n";
-const u8 D_80096B6C[]   = "Electric Car Key\nKey to the shelter electric car.\n\nCar Key\nLooks like a car key...\n\n";
+/// Catalogue name and description fields for Parthenon Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemParthenonKeyTextFields[] =
+    "Parthenon Key\n"
+    "It opened the cafeteria...\n"
+    "\n"
+    "Cafeteria Key\n"
+    "Cafeteria key from SWAT officer.\n"
+    "\n";
+/// Catalogue name and description fields for Micro Device.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMicroDeviceTextFields[] =
+    "Micro Device\n"
+    "Pierce's modified NMC implant.\n"
+    "Displays my position on a monitor.\n"
+    "Metallic Implant\n"
+    "Object implanted in NMC's skull.\n"
+    "\n";
+/// Catalogue name and description fields for Red Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemRedKeyTextFields[] =
+    "Red Key\n"
+    "Key on a skull-shaped key chain.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Blue Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemBlueKeyTextFields[] =
+    "Blue Key\n"
+    "Key on a feather key chain.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Armory Cardkey.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemArmoryCardkeyTextFields[] =
+    "Armory Cardkey\n"
+    "Key to the shelter armory.\n"
+    "That man stored weapons here.\n"
+    "Black Card\n"
+    "Card dropped by the SWAT imitator.\n"
+    "\n";
+/// Catalogue name and description fields for MIST Badge.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMistBadgeTextFields[] =
+    "MIST Badge\n"
+    "MIST ID card.\n"
+    "Looks a lot like an FBI badge.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Mendel (Sept. issue).
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMendelJournalTextFields[] =
+    "Mendel (Sept. issue)\n"
+    "This month's feature: Mitochondria.\n"
+    "A popular topic these days.\n"
+    "Scientific Journal\n"
+    "Mendel-- popular science journal.\n"
+    "\n";
+/// Catalogue name and description fields for Clipboard.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemClipboardTextFields[] =
+    "Clipboard\n"
+    "Agent Baldwin always carries this.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for MIST Search Warrant.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMistSearchWarrantTextFields[] =
+    "MIST Search Warrant\n"
+    "Authorizes any search in Dryfield.\n"
+    "Includes private property searches.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for NMC Photo.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemNmcPhotoTextFields[] =
+    "NMC Photo\n"
+    "So this was a picture of an NMC.\n"
+    "\n"
+    "UMA Photograph\n"
+    "Looks a little big for a cougar...\n"
+    "\n";
+/// Catalogue name and description fields for Manual.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMistManualTextFields[] =
+    "Manual\n"
+    "MIST civilian disinformation manual.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Dryfield Map.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemDryfieldMapTextFields[] =
+    "Dryfield Map\n"
+    "Map of part of the Mojave Desert.\n"
+    "There's only one town on the road.\n"
+    "Map\n"
+    "Map of Dryfield.\n"
+    "\n";
+/// Catalogue name and description fields for Motel Key No.6.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMotelRoom6KeyTextFields[] =
+    "Motel Key No.6\n"
+    "Motel room key from Mr. Douglas.\n"
+    "The tag says \"6.\"\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Saloon Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemSaloonKeyTextFields[] =
+    "Saloon Key\n"
+    "Key to \"Gene & Roy's\" saloon.\n"
+    "\n"
+    "Key Taken from Corpse\n"
+    "It's engraved, \"G&R.\"\n"
+    "\n";
+/// Catalogue name and description fields for Monkey Wrench.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemMonkeyWrenchTextFields[] =
+    "Monkey Wrench\n"
+    "Adjustable wrench.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Lobby Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemLobbyKeyTextFields[] =
+    "Lobby Key\n"
+    "Lobby key from Mr. Douglas.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Bronco Masterkey.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemBroncoMasterkeyTextFields[] =
+    "Bronco Masterkey\n"
+    "Should open all the motel rooms.\n"
+    "\n"
+    "Key Found in the Lobby\n"
+    "The tag says \"Bronco.\"\n"
+    "\n";
+/// Catalogue name and description fields for Wire Rope.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemWireRopeTextFields[] =
+    "Wire Rope\n"
+    "A sturdy rope.\n"
+    "This should support my weight.\n"
+    "Rope\n"
+    "This could be useful.\n"
+    "\n";
+/// Catalogue name and description fields for Factory Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemFactoryKeyTextFields[] =
+    "Factory Key\n"
+    "Key to Mr. Douglas's garage.\n"
+    "This key is a real antique!\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Truck Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemTruckKeyTextFields[] =
+    "Truck Key\n"
+    "Truck key from Mr. Douglas.\n"
+    "This is my ticket to the shelter.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Jerry Can.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemJerryCanTextFields[] =
+    "Jerry Can\n"
+    "It's empty.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Gasoline.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemGasolineTextFields[] =
+    "Gasoline\n"
+    "Gasoline (in the gas can).\n"
+    "This should get the truck running.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Ice Bag.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemIceBagTextFields[] =
+    "Ice Bag\n"
+    "Bag filled with ice.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Bag of Water.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemBagOfWaterTextFields[] =
+    "Bag of Water\n"
+    "All the ice melted.\n"
+    "No use for this anymore.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Bottlecap Magnet.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemBottlecapMagnetTextFields[] =
+    "Bottlecap Magnet\n"
+    "Magnet shaped like a cola cap.\n"
+    "The back is magnetized.\n"
+    "Magnet\n"
+    "I used to collect these in school.\n"
+    "\n";
+/// Catalogue name and description fields for SUV Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemSuvKeyTextFields[] =
+    "SUV Key\n"
+    "Key to Pierce's SUV.\n"
+    "It's on a cute key chain.\n"
+    "\n"
+    "\n"
+    "\n";
+/// Catalogue name and description fields for Oak Board.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemOakBoardTextFields[] =
+    "Oak Board\n"
+    "There are footprints on it.\n"
+    "\n"
+    "Board\n"
+    "A sturdy-looking board.\n"
+    "\n";
+/// Catalogue name and description fields for Jumper Plug.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemJumperPlugTextFields[] =
+    "Jumper Plug\n"
+    "Electrical switchboard component.\n"
+    "\n"
+    "Plug\n"
+    "Looks like a headphone jack...\n"
+    "\n";
+/// Catalogue name and description fields for Bowman's Card.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemBowmanCardTextFields[] =
+    "Bowman's Card\n"
+    "This belonged to a researcher.\n"
+    "\n"
+    "Card\n"
+    "A plastic card.\n"
+    "\n";
+/// Catalogue name and description fields for Yoshida's Card.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemYoshidaCardTextFields[] =
+    "Yoshida's Card\n"
+    "This belonged to a programmer.\n"
+    "\n"
+    "Card\n"
+    "A plastic card.\n"
+    "\n";
+/// Catalogue name and description fields for Electric Car Key.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a final NUL; borrowed while gameplay is loaded.
+static const u8 _gItemElectricCarKeyTextFields[] =
+    "Electric Car Key\n"
+    "Key to the shelter electric car.\n"
+    "\n"
+    "Car Key\n"
+    "Looks like a car key...\n"
+    "\n";
 const u8 D_80096BC4[]   = "Teddy Bear\nThis is Eve's teddy bear.\n\nTeddy Bear\nHmm... A teddy bear.\n\n";
 const u8 D_80096C0C[]   = "Pierce's Memo\nIt's in Pierce's handwriting.\n\nMessage\nSomething's scribbled on it.\n\n";
 const u8 D_80096C60[]   = "Aeris (Sept. issue)\nA magazine about the Internet.\nSpecial issue: \"Next-Gen Viruses\"\nComputer Magazine\nAeris-- a computer magazine.\n\n";
@@ -1786,16 +2044,16 @@ const u8 D_80096E0C[28] = "Soldier Rescue Bonus\n\n\n\n\n\n\000\227";
 const u8 D_80096E28[]   = "You do not have";
 const u8 D_80096E38[]   = "applicable weapon";
 
-ItemDesc Gp_ItemDescs[] = {
+ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 100, 1, 0x00, _gItemRecovery1TextFields },
-    { 180, 1, 0x8, _gItemRecovery2TextFields },
-    { 350, 1, 0x00, _gItemRecovery3TextFields },
-    { 80, 1, 0x00, _gItemStimTextFields },
-    { 120, 1, 0x00, _gItemColaTextFields },
-    { 320, 1, 0x00, _gItemMpBoost1TextFields },
-    { 580, 1, 0x00, _gItemMpBoost2TextFields },
-    { 80, 1, 0x00, _gItemPenicillinTextFields },
+    { 100, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemRecovery1TextFields },
+    { 180, ITEM_SUBTYPE_MEDICINE, 0x8, _gItemRecovery2TextFields },
+    { 350, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemRecovery3TextFields },
+    { 80, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemStimTextFields },
+    { 120, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemColaTextFields },
+    { 320, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemMpBoost1TextFields },
+    { 580, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemMpBoost2TextFields },
+    { 80, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemPenicillinTextFields },
     { 3980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemSmgClipHolderTextFields },
     { 1800, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemRifleClipHolderTextFields },
     { 5000, 0, 0x00, _gItemLipstickTextFields },
@@ -1847,9 +2105,9 @@ ItemDesc Gp_ItemDescs[] = {
     { 5000, 0, 0x00, _gItemOfudaTextFields },
     { 150, 0, 0x00, _gItemFlareTextFields },
     { 100, 0, 0x00, _gItemPepperSprayTextFields },
-    { 10000, 1, 0x00, _gItemProteinCapsuleTextFields },
-    { 200, 1, 0x00, _gItemRingersSolutionTextFields },
-    { 190, 1, 0x00, _gItemEauDeToiletteTextFields },
+    { 10000, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemProteinCapsuleTextFields },
+    { 200, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemRingersSolutionTextFields },
+    { 190, ITEM_SUBTYPE_MEDICINE, 0x00, _gItemEauDeToiletteTextFields },
     { 1000, 0, 0x00, _gItemHunterGogglesTextFields },
     { 1000, 0, ITEM_FLAG_NO_DISCARD | 0x8, _gItemGpsTextFields },
     { 60, 0, 0x00, _gItemCombatLightTextFields },
@@ -1883,20 +2141,20 @@ ItemDesc Gp_ItemDescs[] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLeatherJacketTextFields },
-    { 12800, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTacticalArmorTextFields },
-    { 3250, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombatArmorTextFields },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAssaultSuitTextFields },
-    { 2980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPasgtVestTextFields },
-    { 2120, 16, ITEM_FLAG_NO_ATTACHMENT, _gItemTacticalVestTextFields },
-    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEodSuitTextFields },
-    { 1680, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTurtleVestTextFields },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemChickenPlateTextFields },
-    { 3980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNbcSuitTextFields },
-    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPsySuitTextFields },
-    { 8000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAyaSpecialTextFields },
-    { 2580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemShoulderHolsterTextFields },
-    { 3000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMonkRobeTextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLeatherJacketTextFields },
+    { 12800, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTacticalArmorTextFields },
+    { 3250, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombatArmorTextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAssaultSuitTextFields },
+    { 2980, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPasgtVestTextFields },
+    { 2120, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT, _gItemTacticalVestTextFields },
+    { 4580, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEodSuitTextFields },
+    { 1680, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTurtleVestTextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemChickenPlateTextFields },
+    { 3980, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNbcSuitTextFields },
+    { 4580, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPsySuitTextFields },
+    { 8000, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAyaSpecialTextFields },
+    { 2580, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemShoulderHolsterTextFields },
+    { 3000, ITEM_DESCRIPTOR_CATEGORY_ARMOR, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMonkRobeTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -1915,109 +2173,109 @@ ItemDesc Gp_ItemDescs[] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 33, 0x8, _gItemP08SnailMagazineTextFields },
-    { 2000, 33, ITEM_FLAG_NO_DISCARD | 0x8, _gItemM93rTextFields },
-    { 5750, 34, 0x00, _gItemM950TextFields },
-    { 680, 33, 0x00, _gItemP08TextFields },
-    { 1880, 33, 0x00, _gItemP229TextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 1, 0x8, _gItemP08SnailMagazineTextFields },
+    { 2000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 1, ITEM_FLAG_NO_DISCARD | 0x8, _gItemM93rTextFields },
+    { 5750, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 2, 0x00, _gItemM950TextFields },
+    { 680, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 1, 0x00, _gItemP08TextFields },
+    { 1880, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 1, 0x00, _gItemP229TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 2850, 34, 0x00, _gItemMongooseTextFields },
+    { 2850, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 2, 0x00, _gItemMongooseTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1680, 36, 0x00, _gItemGrenadePistolTextFields },
-    { 23500, 36, 0x8, _gItemMm1TextFields },
-    { 1000, 37, 0x8, _gItemPa3TextFields },
-    { 3980, 37, 0x00, _gItemSp12TextFields },
-    { 12500, 37, 0x8, _gItemAs12TextFields },
-    { 2450, 38, 0x8, _gItemM4a1RifleTextFields },
-    { 15800, 35, 0x00, _gItemM249TextFields },
+    { 1680, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 4, 0x00, _gItemGrenadePistolTextFields },
+    { 23500, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 4, 0x8, _gItemMm1TextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 5, 0x8, _gItemPa3TextFields },
+    { 3980, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 5, 0x00, _gItemSp12TextFields },
+    { 12500, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 5, 0x8, _gItemAs12TextFields },
+    { 2450, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1RifleTextFields },
+    { 15800, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 3, 0x00, _gItemM249TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 39, ITEM_FLAG_NO_DISCARD | 0x8, _gItemTonfaBatonTextFields },
-    { 5000, 38, 0x8, _gItemM4a1Plus1TextFields },
-    { 7500, 38, 0x8, _gItemM4a1Plus2TextFields },
-    { 20000, 36, 0x8, _gItemHypervelocityTextFields },
-    { 10000, 32, 0x00, _gItemGunbladeTextFields },
+    { 1000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 7, ITEM_FLAG_NO_DISCARD | 0x8, _gItemTonfaBatonTextFields },
+    { 5000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1Plus1TextFields },
+    { 7500, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1Plus2TextFields },
+    { 20000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 4, 0x8, _gItemHypervelocityTextFields },
+    { 10000, ITEM_DESCRIPTOR_CATEGORY_WEAPON, 0x00, _gItemGunbladeTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 6000, 38, 0x8, _gItemM4a1HammerTextFields },
-    { 4000, 38, 0x8, _gItemM4a1BayonetTextFields },
-    { 4500, 38, 0x8, _gItemM4a1GrenadeTextFields },
-    { 8000, 38, 0x8, _gItemM4a1PykeTextFields },
-    { 9000, 38, 0x8, _gItemM4a1JavelinTextFields },
-    { 6980, 35, 0x00, _gItemMp5a5TextFields },
-    { 11000, 35, 0x8, _gItemMp5a5Plus1TextFields },
-    { 15000, 35, 0x8, _gItemMp5a5Plus2TextFields },
-    { 30, 49, 0x8, _gItem9mmPbTextFields },
-    { 50, 49, 0x00, _gItem9mmHydraTextFields },
-    { 80, 49, 0x00, _gItem9mmSpartanTextFields },
-    { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 100, 51, 0x00, _gItem44MagnumTextFields },
-    { 800, 51, 0x00, _gItem44MaedaSpTextFields },
-    { 0, 51, 0x8, _gItem44PoisonTextFields },
-    { 280, 52, 0x00, _gItemGrenadeRoundTextFields },
-    { 450, 52, 0x00, _gItemAirburstTextFields },
-    { 80, 52, 0x00, _gItemRiotTextFields },
-    { 60, 53, 0x00, _gItemBuckshotTextFields },
-    { 90, 53, 0x00, _gItemFireflyTextFields },
-    { 120, 53, 0x00, _gItemRSlugTextFields },
-    { 100, 54, 0x00, _gItem556RifleRoundTextFields },
-    { 0, 54, 0x8, _gItemParalizerTextFields },
-    { 0, 54, 0x8, _gItemFlashbombTextFields },
+    { 6000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1HammerTextFields },
+    { 4000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1BayonetTextFields },
+    { 4500, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1GrenadeTextFields },
+    { 8000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1PykeTextFields },
+    { 9000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 6, 0x8, _gItemM4a1JavelinTextFields },
+    { 6980, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 3, 0x00, _gItemMp5a5TextFields },
+    { 11000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 3, 0x8, _gItemMp5a5Plus1TextFields },
+    { 15000, ITEM_DESCRIPTOR_CATEGORY_WEAPON | 3, 0x8, _gItemMp5a5Plus2TextFields },
+    { 30, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_9MM, 0x8, _gItem9mmPbTextFields },
+    { 50, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_9MM, 0x00, _gItem9mmHydraTextFields },
+    { 80, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_9MM, 0x00, _gItem9mmSpartanTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemP229Mp5a5BatteryTextFields },
+    { 100, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_44_MAGNUM, 0x00, _gItem44MagnumTextFields },
+    { 800, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_44_MAGNUM, 0x00, _gItem44MaedaSpTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_44_MAGNUM, 0x8, _gItem44PoisonTextFields },
+    { 280, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_40MM, 0x00, _gItemGrenadeRoundTextFields },
+    { 450, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_40MM, 0x00, _gItemAirburstTextFields },
+    { 80, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_40MM, 0x00, _gItemRiotTextFields },
+    { 60, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_12_GAUGE, 0x00, _gItemBuckshotTextFields },
+    { 90, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_12_GAUGE, 0x00, _gItemFireflyTextFields },
+    { 120, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_12_GAUGE, 0x00, _gItemRSlugTextFields },
+    { 100, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_556MM, 0x00, _gItem556RifleRoundTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_556MM, 0x8, _gItemParalizerTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_556MM, 0x8, _gItemFlashbombTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemHypervelocityBatteryTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_BATTERY, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemP229Mp5a5BatteryTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1HammerBatteryTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 57, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1PykeFuelTextFields },
-    { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1JavelinBatteryTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_BATTERY, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemHypervelocityBatteryTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_BATTERY, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1HammerBatteryTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_DESCRIPTOR_AMMUNITION_FUEL, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1PykeFuelTextFields },
+    { 0, ITEM_DESCRIPTOR_CATEGORY_AMMUNITION | ITEM_AMMO_BATTERY, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM4a1JavelinBatteryTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
 };
 
 ItemDesc Gp_KeyItemDescs[] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, D_80096268 },
-    { 1000, 64, 0x00, D_800962C4 },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80096348 },
-    { 1000, 64, 0x8, D_80096378 },
-    { 20000, 64, 0x00, D_800963A4 },
-    { 1000, 64, 0x8, D_8009641C },
-    { 20000, 64, ITEM_FLAG_NO_ATTACHMENT, D_80096458 },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800964E4 },
-    { 1000, 64, 0x8, D_80096518 },
-    { 1000, 64, 0x00, D_80096578 },
-    { 1000, 64, 0x8, D_800965D8 },
-    { 1000, 64, 0x00, D_8009660C },
+    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemParthenonKeyTextFields },
+    { 1000, 64, 0x00, _gItemMicroDeviceTextFields },
+    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemRedKeyTextFields },
+    { 1000, 64, 0x8, _gItemBlueKeyTextFields },
+    { 20000, 64, 0x00, _gItemArmoryCardkeyTextFields },
+    { 1000, 64, 0x8, _gItemMistBadgeTextFields },
+    { 20000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemMendelJournalTextFields },
+    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemClipboardTextFields },
+    { 1000, 64, 0x8, _gItemMistSearchWarrantTextFields },
+    { 1000, 64, 0x00, _gItemNmcPhotoTextFields },
+    { 1000, 64, 0x8, _gItemMistManualTextFields },
+    { 1000, 64, 0x00, _gItemDryfieldMapTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 64, 0x8, D_80096678 },
-    { 1000, 64, 0x00, D_800966C0 },
-    { 1000, 64, 0x8, D_80096718 },
-    { 1000, 64, 0x8, D_80096740 },
-    { 1000, 64, 0x00, D_8009676C },
-    { 1000, 64, 0x00, D_800967D0 },
-    { 1000, 64, 0x8, D_80096828 },
-    { 1000, 64, 0x8, D_80096874 },
-    { 1000, 64, 0x8, D_800968C0 },
-    { 1000, 64, 0x8, D_800968DC },
-    { 1000, 64, 0x8, D_80096928 },
-    { 1000, 64, 0x8, D_8009694C },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, D_8009698C },
+    { 1000, 64, 0x8, _gItemMotelRoom6KeyTextFields },
+    { 1000, 64, 0x00, _gItemSaloonKeyTextFields },
+    { 1000, 64, 0x8, _gItemMonkeyWrenchTextFields },
+    { 1000, 64, 0x8, _gItemLobbyKeyTextFields },
+    { 1000, 64, 0x00, _gItemBroncoMasterkeyTextFields },
+    { 1000, 64, 0x00, _gItemWireRopeTextFields },
+    { 1000, 64, 0x8, _gItemFactoryKeyTextFields },
+    { 1000, 64, 0x8, _gItemTruckKeyTextFields },
+    { 1000, 64, 0x8, _gItemJerryCanTextFields },
+    { 1000, 64, 0x8, _gItemGasolineTextFields },
+    { 1000, 64, 0x8, _gItemIceBagTextFields },
+    { 1000, 64, 0x8, _gItemBagOfWaterTextFields },
+    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemBottlecapMagnetTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 20000, 64, 0x8, D_80096A00 },
-    { 1000, 64, 0x00, D_80096A3C },
-    { 1000, 64, 0x00, D_80096A84 },
-    { 60000, 64, 0x00, D_80096ADC },
-    { 30000, 64, 0x00, D_80096B24 },
-    { 1000, 64, 0x00, D_80096B6C },
+    { 20000, 64, 0x8, _gItemSuvKeyTextFields },
+    { 1000, 64, 0x00, _gItemOakBoardTextFields },
+    { 1000, 64, 0x00, _gItemJumperPlugTextFields },
+    { 60000, 64, 0x00, _gItemBowmanCardTextFields },
+    { 30000, 64, 0x00, _gItemYoshidaCardTextFields },
+    { 1000, 64, 0x00, _gItemElectricCarKeyTextFields },
     { 20000, 64, 0x00, D_80096BC4 },
     { 50000, 64, 0x00, D_80096C0C },
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -2162,7 +2420,7 @@ static inline void _itemInitializeNewGameIdentification(void)
     do {
         fieldsRemaining = ITEM_IDENTIFIED_TEXT_FIELD_COUNT;
         if (identificationIndex < ITEM_IDENTIFICATION_KEY_ITEM_FIRST) {
-            descriptor = &Gp_ItemDescs[identificationIndex];
+            descriptor = &gItemDescriptors[identificationIndex];
         } else {
             descriptor = &Gp_KeyItemDescs[identificationIndex - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
         }

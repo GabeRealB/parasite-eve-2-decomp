@@ -2490,7 +2490,7 @@ void itemMenuDiscardTask(Task* task)
     object            = task->spawnArg2.pointer;
     object->result    = USER_INTERFACE_RESULT_NONE;
     restrictionNotice = ITEM_MENU_DISCARD_ALLOWED;
-    if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
+    if (gItemDescriptors[itemId].flags & ITEM_FLAG_NO_DISCARD) {
         restrictionNotice = ITEM_MENU_NOTICE_CANNOT_DISCARD;
     } else if (((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) && (equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId) > 0)) {
         restrictionNotice = ITEM_MENU_NOTICE_CANNOT_DISCARD_LOADED;

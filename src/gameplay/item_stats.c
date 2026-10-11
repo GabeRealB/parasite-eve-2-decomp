@@ -584,7 +584,7 @@ void itemMenuInfoTask(Task* task)
             } else {
                 consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
                 if ((u32)consumableIndex < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
-                    caliberIndex            = Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK;
+                    caliberIndex            = gItemDescriptors[itemId].classification & ITEM_SUBTYPE_MASK;
                     contentTop              = object->panel.contentTop.signedValue;
                     categoryRequest.x       = object->panel.contentOriginX.unsignedValue + 2;
                     categoryRequest.y       = object->panel.contentOriginY.unsignedValue + contentTop + 0x1C;

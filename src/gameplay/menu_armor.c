@@ -322,7 +322,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
 /// Counts rows, including items already attached elsewhere, rather than quantities.
 /// Excludes empty rows, forbidden attachments and the equipped weapon; shows four
 /// rows at a time. `list` must be writable and the live carried range in bounds.
-/// Each row's itemId must index `Gp_ItemDescs`.
+/// Each row's itemId must index `gItemDescriptors`.
 /// `unused` is ignored.
 static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused)
 {
@@ -338,7 +338,7 @@ static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused)
     candidateCount = 0;
     row            = &row[carriedItems->firstRow];
     for (rowIndex = 0; rowIndex < carriedItems->rowCount; rowIndex++, row++) {
-        if ((Gp_ItemDescs[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
+        if ((gItemDescriptors[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
         if ((u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems) && _gpIsEquippedItem(row->itemId)) {

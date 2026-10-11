@@ -318,7 +318,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
             textureU      = (abilityIndex % 3) * 16 + 0xB0;
             textureV      = (abilityIndex / 3) * 16 + 0x80;
             paletteClut   = getClut((abilityIndex / 3) * 16 + 0x40, 0xF0);
-        } else if ((Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK) == ITEM_SUBTYPE_MEDICINE) {
+        } else if ((gItemDescriptors[itemId].classification & ITEM_SUBTYPE_MASK) == ITEM_SUBTYPE_MEDICINE) {
             paletteIndex  = ITEM_MENU_ICON_PALETTE_MEDICINE;
             categoryIndex = ITEM_MENU_ICON_CATEGORY_MEDICINE;
         } else {
@@ -352,7 +352,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
         if (firstConsumableItemId == INVENTORY_ITEM_NONE) {
             paletteIndex = ITEM_MENU_ICON_PALETTE_FALLBACK;
         } else {
-            switch (Gp_ItemDescs[firstConsumableItemId].classification & ITEM_SUBTYPE_MASK) {
+            switch (gItemDescriptors[firstConsumableItemId].classification & ITEM_SUBTYPE_MASK) {
                 case ITEM_AMMO_9MM:
                     paletteIndex = ITEM_MENU_ICON_PALETTE_9MM;
                     break;
@@ -378,7 +378,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
         }
         categoryIndex = ITEM_MENU_ICON_CATEGORY_WEAPON;
     } else if (itemId < INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        switch (Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK) {
+        switch (gItemDescriptors[itemId].classification & ITEM_SUBTYPE_MASK) {
             case ITEM_AMMO_9MM:
                 paletteIndex = ITEM_MENU_ICON_PALETTE_9MM;
                 break;
@@ -2266,7 +2266,7 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
         if (orderMode == rowInputEnabled) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 const ItemDesc* selectedDescriptor;
-                selectedDescriptor = &Gp_ItemDescs[Gp_SelItemRec->itemId];
+                selectedDescriptor = &gItemDescriptors[Gp_SelItemRec->itemId];
                 if (!(selectedDescriptor->flags & ITEM_FLAG_NO_ATTACHMENT)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     if (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE) {
@@ -2715,7 +2715,7 @@ InventoryItemRow* inventoryFindNthAttachmentCandidate(const InventoryItemRange* 
     foundRow = NULL;
     row      = &row[range->firstRow];
     for (rowIndex = 0; rowIndex < range->rowCount; rowIndex++, row++) {
-        if ((Gp_ItemDescs[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
+        if ((gItemDescriptors[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
         if ((u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT && _equipmentIsActiveItem(row->itemId)) {

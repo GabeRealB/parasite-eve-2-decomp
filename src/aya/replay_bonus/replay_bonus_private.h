@@ -298,7 +298,7 @@ static inline s32 _replayBonusItemBp(s32 itemId)
     s32 purchasePriceBp;
 
     if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
-        purchasePriceBp = Gp_ItemDescs[itemId].price;
+        purchasePriceBp = gItemDescriptors[itemId].price;
     } else {
         purchasePriceBp = Gp_KeyItemDescs[itemId - ITEM_TEXT_KEY_ID_FIRST].price;
     }

@@ -362,7 +362,17 @@ void inventoryResetCarriedRange(void);
 /// that callback owns teardown and may release the enemy, task and model.
 void areaObjectModelTask(Task* task);
 
-extern ItemDesc Gp_ItemDescs[];
+/// Number of ordinary catalogue rows, including unused entries.
+enum { ITEM_DESCRIPTOR_COUNT = 0xC0 };
+
+/// Purchase prices, classifications, restrictions and text for ordinary item ids.
+///
+/// Indexed by ids 0..0xBF: supplies and other items below 0x60, armor at
+/// 0x60..0x7F, weapons at 0x80..0x9F and consumables at 0xA0..0xBF.
+/// Parasite Energy level entries occupy 0x0F..0x32.
+/// Row zero and unused ids share empty text. Rows and borrowed text remain
+/// readable while gameplay is loaded; key items use `Gp_KeyItemDescs`.
+extern ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT];
 
 /// Item descriptors for ids from 0x100 up, indexed by `id - 0x100`.
 /// Key-item rows, indexed by item id minus 0x100.

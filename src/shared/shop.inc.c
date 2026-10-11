@@ -417,7 +417,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         return;
     }
 
-    unitPrice = Gp_ItemDescs[rowId].price;
+    unitPrice = gItemDescriptors[rowId].price;
     if (inventoryIsItemLimitReached(rowId) != 0) {
         purchaseBlocked = 1;
         list->colorRgb  = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
@@ -938,7 +938,7 @@ static void _shopDrawPurchaseRow(UiList* list, UiObject* object)
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         playerStatus = &gPlayerStatus;
-        packPrice    = Gp_ItemDescs[itemId].price;
+        packPrice    = gItemDescriptors[itemId].price;
         carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         if (playerStatus->bp >= packPrice) {
@@ -1208,7 +1208,7 @@ static void _shopPurchaseQuantityTask(Task* task)
     itemId    = task->spawnArg1.value;
     object    = task->spawnArg2.pointer;
     maxPacks  = 1;
-    packPrice = Gp_ItemDescs[itemId].price;
+    packPrice = gItemDescriptors[itemId].price;
 
     if (task->state == SHOP_PANEL_INITIAL) {
         task->extraState.value = 1;

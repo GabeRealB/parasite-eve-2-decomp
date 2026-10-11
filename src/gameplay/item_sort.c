@@ -720,7 +720,7 @@ const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified)
         text        = (const s8*)itemGetText(groupBase + levelOffset, fieldIndex, 1);
     } else {
         if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
-            descriptor = &Gp_ItemDescs[itemId];
+            descriptor = &gItemDescriptors[itemId];
         } else {
             descriptor = &Gp_KeyItemDescs[(itemId)-ITEM_TEXT_KEY_ID_FIRST];
         }

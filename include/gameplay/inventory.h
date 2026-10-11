@@ -124,7 +124,7 @@ enum {
 
 /// Catalogue properties and identified/unidentified text for an inventory item.
 ///
-/// `Gp_ItemDescs` and `Gp_KeyItemDescs` use this same row layout. The high
+/// `gItemDescriptors` and `Gp_KeyItemDescs` use this same row layout. The high
 /// nibble of `classification` groups entries (0 other, 1 armor, 2 weapon,
 /// 3 ammunition, 4 key item); the low nibble is a category-specific subtype.
 /// `textFields` borrows text for the gameplay image's lifetime: an identified

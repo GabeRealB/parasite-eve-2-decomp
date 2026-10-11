@@ -5420,7 +5420,7 @@ range and swaps the two `%hi` s-regs.
 
 ## `SOFT_TOUCH_REG` the split-address pointer so `lui`/`addiu` share `$v1`
 
-`-msplit-addresses` expands `table = (s32)Gp_ItemDescs` as a HIGH pseudo plus
+`-msplit-addresses` expands `table = (s32)gItemDescriptors` as a HIGH pseudo plus
 a LO_SUM into `table`. HIGH is short-lived (dies at the `addiu`) so
 `global_alloc` colors it first and gives it `$v0`; `table` cannot be `$v0`
 because it is still live at the `j` delay `sll v0, item, 3`, so it gets `$v1`
@@ -5433,7 +5433,7 @@ lo_sum copy:
 
 ```c
 if (item < 0x100) {
-    table = (s32)Gp_ItemDescs;
+    table = (s32)gItemDescriptors;
     SOFT_TOUCH_REG(table);
     off = item * 8; /* j delay: sll v0, item, 3 */
 } else {
@@ -31860,7 +31860,7 @@ the `andi`:
 actionTask = object->owner;
 battleFieldMode = actionTask->parent->status;
 transferRestricted = 0;
-if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
+if (gItemDescriptors[itemId].flags & ITEM_FLAG_NO_DISCARD) {
     transferRestricted = battleFieldMode == 1;
 }
 ```
@@ -65936,7 +65936,7 @@ then materialises the descriptor address in `$v0`.
 selectedRec = Gp_SelItemRec;
 selected = *selectedRec;
 USE_REG(selectedRec);
-if (!(Gp_ItemDescs[selected].flags & ITEM_FLAG_NO_ATTACHMENT)) { /* ... */ }
+if (!(gItemDescriptors[selected].flags & ITEM_FLAG_NO_ATTACHMENT)) { /* ... */ }
 ```
 
 This input-only keep-live restores the target sequence without register pins.
@@ -66870,7 +66870,7 @@ In the same function's ammunition block, splitting the table base and selected
 record retained the target base-before-index address sequence:
 
 ```c
-descBase = Gp_ItemDescs;
+descBase = gItemDescriptors;
 desc = descBase + itemId;
 TOUCH_REG(desc);
 caliberIndex = desc->classification & ITEM_SUBTYPE_MASK;
@@ -66886,7 +66886,7 @@ reused text-color local. The eligible unpinned variant was also run through the
 permuter before the final manual register fix.
 
 *Note 2026-10-07:* the base and record locals and the fence are gone. An rvalue
-`Gp_ItemDescs[itemId].classification` already loads the base before the index
+`gItemDescriptors[itemId].classification` already loads the base before the index
 (only `&table[i]` scales the index first), and the colour's `lui` is fixed by
 the order of two stores. See the section at the end of this file named
 `itemMenuInfoTask`.
@@ -143269,7 +143269,7 @@ unhoisted, write the tail into each arm.
 ## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (replayBonusCompleteBonusPanelTask, 2026-09-26)
 
 The replay-bonus BP total sums `price >> 1` over item ids, taking the price
-from `Gp_ItemDescs[id]` below 0x100 and from the high table otherwise. The
+from `gItemDescriptors[id]` below 0x100 and from the high table otherwise. The
 target has two details the seed held with `SOFT_TOUCH_REG(price)` and an
 `idx = item` copy: `lhu` followed by `sra` (not `srl`), and `move a0,v1` in the
 branch's delay slot, with only the `else` arm reading `a0`.
@@ -144610,7 +144610,7 @@ it into a logical shift. The seed held `sra` with `SOFT_TOUCH_REG(price)`.
 - Shifting inside each arm also gives `sra`, but it is cross-jumped only after
   sched, so the load-use `nop` stays.
 - The `(u16*)` table-address split with `SOFT_TOUCH_REG(table)` needed no
-  replacement: `Gp_ItemDescs[id].price` / `hi[id - 0x100].price` in the arms
+  replacement: `gItemDescriptors[id].price` / `hi[id - 0x100].price` in the arms
   produce it. The `idx = item` copy for the else arm was an inline helper's
   parameter passed as an expression (`helper(prompt, obj, *p)`), and the
   `addu base,idx` operand order came from a `p = &list->itemIds[i]` local.
@@ -146414,7 +146414,7 @@ allocation of every pseudo in the block.
 A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
 
 ## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (itemMenuDrawArmorAttachmentRow, 2026-09-27)
-The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `Gp_ItemDescs[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &Gp_ItemDescs[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&Gp_ItemDescs[id]` does too.
+The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(gItemDescriptors)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `gItemDescriptors[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &gItemDescriptors[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&gItemDescriptors[id]` does too.
 
 ## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (_inventoryFindNthReorderableRow, 2026-09-27)
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.
@@ -148887,9 +148887,9 @@ there while its `ori` stays where a load stall let it in; and a single-set
 address add is placed directly in front of the load that reads it.
 
 - `itemMenuInfoTask`, `TOUCH_REG(desc)`: the target has `textColor`'s `lui` after
-  the `&Gp_ItemDescs[item]` add. The `lui` is a leftover, the add is launched by
+  the `&gItemDescriptors[item]` add. The `lui` is a leftover, the add is launched by
   the `lbu`, so the add always lands below it; sched2 keeps that order.
-  The asm makes `desc` two-set, which stops the launch. `desc = Gp_ItemDescs;
+  The asm makes `desc` two-set, which stops the launch. `desc = gItemDescriptors;
   desc += item;` does the same and fixes the `lui`, but the base then shares
   the result's register (`lui v0; sll v1; addu v0,v1,v0` for `lui v1; sll v0;
   addu v0,v0,v1`). Needed: the add's result in a pseudo set twice, with the
@@ -152959,7 +152959,7 @@ image does not show which was written first; the leftover's position does.
 
 **Fix.** `colorRgb` before `glyphTable` in `labelRequest` and `categoryRequest`, nothing
 else. The `text` local is a literal at the call, and the descriptor is
-`Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK` with no locals: an
+`gItemDescriptors[itemId].classification & ITEM_SUBTYPE_MASK` with no locals: an
 rvalue `table[i].field` forces the table's address before it scales the index
 (`lui; addiu; sll; addu`), which is what `descBase` had been imitating;
 `&table[i]` is pointer arithmetic and scales first (`sll; lui; addiu; addu`, the

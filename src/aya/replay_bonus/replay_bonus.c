@@ -385,7 +385,7 @@ static inline s32 _replayBonusComputeExtraBonusBp(void)
     do {
         itemColumn = 0;
         do {
-            totalBp += Gp_ItemDescs[shopRow->items[itemColumn]].price;
+            totalBp += gItemDescriptors[shopRow->items[itemColumn]].price;
             itemColumn++;
         } while (itemColumn < ARRAY_SIZE(shopRow->items));
         shopRowIndex++;
