@@ -1003,10 +1003,14 @@ static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-/// Names this carrier's private room-shaded shadow function for one inclusion.
+/// Selects this sound walker's private ground shadow definition with room shading.
 ///
-/// Bind to the prologue's `static void name(Task* task)` declaration; the
-/// replacement is one identifier and evaluates no arguments or object state.
+/// Bind to one function identifier declared `static void (Task*)` in the prologue.
+/// Use the same identifier for `ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW` when
+/// including `walker_frame.inc.c` for this walker. This object-like alias takes
+/// no arguments, captures no locals and uses no stringification or token pasting.
+/// Define it only around `actor_render_walker_shadow.inc.c`, then undefine it;
+/// further shadow instances need distinct function identifiers and prototypes.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
