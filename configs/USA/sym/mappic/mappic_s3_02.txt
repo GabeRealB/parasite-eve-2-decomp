@@ -9,3 +9,4 @@ gMappicS302ToiletShape = 0x8012f73c;
 gMappicS302MotelLobbyShape = 0x8012f7cc;
 gMappicS302SaloonGRShape = 0x8012f8ac;
 gMappicS302GRKitchenShape = 0x8012f93c;
+gMappicS302WaterTowerShape = 0x8012f9e8;

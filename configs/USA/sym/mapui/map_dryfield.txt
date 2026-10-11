@@ -321,7 +321,7 @@ gMappicS202ToiletShape = 0x8012F724; // absolute:True owner=mappic_s2_02
 gMappicS202MotelLobbyShape = 0x8012F7B4; // absolute:True owner=mappic_s2_02
 gMappicS202SaloonGRShape = 0x8012F894; // absolute:True owner=mappic_s2_02
 gMappicS202GRKitchenShape = 0x8012F924; // absolute:True owner=mappic_s2_02
-D_mappic_s2_02_8012F9D0 = 0x8012F9D0; // absolute:True owner=mappic_s2_02
+gMappicS202WaterTowerShape = 0x8012F9D0; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FA7C = 0x8012FA7C; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FB0C = 0x8012FB0C; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FB9C = 0x8012FB9C; // absolute:True owner=mappic_s2_02

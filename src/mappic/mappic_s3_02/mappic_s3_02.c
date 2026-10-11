@@ -521,32 +521,37 @@ TmdSource gMappicS302GRKitchenShape = {
     .stream           = _gMappicS302GRKitchenShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS400Model0005C00AA0Skeleton[1] = {
+/// Identity transform and self-parented root for the Water Tower shape.
+static TmdBone _gMappicS302WaterTowerShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00AA0_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS400Model0005C00AA0PartVerts[1] = {
+/// Vertex count of the Water Tower shape's sole part (six vertices).
+static u32 _gMappicS302WaterTowerShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00AA0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS400Model0005C00AA0Verts[6] = {
+/// Water Tower's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302WaterTowerShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00AA0_verts.inc"
 };
 
-static u32 _gMappicS302MappicS400Model0005C00AA0Stream[12] = {
+/// Packed command stream for the Water Tower shape's two unlit quads.
+///
+/// Each quad has four packed SVECTOR byte offsets and white colour; two group
+/// ends precede the stream end. The map reads only the first group.
+static u32 _gMappicS302WaterTowerShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00AA0_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F9E8 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS302MappicS400Model0005C00AA0PartVerts,
-    _gMappicS302MappicS400Model0005C00AA0Verts,
-    &_gMappicS302MappicS400Model0005C00AA0Verts[6],
-    _gMappicS302MappicS400Model0005C00AA0Skeleton,
-    _gMappicS302MappicS400Model0005C00AA0Stream,
+TmdSource gMappicS302WaterTowerShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302WaterTowerShapeSkeleton),
+    .partVertexCounts = _gMappicS302WaterTowerShapePartVerts,
+    .verts            = _gMappicS302WaterTowerShapeVerts,
+    .normals          = &_gMappicS302WaterTowerShapeVerts[ARRAY_SIZE(_gMappicS302WaterTowerShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302WaterTowerShapeSkeleton,
+    .stream           = _gMappicS302WaterTowerShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS400Model0005C00B4CSkeleton[1] = {
