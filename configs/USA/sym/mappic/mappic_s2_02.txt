@@ -15,3 +15,4 @@ gMappicS202FactoryShape = 0x8012fb0c;
 gMappicS202GarageShape = 0x8012fb9c;
 gMappicS202DrivewayShape = 0x8012fc64;
 gMappicS202JunkYardShape = 0x8012fd60;
+gMappicS202TrailerCoachShape = 0x8012fdf0;

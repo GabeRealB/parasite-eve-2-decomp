@@ -719,30 +719,35 @@ TmdSource gMappicS202JunkYardShape = {
     .stream           = _gMappicS202JunkYardShapeStream,
 };
 
-static TmdBone _gMappicS202Model00C4800EC0Skeleton[1] = {
+/// Identity transform and self-parented root for the Trailer Coach shape.
+static TmdBone _gMappicS202TrailerCoachShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00C4800EC0PartVerts[1] = {
+/// Vertex count of the Trailer Coach shape's sole part (four vertices).
+static u32 _gMappicS202TrailerCoachShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00C4800EC0Verts[4] = {
+/// Trailer Coach's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202TrailerCoachShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_verts.inc"
 };
 
-static u32 _gMappicS202Model00C4800EC0Stream[9] = {
+/// Packed command stream for the Trailer Coach shape's single unlit quad.
+///
+/// Four vertex byte offsets and white colour are followed by two group ends
+/// and the stream end. The map reads only the first group and supplies its texture.
+static u32 _gMappicS202TrailerCoachShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012FDF0 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS202Model00C4800EC0PartVerts,
-    _gMappicS202Model00C4800EC0Verts,
-    &_gMappicS202Model00C4800EC0Verts[4],
-    _gMappicS202Model00C4800EC0Skeleton,
-    _gMappicS202Model00C4800EC0Stream,
+TmdSource gMappicS202TrailerCoachShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202TrailerCoachShapeSkeleton),
+    .partVertexCounts = _gMappicS202TrailerCoachShapePartVerts,
+    .verts            = _gMappicS202TrailerCoachShapeVerts,
+    .normals          = &_gMappicS202TrailerCoachShapeVerts[ARRAY_SIZE(_gMappicS202TrailerCoachShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202TrailerCoachShapeSkeleton,
+    .stream           = _gMappicS202TrailerCoachShapeStream,
 };

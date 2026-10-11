@@ -311,7 +311,13 @@ extern TmdSource gMappicS202DrivewayShape;
 /// visited marked area; keep `mappic_s2_02` loaded during use.
 extern TmdSource gMappicS202JunkYardShape;
 
-extern TmdSource D_mappic_s2_02_8012FDF0;
+/// Trailer Coach's single-quad area fill on page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map scales them by 1495/4096
+/// and maps Z to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group to cover an unvisited area or tint a
+/// visited marked area; keep `mappic_s2_02` loaded during use.
+extern TmdSource gMappicS202TrailerCoachShape;
 
 // mappic_s2_03
 /// Water hole's three-quad area fill on page 3 of the daytime Dryfield map.
@@ -763,7 +769,13 @@ extern TmdSource gMappicS302DrivewayShape;
 /// visited marked area; keep `mappic_s3_02` loaded during use.
 extern TmdSource gMappicS302JunkYardShape;
 
-extern TmdSource D_mappic_s3_02_8012FE08;
+/// Trailer Coach's single-quad area fill on page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map scales them by 1495/4096
+/// and maps Z to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group to cover an unvisited area or tint a
+/// visited marked area; keep `mappic_s3_02` loaded during use.
+extern TmdSource gMappicS302TrailerCoachShape;
 
 // mappic_s3_03
 /// Water hole's three-quad area fill on page 3 of the nighttime Dryfield map.

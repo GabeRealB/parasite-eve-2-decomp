@@ -320,7 +320,7 @@ gMappicS302FactoryShape = 0x8012FB24; // absolute:True owner=mappic_s3_02
 gMappicS302GarageShape = 0x8012FBB4; // absolute:True owner=mappic_s3_02 shared=mappic
 gMappicS302DrivewayShape = 0x8012FC7C; // absolute:True owner=mappic_s3_02
 gMappicS302JunkYardShape = 0x8012FD78; // absolute:True owner=mappic_s3_02
-D_mappic_s3_02_8012FE08 = 0x8012FE08; // absolute:True owner=mappic_s3_02
+gMappicS302TrailerCoachShape = 0x8012FE08; // absolute:True owner=mappic_s3_02
 gMappicS303WaterHoleShape = 0x8012EFD8; // absolute:True owner=mappic_s3_03 shared=mappic
 gMappicS303CellarShape = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=mappic
 D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s3_03 shared=mappic

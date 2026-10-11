@@ -719,30 +719,35 @@ TmdSource gMappicS302JunkYardShape = {
     .stream           = _gMappicS302JunkYardShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800EC0Skeleton[1] = {
+/// Identity transform and self-parented root for the Trailer Coach shape.
+static TmdBone _gMappicS302TrailerCoachShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800EC0PartVerts[1] = {
+/// Vertex count of the Trailer Coach shape's sole part (four vertices).
+static u32 _gMappicS302TrailerCoachShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800EC0Verts[4] = {
+/// Trailer Coach's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302TrailerCoachShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800EC0Stream[9] = {
+/// Packed command stream for the Trailer Coach shape's single unlit quad.
+///
+/// Four vertex byte offsets and white colour are followed by two group ends
+/// and the stream end. The map reads only the first group and supplies its texture.
+static u32 _gMappicS302TrailerCoachShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00EC0_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012FE08 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800EC0PartVerts,
-    _gMappicS302MappicS202Model00C4800EC0Verts,
-    &_gMappicS302MappicS202Model00C4800EC0Verts[4],
-    _gMappicS302MappicS202Model00C4800EC0Skeleton,
-    _gMappicS302MappicS202Model00C4800EC0Stream,
+TmdSource gMappicS302TrailerCoachShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302TrailerCoachShapeSkeleton),
+    .partVertexCounts = _gMappicS302TrailerCoachShapePartVerts,
+    .verts            = _gMappicS302TrailerCoachShapeVerts,
+    .normals          = &_gMappicS302TrailerCoachShapeVerts[ARRAY_SIZE(_gMappicS302TrailerCoachShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302TrailerCoachShapeSkeleton,
+    .stream           = _gMappicS302TrailerCoachShapeStream,
 };
