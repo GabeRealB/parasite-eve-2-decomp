@@ -422,32 +422,37 @@ TmdSource gMappicS302ToiletShape = {
     .stream           = _gMappicS302ToiletShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800884Skeleton[1] = {
+/// Identity transform and self-parented root for the Motel lobby shape.
+static TmdBone _gMappicS302MotelLobbyShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00884_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800884PartVerts[1] = {
+/// Vertex count of the Motel lobby shape's sole part (four vertices).
+static u32 _gMappicS302MotelLobbyShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00884_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800884Verts[4] = {
+/// Motel lobby's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302MotelLobbyShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00884_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800884Stream[9] = {
+/// Packed command stream for the Motel lobby shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS302MotelLobbyShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00884_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F7CC = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800884PartVerts,
-    _gMappicS302MappicS202Model00C4800884Verts,
-    &_gMappicS302MappicS202Model00C4800884Verts[4],
-    _gMappicS302MappicS202Model00C4800884Skeleton,
-    _gMappicS302MappicS202Model00C4800884Stream,
+TmdSource gMappicS302MotelLobbyShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302MotelLobbyShapeSkeleton),
+    .partVertexCounts = _gMappicS302MotelLobbyShapePartVerts,
+    .verts            = _gMappicS302MotelLobbyShapeVerts,
+    .normals          = &_gMappicS302MotelLobbyShapeVerts[ARRAY_SIZE(_gMappicS302MotelLobbyShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302MotelLobbyShapeSkeleton,
+    .stream           = _gMappicS302MotelLobbyShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00910Skeleton[1] = {
