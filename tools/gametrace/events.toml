@@ -74,6 +74,7 @@ address = 0x8001D2B0     # cdCmdEnqueue(command, fileKey, commandArgs)
 capture = ["a0", "a1:4", "a2", "ra"]
 
 # ---- where the player is
+render = "cd_command"
 
 [[event]]
 id = 4
@@ -94,12 +95,14 @@ id = 8
 name = "flag_nibble"
 address = 0x8004AC58     # gameFlagSetNibble(flagId, value): story flags and the companion schedule
 capture = ["a0", "a1", "ra"]
+render = "flag"
 
 [[event]]
 id = 9
 name = "flag_byte"
 address = 0x800E3FAC     # gameFlagSetPackedByte(nibbleIndex, packedValue)
 capture = ["a0", "a1", "ra"]
+render = "flag_byte"
 
 [[event]]
 id = 10
@@ -107,7 +110,7 @@ name = "companion_select"
 address = 0x800ABA4C     # companionSelectForArea(): v0 is the companion family, 0 for none
 capture = ["0x800714C4:8", "ra"]
 exits = [0x274]
-render = "location"
+render = "companion"
 
 # ---- sound
 
@@ -124,7 +127,7 @@ id = 11
 name = "sound_stop"
 address = 0x800542D0     # sndEvtRequestScriptStop(selector, stopControl)
 capture = ["a0", "a1", "ra"]
-render = "sound"
+render = "sound_stop"
 
 [[event]]
 id = 12
@@ -139,12 +142,14 @@ name = "music_start"
 exits = [0x68]           # v0: whether the sequence was started
 address = 0x800512BC     # sndEvtRequestMidiStart(sequenceId, fadeTicks)
 capture = ["a0", "a1", "ra"]
+render = "music_start"
 
 [[event]]
 id = 14
 name = "sound_reset_for_area"
 address = 0x800537FC     # sndScriptResetForArea(stage, area): which banks survive a room change is decided here
 capture = ["a0", "a1", "ra"]
+render = "sound_reset"
 
 [[event]]
 id = 15
@@ -174,18 +179,21 @@ id = 5
 name = "caption_command"
 address = 0x800E34D8     # capRunCommand(command)
 capture = ["a0", "ra"]
+render = "caption_command"
 
 [[event]]
 id = 17
 name = "caption_command_transition"
 address = 0x800E3B60     # capRunCommandWithTransition(command)
 capture = ["a0", "ra"]
+render = "caption_command"
 
 [[event]]
 id = 18
 name = "caption_file"
 address = 0x800E6D60     # capSelectLoadedFile(dataResourceOrdinal)
 capture = ["a0", "ra"]
+render = "caption_file"
 
 [[event]]
 id = 19
@@ -194,6 +202,7 @@ address = 0x800E6C70     # capStartSequenceSlot(commandIndex, playbackMode, vari
 capture = ["a0", "a1", "a2", "ra"]
 
 # ---- what goes into video memory
+render = "caption_sequence"
 
 [[event]]
 id = 20
@@ -220,15 +229,18 @@ id = 22
 name = "stream_scene"
 address = 0x800AF89C     # streamSelectScene(group, id, subId, subId2)
 capture = ["a0", "a1", "a2", "a3", "ra"]
+render = "stream_scene"
 
 [[event]]
 id = 23
 name = "movie_start"
 address = 0x8001F180     # streamPrepareMoviePlayback(slotIndex)
 capture = ["a0", "ra"]
+render = "movie_start"
 
 [[event]]
 id = 24
 name = "task_message"
 address = 0x800AC464     # taskMessageDispatch(receiver, messageId, firstArg, secondArg)
 capture = ["a0", "a1", "a2", "a3", "ra"]
+render = "task_message"

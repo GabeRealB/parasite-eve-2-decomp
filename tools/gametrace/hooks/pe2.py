@@ -12,7 +12,42 @@ import struct
 
 from gametrace import handler, renderer
 
-SOUND_TYPES = {0: "common", 1: "footstep", 2: "weapon", 4: "character", 5: "area"}
+REPO = __import__("pathlib").Path(__file__).resolve().parents[3]
+_CONSTANTS: dict = {}
+
+
+def constants(header: str, prefix: str) -> dict[int, str]:
+    """value -> name, for the constants of a header whose names start with `prefix`.
+
+    The decomp's headers are where a number's meaning is written down, and the names in them change as the naming
+    work goes on, so they are read from the header each run and not copied here."""
+    key = (header, prefix)
+    if key not in _CONSTANTS:
+        import re
+        found: dict[int, str] = {}
+        try:
+            text = (REPO / header).read_text(errors="replace")
+        except OSError:
+            text = ""
+        for name, value in re.findall(r"^\s*(%s\w*)\s*=\s*\(?(?:s32\))?\(?(-?0x[0-9A-Fa-f]+|-?\d+)\)?\s*[,}/]" % prefix, text, re.M):
+            found.setdefault(int(value, 0) & 0xFFFFFFFF, name)
+        _CONSTANTS[key] = found
+    return _CONSTANTS[key]
+
+
+def named(value: int, header: str, prefix: str) -> str:
+    """The constant's name with its prefix dropped, lower case - or the number when the header has no name for it."""
+    name = constants(header, prefix).get(value & 0xFFFFFFFF)
+    return name[len(prefix):].lower().replace("_", " ") if name else str(signed(value))
+
+
+# The bank types a sound id's top nibble names (include/main/sound_ids.h, src/main/sound_types.h). Type 1 is the
+# room's footstep bank, 14 the parasite-energy banks, 15 the music sequences.
+SOUND_TYPES = {0: "common", 1: "footstep", 2: "weapon", 4: "character", 5: "area", 6: "ambient", 14: "parasite energy", 15: "sequence"}
+# What a load policy makes the loader do (fsLoadFile, src/main/fs.c): which chunks of the file are taken.
+LOAD_MODES = {0: "everything", 1: "nothing: the drive only seeks to the file", 2: "everything, after the area's sound reset",
+              3: "everything, with its images relocated", 4: "everything but the background", 5: "its images only", 6: "everything but the sound bank"}
+LOADS_PACKAGE = {0, 2, 3, 4, 6}        # the policies under which a file's package is read
 
 
 def signed(value: int) -> int:
@@ -36,9 +71,14 @@ def file_load(record, trace):
         what = {"file": group * 10000 + hundreds * 100 + index}
     else:                                            # a stage's folder: the folder's id and the file's index in it
         what = {"stage": stage, "folder": group * 100 + hundreds, "index": index}
+    mode = record["a1"] & 0xFF                       # the loader uses the low byte; an unknown value means the default
     LOADING.clear()
     LOADING.update(what)
-    return {"event": "file_load", **what, "mode": record["a1"], "page_offset": signed(record["a2"]), "row_offset": signed(record["a3"]),
+    LOADING["mode"] = mode
+    # The offsets are signed bytes: pages of 64 across for images high in video memory or relocated, rows for
+    # palettes whose header says row 245..255.
+    return {"event": "file_load", **what, "mode": mode, "policy": named(mode, "include/main/fs_types.h", "CD_COMMAND_LOAD_"),
+            "takes": LOAD_MODES.get(mode, LOAD_MODES[0]), "page_offset": signed(record["a2"]), "row_offset": signed(record["a3"]),
             "from": trace.symbol(record["ra"])}
 
 
@@ -51,7 +91,7 @@ def packages_of(what: dict) -> list[str]:
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
     import asset_data
-    if not what:                                     # a load finished that the trace did not see begin
+    if not what or what.get("mode", 0) not in LOADS_PACKAGE:     # no load seen to begin, or one that reads no package
         return []
     if "file" in what:
         nodes = [f for f in (asset_data.TREE[0].get("files") or {}).values() if f["id"] == what["file"]]
@@ -70,12 +110,14 @@ def file_loaded(record, trace):
 
 @renderer("file_loaded")
 def file_loaded_line(record, trace):
-    return {"event": "file_loaded", **LOADING, "packages": packages_of(LOADING)}
+    return {"event": "file_loaded", **LOADING, "policy": named(LOADING.get("mode", 0), "include/main/fs_types.h", "CD_COMMAND_LOAD_"), "packages": packages_of(LOADING)}
 
 
 @renderer("sound_request")
 def sound_request(record, trace):
     if record["phase"] == "exit":
+        # The id comes back when the request was queued; zero when the bank is not loaded, the entry is out of range
+        # or empty, or the event pool is full (src/main/sndscript.c).
         return {"event": "sound_request", "phase": "exit", "taken": record["v0"] != 0, "v0": f"{record['v0']:#010x}"}
     return {"event": "sound_request", "phase": "enter", **sound(record["a0"]), "pan": signed(record["a1"]), "depth": signed(record["a2"]),
             "from": trace.symbol(record["ra"])}
@@ -85,7 +127,8 @@ def sound_request(record, trace):
 def variant_set(record, trace):
     view, room, area, stage, warp, current = struct.unpack_from("<6B", record["a0:8"])
     return {"event": "variant_set", "stage": stage, "area": area, "room": room, "view": view, "warp": warp, "was": current,
-            "variant": record["a1"], "reset_mode": signed(record["a2"]), "from": trace.symbol(record["ra"])}
+            "variant": record["a1"], "reset_mode": signed(record["a2"]),
+            "saved_poses": named(record["a2"], "include/gameplay/scene_runtime.h", "AREA_VARIANT_"), "from": trace.symbol(record["ra"])}
 
 
 def location(data: bytes) -> dict:
@@ -119,7 +162,8 @@ def sound_bank_load(record, trace):
         return {"event": "sound_bank_load", "phase": "exit", "descriptor": f"{record['v0']:#010x}", "loaded": record["v0"] != 0}
     tag, bank, kind, groups, layers, _u9, wave_block, _sectors, _ud, image_bytes, wave_bytes = struct.unpack_from("<IHBBBBHBBHi", record["a0:20"])
     return {"event": "sound_bank_load", "phase": "enter", "bank": f"{bank:#06x}", "type": SOUND_TYPES.get(bank >> 12, bank >> 12),
-            "groups": groups, "layers": layers, "wave_bytes": wave_bytes, "tag_ok": tag == 0x4B505368, "from": trace.symbol(record["ra"])}
+            "image": {0: "sequence", 2: "script"}.get(kind & 3, kind & 3), "groups": groups, "layers": layers, "program_bytes": image_bytes,
+            "wave_bytes": wave_bytes, "wave_at": wave_block * 64, "tag_ok": tag == 0x4B505368, "from": trace.symbol(record["ra"])}
 
 
 @renderer("sound_bank_free")
@@ -134,9 +178,10 @@ def sound_bank_free(record, trace):
 def image_chunk(record, trace):
     """fsUploadImageChunk: the chunk's header gives where it goes. Height is stored before width (FsImageChunk)."""
     if record["phase"] == "exit":
-        return {"event": "image_chunk_upload", "phase": "exit", "status": record["v0"] & 0xFF}
+        status = record["v0"] & 0xFF
+        return {"event": "image_chunk_upload", "phase": "exit", "status": status, "result": named(status, "include/main/fs.h", "FILE_SYSTEM_IMAGE_UPLOAD_")}
     x, y, h, w = struct.unpack_from("<4H", record["a0:8"])
-    return {"event": "image_chunk_upload", "phase": "enter", "x": x, "y": y, "w": w, "h": h, "kind": "palette" if h <= 16 and w in (16, 256) else "image",
+    return {"event": "image_chunk_upload", "phase": "enter", "x": x, "y": y, "w": w, "h": h, "waits_for_gpu": bool(record["a1"] & 0xFF), "kind": "palette" if h <= 16 and w in (16, 256) else "image",
             "from": trace.symbol(record["ra"])}
 
 
@@ -149,3 +194,140 @@ def rect(record, trace):
         out["to_x"], out["to_y"] = signed(record["a1"]), signed(record["a2"])
     out["from"] = trace.symbol(record["ra"])
     return out
+
+
+# ---- the events that were logged as bare registers: what the arguments mean, from the functions' own documentation
+
+
+def room_of(stage: int, area: int) -> str | None:
+    """The room a stage and area number name: a room folder's disc id is its area times 100, plus one."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    import asset_data
+    for name, folder in (asset_data.TREE.get(stage, {}).get("folders") or {}).items():
+        if folder["id"] // 100 == area:
+            return name
+    return None
+
+
+@renderer("cd_command")
+def cd_command(record, trace):
+    """cdCmdEnqueue(command, fileKey, commandArgs): the request's opcode; a file load's key says which file."""
+    out = {"event": "cd_command", "command": named(record["a0"], "include/main/fs_types.h", "CD_COMMAND_"), "opcode": f"{record['a0'] & 0xFF:#04x}"}
+    if record["a0"] & 0xFF == 0x21 and any(record["a1:4"]):
+        index, hundreds, group, stage = record["a1:4"]
+        out.update({"file": group * 10000 + hundreds * 100 + index} if stage == 0 else {"stage": stage, "folder": group * 100 + hundreds, "index": index})
+    out["from"] = trace.symbol(record["ra"])
+    return out
+
+
+@renderer("flag")
+def flag(record, trace):
+    """gameFlagSetNibble(flagId, value): the flag by its name in include/main/gameflag_ids.h."""
+    name = constants("include/main/gameflag_ids.h", "GAME_FLAG_").get(record["a0"])
+    return {"event": "flag_set", "flag": name or f"{record['a0']:#05x}", "id": f"{record['a0']:#05x}", "value": record["a1"] & 0xF, "from": trace.symbol(record["ra"])}
+
+
+@renderer("flag_byte")
+def flag_byte(record, trace):
+    """gameFlagSetPackedByte(nibbleIndex, packedValue): two nibbles at once; either index of a pair names the byte."""
+    low = record["a0"] & ~1
+    names = [constants("include/main/gameflag_ids.h", "GAME_FLAG_").get(low + n) or f"{low + n:#05x}" for n in (0, 1)]
+    return {"event": "flag_byte_set", "flags": names, "value": f"{record['a1'] & 0xFF:#04x}", "from": trace.symbol(record["ra"])}
+
+
+@renderer("companion")
+def companion(record, trace):
+    """companionSelectForArea: 0 when no companion resources are needed, else the family to load (1..3)."""
+    if record["phase"] == "exit":
+        family = record["v0"]
+        return {"event": "companion_select", "phase": "exit", "family": family, "result": "none" if not family else f"family {family} to load"}
+    return {"event": "companion_select", "phase": "enter", **location(record["0x800714C4:8"]), "from": trace.symbol(record["ra"])}
+
+
+@renderer("sound_stop")
+def sound_stop(record, trace):
+    """sndEvtRequestScriptStop(selector, stopControl) (include/main/sound.h)."""
+    selector, control = record["a0"], record["a1"] & 0xFFFF
+    if selector & 0xFF:                                   # an entry: that id, or every instance of it
+        what = {**sound(selector), "which": "every instance" if (selector >> 8) & 0xFF == 0xFF else "that instance"}
+    elif selector == 0x80000000:
+        what = {"sound": f"{selector:#010x}", "which": "every bank type except ambient"}
+    else:
+        what = {"sound": f"{selector:#010x}", "which": f"every script of type {SOUND_TYPES.get(selector >> 28, selector >> 28)}"}
+    how = "no fade" if control == 0 else "no fade, keeping the voices' release" if control == 1 else f"fade over about {control} audio updates"
+    return {"event": "sound_stop", **what, "how": how, "from": trace.symbol(record["ra"])}
+
+
+@renderer("music_start")
+def music_start(record, trace):
+    """sndEvtRequestMidiStart(sequenceId, fadeTicks): zero when queued, or why not."""
+    if record["phase"] == "exit":
+        result = {0: "queued", 0xFFFFFFFE: "event pool full", 0xFFFFFFFD: "invalid sequence"}.get(record["v0"], f"{signed(record['v0'])}")
+        return {"event": "music_start", "phase": "exit", "result": result}
+    return {"event": "music_start", "phase": "enter", "sequence": record["a0"] & 0xFF, "fade_updates": record["a1"] & 0xFFFF, "from": trace.symbol(record["ra"])}
+
+
+@renderer("sound_reset")
+def sound_reset(record, trace):
+    """sndScriptResetForArea(stage, area): the banks of the room being left are released here."""
+    return {"event": "sound_reset_for_area", "stage": record["a0"], "area": record["a1"], "room": room_of(record["a0"], record["a1"]), "from": trace.symbol(record["ra"])}
+
+
+@renderer("caption_command")
+def caption_command(record, trace):
+    return {"event": record["name"], "command": signed(record["a0"]), "from": trace.symbol(record["ra"])}
+
+
+@renderer("caption_file")
+def caption_file(record, trace):
+    """capSelectLoadedFile(ordinal): the Nth data resource of the room's bundle, counting from zero."""
+    return {"event": "caption_file", "data_resource": record["a0"], "from": trace.symbol(record["ra"])}
+
+
+@renderer("caption_sequence")
+def caption_sequence(record, trace):
+    """capStartSequenceSlot(commandIndex, playbackMode, variantKey) (include/gameplay/captions.h)."""
+    modes = {0: "in the current display", 1: "after a display transition", 2: "after a transition, with room-effect messages around it",
+             3: "after a transition, only if no sequence has started"}
+    mode = record["a1"] & 0xFFFF
+    return {"event": "caption_sequence", "command": record["a0"] & 0xFFFF, "playback": modes.get(mode, f"mode {mode}: after a transition"),
+            "variant_key": record["a2"] & 0xFFFF, "from": trace.symbol(record["ra"])}
+
+
+@renderer("movie_start")
+def movie_start(record, trace):
+    """streamPrepareMoviePlayback(slotIndex): the movie slot, 0..14."""
+    return {"event": "movie_start", "slot": record["a0"] & 0xFFFF, "from": trace.symbol(record["ra"])}
+
+
+@renderer("stream_scene")
+def stream_scene(record, trace):
+    return {"event": "stream_scene", "group": record["a0"] & 0xFFFF, "id": record["a1"] & 0xFFFF, "sub_id": record["a2"] & 0xFFFF,
+            "sub_id_2": record["a3"] & 0xFFFF, "from": trace.symbol(record["ra"])}
+
+
+def message_names() -> dict[int, list[str]]:
+    """value -> the message constants of include/gameplay/message.h with that value (several enums share numbers)."""
+    if "messages" not in _CONSTANTS:
+        import re
+        found: dict[int, list[str]] = {}
+        try:
+            text = (REPO / "include/gameplay/message.h").read_text(errors="replace")
+        except OSError:
+            text = ""
+        for name, value in re.findall(r"^\s*(\w*MESSAGE\w*)\s*=\s*(0x[0-9A-Fa-f]+|\d+)\s*[,}/]", text, re.M):
+            found.setdefault(int(value, 0), []).append(name)
+        _CONSTANTS["messages"] = found
+    return _CONSTANTS["messages"]
+
+
+@renderer("task_message")
+def task_message(record, trace):
+    """taskMessageDispatch(receiver, messageId, firstArg, secondArg). The receiver is a task; which names apply to
+    a message number depends on the receiver's kind, so every constant with that value is given."""
+    ident = record["a1"]
+    return {"event": "task_message", "message": ident, "names": message_names().get(ident, []), "receiver": f"{record['a0']:#010x}",
+            "arg1": f"{record['a2']:#010x}", "arg2": f"{record['a3']:#010x}", "arg1_at": trace.symbol(record["a2"]) if record["a2"] >> 24 == 0x80 else None,
+            "from": trace.symbol(record["ra"])}
