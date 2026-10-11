@@ -1469,7 +1469,7 @@ D_dryfield_night_garage_801874BC = 0x801874BC; // absolute:True owner=dryfield_n
 
 D_dryfield_night_general_store_8018572C = 0x8018572C; // absolute:True owner=dryfield_night_general_store
 
-D_dryfield_night_junk_yard_801843F0 = 0x801843F0; // absolute:True owner=dryfield_night_junk_yard shared=rooms
+gDryfieldNightJunkYardAreaVariants = 0x801843F0; // absolute:True owner=dryfield_night_junk_yard shared=rooms
 
 gDryfieldNightMainStreetAreaVariants = 0x80188A08; // absolute:True owner=dryfield_night_main_street
 

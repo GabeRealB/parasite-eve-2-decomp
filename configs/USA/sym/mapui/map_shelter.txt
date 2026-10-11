@@ -336,7 +336,7 @@ gShelterB2LaboratorySurfacePropertiesByClass = 0x80186468; // absolute:True owne
 shelterB2BreedingRoomAreaObjectTask = 0x8017D5F8; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 shelterB2BreedingRoomRoomTask = 0x8017D840; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 gShelterB2BreedingRoomModel02E04 = 0x801803F0; // absolute:True owner=shelter_b2_breeding_room
-gShelterB2BreedingRoomRoomViewMaps = 0x8018055C; // absolute:True owner=shelter_b2_breeding_room shared=rooms
+gShelterB2BreedingRoomRoomViewMaps = 0x8018055C; // absolute:True owner=shelter_b2_breeding_room
 gShelterB2BreedingRoomRoomViewCounts = 0x80180560; // absolute:True owner=shelter_b2_breeding_room
 gShelterB2BreedingRoomWarpEntries = 0x80180564; // absolute:True owner=shelter_b2_breeding_room
 gShelterB2BreedingRoomCollisionGrid = 0x801810F4; // absolute:True owner=shelter_b2_breeding_room

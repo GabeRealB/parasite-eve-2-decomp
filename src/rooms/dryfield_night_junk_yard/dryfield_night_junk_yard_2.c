@@ -26,6 +26,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gamemain.h"
@@ -34,6 +35,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -53,9 +55,9 @@ enum {
 };
 
 static WorldCollisionGrid     _gDryfieldNightJunkYardCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1];
-extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
-extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
+static WorldCollisionOccluder _gDryfieldNightJunkYardSightOccluders[1];
+static WorldCollisionTrigger  _gDryfieldNightJunkYardViewBoundaryTriggers[10];
+static WorldCollisionTrigger  _gDryfieldNightJunkYardActionTriggers[20];
 static WorldCoordRoomLights   _gDryfieldNightJunkYardRoomLights;
 
 /// World-space capsule endpoints followed by the junk yard's five flare centres.
@@ -80,9 +82,9 @@ WorldCoordRoomLighting gDryfieldNightJunkYardRoomLighting[2] = {
     { .lights = &_gDryfieldNightJunkYardRoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[2] = {
-    { &_gDryfieldNightJunkYardCollisionGrid, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
-    { &_gDryfieldNightJunkYardCollisionGrid, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
+WorldCollisionRoomResources gDryfieldNightJunkYardRoomCollisionResources[2] = {
+    { .grid = &_gDryfieldNightJunkYardCollisionGrid, .viewBoundaryTriggers = _gDryfieldNightJunkYardViewBoundaryTriggers, .actionTriggers = _gDryfieldNightJunkYardActionTriggers, .occluders = _gDryfieldNightJunkYardSightOccluders },
+    { .grid = &_gDryfieldNightJunkYardCollisionGrid, .viewBoundaryTriggers = _gDryfieldNightJunkYardViewBoundaryTriggers, .actionTriggers = _gDryfieldNightJunkYardActionTriggers, .occluders = _gDryfieldNightJunkYardSightOccluders },
 };
 
 /// Room 2's logical-view to camera/image/sprite index mapping.
@@ -110,12 +112,56 @@ u8* gDryfieldNightJunkYardViewMaps[2] = {
     _gDryfieldNightJunkYardRoom2ViewMap,
 };
 
-ViewCount D_dryfield_night_junk_yard_801807C8[2] = { 10, 10 };
+enum { DRYFIELD_NIGHT_JUNK_YARD_LOGICAL_VIEW_COUNT = 10 };
+ViewCount gDryfieldNightJunkYardViewCounts[2] = {
+    DRYFIELD_NIGHT_JUNK_YARD_LOGICAL_VIEW_COUNT,
+    DRYFIELD_NIGHT_JUNK_YARD_LOGICAL_VIEW_COUNT,
+};
 
-DirectionWarpEntry D_dryfield_night_junk_yard_801807CC[3] = {
-    { { { .word = 0 }, 5030, 4, 390 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5030, 4, 390 }, { 0, 0, 0, 0 }, 0x531A0004, 0x531A0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 472 },
-    { { { .word = 0 }, 0x55A1, 4, 1639 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x55A1, 4, 1639 }, { 0, 0, 0, 0 }, 0x531A0002, 0x531A0001, 0x531A000B, 5, DIRECTION_WARP_FLAG_NONE, 471 },
-    { { { .word = 0 }, 1859, 4, 672 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1859, 4, 672 }, { 0, 0, 0, 0 }, 0x531A0006, 0x531A0005, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Room-bank cues and map-marker nibbles for the three warp endpoints.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_GARAGE_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 4),
+    DRYFIELD_NIGHT_JUNK_YARD_GARAGE_DEPARTURE_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 3),
+    DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 2),
+    DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 1),
+    DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 11),
+    DRYFIELD_NIGHT_JUNK_YARD_WARP_3_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 6),
+    DRYFIELD_NIGHT_JUNK_YARD_WARP_3_DEPARTURE_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 5),
+    DRYFIELD_NIGHT_JUNK_YARD_GARAGE_WARP_MAP_FLAG          = 472,
+    DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_WARP_MAP_FLAG   = 471,
+};
+
+DirectionWarpEntry gDryfieldNightJunkYardWarpEntries[3] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 5030, .y = 4, .z = 390 },
+        .companion      = { .yaw = { .word = 0 }, .x = 5030, .y = 4, .z = 390 },
+        .arrivalSound   = DRYFIELD_NIGHT_JUNK_YARD_GARAGE_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_JUNK_YARD_GARAGE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_JUNK_YARD_GARAGE_WARP_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 0x55A1, .y = 4, .z = 1639 },
+        .companion      = { .yaw = { .word = 0 }, .x = 0x55A1, .y = 4, .z = 1639 },
+        .arrivalSound   = DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_DEPARTURE_SOUND,
+        .blockedSound   = DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_BLOCKED_SOUND,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_WARP_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 1859, .y = 4, .z = 672 },
+        .companion      = { .yaw = { .word = 0 }, .x = 1859, .y = 4, .z = 672 },
+        .arrivalSound   = DRYFIELD_NIGHT_JUNK_YARD_WARP_3_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_JUNK_YARD_WARP_3_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Unit-scale room-space normals for the junk-yard collision grid (4096 = 1.0).
@@ -825,17 +871,22 @@ SpriteView gDryfieldNightJunkYardSpriteViews[10] = {
     { { .elements = _gDryfieldNightJunkYardView10SpriteSources }, _gDryfieldNightJunkYardView10SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_junk_yard_80183778[10] = {
-    { NULL, NULL, NULL, { 3568, -1408, 2448, 0 }, { { 467, -2432, -3264, 0 }, { -494, -2432, 3235, 0 }, { 467, 2432, -3264, 0 }, { -494, 2432, 3235, 0 } }, { 4052, 0, 599, 0 }, { 0, 0, 4096, 0 }, 4087, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3680, -1376, 2336, 0 }, { { -517, -2400, 3225, 0 }, { 476, -2400, -3264, 0 }, { -517, 2400, 3225, 0 }, { 476, 2400, -3264, 0 } }, { -4056, 0, -621, 0 }, { 0, 0, 4096, 0 }, 4063, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7324, -1328, 2299, 0 }, { { 335, -2352, -3268, 0 }, { -337, -2352, 3267, 0 }, { 335, 2352, -3268, 0 }, { -337, 2352, 3267, 0 } }, { 4074, 0, 418, 0 }, { 0, 0, 4096, 0 }, 4039, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7483, -1296, 2174, 0 }, { { -337, -2320, 3267, 0 }, { 335, -2320, -3268, 0 }, { -337, 2320, 3267, 0 }, { 335, 2320, -3268, 0 } }, { -4076, 0, -420, 0 }, { 0, 0, 4096, 0 }, 4015, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3EDF, -1296, 3778, 0 }, { { -14, -2320, 2006, 0 }, { 14, -2320, -2006, 0 }, { -14, 2320, 2006, 0 }, { 14, 2320, -2006, 0 } }, { -4117, 0, -29, 0 }, { 0, 0, 4096, 0 }, 3061, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3E40, -1328, 3727, 0 }, { { 14, -2352, -1990, 0 }, { -14, -2352, 1990, 0 }, { 14, 2352, -1990, 0 }, { -14, 2352, 1990, 0 } }, { 4112, 0, 28, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3400, -1344, 928, 0 }, { { 1262, -2352, -2822, 0 }, { -1262, -2352, 2822, 0 }, { 1262, 2352, -2822, 0 }, { -1262, 2352, 2822, 0 } }, { 3740, 0, 1672, 0 }, { 0, 0, 4096, 0 }, 3882, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3430, -1312, 5328, 0 }, { { -1330, -2352, -1782, 0 }, { 1330, -2352, 1782, 0 }, { -1330, 2352, -1782, 0 }, { 1330, 2352, 1782, 0 } }, { 3290, 0, -2457, 0 }, { 0, 0, 4096, 0 }, 3228, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3531, -1344, 5361, 0 }, { { 1310, -2352, 1818, 0 }, { -1310, -2352, -1818, 0 }, { 1310, 2352, 1818, 0 }, { -1310, 2352, -1818, 0 } }, { -3324, 0, 2394, 0 }, { 0, 0, 4096, 0 }, 3248, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x343F, -1345, 1280, 0 }, { { -1090, -2352, 2426, 0 }, { 1090, -2352, -2426, 0 }, { -1090, 2352, 2426, 0 }, { 1090, 2352, -2426, 0 } }, { -3741, 0, -1681, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Ten directed view boundaries shared by junk-yard rooms 1 and 2.
+///
+/// Source/destination IDs address logical views 2..7; room 2 applies its view
+/// map afterwards. Geometry uses room units and normals use ONE per unit.
+/// Setup binds and links every mutable record through the final LAST element.
+static WorldCollisionTrigger _gDryfieldNightJunkYardViewBoundaryTriggers[10] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 3568, -1408, 2448, 0 }, .vertices = { { 467, -2432, -3264, 0 }, { -494, -2432, 3235, 0 }, { 467, 2432, -3264, 0 }, { -494, 2432, 3235, 0 } }, .normal = { 4052, 0, 599, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 4087, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 3680, -1376, 2336, 0 }, .vertices = { { -517, -2400, 3225, 0 }, { 476, -2400, -3264, 0 }, { -517, 2400, 3225, 0 }, { 476, 2400, -3264, 0 } }, .normal = { -4056, 0, -621, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 4063, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 7324, -1328, 2299, 0 }, .vertices = { { 335, -2352, -3268, 0 }, { -337, -2352, 3267, 0 }, { 335, 2352, -3268, 0 }, { -337, 2352, 3267, 0 } }, .normal = { 4074, 0, 418, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 4039, .control = 0, .parameter0 = 4, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 7483, -1296, 2174, 0 }, .vertices = { { -337, -2320, 3267, 0 }, { 335, -2320, -3268, 0 }, { -337, 2320, 3267, 0 }, { 335, 2320, -3268, 0 } }, .normal = { -4076, 0, -420, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 4015, .control = 0, .parameter0 = 2, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3EDF, -1296, 3778, 0 }, .vertices = { { -14, -2320, 2006, 0 }, { 14, -2320, -2006, 0 }, { -14, 2320, 2006, 0 }, { 14, 2320, -2006, 0 } }, .normal = { -4117, 0, -29, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3061, .control = 0, .parameter0 = 7, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3E40, -1328, 3727, 0 }, .vertices = { { 14, -2352, -1990, 0 }, { -14, -2352, 1990, 0 }, { 14, 2352, -1990, 0 }, { -14, 2352, 1990, 0 } }, .normal = { 4112, 0, 28, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3072, .control = 0, .parameter0 = 5, .parameter1 = 7, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3400, -1344, 928, 0 }, .vertices = { { 1262, -2352, -2822, 0 }, { -1262, -2352, 2822, 0 }, { 1262, 2352, -2822, 0 }, { -1262, 2352, 2822, 0 } }, .normal = { 3740, 0, 1672, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3882, .control = 0, .parameter0 = 7, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3430, -1312, 5328, 0 }, .vertices = { { -1330, -2352, -1782, 0 }, { 1330, -2352, 1782, 0 }, { -1330, 2352, -1782, 0 }, { 1330, 2352, 1782, 0 } }, .normal = { 3290, 0, -2457, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3228, .control = 0, .parameter0 = 7, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3531, -1344, 5361, 0 }, .vertices = { { 1310, -2352, 1818, 0 }, { -1310, -2352, -1818, 0 }, { 1310, 2352, 1818, 0 }, { -1310, 2352, -1818, 0 } }, .normal = { -3324, 0, 2394, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3248, .control = 0, .parameter0 = 4, .parameter1 = 7, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x343F, -1345, 1280, 0 }, .vertices = { { -1090, -2352, 2426, 0 }, { 1090, -2352, -2426, 0 }, { -1090, 2352, 2426, 0 }, { 1090, 2352, -2426, 0 } }, .normal = { -3741, 0, -1681, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 3547, .control = 0, .parameter0 = 4, .parameter1 = 7, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 /// Authored point lights for Dryfield's nighttime junk yard, contributing in every view.
@@ -978,31 +1029,49 @@ static WorldCoordRoomLights _gDryfieldNightJunkYardRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_junk_yard_80183D28[20] = {
-    { NULL, NULL, NULL, { 5312, -48, 240, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5600, -48, 1568, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7536, -64, 4704, 0 }, { { -3216, 0, -624, 0 }, { 3216, 0, -624, 0 }, { -3216, 0, 624, 0 }, { 3216, 0, 624, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 432, -64, 4576, 0 }, { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1396, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6623, -64, 2783, 0 }, { { -935, 0, 3140, 0 }, { -306, 0, -3261, 0 }, { 307, 0, 3262, 0 }, { 936, 0, -3139, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4ABF, -64, 3551, 0 }, { { -609, 0, 945, 0 }, { -308, 0, -1081, 0 }, { -395, 0, 1082, 0 }, { -94, 0, -944, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4882, -64, 3200, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3120, -64, 3856, 0 }, { { -1088, 0, -288, 0 }, { 32, 0, -4768, 0 }, { 352, 0, 2528, 0 }, { 704, 0, 2528, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, 4096, 0 }, 4748, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1569, -64, 4160, 0 }, { { -544, 0, -1456, 0 }, { 416, 0, -1200, 0 }, { -544, 0, 1328, 0 }, { 672, 0, 1328, 0 } }, { 0, 4110, 0, 0 }, { -4052, 0, 601, 0 }, 1551, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x527F, -64, 4111, 0 }, { { -1440, 0, -448, 0 }, { 1440, 0, -448, 0 }, { -1440, 0, 448, 0 }, { 1440, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 1503, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5130, -64, 3008, 0 }, { { -848, 0, -496, 0 }, { 848, 0, -496, 0 }, { -848, 0, 496, 0 }, { 848, 0, 496, 0 } }, { 0, 4096, 0, 0 }, { 201, 0, 4091, 0 }, 981, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 320, -64, 2400, 0 }, { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1396, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4210, -64, 4096, 0 }, { { -2608, 0, -448, 0 }, { 2608, 0, -448, 0 }, { -2608, 0, 448, 0 }, { 2608, 0, 448, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 848, -64, 544, 0 }, { { -624, 0, -688, 0 }, { 624, 0, -688, 0 }, { -624, 0, 688, 0 }, { 624, 0, 688, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 927, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2720, -64, 3360, 0 }, { { -1504, 0, -464, 0 }, { 1504, 0, -464, 0 }, { -1504, 0, 464, 0 }, { 1504, 0, 464, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, -4091, 0 }, 1572, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4159, -64, 4415, 0 }, { { 315, 0, -1542, 0 }, { 609, 0, 1452, 0 }, { -608, 0, -1451, 0 }, { -314, 0, 1543, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1572, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3590, -64, 1888, 0 }, { { -1232, 0, -1984, 0 }, { -80, 0, -1984, 0 }, { 80, 0, 1984, 0 }, { 1232, 0, 1984, 0 } }, { 0, 4095, 0, 0 }, { -3973, 0, 995, 0 }, 2332, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3DB0, -64, 3328, 0 }, { { -1648, 0, -384, 0 }, { 1648, 0, -512, 0 }, { -1648, 0, 512, 0 }, { 1648, 0, 384, 0 } }, { 0, 4110, 0, 0 }, { 201, 0, 4091, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x35BF, -64, 4895, 0 }, { { -957, 0, 887, 0 }, { 189, 0, -1347, 0 }, { -188, 0, 1348, 0 }, { 958, 0, -886, 0 } }, { 0, 4104, 0, 0 }, { -3920, 0, -1189, 0 }, 1360, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x52C0, -64, 2144, 0 }, { { -368, 0, -976, 0 }, { 624, 0, -976, 0 }, { -624, 0, 976, 0 }, { 368, 0, 976, 0 } }, { 0, 4100, 0, 0 }, { 4051, 0, -601, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed departure/arrival warp slots and the encounter's room-action ID.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_GARAGE_WARP_SLOTS           = (1 << 4) | 2,
+    DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_WARP_SLOTS    = (2 << 4) | 1,
+    DRYFIELD_NIGHT_JUNK_YARD_ROOM_ACTION_START_ENCOUNTER = 3,
 };
 
-WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1] = {
-    { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Twenty interaction and automatic-event quads shared by junk-yard rooms 1 and 2.
+///
+/// Includes garage/trailer-coach warps, CAP interactions and room actions 1..3;
+/// action 3 starts the variant-1 encounter. Positions/radii use room units and
+/// normals use ONE per unit. Setup binds and links through the final LAST
+/// record; contact latches and list links remain writable while loaded.
+static WorldCollisionTrigger _gDryfieldNightJunkYardActionTriggers[20] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5312, -48, 240, 0 }, .vertices = { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1123, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_DRYFIELD_NIGHT_GARAGE, .parameter1 = DRYFIELD_NIGHT_JUNK_YARD_GARAGE_WARP_SLOTS, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x5600, -48, 1568, 0 }, .vertices = { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1123, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, .parameter1 = DRYFIELD_NIGHT_JUNK_YARD_TRAILER_COACH_WARP_SLOTS, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 7536, -64, 4704, 0 }, .vertices = { { -3216, 0, -624, 0 }, { 3216, 0, -624, 0 }, { -3216, 0, 624, 0 }, { 3216, 0, 624, 0 } }, .normal = { 0, 4097, 0, 0 }, .facingNormal = { 0, 0, -ONE, 0 }, .radius = 3268, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 11, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 432, -64, 4576, 0 }, .vertices = { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, .normal = { 0, 4101, 0, 0 }, .facingNormal = { ONE, 0, 0, 0 }, .radius = 1396, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 3, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 6623, -64, 2783, 0 }, .vertices = { { -935, 0, 3140, 0 }, { -306, 0, -3261, 0 }, { 307, 0, 3262, 0 }, { 936, 0, -3139, 0 } }, .normal = { 0, 4097, 0, 0 }, .facingNormal = { 0, 0, -ONE, 0 }, .radius = 3268, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = 1, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x4ABF, -64, 3551, 0 }, .vertices = { { -609, 0, 945, 0 }, { -308, 0, -1081, 0 }, { -395, 0, 1082, 0 }, { -94, 0, -944, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1144, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = 2, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x4882, -64, 3200, 0 }, .vertices = { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1123, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 8, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3120, -64, 3856, 0 }, .vertices = { { -1088, 0, -288, 0 }, { 32, 0, -4768, 0 }, { 352, 0, 2528, 0 }, { 704, 0, 2528, 0 } }, .normal = { 0, 4117, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 4748, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = DRYFIELD_NIGHT_JUNK_YARD_ROOM_ACTION_START_ENCOUNTER, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1569, -64, 4160, 0 }, .vertices = { { -544, 0, -1456, 0 }, { 416, 0, -1200, 0 }, { -544, 0, 1328, 0 }, { 672, 0, 1328, 0 } }, .normal = { 0, 4110, 0, 0 }, .facingNormal = { -4052, 0, 601, 0 }, .radius = 1551, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 20, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x527F, -64, 4111, 0 }, .vertices = { { -1440, 0, -448, 0 }, { 1440, 0, -448, 0 }, { -1440, 0, 448, 0 }, { 1440, 0, 448, 0 } }, .normal = { 0, 4114, 0, 0 }, .facingNormal = { 0, 0, -ONE, 0 }, .radius = 1503, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 18, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x5130, -64, 3008, 0 }, .vertices = { { -848, 0, -496, 0 }, { 848, 0, -496, 0 }, { -848, 0, 496, 0 }, { 848, 0, 496, 0 } }, .normal = { 0, ONE, 0, 0 }, .facingNormal = { 201, 0, 4091, 0 }, .radius = 981, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 17, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 320, -64, 2400, 0 }, .vertices = { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, .normal = { 0, 4101, 0, 0 }, .facingNormal = { ONE, 0, 0, 0 }, .radius = 1396, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 14, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x4210, -64, 4096, 0 }, .vertices = { { -2608, 0, -448, 0 }, { 2608, 0, -448, 0 }, { -2608, 0, 448, 0 }, { 2608, 0, 448, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { 0, 0, -ONE, 0 }, .radius = 2635, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 24, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 848, -64, 544, 0 }, .vertices = { { -624, 0, -688, 0 }, { 624, 0, -688, 0 }, { -624, 0, 688, 0 }, { 624, 0, 688, 0 } }, .normal = { 0, 4099, 0, 0 }, .facingNormal = { ONE, 0, 0, 0 }, .radius = 927, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 3, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2720, -64, 3360, 0 }, .vertices = { { -1504, 0, -464, 0 }, { 1504, 0, -464, 0 }, { -1504, 0, 464, 0 }, { 1504, 0, 464, 0 } }, .normal = { 0, 4099, 0, 0 }, .facingNormal = { 201, 0, -4091, 0 }, .radius = 1572, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 20, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 4159, -64, 4415, 0 }, .vertices = { { 315, 0, -1542, 0 }, { 609, 0, 1452, 0 }, { -608, 0, -1451, 0 }, { -314, 0, 1543, 0 } }, .normal = { 0, 4099, 0, 0 }, .facingNormal = { 4051, 0, -601, 0 }, .radius = 1572, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 20, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3590, -64, 1888, 0 }, .vertices = { { -1232, 0, -1984, 0 }, { -80, 0, -1984, 0 }, { 80, 0, 1984, 0 }, { 1232, 0, 1984, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { -3973, 0, 995, 0 }, .radius = 2332, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 16, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x3DB0, -64, 3328, 0 }, .vertices = { { -1648, 0, -384, 0 }, { 1648, 0, -512, 0 }, { -1648, 0, 512, 0 }, { 1648, 0, 384, 0 } }, .normal = { 0, 4110, 0, 0 }, .facingNormal = { 201, 0, 4091, 0 }, .radius = 1722, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 16, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x35BF, -64, 4895, 0 }, .vertices = { { -957, 0, 887, 0 }, { 189, 0, -1347, 0 }, { -188, 0, 1348, 0 }, { 958, 0, -886, 0 } }, .normal = { 0, 4104, 0, 0 }, .facingNormal = { -3920, 0, -1189, 0 }, .radius = 1360, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 24, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x52C0, -64, 2144, 0 }, .vertices = { { -368, 0, -976, 0 }, { 624, 0, -976, 0 }, { -624, 0, 976, 0 }, { 368, 0, 976, 0 } }, .normal = { 0, 4100, 0, 0 }, .facingNormal = { 4051, 0, -601, 0 }, .radius = 1152, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 17, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
+};
+
+/// One line-of-sight blocking quad shared by junk-yard rooms 1 and 2.
+///
+/// Geometry uses room units with an X-axis normal scaled by ONE. LAST includes
+/// this sole mutable record in setup; flag bit 0 is retained with unproven role.
+/// Keep storage loaded until the runtime list has unlinked it.
+static WorldCollisionOccluder _gDryfieldNightJunkYardSightOccluders[1] = {
+    { .next = NULL, .prevLink = NULL, .origin = { 0x4980, -544, 1536, 0 }, .vertices = { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, .normal = { ONE, 0, 0, 0 }, .radius = 1448, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
 /// Placement-entry keys used by this room's resource recipes.
@@ -1021,52 +1090,65 @@ static AreaResource _gDryfieldNightJunkYardVariant1Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_junk_yard_8018436C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by variants 2, 7 and 21.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_DESERT_CHASER_RESOURCE_ENTRY = 1,
+    DRYFIELD_NIGHT_JUNK_YARD_MIND_SUCKLER_RESOURCE_ENTRY  = 15,
+    DRYFIELD_NIGHT_JUNK_YARD_PAWN_GOLEM_RESOURCE_ENTRY    = 56,
+    DRYFIELD_NIGHT_JUNK_YARD_ROOK_GOLEM_RESOURCE_ENTRY    = 23,
 };
 
-AreaResource D_dryfield_night_junk_yard_80184390[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Desert Chaser and Mind Suckler recipe for night Junk Yard variant 2.
+///
+/// Placement keys 1/15 select base files 400100/301500 and descriptor 0.
+/// The third record ends the table. This room owns the recipe, the map owns
+/// its placements and actor overlays own the borrowed descriptors; keep all
+/// loaded during loading, spawning and model-flag updates.
+static AreaResource _gDryfieldNightJunkYardVariant2Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_DESERT_CHASER_RESOURCE_ENTRY, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_MIND_SUCKLER_RESOURCE_ENTRY, .fileNumber = 15, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor01500MindSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_junk_yard_801843A8[3] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Zebra Stalker recipe for night Junk Yard variant 4.
+///
+/// Placement key 6 selects base file 400600 and descriptor 0, followed by the
+/// end marker. Borrowed map placements and actor descriptors must remain
+/// loaded with this recipe during loading, spawning and model-flag updates.
+static AreaResource _gDryfieldNightJunkYardVariant4Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_ZEBRA_STALKER_RESOURCE_ENTRY, .fileNumber = 6, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_junk_yard_801843CC[3] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Pawn and Beam Sword Rook GOLEM recipe for night Junk Yard variant 7.
+///
+/// Placement keys 56/23 select base files 105600/202300 and descriptor 0 in
+/// each actor table. The third record ends the recipe. Keep room/map storage
+/// and both borrowed actor tables loaded through loading, spawning and
+/// model-flag updates.
+static AreaResource _gDryfieldNightJunkYardVariant7Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_PAWN_GOLEM_RESOURCE_ENTRY, .fileNumber = 56, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor105600PawnGolemTasks },
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_ROOK_GOLEM_RESOURCE_ENTRY, .fileNumber = 23, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor202300RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullJunkYardVariant1Placements, _gDryfieldNightJunkYardVariant1Resources },
-    { gMapDryfieldFullJunkYardVariant2Placements, D_dryfield_night_junk_yard_8018436C },
-    { NULL, NULL },
-    { gMapDryfieldFullJunkYardVariant4Placements, D_dryfield_night_junk_yard_80184390 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullJunkYardVariant7Placements, D_dryfield_night_junk_yard_801843A8 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullJunkYardVariant21Placements, D_dryfield_night_junk_yard_801843CC },
+/// Zebra Stalker and Mind Suckler recipe for night Junk Yard variant 21.
+///
+/// Placement keys 6/15 select base files 400600/301500 and descriptor 0.
+/// The third record ends the recipe. Keep room/map storage and borrowed actor
+/// descriptors loaded during loading, spawning and model-flag updates.
+static AreaResource _gDryfieldNightJunkYardVariant21Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_ZEBRA_STALKER_RESOURCE_ENTRY, .fileNumber = 6, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_MIND_SUCKLER_RESOURCE_ENTRY, .fileNumber = 15, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor01500MindSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gDryfieldNightJunkYardAreaVariants[22] = {
+    [1]  = { .placements = gMapDryfieldFullJunkYardVariant1Placements, .resources = _gDryfieldNightJunkYardVariant1Resources },
+    [2]  = { .placements = gMapDryfieldFullJunkYardVariant2Placements, .resources = _gDryfieldNightJunkYardVariant2Resources },
+    [4]  = { .placements = gMapDryfieldFullJunkYardVariant4Placements, .resources = _gDryfieldNightJunkYardVariant4Resources },
+    [7]  = { .placements = gMapDryfieldFullJunkYardVariant7Placements, .resources = _gDryfieldNightJunkYardVariant7Resources },
+    [21] = { .placements = gMapDryfieldFullJunkYardVariant21Placements, .resources = _gDryfieldNightJunkYardVariant21Resources },
 };
 
 /// Type-1 sound-script cue-2 bases in the currently loaded sound bank.

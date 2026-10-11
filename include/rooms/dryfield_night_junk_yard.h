@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_junk_yard_801843F0[22];
+/// Placement/resource directory for night Junk Yard variants 0..21.
+///
+/// Indexed directly by `GameLocationKey.variant`; slots 1, 2, 4, 7 and 21 are
+/// populated and every other slot has two NULL pointers. Gameplay imports the
+/// directory from this room; placements belong to the Dryfield full-map overlay
+/// and resource recipes to this room. Keep both overlays and the selected actor
+/// descriptors loaded during loading, spawning and model-flag updates; actors
+/// retain their map-owned placement records throughout their lifetimes.
+extern AreaVariant gDryfieldNightJunkYardAreaVariants[22];
 
 /// Lighting for nighttime junk-yard rooms 1 and 2, indexed by room ID minus one.
 ///
@@ -20,7 +28,13 @@ extern AreaVariant D_dryfield_night_junk_yard_801843F0[22];
 /// keep the junk-yard overlay loaded while its lighting is in use.
 extern WorldCoordRoomLighting gDryfieldNightJunkYardRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[];
+/// Collision resources for night Junk Yard rooms 1 and 2, indexed by room minus one.
+///
+/// Both entries borrow the same grid, ten view boundaries, twenty action triggers
+/// and one sight occluder. The final record of each list carries LAST and is
+/// included in setup. Resources remain mutable and must stay loaded until the
+/// grid is inactive and the trigger/occluder records have been unlinked.
+extern WorldCollisionRoomResources gDryfieldNightJunkYardRoomCollisionResources[2];
 
 /// Logical-view maps for nighttime junk-yard rooms 1 and 2, indexed by room ID minus one.
 ///
@@ -29,9 +43,22 @@ extern WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[];
 /// one. The maps and their directory must remain loaded while in use.
 extern u8* gDryfieldNightJunkYardViewMaps[2];
 
-extern ViewCount D_dryfield_night_junk_yard_801807C8[];
+/// Logical-view search lengths for rooms 1 and 2, indexed by room minus one.
+///
+/// Both signed-halfword counts are ten. They bound logical slots 1..10 in the
+/// corresponding view map, excluding its retained trailing bytes. The count
+/// array stays borrowed while the room overlay is loaded.
+extern ViewCount gDryfieldNightJunkYardViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_junk_yard_801807CC[];
+/// Warp endpoints 1..3 for the night Junk Yard, indexed by warp ID minus one.
+///
+/// Slots 1/2 connect the garage/trailer coach; slot 3's live use is unproven.
+/// Player and companion share each slot's XYZ in world units and
+/// yaw zero, with initial views 2, 5 and 3. Slot 2 has a blocked-departure cue;
+/// slots 1/2 update map flags 472/471 on arrival. There is no end marker.
+/// Slot 3 retains sound-bank entries 6/5, which are empty in the night bank.
+/// The map overlay borrows the array; keep this room loaded through each lookup.
+extern DirectionWarpEntry gDryfieldNightJunkYardWarpEntries[3];
 
 /// Stored cameras for the nighttime junk yard's two room slots.
 ///

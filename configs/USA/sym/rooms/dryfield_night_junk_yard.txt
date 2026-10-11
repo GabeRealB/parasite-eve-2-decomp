@@ -1,12 +1,12 @@
 // Overlay-local symbols for dryfield_night_junk_yard.
-D_dryfield_night_junk_yard_801805A0 = 0x801805A0; // size:0x4 defined:True
+_gDryfieldNightJunkYardStalkerFloorStartCommand = 0x801805A0; // size:0x4 defined:True
 _gDryfieldNightJunkYardGlowWorldPoints = 0x8018073C; // size:0x38 defined:True
 gDryfieldNightJunkYardRoomLighting = 0x80180784; // size:0x10 defined:True
-D_dryfield_night_junk_yard_80180794 = 0x80180794; // size:0x20 defined:True
+gDryfieldNightJunkYardRoomCollisionResources = 0x80180794; // size:0x20 defined:True
 _gDryfieldNightJunkYardRoom2ViewMap = 0x801807B4; // size:0xC defined:True
 gDryfieldNightJunkYardViewMaps = 0x801807C0; // size:0x8 defined:True
-D_dryfield_night_junk_yard_801807C8 = 0x801807C8; // size:0x4 defined:True
-D_dryfield_night_junk_yard_801807CC = 0x801807CC; // size:0xA8 defined:True
+gDryfieldNightJunkYardViewCounts = 0x801807C8; // size:0x4 defined:True
+gDryfieldNightJunkYardWarpEntries = 0x801807CC; // size:0xA8 defined:True
 _gDryfieldNightJunkYardCollisionGridNormals = 0x80180874; // size:0x130 defined:True
 _gDryfieldNightJunkYardCollisionGridVerts = 0x801809A4; // size:0x388 defined:True
 _gDryfieldNightJunkYardCollisionGridFaces = 0x80180D2C; // size:0x288 defined:True
@@ -33,17 +33,17 @@ _gDryfieldNightJunkYardView9SpriteBatches = 0x80182EE4; // size:0x28 defined:Tru
 _gDryfieldNightJunkYardView10SpriteSources = 0x80182F0C; // size:0x794 defined:True
 _gDryfieldNightJunkYardView10SpriteBatches = 0x801836A0; // size:0x60 defined:True
 gDryfieldNightJunkYardSpriteViews = 0x80183700; // size:0x78 defined:True
-D_dryfield_night_junk_yard_80183778 = 0x80183778; // size:0x2F8 defined:True
+_gDryfieldNightJunkYardViewBoundaryTriggers = 0x80183778; // size:0x2F8 defined:True
 _gDryfieldNightJunkYardPointLights = 0x80183A70; // size:0x2A0 defined:True
 _gDryfieldNightJunkYardRoomLights = 0x80183D10; // size:0x18 defined:True
-D_dryfield_night_junk_yard_80183D28 = 0x80183D28; // size:0x5F0 defined:True
-D_dryfield_night_junk_yard_80184318 = 0x80184318; // size:0x3C defined:True
+_gDryfieldNightJunkYardActionTriggers = 0x80183D28; // size:0x5F0 defined:True
+_gDryfieldNightJunkYardSightOccluders = 0x80184318; // size:0x3C defined:True
 _gDryfieldNightJunkYardVariant1Resources = 0x80184354; // size:0x18 defined:True
-D_dryfield_night_junk_yard_8018436C = 0x8018436C; // size:0x24 defined:True
-D_dryfield_night_junk_yard_80184390 = 0x80184390; // size:0x18 defined:True
-D_dryfield_night_junk_yard_801843A8 = 0x801843A8; // size:0x24 defined:True
-D_dryfield_night_junk_yard_801843CC = 0x801843CC; // size:0x24 defined:True
-D_dryfield_night_junk_yard_801843F0 = 0x801843F0; // size:0xB0 defined:True
+_gDryfieldNightJunkYardVariant2Resources = 0x8018436C; // size:0x24 defined:True
+_gDryfieldNightJunkYardVariant4Resources = 0x80184390; // size:0x18 defined:True
+_gDryfieldNightJunkYardVariant7Resources = 0x801843A8; // size:0x24 defined:True
+_gDryfieldNightJunkYardVariant21Resources = 0x801843CC; // size:0x24 defined:True
+gDryfieldNightJunkYardAreaVariants = 0x801843F0; // size:0xB0 defined:True
 _gDryfieldNightJunkYardSurface1FootstepSounds = 0x801844A0; // size:0xC defined:True
 _gDryfieldNightJunkYardSilentSurfaceProperties = 0x801844AC; // size:0x8 defined:True
 _gDryfieldNightJunkYardSurface1Properties = 0x801844B4; // size:0x8 defined:True
@@ -59,11 +59,11 @@ gMapDryfieldFullJunkYardVariant2Placements = 0x8017C828; // absolute:True owner=
 gMapDryfieldFullJunkYardVariant4Placements = 0x8017C878; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullJunkYardVariant7Placements = 0x8017C8B8; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullJunkYardVariant21Placements = 0x8017C8E8; // absolute:True owner=map_dryfield_full
-D_dryfield_night_junk_yard_8018055C = 0x8018055C; // size:0x28 defined:True
-D_dryfield_night_junk_yard_80180584 = 0x80180584; // size:0x14 defined:True
-D_dryfield_night_junk_yard_80180598 = 0x80180598; // size:0x4 defined:True
-D_dryfield_night_junk_yard_8018059C = 0x8018059C; // size:0x4 defined:True
-D_dryfield_night_junk_yard_801805A4 = 0x801805A4; // size:0x198 defined:True
+_gDryfieldNightJunkYardMessageHandlers = 0x8018055C; // size:0x28 defined:True
+_gDryfieldNightJunkYardEncounterPlayerAnimation = 0x80180584; // size:0x14 defined:True
+_gDryfieldNightJunkYardStalkerJunkYardDropCommand = 0x80180598; // size:0x4 defined:True
+_gDryfieldNightJunkYardStalkerFloorDropCommand = 0x8018059C; // size:0x4 defined:True
+_gDryfieldNightJunkYardEncounterScript = 0x801805A4; // size:0x198 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80180774; // size:0x10 defined:True
 
 dryfieldNightJunkYardSetEventSpriteBatchHidden = 0x8017D9B8; // type:func
@@ -89,3 +89,4 @@ _roomVariantNightJunkYardMsg = 0x8017d6ac; // type:func
 _dryfieldNightJunkYardHandleRoomAction = 0x8017d82c; // type:func
 _dryfieldNightJunkYardInitializeRoom = 0x8017d8b0; // type:func
 dryfieldNightJunkYardRoomTask = 0x8017d960; // type:func
+_gDryfieldNightJunkYardRoomTaskStates = 0x8017d5c4;
