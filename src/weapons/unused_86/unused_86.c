@@ -683,136 +683,226 @@ static AnimationSet _gUnused86PlayerPeCastFamily1Animation = {
     },
 };
 
-static AnimationPackedPose _gUnused86Animation05EB8Bank1[5] = {
+/// Part-4 hit translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+///
+/// Read-only payloads retain their serialized placement in .data; pose banks are word-aligned.
+static const AnimationPackedPose _gUnused86PlayerHitPart4AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_05EB8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation05EB8Bank4[55] = {
+/// Part-4 hit packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerHitPart4AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_05EB8_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation05EB8Records[83] = {
+/// Part-4 hit keyframes and stops; durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerHitPart4AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_05EB8_records.inc"
 };
 
-static u16 _gUnused86Animation05EB8Indices[20] = {
+/// Absolute part-4 hit record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerHitPart4AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_05EB8_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation05EB8 = {
-    _gUnused86Animation05EB8Records,
-    _gUnused86Animation05EB8Indices,
-    { NULL, _gUnused86Animation05EB8Bank1, NULL, NULL, _gUnused86Animation05EB8Bank4, NULL, NULL, NULL },
+/// Player hit reaction for the collision sphere on model part 4 in the unused weapon bank.
+///
+/// Native clip 16; hit region 1 selects it with a three-normal-frame blend.
+/// Each of the 19 tracks ends with a stop: 0..1 carry translation/rotation,
+/// 2..18 packed rotation. Keep the package loaded while any playback slot or
+/// cached record pointer refers to this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerHitPart4Animation = {
+    .records           = _gUnused86PlayerHitPart4AnimationRecords,
+    .trackStartIndices = _gUnused86PlayerHitPart4AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerHitPart4AnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerHitPart4AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation061D8Bank1[6] = {
+/// Other-body hit translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerHitOtherBodyAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_061D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation061D8Bank4[66] = {
+/// Other-body hit packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerHitOtherBodyAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_061D8_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation061D8Records[96] = {
+/// Other-body hit keyframes and stops; durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerHitOtherBodyAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_061D8_records.inc"
 };
 
-static u16 _gUnused86Animation061D8Indices[20] = {
+/// Absolute other-body hit record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerHitOtherBodyAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_061D8_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation061D8 = {
-    _gUnused86Animation061D8Records,
-    _gUnused86Animation061D8Indices,
-    { NULL, _gUnused86Animation061D8Bank1, NULL, NULL, _gUnused86Animation061D8Bank4, NULL, NULL, NULL },
+/// Player hit reaction for the root and part-1 collision spheres in the unused weapon bank.
+///
+/// Native clip 17; hit region 2 selects it with a three-normal-frame blend.
+/// Each of the 19 tracks ends with a stop: 0..1 carry translation/rotation,
+/// 2..18 packed rotation. Keep the package loaded while any playback slot or
+/// cached record pointer refers to this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerHitOtherBodyAnimation = {
+    .records           = _gUnused86PlayerHitOtherBodyAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerHitOtherBodyAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerHitOtherBodyAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerHitOtherBodyAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation0699CBank1[18] = {
+/// Death translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerDeathAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_0699C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation0699CBank4[184] = {
+/// Death packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerDeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0699C_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation0699CRecords[239] = {
+/// Death keyframes and final-pose stops; durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerDeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0699C_records.inc"
 };
 
-static u16 _gUnused86Animation0699CIndices[20] = {
+/// Absolute death record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerDeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0699C_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation0699C = {
-    _gUnused86Animation0699CRecords,
-    _gUnused86Animation0699CIndices,
-    { NULL, _gUnused86Animation0699CBank1, NULL, NULL, _gUnused86Animation0699CBank4, NULL, NULL, NULL },
+/// Player death pose in the unused weapon animation bank.
+///
+/// Native clip 18, selected when HP reaches zero; all 19 tracks stop on their
+/// final pose. Tracks 0..1 carry translation/rotation and 2..18 packed rotation.
+/// Keep the package loaded while any playback slot or cached record pointer
+/// refers to this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerDeathAnimation = {
+    .records           = _gUnused86PlayerDeathAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerDeathAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerDeathAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerDeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation07C34Bank1[29] = {
+/// High-health idle translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerHighHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_07C34_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation07C34Bank4[450] = {
+/// High-health idle packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerHighHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_07C34_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation07C34Records[633] = {
+/// High-health idle keyframes, tail-loop controls and stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words, jumps absolute record indices.
+static const AnimationRecord _gUnused86PlayerHighHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_07C34_records.inc"
 };
 
-static u16 _gUnused86Animation07C34Indices[20] = {
+/// Absolute high-health idle record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerHighHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_07C34_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation07C34 = {
-    _gUnused86Animation07C34Records,
-    _gUnused86Animation07C34Indices,
-    { NULL, _gUnused86Animation07C34Bank1, NULL, NULL, _gUnused86Animation07C34Bank4, NULL, NULL, NULL },
+/// Player long-idle clip above half maximum HP in the unused weapon bank.
+///
+/// Native clip 23, selected after 300 direction-free normal-locomotion ticks
+/// with a five-normal-frame blend. All 19 tracks loop after their opening
+/// sequence: 0..1 carry translation/rotation, 2..18 packed rotation. Keep the
+/// package loaded while any playback slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerHighHealthIdleAnimation = {
+    .records           = _gUnused86PlayerHighHealthIdleAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerHighHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerHighHealthIdleAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerHighHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation087ACBank1[12] = {
+/// Low-health idle translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerLowHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_087AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation087ACBank4[266] = {
+/// Low-health idle packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerLowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_087AC_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation087ACRecords[412] = {
+/// Low-health idle keyframes, tail-loop controls and stops, also used for paralysis.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words, jumps absolute record indices.
+static const AnimationRecord _gUnused86PlayerLowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_087AC_records.inc"
 };
 
-static u16 _gUnused86Animation087ACIndices[20] = {
+/// Absolute low-health idle record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerLowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_087AC_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation087AC = {
-    _gUnused86Animation087ACRecords,
-    _gUnused86Animation087ACIndices,
-    { NULL, _gUnused86Animation087ACBank1, NULL, NULL, _gUnused86Animation087ACBank4, NULL, NULL, NULL },
+/// Player long-idle clip at or below quarter maximum HP in the unused weapon bank.
+///
+/// Native clip 25, selected after 300 direction-free normal-locomotion ticks
+/// with a five-normal-frame blend. Paralysis uses the same clip on all child
+/// tracks with a six-normal-frame blend. All 19 tracks
+/// loop after their opening sequence: 0..1 carry translation/rotation, 2..18
+/// packed rotation. Keep the package loaded while any playback slot or cached
+/// record pointer refers to this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerLowHealthIdleAnimation = {
+    .records           = _gUnused86PlayerLowHealthIdleAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerLowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerLowHealthIdleAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerLowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation08EC8Bank1[9] = {
+/// Mid-health idle translation/rotation poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gUnused86PlayerMidHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_08EC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation08EC8Bank4[144] = {
+/// Mid-health idle packed Euler poses for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerMidHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_08EC8_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation08EC8Records[264] = {
+/// Mid-health idle keyframes, tail-loop controls and stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words, jumps absolute record indices.
+static const AnimationRecord _gUnused86PlayerMidHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_08EC8_records.inc"
 };
 
-static u16 _gUnused86Animation08EC8Indices[20] = {
+/// Absolute mid-health idle record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerMidHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_08EC8_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation08EC8 = {
-    _gUnused86Animation08EC8Records,
-    _gUnused86Animation08EC8Indices,
-    { NULL, _gUnused86Animation08EC8Bank1, NULL, NULL, _gUnused86Animation08EC8Bank4, NULL, NULL, NULL },
+/// Player long-idle clip above quarter and at or below half maximum HP in the unused weapon bank.
+///
+/// Native clip 24, selected after 300 direction-free normal-locomotion ticks
+/// with a five-normal-frame blend. All 19 tracks loop after their opening
+/// sequence: 0..1 carry translation/rotation, 2..18 packed rotation. Keep the
+/// package loaded while any playback slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerMidHealthIdleAnimation = {
+    .records           = _gUnused86PlayerMidHealthIdleAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerMidHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerMidHealthIdleAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerMidHealthIdleAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused86Animation09348Bank1[6] = {
@@ -1096,16 +1186,16 @@ AnimationBank D_unused_86_8012A0D8 = { { {
     &_gUnused86Animation0A9C4,
     &_gUnused86Animation0BED8,
     &_gUnused86Animation0BED8,
-    &_gUnused86Animation05EB8,
-    &_gUnused86Animation061D8,
-    &_gUnused86Animation0699C,
+    &_gUnused86PlayerHitPart4Animation,
+    &_gUnused86PlayerHitOtherBodyAnimation,
+    &_gUnused86PlayerDeathAnimation,
     &_gUnused86PlayerUnarmedWalkAnimation,
     &_gUnused86Animation0BED8,
     &_gUnused86PlayerIdleAnimation,
     &_gUnused86PlayerIdleAnimation,
-    &_gUnused86Animation07C34,
-    &_gUnused86Animation08EC8,
-    &_gUnused86Animation087AC,
+    &_gUnused86PlayerHighHealthIdleAnimation,
+    &_gUnused86PlayerMidHealthIdleAnimation,
+    &_gUnused86PlayerLowHealthIdleAnimation,
     &_gUnused86PlayerPeReleaseFamily0Animation,
     &_gUnused86PlayerPeChargeFamily0Animation,
     &_gUnused86PlayerPeCastFamily0Animation,
