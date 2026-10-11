@@ -633,14 +633,11 @@ extern AnimationBank D_m249_8012CF58;
 
 extern AnimationBank D_tonfa_baton_8012BAB0;
 
-
 extern AnimationBank D_m4a1_bayonet_8012D25C;
 
 extern AnimationBank D_m4a1_grenade_8012DF50;
 
-
 extern AnimationBank D_mp5a5_8012B3CC;
-
 
 /// Weapon overlay entry points, at fixed addresses.
 
