@@ -36,14 +36,14 @@
 /// root is composed or rotated. Scratch remains reserved for the caller.
 static __inline__ void _oddStrangerReadStalkPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     s16 reverseBearing;
 #endif
 
     chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &chase->delta);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     reverseBearing       = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     chase->yawFromPlayer = reverseBearing;
     chase->yawFromPlayer = _actorAngleNormalizeYaw(reverseBearing);
@@ -60,9 +60,9 @@ static __inline__ void _oddStrangerReadStalkPlayerBearings(const Task* task, Act
 /// signed turn below 512 angle units and a range inside 1100 coordinate units
 /// permit `GRAB`; 91 visible ticks select `WATCH` and override that request.
 /// Blocked sight picks a random veer side and reverses it after the counter
-/// reaches 241 (variant 2 increments that counter twice per blocked tick).
+/// reaches 241 (actor_401800 increments that counter twice per blocked tick).
 /// Root turning is limited to 32 angle units per tick, with 4096 per turn.
-/// Movement uses the variant's step, or five units during blending; the grab
+/// Movement uses the build's step, or five units during blending; the grab
 /// cooldown counts down once per call. Borrows one chase scratch block plus
 /// nested contact, movement and range-test workspace.
 static void _oddStrangerStalk(Task* task)
@@ -118,7 +118,7 @@ static void _oddStrangerStalk(Task* task)
     _oddStrangerDriveAnimation(task);
     // Animation/contact updates precede the final player-offset snapshot.
     _oddStrangerReadStalkPlayerBearings(task, chase);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     headingRoot         = task->extra.tmd->coords;
     chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]));
     work->lookYawTarget = chase->turn;
@@ -139,7 +139,7 @@ static void _oddStrangerStalk(Task* task)
         }
     } else {
         work->exitCounter = 0;
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
         work->stateTimer++;
 #endif
         headingRoot         = task->extra.tmd->coords;

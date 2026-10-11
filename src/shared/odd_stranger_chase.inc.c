@@ -83,7 +83,7 @@ static void _oddStrangerCircleDash(Task* task)
     chase                                   = savedCursor - 1;
     task->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
     _oddStrangerDriveAnimation(task);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
 #else
     if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {

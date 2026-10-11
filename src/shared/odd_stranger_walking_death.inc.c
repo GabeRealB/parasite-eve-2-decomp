@@ -2,8 +2,8 @@
 
 /// Writable placement-vector storage for the walking burst-death effects.
 ///
-/// `ODD_STRANGER_HAS_EFFECT_OFFSET` selects the live work member in variant 1
-/// or the caller's local SVECTOR lvalue in variant 2. Arguments must be stable
+/// `ODD_STRANGER_HAS_EFFECT_OFFSET` selects the live work member in actor_401000
+/// or the caller's local SVECTOR lvalue in actor_401800. Arguments must be stable
 /// and side-effect-free; only the selected argument is evaluated, once per
 /// expansion. Captures no locals. XYZ are part-local game-coordinate offsets;
 /// the fourth halfword remains untouched. Spawning copies XYZ and retains the

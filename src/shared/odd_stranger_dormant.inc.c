@@ -59,7 +59,7 @@ static void _oddStrangerDormantScripted(Task* task)
         work->state = ODD_STRANGER_STATE_ALERT;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         sceneEngageBattle(1);
 #endif
         work->state = ODD_STRANGER_STATE_ALERT;

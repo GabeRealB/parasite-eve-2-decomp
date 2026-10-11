@@ -39,7 +39,7 @@ static inline void _oddStrangerApplyHitRecoil(Task* task, OddStrangerWork* work,
 ///
 /// Requires initialized actor/enemy/model/rig and the live player. While HP is
 /// positive, reserves one hit scratch block and scans hit contacts (then grid
-/// contacts in variant 2), stopping at the first attack key. Contacts remain
+/// contacts in actor_401800), stopping at the first attack key. Contacts remain
 /// borrowed and uncleared. Attachment attacks use the player's composed origin
 /// instead of their contact point. Hit bearings use the model's composition
 /// frame; recoil is applied to local translation as in the original.
@@ -48,7 +48,7 @@ static inline void _oddStrangerApplyHitRecoil(Task* task, OddStrangerWork* work,
 /// hit beyond 1280/4096 turn outside downed/status poses. Hit effects/sounds,
 /// life drain, readout, five-tick recent damage, buildup and damage over time
 /// retain their order. Reaction/animation and fatal-damage paths differ by
-/// carrier variant. Held-player release is synchronous. The scratch reservation
+/// compiled build. Held-player release is synchronous. The scratch reservation
 /// is released before return; an actor already at zero HP is left untouched.
 static void _oddStrangerTakeHit(Task* task)
 {
@@ -89,11 +89,11 @@ static void _oddStrangerTakeHit(Task* task)
     s32 hitSound;
     s32 hitPan;
     s32 absHitYaw;
-#if ODD_STRANGER_VARIANT == 2
-    s32 stateOrHitKey; // Variant 2 reuses this word for narrowed state tests and fatal-hit classification
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
+    s32 stateOrHitKey; // The actor_401800 build reuses this word for narrowed state tests and fatal-hit classification
 #endif
     s16 state;
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
     s16 deathAnim;
 #endif
     s16 criticalEffectKind;
@@ -106,7 +106,7 @@ static void _oddStrangerTakeHit(Task* task)
         scratchHead        = SCRATCH_STACK_CURSOR(ActorHitScratch);
         hitScratch         = (SCRATCH_STACK_CURSOR(ActorHitScratch) = scratchHead - 1);
         hitScratch->hitKey = _actorContactFindAttack(&scratchHead[-1].hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
         if (hitScratch->hitKey == 0) {
             hitScratch->hitKey = _actorContactFindAttack(&hitScratch->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         }
@@ -208,7 +208,7 @@ static void _oddStrangerTakeHit(Task* task)
                 case ODD_STRANGER_HIT_REACTION_FALL:
                     state = work->state;
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                         && state != ODD_STRANGER_STATE_STATUS_HOLD
 #endif
                         && state != ODD_STRANGER_STATE_DOWN) {
@@ -229,7 +229,7 @@ static void _oddStrangerTakeHit(Task* task)
                 case ODD_STRANGER_HIT_REACTION_STANDARD:
                 case DAMAGE_PLAYER_REACTION_EXPLOSION:
                 case DAMAGE_PLAYER_REACTION_INCENDIARY:
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
                     if (work->state == ODD_STRANGER_STATE_PATROL || work->state == ODD_STRANGER_STATE_DORMANT || work->state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
                         work->state = ODD_STRANGER_STATE_ALERT;
                     }
@@ -289,7 +289,7 @@ static void _oddStrangerTakeHit(Task* task)
                 case DAMAGE_PLAYER_REACTION_STAGGER:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     state                 = work->state;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_DOWN) {
 #else
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_STATUS_HOLD) {
@@ -309,7 +309,7 @@ static void _oddStrangerTakeHit(Task* task)
                     break;
                 case ODD_STRANGER_HIT_REACTION_FRONT_FALL:
                     state = work->state;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_DOWN) {
 #else
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_STATUS_HOLD) {
@@ -365,7 +365,7 @@ static void _oddStrangerTakeHit(Task* task)
             if (hitScratch->damage != 0) {
                 enemy->hp -= hitScratch->damage;
                 worldTargetAddReadoutAmount(&enemy->node, hitScratch->damage, 0);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 if (work->state == ODD_STRANGER_STATE_CHASE || work->state == ODD_STRANGER_STATE_STALK || work->state == ODD_STRANGER_STATE_GRAB || work->state == ODD_STRANGER_STATE_WATCH) {
                     work->state = ODD_STRANGER_STATE_FLINCH;
                 } else if (work->state == ODD_STRANGER_STATE_STATUS_HOLD) {
@@ -408,7 +408,7 @@ static void _oddStrangerTakeHit(Task* task)
             }
         }
         if (enemy->hp <= 0) {
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
             if (hitScratch->hitKey != 0) {
                 if ((damageGetPlayerAttackReaction(hitScratch->hitKey) & ODD_STRANGER_HIT_REACTION_MASK) == ODD_STRANGER_HIT_REACTION_FALL || (damageGetPlayerAttackReaction(hitScratch->hitKey) & ODD_STRANGER_HIT_REACTION_MASK) == DAMAGE_PLAYER_REACTION_EXPLOSION) {
                     if ((u16)(work->animId - ODD_STRANGER_ANIM_WALK) < 2) {
@@ -426,7 +426,7 @@ static void _oddStrangerTakeHit(Task* task)
                 } else {
                     state = work->state;
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                         && state != ODD_STRANGER_STATE_STATUS_HOLD
 #endif
                         && state != ODD_STRANGER_STATE_DOWN) {
@@ -449,7 +449,7 @@ static void _oddStrangerTakeHit(Task* task)
                     work->playerHeld = 0;
                 }
                 state = work->state;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_DEATH_BURN && state != ODD_STRANGER_STATE_DEATH_BURST && state != ODD_STRANGER_STATE_HIDDEN && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN) {
 #else
                 if ((u16)(state - ODD_STRANGER_STATE_FALL_BACK) >= 3 && state != ODD_STRANGER_STATE_DEATH_BURST && state != ODD_STRANGER_STATE_DEATH_BURST_WALK && state != ODD_STRANGER_STATE_HIDDEN && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN) {

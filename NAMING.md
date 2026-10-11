@@ -933,8 +933,12 @@ the four tunings both armed packages define and the spawn argument picks from.
 `oddStranger` owns the included Odd Stranger enemy, one source built twice:
 `actor_401000` and `actor_401800`. Its implementation interface is
 `src/shared/odd_stranger.h`, one fragment per function; a carrier binds
-`ODD_STRANGER_VARIANT` before including it. `OddStrangerWork` is the task's
-work block, state values use `ODD_STRANGER_STATE_` and animation request
+`ODD_STRANGER_BUILD` to `ODD_STRANGER_BUILD_401000` or
+`ODD_STRANGER_BUILD_401800` before including it and keeps the binding through
+the last shared fragment. This selects the compiled layout and behavior;
+each live enemy's spawn argument separately selects combat tuning.
+`OddStrangerWork` is the task's work block, state values use
+`ODD_STRANGER_STATE_` and animation request
 values `ODD_STRANGER_ANIM_REQUEST_`. `OddStrangerStateTable` holds a package's
 `ODD_STRANGER_STATE_COUNT` state handlers, and `OddStrangerTransformStorage`
 is the static allocation of the placement a grab sends the player.

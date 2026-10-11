@@ -5,7 +5,7 @@
 /// Entry restores the model and targeting, resets a back/front lying clip,
 /// and advances to cue 6/9 before allowing reverse ticks. Later calls halve
 /// the signed rate and switch at +/-1 to the opposite normal-rate direction.
-/// Expired buildup selects `ODD_STRANGER_STATE_DOWN`; variant 1 also exits
+/// Expired buildup selects `ODD_STRANGER_STATE_DOWN`; actor_401000 also exits
 /// when HP is nonpositive. Requires loaded lying clips and live work and enemy.
 static void _oddStrangerStatusHold(Task* task)
 {
@@ -23,13 +23,13 @@ static void _oddStrangerStatusHold(Task* task)
         work->animRequest     = ODD_STRANGER_ANIM_REQUEST_RESET;
         work->animRate        = ANIMATION_RATE_ONE;
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         if (work->animId == ODD_STRANGER_ANIM_DOWN_BACK || work->animId == ODD_STRANGER_ANIM_STATUS_BACK) {
 #else
         if (work->animId == ODD_STRANGER_ANIM_DOWN_BACK) {
 #endif
             work->animId = ODD_STRANGER_ANIM_STATUS_BACK;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         } else if (work->animId == ODD_STRANGER_ANIM_DOWN_FRONT || work->animId == ODD_STRANGER_ANIM_REFALL_FRONT || work->animId == ODD_STRANGER_ANIM_STATUS_FRONT) {
 #else
         } else if (work->animId == ODD_STRANGER_ANIM_DOWN_FRONT || work->animId == ODD_STRANGER_ANIM_REFALL_FRONT) {
@@ -48,7 +48,7 @@ static void _oddStrangerStatusHold(Task* task)
             if (work->animId == ODD_STRANGER_ANIM_STATUS_FRONT && (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 9) {
                 break;
             }
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         } while (!(work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)));
 #else
         } while (1);
@@ -69,7 +69,7 @@ static void _oddStrangerStatusHold(Task* task)
         enemy->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
         work->state           = ODD_STRANGER_STATE_DOWN;
     }
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     if (enemy->hp <= 0) {
         work->state = ODD_STRANGER_STATE_DOWN;
     }

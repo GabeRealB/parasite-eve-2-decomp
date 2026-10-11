@@ -13,12 +13,30 @@
 #ifndef SRC_SHARED_ODD_STRANGER_H
 #define SRC_SHARED_ODD_STRANGER_H
 
-/* The Odd Stranger ships in two builds of the same source: actor_401000
- * (variant 1) and actor_401800 (variant 2). Each package defines
- * ODD_STRANGER_VARIANT before including this header; the differences between
- * the builds follow from it. */
-#if ODD_STRANGER_VARIANT == 1
-/// Whether the work block contains `effectOffset` (1 in variant 1, 0 in variant 2).
+/// Build discriminator for actor_401000's Odd Stranger.
+///
+/// Its work retains the hit-effect offset and the later grab-cooldown byte.
+#define ODD_STRANGER_BUILD_401000 1
+
+/// Build discriminator for actor_401800's Odd Stranger.
+///
+/// Its work omits the hit-effect offset and keeps grab cooldown before the bodies.
+#define ODD_STRANGER_BUILD_401800 2
+
+/// Requires one fixed Odd Stranger build for the shared interface and fragments.
+///
+/// Each carrier binds `ODD_STRANGER_BUILD` to its named build before including
+/// this header and keeps it unchanged through the last shared fragment. These
+/// values select work layout, constants and implementation at preprocessing
+/// time; they have no runtime storage or units. The spawn argument independently
+/// selects each enemy's opening state and combat tuning. A binding may name a
+/// build before this header defines it, since expansion occurs at each use.
+#ifndef ODD_STRANGER_BUILD
+#error "define ODD_STRANGER_BUILD before including odd_stranger.h"
+#endif
+
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
+/// Whether the work block contains `effectOffset` (1 in actor_401000, 0 in actor_401800).
 #define ODD_STRANGER_HAS_EFFECT_OFFSET 1
 
 /// First WALK sound cue: pose-record index 17 or 16, returning character sound 2.
@@ -31,7 +49,8 @@
 
 /// Normal body-sphere radius, 430 or 300 game-coordinate units.
 ///
-/// Variant 2 also uses it for the root grid sphere and chase/fall movement clearance.
+/// The actor_401800 build also uses it for the root grid sphere and chase/fall
+/// movement clearance.
 #define ODD_STRANGER_BODY_RADIUS 0x1AE
 
 /// Hit-body radius during circling dash and sidestep, 215 or 150 game-coordinate units.
@@ -39,13 +58,14 @@
 
 /// Root-grid enable choice for WATCH, DEATH_BURN, PLAY_WALK/RUN/DOWN and FLINCH.
 ///
-/// These in-place handlers enable the grid test in variant 1 and disable it in
-/// variant 2. Other states select their own policy; this does not unlink the body.
+/// These in-place handlers enable the grid test in actor_401000 and disable it
+/// in actor_401800. Other states select their own policy; this does not unlink
+/// the body.
 #define ODD_STRANGER_IN_PLACE_GRID_ENABLED 1
 
 /// Whether circling-dash and turn-around exits require sight before grabbing.
 ///
-/// Zero in variant 1, one in variant 2; ordinary chase, stalk and patrol sight
+/// Zero in actor_401000, one in actor_401800; ordinary chase, stalk and patrol sight
 /// checks are independent of this choice.
 #define ODD_STRANGER_DASH_GRAB_REQUIRES_SIGHT 0
 
@@ -72,7 +92,7 @@
 /// Secondary blending selects a separate five-unit step.
 #define ODD_STRANGER_STALK_STEP 0x16
 
-/// WATCH animation-bank index, 19 in variant 1 or the alert animation in variant 2.
+/// WATCH animation-bank index, 19 in actor_401000 or the alert animation in actor_401800.
 #define ODD_STRANGER_ANIM_WATCH 0x13
 
 /// Retained low argument of scripted-dormant and grab-strike weapon puffs.
@@ -81,7 +101,7 @@
 /// recipe ignores this half; it is not an effect scale.
 #define ODD_STRANGER_PUFF_UNUSED_LOW_ARG 0x100
 
-/// Grab-pull puff record's coordinate index, 5 in variant 1 or 1 in variant 2.
+/// Grab-pull puff record's coordinate index, 5 in actor_401000 or 1 in actor_401800.
 ///
 /// Both models contain this part. The selected puff recipe uses the separate
 /// call coordinate 5; this binding changes only the retained record coordinate.
@@ -100,8 +120,9 @@
 
 /// Player resume mode when death releases a hold on the no-new-hit path.
 ///
-/// Variant 1 preserves part 1's horizontal offset; variant 2 bakes it into the
-/// root. The receiver must still be under scripted control for either to act.
+/// The actor_401000 build preserves part 1's horizontal offset; actor_401800
+/// bakes it into the root. The receiver must still be under scripted control
+/// for either to act.
 #define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET
 
 /// Borrowed model source for walking death's second debris spawn, at state tick 5.
@@ -110,7 +131,7 @@
 /// Each carrier must declare its selected model before expanding this binding,
 /// and keep the source loaded through the debris task's lifetime.
 #define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gActor401000BurstPart1Model)
-#elif ODD_STRANGER_VARIANT == 2
+#elif ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
 #define ODD_STRANGER_HAS_EFFECT_OFFSET              0
 #define ODD_STRANGER_WALK_FIRST_SOUND_CUE           0x10
 #define ODD_STRANGER_WALK_SECOND_SOUND_CUE          0x16
@@ -131,7 +152,7 @@
 #define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE       PLAYER_ACTOR_END_SCRIPTED_DEFAULT
 #define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gOddStrangerBurstPart9Model)
 #else
-#error "ODD_STRANGER_VARIANT must be 1 or 2"
+#error "ODD_STRANGER_BUILD must be ODD_STRANGER_BUILD_401000 or ODD_STRANGER_BUILD_401800"
 #endif
 
 #include "common.h"
@@ -303,7 +324,7 @@ typedef struct {
     SVECTOR effectOffset;             // offset of the last hit effect from its part, or the direction a burst part was thrown in
 #endif
     byte field_8C8[0x2];              // never accessed
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
     u8 grabCooldown;                  // ticks before another grab may start, 10 from each `GRAB`; the pursuit states count it down
 #else
     byte field_8CA; // never accessed
@@ -337,7 +358,7 @@ typedef struct {
     s16                   sidestepDelay;     // `stateTimer` count `CHASE` must pass, plus half `sidestepCount`, before it sidesteps; third value of the variant record
     u16                   noticeRadius;      // distance at which the dormant states and `PATROL` notice the player; fourth value of the variant record
     u8                    commandBytes[3];   // first three bytes of the last actor command received; never read
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     u8 grabCooldown;                         // ticks before another grab may start, 10 from each `GRAB`; the pursuit states count it down
 #else
     byte field_C1B; // never accessed
@@ -455,13 +476,14 @@ static void _oddStrangerTakeHit(Task* task);
 /// Requires a live TMD task, readable `contactCount` contacts (0..12), parts
 /// 0 and 1, and one free body-push scratch block plus any callee scratch space.
 /// Stops at the first zero key. Each push is measured from part 1's composed
-/// position. Variant 1 removes the room view basis, caps at 107 units and uses
-/// an arithmetic right shift by two; variant 2 uses the world-offset resolver,
-/// caps at 150 units and divides by two with truncation toward zero. X/Z are
+/// position. The actor_401000 build removes the room view basis, caps at 107
+/// units and uses an arithmetic right shift by two; actor_401800 uses the
+/// world-offset resolver, caps at 150 units and divides by two with truncation
+/// toward zero. X/Z are
 /// added to the root's parent-space translation; inputs are borrowed for the call.
 /// Composed positions and separations must fit signed halfwords, and squared
-/// X/Z sums must fit s32. Requires the active grid view basis in variant 1 and
-/// the composed global view basis in variant 2; neither basis is refreshed here.
+/// X/Z sums must fit s32. Requires the active grid view basis in actor_401000 and
+/// the composed global view basis in actor_401800; neither basis is refreshed here.
 /// Returns 1 on seeing an eligible body even if its push is zero; freeze or
 /// view-ready state returns 0 without changing the model. Releases scratch
 /// storage before reading the result, while its bytes remain intact.

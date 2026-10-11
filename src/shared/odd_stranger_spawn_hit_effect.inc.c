@@ -7,8 +7,9 @@
 /// sectors select an offset; its `pad` selects a live model part. `attackKey`
 /// must name a valid player attack row. The effect arguments use part 1,
 /// low half 0x300 and repeat count 2; the effect kind interprets the low half.
-/// Requires one free scratch `SVECTOR` plus nested spawner capacity. Variant 1
-/// keeps the offset in work; variant 2 lends scratch through the spawn call.
+/// Requires one free scratch `SVECTOR` plus nested spawner capacity. The
+/// actor_401000 build keeps the offset in work; actor_401800 lends scratch
+/// through the spawn call.
 static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
     SVECTOR*         hitOffset;

@@ -39,7 +39,7 @@ static void _oddStrangerTick(Enemy* enemy, Task* actor)
     VECTOR           rootPosition;
     OddStrangerWork* work = actor->work;
     // Initialize this carrier's handlers; unused state 18 must never be dispatched.
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     OddStrangerStateTable states = { {
         _actor401000Hidden,
         _oddStrangerPlayWalk,
@@ -117,7 +117,7 @@ static void _oddStrangerTick(Enemy* enemy, Task* actor)
     ActorPartPositionScratch* bodyPosition;
     ActorPartPositionScratch* savedCursor;
     s32                       state;
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
     s32      deathBurnState;
     s32      dispatchState;
     TaskFunc stateHandler;
@@ -168,7 +168,7 @@ static void _oddStrangerTick(Enemy* enemy, Task* actor)
     } else {
         work->stateEntered = 0;
     }
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     work->prevState = (u16)work->state;
     states.handlers[work->state](actor);
 

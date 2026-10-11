@@ -92,14 +92,14 @@ static void _oddStrangerGrabPull(Task* task)
     _oddStrangerDriveAnimation(task);
     _oddStrangerApplyGrabPullPitch(task);
     if (work->animId == ODD_STRANGER_ANIM_GRAB_PULL && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
         work->state = ODD_STRANGER_STATE_GRAB_STRIKE;
 #endif
         work->effectArg.coord      = task->extra.tmd->coords + ODD_STRANGER_GRAB_PULL_EFFECT_RECORD_PART;
         work->effectArg.spawnArgLo = ODD_STRANGER_GRAB_PULL_EFFECT_ARG_LOW;
         work->effectArg.spawnArgHi = ODD_STRANGER_GRAB_EXTRA_PUFF_COUNT;
         effectSpawnHit(damageGetPlayerAttackEffectId(ODD_STRANGER_GRAB_HIT_EFFECT_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         work->state = ODD_STRANGER_STATE_GRAB_STRIKE;
 #endif
     }

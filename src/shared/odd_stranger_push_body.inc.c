@@ -1,11 +1,11 @@
 /* Part of the Odd Stranger library; see odd_stranger.h.
- * ODD_STRANGER_VARIANT selects the horizontal-offset calculation, cap and
+ * ODD_STRANGER_BUILD selects the horizontal-offset calculation, cap and
  * fraction. Each carrier includes this at its original function position.
  */
 
 static s32 _oddStrangerApplyBodyPushback(Task* task, const WorldCollisionContact* contacts, s16 contactCount)
 {
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     enum { ODD_STRANGER_BODY_PUSH_MAX_OFFSET = 107 };
 #else
     enum { ODD_STRANGER_BODY_PUSH_MAX_OFFSET = 150 };
@@ -33,7 +33,7 @@ static s32 _oddStrangerApplyBodyPushback(Task* task, const WorldCollisionContact
         push->kind = contacts[push->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
         if (push->kind == WORLD_COLLISION_CONTACT_PLAYER_BODY || push->kind == WORLD_COLLISION_CONTACT_ENEMY_BODY) {
             push->hit = 1;
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
             _actorContactCalcHorizontalPushback(&push->position, &contacts[push->recordIndex], &push->offset);
 #else
             worldCollisionCalcContactWorldOffset(&push->position, &contacts[push->recordIndex], &push->offset);
@@ -48,23 +48,23 @@ static s32 _oddStrangerApplyBodyPushback(Task* task, const WorldCollisionContact
                 gte_ldsv(&push->offset);
                 gte_gpf12();
                 gte_stsv(&push->offset);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 task->extra.tmd->coords->coord.t[0] += push->offset.vx >> 2;
 #else
                 task->extra.tmd->coords->coord.t[0] += push->offset.vx / 2;
 #endif
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 task->extra.tmd->coords->coord.t[2] += push->offset.vz >> 2;
 #else
                 task->extra.tmd->coords->coord.t[2] += push->offset.vz / 2;
 #endif
             } else {
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 task->extra.tmd->coords->coord.t[0] += push->offset.vx >> 2;
 #else
                 task->extra.tmd->coords->coord.t[0] += push->offset.vx / 2;
 #endif
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
                 task->extra.tmd->coords->coord.t[2] += push->offset.vz >> 2;
 #else
                 task->extra.tmd->coords->coord.t[2] += push->offset.vz / 2;

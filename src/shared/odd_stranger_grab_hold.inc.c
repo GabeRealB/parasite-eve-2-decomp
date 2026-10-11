@@ -56,14 +56,14 @@ static void _oddStrangerGrabStrike(Task* task)
     }
     // Consume the prior tick's boundary before applying the pending restart.
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
         work->state = ODD_STRANGER_STATE_GRAB_RELEASE;
 #endif
         work->effectArg.coord      = task->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ODD_STRANGER_PUFF_UNUSED_LOW_ARG;
         work->effectArg.spawnArgHi = ODD_STRANGER_GRAB_EXTRA_PUFF_COUNT;
         effectSpawnHit(damageGetPlayerAttackEffectId(ODD_STRANGER_GRAB_HIT_EFFECT_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         work->state = ODD_STRANGER_STATE_GRAB_RELEASE;
 #endif
     }

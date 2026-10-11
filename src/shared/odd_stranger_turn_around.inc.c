@@ -8,7 +8,7 @@
 /// twice the wrapped player turn. Later ticks approach that target by 137
 /// angle units (4096 per turn), with no further wrapping. A tick that starts
 /// at the target selects `GRAB` after two dashes, inside 900 coordinate units
-/// and with no cooldown (variant 2 also requires sight), otherwise `CIRCLE_DASH`.
+/// and with no cooldown (actor_401800 also requires sight), otherwise `CIRCLE_DASH`.
 /// Forward steps are 40 units, or 20 during blending; the cooldown counts
 /// down on subsequent ticks. Borrows one chase scratch block plus nested
 /// contact, movement and range-test workspace.

@@ -29,7 +29,7 @@
 /// rigs, two initialized patrol points and `patrolTarget` in 0..1. Roots share
 /// the player's parent-coordinate space. Arrival inside 160 units or 21
 /// blocked, nearly forward-facing ticks switches endpoints; this tick still
-/// turns toward the old endpoint. The variant selects the turn limit and step.
+/// turns toward the old endpoint. The build selects the turn limit and step.
 /// A visible player inside the notice radius, or within 4000 units and 768
 /// angle units of facing, selects `ALERT`; attack signals do so regardless of
 /// sight. Angles use 4096 units per turn. Borrows one turn scratch block plus
@@ -74,7 +74,7 @@ static void _oddStrangerPatrol(Task* task)
         turn->delta.vx = work->patrolPoints[work->patrolTarget].x - task->extra.tmd->coords->coord.t[0];
         turn->delta.vy = 0;
         turn->delta.vz = work->patrolPoints[work->patrolTarget].z - task->extra.tmd->coords->coord.t[2];
-#if ODD_STRANGER_VARIANT == 2
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
         turn->delta.vx = work->patrolPoints[work->patrolTarget].x - task->extra.tmd->coords->coord.t[0];
         turn->delta.vy = 0;
         turn->delta.vz = work->patrolPoints[work->patrolTarget].z - task->extra.tmd->coords->coord.t[2];
@@ -96,7 +96,7 @@ static void _oddStrangerPatrol(Task* task)
         if (work->blendActive == 0 && (_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_MOVE_STOP_DISTANCE, ODD_STRANGER_WALK_STEP) << 16) != 0) {
             _actorMovementStepForward(task->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
         }
-#if ODD_STRANGER_VARIANT == 1
+#if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
         if ((task->spawnArg1.value >> 16) != ODD_STRANGER_PATROL_STALK_SPAWN) {
             if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
                 if (ABS(work->lookYawTarget) < ODD_STRANGER_PATROL_FORWARD_TURN_LIMIT) {

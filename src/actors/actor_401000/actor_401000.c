@@ -51,8 +51,11 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
-// Which of the two Odd Stranger builds this package is (odd_stranger.h).
-#define ODD_STRANGER_VARIANT 1
+/// Selects this package's compiled Odd Stranger work layout and behavior.
+///
+/// Keep the binding through all shared fragments. Spawn arguments separately
+/// select the opening state and combat tuning of each live enemy.
+#define ODD_STRANGER_BUILD ODD_STRANGER_BUILD_401000
 #include "../../shared/odd_stranger.h"
 
 static void _oddStrangerTick(Enemy* enemy, Task* actor);
@@ -2404,6 +2407,8 @@ static void _actor401000RiseFront(Task* task)
 }
 
 #include "../../shared/odd_stranger_idle.inc.c"
+
+#undef ODD_STRANGER_BUILD
 
 /// Dispatches the Odd Stranger's spawn, frame update or enemy destruction.
 ///
