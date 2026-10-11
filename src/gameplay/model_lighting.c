@@ -2826,6 +2826,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         } else {
             *buttons = gGameDebugReplayButtons;
         }
+        // Consume one update regardless of the elapsed display ticks.
         remainingUpdates                = gGameDebugReplayFramesRemaining - 1;
         gGameDebugReplayFramesRemaining = remainingUpdates;
         if (remainingUpdates == 0) {
