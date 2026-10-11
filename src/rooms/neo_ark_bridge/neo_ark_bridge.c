@@ -36,9 +36,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// The room's message table.
-extern TaskMessageEntry D_neo_ark_bridge_80181F30[];
-
 static s32  _neoArkBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _neoArkBridgeResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _neoArkBridgeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -50,7 +47,12 @@ TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefract
 
 TaskDesc D_neo_ark_bridge_80181F24 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_bridge_80181F30[5] = {
+/// Room-message dispatch for Neo Ark transitions, key-item refusals and ignored room actions/commands.
+///
+/// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table for synchronous dispatch; keep the overlay
+/// loaded while that controller can receive messages.
+static TaskMessageEntry _gNeoArkBridgeRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkBridgeResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkBridgeRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkBridgeIgnoreRoomAction },
@@ -111,7 +113,7 @@ static s32 _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const Direct
 /// is borrowed while the registered task remains alive.
 static void _neoArkBridgeInitRoomTask(Task* task)
 {
-    task->msgTable = D_neo_ark_bridge_80181F30;
+    task->msgTable = _gNeoArkBridgeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_2, 0, 0);

@@ -59,11 +59,6 @@ extern EvsCommand D_actor_451100_80135220[];
 extern EvsCommand D_actor_451100_80135FD0[];
 extern EvsCommand D_actor_451100_80136108[];
 
-/// Spawn table of the screen-wave task, and the context it is spawned with.
-/// The context's mode word is written through its own symbol, which is how the
-/// original reached it.
-extern TaskDesc gScreenWaveTaskDesc[];
-
 static s32 _gScreenWaveAmplitude;
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
@@ -139,7 +134,12 @@ static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C = {
     { NULL, _gNeoArkSubmarineTunnelAnimation0444CBank1, NULL, NULL, _gNeoArkSubmarineTunnelAnimation0444CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc gScreenWaveTaskDesc[2] = {
+/// Bodyless screen-wave recipe in slot 0, followed by TASK_DESC_END.
+///
+/// Runs at priority 192 and borrows a ScreenWaveCtx through spawnArg2.
+/// Only one wave may be active; its context and this carrier's code/storage
+/// must remain live through the final draw. The spawner copies the recipe.
+static TaskDesc _gScreenWaveTaskDescs[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

@@ -24,7 +24,7 @@
  *   ScreenWaveOscillator  SCREEN_WAVE_ROW_OSCILLATORS[]    per-row phase, offset and speed
  *   POLY_FT4              gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
  *   ScreenWaveCtx         SCREEN_WAVE_SPAWN_CONTEXT the context _screenWaveRun fills
- *   TaskDesc              gScreenWaveTaskDesc[]      the wave task _screenWaveRun spawns
+ *   static TaskDesc       _gScreenWaveTaskDescs[2]   slot 0 wave recipe, then TASK_DESC_END
  *
  * The grid task's records are the eight-byte ScreenWaveGridOscillator rather
  * than ScreenWaveOscillator.

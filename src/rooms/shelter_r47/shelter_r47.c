@@ -109,7 +109,7 @@ STATIC_ASSERT_SIZEOF(_ShelterR47SpritePart, 0xC);
 
 static TaskMessageEntry     D_shelter_r47_80186F2C[6];
 static AnimationPlayRequest D_shelter_r47_80186F5C;
-static TaskDesc             D_shelter_r47_80186F70[3];
+static TaskDesc             _gShelterR47AuxiliaryTaskDescs[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
 static TaskDesc             D_shelter_r47_80187020;
@@ -182,7 +182,19 @@ static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
 
 static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-static TaskDesc D_shelter_r47_80186F70[3] = {
+/// Slots of the terminal-room support-task table; every entry is bodyless.
+enum {
+    SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0,
+    SHELTER_R47_AMBIENCE_TASK_INDEX       = 1,
+    SHELTER_R47_CAP_COMMAND_TASK_INDEX    = 2,
+};
+
+/// Actor-restoration, ambience and CAP-command recipes in slots 0..2, with no END.
+///
+/// All run at priority 192. Restoration waits for terminal control to end;
+/// the ambience task persists with the room. CAP playback takes its command
+/// in spawnArg1 and releases after completion. Keep room code/resources loaded.
+static TaskDesc _gShelterR47AuxiliaryTaskDescs[3] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterR47RestoreActorsAfterTerminalTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterR47AmbienceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayCapCommandTask, { .value = 0 } },
@@ -605,7 +617,6 @@ static void _shelterR47InitializeRoomTask(Task* task)
 {
     enum { SHELTER_R47_INITIAL_ENTRY_TRIGGER   = 3,
            SHELTER_R47_REPEAT_ENTRY_TRIGGER    = 12,
-           SHELTER_R47_AMBIENCE_TASK_INDEX     = 1,
            SHELTER_R47_COMPANION_ROUTE_STARTED = 1 };
     Task* companion;
 
@@ -619,7 +630,7 @@ static void _shelterR47InitializeRoomTask(Task* task)
     }
     gShelterR47TerminalTask = NULL;
     shelterR47ResetTerminalFirstUseEvents();
-    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_AMBIENCE_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(_gShelterR47AuxiliaryTaskDescs, SHELTER_R47_AMBIENCE_TASK_INDEX, 0, 0);
     // Only one entry event should remain available for this story branch.
     if (gameFlagGetNibble(GAME_FLAG_083) == 1 || gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 1) {
         WorldCollisionTrigger* initialEntryTrigger = &gShelterR47ActionTriggers[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
@@ -716,14 +727,15 @@ static inline void _shelterR47EnableRepeatEntryTrigger(void)
 /// allocation failure leaves the player held and both actors hidden.
 static inline void _shelterR47HideActorsForTourTerminal(void)
 {
-    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0,
-           SHELTER_R47_TOUR_PLACED_ACTOR_INDEX   = 0,
-           SHELTER_R47_PLACED_ACTOR_DRAW_HIDE    = 0 };
+    enum {
+        SHELTER_R47_TOUR_PLACED_ACTOR_INDEX = 0,
+        SHELTER_R47_PLACED_ACTOR_DRAW_HIDE  = 0
+    };
 
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     sceneSetPlacedActorDrawMode(SHELTER_R47_TOUR_PLACED_ACTOR_INDEX, SHELTER_R47_PLACED_ACTOR_DRAW_HIDE);
-    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(_gShelterR47AuxiliaryTaskDescs, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
 }
 
 /// Holds and hides the player and any companion until the terminal exits.
@@ -735,7 +747,6 @@ static inline void _shelterR47HideActorsForTourTerminal(void)
 /// leaves the affected actors hidden and held.
 static inline void _shelterR47HoldTerminalActors(void)
 {
-    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0 };
 
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -743,7 +754,7 @@ static inline void _shelterR47HoldTerminalActors(void)
         companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
-    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(_gShelterR47AuxiliaryTaskDescs, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
 }
 
 /// Handles entry events, tour dialogue and terminal use requested by room triggers.
@@ -926,7 +937,7 @@ static s32 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s
         } else {
             gameFlagSetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r47_80186F70, 2, SHELTER_R47_FIRST_USE_CAP_COMMAND, 0);
+            taskSpawnFromTable(_gShelterR47AuxiliaryTaskDescs, SHELTER_R47_CAP_COMMAND_TASK_INDEX, SHELTER_R47_FIRST_USE_CAP_COMMAND, 0);
         }
     } else if (command == SHELTER_R47_COMMAND_ENTRY_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_083) > 0) {

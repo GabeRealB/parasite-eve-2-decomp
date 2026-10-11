@@ -57,7 +57,7 @@
 
 #include "mapui/map_akropolis.h"
 
-extern Task* D_acropolis_helicopter_landing_pad_80187F80;
+static Task* _gAcropolisHelicopterLandingPadPlayerPitchTask;
 
 /// Vibration programs paired with the departure timeline's screen shakes.
 extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D40[2];
@@ -1285,12 +1285,12 @@ ViewCamera gAcropolisHelicopterLandingPadViewCameras[27] = {
     { .transform = { .m = { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, .t = { 292, 673, 6887 } }, .screenDistance = 207 },
 };
 
-PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
+PadScriptCmd gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D3C = { 120, 70, 20, 1 };
+PadScriptVibrationSegment gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment = { 120, 70, 20, 1 };
 
 PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -1490,7 +1490,12 @@ static s32 _gAcropolisHelicopterLandingPadTurnStep = 0;
 /// The signed halfword permits the falling update to test a negative intermediate.
 static s16 _gAcropolisHelicopterLandingPadPitchWeight = 0;
 
-Task* D_acropolis_helicopter_landing_pad_80187F80 = NULL;
+/// Borrowed singleton task that pulses the player's model-part pitch.
+///
+/// Published during room initialization, without a spawn-success check.
+/// State requests require the live task; room teardown ends its lifetime
+/// without clearing this handle.
+static Task* _gAcropolisHelicopterLandingPadPlayerPitchTask = NULL;
 
 s32 gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
 
@@ -2033,7 +2038,7 @@ void acropolisHelicopterLandingPadLockAttachmentsForEncounter(void)
 
 void acropolisHelicopterLandingPadSetPlayerPitchPulseState(s32 pulseState)
 {
-    D_acropolis_helicopter_landing_pad_80187F80->state = pulseState;
+    _gAcropolisHelicopterLandingPadPlayerPitchTask->state = pulseState;
 }
 
 void acropolisHelicopterLandingPadMovePlayerToSceneMarkTask(Task* task)
@@ -2153,9 +2158,9 @@ static void _acropolisHelicopterLandingPadInitRoom(Task* task)
     gAcropolisHelicopterLandingPadEncounterReady                = 0;
     task->state++;
     evsStartScript(gAcropolisHelicopterLandingPadAmbientSoundScript, EVENT_SCRIPT_HUD_KEEP);
-    D_acropolis_helicopter_landing_pad_80187F80 = taskSpawnFromTable(gAcropolisHelicopterLandingPadScriptTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH, 0, 0);
-    placementTrigger                            = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
-    placementTrigger->flags                    &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    _gAcropolisHelicopterLandingPadPlayerPitchTask = taskSpawnFromTable(gAcropolisHelicopterLandingPadScriptTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH, 0, 0);
+    placementTrigger                               = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
+    placementTrigger->flags                       &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }
 
 void acropolisHelicopterLandingPadRoomTask(Task* task)

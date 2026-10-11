@@ -1311,7 +1311,7 @@ static void _actor342000IncineratorEventTask(Task* task)
         case ACTOR_342000_EVENT_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 gGameSession->sceneClock = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
-                taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
+                taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SKIP_ALERT, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 taskRequestKill(task, 0);
                 return;

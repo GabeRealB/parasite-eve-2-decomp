@@ -253,9 +253,10 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// event on the "everything is dead" state, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` is the ending
 /// selector the death sequence latches.
 
-/// Gameplay-resident globals the state-3 hand-off touches: `D_shelter_b3_garbage_incinerator_80187150` is the
-/// task table the successor is spawned from, `gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock` the script countdown copied
-/// into `GameSession::sceneClock`, and `D_shelter_b3_garbage_incinerator_801855DE` a counter cleared with it.
+/// The room-owned table `gShelterB3GarbageIncineratorBlazeTaskDescs` starts the
+/// countdown controller after the boss scene. The hand-off also copies
+/// `gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock` into
+/// `GameSession::sceneClock` and clears the counter `D_shelter_b3_garbage_incinerator_801855DE`.
 
 /// Spawn tables `evsStartScriptWithSkip` forwards to `taskSpawn`, taken as raw
 /// addresses: the first pair is used by the `spawnArg1` fast path in state 0
@@ -3187,7 +3188,7 @@ static void _actor444000IncineratorEventTask(Task* task)
             if (gGameSession->eventState == 0) {
                 D_shelter_b3_garbage_incinerator_801855DE = 0;
                 gGameSession->sceneClock                  = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
-                taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
+                taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SKIP_ALERT, 0);
                 taskKill(task);
                 return;
             }

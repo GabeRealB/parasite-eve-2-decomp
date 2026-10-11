@@ -3607,7 +3607,7 @@ s32 shopOpenSession(s32 stockSelector)
             displayQueueModeTask(&D_dryfield_night_garage_80181C2C, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 0, 0):
-            displayQueueModeTask(&D_shelter_b1_armory_801824D0, stockSelector, 0, STAGE_ENTRY_RELOAD);
+            displayQueueModeTask(&gShelterB1ArmoryShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0, 0):
             displayQueueModeTask(&D_shelter_b1_underground_parking_801871F0.desc, stockSelector, 0, STAGE_ENTRY_RELOAD);

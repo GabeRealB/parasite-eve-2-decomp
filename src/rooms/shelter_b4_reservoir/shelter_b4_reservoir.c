@@ -135,8 +135,6 @@ typedef struct {
 } _ShelterB4ReservoirBurstConfig;
 STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirBurstConfig, 6);
 
-/// Spawn table of the screen-wave task.
-extern TaskDesc      gScreenWaveTaskDesc[];
 static ScreenWaveCtx _gScreenWaveSpawnCtx;
 
 static s32 _gScreenWaveAmplitude;
@@ -211,7 +209,12 @@ static void                   _shelterB4ReservoirSetEventModelState(s32 modelSta
 static void                   _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent);
 static void                   _shelterB4ReservoirCancelEffects(void);
 
-TaskDesc gScreenWaveTaskDesc[2] = {
+/// Bodyless screen-wave recipe in slot 0, followed by TASK_DESC_END.
+///
+/// Runs at priority 192 and borrows a ScreenWaveCtx through spawnArg2.
+/// Only one wave may be active; its context and this carrier's code/storage
+/// must remain live through the final draw. The spawner copies the recipe.
+static TaskDesc _gScreenWaveTaskDescs[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

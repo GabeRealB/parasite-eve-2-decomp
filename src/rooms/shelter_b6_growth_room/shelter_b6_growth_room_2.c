@@ -26,6 +26,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
@@ -70,35 +71,66 @@ enum {
     SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET     = 2000,
 };
 
-/// The layout template and the live copy the reset below restores from it.
-extern WorldCollisionGrid D_shelter_b6_growth_room_8017F234;
-
-static SVECTOR _gShelterB6GrowthRoomCollision01C74Normals[4] = {
+/// Four outward box-wall normals in room space, scaled by 4096.
+static SVECTOR _gShelterB6GrowthRoomCollisionBoxTemplateNormals[SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_normals.inc"
 };
 
-static SVECTOR _gShelterB6GrowthRoomCollision01C74Verts[8] = {
+/// Eight room-space corners of the box before the optional Y translation.
+static SVECTOR _gShelterB6GrowthRoomCollisionBoxTemplateVerts[SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB6GrowthRoomCollision01C74Faces[4] = {
+/// Four side-wall quads using vertices 0..7, normals 0..3 and surface class 0.
+static WorldCollisionGridFace _gShelterB6GrowthRoomCollisionBoxTemplateFaces[SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_faces.inc"
 };
 
-static s16 _gShelterB6GrowthRoomCollision01C74Cells[6] = {
+/// Face list 0..3 followed by WORLD_COLLISION_GRID_CELL_END and an unread zero word.
+static s16 _gShelterB6GrowthRoomCollisionBoxTemplateCells[6] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollision01C74Cells[i])
-static s16* _gShelterB6GrowthRoomCollision01C74Table[1] = {
+#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollisionBoxTemplateCells[i])
+/// The template's sole cell; retained although box resets do not read cell indices.
+static s16* _gShelterB6GrowthRoomCollisionBoxTemplateTable[1] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_growth_room_8017F234 = { NULL, _gShelterB6GrowthRoomCollision01C74Normals, _gShelterB6GrowthRoomCollision01C74Verts, _gShelterB6GrowthRoomCollision01C74Faces, _gShelterB6GrowthRoomCollision01C74Table, -3145, -6145, 1, 1, 4000, 4 };
+/// Authored box geometry used to reset the leading faces of the live room grid.
+///
+/// Resets copy four normals/faces and eight vertices, optionally adding 2000
+/// to Y; this descriptor is never activated. Its retained 1-by-1 cell index
+/// has a 4000-unit side and origin (3145,6145). All pools live with this room.
+static WorldCollisionGrid _gShelterB6GrowthRoomCollisionBoxTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB6GrowthRoomCollisionBoxTemplateNormals,
+    .vertices    = _gShelterB6GrowthRoomCollisionBoxTemplateVerts,
+    .faces       = _gShelterB6GrowthRoomCollisionBoxTemplateFaces,
+    .cellFaceIds = _gShelterB6GrowthRoomCollisionBoxTemplateTable,
+    .xBias       = -3145,
+    .zBias       = -6145,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB6GrowthRoomCollisionBoxTemplateFaces),
+};
 
-/// World positions shared by the view-specific starts below.
-SVECTOR D_shelter_b6_growth_room_8017F258[36] = {
+/// Index ranges within the room's authored glow and floor-mist anchor array.
+enum {
+    SHELTER_B6_GROWTH_ROOM_GLOW_ANCHOR_COUNT = 30,
+    SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START = SHELTER_B6_GROWTH_ROOM_GLOW_ANCHOR_COUNT,
+    SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_COUNT = 6,
+};
+
+/// Thirty view-glow centres followed by six floor-mist centres, in room game units.
+///
+/// Indices 0..29 supply full XYZ centres selected by mapped camera view.
+/// Indices 30..35 supply XZ mist centres; their stored Y=0 is not read.
+/// Glows borrow a centre during drawing; mist copies it before spawning.
+/// The room owns all points for the loaded overlay's lifetime.
+static SVECTOR _gShelterB6GrowthRoomEffectAnchors[SHELTER_B6_GROWTH_ROOM_GLOW_ANCHOR_COUNT + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_COUNT] = {
     { 665, -1955, 10550, 0 },
     { 1060, -1955, 10550, 0 },
     { 1160, -915, 10550, 0 },
@@ -458,65 +490,71 @@ WorldCollisionSurfaceProperties* gShelterB6GrowthRoomSurfaceProperties[8] = {
     &_gShelterB6GrowthRoomSilentSurface,
 };
 
-AreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
-    { 5, 5, 7, 33 },
-    { 5, 8, 11, 0 },
-    { 5, 10, 3, 1 },
-    { 5, 11, 5, 1 },
-    { 5, 12, 3, 0 },
-    { 5, 13, 5, 1 },
-    { 5, 14, 3, 1 },
-    { 5, 15, 2, 0 },
-    { 5, 17, 4, 1 },
-    { 5, 18, 5, 1 },
-    { 5, 19, 5, 1 },
-    { 5, 21, 5, 1 },
-    { 5, 27, 5, 1 },
-    { 5, 29, 4, 1 },
-    { 5, 30, 3, 1 },
-    { 5, 32, 4, 1 },
-    { 4, 2, 11, 1 },
-    { 4, 5, 11, 1 },
-    { 4, 8, 11, 1 },
-    { 4, 9, 11, 1 },
-    { 4, 10, 11, 1 },
-    { 4, 11, 11, 1 },
-    { 4, 12, 11, 1 },
-    { 4, 14, 11, 17 },
-    { 4, 14, 17, 33 },
-    { 4, 15, 11, 1 },
-    { 4, 17, 11, 1 },
-    { 4, 18, 13, 1 },
-    { 4, 19, 11, 17 },
-    { 4, 19, 17, 33 },
-    { 4, 24, 11, 1 },
-    { 4, 25, 11, 1 },
-    { 4, 27, 11, 1 },
-    { 4, 28, 11, 1 },
-    { 4, 29, 11, 1 },
-    { 4, 30, 11, 1 },
-    { 4, 32, 11, 1 },
-    { 4, 33, 11, 1 },
-    { 4, 34, 11, 1 },
-    { 4, 35, 11, 1 },
-    { 4, 42, 11, 1 },
-    { 4, 43, 11, 1 },
-    { 4, 44, 11, 1 },
-    { 4, 45, 11, 1 },
-    { 4, 46, 11, 1 },
-    { 4, 47, 11, 0 },
-    { 3, 3, 21, 1 },
-    { 3, 5, 21, 1 },
-    { 3, 9, 21, 1 },
-    { 3, 11, 21, 1 },
-    { 3, 12, 21, 1 },
-    { 3, 15, 21, 1 },
-    { 3, 20, 21, 1 },
-    { 3, 22, 21, 1 },
-    { 3, 25, 21, 1 },
-    { 3, 26, 21, 1 },
-    { 3, 32, 21, 1 },
-    { 255, 0, 0, 0 },
+/// Low-nibble requests in the authored entry-area policies.
+enum {
+    SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_CLEAR = 0,
+    SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET   = 1,
+};
+
+AreaApplyRec gShelterB6GrowthRoomEntryAreaUpdates[SHELTER_B6_GROWTH_ROOM_ENTRY_AREA_UPDATE_COUNT] = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_CLEAR },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_CLEAR },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 2, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_CLEAR },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 5, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 11, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 17, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 13, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 17, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 11, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_CLEAR },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_1, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 21, AREA_APPLY_MODE_ALWAYS | SHELTER_B6_GROWTH_ROOM_ENTRY_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
@@ -547,7 +585,7 @@ void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
     }
 
     liveGrid    = &gShelterB6GrowthRoomCollisionGrid;
-    boxTemplate = &D_shelter_b6_growth_room_8017F234;
+    boxTemplate = &_gShelterB6GrowthRoomCollisionBoxTemplate;
 
     SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX();
 #undef SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX
@@ -574,9 +612,8 @@ void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
     enum {
         SHELTER_B6_GROWTH_ROOM_RAMP_LIMIT           = 304,
         SHELTER_B6_GROWTH_ROOM_RAMP_FRAME_MASK      = 7,
-        SHELTER_B6_GROWTH_ROOM_MIST_SOURCE_LIMIT    = 6,
+        SHELTER_B6_GROWTH_ROOM_MIST_SOURCE_LIMIT    = SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_COUNT,
         SHELTER_B6_GROWTH_ROOM_MIST_DENSITY_SHIFT   = 4,
-        SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START    = 30,
         SHELTER_B6_GROWTH_ROOM_MIST_ANGLE_MASK      = 0x7FF,
         SHELTER_B6_GROWTH_ROOM_MIST_HALF_ARC        = 0x400,
         SHELTER_B6_GROWTH_ROOM_MIST_RADIUS          = 1000,
@@ -604,15 +641,15 @@ void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
 /// particle constants. Sets XYZ only; the fourth vector component is retained.
 /// The effect snapshots XYZ synchronously and these particle tasks do not read
 /// the retained offset pointer. Expands to a braced statement block.
-#define SHELTER_B6_GROWTH_ROOM_SPAWN_MIST(effectTask, anchorIndex, position, angle)                                                                                                                                     \
-    {                                                                                                                                                                                                                   \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                               \
-        (angle)         = ((gRandomLcgState >> 16) & SHELTER_B6_GROWTH_ROOM_MIST_ANGLE_MASK) - SHELTER_B6_GROWTH_ROOM_MIST_HALF_ARC;                                                                                    \
-        (position).vx   = D_shelter_b6_growth_room_8017F258[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vx + ((rcos((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                               \
-        (position).vy   = -((s32)(gRandomLcgState >> 16) % (((effectTask)->spawnArg1.value + 1) * 8));                                                                                                                  \
-        (position).vz   = D_shelter_b6_growth_room_8017F258[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vz + ((rsin((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
-        effectSpawn(EFFECT_GROWTH_ROOM_MIST, NULL, SHELTER_B6_GROWTH_ROOM_MIST_SPAWN_ARG, &(position));                                                                                                                 \
+#define SHELTER_B6_GROWTH_ROOM_SPAWN_MIST(effectTask, anchorIndex, position, angle)                                                                                                                                      \
+    {                                                                                                                                                                                                                    \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                                \
+        (angle)         = ((gRandomLcgState >> 16) & SHELTER_B6_GROWTH_ROOM_MIST_ANGLE_MASK) - SHELTER_B6_GROWTH_ROOM_MIST_HALF_ARC;                                                                                     \
+        (position).vx   = _gShelterB6GrowthRoomEffectAnchors[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vx + ((rcos((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                                \
+        (position).vy   = -((s32)(gRandomLcgState >> 16) % (((effectTask)->spawnArg1.value + 1) * 8));                                                                                                                   \
+        (position).vz   = _gShelterB6GrowthRoomEffectAnchors[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vz + ((rsin((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
+        effectSpawn(EFFECT_GROWTH_ROOM_MIST, NULL, SHELTER_B6_GROWTH_ROOM_MIST_SPAWN_ARG, &(position));                                                                                                                  \
     }
 
     // Ramp the glow and mist spread; source count latches at six floor anchors.
@@ -646,67 +683,67 @@ void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
     // Mapped views select the visible subset of the first thirty glow anchors.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[28], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[29], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[28], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[29], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
             break;
         case 3:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[12], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[13], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[24], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[25], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[12], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[13], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[24], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[25], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 5:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 6:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 7:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[10], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[11], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[10], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[11], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
+            glowDrawDisc(&_gShelterB6GrowthRoomEffectAnchors[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
     }
 }

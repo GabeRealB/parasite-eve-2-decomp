@@ -31,9 +31,6 @@
 
 #include "rooms/room.h"
 
-extern TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[];
-
-extern TaskDesc                D_shelter_b4_lower_sewer_80181E70[];
 extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[];
 extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[];
 
@@ -56,7 +53,12 @@ enum {
     SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS = 0x20
 };
 
-TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
+/// Room-message dispatch for Mine/Shelter transitions, key-item refusals and ignored room actions/commands.
+///
+/// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table for synchronous dispatch; keep the overlay
+/// loaded while that controller can receive messages.
+static TaskMessageEntry _gShelterB4LowerSewerRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4LowerSewerResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB4LowerSewerRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4LowerSewerIgnoreRoomAction },
@@ -66,8 +68,13 @@ TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
 
 s16 D_shelter_b4_lower_sewer_80181E6C = -1700;
 
-TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
-    { { { TASK_BODY_NONE, 96 } }, _shelterB4LowerSewerWaterTask, { .value = 0 } },
+/// Bodyless water-surface task recipe started after the reservoir event.
+///
+/// Runs at priority 96 with zero spawn arguments. State 0 prepares a borrowed
+/// actor-load buffer; state 1 draws the surfaces. Keep the room and buffer
+/// live through drawing and GPU consumption; this single recipe has no END.
+static TaskDesc _gShelterB4LowerSewerWaterTaskDesc = {
+    { { TASK_BODY_NONE, 96 } }, _shelterB4LowerSewerWaterTask, { .value = 0 }
 };
 
 RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[2] = {
@@ -133,10 +140,10 @@ static s32 _shelterB4LowerSewerIgnoreRoomAction(Task* task, s32 messageId, const
 /// water task. Advances to the idle state even when water task creation fails.
 static void _shelterB4LowerSewerInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b4_lower_sewer_80181E44;
+    task->msgTable = _gShelterB4LowerSewerRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-        taskSpawnFromTable(D_shelter_b4_lower_sewer_80181E70, 0, 0, 0);
+        taskSpawnFromTable(&_gShelterB4LowerSewerWaterTaskDesc, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

@@ -118,8 +118,11 @@ static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg,
 static s32 _shelterR48RoomActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-extern TmdBone D_shelter_r48_8018BE30[1];
+static TmdBone _gShelterR48WaterRefractionSkeleton[1];
 static void    _shelterR48WaterRefractionTask(Task* task);
+
+/// Byte capacity of each of the water-refraction model's two packet-buffer halves.
+enum { SHELTER_R48_REFRACTION_BUFFER_HALF_BYTES = 0x4000 };
 
 /// Empty part and pre-transformed command groups for the water-refraction TMD body.
 ///
@@ -131,11 +134,25 @@ static u32 _gShelterR48WaterRefractionStream[3] = {
     TMD_STREAM_END,
 };
 
-TmdSource D_shelter_r48_80182F88[1] = {
-    { 0, 0x4000, 0, 1, NULL, NULL, NULL, D_shelter_r48_8018BE30, _gShelterR48WaterRefractionStream },
+/// Synthetic one-part model providing the water-refraction task's owned packet buffer.
+///
+/// No vertices or normals are supplied: the callback writes framebuffer quads
+/// directly into two 0x4000-byte halves. The descriptor skips automatic buffer
+/// allocation; the first active draw allocates it. Runtime models borrow this
+/// writable source and stream until teardown; the initial pose is copied.
+static TmdSource _gShelterR48WaterRefractionSource = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = SHELTER_R48_REFRACTION_BUFFER_HALF_BYTES,
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gShelterR48WaterRefractionSkeleton),
+    .partVertexCounts    = NULL,
+    .verts               = NULL,
+    .normals             = NULL,
+    .skeleton            = _gShelterR48WaterRefractionSkeleton,
+    .stream              = _gShelterR48WaterRefractionStream,
 };
 
-TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = D_shelter_r48_80182F88 } };
+TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = &_gShelterR48WaterRefractionSource } };
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR48ResolveTransitionMessage },
@@ -1925,7 +1942,11 @@ WorldCollisionSurfaceProperties* gShelterR48SurfacePropertiesByClass[8] = {
     &_gShelterR48SolidSurface,
 };
 
-TmdBone D_shelter_r48_8018BE30[1] = { 0 };
+/// Zeroed initial pose of the water-refraction model's single self-parented root.
+///
+/// Creation copies the all-zero matrix and parent index 0 into owned runtime
+/// coordinates. This source pose is read only and remains local to the room.
+static TmdBone _gShelterR48WaterRefractionSkeleton[1] = { 0 };
 
 /// Random texture-animation phase bytes for six bands of sixteen segments.
 ///
@@ -1974,7 +1995,6 @@ static inline void _shelterR48PrepareWaterProjection(WaterRefractionScratch* scr
 static void _shelterR48WaterRefractionTask(Task* task)
 {
     enum {
-        SHELTER_R48_REFRACTION_BUFFER_HALF_BYTES = 0x4000,
         SHELTER_R48_REFRACTION_PLANE_Y           = 0xD02,
         SHELTER_R48_REFRACTION_PHASE_STEP        = 0x20,
         SHELTER_R48_REFRACTION_HALF_WIDTH        = 160,

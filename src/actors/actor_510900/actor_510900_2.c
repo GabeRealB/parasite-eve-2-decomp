@@ -2115,7 +2115,7 @@ static void _actor510900TickLethalAttack(Task* task)
                 }
             }
             if (work->animationFrame == ACTOR_510900_LETHAL_VIBRATION_FRAME) {
-                padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D34, &D_acropolis_helicopter_landing_pad_80187D3C);
+                padScriptSpawn(gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands, &gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment);
             }
             if (work->animationFrame == ACTOR_510900_LETHAL_ATTACK_OFF_FRAME) {
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

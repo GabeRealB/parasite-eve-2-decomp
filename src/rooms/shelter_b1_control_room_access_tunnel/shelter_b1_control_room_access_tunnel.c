@@ -37,9 +37,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// The room's message table, installed on its task by state 0.
-extern TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
-
 static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -47,7 +44,12 @@ static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 mes
 
 enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
+/// Room-message dispatch for Mine/Shelter transitions, key-item refusals and ignored room actions/commands.
+///
+/// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table for synchronous dispatch; keep the overlay
+/// loaded while that controller can receive messages.
+static TaskMessageEntry _gShelterB1ControlRoomAccessTunnelRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ControlRoomAccessTunnelResolveRoomEvent },
     { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomAccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomAccessTunnelIgnoreRoomAction },
@@ -123,7 +125,7 @@ static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 mes
 /// no work; the task and table must remain live while room messages are sent.
 static void _shelterB1ControlRoomAccessTunnelInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b1_control_room_access_tunnel_80181E74;
+    task->msgTable = _gShelterB1ControlRoomAccessTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state += 1;
 }

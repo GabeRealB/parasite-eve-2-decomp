@@ -31,7 +31,7 @@ static void _screenWaveRun(s32 request)
         SCREEN_WAVE_SPAWN_CONTEXT.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
         SCREEN_WAVE_SPAWN_CONTEXT.g               = SCREEN_WAVE_SCRIPT_GREEN_BLUE;
         SCREEN_WAVE_SPAWN_CONTEXT.b               = SCREEN_WAVE_SCRIPT_GREEN_BLUE;
-        taskSpawnFromTable(gScreenWaveTaskDesc, 0, 0, &SCREEN_WAVE_SPAWN_CONTEXT);
+        taskSpawnFromTable(_gScreenWaveTaskDescs, 0, 0, &SCREEN_WAVE_SPAWN_CONTEXT);
         return;
     }
     SCREEN_WAVE_SPAWN_CONTEXT.state = request;

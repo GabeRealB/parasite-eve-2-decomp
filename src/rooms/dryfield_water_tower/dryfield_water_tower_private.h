@@ -18,7 +18,12 @@ extern TaskDesc gDryfieldWaterTowerPropSceneTasks[3];
 
 extern Task* D_dryfield_water_tower_801876A4;
 
-extern Task* D_dryfield_water_tower_801876AC;
+/// Borrowed controller for the introductory actor scene and its pending requests.
+///
+/// Published after its work allocation succeeds. Script callbacks require the
+/// live controller and work; scene completion requests teardown without
+/// clearing this handle. The pointer does not retain the task or its work.
+extern Task* gDryfieldWaterTowerActorSceneTask;
 
 extern TaskDesc gRoomEventTaskDesc;
 

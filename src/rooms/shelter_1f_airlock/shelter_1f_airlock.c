@@ -38,9 +38,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
-/// The room's message table, handed to its event task in state 0.
-extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
-
 enum {
     SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1,
     SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED    = 0,
@@ -67,7 +64,12 @@ static WorldCollisionTrigger  _gShelter1fAirlockViewBoundaryTriggers[6];
 extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F5F8[4];
 static WorldCoordRoomLights   _gShelter1fAirlockRoomLights;
 
-TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
+/// Room-message dispatch for Neo Ark transitions, key-item refusals and ignored room actions/commands.
+///
+/// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table for synchronous dispatch; keep the overlay
+/// loaded while that controller can receive messages.
+static TaskMessageEntry _gShelter1fAirlockRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fAirlockResolveRoomTransition },
     { SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fAirlockRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fAirlockIgnoreActionMessage },
@@ -556,7 +558,7 @@ static s32 _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMess
 /// for subsequent synchronous messages while the registered task remains alive.
 static void _shelter1fAirlockInitRoomTask(Task* task)
 {
-    task->msgTable = D_shelter_1f_airlock_8017E494;
+    task->msgTable = _gShelter1fAirlockRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }

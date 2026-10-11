@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_control_room_access_tunnel.
 _gShelterB1ControlRoomAccessTunnelGlowPoints = 0x80181E9C; // size:0x48 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80181EF4; // size:0xC defined:True
-D_shelter_b1_control_room_access_tunnel_80181E74 = 0x80181E74; // size:0x28 defined:True
+_gShelterB1ControlRoomAccessTunnelRoomMessages = 0x80181E74; // size:0x28 defined:True
 gShelterB1ControlRoomAccessTunnelRoomViewMaps = 0x80181F00; // size:0x4 defined:True
 gShelterB1ControlRoomAccessTunnelRoomViewCounts = 0x80181F04; // size:0x2 defined:True
 D_shelter_b1_control_room_access_tunnel_80181F08 = 0x80181F08; // size:0x70 defined:True

@@ -46,3 +46,4 @@ _dryfieldSouvenirShopIgnoreRoomAction = 0x8017d608; // type:func
 _dryfieldSouvenirShopIdleRoomTask = 0x8017d654; // type:func
 _dryfieldSouvenirShopInitRoomTask = 0x8017d610; // type:func
 dryfieldSouvenirShopRoomTask = 0x8017d65c; // type:func
+_gDryfieldSouvenirShopRoomTaskStates = 0x8017d5c4;

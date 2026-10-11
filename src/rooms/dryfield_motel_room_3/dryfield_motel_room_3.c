@@ -471,8 +471,11 @@ static void _dryfieldMotelRoom3IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_motel_room_3_8017D5C4 = {
+/// Room-task states 0 initialize, 1 remain available for messages, and 2 release the task.
+///
+/// Copied whole before unchecked state dispatch in 0..2; all three callback
+/// addresses are borrowed from loaded code. There is no terminator.
+static const TaskFuncTable3 _gDryfieldMotelRoom3RoomTaskStates = {
     { _dryfieldMotelRoom3InitRoomTask, _dryfieldMotelRoom3IdleRoomTask, taskKill },
 };
 
@@ -480,6 +483,6 @@ void dryfieldMotelRoom3Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_motel_room_3_8017D5C4;
+    stateHandlers = _gDryfieldMotelRoom3RoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

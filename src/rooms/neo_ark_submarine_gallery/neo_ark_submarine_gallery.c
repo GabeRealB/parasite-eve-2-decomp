@@ -396,10 +396,11 @@ static void _neoArkSubmarineGalleryIdleRedDiscTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the disc task, indexed by its state through
-/// `neoArkSubmarineGalleryRedDiscTask`: set-up, the per-frame disc sweep,
-/// then an idle state.
-static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D63C = {
+/// Red-disc states 0 initialize radius, 1 grow and draw, and 2 preserve radius idle.
+///
+/// Copied whole before unchecked state dispatch in 0..2. State 2 neither
+/// draws nor releases the task; callback code must remain loaded.
+static const TaskFuncTable3 _gNeoArkSubmarineGalleryRedDiscTaskStates = {
     { _neoArkSubmarineGalleryInitRedDiscTask, _neoArkSubmarineGalleryUpdateRedDiscTask,
       _neoArkSubmarineGalleryIdleRedDiscTask }
 };
@@ -408,6 +409,6 @@ void neoArkSubmarineGalleryRedDiscTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_submarine_gallery_8017D63C;
+    stateHandlers = _gNeoArkSubmarineGalleryRedDiscTaskStates;
     stateHandlers.funcs[task->state](task);
 }

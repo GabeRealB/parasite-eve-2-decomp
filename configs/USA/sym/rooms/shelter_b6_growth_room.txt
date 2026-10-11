@@ -1,12 +1,12 @@
 // Overlay-local symbols for shelter_b6_growth_room.
-D_shelter_b6_growth_room_8017F258 = 0x8017F258; // size:0x120 defined:True
-D_shelter_b6_growth_room_8017F16C = 0x8017F16C; // size:0x28 defined:True
-_gShelterB6GrowthRoomCollision01C74Normals = 0x8017F194; // size:0x20 defined:True
-_gShelterB6GrowthRoomCollision01C74Verts = 0x8017F1B4; // size:0x40 defined:True
-_gShelterB6GrowthRoomCollision01C74Faces = 0x8017F1F4; // size:0x30 defined:True
-_gShelterB6GrowthRoomCollision01C74Cells = 0x8017F224; // size:0xA defined:True
-_gShelterB6GrowthRoomCollision01C74Table = 0x8017F230; // size:0x4 defined:True
-D_shelter_b6_growth_room_8017F234 = 0x8017F234; // size:0x24 defined:True
+_gShelterB6GrowthRoomEffectAnchors = 0x8017F258; // size:0x120 defined:True
+_gShelterB6GrowthRoomMessages = 0x8017F16C; // size:0x28 defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplateNormals = 0x8017F194; // size:0x20 defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplateVerts = 0x8017F1B4; // size:0x40 defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplateFaces = 0x8017F1F4; // size:0x30 defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplateCells = 0x8017F224; // size:0xA defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplateTable = 0x8017F230; // size:0x4 defined:True
+_gShelterB6GrowthRoomCollisionBoxTemplate = 0x8017F234; // size:0x24 defined:True
 gShelterB6GrowthRoomViewMaps = 0x8017F378; // size:0x4 defined:True
 gShelterB6GrowthRoomViewCounts = 0x8017F37C; // size:0x2 defined:True
 D_shelter_b6_growth_room_8017F380 = 0x8017F380; // size:0x38 defined:True
@@ -41,7 +41,7 @@ _gShelterB6GrowthRoomSilentSurface = 0x80180790; // size:0x8 defined:True
 _gShelterB6GrowthRoomSurface1 = 0x80180798; // size:0x8 defined:True
 _gShelterB6GrowthRoomSurface2 = 0x801807A0; // size:0x8 defined:True
 gShelterB6GrowthRoomSurfaceProperties = 0x801807A8; // size:0x20 defined:True
-D_shelter_b6_growth_room_801807C8 = 0x801807C8; // size:0xE8 defined:True
+gShelterB6GrowthRoomEntryAreaUpdates = 0x801807C8; // size:0xE8 defined:True
 gMapNeoArkGrowthRoomDefaultPlacements = 0x8017C0E0; // absolute:True owner=map_neo_ark
 
 shelterB6GrowthRoomAmbientEffectsTask = 0x8017D9D8; // type:func
@@ -61,3 +61,4 @@ shelterB6GrowthRoomTask = 0x8017d7d4; // type:func
 _shelterB6GrowthRoomHandleCompanionCommand = 0x8017d634; // type:func
 _shelterB6GrowthRoomHandleRoomAction = 0x8017d6c8; // type:func
 _shelterB6GrowthRoomInitializeTask = 0x8017d71c; // type:func
+_gShelterB6GrowthRoomTaskStates = 0x8017d5c4;

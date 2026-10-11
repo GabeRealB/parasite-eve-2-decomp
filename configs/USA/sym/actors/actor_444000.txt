@@ -440,7 +440,7 @@ D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // absolute:True owner=s
 
 shelterB3GarbageIncineratorSetLiftCollisionWalls = 0x80185220; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorBlazeTaskDescs = 0x80187150; // absolute:True owner=shelter_b3_garbage_incinerator
 
 gShelterB3GarbageIncineratorDescentAreaUpdates = 0x8018FB6C; // absolute:True owner=shelter_b3_garbage_incinerator
 

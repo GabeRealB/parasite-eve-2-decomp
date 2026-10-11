@@ -109,7 +109,6 @@ STATIC_ASSERT_SIZEOF(_DryfieldWarehouseCutsceneWork, 0x10);
 
 extern AnimationSet*  D_dryfield_warehouse_8017F848[2];
 extern ActorTransform D_dryfield_warehouse_8017F850;
-extern ActorTransform D_dryfield_warehouse_8017F868;
 
 extern EvsCommand D_dryfield_warehouse_8017F880[];
 extern EvsCommand D_dryfield_warehouse_8017FA00[];
@@ -173,7 +172,11 @@ AnimationSet* D_dryfield_warehouse_8017F848[2] = {
 
 ActorTransform D_dryfield_warehouse_8017F850 = { { 5540, 0, -2300, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_dryfield_warehouse_8017F868 = { { 4654, 0, -1968, 0 }, { 0, 512, 0, 0 } };
+/// Player's final room-space placement for normal and skipped warehouse cutscenes.
+///
+/// XYZ use game-coordinate units; yaw is 512 of 4096 units per turn.
+/// Placement messages borrow this record only during synchronous dispatch.
+static ActorTransform _gDryfieldWarehouseClosingPlayerTransform = { { 4654, 0, -1968, 0 }, { 0, 512, 0, 0 } };
 
 EvsCommand D_dryfield_warehouse_8017F880[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
@@ -592,7 +595,7 @@ static inline void _dryfieldWarehouseRestoreSkippedPlayer(_DryfieldWarehouseCuts
     animationRequest.blendFrames          = 0;
     animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
     TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F868, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWarehouseClosingPlayerTransform, 0);
 }
 
 /// Restores the warehouse cutscene's final player and room state when it is skipped.
@@ -700,7 +703,7 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
         (animationRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                                                                                                                                                                       \
                                                                                                                                                                                                                                                                           \
         TASK_MESSAGE_DISPATCH_POINTER((cutsceneWork)->player, ANIMATION_MESSAGE_PLAY, &(animationRequest), 0);                                                                                                                                                            \
-        TASK_MESSAGE_DISPATCH_POINTER((cutsceneWork)->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F868, 0);                                                                                                                                               \
+        TASK_MESSAGE_DISPATCH_POINTER((cutsceneWork)->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWarehouseClosingPlayerTransform, 0);                                                                                                                                   \
     }
 
     work = task->work;

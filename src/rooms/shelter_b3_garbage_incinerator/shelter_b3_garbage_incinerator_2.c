@@ -443,7 +443,7 @@ EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[17] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
+TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_COUNT] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorBlazeControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
@@ -1209,7 +1209,6 @@ static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
 /// clears, otherwise advances animation successors and returns 0.
 static s16 _shelterB3GarbageIncineratorRunBlazeScene(Task* task)
 {
-    enum { SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK = 2 };
     _ShelterB3GarbageIncineratorBlazeWork* work = task->work;
 
     switch (work->sceneState) {
@@ -1219,7 +1218,7 @@ static s16 _shelterB3GarbageIncineratorRunBlazeScene(Task* task)
             gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK, 0, task);
+            work->fadeTask   = taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK, 0, task);
             work->sceneState = work->sceneState + 1;
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_RUNNING:
@@ -1370,7 +1369,6 @@ static void _shelterB3GarbageIncineratorSetBodyFirePhase(s32 spreadFire)
 {
     enum {
         SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CULL_ZONE = 16,
-        SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK  = 3,
     };
     _ShelterB3GarbageIncineratorBlazeWork* work = gShelterB3GarbageIncineratorBlazeControllerTask->work;
 
@@ -1378,7 +1376,7 @@ static void _shelterB3GarbageIncineratorSetBodyFirePhase(s32 spreadFire)
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
         roomEffectRequestCancelAll();
         gGameSession->enemyCullZone = SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CULL_ZONE;
-        work->bodyFireTask          = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START, 0);
+        work->bodyFireTask          = taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START, 0);
         return;
     }
     work->bodyFireTask->spawnArg1.value = SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD;

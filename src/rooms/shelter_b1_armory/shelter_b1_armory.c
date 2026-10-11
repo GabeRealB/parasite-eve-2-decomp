@@ -99,7 +99,7 @@ enum {
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_b1_armory_801824D0 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
+TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 

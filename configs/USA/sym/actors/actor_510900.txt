@@ -258,9 +258,9 @@ _gActor510900HelipadStatusFlagValues = 0x80167CEC; // size:0x38 defined:True
 
 acropolisHelicopterLandingPadDrawLowerSparkLine = 0x80180A64; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 
-D_acropolis_helicopter_landing_pad_80187D34 = 0x80187D34; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
+gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands = 0x80187D34; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 
-D_acropolis_helicopter_landing_pad_80187D3C = 0x80187D3C; // absolute:True owner=acropolis_helicopter_landing_pad
+gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment = 0x80187D3C; // absolute:True owner=acropolis_helicopter_landing_pad
 
 actor510900FlameJetTask = 0x80131F24; // type:func
 

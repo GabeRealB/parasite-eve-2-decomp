@@ -12,7 +12,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_shelter_b1_armory_801824D0;
+/// Bodyless shop-session recipe selected when opening the armory shop.
+///
+/// Runs at priority 192 with the stock selector in spawnArg1 and zero in
+/// spawnArg2. The session owns its UI tree and shared drawing buffer until
+/// closure; keep this room's shop code and stock tables loaded throughout.
+extern TaskDesc gShelterB1ArmoryShopSessionTaskDesc;
 
 extern AreaVariant D_shelter_b1_armory_801854E0[11];
 

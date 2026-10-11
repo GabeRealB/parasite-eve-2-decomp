@@ -22,7 +22,24 @@ extern OverlayEncounterSpot gShelterB3GarbageIncineratorEncounterSpots[16];
 
 extern u16 D_shelter_b3_garbage_incinerator_801855DE;
 
-extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[4];
+/// Slots of the incinerator countdown and burn-scene spawn table.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_RETIRE_TASK     = 1,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK       = 2,
+    SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK        = 3,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_COUNT      = 4,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_PLAY_ALERT      = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SKIP_ALERT      = 1,
+};
+
+/// Four bodyless countdown/burn-scene recipes, all at priority 192, with no END entry.
+///
+/// Slot 0 watches the scene clock; spawnArg1 selects PLAY_ALERT or SKIP_ALERT.
+/// Slot 1 releases its new task immediately. Slot 2 borrows the controller
+/// through spawnArg2 for the colour fade; slot 3 starts body fire with its phase
+/// in spawnArg1. Keep this room and the player/controller live while they run.
+extern TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_COUNT];
 
 /// Mutable logical-view map shared by incinerator rooms 1 and 3.
 ///

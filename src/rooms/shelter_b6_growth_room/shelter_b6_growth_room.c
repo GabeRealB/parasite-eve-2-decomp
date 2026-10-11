@@ -22,14 +22,17 @@
 
 #include "mapui/map_neo_ark.h"
 
-extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
-
 static s32 _shelterB6GrowthRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterB6GrowthRoomResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
 static s32 _shelterB6GrowthRoomHandleCompanionCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 static s32 _shelterB6GrowthRoomHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_shelter_b6_growth_room_8017F16C[5] = {
+/// Room-message dispatch for Neo Ark transitions, key-item refusals and companion interaction/departure.
+///
+/// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table for synchronous dispatch; keep the overlay
+/// loaded while that controller can receive messages.
+static TaskMessageEntry _gShelterB6GrowthRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB6GrowthRoomResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB6GrowthRoomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6GrowthRoomHandleRoomAction },
@@ -123,10 +126,10 @@ static void _shelterB6GrowthRoomInitializeTask(Task* task)
         SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY = 0x33
     };
 
-    task->msgTable = D_shelter_b6_growth_room_8017F16C;
+    task->msgTable = _gShelterB6GrowthRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     companionRestoreFullHp();
-    areaApplySavedUpdates(D_shelter_b6_growth_room_801807C8);
+    areaApplySavedUpdates(gShelterB6GrowthRoomEntryAreaUpdates);
     evsStartScriptWithSkip(gActor450900EntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450900EntrySkipScript);
     taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_COMPANION_DISTRESS, 0, 0);
     taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_PLAYER_REACTION, 0, 0);
@@ -139,8 +142,11 @@ static void _shelterB6GrowthRoomMessageIdle(Task* task)
 {
 }
 
-/// State table of the room task: set-up, idle, kill.
-static const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
+/// Room-task states 0 initialize, 1 remain available for messages, and 2 release the task.
+///
+/// Copied whole before unchecked state dispatch in 0..2; all three callback
+/// addresses are borrowed from loaded code. There is no terminator.
+static const TaskFuncTable3 _gShelterB6GrowthRoomTaskStates = {
     {
         _shelterB6GrowthRoomInitializeTask,
         _shelterB6GrowthRoomMessageIdle,
@@ -152,6 +158,6 @@ void shelterB6GrowthRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b6_growth_room_8017D5C4;
+    states = _gShelterB6GrowthRoomTaskStates;
     states.funcs[task->state](task);
 }

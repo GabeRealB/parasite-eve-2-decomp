@@ -3389,12 +3389,12 @@ static void _dryfieldWaterTowerActorSceneTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->playerTask                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_water_tower_801876AC = task;
-                actorPlaceKey                   = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->firstActorTask            = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
-                actorPlaceKey                   = ((gGameSession->location.loc.stage << 8) | DRYFIELD_WATER_TOWER_ACTOR_SCENE_SECOND_ACTOR_KEY) | gGameSession->location.loc.area;
-                work->secondActorTask           = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
+                work->playerTask                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                gDryfieldWaterTowerActorSceneTask = task;
+                actorPlaceKey                     = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
+                work->firstActorTask              = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
+                actorPlaceKey                     = ((gGameSession->location.loc.stage << 8) | DRYFIELD_WATER_TOWER_ACTOR_SCENE_SECOND_ACTOR_KEY) | gGameSession->location.loc.area;
+                work->secondActorTask             = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
             }
             task->state++;
             break;
@@ -3450,7 +3450,7 @@ static void _dryfieldWaterTowerFinishActorScenePlayback(void)
 /// a later post replaces it. The adjacent, unread reset slot is also cleared.
 static void _dryfieldWaterTowerPostActorSceneRequest(s16 request)
 {
-    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
+    _DryfieldWaterTowerActorSceneWork* work = gDryfieldWaterTowerActorSceneTask->work;
 
     work->request = request;
     work->field_E = 0;
@@ -3463,7 +3463,7 @@ static void _dryfieldWaterTowerPostActorSceneRequest(s16 request)
 /// repeat broadcasts; engaging combat does not acquire a battle reference.
 static void _dryfieldWaterTowerStartChaserBattleOnce(void)
 {
-    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
+    _DryfieldWaterTowerActorSceneWork* work = gDryfieldWaterTowerActorSceneTask->work;
     ActorCommand                       command;
 
     if (work->actorCommandSent == 0) {
@@ -3489,7 +3489,7 @@ static void _dryfieldWaterTowerSkipActorScene(void)
         DRYFIELD_WATER_TOWER_FIRST_ACTOR_END_PLACEMENT   = DRYFIELD_WATER_TOWER_ACTOR_SCENE_FIRST_END
     };
 
-    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
+    _DryfieldWaterTowerActorSceneWork* work = gDryfieldWaterTowerActorSceneTask->work;
 
     // Preserve the placements' actor order before releasing the player's scene pose.
     TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerActorScenePlacements[DRYFIELD_WATER_TOWER_SECOND_ACTOR_END_PLACEMENT], 0);

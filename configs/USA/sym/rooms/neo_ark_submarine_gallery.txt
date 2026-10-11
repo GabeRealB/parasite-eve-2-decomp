@@ -86,3 +86,4 @@ neoArkSubmarineGalleryMessageTask = 0x8017ebcc; // type:func
 neoArkSubmarineGalleryDepartToIslandTask = 0x8017e86c; // type:func
 neoArkSubmarineGalleryResolveRoomEvent = 0x8017ea0c; // type:func
 _neoArkSubmarineGalleryInitializeRoom = 0x8017eb50; // type:func
+_gNeoArkSubmarineGalleryRedDiscTaskStates = 0x8017d63c;

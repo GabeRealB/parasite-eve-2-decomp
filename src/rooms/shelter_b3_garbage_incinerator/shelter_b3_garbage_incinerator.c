@@ -305,7 +305,7 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
     shelterB3GarbageIncineratorSelectCaptionResource(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_TEXTURE_X, 0, 0);
     D_shelter_b3_garbage_incinerator_801855D8 = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_FIRST_ROOM) {
-        taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
+        taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_PLAY_ALERT, 0);
     }
     if (gGameSession->location.loc.variant == SHELTER_B3_GARBAGE_INCINERATOR_MAD_CHASER_VARIANT) {
         taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_ENCOUNTER_CONTROLLER_DESCRIPTOR, 0, 0);

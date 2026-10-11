@@ -15,9 +15,19 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2];
+/// Two-step vibration cue for the landing-pad boss's lethal strike.
+///
+/// The binary motor stops immediately; the variable motor plays segment 0
+/// once, then stops. Both STOP operands are ignored. Actor scripts borrow
+/// the commands and segment until completion; keep this room overlay loaded.
+extern PadScriptCmd gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands[2];
 
-extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D3C;
+/// Variable-motor segment for the lethal-strike cue: intensity 120 toward 70 over 20 frames.
+///
+/// Selected only by PLAY index 0. Intensities are unattenuated bytes; the
+/// final stored byte is 1 and has no interpreter read. The script borrows
+/// this record through playback while the landing-pad overlay remains loaded.
+extern PadScriptVibrationSegment gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment;
 
 extern AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13];
 
