@@ -543,15 +543,15 @@ D_actor_142900_801380F8 = 0x801380F8; // absolute:True owner=actor_142900
 gActor120500EmptyPlacementTaskDesc = 0x8013843C; // absolute:True owner=actor_120500
 gActor146300WaterTankEventSkipScript = 0x80138570; // absolute:True owner=actor_146300
 gActor450200CompanionSceneSkipScript = 0x80138694; // absolute:True owner=actor_450200
-D_actor_450800_80139964 = 0x80139964; // absolute:True owner=actor_450800
-D_actor_450800_8013A33C = 0x8013A33C; // absolute:True owner=actor_450800
-D_actor_450800_8013A84C = 0x8013A84C; // absolute:True owner=actor_450800
+gActor450800NurseryIntroScript = 0x80139964; // absolute:True owner=actor_450800
+gActor450800NurseryIntroSkipScript = 0x8013A33C; // absolute:True owner=actor_450800
+gActor450800NurseryReentryScript = 0x8013A84C; // absolute:True owner=actor_450800
 gActor105500MaggotCaterpillarTasks = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
-D_actor_450800_8013AF8C = 0x8013AF8C; // absolute:True owner=actor_450800
+gActor450800NurseryShootingScript = 0x8013AF8C; // absolute:True owner=actor_450800
 gActor136300TaskTable = 0x8013B11C; // absolute:True owner=actor_136300
 gActor136300CompanionGaragePlacement = 0x8013B570; // absolute:True owner=actor_136300
 gActor136300GarageCompanionSceneScript = 0x8013B590; // absolute:True owner=actor_136300
-D_actor_450800_8013BA84 = 0x8013BA84; // absolute:True owner=actor_450800
+gActor450800NurseryShootingSkipScript = 0x8013BA84; // absolute:True owner=actor_450800
 gActor136300GarageCompanionSceneSkipScript = 0x8013C388; // absolute:True owner=actor_136300
 gActor450200SoloSceneScript = 0x8013C72C; // absolute:True owner=actor_450200
 gActor450200SoloSceneSkipScript = 0x8013CAEC; // absolute:True owner=actor_450200

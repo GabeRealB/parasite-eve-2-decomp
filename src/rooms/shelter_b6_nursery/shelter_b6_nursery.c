@@ -25,7 +25,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/item_menu.h"
@@ -122,15 +121,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB6NurseryTriScratch, 0x20);
 
 s32 rsin(s32);
 s32 rcos(s32);
-
-extern EvsCommand D_actor_450800_80139964[];
-extern EvsCommand D_actor_450800_8013A33C[];
-extern EvsCommand D_actor_450800_8013A84C[];
-// Script in the companion actor slot; this address also holds a task table
-// when a different actor package is loaded.
-extern EvsCommand D_actor_450800_8013A8DC[];
-extern EvsCommand D_actor_450800_8013AF8C[];
-extern EvsCommand D_actor_450800_8013BA84[];
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
@@ -1224,7 +1214,7 @@ static s32 _shelterB6NurseryHandleRoomAction(Task* unusedTask, s32 messageId, co
         actor450800StartNurseryCompanionDialogue();
     }
     if (request->actionId == SHELTER_B6_NURSERY_ACTION_LATER_SCENE && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
-        evsStartScriptWithSkip(D_actor_450800_8013AF8C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013BA84);
+        evsStartScriptWithSkip(gActor450800NurseryShootingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450800NurseryShootingSkipScript);
     }
     return 0;
 }
@@ -1247,13 +1237,13 @@ static void _shelterB6NurseryInitializeRoomTask(Task* task)
     companionRestoreFullHp();
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == SHELTER_B6_NURSERY_PROGRESS_NOT_ENTERED) {
         gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, SHELTER_B6_NURSERY_PROGRESS_ENTERED);
-        evsStartScriptWithSkip(D_actor_450800_80139964, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013A33C);
+        evsStartScriptWithSkip(gActor450800NurseryIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450800NurseryIntroSkipScript);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, SHELTER_B6_NURSERY_FOLLOW_UP_RESET);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_ON_ENTRY);
     } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == SHELTER_B6_NURSERY_PROGRESS_ENTERED) {
-        evsStartScript(D_actor_450800_8013A84C, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(gActor450800NurseryReentryScript, EVENT_SCRIPT_HUD_KEEP);
     } else {
-        evsStartScript(D_actor_450800_8013A8DC, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(gActor450800NurseryAdvancedReentryScript, EVENT_SCRIPT_HUD_KEEP);
     }
     task->state++;
 }
