@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_altar.
-D_neo_ark_altar_801800AE = 0x801800AE; // type:s16 size:0x2
+_gNeoArkAltarSwitchAnimationStep = 0x801800AE; // type:s16 size:0x2 defined:True
 D_neo_ark_altar_8017EFD8 = 0x8017EFD8; // size:0x3C defined:True
 D_neo_ark_altar_8017F014 = 0x8017F014; // size:0x3C defined:True
 D_neo_ark_altar_8017F050 = 0x8017F050; // size:0x18 defined:True

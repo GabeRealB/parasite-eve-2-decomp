@@ -103,7 +103,6 @@ STATIC_ASSERT_SIZEOF(_NeoArkAltarTileSequenceWork, 0x10);
 extern _NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
 extern s16 D_neo_ark_altar_801800AC;
-extern s16 D_neo_ark_altar_801800AE;
 extern s16 D_neo_ark_altar_801800B0[];
 
 extern s16 D_neo_ark_altar_8017F050[];
@@ -582,6 +581,19 @@ AreaApplyRec D_neo_ark_altar_801800A0[3] = {
 
 s16 D_neo_ark_altar_801800AC = 0;
 
+/// Endpoints of the switch-animation cursor, increasing towards the clear choice.
+enum {
+    NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT = 6,
+    NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT   = 0,
+};
+
+/// Persistent 0..6 transition cursor for the altar's switch sprite animation.
+///
+/// Starts at the set endpoint when the overlay loads. Clearing advances towards
+/// 6; setting retreats towards 0. Intermediate values count transitions rather
+/// than sprite batches. Reset snaps the cursor to the saved switch's endpoint.
+static s16 _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
+
 s16 D_neo_ark_altar_801800B0[16];
 
 static void _neoArkAltarInitializeTileSequence(Task* task);
@@ -746,36 +758,36 @@ void neoArkAltarStepSwitchSprites(s32 switchChoice)
         batches[1].hidden = 1;
         batches           = areaViews[6].batches;
         batches[1].hidden = 1;
-        switch (D_neo_ark_altar_801800AE) {
-            case 0:
+        switch (_gNeoArkAltarSwitchAnimationStep) {
+            case NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 6);
-                D_neo_ark_altar_801800AE = 1;
+                _gNeoArkAltarSwitchAnimationStep = 1;
                 break;
             case 1:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 5);
-                D_neo_ark_altar_801800AE = 2;
+                _gNeoArkAltarSwitchAnimationStep = 2;
                 break;
             case 2:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 4);
-                D_neo_ark_altar_801800AE = 3;
+                _gNeoArkAltarSwitchAnimationStep = 3;
                 break;
             case 3:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 3);
-                D_neo_ark_altar_801800AE = 4;
+                _gNeoArkAltarSwitchAnimationStep = 4;
                 break;
             case 4:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 2);
-                D_neo_ark_altar_801800AE = 5;
+                _gNeoArkAltarSwitchAnimationStep = 5;
                 break;
             case 5:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 1);
-                D_neo_ark_altar_801800AE = 6;
+                _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT;
                 break;
         }
     } else if (switchChoice == NEO_ARK_ALTAR_SWITCH_CHOICE_SET) {
@@ -783,36 +795,36 @@ void neoArkAltarStepSwitchSprites(s32 switchChoice)
         batches[1].hidden = 0;
         batches           = areaViews[6].batches;
         batches[1].hidden = 0;
-        switch (D_neo_ark_altar_801800AE) {
-            case 6:
+        switch (_gNeoArkAltarSwitchAnimationStep) {
+            case NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 1);
-                D_neo_ark_altar_801800AE = 5;
+                _gNeoArkAltarSwitchAnimationStep = 5;
                 break;
             case 5:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 2);
-                D_neo_ark_altar_801800AE = 4;
+                _gNeoArkAltarSwitchAnimationStep = 4;
                 break;
             case 4:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 3);
-                D_neo_ark_altar_801800AE = 3;
+                _gNeoArkAltarSwitchAnimationStep = 3;
                 break;
             case 3:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 4);
-                D_neo_ark_altar_801800AE = 2;
+                _gNeoArkAltarSwitchAnimationStep = 2;
                 break;
             case 2:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 5);
-                D_neo_ark_altar_801800AE = 1;
+                _gNeoArkAltarSwitchAnimationStep = 1;
                 break;
             case 1:
                 batches = areaViews[4].batches;
                 NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 6);
-                D_neo_ark_altar_801800AE = 0;
+                _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
                 break;
         }
     }
@@ -917,8 +929,6 @@ static void _neoArkAltarTrackTileSequence(Task* task)
 static void _neoArkAltarResetTileSequence(void)
 {
     enum {
-        NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT    = 6,
-        NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT      = 0,
         NEO_ARK_ALTAR_HISTORY_CLEAR_LAST_INDEX = 16,
     };
     GameLocationKey* location;
@@ -929,31 +939,31 @@ static void _neoArkAltarResetTileSequence(void)
     location  = &gGameSession->location.loc;
     areaViews = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == 0) {
-        batches                  = areaViews[3].batches;
-        batches[1].hidden        = 1;
-        batches                  = areaViews[6].batches;
-        batches[1].hidden        = 1;
-        batches                  = areaViews[4].batches;
-        batches[1].hidden        = 0;
-        batches[2].hidden        = 1;
-        batches[3].hidden        = 1;
-        batches[4].hidden        = 1;
-        batches[5].hidden        = 1;
-        batches[6].hidden        = 1;
-        D_neo_ark_altar_801800AE = NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT;
+        batches                          = areaViews[3].batches;
+        batches[1].hidden                = 1;
+        batches                          = areaViews[6].batches;
+        batches[1].hidden                = 1;
+        batches                          = areaViews[4].batches;
+        batches[1].hidden                = 0;
+        batches[2].hidden                = 1;
+        batches[3].hidden                = 1;
+        batches[4].hidden                = 1;
+        batches[5].hidden                = 1;
+        batches[6].hidden                = 1;
+        _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT;
     } else {
-        batches                  = areaViews[3].batches;
-        batches[1].hidden        = 0;
-        batches                  = areaViews[6].batches;
-        batches[1].hidden        = 0;
-        batches                  = areaViews[4].batches;
-        batches[1].hidden        = 1;
-        batches[2].hidden        = 1;
-        batches[3].hidden        = 1;
-        batches[4].hidden        = 1;
-        batches[5].hidden        = 1;
-        batches[6].hidden        = 0;
-        D_neo_ark_altar_801800AE = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
+        batches                          = areaViews[3].batches;
+        batches[1].hidden                = 0;
+        batches                          = areaViews[6].batches;
+        batches[1].hidden                = 0;
+        batches                          = areaViews[4].batches;
+        batches[1].hidden                = 1;
+        batches[2].hidden                = 1;
+        batches[3].hidden                = 1;
+        batches[4].hidden                = 1;
+        batches[5].hidden                = 1;
+        batches[6].hidden                = 0;
+        _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
     }
     D_neo_ark_altar_801800AC = 0;
     // This is the observed transfer extent, not the declared history array bound.
