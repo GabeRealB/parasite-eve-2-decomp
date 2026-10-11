@@ -73,8 +73,14 @@ enum { RAT_BITE_REACTION_POISON = 3 };
 // the packed collision key; it neither writes nor retains the descriptor.
 // The descriptor must remain live through that read; the binding has no side effects.
 // `RAT_ENEMY_PARAMS` names a writable `EnemyParams` object;
-// `RAT_ANIM_SETS` names a writable `AnimationSet*` array with
-// `RAT_ANIM_SET_COUNT` entries. Bind these two as plain identifiers without side effects.
+// bind it as a plain identifier without side effects.
+// `RAT_ANIM_SETS` names an `AnimationSet*` array of `RAT_ANIM_SET_COUNT`
+// entries, indexed by `RAT_ANIM_*`: entry 0 is NULL and entries 1..10
+// supply tracks 1..6 of the seven-part model. Bind it as a plain identifier
+// without side effects; spawn evaluates it once, and playback retains the
+// table pointer in the context and slots without copying or modifying the data.
+// The table, descriptors and clip arrays must remain loaded until task teardown;
+// playback does not check their bounds.
 // The carrier undefines the bindings after the fragment. actor_00700 binds
 // TU-local objects; actor_300700 binds its private two-TU interface.
 

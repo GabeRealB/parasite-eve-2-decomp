@@ -603,7 +603,15 @@ static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
 /// Define before including the fragment and undefine afterwards; see `rat.h`.
 #define RAT_BITE_ATTACK  (&_gRatAttack)
 #define RAT_ENEMY_PARAMS _gRatParams
-#define RAT_ANIM_SETS    _gRatAnimSets
+
+/// Animation-set table supplied to the shared rat spawn fragment.
+///
+/// Binds this TU's `AnimationSet*` array with `RAT_ANIM_SET_COUNT` entries:
+/// entry 0 is NULL; `RAT_ANIM_*` entries 1..10 supply tracks for slots 1..6.
+/// Evaluated once at spawn; the context and slots borrow the table and clip
+/// data without modifying them until task teardown. Define before including
+/// `rat_spawn.inc.c` and undefine afterwards; see `rat.h`.
+#define RAT_ANIM_SETS _gRatAnimSets
 #include "../../shared/rat_spawn.inc.c"
 #undef RAT_BITE_ATTACK
 #undef RAT_ENEMY_PARAMS
