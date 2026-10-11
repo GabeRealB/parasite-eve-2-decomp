@@ -17,13 +17,20 @@ enum {
     WORLD_TARGET_HIDE_HP      = 0x08
 };
 
-/// `state.word` bits that select scan participation.
+/// Flag bits used together to decide whether a target participates in scans.
 ///
-/// Not lockable alone excludes the node; keep-scanned includes it again.
-/// The mask is the low byte of the word, which is `flags`.
+/// Mask `state.word` or its low `flags` byte and compare the result against
+/// `WORLD_TARGET_NOT_LOCKABLE`: equality excludes, inequality includes.
+/// Both lockable nodes and not-lockable nodes with KEEP_SCANNED participate.
+/// Other flag bits, actor-lock marks and list membership do not affect this test.
 #define WORLD_TARGET_SCAN_MASK (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED)
 
 /// Byte mask that clears `WORLD_TARGET_NOT_LOCKABLE` and keeps the other flag bits.
+///
+/// AND with the `state.parts.flags` byte to enable lock-on while preserving
+/// KEEP_SCANNED, HIDE_HP and uninterpreted flags. The promoted integer result
+/// is 0xFE, limited to eight bits; applying it to the whole state word would
+/// also clear the actor-lock and list-membership bytes.
 #define WORLD_TARGET_NOT_LOCKABLE_CLEAR ((~WORLD_TARGET_NOT_LOCKABLE) & 0xFF)
 
 /// One entry on the list of enemies the targeting passes track.

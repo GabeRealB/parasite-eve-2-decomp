@@ -30810,7 +30810,7 @@ One pointer (`obj = container_of(...); obj->field |= 0x80;` plus
 so GCC emits the subtract into `$v1` and the copy into `$t0`:
 
 ```c
-enemy = GP_NODE_ENEMY(node);
+enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
 contactEnemy = enemy;
 if (release == 0) {
     enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
@@ -112303,7 +112303,7 @@ value "modified", so cse cannot fold the second `&key` into it:
         TOUCH_REG(keyp);
         key.view = areaByte0;
         areaSyncLocationVariant(keyp);
-        entry       = gpAreaPlaceAt(areaGetVariant(&key)->field_0, 2);
+        entry       = AREA_PLACEMENT_AT(areaGetVariant(&key)->placements, 2);
 ```
 
 Each argument then keeps its own single-use pseudo, which dies at its call and
@@ -125340,7 +125340,7 @@ own `* 16`.
 matched sibling does, casting the base so no element size is applied:
 
 ```c
-place = gpAreaPlaceAt(layout->placements, idx);
+place = AREA_PLACEMENT_AT(layout->placements, idx);
 ```
 
 `src/actors/actor_150400/actor_150400.c` is the worked example - same body, same
@@ -128634,7 +128634,7 @@ key.room = sessionKey->room;
 TOUCH_REG(keyp);
 ...
 areaSyncLocationVariant(keyp);      /* first call through the pointer */
-entry = gpAreaPlaceAt(areaGetVariant(&key)->field_0, idx);
+entry = AREA_PLACEMENT_AT(areaGetVariant(&key)->placements, idx);
 ```
 
 Placement is load-bearing. With the barrier one statement later -- after

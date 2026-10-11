@@ -5,12 +5,21 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
+#include "gameplay/enemy.h"
 #include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
 #include "main/task_types.h"
+
+/// Returns the live enemy containing an embedded target node.
+///
+/// `targetNode` must be a non-NULL pointer to an `Enemy.node`, not a standalone
+/// node or list head. List membership is not required. The argument is evaluated
+/// once and no storage is accessed or retained. The result borrows the enemy's
+/// lifetime; the containing-object conversion returns a mutable `Enemy*`.
+#define WORLD_TARGET_ENEMY_FROM_NODE(targetNode) PARENT_OF(targetNode, Enemy, node)
 
 /// Adds a signed amount to a target's floating damage or healing readout.
 ///

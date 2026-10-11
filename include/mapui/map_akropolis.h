@@ -145,7 +145,7 @@ extern AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY +
 
 /// Room-controller recipes for twenty Acropolis and MIST areas.
 ///
-/// Metadata uses `GP_TASK_LOC_KEY(stage, area, room)`: room zero supplies an
+/// Metadata uses `OBJECT_TASK_ROOM_LOCATION_KEY(stage, area, room)`: room zero supplies an
 /// area default, while the West elevator hall and MIST briefing select room 1.
 /// Plaza has no recipe. Bodyless tasks run at priority 32; the final
 /// `TASK_DESC_END` entry closes lookup. Keep this map and the selected room

@@ -630,7 +630,7 @@ static u_long _gActor511000RupertEyesOpenPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_W
 /// at local Y 40; the pixel storage stays borrowed until GPU completion.
 static GpuImageUpload _gActor511000RupertEyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesOpenPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed half-open-eye pixels for Rupert's face texture.
@@ -647,7 +647,7 @@ static u_long _gActor511000RupertEyesHalfOpenPixels[ACTOR_511000_EYE_TEXTURE_WID
 /// the first destination; the pixels remain borrowed until GPU completion.
 static GpuImageUpload _gActor511000RupertEyesHalfOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesHalfOpenPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed closed-eye pixels for Rupert's face texture.
@@ -664,7 +664,7 @@ static u_long _gActor511000RupertEyesClosedPixels[ACTOR_511000_EYE_TEXTURE_WIDTH
 /// relocate the first destination; pixels remain borrowed until GPU completion.
 static GpuImageUpload _gActor511000RupertEyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Rupert's bank-0 clip sources, with NULL at 0 and loaded sets at IDs 1..3.
@@ -759,7 +759,7 @@ enum { ACTOR_511000_HELICOPTER_FLASH_CLUT_ROW = 264 };
 /// must finish before the work is released. The list supports one live hull.
 static GpuImageUpload _gActor511000HelicopterFlashPaletteUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, ACTOR_511000_HELICOPTER_FLASH_CLUT_ROW, ACTOR_511000_PALETTE_COLORS, 1 }, (u_long*)_gActor511000HelicopterFlashLitPalette },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Dark endpoint of the helicopter's sixteen-colour flashing palette.

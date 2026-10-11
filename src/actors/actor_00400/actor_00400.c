@@ -2003,7 +2003,7 @@ static inline void _actor00400ApplyAnchorFractionalPush(s32 correctionWord, shor
 static void _actor00400ApplyContacts(Task* task)
 {
     enum {
-        ACTOR_00400_ATTACK_CATEGORY_MASK         = 0xFFFF0000,
+        ACTOR_00400_ATTACK_CATEGORY_MASK         = WORLD_COLLISION_CONTACT_KIND_MASK,
         ACTOR_00400_ATTACK_CATEGORY_PLAYER       = 0x20000,
         ACTOR_00400_ATTACK_ROW_MASK              = 0x7F,
         ACTOR_00400_ATTACK_ATTACHMENT_BIT        = 0x8000,

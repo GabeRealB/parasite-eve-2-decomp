@@ -71,7 +71,7 @@ static u_long _gDryfieldBreezewayKeyItemLineClut[128] = {
 
 const GpuImageUpload gDryfieldBreezewayKeyItemLineClutUploads[2] __attribute__((section(".data"))) = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 256, ARRAY_SIZE(_gDryfieldBreezewayKeyItemLineClut) * 2, 1 }, _gDryfieldBreezewayKeyItemLineClut },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 const SVECTOR gDryfieldBreezewayGlowLocalPoint __attribute__((section(".data"))) = { 17990, -1365, 2825, 0 };

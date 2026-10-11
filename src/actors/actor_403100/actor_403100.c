@@ -1310,7 +1310,7 @@ static u_long _gActor403100LowHealthTextureWords[ACTOR_403100_LOW_HEALTH_TEXTURE
 /// update 100; the packed pixel array remains borrowed until GPU completion.
 static GpuImageUpload _gActor403100LowHealthTextureUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 384, 256, ACTOR_403100_LOW_HEALTH_TEXTURE_WIDTH_WORDS, ACTOR_403100_LOW_HEALTH_TEXTURE_ROWS }, _gActor403100LowHealthTextureWords },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 enum { ACTOR_403100_TASK_PRIORITY = 96 };

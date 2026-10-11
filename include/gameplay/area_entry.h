@@ -4,9 +4,17 @@
 #include "main/task_types.h"
 
 /// Slot of the controlled character in `gPlayerActorTasks`.
+///
+/// Zero-based element index, also the actor-slot value when bit 7 of a
+/// player/companion body or category-2 attack key is clear. The entry may
+/// be NULL while the player is absent.
 #define PLAYER_ACTOR_TASK_PLAYER 0
 
 /// Slot of the companion actor in `gPlayerActorTasks`.
+///
+/// Zero-based element index, also the actor-slot value when bit 7 of a
+/// player/companion body or category-2 attack key is set. The entry may
+/// be NULL when no companion is present.
 #define PLAYER_ACTOR_TASK_COMPANION 1
 
 /// Number of slots in `gPlayerActorTasks`.

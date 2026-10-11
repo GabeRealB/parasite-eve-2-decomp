@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#include "gameplay/collision.h"
+#include "gameplay/gpu_image_upload.h"
 
 /// Packed facial-frame dimensions, in 16-bit VRAM words and rows.
 enum {
@@ -227,7 +227,7 @@ static u_long _gAya10200Image06AC4[] = {
 /// One open-eyes frame followed by the upload terminator; the destination is rewritten at playback.
 static GpuImageUpload _gAya10200EyesOpenUploads[] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image06AC4 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10200Image06E04[] = {
@@ -236,7 +236,7 @@ static u_long _gAya10200Image06E04[] = {
 /// One half-closed-eyes frame followed by the upload terminator; the destination is rewritten at playback.
 static GpuImageUpload _gAya10200EyesHalfClosedUploads[] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image06E04 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10200Image07144[] = {
@@ -245,7 +245,7 @@ static u_long _gAya10200Image07144[] = {
 /// One closed-eyes frame followed by the upload terminator; the destination is rewritten at playback.
 static GpuImageUpload _gAya10200EyesClosedUploads[] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image07144 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 /// Default mouth frame: packed 8-bit indices, two texels per VRAM word and four per u_long.
@@ -255,7 +255,7 @@ static u_long _gAya10200MouthRestPixels[AYA_10200_MOUTH_FRAME_WIDTH_WORDS * AYA_
 /// One default mouth frame followed by the upload terminator; the destination is rewritten at playback.
 static GpuImageUpload _gAya10200MouthRestUploads[] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_MOUTH_FRAME_WIDTH_WORDS, AYA_10200_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10200MouthRestPixels },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 /// Alternate mouth selector's packed 8-bit frame, identical to the default frame in this package.
@@ -265,7 +265,7 @@ static u_long _gAya10200MouthAlternatePixels[AYA_10200_MOUTH_FRAME_WIDTH_WORDS *
 /// One alternate mouth frame followed by the upload terminator; the destination is rewritten at playback.
 static GpuImageUpload _gAya10200MouthAlternateUploads[] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_MOUTH_FRAME_WIDTH_WORDS, AYA_10200_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10200MouthAlternatePixels },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 GpuImageUpload* gAya10200EyesRestSequence[]    = { _gAya10200EyesOpenUploads, NULL };

@@ -1796,7 +1796,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     location.view   = sessionLocation->view;
     areaSyncLocationVariant(&location);
     // The child weapon uses the body placement's texture page and CLUT.
-    placement                      = gpAreaPlaceAt(areaGetVariant(&location)->placements, placementIndex);
+    placement                      = AREA_PLACEMENT_AT(areaGetVariant(&location)->placements, placementIndex);
     weaponModel->texturePageOffset = placement->texturePageOffset;
     weaponModel->clutRowOffset     = placement->clutRowOffset;
     if (weaponModel->buffer != NULL) {

@@ -31,16 +31,33 @@ typedef struct DamageAttack {
 } DamageAttack;
 STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 
-/// Low bits of `DamageAttack::power` copied into an attack identity.
+/// Mask of the unscaled HP power in bits 0..11 of a category-4 attack key.
+///
+/// Packing truncates `DamageAttack.power` to 0..4095; received-damage decoding
+/// extracts that same value before applying the victim's HP-band scale.
 #define DAMAGE_ATTACK_POWER_MASK 0xFFF
-/// Low bits of `DamageAttack::reaction` copied into an attack identity.
+/// Unshifted mask of a category-4 attack key's four-bit victim reaction.
+///
+/// Apply to `DamageAttack.reaction` before shifting when packing, or after
+/// shifting the key right when decoding. This is not a mask of bits 12..15.
 #define DAMAGE_ATTACK_REACTION_MASK 0xF
-/// Bit position of the reaction nibble in the identity halfword.
+/// Shift count placing a category-4 attack's reaction in key bits 12..15.
+///
+/// Use with `DAMAGE_ATTACK_REACTION_MASK`; the count is in bits, not bytes.
 #define DAMAGE_ATTACK_REACTION_SHIFT 12
-/// Packed attack identity's contact category: 4 in the high halfword.
+/// Contact-kind bits of an attack carrying direct HP power and a victim reaction.
+///
+/// Category 4 occupies the high halfword; bits 0..11 hold power and 12..15
+/// hold reaction. Compare against a key masked by
+/// `WORLD_COLLISION_CONTACT_KIND_MASK`, or shift right 16 for `key.parts.kind`.
+/// A zero-power attack still has this category and is not the zero/no-key sentinel.
 #define DAMAGE_ATTACK_CATEGORY 0x40000
 
 /// Fixed-damage hazard contact category, with its damage-table row in the low halfword.
+///
+/// Category 5 occupies the high halfword. The low halfword must select a live
+/// hazard row (currently 0..10); it carries neither packed power nor reaction.
+/// The victim chooses its response and `damageGetHazardDamage` selects HP loss.
 #define DAMAGE_HAZARD_CATEGORY 0x50000
 
 /// Geometry kinds and list state in `WorldCollisionTrigger::flags`.
@@ -301,13 +318,5 @@ typedef struct WorldCollisionGrid {
     u16                     faceCount;   // Face-table length; at most 256 for an active grid
 } WorldCollisionGrid;
 STATIC_ASSERT_SIZEOF(WorldCollisionGrid, 0x24);
-
-/// The setup argument of a room-task descriptor: the location whose entry
-/// starts the task, packed in decimal as `stage * 10000 + area * 100 + room`,
-/// with room 0 matching the whole area.
-#define GP_TASK_LOC_KEY(stage, area, room) ((stage) * 10000 + (area) * 100 + (room))
-
-/// `GpuImageUpload.operation` of the record that ends a list.
-#define GP_IMG_REC_END 0xFF
 
 #endif // GAMEPLAY_COLLISION_H

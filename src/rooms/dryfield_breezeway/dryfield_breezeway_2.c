@@ -448,11 +448,11 @@ static u_long _gDryfieldBreezewayKeyItemLinePixels[64] = {
 /// Uploads the hanging-line artwork to its eight-bit texture page at VRAM (896, 0).
 ///
 /// Destination width 8 counts 16-bit VRAM words; height 16 counts rows.
-/// One copy record is followed by `GP_IMG_REC_END`. The records are read during
+/// One copy record is followed by `GPU_IMAGE_UPLOAD_END`. The records are read during
 /// queuing; their pixel storage remains borrowed until GPU transfer completes.
 static GpuImageUpload _gDryfieldBreezewayKeyItemLineUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 896, 0, 8, 16 }, _gDryfieldBreezewayKeyItemLinePixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 static void _dryfieldBreezewayProcessFirstEventAction(Task* task);

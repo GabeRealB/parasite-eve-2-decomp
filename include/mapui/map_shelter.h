@@ -118,7 +118,7 @@ extern AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2];
 
 /// Default room-controller recipes for all 49 Mine/Shelter areas.
 ///
-/// Location keys select the first matching `GP_TASK_LOC_KEY(stage, area, 0)`
+/// Location keys select the first matching `OBJECT_TASK_ROOM_LOCATION_KEY(stage, area, 0)`
 /// recipe, rather than indexing by area. Each bodyless task has priority 32.
 /// The fiftieth record closes lookup with `TASK_DESC_END`. Keep the map loaded
 /// through spawning and the selected room callback loaded for task execution.

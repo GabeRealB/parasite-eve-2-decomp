@@ -229,7 +229,7 @@ static u_long _gActor800300TextureAFirstFramePixels[250] = {
 /// The pixel buffer must stay loaded and unchanged until GPU transfer completes.
 static GpuImageUpload _gActor800300EyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300TextureAFirstFramePixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Half-closed eyes packed as 250 transfer words for a 50-by-20 8-bit patch.
@@ -247,7 +247,7 @@ static u_long _gActor800300EyesHalfClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_
 /// must remain loaded and unchanged until queued GPU transfers complete.
 static GpuImageUpload _gActor800300EyesHalfClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300EyesHalfClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Closed eyes packed as 250 transfer words for a 50-by-20 8-bit patch.
@@ -265,7 +265,7 @@ static u_long _gActor800300EyesClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_WORD
 /// must remain loaded and unchanged until queued GPU transfers complete.
 static GpuImageUpload _gActor800300EyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300EyesClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Closed mouth packed as 140 transfer words for a 28-by-20 8-bit patch.
@@ -283,7 +283,7 @@ static u_long _gActor800300MouthClosedPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_W
 /// must remain loaded and unchanged until queued GPU transfers complete.
 static GpuImageUpload _gActor800300MouthClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300MouthClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Open mouth packed as 140 transfer words for a 28-by-20 8-bit patch.
@@ -301,7 +301,7 @@ static u_long _gActor800300MouthOpenPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_WOR
 /// must remain loaded and unchanged until queued GPU transfers complete.
 static GpuImageUpload _gActor800300MouthOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300MouthOpenPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Restores open eyes with one writable upload list and a NULL frame terminator.

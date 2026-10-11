@@ -1506,24 +1506,24 @@ static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
 /// placementIndex, currentView and placement temporaries. Uses the placement
 /// index in 0..15, and rebuilds both buffer halves if a buffer is present.
 /// Invoke as a standalone statement; no argument evaluation or early exit.
-#define ACTOR_00300_BIND_DRAIN_TEXTURE()                                         \
-    placementKey      = enemy->placeKey;                                         \
-    drainModel        = drainEnemy->task->extra.tmd;                             \
-    sessionLocation   = &gGameSession->location.loc;                             \
-    locationKey.stage = sessionLocation->stage;                                  \
-    locationKey.area  = sessionLocation->area;                                   \
-    locationKey.room  = sessionLocation->room;                                   \
-    currentView       = gGameSession->location.loc.view;                         \
-    placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                 \
-    locationKey.view  = currentView;                                             \
-    areaSyncLocationVariant(&locationKey);                                       \
-    placement =                                                                  \
-        gpAreaPlaceAt(areaGetVariant(&locationKey)->placements, placementIndex); \
-    drainModel->texturePageOffset = placement->texturePageOffset;                \
-    drainModel->clutRowOffset     = placement->clutRowOffset;                    \
-    if (drainModel->buffer != NULL) {                                            \
-        tmdBuildBufferHalf(drainModel);                                          \
-        tmdBuildBufferHalf(drainModel);                                          \
+#define ACTOR_00300_BIND_DRAIN_TEXTURE()                                             \
+    placementKey      = enemy->placeKey;                                             \
+    drainModel        = drainEnemy->task->extra.tmd;                                 \
+    sessionLocation   = &gGameSession->location.loc;                                 \
+    locationKey.stage = sessionLocation->stage;                                      \
+    locationKey.area  = sessionLocation->area;                                       \
+    locationKey.room  = sessionLocation->room;                                       \
+    currentView       = gGameSession->location.loc.view;                             \
+    placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                     \
+    locationKey.view  = currentView;                                                 \
+    areaSyncLocationVariant(&locationKey);                                           \
+    placement =                                                                      \
+        AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
+    drainModel->texturePageOffset = placement->texturePageOffset;                    \
+    drainModel->clutRowOffset     = placement->clutRowOffset;                        \
+    if (drainModel->buffer != NULL) {                                                \
+        tmdBuildBufferHalf(drainModel);                                              \
+        tmdBuildBufferHalf(drainModel);                                              \
     }
 
 /// Allocates the enemy's rig and collision work, spawns its drain attachment and enters active state.
@@ -3067,29 +3067,29 @@ static void _actor00300ApplyHitTwist(Task* task)
 /// currentView, all live locals. fragment must be a side-effect-free EffectWork*
 /// expression; it is read repeatedly. A NULL fragment performs no lookup.
 /// The loaded placement and model resources must outlive both buffer rebuilds.
-#define ACTOR_00300_BIND_BURST_TEXTURE(fragment)                                                                    \
-    if ((fragment) != NULL) {                                                                                       \
-        u32              placementKey, placementIndex;                                                              \
-        TmdObject*       fragmentModel;                                                                             \
-        AreaPlacement*   placement;                                                                                 \
-        GameLocationKey* sessionLocation;                                                                           \
-        sessionLocation   = &gGameSession->location.loc;                                                            \
-        placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                            \
-        fragmentModel     = (fragment)->task->extra.tmd;                                                            \
-        locationKey.stage = sessionLocation->stage;                                                                 \
-        locationKey.area  = sessionLocation->area;                                                                  \
-        locationKey.room  = sessionLocation->room;                                                                  \
-        currentView       = gGameSession->location.loc.view;                                                        \
-        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                \
-        locationKey.view  = currentView;                                                                            \
-        areaSyncLocationVariant(&locationKey);                                                                      \
-        placement                        = gpAreaPlaceAt(areaGetVariant(&locationKey)->placements, placementIndex); \
-        fragmentModel->texturePageOffset = placement->texturePageOffset;                                            \
-        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                \
-        if (fragmentModel->buffer != NULL) {                                                                        \
-            tmdBuildBufferHalf(fragmentModel);                                                                      \
-            tmdBuildBufferHalf(fragmentModel);                                                                      \
-        }                                                                                                           \
+#define ACTOR_00300_BIND_BURST_TEXTURE(fragment)                                                                        \
+    if ((fragment) != NULL) {                                                                                           \
+        u32              placementKey, placementIndex;                                                                  \
+        TmdObject*       fragmentModel;                                                                                 \
+        AreaPlacement*   placement;                                                                                     \
+        GameLocationKey* sessionLocation;                                                                               \
+        sessionLocation   = &gGameSession->location.loc;                                                                \
+        placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                                \
+        fragmentModel     = (fragment)->task->extra.tmd;                                                                \
+        locationKey.stage = sessionLocation->stage;                                                                     \
+        locationKey.area  = sessionLocation->area;                                                                      \
+        locationKey.room  = sessionLocation->room;                                                                      \
+        currentView       = gGameSession->location.loc.view;                                                            \
+        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
+        locationKey.view  = currentView;                                                                                \
+        areaSyncLocationVariant(&locationKey);                                                                          \
+        placement                        = AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
+        fragmentModel->texturePageOffset = placement->texturePageOffset;                                                \
+        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                    \
+        if (fragmentModel->buffer != NULL) {                                                                            \
+            tmdBuildBufferHalf(fragmentModel);                                                                          \
+            tmdBuildBufferHalf(fragmentModel);                                                                          \
+        }                                                                                                               \
     }
 
 /// Spawns the five detached models of a bursting enemy with its placement texture offsets.

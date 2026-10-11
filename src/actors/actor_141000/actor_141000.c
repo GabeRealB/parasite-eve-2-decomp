@@ -637,7 +637,7 @@ static GpuImageUpload _gActor141000AyaBreaEyesOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
       .pixels      = _gActor141000AyaBreaEyesOpenPixels },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Half-open-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
@@ -655,7 +655,7 @@ static GpuImageUpload _gActor141000AyaBreaEyesHalfOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
       .pixels      = _gActor141000AyaBreaEyesHalfOpenPixels },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Closed-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
@@ -673,7 +673,7 @@ static GpuImageUpload _gActor141000AyaBreaEyesClosedUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
       .pixels      = _gActor141000AyaBreaEyesClosedPixels },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Closed-mouth 8bpp pixels: 28 texels by 20 rows, four texels per word.
@@ -693,7 +693,7 @@ static GpuImageUpload _gActor141000AyaBreaMouthClosedUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
       .pixels      = _gActor141000AyaBreaMouthClosedPixels },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Open-mouth 8bpp pixels: 28 texels by 20 rows, four texels per word.
@@ -714,7 +714,7 @@ static GpuImageUpload _gActor141000AyaBreaMouthOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
       .pixels      = _gActor141000AyaBreaMouthOpenPixels },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Aya's bank-0 clip table: absent clip 0, loaded clips 1..10.

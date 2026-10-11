@@ -1,18 +1,32 @@
 #ifndef GAMEPLAY_EFFECT_IDS_H
 #define GAMEPLAY_EFFECT_IDS_H
 
-/// Effect ids for `effectSpawn` and the room effect slots.
+#include "types.h"
+
+/// Packs a task bank and descriptor index into an effect-spawn identity.
 ///
-/// An id packs the `taskSpawn` bank in bits 16..30 and the task type in the
-/// low 16 bits. Bank 6 is the gameplay effect table `gEffectTaskDescriptors`, whose slot is
-/// the effect's own identifier; many slots hold one room's private handler.
-/// `EFFECT_<HHH>` is a placeholder for an effect whose look is not yet known.
+/// Integer `bank` must fit bits 16..30 (0..32767), and `type` the low halfword
+/// (0..65535); neither is masked or truncated here. `effectSpawn` additionally
+/// requires a registered bank (0..14), a live descriptor index and a nonzero
+/// type. Each argument is evaluated once, with unspecified operand order and
+/// ordinary integer promotions. Constant arguments yield a constant expression.
+/// OR `EFFECT_SPAWN_UNLIMITED` into the result to bypass the ordinary spawn cap.
 #define EFFECT_ID(bank, type) (((bank) << 16) | (type))
 
 /// Bank of the gameplay effect table `gEffectTaskDescriptors`.
+///
+/// This is an unshifted `taskSpawn` bank index. Use it as `EFFECT_ID`'s first
+/// argument; the second selects a table slot, currently 0..0x29A. Spawning
+/// through `effectSpawn` rejects slot zero and requires the selected callback
+/// and any borrowed overlay resources to remain loaded through teardown.
 #define EFFECT_TASK_BANK 6
 
-/// Set on an id to spawn it even when the ordinary effect limit is reached.
+/// Effect-id bit that bypasses the ordinary limit of 129 live counted effects.
+///
+/// Bit 31 makes the signed spawn identity negative and is excluded from the
+/// bank index. The spawned effect still increments the live count, follows its
+/// own lifetime, and can fail task or work allocation. This grants no storage
+/// ownership or lifetime extension. Keep the signed 32-bit cast for ORed IDs.
 #define EFFECT_SPAWN_UNLIMITED ((s32)0x80000000)
 
 enum {

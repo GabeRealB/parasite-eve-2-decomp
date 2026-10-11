@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#include "gameplay/collision.h"
+#include "gameplay/gpu_image_upload.h"
 
 /// Facial-frame dimensions, in 16-bit VRAM words and rows.
 enum {
@@ -215,7 +215,7 @@ static u_long _gAya10300Image0674C[] = {
 /// Open eyes: one copy and an upload terminator; playback rewrites the destination.
 static GpuImageUpload _gAya10300EyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10300_EYES_FRAME_WIDTH_WORDS, AYA_10300_EYES_FRAME_HEIGHT_ROWS }, _gAya10300Image0674C },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10300Image06A8C[] = {
@@ -224,7 +224,7 @@ static u_long _gAya10300Image06A8C[] = {
 /// Half-closed eyes: one copy and an upload terminator; playback rewrites the destination.
 static GpuImageUpload _gAya10300EyesHalfClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10300_EYES_FRAME_WIDTH_WORDS, AYA_10300_EYES_FRAME_HEIGHT_ROWS }, _gAya10300Image06A8C },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10300Image06DCC[] = {
@@ -233,7 +233,7 @@ static u_long _gAya10300Image06DCC[] = {
 /// Closed eyes: one copy and an upload terminator; playback rewrites the destination.
 static GpuImageUpload _gAya10300EyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10300_EYES_FRAME_WIDTH_WORDS, AYA_10300_EYES_FRAME_HEIGHT_ROWS }, _gAya10300Image06DCC },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10300Image0710C[] = {
@@ -242,7 +242,7 @@ static u_long _gAya10300Image0710C[] = {
 /// Resting mouth: one copy and an upload terminator; playback rewrites the destination.
 static GpuImageUpload _gAya10300MouthRestUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10300_MOUTH_FRAME_WIDTH_WORDS, AYA_10300_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10300Image0710C },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10300Image0735C[] = {
@@ -251,7 +251,7 @@ static u_long _gAya10300Image0735C[] = {
 /// Open mouth: one copy and an upload terminator; playback rewrites the destination.
 static GpuImageUpload _gAya10300MouthOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10300_MOUTH_FRAME_WIDTH_WORDS, AYA_10300_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10300Image0735C },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 GpuImageUpload* const gAya10300EyesRestSequence[2] __attribute__((section(".data")))    = { _gAya10300EyesOpenUploads, NULL };

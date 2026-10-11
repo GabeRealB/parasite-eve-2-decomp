@@ -100,9 +100,13 @@ typedef struct {
 } EffectShapeScratch;
 STATIC_ASSERT_SIZEOF(EffectShapeScratch, 0x1C);
 
-/// Number of vertices in each ring of an `EffectBandScratch`, and so the number
-/// of quads in the band. A power of two: drawers wrap the next vertex index
-/// with `& (EFFECT_BAND_SEGMENT_COUNT - 1)`.
+/// Vertex count per ring and quad count for a closed effect band.
+///
+/// `EffectBandScratch` and per-segment texture phases each use 16 elements per
+/// ring, indexed 0..15. Drawers sample a full turn in 256-angle-unit steps and
+/// join each vertex to `(index + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1)`.
+/// The power-of-two count is required by that wrap; it counts elements, not
+/// bytes, frames or the combined extent of both rings.
 #define EFFECT_BAND_SEGMENT_COUNT 16
 
 /// Scratch-stack workspace for drawing a band of quads between two rings.

@@ -429,7 +429,7 @@ static inline void _actor503500InheritBossSlotTextures(Task* task, Enemy* slotEn
     location.view   = viewId;
     areaSyncLocationVariant(&location);
     areaVariant                  = areaGetVariant(&location);
-    placement                    = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                    = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     slotModel->texturePageOffset = placement->texturePageOffset;
     slotModel->clutRowOffset     = placement->clutRowOffset;
     if (slotModel->buffer != NULL) {
@@ -2128,7 +2128,7 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
         location.view   = viewId;
         areaSyncLocationVariant(&location);
         areaVariant                  = areaGetVariant(&location);
-        placement                    = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        placement                    = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
         slotModel->texturePageOffset = placement->texturePageOffset;
         slotModel->clutRowOffset     = placement->clutRowOffset;
         // Rebuild both halves with the inherited texture offsets, preserving the half selector.

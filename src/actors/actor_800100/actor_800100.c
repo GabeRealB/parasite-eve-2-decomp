@@ -651,7 +651,7 @@ static u_long _gActor800100EyesOpenPixels[ACTOR_800100_TEXTURE_A_WIDTH_WORDS * A
 /// GPU transfer completes, so the overlay must remain loaded through completion.
 static GpuImageUpload _gActor800100EyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesOpenPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Half-closed-eye 8-bit texels, packed as 84 RAM words for a 21-word by 8-row upload.
@@ -665,7 +665,7 @@ static u_long _gActor800100EyesHalfClosedPixels[ACTOR_800100_TEXTURE_A_WIDTH_WOR
 /// loaded until the queued GPU transfer completes.
 static GpuImageUpload _gActor800100EyesHalfClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesHalfClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Closed-eye 8-bit texels, packed as 84 RAM words for a 21-word by 8-row upload.
@@ -679,7 +679,7 @@ static u_long _gActor800100EyesClosedPixels[ACTOR_800100_TEXTURE_A_WIDTH_WORDS *
 /// loaded until the queued GPU transfer completes.
 static GpuImageUpload _gActor800100EyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS }, _gActor800100EyesClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Closed-mouth 8-bit texels, packed as 78 RAM words for a 13-word by 12-row upload.
@@ -693,7 +693,7 @@ static u_long _gActor800100MouthClosedPixels[ACTOR_800100_TEXTURE_B_WIDTH_WORDS 
 /// loaded until the queued GPU transfer completes.
 static GpuImageUpload _gActor800100MouthClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_B_WIDTH_WORDS, ACTOR_800100_TEXTURE_B_HEIGHT_ROWS }, _gActor800100MouthClosedPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Open-mouth 8-bit texels, packed as 78 RAM words for a 13-word by 12-row upload.
@@ -707,7 +707,7 @@ static u_long _gActor800100MouthOpenPixels[ACTOR_800100_TEXTURE_B_WIDTH_WORDS * 
 /// loaded until the queued GPU transfer completes.
 static GpuImageUpload _gActor800100MouthOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800100_TEXTURE_B_WIDTH_WORDS, ACTOR_800100_TEXTURE_B_HEIGHT_ROWS }, _gActor800100MouthOpenPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Restores open eyes in one frame; NULL ends the sequence.

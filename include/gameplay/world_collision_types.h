@@ -23,8 +23,14 @@ enum {
     WORLD_COLLISION_CONTACT_GRID_EDGE        = 0x200
 };
 
-/// Mask selecting a packed contact key's high halfword; keeps unsigned word arithmetic.
-#define WORLD_COLLISION_CONTACT_KIND_MASK 0xFFFF0000
+/// Mask selecting contact-kind bits 16..31 of a packed collision key.
+///
+/// The result retains the kind in place for comparison with
+/// `WORLD_COLLISION_CONTACT_*` or `DAMAGE_*_CATEGORY`; it is not the unshifted
+/// `key.parts.kind`. Low-halfword body IDs, attack attributes and grid response
+/// bits are discarded. The unsigned word constant keeps bitwise arithmetic
+/// unsigned even when `key.value` is signed.
+#define WORLD_COLLISION_CONTACT_KIND_MASK 0xFFFF0000U
 
 /// Response half of a collision contact: a direction, or the contacted body's address.
 ///

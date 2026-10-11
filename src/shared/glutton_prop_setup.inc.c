@@ -27,7 +27,7 @@ static void _gluttonPropSetup(Enemy* enemy, Task* task)
     areaSyncLocationVariant(&location);
     variant = areaGetVariant(&location);
     // Apply the host's placement to this escort's existing primitive stream.
-    placement                = gpAreaPlaceAt(variant->placements, placeIndex);
+    placement                = AREA_PLACEMENT_AT(variant->placements, placeIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {

@@ -2444,7 +2444,7 @@ static void _actor03800SpawnBurstFragment(Task* task, u32 variant)
     areaSyncLocationVariant(&location);
     areaVariant = areaGetVariant(&location);
 
-    placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {

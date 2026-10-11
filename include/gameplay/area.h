@@ -93,7 +93,7 @@ extern const AreaRecord* gAreaRecordsByStage[6];
 
 /// Returns a borrowed area-placement pointer unchanged.
 ///
-/// `gpAreaPlaceAt` supplies an already-indexed element address. This helper
+/// `AREA_PLACEMENT_AT` supplies an already-indexed element address. This helper
 /// neither dereferences the pointer nor checks the index or terminator, and
 /// does not extend the placement table's lifetime. A NULL input remains NULL.
 /// Keep the inline call boundary: it preserves the indexed-address instruction
@@ -103,8 +103,14 @@ static __inline__ AreaPlacement* _areaPlacementRef(AreaPlacement* placement)
     return placement;
 }
 
-/// Resolve a placement index within its loaded room resource.
-/// `index` must be within the borrowed `records` array; no bounds check is made.
-#define gpAreaPlaceAt(records, index) _areaPlacementRef(&(records)[index])
+/// Returns the borrowed placement at an element index in a loaded area variant.
+///
+/// `records` must address a live mutable `AreaPlacement` array, and `index`
+/// must select an element within it. Actor placement indices select live
+/// records before `AREA_PLACEMENT_END`; this accessor does not test that marker
+/// or the array extent. The pointer expires with the loaded room's storage.
+/// Each argument is evaluated once; their evaluation order is unspecified.
+/// No record is read, copied or retained by the accessor.
+#define AREA_PLACEMENT_AT(records, index) _areaPlacementRef(&(records)[index])
 
 #endif // GAMEPLAY_AREA_H

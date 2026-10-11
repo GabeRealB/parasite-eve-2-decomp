@@ -10,10 +10,17 @@
 /// Copy the record's packed RAM words to its VRAM destination.
 enum { GPU_IMAGE_UPLOAD_COPY = 0 };
 
+/// Upload-list terminator stored in `GpuImageUpload.operation`.
+///
+/// Assets use the halfword value 255. The uploader accepts every nonzero
+/// operation as an end marker and ignores that record's remaining fields;
+/// provide an accessible terminator after the copy entries.
+#define GPU_IMAGE_UPLOAD_END 0xFF
+
 /// One entry in a terminated list of raw texture or palette uploads.
 ///
 /// `gpuUploadImages` requires a non-NULL list with an accessible terminator:
-/// every nonzero `operation` ends the walk, and assets use `GP_IMG_REC_END`
+/// every nonzero `operation` ends the walk, and assets use `GPU_IMAGE_UPLOAD_END`
 /// (255). The terminator's remaining fields are ignored.
 ///
 /// `destination.x` and `destination.w` count 16-bit VRAM words;

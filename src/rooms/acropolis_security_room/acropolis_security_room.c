@@ -700,7 +700,7 @@ static GpuImageUpload _gAcropolisSecurityRoomLockIndicatorClutUploads[5] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, ARRAY_SIZE(_gAcropolisSecurityRoomLeftReleasedClut), 1 }, (u_long*)_gAcropolisSecurityRoomLeftReleasedClut },
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, ARRAY_SIZE(_gAcropolisSecurityRoomRightLockedClut), 1 }, (u_long*)_gAcropolisSecurityRoomRightLockedClut },
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, ARRAY_SIZE(_gAcropolisSecurityRoomRightReleasedClut), 1 }, (u_long*)_gAcropolisSecurityRoomRightReleasedClut },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Lamp bits in palette/quad/glow order: left locked/released, right locked/released.

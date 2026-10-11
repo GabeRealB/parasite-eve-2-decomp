@@ -11,7 +11,6 @@
 #include "text.h"
 #include "main/ui_types.h"
 
-#include "gameplay/collision.h"
 #include "gameplay/gpu_image_upload.h"
 
 /// How `_textParseLine` finished the line it copied.
@@ -71,7 +70,7 @@ static GpuImageUpload _gTextFontPaletteUploadList[2] = {
         .destination = { 256, 243, sizeof(_gTextFontPaletteWords) / sizeof(u16), 1 },
         .pixels      = _gTextFontPaletteWords,
     },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Resident glyph-fill and outline palettes, packed two RGB555/STP colors per word.
@@ -97,7 +96,7 @@ static GpuImageUpload _gTextGlyphPaletteUploadList[2] = {
         .destination = { 256, 240, sizeof(_gTextGlyphPaletteWords) / sizeof(u16), 1 },
         .pixels      = _gTextGlyphPaletteWords,
     },
-    { .operation = GP_IMG_REC_END },
+    { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 GameFlagStageHeader* gGameFlagStageHeaders[] = {

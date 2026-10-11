@@ -1729,7 +1729,7 @@ static void _acropolisCafeteriaLoosePropInit(Task* task)
     coord->coord.t[2]  = playerCoord->coord.t[2] + 0x800;
     // The body borrows the contacts embedded in the work block for its whole lifetime.
     work->body.context.contacts = work->contacts;
-    work->body.key              = 0x50000;
+    work->body.key              = DAMAGE_HAZARD_CATEGORY;
     work->body.radius           = 0xFA;
     work->body.coord            = coord;
     work->body.pos.vx           = 0;

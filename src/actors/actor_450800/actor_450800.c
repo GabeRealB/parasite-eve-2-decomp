@@ -3741,7 +3741,7 @@ static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* 
     key.room       = sessionKey->room;
     key.view       = gGameSession->location.loc.view;
     areaSyncLocationVariant(&key);
-    texturePlacement               = gpAreaPlaceAt(areaGetVariant(&key)->placements, placementIndex);
+    texturePlacement               = AREA_PLACEMENT_AT(areaGetVariant(&key)->placements, placementIndex);
     helperModel->texturePageOffset = texturePlacement->texturePageOffset;
     helperModel->clutRowOffset     = texturePlacement->clutRowOffset;
     if (helperModel->buffer != NULL) {

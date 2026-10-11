@@ -120,7 +120,7 @@ extern AreaObjectRoom gMapDryfieldObjectRooms[GAME_AREA_DRYFIELD_UNDERPASS + 2];
 
 /// Default room-task recipes for the 31 populated daytime Dryfield areas.
 ///
-/// Each data value is `GP_TASK_LOC_KEY(stage, area, 0)`, so every room of that
+/// Each data value is `OBJECT_TASK_ROOM_LOCATION_KEY(stage, area, 0)`, so every room of that
 /// area shares its callback. Tasks have no body and priority 32. The final
 /// `TASK_DESC_END` entry closes the search; keep this overlay and the selected
 /// room callback's overlay loaded through spawning and task execution.

@@ -3490,7 +3490,7 @@ static void _actor443500InitPierce(Task* task)
         areaSyncLocationVariant(&locationKey);
         areaVariant = areaGetVariant(&locationKey);
         // The held model inherits its owner's area-placement texture offsets.
-        placement = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        placement = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
         _actor443500ApplyPiercePlacementTextures(heldModel, placement);
     }
     _actor443500SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);

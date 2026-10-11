@@ -1927,7 +1927,7 @@ static void _actor510900TickGrenadeThrow(Task* task)
         location.view     = gGameSession->location.loc.view;
         areaSyncLocationVariant(&location);
         areaVariant                     = areaGetVariant(&location);
-        placement                       = gpAreaPlaceAt(areaVariant->placements, placeIndex);
+        placement                       = AREA_PLACEMENT_AT(areaVariant->placements, placeIndex);
         grenadeModel->texturePageOffset = placement->texturePageOffset;
         grenadeModel->clutRowOffset     = placement->clutRowOffset;
         if (grenadeModel->buffer != NULL) {

@@ -1315,7 +1315,7 @@ static void _actor206100TrackTarget(Task* task)
 static void _actor206100FlyShot(Task* task)
 {
     enum {
-        ACTOR_206100_SHOT_CONTACT_HAZARD    = 0x50000,
+        ACTOR_206100_SHOT_CONTACT_HAZARD    = DAMAGE_HAZARD_CATEGORY,
         ACTOR_206100_SHOT_PASS_SURFACE_MASK = 1 << 3
     };
     _Actor206100ShotWork* shot;

@@ -136,7 +136,7 @@ extern s32 gMapNeoArkCompanionDistressTicks;
 
 /// Room-task spawn recipes searched by location for the Shelter/Neo Ark stage.
 ///
-/// The 33 live records use `GP_TASK_LOC_KEY(stage, area, 0)`, supplying an area
+/// The 33 live records use `OBJECT_TASK_ROOM_LOCATION_KEY(stage, area, 0)`, supplying an area
 /// default for every room. Records are searched in stored order, not indexed
 /// by area ID. Tasks have no body and priority 32; the final `TASK_DESC_END` record
 /// is never spawned. Keep the map and selected room overlays loaded through

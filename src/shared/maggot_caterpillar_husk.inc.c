@@ -38,7 +38,7 @@ static void _maggotCaterpillarSpawnHusk(Task* actor)
     areaSyncLocationVariant(&location);
     areaVariant = areaGetVariant(&location);
     // Preserve the table helper's scaled-offset-first address calculation.
-    placement                    = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                    = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     huskModel->texturePageOffset = placement->texturePageOffset;
     huskModel->clutRowOffset     = placement->clutRowOffset;
     if (huskModel->buffer != NULL) {

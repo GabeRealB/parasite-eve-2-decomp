@@ -1577,30 +1577,30 @@ static void _actor02500SpawnBurstFragments(Task* actor)
 /// Captures actor, location and viewId. fragmentEffect is evaluated repeatedly
 /// and must be a side-effect-free pointer to live effect work or NULL.
 /// A NULL effect skips the lookup. Expands to statements; invoke standalone.
-#define ACTOR_02500_APPLY_FRAGMENT_TEXTURE(fragmentEffect)                                                       \
-    if ((fragmentEffect) != NULL) {                                                                              \
-        const GameLocationKey* sessionLocation;                                                                  \
-        u32                    placementKey;                                                                     \
-        TmdObject*             fragmentModel;                                                                    \
-        u32                    placementIndex;                                                                   \
-        const AreaPlacement*   placement;                                                                        \
-        sessionLocation = &gGameSession->location.loc;                                                           \
-        placementKey    = ((Enemy*)actor->spawnArg2.pointer)->placeKey;                                          \
-        fragmentModel   = (fragmentEffect)->task->extra.tmd;                                                     \
-        location.stage  = sessionLocation->stage;                                                                \
-        location.area   = sessionLocation->area;                                                                 \
-        location.room   = sessionLocation->room;                                                                 \
-        viewId          = gGameSession->location.loc.view;                                                       \
-        placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                               \
-        location.view   = viewId;                                                                                \
-        areaSyncLocationVariant(&location);                                                                      \
-        placement                        = gpAreaPlaceAt(areaGetVariant(&location)->placements, placementIndex); \
-        fragmentModel->texturePageOffset = placement->texturePageOffset;                                         \
-        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                             \
-        if (fragmentModel->buffer != NULL) {                                                                     \
-            tmdBuildBufferHalf(fragmentModel);                                                                   \
-            tmdBuildBufferHalf(fragmentModel);                                                                   \
-        }                                                                                                        \
+#define ACTOR_02500_APPLY_FRAGMENT_TEXTURE(fragmentEffect)                                                           \
+    if ((fragmentEffect) != NULL) {                                                                                  \
+        const GameLocationKey* sessionLocation;                                                                      \
+        u32                    placementKey;                                                                         \
+        TmdObject*             fragmentModel;                                                                        \
+        u32                    placementIndex;                                                                       \
+        const AreaPlacement*   placement;                                                                            \
+        sessionLocation = &gGameSession->location.loc;                                                               \
+        placementKey    = ((Enemy*)actor->spawnArg2.pointer)->placeKey;                                              \
+        fragmentModel   = (fragmentEffect)->task->extra.tmd;                                                         \
+        location.stage  = sessionLocation->stage;                                                                    \
+        location.area   = sessionLocation->area;                                                                     \
+        location.room   = sessionLocation->room;                                                                     \
+        viewId          = gGameSession->location.loc.view;                                                           \
+        placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                   \
+        location.view   = viewId;                                                                                    \
+        areaSyncLocationVariant(&location);                                                                          \
+        placement                        = AREA_PLACEMENT_AT(areaGetVariant(&location)->placements, placementIndex); \
+        fragmentModel->texturePageOffset = placement->texturePageOffset;                                             \
+        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                 \
+        if (fragmentModel->buffer != NULL) {                                                                         \
+            tmdBuildBufferHalf(fragmentModel);                                                                       \
+            tmdBuildBufferHalf(fragmentModel);                                                                       \
+        }                                                                                                            \
     }
 
     // Each descriptor payload is consumed by the following model allocation.

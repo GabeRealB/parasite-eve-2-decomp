@@ -17,7 +17,7 @@
 #include "gameplay/enemy.h"
 #include "hud.h"
 #include "hud_sprites.h"
-#include "gameplay/scene.h"
+#include "gameplay/world_targets.h"
 #include "world_targets.h"
 
 #include "gameplay/damage.h"
@@ -112,7 +112,7 @@ void attachmentTargetAll(s32 release)
 
     for (node = gWorldTargetListHead; node != NULL; node = node->next) {
         if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-            enemy        = GP_NODE_ENEMY(node);
+            enemy        = WORLD_TARGET_ENEMY_FROM_NODE(node);
             contactEnemy = enemy;
             if (release == 0) {
                 enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
@@ -331,9 +331,9 @@ void attachmentTargetEllipsoid(s32 release, s32 radius, s32 extent, s32 ahead)
     if (node != NULL) {
         do {
             if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-                targetPosition->vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
-                targetPosition->vy = GP_NODE_ENEMY(node)->playerRelPos.vy;
-                targetPosition->vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
+                targetPosition->vx = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vx;
+                targetPosition->vy = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vy;
+                targetPosition->vz = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vz;
                 if (ahead != 0) {
                     targetPosition->vz -= radius;
                 }
@@ -345,7 +345,7 @@ void attachmentTargetEllipsoid(s32 release, s32 radius, s32 extent, s32 ahead)
                     targetPosition->vz >>= ATTACHMENT_TARGET_POSITION_SHIFT;
                     if ((u32)(extentSquaredScaled * (targetPosition->vx * targetPosition->vx + targetPosition->vz * targetPosition->vz) + radiusSquaredScaled * (targetPosition->vy * targetPosition->vy)) <=
                         (u32)(extentSquaredScaled * radiusSquaredScaled)) {
-                        enemy = GP_NODE_ENEMY(node);
+                        enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
                         if (release == 0) {
                             enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {
@@ -388,16 +388,16 @@ void attachmentTargetCylinder(s32 release, s32 radius, s32 extent, s32 ahead)
     if (node != NULL) {
         do {
             if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-                targetPosition->vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
-                targetPosition->vy = GP_NODE_ENEMY(node)->playerRelPos.vy;
-                targetPosition->vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
+                targetPosition->vx = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vx;
+                targetPosition->vy = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vy;
+                targetPosition->vz = WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vz;
                 if (ahead != 0) {
                     targetPosition->vz -= radius;
                 }
                 targetY = targetPosition->vy;
                 if (targetY < ATTACHMENT_TARGET_ALLOWANCE + 1 && targetY >= -extent) {
                     if ((u32)(targetPosition->vx * targetPosition->vx + targetPosition->vz * targetPosition->vz) <= (u32)(radius * radius)) {
-                        enemy = GP_NODE_ENEMY(node);
+                        enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
                         if (release == 0) {
                             enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {

@@ -1803,7 +1803,7 @@ static void _actor01500SpawnBurstParts(Task* actor)
             placementIndex      = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                                                               \
             (locationKey).view  = viewIndex;                                                                                                                                         \
             areaSyncLocationVariant(&(locationKey));                                                                                                                                 \
-            placement                = gpAreaPlaceAt(areaGetVariant(&(locationKey))->placements, placementIndex);                                                                    \
+            placement                = AREA_PLACEMENT_AT(areaGetVariant(&(locationKey))->placements, placementIndex);                                                                \
             model->texturePageOffset = placement->texturePageOffset;                                                                                                                 \
             model->clutRowOffset     = placement->clutRowOffset;                                                                                                                     \
             if (model->buffer != NULL) {                                                                                                                                             \

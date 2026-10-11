@@ -452,7 +452,7 @@ enum { ACROPOLIS_WEST_ELEVATOR_HALL_BAY_CLUT_Y = 270 };
 /// Queuing copies the rectangle but borrows the colour storage until completion.
 static GpuImageUpload _gAcropolisWestElevatorHallBayClutUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, ACROPOLIS_WEST_ELEVATOR_HALL_BAY_CLUT_Y, ARRAY_SIZE(_gAcropolisWestElevatorHallBayBlendedClut), 1 }, (u_long*)_gAcropolisWestElevatorHallBayBlendedClut },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 WorldCollisionRoomResources gAcropolisWestElevatorHallCollisionRoomResources[1] = {

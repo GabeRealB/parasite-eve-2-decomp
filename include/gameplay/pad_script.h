@@ -43,6 +43,11 @@ STATIC_ASSERT_SIZEOF(PadScriptLane, 2);
 /// initializes `PadScriptLane.command`. The operand is a record index for
 /// `PAD_SCRIPT_PLAY`, a frame count for `PAD_SCRIPT_WAIT`, a loop count for
 /// `PAD_SCRIPT_LOOP` and a step index for `PAD_SCRIPT_JUMP`.
+/// `PAD_SCRIPT_STOP` ignores its stored operand. Integer inputs may exceed a
+/// byte and are reduced modulo 256, but a runnable opcode must be 0..4 and
+/// PLAY/JUMP indices must address live entries in the borrowed script tables.
+/// WAIT zero gives a 256-frame wait. Operand evaluation order is unspecified;
+/// constant arguments yield a `u16` integer constant expression.
 #define PAD_SCRIPT_COMMAND(opcode, operand) ((u16)(((opcode) & 0xFF) | (((operand) & 0xFF) << 8)))
 
 /// One step of a two-lane controller-vibration script.

@@ -467,7 +467,7 @@ enum {
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gActor210700OpenEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700OpenEyesPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed half-open-eye texture pixels for the actor's face band.
@@ -485,7 +485,7 @@ static u_long _gActor210700HalfOpenEyesPixels[192] = {
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gActor210700HalfOpenEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700HalfOpenEyesPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed closed-eye texture pixels for the actor's face band.
@@ -503,7 +503,7 @@ static u_long _gActor210700ClosedEyesPixels[192] = {
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gActor210700ClosedEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700ClosedEyesPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Loaded animation sets for bank 0: clip IDs 1..6, with NULL at 0.

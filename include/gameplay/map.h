@@ -5,10 +5,17 @@
 
 #include "main/tmd_types.h"
 
-/// `MenuMapArea.page` of an area index the stage's map does not show.
+/// Area-map page sentinel for an area with no selectable map page.
+///
+/// Stored as the halfword 0xF000 in `MenuMapArea.page`; page-availability scans
+/// skip this record and continue. Narrowing it to a page byte yields zero.
+/// It neither terminates the table nor determines the area's separate shape record.
 #define MENU_MAP_AREA_PAGE_NONE 0xF000
 
-/// `MenuMapArea.page` of the record closing a stage's table.
+/// Area-map page sentinel terminating a stage's `MenuMapArea` scan.
+///
+/// Stored as the halfword 0xFFFF after numbered area records. The page scan
+/// stops here; this is distinct from an area that has no page.
 #define MENU_MAP_AREA_PAGE_END 0xFFFF
 
 /// Where one area sits on the map screen.
@@ -41,10 +48,19 @@ typedef struct {
 } MenuMapAreaName;
 STATIC_ASSERT_SIZEOF(MenuMapAreaName, 0x20);
 
-/// `MenuMapAreaShape.page` of an area index the map screen draws no shape for.
+/// Shape-table page sentinel excluding an area from page drawing.
+///
+/// Stored as the byte 255 in `MenuMapAreaShape.page`, outside live page numbers
+/// 1..5. Page drawing then reaches neither the shape nor its icons through this
+/// record. A NULL model with a valid page still permits icons to be drawn.
+/// This is not a table terminator; the shape walk uses a separate element count.
 #define MENU_MAP_AREA_SHAPE_PAGE_NONE 0xFF
 
-/// `MenuMapAreaShape.pairedArea` of an area that shares its place with no other.
+/// Shape-table sentinel omitting a second area's visited and marked bits.
+///
+/// Stored as the byte 255 in `MenuMapAreaShape.pairedArea`. Otherwise the value
+/// is an area ID, not a shape index: its bit is combined with this area's bit
+/// in the same visited/marked word. The sentinel prevents that lookup and shift.
 #define MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE 0xFF
 
 /// The shape one area takes on its page of the map screen.
@@ -71,9 +87,16 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(MenuMapAreaShape, 8);
 
 /// `MenuMapIcon.kind` of a telephone.
+///
+/// The fixed 16x16 telephone picture is suppressed for unvisited areas. A
+/// nonzero `condition` is a game-flag nibble ID that must be set; zero is ungated.
 #define MENU_MAP_ICON_KIND_TELEPHONE 1
 
 /// `MenuMapIcon.kind` of the marker for where the current objective is.
+///
+/// Its `condition` must equal the current objective byte, including zero.
+/// The 16x16 marker pulses and may be shown in an unvisited area. The kind's
+/// value 2 also separates objective markers from the two fixed kinds below it.
 #define MENU_MAP_ICON_KIND_OBJECTIVE 2
 
 /// A 16x16 icon the map screen draws over one area of a stage's map.
@@ -96,9 +119,15 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(MenuMapIcon, 8);
 
 /// `MenuMapMarker.area` of a marker that needs no area to have been visited.
+///
+/// Byte value zero bypasses only the visit-bit test. The record's page must
+/// still be selected and its associated marker flag must request drawing.
 #define MENU_MAP_MARKER_AREA_ANY 0
 
 /// `MenuMapMarker.area` of a marker the map screen never draws.
+///
+/// Byte value 255 skips the record before any visit-bit or marker-flag lookup.
+/// The walk continues; only a zero `page` terminates the marker table.
 #define MENU_MAP_MARKER_AREA_NEVER 0xFF
 
 /// Alternate-picture bit in a packed map-marker flag word.

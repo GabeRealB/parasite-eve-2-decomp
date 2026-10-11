@@ -29,7 +29,6 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
-#include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
 #include "scene_runtime.h"
 #include "gameplay/view.h"
@@ -480,8 +479,8 @@ void hudDrawRadar(HudState* hud)
     // Map tracked enemy offsets into the player-oriented radar circle.
     for (; target != NULL; target = target->next) {
         if ((target->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-            playerFrame->position.vx = GP_NODE_ENEMY(target)->playerRelPos.vx;
-            playerFrame->position.vz = GP_NODE_ENEMY(target)->playerRelPos.vz;
+            playerFrame->position.vx = WORLD_TARGET_ENEMY_FROM_NODE(target)->playerRelPos.vx;
+            playerFrame->position.vz = WORLD_TARGET_ENEMY_FROM_NODE(target)->playerRelPos.vz;
             playerFrame->position.vy = 0;
             if (hasArmorMotionDetector == 0) {
                 gte_lddp(HUD_RADAR_NORMAL_ZOOM_Q12);
@@ -848,15 +847,15 @@ void worldTargetUpdatePlayerRelativePositions(void)
     /// Narrows local XYZ, saturates rotation, then wraps translation to signed
     /// halfwords. Preserves the pad and cache stamp. Arguments are evaluated
     /// repeatedly and must have no side effects; captures no local identifiers.
-#define WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME(targetNode, position)                   \
-    {                                                                                     \
-        (position)->vx = GP_NODE_ENEMY(targetNode)->bodyPos.vx;                           \
-        (position)->vy = GP_NODE_ENEMY(targetNode)->bodyPos.vy;                           \
-        (position)->vz = GP_NODE_ENEMY(targetNode)->bodyPos.vz;                           \
-        _worldTargetRotatePosition(&GP_NODE_ENEMY(targetNode)->coord->workm, (position)); \
-        (position)->vx += GP_NODE_ENEMY(targetNode)->coord->workm.t[0];                   \
-        (position)->vy += GP_NODE_ENEMY(targetNode)->coord->workm.t[1];                   \
-        (position)->vz += GP_NODE_ENEMY(targetNode)->coord->workm.t[2];                   \
+#define WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME(targetNode, position)                                  \
+    {                                                                                                    \
+        (position)->vx = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vx;                           \
+        (position)->vy = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vy;                           \
+        (position)->vz = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vz;                           \
+        _worldTargetRotatePosition(&WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm, (position)); \
+        (position)->vx += WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm.t[0];                   \
+        (position)->vy += WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm.t[1];                   \
+        (position)->vz += WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm.t[2];                   \
     }
     WorldTargetNode*                node;
     Task*                           playerTask;
@@ -883,9 +882,9 @@ void worldTargetUpdatePlayerRelativePositions(void)
         scratch->position.vy -= playerCoord->workm.t[1];
         scratch->position.vz -= playerCoord->workm.t[2];
         _worldTargetRotatePosition(&scratch->playerInverseRotation, &scratch->position);
-        GP_NODE_ENEMY(node)->playerRelPos.vx = scratch->position.vx;
-        GP_NODE_ENEMY(node)->playerRelPos.vy = scratch->position.vy;
-        GP_NODE_ENEMY(node)->playerRelPos.vz = scratch->position.vz;
+        WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vx = scratch->position.vx;
+        WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vy = scratch->position.vy;
+        WORLD_TARGET_ENEMY_FROM_NODE(node)->playerRelPos.vz = scratch->position.vz;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
 #undef WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME
@@ -1112,7 +1111,7 @@ void hudDrawLockedTargetHp(HudTargetHpReadout* readout)
             do {
                 if (targetNode == lockedTarget) {
                     if (!(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-                        _hudDrawTargetHpReadout(GP_NODE_ENEMY(targetNode), readout);
+                        _hudDrawTargetHpReadout(WORLD_TARGET_ENEMY_FROM_NODE(targetNode), readout);
                         return;
                     }
                 }

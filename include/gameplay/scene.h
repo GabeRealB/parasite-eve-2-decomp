@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-#include "gameplay/enemy.h"
-
 /// Control values shared by ordinary and parasite-energy effects.
 ///
 /// Scene actor modes are augmented with cancellation flags. Consumers use the
@@ -63,9 +61,5 @@ typedef struct {
     u16 pendingCancelFlags;    // Cancellations awaiting the next update (0x80 PE only, 0x100 all effects).
 } RoomEffectState;
 STATIC_ASSERT_SIZEOF(RoomEffectState, 0x1C);
-
-/// The enemy a lock-on list entry belongs to: every `WorldTargetNode` on that list
-/// is the `node` member of an enemy.
-#define GP_NODE_ENEMY(n) PARENT_OF(n, Enemy, node)
 
 #endif // GAMEPLAY_SCENE_H

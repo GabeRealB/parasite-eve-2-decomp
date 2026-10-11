@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#include "gameplay/collision.h"
+#include "gameplay/gpu_image_upload.h"
 
 /// Facial-frame dimensions in 16-bit VRAM words and rows.
 enum {
@@ -177,7 +177,7 @@ static u_long _gAya10400Image066C4[] = {
 /// writable; their payload must stay loaded until the GPU transfer completes.
 static GpuImageUpload _gAya10400EyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image066C4 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10400Image06A04[] = {
@@ -188,7 +188,7 @@ static u_long _gAya10400Image06A04[] = {
 /// Placement, writable records and payload lifetime follow `_gAya10400EyesOpenUploads`.
 static GpuImageUpload _gAya10400EyesHalfClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image06A04 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10400Image06D44[] = {
@@ -199,7 +199,7 @@ static u_long _gAya10400Image06D44[] = {
 /// Placement, writable records and payload lifetime follow `_gAya10400EyesOpenUploads`.
 static GpuImageUpload _gAya10400EyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image06D44 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10400Image07084[] = {
@@ -211,7 +211,7 @@ static u_long _gAya10400Image07084[] = {
 /// frame cadence. Records remain writable; keep the payload through GPU completion.
 static GpuImageUpload _gAya10400MouthClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_MOUTH_FRAME_WIDTH_WORDS, AYA_10400_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10400Image07084 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 static u_long _gAya10400Image072D4[] = {
@@ -222,7 +222,7 @@ static u_long _gAya10400Image072D4[] = {
 /// Placement, writable records and payload lifetime follow `_gAya10400MouthClosedUploads`.
 static GpuImageUpload _gAya10400MouthOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_MOUTH_FRAME_WIDTH_WORDS, AYA_10400_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10400Image072D4 },
-    { GP_IMG_REC_END },
+    { GPU_IMAGE_UPLOAD_END },
 };
 
 GpuImageUpload* const gAya10400EyesRestSequence[2] __attribute__((section(".data")))    = { _gAya10400EyesOpenUploads, NULL };

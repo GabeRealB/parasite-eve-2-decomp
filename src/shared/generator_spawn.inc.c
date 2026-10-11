@@ -102,7 +102,7 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     location.view        = sessionLocation->view;
     areaSyncLocationVariant(&location);
     areaVariant                             = areaGetVariant(&location);
-    placement                               = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                               = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     lifeSupportModelView->texturePageOffset = placement->texturePageOffset;
     lifeSupportModelView->clutRowOffset     = placement->clutRowOffset;
     if (lifeSupportModelView->buffer != NULL) {

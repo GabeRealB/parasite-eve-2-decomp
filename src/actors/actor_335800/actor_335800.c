@@ -1756,7 +1756,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         location.view   = sessionLocation->view;
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
-        placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        placement   = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
         _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
     partTask = taskSpawnFromTable(gActor335800GaryDouglasTasks, ACTOR_335800_DOUGLAS_GUN_TASK, ACTOR_335800_DOUGLAS_GUN_PART, task);
@@ -1776,7 +1776,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         location.view   = gGameSession->location.loc.view;
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
-        placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        placement   = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
         _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
     _actor335800GaryDouglasBindLighting(task);

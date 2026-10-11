@@ -3663,7 +3663,7 @@ static void _mineCavernTargetSpawn(Enemy* enemy, Task* task)
     enum { MINE_CAVERN_TARGET_CENTER_Y     = -800,
            MINE_CAVERN_TARGET_BODY_RADIUS  = 256,
            MINE_CAVERN_TARGET_BLAST_RADIUS = 3000,
-           MINE_CAVERN_TARGET_BODY_KEY     = 0x50000,
+           MINE_CAVERN_TARGET_BODY_KEY     = DAMAGE_HAZARD_CATEGORY,
            MINE_CAVERN_TARGET_BLAST_KEY    = 0x22121 };
 
     _MineCavernTargetWork* allocation;

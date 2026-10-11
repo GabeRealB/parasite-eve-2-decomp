@@ -21,7 +21,7 @@ the Psy-Q SDK's (`include/psyq`), the scratch-pad stack and its fixed address
 (`main/scratch.h`, `PLAYSTATION_SCRATCHPAD_ADDRESS`), the step from an embedded member to
 the object holding it (`PARENT_OF`, `OFFSET_OF`), the whole-word accesses to
 primitives, matrices and location keys (`PRIM_*`, `MATRIX_*`, `GAME_LOCATION_WORD`), and the link-node-to-enemy
-step (`GP_NODE_ENEMY`).
+step (`WORLD_TARGET_ENEMY_FROM_NODE`).
 """
 
 import argparse
@@ -38,7 +38,7 @@ import cref  # noqa: E402
 import clang.cindex as ci  # noqa: E402
 
 SANCTIONED_PREFIXES = ("SCRATCH_", "PRIM_", "MATRIX_")
-SANCTIONED = {"GP_NODE_ENEMY", "PLAYSTATION_SCRATCHPAD_ADDRESS", "SCRATCH_STACK_CURSOR_SLOT", "GameResetScratchHead", "PARENT_OF", "OFFSET_OF", "GAME_LOCATION_WORD"}
+SANCTIONED = {"WORLD_TARGET_ENEMY_FROM_NODE", "PLAYSTATION_SCRATCHPAD_ADDRESS", "SCRATCH_STACK_CURSOR_SLOT", "GameResetScratchHead", "PARENT_OF", "OFFSET_OF", "GAME_LOCATION_WORD"}
 
 _WRAPPERS = {ci.CursorKind.PAREN_EXPR, ci.CursorKind.UNEXPOSED_EXPR}
 

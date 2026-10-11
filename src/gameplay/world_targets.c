@@ -16,7 +16,6 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/battle_reward.h"
-#include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/gpu_image_upload.h"
@@ -26,7 +25,6 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/scene.h"
 #include "gameplay/world_collision.h"
 #include "world_coords.h"
 #include "gameplay/world_state.h"
@@ -217,18 +215,18 @@ static __inline__ void _worldTargetTransformLockCandidate(const WorldTargetNode*
     GfxCoord* targetCoord;
     SVECTOR   targetLocal;
 
-    actorRenderComposeCoord(GP_NODE_ENEMY(candidate)->coord);
-    scanScratch->targetView.vx = GP_NODE_ENEMY(candidate)->bodyPos.vx;
-    scanScratch->targetView.vy = GP_NODE_ENEMY(candidate)->bodyPos.vy;
-    scanScratch->targetView.vz = GP_NODE_ENEMY(candidate)->bodyPos.vz;
-    targetCoord                = GP_NODE_ENEMY(candidate)->coord;
+    actorRenderComposeCoord(WORLD_TARGET_ENEMY_FROM_NODE(candidate)->coord);
+    scanScratch->targetView.vx = WORLD_TARGET_ENEMY_FROM_NODE(candidate)->bodyPos.vx;
+    scanScratch->targetView.vy = WORLD_TARGET_ENEMY_FROM_NODE(candidate)->bodyPos.vy;
+    scanScratch->targetView.vz = WORLD_TARGET_ENEMY_FROM_NODE(candidate)->bodyPos.vz;
+    targetCoord                = WORLD_TARGET_ENEMY_FROM_NODE(candidate)->coord;
     targetLocal                = scanScratch->targetView;
 
     // Add translation on the CPU so it wraps after the GTE rotation saturates.
     gte_ApplyMatrixSV(&targetCoord->workm, &targetLocal, &scanScratch->targetView);
-    scanScratch->targetView.vx += GP_NODE_ENEMY(candidate)->coord->workm.t[0];
-    scanScratch->targetView.vy += GP_NODE_ENEMY(candidate)->coord->workm.t[1];
-    scanScratch->targetView.vz += GP_NODE_ENEMY(candidate)->coord->workm.t[2];
+    scanScratch->targetView.vx += WORLD_TARGET_ENEMY_FROM_NODE(candidate)->coord->workm.t[0];
+    scanScratch->targetView.vy += WORLD_TARGET_ENEMY_FROM_NODE(candidate)->coord->workm.t[1];
+    scanScratch->targetView.vz += WORLD_TARGET_ENEMY_FROM_NODE(candidate)->coord->workm.t[2];
 }
 
 /// Clears the player and companion actors' borrowed lock-on references to `node`.
@@ -295,11 +293,11 @@ static __inline__ void _worldTargetProjectReadout(WorldTargetReadout* readout)
     node         = readout->binding.node;
     SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
     projection           = SCRATCH_STACK_CURSOR(_WorldTargetProjectionScratch);
-    projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-    projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-    projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-    gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
-    gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+    projection->point.vx = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vx;
+    projection->point.vy = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vy;
+    projection->point.vz = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vz;
+    gte_SetRotMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(node)->coord->workm);
+    gte_SetTransMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(node)->coord->workm);
     gte_ldv0(&projection->point);
     gte_rtps();
     gte_stsxy(packedScreen);
@@ -402,12 +400,12 @@ void worldTargetDrawOverlay(void)
             // Project the first marked, lockable enemy's local body point.
             cursorEasing         = 0;
             projection           = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
-            projection->point.vx = GP_NODE_ENEMY(targetNode)->bodyPos.vx;
-            projection->point.vy = GP_NODE_ENEMY(targetNode)->bodyPos.vy;
-            projection->point.vz = GP_NODE_ENEMY(targetNode)->bodyPos.vz;
-            actorRenderComposeCoord(GP_NODE_ENEMY(targetNode)->coord);
-            gte_SetRotMatrix(&GP_NODE_ENEMY(targetNode)->coord->workm);
-            gte_SetTransMatrix(&GP_NODE_ENEMY(targetNode)->coord->workm);
+            projection->point.vx = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vx;
+            projection->point.vy = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vy;
+            projection->point.vz = WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->bodyPos.vz;
+            actorRenderComposeCoord(WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord);
+            gte_SetRotMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm);
+            gte_SetTransMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(targetNode)->coord->workm);
             gte_RotTransPers(&projection->point, &projection->screen, &projection->depthCue,
                              &projection->projectionFlags, &projection->orderingDepth);
             WORLD_TARGET_EASE_CURSOR(targetNode, projection, cursorEasing);
@@ -500,7 +498,7 @@ static WorldTargetNode* _worldTargetScanLockNodes(Task* aimingTask, VECTOR3* out
 
     if (aimingActor->targetNode != NULL && scanMode != WORLD_TARGET_LOCK_SCAN_AUTOMATIC) {
         candidate      = aimingActor->targetNode;
-        currentBearing = ratan2(GP_NODE_ENEMY(candidate)->playerRelPos.vx, GP_NODE_ENEMY(candidate)->playerRelPos.vz);
+        currentBearing = ratan2(WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vx, WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vz);
     } else {
         currentBearing = 0;
     }
@@ -511,10 +509,10 @@ static WorldTargetNode* _worldTargetScanLockNodes(Task* aimingTask, VECTOR3* out
         if (candidate->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
-        candidateScore = ratan2(GP_NODE_ENEMY(candidate)->playerRelPos.vx, GP_NODE_ENEMY(candidate)->playerRelPos.vz);
+        candidateScore = ratan2(WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vx, WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vz);
         // Automatic selection favors proximity and forward bearing; cycling wraps from the current bearing.
         if (scanMode == WORLD_TARGET_LOCK_SCAN_AUTOMATIC) {
-            distanceSquared = GP_NODE_ENEMY(candidate)->playerRelPos.vz * GP_NODE_ENEMY(candidate)->playerRelPos.vz + GP_NODE_ENEMY(candidate)->playerRelPos.vx * GP_NODE_ENEMY(candidate)->playerRelPos.vx + GP_NODE_ENEMY(candidate)->playerRelPos.vy * GP_NODE_ENEMY(candidate)->playerRelPos.vy;
+            distanceSquared = WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vz * WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vz + WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vx * WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vx + WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vy * WORLD_TARGET_ENEMY_FROM_NODE(candidate)->playerRelPos.vy;
             if (candidateScore < 0) {
                 candidateScore = -candidateScore;
             }
@@ -955,12 +953,12 @@ void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPositio
         return;
     }
 
-    bodyCoord  = GP_NODE_ENEMY(node)->coord;
+    bodyCoord  = WORLD_TARGET_ENEMY_FROM_NODE(node)->coord;
     worldCoord = &gGfxViewCoord;
     if (bodyCoord == worldCoord) {
-        outPosition->vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-        outPosition->vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-        outPosition->vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+        outPosition->vx = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vx;
+        outPosition->vy = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vy;
+        outPosition->vz = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vz;
         return;
     }
 
@@ -972,7 +970,7 @@ void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPositio
     gfxMakeRelativeTransform(&worldCoord->workm, &bodyCoord->workm, bodyToWorld);
     gte_SetRotMatrix(bodyToWorld);
     gte_SetTransMatrix(bodyToWorld);
-    gte_ldlvl(&GP_NODE_ENEMY(node)->bodyPos);
+    gte_ldlvl(&WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos);
     gte_rtirtr();
     gte_stlvl(outPosition);
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPositionScratch);
@@ -1021,11 +1019,11 @@ static s32 _worldTargetProjectBodyPoint(const WorldTargetNode* node, s32* packed
     s32                            orderingDepth;
 
     projection           = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
-    projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-    projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-    projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-    gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
-    gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+    projection->point.vx = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vx;
+    projection->point.vy = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vy;
+    projection->point.vz = WORLD_TARGET_ENEMY_FROM_NODE(node)->bodyPos.vz;
+    gte_SetRotMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(node)->coord->workm);
+    gte_SetTransMatrix(&WORLD_TARGET_ENEMY_FROM_NODE(node)->coord->workm);
     gte_ldv0(&projection->point);
     gte_rtps();
     gte_stsxy(packedScreen);
@@ -1158,7 +1156,7 @@ void gpuUploadImages(const GpuImageUpload* uploadList)
             case GPU_IMAGE_UPLOAD_COPY:
                 _gpuUploadImageEntry(scratchDestination, uploadList);
                 break;
-            case GP_IMG_REC_END:
+            case GPU_IMAGE_UPLOAD_END:
                 reachedEnd = 1;
                 break;
             default:

@@ -3,7 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
-#include "gameplay/collision.h"
+#include "gameplay/object_task.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
@@ -110,7 +110,7 @@ void objectTaskInitializeRoomState(Task* task)
     _objectTaskResetRoomPresentation();
     // Table order decides between a room-specific descriptor and its area default.
     descriptorIndex = 0;
-    locationKeyBase = GP_TASK_LOC_KEY(gGameSession->location.loc.stage, gGameSession->location.loc.area, 0);
+    locationKeyBase = OBJECT_TASK_ROOM_LOCATION_KEY(gGameSession->location.loc.stage, gGameSession->location.loc.area, 0);
     roomKey         = locationKeyBase + gGameSession->location.loc.room;
     stageRoomTable  = _gObjectTaskStageRoomTables[gGameSession->location.loc.stage];
     areaKey         = locationKeyBase;

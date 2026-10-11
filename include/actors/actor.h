@@ -1550,7 +1550,7 @@ static __inline__ void _actorRenderApplyPlacementTextureOffsets(TmdObject* model
 
     placementIndex           = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     areaVariant              = _areaGetCurrentVariant();
-    placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {
@@ -1585,7 +1585,7 @@ static __inline__ void _actorRenderApplyTaskPlacementTextureOffsets(const Task* 
     placementIndex           = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model                    = task->extra.tmd;
     areaVariant              = _areaGetCurrentVariant();
-    placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    placement                = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {
