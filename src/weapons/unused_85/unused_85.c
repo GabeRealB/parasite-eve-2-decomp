@@ -1067,136 +1067,215 @@ static AnimationSet _gUnused85PeCastFamily2Animation = {
     },
 };
 
-static AnimationPackedPose _gUnused85Animation0A670Bank1[2] = {
+/// Aim-idle translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85AimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0A670_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0A670Bank4[17] = {
+/// Packed aim-idle Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85AimIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A670_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0A670Records[76] = {
+/// Aim-idle keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85AimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A670_records.inc"
 };
 
-static u16 _gUnused85Animation0A670Indices[20] = {
+/// Absolute aim-idle record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85AimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A670_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0A670 = {
-    _gUnused85Animation0A670Records,
-    _gUnused85Animation0A670Indices,
-    { NULL, _gUnused85Animation0A670Bank1, NULL, NULL, _gUnused85Animation0A670Bank4, NULL, NULL, NULL },
+/// Player stationary aim pose for unused weapon index 6.
+///
+/// Native-bank set 9 loops each of its 19 tracks on a fixed pose, without cues.
+/// Child playback uses tracks 1..18. The set and payloads are borrowed while
+/// this package remains loaded.
+static AnimationSet _gUnused85AimIdleAnimation = {
+    .records           = _gUnused85AimIdleAnimationRecords,
+    .trackStartIndices = _gUnused85AimIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85AimIdleAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85AimIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0AD60Bank1[12] = {
+/// Backward/turn aim translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85AimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0AD60_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0AD60Bank4[164] = {
+/// Packed backward/turn aim Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85AimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0AD60_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0AD60Records[224] = {
+/// Backward/turn aim keyframes and loop/stop controls, with footstep cues on track 1.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused85AimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0AD60_records.inc"
 };
 
-static u16 _gUnused85Animation0AD60Indices[20] = {
+/// Absolute backward/turn aim record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85AimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0AD60_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0AD60 = {
-    _gUnused85Animation0AD60Records,
-    _gUnused85Animation0AD60Indices,
-    { NULL, _gUnused85Animation0AD60Bank1, NULL, NULL, _gUnused85Animation0AD60Bank4, NULL, NULL, NULL },
+/// Player backward movement or stationary turning while aiming with unused weapon index 6.
+///
+/// Native-bank set 13 loops all 19 tracks. Child playback uses tracks 1..18,
+/// with track 1 supplying alternating footstep cues. The set and payloads are
+/// borrowed while this package remains loaded.
+static AnimationSet _gUnused85AimBackwardOrTurnAnimation = {
+    .records           = _gUnused85AimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gUnused85AimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85AimBackwardOrTurnAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85AimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0B94CBank1[19] = {
+/// Forward-aim translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85AimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0B94C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0B94CBank4[304] = {
+/// Packed forward-aim Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85AimForwardAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0B94C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0B94CRecords[382] = {
+/// Forward-aim keyframes and loop/stop controls, with footstep cues on track 1.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused85AimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0B94C_records.inc"
 };
 
-static u16 _gUnused85Animation0B94CIndices[20] = {
+/// Absolute forward-aim record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85AimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0B94C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0B94C = {
-    _gUnused85Animation0B94CRecords,
-    _gUnused85Animation0B94CIndices,
-    { NULL, _gUnused85Animation0B94CBank1, NULL, NULL, _gUnused85Animation0B94CBank4, NULL, NULL, NULL },
+/// Player forward movement while aiming with unused weapon index 6.
+///
+/// Native-bank set 12 loops all 19 tracks. Child playback uses tracks 1..18,
+/// with track 1 supplying alternating footstep cues. The set and payloads are
+/// borrowed while this package remains loaded.
+static AnimationSet _gUnused85AimForwardAnimation = {
+    .records           = _gUnused85AimForwardAnimationRecords,
+    .trackStartIndices = _gUnused85AimForwardAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85AimForwardAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85AimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0C274Bank1[15] = {
+/// Reload translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85ReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0C274_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0C274Bank4[231] = {
+/// Packed reload Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85ReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C274_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0C274Records[290] = {
+/// Reload keyframes and stop controls, with the ammunition-loading cue on track 1.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused85ReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C274_records.inc"
 };
 
-static u16 _gUnused85Animation0C274Indices[20] = {
+/// Absolute reload record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85ReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C274_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0C274 = {
-    _gUnused85Animation0C274Records,
-    _gUnused85Animation0C274Indices,
-    { NULL, _gUnused85Animation0C274Bank1, NULL, NULL, _gUnused85Animation0C274Bank4, NULL, NULL, NULL },
+/// Player reload clip shared by both load selections and battle end for unused weapon index 6.
+///
+/// Native-bank sets 14, 15 and 20 select this clip. Its 19 tracks stop at their
+/// final poses; child playback uses tracks 1..18 and track 1 supplies the load cue.
+/// The set and payloads are borrowed while this package remains loaded.
+static AnimationSet _gUnused85ReloadAnimation = {
+    .records           = _gUnused85ReloadAnimationRecords,
+    .trackStartIndices = _gUnused85ReloadAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85ReloadAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85ReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0C644Bank1[6] = {
+/// Firing translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85FireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0C644_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0C644Bank4[81] = {
+/// Packed firing Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85FireAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C644_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0C644Records[125] = {
+/// Firing keyframes and stop controls without cues; durations count normal-rate frames.
+static const AnimationRecord _gUnused85FireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C644_records.inc"
 };
 
-static u16 _gUnused85Animation0C644Indices[20] = {
+/// Absolute firing record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85FireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0C644_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0C644 = {
-    _gUnused85Animation0C644Records,
-    _gUnused85Animation0C644Indices,
-    { NULL, _gUnused85Animation0C644Bank1, NULL, NULL, _gUnused85Animation0C644Bank4, NULL, NULL, NULL },
+/// Retained player firing clip for unused weapon index 6.
+///
+/// Native-bank sets 10 and 11 share this clip, but the weapon's empty attack
+/// handler does not select it. All 19 tracks stop at their final poses without
+/// cues. Child playback uses tracks 1..18 and borrows the set and payloads
+/// while this package remains loaded.
+static AnimationSet _gUnused85FireAnimation = {
+    .records           = _gUnused85FireAnimationRecords,
+    .trackStartIndices = _gUnused85FireAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85FireAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85FireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0CCC0Bank1[11] = {
+/// Aim-entry translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85AimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0CCC0_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0CCC0Bank4[161] = {
+/// Packed aim-entry Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85AimEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0CCC0_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0CCC0Records[201] = {
+/// Aim-entry keyframes and stop controls without cues; durations count normal-rate frames.
+static const AnimationRecord _gUnused85AimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0CCC0_records.inc"
 };
 
-static u16 _gUnused85Animation0CCC0Indices[20] = {
+/// Absolute aim-entry record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85AimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0CCC0_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0CCC0 = {
-    _gUnused85Animation0CCC0Records,
-    _gUnused85Animation0CCC0Indices,
-    { NULL, _gUnused85Animation0CCC0Bank1, NULL, NULL, _gUnused85Animation0CCC0Bank4, NULL, NULL, NULL },
+/// Player transition into the aiming stance for unused weapon index 6.
+///
+/// Native-bank set 7 stops all 19 tracks at their final poses without cues.
+/// Child playback uses tracks 1..18. The set and payloads are borrowed while
+/// this package remains loaded.
+static AnimationSet _gUnused85AimEntryAnimation = {
+    .records           = _gUnused85AimEntryAnimationRecords,
+    .trackStartIndices = _gUnused85AimEntryAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85AimEntryAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85AimEntryAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused85Animation0D28CBank1[10] = {
@@ -1229,20 +1308,20 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85RunAnimation,
     &_gUnused85NegativeTurnAnimation,
     &_gUnused85PositiveTurnAnimation,
-    &_gUnused85Animation0CCC0,
+    &_gUnused85AimEntryAnimation,
     &_gUnused85Animation0D28C,
-    &_gUnused85Animation0A670,
-    &_gUnused85Animation0C644,
-    &_gUnused85Animation0C644,
-    &_gUnused85Animation0B94C,
-    &_gUnused85Animation0AD60,
-    &_gUnused85Animation0C274,
-    &_gUnused85Animation0C274,
+    &_gUnused85AimIdleAnimation,
+    &_gUnused85FireAnimation,
+    &_gUnused85FireAnimation,
+    &_gUnused85AimForwardAnimation,
+    &_gUnused85AimBackwardOrTurnAnimation,
+    &_gUnused85ReloadAnimation,
+    &_gUnused85ReloadAnimation,
     &_gUnused85Part4HitReactionAnimation,
     &_gUnused85OtherBodyHitReactionAnimation,
     &_gUnused85StoppedPoseAnimation,
     &_gUnused85UnarmedWalkAnimation,
-    &_gUnused85Animation0C274,
+    &_gUnused85ReloadAnimation,
     &_gUnused85IdleAnimation,
     &_gUnused85IdleAnimation,
     &_gUnused85HealthyIdleAnimation,
