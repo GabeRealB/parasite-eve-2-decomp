@@ -998,136 +998,242 @@ static AnimationSet _gM93rPlayerScriptedPresentationExitAnimation = {
     },
 };
 
-static AnimationPackedPose _gM93rAnimation08A00Bank1[11] = {
+/// Family-2 PE release translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_08A00_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation08A00Bank4[125] = {
+/// Family-2 PE release Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyReleaseFamily2AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_08A00_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation08A00Records[167] = {
+/// Family-2 PE release keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_08A00_records.inc"
 };
 
-static u16 _gM93rAnimation08A00Indices[20] = {
+/// Absolute family-2 PE release record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_08A00_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation08A00 = {
-    _gM93rAnimation08A00Records,
-    _gM93rAnimation08A00Indices,
-    { NULL, _gM93rAnimation08A00Bank1, NULL, NULL, _gM93rAnimation08A00Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy release clip for family 2 in the M93R animation bank.
+///
+/// Native clip 42 precedes the charge phase. Family 2 is selected for non-item
+/// attachments whose decimal tens digit is 3. All 19 tracks stop at their final
+/// keyframe; tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerParasiteEnergyReleaseFamily2Animation = {
+    .records           = _gM93rPlayerParasiteEnergyReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyReleaseFamily2AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation08BF4Bank1[3] = {
+/// Family-2 PE charge translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_08BF4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation08BF4Bank4[20] = {
+/// Family-2 PE charge Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyChargeFamily2AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_08BF4_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation08BF4Records[76] = {
+/// Family-2 PE charge keyframes, loop jumps and retained stops.
+///
+/// Durations count normal-rate frames, pose offsets count u32 words, and jumps
+/// select absolute record indices.
+static const AnimationRecord _gM93rPlayerParasiteEnergyChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_08BF4_records.inc"
 };
 
-static u16 _gM93rAnimation08BF4Indices[20] = {
+/// Absolute family-2 PE charge record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_08BF4_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation08BF4 = {
-    _gM93rAnimation08BF4Records,
-    _gM93rAnimation08BF4Indices,
-    { NULL, _gM93rAnimation08BF4Bank1, NULL, NULL, _gM93rAnimation08BF4Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy charge loop for family 2 in the M93R animation bank.
+///
+/// Native clip 43 loops while the attachment countdown runs; clip 44 replaces
+/// it when charging finishes. Family 2 is selected for non-item attachments
+/// whose decimal tens digit is 3. All 19 tracks loop; tracks 0..1 use
+/// translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerParasiteEnergyChargeFamily2Animation = {
+    .records           = _gM93rPlayerParasiteEnergyChargeFamily2AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyChargeFamily2AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation09074Bank1[8] = {
+/// Family-2 PE cast translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09074_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation09074Bank4[105] = {
+/// Family-2 PE cast Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyCastFamily2AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09074_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation09074Records[139] = {
+/// Family-2 PE cast keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09074_records.inc"
 };
 
-static u16 _gM93rAnimation09074Indices[20] = {
+/// Absolute family-2 PE cast record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09074_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation09074 = {
-    _gM93rAnimation09074Records,
-    _gM93rAnimation09074Indices,
-    { NULL, _gM93rAnimation09074Bank1, NULL, NULL, _gM93rAnimation09074Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy cast clip for family 2 in the M93R animation bank.
+///
+/// Native clip 44 finishes the charge action before locomotion or aim resumes.
+/// Family 2 is selected for non-item attachments whose decimal tens digit is 3.
+/// All 19 tracks stop at their final keyframe; tracks 0..1 use
+/// translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerParasiteEnergyCastFamily2Animation = {
+    .records           = _gM93rPlayerParasiteEnergyCastFamily2AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyCastFamily2AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyCastFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation09250Bank1[2] = {
+/// Aim-idle translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerAimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09250_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation09250Bank4[17] = {
+/// Aim-idle Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerAimIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09250_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation09250Records[76] = {
+/// Aim-idle keyframes, loop jumps and retained stops.
+///
+/// Durations count normal-rate frames, pose offsets count u32 words, and jumps
+/// select absolute record indices.
+static const AnimationRecord _gM93rPlayerAimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09250_records.inc"
 };
 
-static u16 _gM93rAnimation09250Indices[20] = {
+/// Absolute aim-idle record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerAimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09250_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation09250 = {
-    _gM93rAnimation09250Records,
-    _gM93rAnimation09250Indices,
-    { NULL, _gM93rAnimation09250Bank1, NULL, NULL, _gM93rAnimation09250Bank4, NULL, NULL, NULL },
+/// Player stationary aiming loop and attack-ready pose in the M93R animation bank.
+///
+/// Native clip 9 is selected when aiming without movement or turning and when
+/// preparing an M93R burst. All 19 tracks loop; tracks 0..1 use
+/// translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerAimIdleAnimation = {
+    .records           = _gM93rPlayerAimIdleAnimationRecords,
+    .trackStartIndices = _gM93rPlayerAimIdleAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerAimIdleAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerAimIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation09900Bank1[11] = {
+/// Backward/turn aim translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09900_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation09900Bank4[151] = {
+/// Backward/turn aim Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_09900_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation09900Records[224] = {
+/// Backward/turn aim keyframes, loop jumps and retained stops.
+///
+/// Durations count normal-rate frames and pose offsets count u32 words.
+/// Track 1 carries the paired footstep cues `ANIMATION_RECORD_CUE_1` and
+/// `ANIMATION_RECORD_CUE_2`; jump offsets are absolute record indices.
+static const AnimationRecord _gM93rPlayerAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09900_records.inc"
 };
 
-static u16 _gM93rAnimation09900Indices[20] = {
+/// Absolute backward/turn aim record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_09900_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation09900 = {
-    _gM93rAnimation09900Records,
-    _gM93rAnimation09900Indices,
-    { NULL, _gM93rAnimation09900Bank1, NULL, NULL, _gM93rAnimation09900Bank4, NULL, NULL, NULL },
+/// Player backward movement or stationary turning while aiming with the M93R.
+///
+/// Native clip 13 is selected for backward aim movement or a turn without
+/// movement. All 19 tracks loop, with paired footstep cues on track 1;
+/// tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerAimBackwardOrTurnAnimation = {
+    .records           = _gM93rPlayerAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gM93rPlayerAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerAimBackwardOrTurnAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerAimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation0A4ECBank1[19] = {
+/// Forward-aim translations in model units and Euler rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerAimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_0A4EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0A4ECBank4[304] = {
+/// Forward-aim Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerAimForwardAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m93r_animation_0A4EC_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0A4ECRecords[382] = {
+/// Forward-aim keyframes, loop jumps and retained stops.
+///
+/// Durations count normal-rate frames and pose offsets count u32 words.
+/// Track 1 carries the paired footstep cues `ANIMATION_RECORD_CUE_1` and
+/// `ANIMATION_RECORD_CUE_2`; jump offsets are absolute record indices.
+static const AnimationRecord _gM93rPlayerAimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0A4EC_records.inc"
 };
 
-static u16 _gM93rAnimation0A4ECIndices[20] = {
+/// Absolute forward-aim record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerAimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0A4EC_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation0A4EC = {
-    _gM93rAnimation0A4ECRecords,
-    _gM93rAnimation0A4ECIndices,
-    { NULL, _gM93rAnimation0A4ECBank1, NULL, NULL, _gM93rAnimation0A4ECBank4, NULL, NULL, NULL },
+/// Player forward movement while aiming with the M93R.
+///
+/// Native clip 12 is selected for forward aim movement. All 19 tracks loop,
+/// with paired footstep cues on track 1; tracks 0..1 use translation/rotation
+/// and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them. Read-only tables retain .data
+/// placement as part of the serialized package layout.
+static AnimationSet _gM93rPlayerAimForwardAnimation = {
+    .records           = _gM93rPlayerAimForwardAnimationRecords,
+    .trackStartIndices = _gM93rPlayerAimForwardAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerAimForwardAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerAimForwardAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM93rAnimation0AF84Bank1[18] = {
@@ -1294,11 +1400,11 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rPlayerTurnRightAnimation,
     &_gM93rAnimation0BBE8,
     &_gM93rAnimation0C2B8,
-    &_gM93rAnimation09250,
+    &_gM93rPlayerAimIdleAnimation,
     &_gM93rAnimation0B4D4,
     &_gM93rPlayerIdleAnimation,
-    &_gM93rAnimation0A4EC,
-    &_gM93rAnimation09900,
+    &_gM93rPlayerAimForwardAnimation,
+    &_gM93rPlayerAimBackwardOrTurnAnimation,
     &_gM93rAnimation0AF84,
     &_gM93rPlayerIdleAnimation,
     &_gM93rPlayerHitPart4Animation,
@@ -1327,9 +1433,9 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rPlayerStairAscentFinishOddAnimation,
     &_gM93rPlayerItemUseAnimation,
     &_gM93rPlayerIdleAnimation,
-    &_gM93rAnimation08A00,
-    &_gM93rAnimation08BF4,
-    &_gM93rAnimation09074,
+    &_gM93rPlayerParasiteEnergyReleaseFamily2Animation,
+    &_gM93rPlayerParasiteEnergyChargeFamily2Animation,
+    &_gM93rPlayerParasiteEnergyCastFamily2Animation,
     NULL,
     NULL,
     NULL,
