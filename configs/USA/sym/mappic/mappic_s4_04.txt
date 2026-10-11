@@ -5,3 +5,7 @@ gMappicS404B2OperatingRoomShape = 0x8012F114;
 gMappicS404B2NorthMaintenanceWalkwayShape = 0x8012F1C0;
 gMappicS404B2LaboratoryShape = 0x8012F26C;
 gMappicS404B2BreedingRoomShape = 0x8012F318;
+gMappicS404B2MainCorridorShape = 0x8012F468;
+gMappicS404B2SepticTankShape = 0x8012F4F8;
+gMappicS404B2PodAccessTunnelShape = 0x8012F5F4;
+gMappicS404B2PodBottomShape = 0x8012F6BC;

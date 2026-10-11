@@ -563,10 +563,10 @@ gMappicS404B2OperatingRoomShape = 0x8012F114; // absolute:True owner=mappic_s4_0
 gMappicS404B2NorthMaintenanceWalkwayShape = 0x8012F1C0; // absolute:True owner=mappic_s4_04 shared=mappic
 gMappicS404B2LaboratoryShape = 0x8012F26C; // absolute:True owner=mappic_s4_04 shared=mappic
 gMappicS404B2BreedingRoomShape = 0x8012F318; // absolute:True owner=mappic_s4_04 shared=mappic
-D_mappic_s4_04_8012F468 = 0x8012F468; // absolute:True owner=mappic_s4_04
-D_mappic_s4_04_8012F4F8 = 0x8012F4F8; // absolute:True owner=mappic_s4_04
-D_mappic_s4_04_8012F5F4 = 0x8012F5F4; // absolute:True owner=mappic_s4_04
-D_mappic_s4_04_8012F6BC = 0x8012F6BC; // absolute:True owner=mappic_s4_04
+gMappicS404B2MainCorridorShape = 0x8012F468; // absolute:True owner=mappic_s4_04
+gMappicS404B2SepticTankShape = 0x8012F4F8; // absolute:True owner=mappic_s4_04
+gMappicS404B2PodAccessTunnelShape = 0x8012F5F4; // absolute:True owner=mappic_s4_04
+gMappicS404B2PodBottomShape = 0x8012F6BC; // absolute:True owner=mappic_s4_04
 gMappicS405DumpingHoleShape = 0x8012EFF0; // absolute:True owner=mappic_s4_05 shared=mappic
 gMappicS405GarbageIncineratorShape = 0x8012F14C; // absolute:True owner=mappic_s4_05
 gMappicS405IncineratorControlRoomShape = 0x8012F1F8; // absolute:True owner=mappic_s4_05

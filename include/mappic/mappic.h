@@ -737,13 +737,36 @@ extern TmdSource gMappicS404B2LaboratoryShape;
 /// loaded during use.
 extern TmdSource gMappicS404B2BreedingRoomShape;
 
-extern TmdSource D_mappic_s4_04_8012F468;
+/// Area fill for the B2 main corridor on page 4 of the Shelter map.
+///
+/// Sixteen vertices in the model X/Z plane form two triangles and six quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_04 loaded during use.
+extern TmdSource gMappicS404B2MainCorridorShape;
 
-extern TmdSource D_mappic_s4_04_8012F4F8;
+/// Area-fill quad for the B2 septic tank on page 4 of the Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_04 loaded during use.
+extern TmdSource gMappicS404B2SepticTankShape;
 
-extern TmdSource D_mappic_s4_04_8012F5F4;
+/// Area fill for the B2 pod access tunnel on page 4 of the Shelter map.
+///
+/// Ten vertices in the model X/Z plane form two triangles and three quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_04 loaded during use.
+extern TmdSource gMappicS404B2PodAccessTunnelShape;
 
-extern TmdSource D_mappic_s4_04_8012F6BC;
+/// B2 pod bottom's area fill shared by areas 22 and 48 on page 4 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane form three quads; the map scales
+/// them by 1495/4096 and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2PodBottomShape;
 
 // mappic_s4_05
 /// Dumping Hole's area-fill mesh on page 5 (B3) of the Mine/Shelter map.

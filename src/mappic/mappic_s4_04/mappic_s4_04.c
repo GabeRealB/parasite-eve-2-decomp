@@ -202,114 +202,134 @@ TmdSource gMappicS404B2BreedingRoomShape = {
     .stream           = _gMappicS404B2BreedingRoomShapeStream,
 };
 
-static TmdBone _gMappicS404Model004B4Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 main corridor area shape.
+static TmdBone _gMappicS404B2MainCorridorShapeSkeleton[] = {
 #include "assets/mappic_s4_04_model_004B4_skeleton.inc"
 };
 
-static u32 _gMappicS404Model004B4PartVerts[1] = {
+/// Vertex count of the B2 main corridor shape's sole part (16 vertices).
+static u32 _gMappicS404B2MainCorridorShapePartVerts[] = {
 #include "assets/mappic_s4_04_model_004B4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404Model004B4Verts[16] = {
+/// B2 main corridor fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2MainCorridorShapeVerts[] = {
 #include "assets/mappic_s4_04_model_004B4_verts.inc"
 };
 
-static u32 _gMappicS404Model004B4Stream[33] = {
+/// Two unlit TMD triangles and six quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2MainCorridorShapeStream[] = {
 #include "assets/mappic_s4_04_model_004B4_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F468 = {
-    0,
-    184,
-    0,
-    1,
-    _gMappicS404Model004B4PartVerts,
-    _gMappicS404Model004B4Verts,
-    &_gMappicS404Model004B4Verts[16],
-    _gMappicS404Model004B4Skeleton,
-    _gMappicS404Model004B4Stream,
+TmdSource gMappicS404B2MainCorridorShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 6 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2MainCorridorShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2MainCorridorShapePartVerts,
+    .verts            = _gMappicS404B2MainCorridorShapeVerts,
+    .normals          = &_gMappicS404B2MainCorridorShapeVerts[ARRAY_SIZE(_gMappicS404B2MainCorridorShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2MainCorridorShapeSkeleton,
+    .stream           = _gMappicS404B2MainCorridorShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS202Model00C48005C8Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 septic tank area shape.
+static TmdBone _gMappicS404B2SepticTankShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_005C8_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00C48005C8PartVerts[1] = {
+/// Vertex count of the B2 septic tank shape's sole part (4 vertices).
+static u32 _gMappicS404B2SepticTankShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_005C8_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS202Model00C48005C8Verts[4] = {
+/// B2 septic tank fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2SepticTankShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_005C8_verts.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00C48005C8Stream[9] = {
+/// One unlit TMD quad, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2SepticTankShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_005C8_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F4F8 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS404MappicS202Model00C48005C8PartVerts,
-    _gMappicS404MappicS202Model00C48005C8Verts,
-    &_gMappicS404MappicS202Model00C48005C8Verts[4],
-    _gMappicS404MappicS202Model00C48005C8Skeleton,
-    _gMappicS404MappicS202Model00C48005C8Stream,
+TmdSource gMappicS404B2SepticTankShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2SepticTankShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2SepticTankShapePartVerts,
+    .verts            = _gMappicS404B2SepticTankShapeVerts,
+    .normals          = &_gMappicS404B2SepticTankShapeVerts[ARRAY_SIZE(_gMappicS404B2SepticTankShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2SepticTankShapeSkeleton,
+    .stream           = _gMappicS404B2SepticTankShapeStream,
 };
 
-static TmdBone _gMappicS404Model00664Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 pod access tunnel area shape.
+static TmdBone _gMappicS404B2PodAccessTunnelShapeSkeleton[] = {
 #include "assets/mappic_s4_04_model_00664_skeleton.inc"
 };
 
-static u32 _gMappicS404Model00664PartVerts[1] = {
+/// Vertex count of the B2 pod access tunnel shape's sole part (10 vertices).
+static u32 _gMappicS404B2PodAccessTunnelShapePartVerts[] = {
 #include "assets/mappic_s4_04_model_00664_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404Model00664Verts[10] = {
+/// B2 pod access tunnel fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2PodAccessTunnelShapeVerts[] = {
 #include "assets/mappic_s4_04_model_00664_verts.inc"
 };
 
-static u32 _gMappicS404Model00664Stream[24] = {
+/// Two unlit TMD triangles and three quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2PodAccessTunnelShapeStream[] = {
 #include "assets/mappic_s4_04_model_00664_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F5F4 = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS404Model00664PartVerts,
-    _gMappicS404Model00664Verts,
-    &_gMappicS404Model00664Verts[10],
-    _gMappicS404Model00664Skeleton,
-    _gMappicS404Model00664Stream,
+TmdSource gMappicS404B2PodAccessTunnelShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2PodAccessTunnelShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2PodAccessTunnelShapePartVerts,
+    .verts            = _gMappicS404B2PodAccessTunnelShapeVerts,
+    .normals          = &_gMappicS404B2PodAccessTunnelShapeVerts[ARRAY_SIZE(_gMappicS404B2PodAccessTunnelShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2PodAccessTunnelShapeSkeleton,
+    .stream           = _gMappicS404B2PodAccessTunnelShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS202Model00CF80078CSkeleton[1] = {
+/// Identity transform and self-parented root for the B2 pod bottom area shape.
+static TmdBone _gMappicS404B2PodBottomShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00CF8_0078C_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00CF80078CPartVerts[1] = {
+/// Vertex count of the B2 pod bottom shape's sole part (8 vertices).
+static u32 _gMappicS404B2PodBottomShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_0078C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS202Model00CF80078CVerts[8] = {
+/// B2 pod bottom fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2PodBottomShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_0078C_verts.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00CF80078CStream[15] = {
+/// Three unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2PodBottomShapeStream[] = {
 #include "assets/mappic_s2_02_model_00CF8_0078C_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F6BC = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS404MappicS202Model00CF80078CPartVerts,
-    _gMappicS404MappicS202Model00CF80078CVerts,
-    &_gMappicS404MappicS202Model00CF80078CVerts[8],
-    _gMappicS404MappicS202Model00CF80078CSkeleton,
-    _gMappicS404MappicS202Model00CF80078CStream,
+TmdSource gMappicS404B2PodBottomShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2PodBottomShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2PodBottomShapePartVerts,
+    .verts            = _gMappicS404B2PodBottomShapeVerts,
+    .normals          = &_gMappicS404B2PodBottomShapeVerts[ARRAY_SIZE(_gMappicS404B2PodBottomShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2PodBottomShapeSkeleton,
+    .stream           = _gMappicS404B2PodBottomShapeStream,
 };
