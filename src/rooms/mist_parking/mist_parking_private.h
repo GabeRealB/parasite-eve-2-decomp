@@ -160,15 +160,48 @@ extern AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy;
 /// entry 0 and the three trailing zero bytes are not read by that task.
 extern s8 gMistParkingPlayerAnimationHeadAimFlags[28];
 
-extern EvsCommand D_mist_parking_8018DF34[155];
+/// Skippable arrival conversation between the player and Pierce in area variant 2.
+///
+/// Runs at the initial warp-3 entry: installs the player extension, stages
+/// the cutscene model and CAP slot 14 exchanges, then restores visibility,
+/// weapons, collision patch, head aim and the normal view. Ends by marking
+/// the intro complete. Use `gMistParkingArrivalSkipScript` as its skip target.
+/// END terminates the fixed command array. Commands, callbacks and payloads
+/// stay borrowed while EVS runs; actor animation/CAP resources must outlive playback.
+extern EvsCommand gMistParkingArrivalConversationScript[155];
 
-extern EvsCommand D_mist_parking_8018EDBC[23];
+/// Finishes arrival setup when the player skips the conversation.
+///
+/// Releases the cutscene model and head aim, restores the collision patch,
+/// places and shows the actors, restores weapons/control and marks the intro
+/// complete. Passed as the skip target of `gMistParkingArrivalConversationScript`.
+/// END terminates the fixed command array. Commands, callbacks and payloads
+/// stay borrowed while EVS runs; actor animation/CAP resources must outlive playback.
+extern EvsCommand gMistParkingArrivalSkipScript[23];
 
-extern EvsCommand D_mist_parking_8018EFE4[8];
+/// Places Pierce and Jodie for a non-warp-3 entry while the intro is pending.
+///
+/// Shows both actors, sends Pierce to his post-arrival position and leaves
+/// Jodie at the shop in body-bank clip 5. Does not mark the intro complete.
+/// END terminates the fixed command array. Commands, callbacks and payloads
+/// stay borrowed while EVS runs; actor animation/CAP resources must outlive playback.
+extern EvsCommand gMistParkingArrivalRoomEntryScript[8];
 
-extern EvsCommand D_mist_parking_8018F0A4[10];
+/// Plays Pierce's first post-arrival conversation before the departure menu.
+///
+/// Starts CAP command 15/key 0, player clip 64 and Pierce clip 8, then
+/// releases head aim, resumes player control and returns Pierce to clip 1.
+/// END terminates the fixed command array. Commands, callbacks and payloads
+/// stay borrowed while EVS runs; actor animation/CAP resources must outlive playback.
+extern EvsCommand gMistParkingFirstFollowupScript[10];
 
-extern EvsCommand D_mist_parking_8018F194[10];
+/// Plays Pierce's second post-arrival conversation before the departure menu.
+///
+/// Starts CAP command 15/key 1 with the same talk poses, then releases
+/// head aim, resumes player control and returns Pierce to clip 1.
+/// END terminates the fixed command array. Commands, callbacks and payloads
+/// stay borrowed while EVS runs; actor animation/CAP resources must outlive playback.
+extern EvsCommand gMistParkingSecondFollowupScript[10];
 
 /// Authored collision patch restored into the live room grid with Pierce's visibility.
 ///

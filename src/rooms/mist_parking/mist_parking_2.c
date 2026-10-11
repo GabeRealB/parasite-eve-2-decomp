@@ -14,6 +14,7 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/starter_inventory.h"
 
 #include "main/coord.h"
@@ -36,16 +37,6 @@
 
 #include "rooms/room_common.h"
 
-extern EvsCommand D_mist_parking_8018F374[];
-extern EvsCommand D_mist_parking_8018F4AC[];
-extern EvsCommand D_mist_parking_8018F5E4[];
-extern EvsCommand D_mist_parking_8018F824[];
-extern EvsCommand D_mist_parking_8018F9A4[];
-extern EvsCommand D_mist_parking_8018FA4C[];
-extern EvsCommand D_mist_parking_8018FB3C[];
-extern s32        D_mist_parking_8018FBFC[];
-extern s32        D_mist_parking_8018FC10[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _mistParkingWaitOptionDialogAnswer(Task* task);
 
@@ -53,9 +44,12 @@ static void _mistParkingIdleAttachedModelState(Task* unusedTask);
 static void _mistParkingOpenOptionDialog(Task* task);
 static void _mistParkingExitOptionDialogTask(Task* task);
 
-/// State handlers of the same shape for a task that attaches a model to a
-/// parent's part and then idles; nothing in the room reads this table.
-static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
+/// Unreferenced three-state recipe for attaching a child model to a parent part.
+///
+/// States 0..2 attach/reparent, idle, then kill the task; there is no terminator.
+/// Setup expects a live TMD child, spawnArg1's part index and spawnArg2's parent.
+/// The parent's model coordinates and lighting must outlive the child.
+static const TaskFuncTable3 _gMistParkingAttachedModelStates = {
     {
         _modelPlacementAttachPartTask,
         _mistParkingIdleAttachedModelState,
@@ -70,8 +64,6 @@ static const TaskFuncTable3 _gMistParkingOptionDialogStates = {
         _mistParkingExitOptionDialogTask,
     },
 };
-
-extern AnimationPlayRequest D_mist_parking_8018DEB0;
 
 static void _mistParkingJodiePrizeAndShopTalkTask(Task* task);
 static void _mistParkingDepartureMenuTask(Task* task);
@@ -178,6 +170,83 @@ enum {
     MIST_PARKING_PIERCE_COMMAND_SHOW_BILLBOARD = 0,
 };
 
+/// Stored bank seed and clip selectors of the unreferenced conversation requests.
+enum {
+    MIST_PARKING_PLAYER_REQUEST_BANK_SEED   = 1,
+    MIST_PARKING_PLAYER_ANIM_BASE_IDLE      = 1,
+    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_49 = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_58 = ANIMATION_BANK_BASE_SET_COUNT + 11,
+    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_62 = ANIMATION_BANK_BASE_SET_COUNT + 15,
+    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_65 = ANIMATION_BANK_BASE_SET_COUNT + 18,
+    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_69 = ANIMATION_BANK_BASE_SET_COUNT + 22,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_3  = 3,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_4  = 4,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_7  = 7,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_9  = 9,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_10 = 10,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_11 = 11,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_12 = 12,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_13 = 13,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_14 = 14,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_16 = 16,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_21 = 21,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_22 = 22,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_23 = 23,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_24 = 24,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_25 = 25,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_30 = 30,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_32 = 32,
+    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_35 = 35,
+};
+
+/// Jodie greeting clip and its whole-frame interpolation duration.
+enum {
+    MIST_PARKING_JODIE_ANIM_GREETING         = 7,
+    MIST_PARKING_JODIE_GREETING_BLEND_FRAMES = 10
+};
+
+/// Script targets, CAP slots, view selectors and the room's MIST stock profile.
+///
+/// WAIT_FRAMES delays below count interpreter updates; zero still yields once.
+enum {
+    MIST_PARKING_PIERCE_SCENE_PLACEMENT  = 0,
+    MIST_PARKING_JODIE_SCENE_PLACEMENT   = 1,
+    MIST_PARKING_SCENE_MODEL_HIDE        = 0,
+    MIST_PARKING_SCENE_MODEL_SHOW        = 1,
+    MIST_PARKING_CAP_ARRIVAL             = 14,
+    MIST_PARKING_CAP_DEPARTURE_MENU      = 5,
+    MIST_PARKING_VIEW_ARRIVAL            = 10,
+    MIST_PARKING_VIEW_POST_ARRIVAL       = 5,
+    MIST_PARKING_SHOP_STOCK_PROFILE      = 0x10,
+    MIST_PARKING_SHOP_POSE_DELAY_UPDATES = 20,
+    MIST_PARKING_SHOP_REPLY_END_UPDATES  = 30,
+    MIST_PARKING_DEPARTURE_MOVIE_NORMAL  = 0,
+    MIST_PARKING_FADE_BLEND_AVERAGE      = 0
+};
+
+/// Arrival sound ids: bank 0x5113, instance tag 0, and the named script entry.
+enum {
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_05  = 0x51130005,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_06  = 0x51130006,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_08  = 0x51130008,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0C  = 0x5113000C,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0D  = 0x5113000D,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0E  = 0x5113000E,
+    MIST_PARKING_ARRIVAL_SOUND_ENTRY_11  = 0x51130011,
+    MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL = 100
+};
+
+/// Catalogue ids and quantities awarded for the five shooting-gallery courses.
+enum {
+    MIST_PARKING_COURSE_PRIZE_9MM_HYDRA        = 0xA1,
+    MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION = 0x3D,
+    MIST_PARKING_COURSE_PRIZE_HUNTER_GOGGLES   = 0x3F,
+    MIST_PARKING_COURSE_PRIZE_LIPSTICK         = 0x0B,
+    MIST_PARKING_COURSE_PRIZE_SHOULDER_HOLSTER = 0x6C,
+    MIST_PARKING_COURSE_PRIZE_AMMO_ROUNDS      = 50,
+    MIST_PARKING_COURSE_PRIZE_ONE_ITEM         = 1
+};
+
 TaskDesc gMistParkingConversationTaskDescs[9] = {
     { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingModel09B9C } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingOptionDialogTask, { .value = 0 } },
@@ -224,7 +293,18 @@ static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
 
 AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy = { { .sets = _gMistParkingPlayerConversationAnimationSets }, ARRAY_SIZE(_gMistParkingPlayerConversationAnimationSets) };
 
-AnimationPlayRequest D_mist_parking_8018D834 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 1.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip1Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_BASE_IDLE,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets the player to extension clip 1 between arrival or shop dialogue phases.
 ///
@@ -238,7 +318,18 @@ static AnimationPlayRequest _gMistParkingPlayerConversationResetAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018D85C = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 49.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip49Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_49,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player extension clip 3 at its CAP cue during the arrival conversation.
 ///
@@ -336,7 +427,18 @@ static AnimationPlayRequest _gMistParkingPlayerArrivalClip57Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018D910 = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 58.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip58Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_58,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Restarts player extension clip 12 between arrival-conversation exchanges.
 ///
@@ -374,7 +476,18 @@ static AnimationPlayRequest _gMistParkingPlayerArrivalClip61Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018D960 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 62.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip62Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_62,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player extension clip 16 at its arrival-conversation cue.
 ///
@@ -400,7 +513,18 @@ static AnimationPlayRequest _gMistParkingPlayerTalkAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018D99C = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 65.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip65Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_65,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player extension clip 19 at its arrival-conversation cue.
 ///
@@ -438,7 +562,18 @@ static AnimationPlayRequest _gMistParkingPlayerStayOrGalleryReplyAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018D9EC = { { .index = 1 }, 69, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced player conversation request for clip 69.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPlayerClip69Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
+    .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_69,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player extension clip 23 near the arrival closing and the Dryfield departure reply.
 ///
@@ -525,7 +660,18 @@ static ActorTransform _gMistParkingPlayerArrivalClosingTransform = { .pos = { 43
 /// Placement consumes both vectors synchronously and retains no pointer.
 static ActorTransform _gMistParkingPlayerDeparturePromptTransform = { .pos = { 4560, 0, -4916, 0 }, .rot = { 0, 1630, 0, 0 } };
 
-AnimationPlayRequest D_mist_parking_8018DABC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced pierce conversation request for clip 1.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceResetRequest SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_PIERCE_ANIM_REST,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Returns Pierce to body-bank clip 1 between or after conversation exchanges.
 ///
@@ -539,10 +685,15 @@ static AnimationPlayRequest _gMistParkingPierceConversationRestAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DAE4[3] = {
-    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Unreferenced pierce conversation requests for clips 2, 3, 4.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip2To4Requests[3] SECTION(".data") = {
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_WALK, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_3, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_4, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Plays Pierce body-bank clip 5 during the departure-menu prompt.
@@ -569,7 +720,18 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClosingAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DB48 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced pierce conversation request for clip 7.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip7Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_7,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Plays Pierce's body-bank clip 8 for each follow-up conversation.
 ///
@@ -583,13 +745,18 @@ static AnimationPlayRequest _gMistParkingPierceFollowupTalkAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DB70[6] = {
-    { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Unreferenced pierce conversation requests for clips 9, 10, 11, 12, 13, 14.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip9To14Requests[6] SECTION(".data") = {
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_9, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_10, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_11, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_12, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_13, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_14, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Plays Pierce's body-bank clip 15 in each departure-menu reply.
@@ -604,7 +771,18 @@ static AnimationPlayRequest _gMistParkingPierceDepartureReplyAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DBFC = { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced pierce conversation request for clip 16.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip16Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_16,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Plays Pierce body-bank clip 17 at its arrival-conversation cue.
 ///
@@ -654,13 +832,18 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip20Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DC60[6] = {
-    { { .index = 0 }, 21, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 22, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 23, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 24, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 25, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 26, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Unreferenced pierce conversation requests for clips 21, 22, 23, 24, 25, 26.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip21To26Requests[6] SECTION(".data") = {
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_21, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_22, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_23, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_24, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_25, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_POST_ARRIVAL, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Plays Pierce body-bank clip 27 at its arrival-conversation cue.
@@ -699,7 +882,18 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip29Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DD14 = { { .index = 0 }, 30, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced pierce conversation request for clip 30.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip30Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_30,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Plays Pierce body-bank clip 31 at its arrival-conversation cue.
 ///
@@ -713,9 +907,14 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip31Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DD3C[2] = {
-    { { .index = 0 }, 32, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 33, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Unreferenced pierce conversation requests for clips 32, 33.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip32To33Requests[2] SECTION(".data") = {
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_32, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_ARRIVAL_TALK, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Plays Pierce body-bank clip 34 at its arrival-conversation cue.
@@ -730,7 +929,18 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip34Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DD78 = { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced pierce conversation request for clip 35.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedPierceClip35Request SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_35,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Pierce placement at arrival setup, before his body is shown.
 ///
@@ -813,7 +1023,18 @@ static ActorCommand _gMistParkingPierceReleaseHeadCommand = {
     .command = MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD,
 };
 
-AnimationPlayRequest D_mist_parking_8018DE24 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced jodie conversation request for clip 1.
+///
+/// Retained in the room image; no script or dispatcher selects this storage.
+/// Stores body-bank index 0; no visual gesture is inferred from the clip id.
+/// Blend durations are whole animation frames.
+static const AnimationPlayRequest _gMistParkingUnusedJodieResetRequest SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_JODIE_ANIM_TALK_OPENING,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays Jodie body-bank clip 1 before greeting and prize-choice dialogue.
 ///
@@ -847,7 +1068,18 @@ static AnimationPlayRequest _gMistParkingJodieConversationRestAnimation = {
 
 AnimationPlayRequest D_mist_parking_8018DE9C = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_8018DEB0 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Jodie's bank-0 clip-7 greeting pose after the talk's opening delay.
+///
+/// Scene placement 1 borrows the request synchronously. Slots blend for ten
+/// whole frames when already ticking; selecting the same clip preserves it.
+/// The receiver ignores the collision word. Its bank and clips must stay loaded.
+static const AnimationPlayRequest _gMistParkingJodieTalkGreetingAnimation SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_JODIE_ANIM_GREETING,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_PARKING_JODIE_GREETING_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Plays Jodie's body-bank clip 8 at the start of both shop-choice reply scripts.
 ///
@@ -901,157 +1133,161 @@ static u8* _gMistParkingOptionLabelPairs[2][2] = {
     { _gMistParkingOptionHaiLabel, _gMistParkingOptionNoLabel },
 };
 
-EvsCommand D_mist_parking_8018DF34[155] = {
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gMistParkingArrivalConversationScript[155] = {
+    // Establish the player bank and hidden/shown actor placements for arrival.
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL }, { .value = MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL }, { .value = MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalAndDepartureTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalStartTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingJodieShopTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceShowBillboardCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalStartTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingJodieShopTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceShowBillboardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_VIEW_ARRIVAL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MIST_PARKING_CAP_ARRIVAL }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // CAP cues bracket the temporary model and its sound.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSpawnCutsceneModel }, { .value = MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerCutsceneModelCueAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_05 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReleaseCutsceneModel }, { .value = MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalApproachTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip52Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .message = { .pointer = &_gMistParkingPierceArrivalTalkWalkClips } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .message = { .pointer = &_gMistParkingPierceArrivalTalkWalkClips } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_06 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip54Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip28Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip28Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5113000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_0C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x5113000C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_0C }, { .value = SOUND_SCRIPT_STOP_KEEP_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5113000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_0D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip34Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip34Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130011 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalTalkTransform } }, { .value = 0 } },
+    // Stage the main exchanges; CAP cues advance the conversation poses.
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalTalkResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip17Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip17Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_08 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip57Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceAimHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceAimHeadCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5113000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = MIST_PARKING_ARRIVAL_SOUND_ENTRY_0E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalTalkResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip66Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalCueAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip67Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip29Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip29Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip31Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip31Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip66Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip27Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip60Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip34Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip34Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip67Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalClosingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip19Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalTalkResetAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip67Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalClosingTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalClosingTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClosingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerDepartureReplyAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip71Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerConversationResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceArrivalClosingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerConversationResetAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip67Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerArrivalClip63Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_FORCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = MIST_PARKING_FADE_BLEND_AVERAGE }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Restore ordinary presentation before marking the intro complete.
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSetPierceCollisionPatchLowered }, { .value = MIST_PARKING_PIERCE_PATCH_RESTORED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_VIEW_POST_ARRIVAL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1059,24 +1295,24 @@ EvsCommand D_mist_parking_8018DF34[155] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018EDBC[23] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gMistParkingArrivalSkipScript[23] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = MIST_PARKING_FADE_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = MIST_PARKING_VIEW_POST_ARRIVAL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReleaseCutsceneModel }, { .value = MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSetPierceCollisionPatchLowered }, { .value = MIST_PARKING_PIERCE_PATCH_RESTORED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerArrivalTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1085,40 +1321,40 @@ EvsCommand D_mist_parking_8018EDBC[23] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018EFE4[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingJodieShopTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
+EvsCommand gMistParkingArrivalRoomEntryScript[8] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPierceArrivalTalkTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceHideBillboardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPiercePostArrivalTransform } }, { .message = { .pointer = &_gMistParkingPiercePostArrivalWalkClips } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingJodieShopTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F0A4[10] = {
+EvsCommand gMistParkingFirstFollowupScript[10] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_FIRST_FOLLOWUP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F194[10] = {
+EvsCommand gMistParkingSecondFollowupScript[10] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_SECOND_FOLLOWUP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1135,74 +1371,99 @@ EvsCommand D_mist_parking_8018F284[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F374[13] = {
+/// Presents Pierce's departure menu and its player/actor poses.
+///
+/// Installs the player extension, starts CAP slot 5 and yields at its cues.
+/// Leaves head aim and scripted control held for the selected reply.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingDeparturePromptScript[13] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceAimHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceAimHeadCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSelectDialogueResource }, { .value = MIST_PARKING_DIALOGUE_DEPARTURE_MENU }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MIST_PARKING_CAP_DEPARTURE_MENU }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingPlayerDeparturePromptTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDeparturePromptAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDeparturePromptAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F4AC[13] = {
+/// Plays the stay-here reply and restores the normal conversation view.
+///
+/// CAP command 5/key 1 accompanies player clip 68 and Pierce clip 15.
+/// Releases head aim and restores the default CAP resource; the caller resumes control.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingStayReplyScript[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_DEPARTURE_STAY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerStayOrGalleryReplyAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerStayOrGalleryReplyAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_VIEW_POST_ARRIVAL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSelectDialogueResource }, { .value = MIST_PARKING_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F5E4[24] = {
+/// Plays the Dryfield reply, walks both actors away and queues departure.
+///
+/// CAP command 5/key 2 accompanies the reply, followed by a fade, normal
+/// departure movie and the task that prepares the Dryfield loadout.
+/// The room and movie resources must survive the queued transition tasks.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingDryfieldDepartureScript[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_DEPARTURE_DRYFIELD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerDepartureReplyAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gMistParkingPlayerArrivalAndDepartureTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPierceDryfieldDepartureTarget } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gMistParkingPierceDryfieldDepartureTarget } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = MIST_PARKING_FADE_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingQueueDelayedDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = MIST_PARKING_SCENE_MODEL_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSelectDialogueResource }, { .value = MIST_PARKING_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartDepartureMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_HIDE_HUD }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartDepartureMovie }, { .value = MIST_PARKING_DEPARTURE_MOVIE_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingQueueDryfieldDeparture }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F824[16] = {
+/// Plays the shooting-gallery reply and queues the Acropolis area reload.
+///
+/// CAP command 5/key 3 accompanies the reply; after fading it releases head
+/// aim, queues the shooting-gallery entrance and restores the default CAP resource.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingShootingGalleryDepartureScript[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_DEPARTURE_SHOOTING_GALLERY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerStayOrGalleryReplyAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = MIST_PARKING_FADE_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1213,54 +1474,84 @@ EvsCommand D_mist_parking_8018F824[16] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F9A4[7] = {
+/// Stages Jodie's greeting and prize-dialogue poses outside variant 1.
+///
+/// Installs the player extension and resets its clip 48; Jodie at placement 1
+/// plays clip 1, then clip 7 after twenty interpreter-countdown updates.
+/// The caller starts the selected CAP command; this script yields at its cue.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingJodieTalkPoseScript[7] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerConversationResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieTalkOpeningAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_8018DEB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieTalkOpeningAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_SHOP_POSE_DELAY_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieTalkGreetingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018FA4C[10] = {
+/// Queues the MIST shop session and stages Jodie's reply and closing poses.
+///
+/// Stock profile 0x10 is requested before the player reset and Jodie clips 8/9.
+/// After the CAP cue and closing delay, Jodie returns to clip 5.
+/// Shop task completion belongs to the queued display session.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingJodieShopSessionScript[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = MIST_PARKING_SHOP_STOCK_PROFILE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_SHOP_POSE_DELAY_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerConversationResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyClosingAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_SHOP_REPLY_END_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018FB3C[8] = {
+/// Stages Jodie's reply and closing poses when the player declines the shop.
+///
+/// Resets the player extension clip 48, plays Jodie clips 8/9 around the CAP
+/// cue and returns her to clip 5 after the closing delay.
+/// END terminates the fixed command array. Commands, payloads, callbacks and
+/// animation/CAP resources remain borrowed while their script or playback runs.
+static EvsCommand _gMistParkingJodieShopDeclineScript[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerConversationResetAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyClosingAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieShopReplyClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_SHOP_REPLY_END_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_JODIE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingJodieConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_mist_parking_8018FBFC[5] = {
-    161,
-    61,
-    63,
-    11,
-    108,
+/// Item ids for shooting-gallery courses 0..4, paired with their quantities.
+///
+/// Courses 0..3 use these words for storage grants. Course 4's Shoulder Holster
+/// is retained here but granted separately after checking its ownership limit.
+/// Signed-word catalogue ids stay in the authored data section.
+static const s32 _gMistParkingCoursePrizeItemIds[5] SECTION(".data") = {
+    MIST_PARKING_COURSE_PRIZE_9MM_HYDRA,
+    MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION,
+    MIST_PARKING_COURSE_PRIZE_HUNTER_GOGGLES,
+    MIST_PARKING_COURSE_PRIZE_LIPSTICK,
+    MIST_PARKING_COURSE_PRIZE_SHOULDER_HOLSTER,
 };
 
-s32 D_mist_parking_8018FC10[5] = {
-    50,
-    1,
-    1,
-    1,
-    1,
+/// Item units per course prize: fifty Hydra rounds, then one of each item.
+///
+/// Same course order and extent as `_gMistParkingCoursePrizeItemIds`; only
+/// courses 0..3 read this array. The last quantity is retained metadata.
+/// Signed words match `inventoryGiveItem`'s quantity contract; storage stays in .data.
+static const s32 _gMistParkingCoursePrizeQuantities[ARRAY_SIZE(_gMistParkingCoursePrizeItemIds)] SECTION(".data") = {
+    MIST_PARKING_COURSE_PRIZE_AMMO_ROUNDS,
+    MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
+    MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
+    MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
+    MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
 };
 
 /// Advances one course prize's announcement while CAP is idle.
@@ -1295,7 +1586,7 @@ static inline void _mistParkingAdvancePrizeAnnouncement(Task* task, MistParkingP
     }
     announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
     announcement->prizeIndex++;
-    if (announcement->prizeIndex >= (s32)ARRAY_SIZE(D_mist_parking_8018FBFC)) {
+    if (announcement->prizeIndex >= (s32)ARRAY_SIZE(_gMistParkingCoursePrizeItemIds)) {
         task->state++;
     }
 }
@@ -1335,7 +1626,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
         MIST_PARKING_PRIZE_CAP_CLOSE_WITHOUT_ITEMS  = 8,
         MIST_PARKING_PRIZE_CAP_ITEMS_STORED         = 4,
         MIST_PARKING_PRIZE_CAP_END_ANNOUNCEMENTS    = 2,
-        MIST_PARKING_PRIZE_COUNT                    = ARRAY_SIZE(D_mist_parking_8018FBFC),
+        MIST_PARKING_PRIZE_COUNT                    = ARRAY_SIZE(_gMistParkingCoursePrizeItemIds),
         MIST_PARKING_PRIZE_STORAGE_RANGE            = 3,
         MIST_PARKING_PRIZE_SHOULDER_HOLSTER_ITEM_ID = 0x6C,
         MIST_PARKING_PRIZE_ARMOR_QUANTITY           = 1,
@@ -1349,7 +1640,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
     switch (task->state) {
         case MIST_PARKING_JODIE_TALK_GREET:
             memFillBytes(announcement, 0, sizeof(*announcement));
-            evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingJodieTalkPoseScript, EVENT_SCRIPT_HUD_KEEP);
             capRunCommand(MIST_PARKING_JODIE_CAP_GREETING, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
@@ -1370,7 +1661,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
             break;
         case MIST_PARKING_JODIE_TALK_START_PRIZE_PROMPT:
             mistParkingSelectDialogueResource(MIST_PARKING_DIALOGUE_PRIZES);
-            evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingJodieTalkPoseScript, EVENT_SCRIPT_HUD_KEEP);
             capRunCommand(MIST_PARKING_PRIZE_CAP_PROMPT, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
@@ -1394,7 +1685,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                             gameFlagSetNibble(prizeFlag, MIST_PARKING_PRIZE_CLOSED);
                         }
                     }
-                    evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingJodieTalkPoseScript, EVENT_SCRIPT_HUD_KEEP);
                     capRunCommand(MIST_PARKING_PRIZE_CAP_CLOSE_WITHOUT_ITEMS, CAP_PLAYBACK_IN_PLACE);
                     task->state = MIST_PARKING_JODIE_TALK_WAIT_PRIZE_CLOSING;
                     break;
@@ -1402,7 +1693,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                     // The final armor prize also checks its global ownership limit.
                     for (courseIndex = 0; courseIndex < MIST_PARKING_PRIZE_COUNT - 1; courseIndex++) {
                         prizeFlag = courseIndex + MIST_PARKING_PRIZE_FLAG_FIRST;
-                        if (gameFlagGetNibble(prizeFlag) == MIST_PARKING_PRIZE_WAITING && inventoryGiveItem(Gp_ScanPtrs[MIST_PARKING_PRIZE_STORAGE_RANGE], D_mist_parking_8018FBFC[courseIndex], D_mist_parking_8018FC10[courseIndex]) != 0) {
+                        if (gameFlagGetNibble(prizeFlag) == MIST_PARKING_PRIZE_WAITING && inventoryGiveItem(Gp_ScanPtrs[MIST_PARKING_PRIZE_STORAGE_RANGE], _gMistParkingCoursePrizeItemIds[courseIndex], _gMistParkingCoursePrizeQuantities[courseIndex]) != 0) {
                             gameFlagSetNibble(prizeFlag, MIST_PARKING_PRIZE_CLOSED);
                             areaSetCurrentObjectState(courseIndex + MIST_PARKING_PRIZE_OBJECT_FIRST, MIST_PARKING_PRIZE_OBJECT_COLLECTED);
                         }
@@ -1413,7 +1704,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                             areaSetCurrentObjectState(MIST_PARKING_PRIZE_OBJECT_FIRST + MIST_PARKING_PRIZE_COUNT - 1, MIST_PARKING_PRIZE_OBJECT_COLLECTED);
                         }
                     }
-                    evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingJodieTalkPoseScript, EVENT_SCRIPT_HUD_KEEP);
                     capRunCommand(MIST_PARKING_PRIZE_CAP_ITEMS_STORED, CAP_PLAYBACK_IN_PLACE);
                     task->state = MIST_PARKING_JODIE_TALK_WAIT_PRIZE_CLOSING;
                     break;
@@ -1427,7 +1718,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                 return;
             }
             if (capIsBusy() == 0) {
-                evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gMistParkingJodieTalkPoseScript, EVENT_SCRIPT_HUD_KEEP);
                 capRunCommand(MIST_PARKING_PRIZE_CAP_END_ANNOUNCEMENTS, CAP_PLAYBACK_IN_PLACE);
                 task->state++;
             }
@@ -1456,9 +1747,9 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                 return;
             }
             if (capGetVariantKey() == MIST_PARKING_JODIE_CHOICE_OPEN_SHOP) {
-                evsStartScript(D_mist_parking_8018FA4C, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gMistParkingJodieShopSessionScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                evsStartScript(D_mist_parking_8018FB3C, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gMistParkingJodieShopDeclineScript, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
@@ -1502,7 +1793,7 @@ static void _mistParkingDepartureMenuTask(Task* task)
 
     switch (task->state) {
         case MIST_PARKING_DEPARTURE_START:
-            evsStartScript(D_mist_parking_8018F374, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingDeparturePromptScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case MIST_PARKING_DEPARTURE_WAIT_PROMPT:
@@ -1518,13 +1809,13 @@ static void _mistParkingDepartureMenuTask(Task* task)
             task->spawnArg1.value = choiceKey;
             switch (choiceKey) {
                 case MIST_PARKING_DEPARTURE_STAY:
-                    evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingStayReplyScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case MIST_PARKING_DEPARTURE_DRYFIELD:
-                    evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingDryfieldDepartureScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case MIST_PARKING_DEPARTURE_SHOOTING_GALLERY:
-                    evsStartScript(D_mist_parking_8018F824, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingShootingGalleryDepartureScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;
@@ -1739,9 +2030,9 @@ void mistParkingContinueDepartureChoiceTask(Task* task)
 
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
         if (D_mist_parking_8019531C == MIST_PARKING_DEPARTURE_CHOICE_LEAVE) {
-            evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingDryfieldDepartureScript, EVENT_SCRIPT_HUD_KEEP);
         } else {
-            evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingStayReplyScript, EVENT_SCRIPT_HUD_KEEP);
         }
         taskKill(task);
     }
@@ -1758,9 +2049,9 @@ static void _mistParkingContinueShopChoiceTask(Task* task)
 
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
         if (D_mist_parking_8019531C == MIST_PARKING_SHOP_CHOICE_SKIP) {
-            evsStartScript(D_mist_parking_8018FB3C, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingJodieShopDeclineScript, EVENT_SCRIPT_HUD_KEEP);
         } else {
-            evsStartScript(D_mist_parking_8018FA4C, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingJodieShopSessionScript, EVENT_SCRIPT_HUD_KEEP);
         }
         taskKill(task);
     }

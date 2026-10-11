@@ -904,11 +904,11 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
             if (areaVariant == MIST_PARKING_FOLLOWUP_VARIANT) {
                 if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_COMPLETE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    evsStartScript(D_mist_parking_8018F0A4, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(gMistParkingFirstFollowupScript, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, MIST_PARKING_CONVERSATION_FIRST_FOLLOWUP_STARTED);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == areaVariant) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    evsStartScript(D_mist_parking_8018F194, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(gMistParkingSecondFollowupScript, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -1038,10 +1038,10 @@ static void _mistParkingInitializeRoomTask(Task* task)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_PARKING_ARRIVAL_TALK_OBJECTIVE);
             mistParkingResetCutsceneTaskHandles(0);
-            evsStartScriptWithSkip(D_mist_parking_8018DF34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_parking_8018EDBC);
+            evsStartScriptWithSkip(gMistParkingArrivalConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMistParkingArrivalSkipScript);
         } else {
             mistParkingForgetShopHeadAimTaskHandle(0);
-            evsStartScript(D_mist_parking_8018EFE4, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(gMistParkingArrivalRoomEntryScript, EVENT_SCRIPT_HUD_KEEP);
         }
     }
     task->state = task->state + 1;
