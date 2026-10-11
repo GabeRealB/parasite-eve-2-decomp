@@ -26,13 +26,31 @@
 
 #include "weapons/weapon.h"
 
-/// The PA3 and SP12 shotguns are this source built once each, and each declares
-/// these values in the manifest. `WEAPON_ID` is the weapon's index (0xD and
-/// 0xE), which keys the sound bank, the shot effect and the item.
-/// `PA3_FIELD_979` is the value `field_979` is primed with when the shot is
-/// armed.
-#if !defined(WEAPON_ID) || !defined(PA3_FIELD_979)
-#error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
+/// Weapon indices selecting this source's held model and player animation bank.
+#define PA3_WEAPON_INDEX_STANDARD 0xD
+#define PA3_WEAPON_INDEX_SP12     0xE
+
+/// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
+///
+/// Required integer preprocessor expression: 13 PA3 or 14 SP12. It selects
+/// assets, the firing/pump sound bank and the shotgun flash profile;
+/// `WEAPON_ITEM` converts it to the weapon item whose load is consumed.
+#ifndef WEAPON_INDEX
+#error "WEAPON_INDEX is a per-package build parameter"
+#elif WEAPON_INDEX != PA3_WEAPON_INDEX_STANDARD && WEAPON_INDEX != PA3_WEAPON_INDEX_SP12
+#error "WEAPON_INDEX must select a PA3 or SP12 build"
+#endif
+
+/// Recovery dispatch ticks before held action buttons may finish a shot early.
+///
+/// Required nonnegative integer preprocessor expression fitting s8: 32 PA3,
+/// 36 SP12. Seeds `attackCancelTicks` during preparation, but counts down only
+/// from impact through pump delay and recovery. Animation completion can end
+/// the attack before this countdown expires.
+#ifndef PA3_ATTACK_CANCEL_TICKS
+#error "PA3_ATTACK_CANCEL_TICKS is a per-package build parameter"
+#elif PA3_ATTACK_CANCEL_TICKS < 0 || PA3_ATTACK_CANCEL_TICKS > 127
+#error "PA3_ATTACK_CANCEL_TICKS must fit a nonnegative s8"
 #endif
 
 void pa3AttackState(Task* playerTask)
@@ -70,7 +88,7 @@ void pa3AttackState(Task* playerTask)
         case PA3_PHASE_PREPARE:
             actor->state             = PA3_PLAYER_ATTACK_STATE;
             actor->statePhase        = PA3_PHASE_WAIT_READY;
-            actor->attackCancelTicks = PA3_FIELD_979;
+            actor->attackCancelTicks = PA3_ATTACK_CANCEL_TICKS;
             actor->mode              = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex     = 0;
             actor->animationState    = 0;
@@ -99,12 +117,12 @@ void pa3AttackState(Task* playerTask)
         case PA3_PHASE_FIRE:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             worldCoordPlaySound(playerTask->extra.tmd->coords,
-                                ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIRE_SOUND_BASE | (WEAPON_ID << 16), 1);
+                                ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIRE_SOUND_BASE | (WEAPON_INDEX << 16), 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
-                        (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
+                        (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_INDEX, NULL);
             playerActorPlayChildSlotsWithBlend(playerTask, PA3_ANIMATION_PRIMARY, 1, 3);
             break;
         case PA3_PHASE_IMPACT:
@@ -118,7 +136,7 @@ void pa3AttackState(Task* playerTask)
                         impactCoord->workm.t[1] = actor->weaponContacts[0].point.vy;
                         impactCoord->workm.t[2] = actor->weaponContacts[0].point.vz;
                         worldCoordPlaySound(impactCoord,
-                                            ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIREFLY_CONTACT_SOUND_BASE | (WEAPON_ID << 16), 1);
+                                            ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIREFLY_CONTACT_SOUND_BASE | (WEAPON_INDEX << 16), 1);
                     }
                 } else if (gridImpact != 0) {
                     worldCoordPlaySound(impactCoord, PA3_IMPACT_SOUND, 1);
@@ -130,7 +148,7 @@ void pa3AttackState(Task* playerTask)
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 worldCoordPlaySound(playerTask->extra.tmd->coords,
-                                    ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_PUMP_SOUND_BASE | (WEAPON_ID << 16), 0);
+                                    ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_PUMP_SOUND_BASE | (WEAPON_INDEX << 16), 0);
             }
             /* fallthrough */
         case PA3_PHASE_RECOVER:
@@ -148,7 +166,7 @@ void pa3AttackState(Task* playerTask)
 }
 
 /* Each package carries its own model. */
-#if WEAPON_ID == 0xD
+#if WEAPON_INDEX == PA3_WEAPON_INDEX_STANDARD
 /// Identity local transform and self-parented root of the rigid held shotgun.
 ///
 /// Read-only asset arrays retain their serialized positions in .data.
@@ -191,7 +209,7 @@ TmdSource gPa3WeaponModel = {
     .skeleton            = _gPa3WeaponModelSkeleton,
     .stream              = _gPa3WeaponModelStream,
 };
-#elif WEAPON_ID == 0xE
+#elif WEAPON_INDEX == PA3_WEAPON_INDEX_SP12
 /// Initial identity transform and self-parented root of the rigid shotgun model.
 ///
 /// Read-only asset arrays retain their serialized positions in .data.
@@ -237,7 +255,7 @@ TmdSource gSp12Model = {
 #endif
 
 /* Each package carries its own animation bank. */
-#if WEAPON_ID == 0xD
+#if WEAPON_INDEX == PA3_WEAPON_INDEX_STANDARD
 static AnimationPackedPose _gPa3Animation009F8Bank1[2] = {
 #include "assets/pa3_animation_009F8_bank1.inc"
 };
@@ -1078,7 +1096,7 @@ AnimationBank gPa3PlayerAnimationBank = {
                    &_gPa3Animation09004,
                } },
 };
-#elif WEAPON_ID == 0xE
+#elif WEAPON_INDEX == PA3_WEAPON_INDEX_SP12
 /// Encoding-indexed banks used by the player clips below; all other banks are absent.
 enum {
     SP12_ANIMATION_TRANSLATION_ROTATION_BANK = 1,

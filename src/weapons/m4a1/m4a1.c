@@ -22,11 +22,13 @@
 
 #include "weapons/weapon.h"
 
-/// The weapon's index: 0x10 for the M4A1, 0x14 and 0x15 for its two upgrades.
-/// The three packages are this source built once each, and each declares its
-/// index in the manifest. It keys the firing sound, the shot effect and the item.
-#ifndef WEAPON_ID
-#error "WEAPON_ID is a per-package build parameter"
+/// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
+///
+/// Required integer preprocessor expression: 16 M4A1, 20 M4A1(+1), 21 M4A1(+2).
+/// Selects the firing sound bank and rifle-flash muzzle/casing profile;
+/// `WEAPON_ITEM` converts it to the weapon item whose load is consumed.
+#ifndef WEAPON_INDEX
+#error "WEAPON_INDEX is a per-package build parameter"
 #endif
 
 enum { M4A1_IMPACT_SOUND = SOUND_COMMON(0x17) };
@@ -127,14 +129,14 @@ void m4a1AttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_SHOT_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_FIRE_SOUND_BASE | (WEAPON_ID << 16), 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_FIRE_SOUND_BASE | (WEAPON_INDEX << 16), 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                WEAPON_ID, NULL);
+                                WEAPON_INDEX, NULL);
                     playerActorPlayChildSlotsWithBlend(playerTask, M4A1_ANIMATION_PRIMARY, 0, 2);
                     break;
                 }

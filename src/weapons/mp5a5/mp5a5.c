@@ -42,11 +42,14 @@
 
 #include "../../shared/muzzle_flash.h"
 
-/// The weapon's index: 0x1E for the MP5A5, 0x1F and 0x20 for its two upgrades.
-/// The three packages are this source built once each, and each declares its
-/// index in the manifest. It keys the firing sounds, the shot id and the item.
-#ifndef WEAPON_ID
-#error "WEAPON_ID is a per-package build parameter"
+/// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
+///
+/// Required integer preprocessor expression: 30 MP5A5, 31 MP5A5(+1), 32 MP5A5(+2).
+/// Occupies contact-key bits 8..15 and sound-bank bits 16..23, and selects the
+/// muzzle/casing profile. `WEAPON_ITEM` converts it to the weapon item whose
+/// primary or secondary load is consumed.
+#ifndef WEAPON_INDEX
+#error "WEAPON_INDEX is a per-package build parameter"
 #endif
 
 /// MP5A5 alternate-fire flash origin in integer weapon-root coordinates.
@@ -136,29 +139,29 @@ void mp5a5AttackState(Task* playerTask)
                     actor->statePhase                                     = MP5A5_PHASE_PRIMARY_IMPACT;
                     actor->stateTimer                                     = MP5A5_PRIMARY_SHOT_DELAY_FRAMES;
                     actor->attackControl.cooldownTicks                    = 0;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | WORLD_COLLISION_CONTACT_ATTACK | (WEAPON_ID << 8);
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | WORLD_COLLISION_CONTACT_ATTACK | (WEAPON_INDEX << 8);
                     weaponShape->end0Radius                               = weaponShape->end1Radius;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
                     playerActorSetWeaponAttackFlags(playerTask, 0, 1);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_PRIMARY_SOUND_BASE | (WEAPON_ID << 16), 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_PRIMARY_SOUND_BASE | (WEAPON_INDEX << 16), 1);
                     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                WEAPON_ID, NULL);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                                WEAPON_INDEX, NULL);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_PRIMARY, 0, 2);
                 } else {
                     actor->statePhase                                     = MP5A5_PHASE_SECONDARY_IMPACT;
                     actor->attackControl.cooldownTicks                    = MP5A5_SECONDARY_COOLDOWN_FRAMES;
                     actor->stateTimer                                     = MP5A5_SECONDARY_ACTIVE_FRAMES;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = MP5A5_SECONDARY_KEY_BASE | (WEAPON_ID << 8);
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = MP5A5_SECONDARY_KEY_BASE | (WEAPON_INDEX << 8);
                     weaponShape->end0Radius                               = MP5A5_SECONDARY_SPREAD_RADIUS;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                     playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SECONDARY_SOUND_BASE | (WEAPON_ID << 16), 0);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SECONDARY_SOUND_BASE | (WEAPON_INDEX << 16), 0);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                     flashWork = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
                                             actor->equipmentTasks[1]->extra.tmd->coords,
-                                            WEAPON_ID, NULL);
+                                            WEAPON_INDEX, NULL);
                     if (flashWork != NULL) {
                         taskReparent(actor->equipmentTasks[1], flashWork->task);
                     }

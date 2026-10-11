@@ -238,7 +238,7 @@ their last data byte. Establish the section layout separately for each image.
 **Several packages can be one source built with different parameters.** The
 MP5A5 and its two upgrades differ only in their weapon index; the M4A1, P08,
 shotgun and grenade families are the same. Such an entry lists its packages in
-`slots`, each with its own `id`, `label` and `defines` (`{ WEAPON_ID = 0x1F }`),
+`slots`, each with its own `id`, `label` and `defines` (`{ WEAPON_INDEX = 0x1F }`),
 and marks the code unit `variant = true`: the unit is then named per package,
 so each gets its own object, but all compile the entry's one source with that
 package's defines (`tools/splat_ext/variantsrc.py`). A slot may also carry its

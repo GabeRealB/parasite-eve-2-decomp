@@ -23,16 +23,54 @@
 
 #include "weapons/weapon.h"
 
-/// The P08, the P08 with the snail magazine and the Mongoose are this source
-/// built once each, and each declares these values in the manifest.
+/// Weapon indices selecting this source's held model and player animation bank.
+#define P08_WEAPON_INDEX_STANDARD 0x4
+#define P08_WEAPON_INDEX_SNAIL    0x1
+#define P08_WEAPON_INDEX_MONGOOSE 0x9
+
+/// Muzzle-offset and flash profiles passed to the gameplay flash controllers.
+enum {
+    P08_FLASH_PROFILE_HANDGUN  = 1,
+    P08_FLASH_PROFILE_MONGOOSE = 9,
+};
+
+/// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
 ///
-/// `WEAPON_ID` is the weapon's index (4, 1 and 9), which keys the firing sound
-/// and the item. `P08_FLASH_EFFECT` is the muzzle-flash effect spawned per shot
-/// and `P08_FLASH_WEAPON` the weapon index it is handed - 1 for both P08s, the
-/// Mongoose its own. `P08_FIELD_940` is what `field_940` is set to when the
-/// firing pose ends.
-#if !defined(WEAPON_ID) || !defined(P08_FLASH_EFFECT) || !defined(P08_FLASH_WEAPON) || !defined(P08_FIELD_940)
-#error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
+/// Required integer preprocessor expression: 4 P08, 1 snail-magazine P08 or
+/// 9 Mongoose. It selects assets and the firing sound bank; `WEAPON_ITEM`
+/// converts it to the weapon item whose load is consumed.
+#ifndef WEAPON_INDEX
+#error "WEAPON_INDEX is a per-package build parameter"
+#elif WEAPON_INDEX != P08_WEAPON_INDEX_STANDARD && WEAPON_INDEX != P08_WEAPON_INDEX_SNAIL && WEAPON_INDEX != P08_WEAPON_INDEX_MONGOOSE
+#error "WEAPON_INDEX must select a P08, snail-magazine P08 or Mongoose build"
+#endif
+
+/// Manifest-selected packed effect ID for the muzzle flash spawned per shot.
+///
+/// Required s32 constant expression from `effect_ids.h`: both P08 builds use
+/// `EFFECT_HANDGUN_MUZZLE_FLASH`; Mongoose uses `EFFECT_ACTOR_MUZZLE_FLASH`.
+#ifndef P08_MUZZLE_FLASH_EFFECT
+#error "P08_MUZZLE_FLASH_EFFECT is a per-package build parameter"
+#endif
+
+/// Manifest-selected muzzle-offset and flash profile for the chosen controller.
+///
+/// Required s32 constant expression: `P08_FLASH_PROFILE_HANDGUN` (1) for both
+/// P08 builds, or `P08_FLASH_PROFILE_MONGOOSE` (9). The ordinary P08's weapon
+/// index is 4, but it shares profile 1 with the snail-magazine P08.
+#ifndef P08_MUZZLE_FLASH_PROFILE
+#error "P08_MUZZLE_FLASH_PROFILE is a per-package build parameter"
+#endif
+
+/// Active player-actor ticks blocking another attack after firing recovery ends.
+///
+/// Required nonnegative integer preprocessor expression fitting s16: 12 for
+/// both P08 builds, 15 for Mongoose. Stored in `attackControl.cooldownTicks`;
+/// the actor tick decrements it before dispatch, and actor holds pause it.
+#ifndef P08_RECOVERY_COOLDOWN_TICKS
+#error "P08_RECOVERY_COOLDOWN_TICKS is a per-package build parameter"
+#elif P08_RECOVERY_COOLDOWN_TICKS < 0 || P08_RECOVERY_COOLDOWN_TICKS > 32767
+#error "P08_RECOVERY_COOLDOWN_TICKS must fit a nonnegative s16"
 #endif
 
 void p08AttackState(Task* playerTask)
@@ -86,11 +124,11 @@ void p08AttackState(Task* playerTask)
             actor->statePhase++;
             playerActorSetWeaponAttackFlags(playerTask, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-            worldCoordPlaySound(playerTask->extra.tmd->coords, P08_PRIMARY_SOUND_BASE | (WEAPON_ID << 16), 1);
-            effectSpawn(P08_FLASH_EFFECT,
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            worldCoordPlaySound(playerTask->extra.tmd->coords, P08_PRIMARY_SOUND_BASE | (WEAPON_INDEX << 16), 1);
+            effectSpawn(P08_MUZZLE_FLASH_EFFECT,
                         actor->equipmentTasks[1]->extra.tmd->coords,
-                        P08_FLASH_WEAPON, NULL);
+                        P08_MUZZLE_FLASH_PROFILE, NULL);
             playerActorResetChildSlots(playerTask, P08_ANIMATION_PRIMARY);
             break;
         case P08_PHASE_IMPACT:
@@ -106,7 +144,7 @@ void p08AttackState(Task* playerTask)
             }
             if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                actor->attackControl.cooldownTicks = P08_FIELD_940;
+                actor->attackControl.cooldownTicks = P08_RECOVERY_COOLDOWN_TICKS;
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;
@@ -115,7 +153,7 @@ void p08AttackState(Task* playerTask)
 }
 
 /* Each package carries its own model. */
-#if WEAPON_ID == 0x4
+#if WEAPON_INDEX == P08_WEAPON_INDEX_STANDARD
 /// Identity transform for the P08 model's self-parented root.
 static const TmdBone _gP08WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/p08_model_00440_skeleton.inc"
@@ -156,7 +194,7 @@ TmdSource gP08WeaponModel = {
     .stream              = _gP08WeaponModelStream,
 };
 STATIC_ASSERT(ARRAY_SIZE(_gP08WeaponModelPartVerts) == ARRAY_SIZE(_gP08WeaponModelSkeleton), p08_weapon_model_part_counts);
-#elif WEAPON_ID == 0x1
+#elif WEAPON_INDEX == P08_WEAPON_INDEX_SNAIL
 static TmdBone _gP08SnailP08Model00440Skeleton[1] = {
 #include "assets/p08_model_00440_skeleton.inc"
 };
@@ -188,7 +226,7 @@ TmdSource D_p08_snail_8011D924 = {
     _gP08SnailP08Model00440Skeleton,
     _gP08SnailP08Model00440Stream,
 };
-#elif WEAPON_ID == 0x9
+#elif WEAPON_INDEX == P08_WEAPON_INDEX_MONGOOSE
 /// Identity transform for the Mongoose model's self-parented root.
 static TmdBone _gMongooseModelSkeleton[] = {
 #include "assets/mongoose_model_00450_skeleton.inc"
@@ -232,7 +270,7 @@ STATIC_ASSERT(ARRAY_SIZE(_gMongooseModelPartVerts) == ARRAY_SIZE(_gMongooseModel
 #endif
 
 /* Each package carries its own animation bank. */
-#if WEAPON_ID == 0x4 || WEAPON_ID == 0x1
+#if WEAPON_INDEX == P08_WEAPON_INDEX_STANDARD || WEAPON_INDEX == P08_WEAPON_INDEX_SNAIL
 static AnimationPackedPose _gP08Animation00918Bank1[2] = {
 #include "assets/p08_animation_00918_bank1.inc"
 };
@@ -1073,7 +1111,7 @@ AnimationBank gP08PlayerAnimationBank = {
                    &_gP08Animation0A87C,
                } },
 };
-#elif WEAPON_ID == 0x9
+#elif WEAPON_INDEX == P08_WEAPON_INDEX_MONGOOSE
 /// Idle encoding-1 poses: local translations and 1/4096-turn Euler angles.
 static AnimationPackedPose _gMongooseIdleAnimationBank1[] = {
 #include "assets/mongoose_animation_00928_bank1.inc"

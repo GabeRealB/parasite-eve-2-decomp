@@ -30,7 +30,7 @@ extern TmdSource gM4a1RifleModel;
 ///
 /// Primary input selects three rounds; other input selects one. Shots are four
 /// dispatches apart, impacts resolve on the next dispatch, and recovery permits
-/// action-button cancellation after nine ticks. The package's `WEAPON_ID`
+/// action-button cancellation after nine ticks. The package's `WEAPON_INDEX`
 /// selects its item, sound bank and flash. Reserves an 80-byte impact node.
 ///
 /// Requires live player `GameActor` work, its model and initialized animation
@@ -40,7 +40,7 @@ extern TmdSource gM4a1RifleModel;
 /// ticks. Scratch reservations are released before returning.
 void m4a1AttackState(Task* playerTask);
 
-/// Upgrade-package aliases of `m4a1AttackState`, with their own `WEAPON_ID`.
+/// Upgrade-package aliases of `m4a1AttackState`, with their own `WEAPON_INDEX`.
 void func_m4a1_p1_8011D1C4(Task* arg0);
 void func_m4a1_p2_8011D1C4(Task* arg0);
 

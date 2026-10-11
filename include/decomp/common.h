@@ -96,10 +96,18 @@
     extern __typeof__(orig) alias;                                                                 \
     __asm__(".globl " #alias "\n" #alias " = " #orig)
 
-/// The aliases the overlay manifest declares for the package being built
-/// (`aliases` on its slot), as `DEFINE_ALIAS` statements. A source several
-/// packages are built from ends with this, so each package exports the shared
-/// definitions under the names the resident images call that package's by.
+/// Extra export declarations for the package's shared-source definitions.
+///
+/// The build replaces this with a run of `DEFINE_ALIAS(original, alias);`
+/// declarations generated from the slot's `aliases` table. Expand it once at
+/// file scope, after the definitions, in the translation unit defining them.
+/// Names must be literal identifiers: `DEFINE_ALIAS` stringifies them without
+/// expanding identifier macros. Each alias retains the original C type and
+/// address; the expansion adds symbol names and no runtime code or storage.
+///
+/// Without aliases the expansion is empty. An explicit empty manifest value
+/// also marks variant units that still need separate per-package compilation;
+/// the build replaces it when that slot supplies an `aliases` table.
 #ifndef PACKAGE_ALIASES
 #define PACKAGE_ALIASES
 #endif

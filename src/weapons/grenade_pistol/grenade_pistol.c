@@ -47,13 +47,23 @@ static u8        _gGrenadeShellInitialFlightDivisors[4];
 static void _grenadeShellExit(Task* task);
 static void _grenadeShellSpawn(Task* task);
 
-#define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
+#define GRENADE_WEAPON (0xB + GRENADE_PISTOL_VARIANT)
 
-/// Which weapon this build is: 0 for the Grenade Pistol, 1 for the MM1. The two
-/// packages are this source built once each, and each declares its variant in
-/// the manifest. Both carry the other's row of the per-projectile tables.
-#ifndef GRENADE_VARIANT
-#error "GRENADE_VARIANT is a per-package build parameter"
+/// Build selectors for the two packages sharing the Grenade Pistol source.
+#define GRENADE_PISTOL_VARIANT_PISTOL 0
+#define GRENADE_PISTOL_VARIANT_MM1    1
+
+/// Manifest-selected launcher build and projectile launch-tuning row.
+///
+/// Required integer preprocessor expression: 0 Grenade Pistol or 1 MM1.
+/// Selects held/shell models and the player animation bank, derives weapon
+/// index 11/12 and projectile launcher index 1/2, and occupies spawn bits 16..19
+/// to select muzzle offsets and the initial flight divisor. Both packages
+/// retain both tuning rows for the shared projectile implementation.
+#ifndef GRENADE_PISTOL_VARIANT
+#error "GRENADE_PISTOL_VARIANT is a per-package build parameter"
+#elif GRENADE_PISTOL_VARIANT != GRENADE_PISTOL_VARIANT_PISTOL && GRENADE_PISTOL_VARIANT != GRENADE_PISTOL_VARIANT_MM1
+#error "GRENADE_PISTOL_VARIANT must select a Grenade Pistol or MM1 build"
 #endif
 
 void grenadePistolAttackState(Task* playerTask)
@@ -106,8 +116,8 @@ void grenadePistolAttackState(Task* playerTask)
                         NULL);
             equipmentConsumeWeaponLoad(WEAPON_ITEM(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             // Both the projectile package and its launch-tuning row follow this build.
-            playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_VARIANT,
-                                              gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
+            playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_PISTOL_VARIANT,
+                                              gPlayerStatus.weaponSlotItem | (GRENADE_PISTOL_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
             playerActorPlayChildSlotsWithBlend(playerTask, GRENADE_PISTOL_ANIMATION_FIRE, 0, GRENADE_PISTOL_FIRE_BLEND_FRAMES);
             break;
         case GRENADE_PISTOL_PHASE_RECOVER:
@@ -151,7 +161,7 @@ void grenadePistolShellTask(Task* task)
 }
 
 /* Each package carries its own model. */
-#if GRENADE_VARIANT == 0
+#if GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_PISTOL
 /// Identity rest transform and self-parented root copied into each held weapon.
 static const TmdBone _gGrenadePistolWeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_00CDC_skeleton.inc"
@@ -191,7 +201,7 @@ TmdSource gGrenadePistolWeaponModel = {
     .skeleton            = _gGrenadePistolWeaponModelSkeleton,
     .stream              = _gGrenadePistolWeaponModelStream,
 };
-#elif GRENADE_VARIANT == 1
+#elif GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_MM1
 /// Identity rest transform and self-parented root copied into each held MM1.
 static const TmdBone _gMm1WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_00DD4_skeleton.inc"
@@ -234,7 +244,7 @@ TmdSource gMm1WeaponModel = {
 #endif
 
 /* Each package carries its own animation bank. */
-#if GRENADE_VARIANT == 0
+#if GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_PISTOL
 static AnimationPackedPose _gGrenadePistolAnimation01280Bank1[2] = {
 #include "assets/grenade_pistol_animation_01280_bank1.inc"
 };
@@ -1081,7 +1091,7 @@ AnimationBank gGrenadePistolPlayerAnimationBank = {
         },
     },
 };
-#elif GRENADE_VARIANT == 1
+#elif GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_MM1
 enum {
     MM1_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
     MM1_ANIMATION_PACKED_ROTATION_BANK      = 4
@@ -2535,7 +2545,7 @@ static const u16 _gGrenadeShellBlastRadii[4] __attribute__((section(".data"))) =
 static u8 _gGrenadeShellInitialFlightDivisors[4] = { 12, 8, 0, 0 };
 
 /* Each package carries its own shell model. */
-#if GRENADE_VARIANT == 0
+#if GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_PISTOL
 /// Identity rest transform and self-parented root copied into each projectile.
 static const TmdBone _gGrenadePistolShellModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_0E324_skeleton.inc"
@@ -2575,7 +2585,7 @@ TmdSource gGrenadePistolShellModel = {
     .skeleton            = _gGrenadePistolShellModelSkeleton,
     .stream              = _gGrenadePistolShellModelStream,
 };
-#elif GRENADE_VARIANT == 1
+#elif GRENADE_PISTOL_VARIANT == GRENADE_PISTOL_VARIANT_MM1
 /// Identity rest transform and self-parented root copied into each MM1 shell.
 static const TmdBone _gMm1ShellModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_101C4_skeleton.inc"
