@@ -638,17 +638,47 @@ extern TmdSource gMappicS403B1ArmoryShape;
 /// vertices and first stream group; keep mappic_s4_03 loaded during use.
 extern TmdSource gMappicS403B1SleepingQuartersShape;
 
-extern TmdSource D_mappic_s4_03_8012F3F8;
+/// B1 main corridor's two-triangle, two-quad area fill on page 3 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1MainCorridorShape;
 
-extern TmdSource D_mappic_s4_03_8012F488;
+/// B1 sterilization room's area-fill quad on page 3 of the Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1SterilizationRoomShape;
 
-extern TmdSource D_mappic_s4_03_8012F584;
+/// B1 pod access tunnel's two-triangle, three-quad area fill on page 3 of the Shelter map.
+///
+/// Ten vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1PodAccessTunnelShape;
 
-extern TmdSource D_mappic_s4_03_8012F664;
+/// B1 control room's two-triangle, two-quad area fill on page 3 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1ControlRoomShape;
 
-extern TmdSource D_mappic_s4_03_8012F710;
+/// B1 access tunnel's two-quad area fill on page 3 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1AccessTunnelShape;
 
-extern TmdSource D_mappic_s4_03_8012F7F0;
+/// B1 underground parking's two-triangle, two-quad area fill on page 3 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1UndergroundParkingShape;
 
 extern TmdSource D_mappic_s4_03_8012F8D0;
 
