@@ -121,16 +121,6 @@ typedef struct {
 } _Actor311500Work;
 STATIC_ASSERT_SIZEOF(_Actor311500Work, 0x4D8);
 
-extern EnemyParams   D_actor_311500_801692C0;
-extern AnimationSet* D_actor_311500_801692F4[2];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_311500_80169330[1];
-
-extern SVECTOR                D_actor_311500_801692FC[1];
-extern SVECTOR                D_actor_311500_80169304[4];
-extern WorldCollisionGridFace D_actor_311500_80169324[1];
-
 static AnimationSet _gActor311500Animation07188;
 static AnimationSet _gActor311500Animation07470;
 static TmdSource    _gActor311500StrangerBody;
@@ -213,14 +203,36 @@ static AnimationSet _gActor311500Animation07470 = {
     { NULL, _gActor311500Animation07470Bank1, NULL, NULL, _gActor311500Animation07470Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_311500_801692B8[2] = {
-    { 18, 7 },
-    { 18, 0 },
+enum { ACTOR_311500_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Retained attack rows of the fire-escape Stranger, borrowed by its parameters.
+///
+/// Both rows carry base damage 18: row 0 selects spark-and-puffs presentation
+/// and row 1 the ordinary reaction, without status effects. No recovered
+/// actor behavior packs either row into an outgoing collision key.
+static DamageAttack _gActor311500StrangerAttacks[2] = {
+    { 18, ACTOR_311500_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_311500_801692C0 = { D_actor_311500_801692B8, 30, 42, 82, 4, 250, 0, 100, 0 };
+/// Health, rewards and hit-reaction parameters of the fire-escape Stranger.
+///
+/// The live enemy borrows this record and its attacks. Nominal maximum health
+/// is 30, although initialization separately assigns 50 current HP. Rewards
+/// are 42 experience, 82 battle points and 4 magic points; critical chance is
+/// 250 percent. Buildup steps and damage-over-time pulse count remain zero.
+static EnemyParams _gActor311500StrangerParams = {
+    .attacks              = _gActor311500StrangerAttacks,
+    .hpMax                = 30,
+    .exp                  = 42,
+    .bp                   = 82,
+    .mp                   = 4,
+    .critChance           = 250,
+    .damageOverTimeChance = 100,
+};
 
-u16 D_actor_311500_801692D0[18] = {
+/// Retained eighteen-halfword block with no recovered consumer; its role is unproven.
+static u16 D_actor_311500_801692D0[18] = {
     20,
     900,
     12,
@@ -241,24 +253,46 @@ u16 D_actor_311500_801692D0[18] = {
     0,
 };
 
-AnimationSet* D_actor_311500_801692F4[2] = {
-    &_gActor311500Animation07470,
-    &_gActor311500Animation07188,
+/// Fire-escape Stranger's two body clips, indexed by `ACTOR_311500_ANIMATION_*`.
+///
+/// Slot 0 is the idle clip and slot 1 the hit reaction. Live rigs borrow this
+/// table and both sets until task teardown; no null terminator is required.
+static AnimationSet* _gActor311500StrangerAnimationSets[2] = {
+    [ACTOR_311500_ANIMATION_IDLE] = &_gActor311500Animation07470,
+    [ACTOR_311500_ANIMATION_HIT]  = &_gActor311500Animation07188,
 };
 
-SVECTOR D_actor_311500_801692FC[1] = {
+/// Barrier patch's single Q12 +Z normal, copied into the fire-escape grid.
+///
+/// Initialization replaces normal 0; a killing hit clears that complete live
+/// normal together with the barrier's vertices and face. This template stays intact.
+static SVECTOR _gActor311500BarrierPatchNormals[1] = {
 #include "assets/actor_311500_collision_074DC.inc"
 };
 
-SVECTOR D_actor_311500_80169304[4] = {
+/// Barrier patch's four room-coordinate vertices, copied into grid vertices 0..3.
+///
+/// They span X 1000..3000 and Y -300..0 at Z -1000. A killing hit clears the
+/// complete four-vertex prefix; the template and remaining grid geometry stay intact.
+static SVECTOR _gActor311500BarrierPatchVerts[4] = {
 #include "assets/actor_311500_collision_074E4.inc"
 };
 
-WorldCollisionGridFace D_actor_311500_80169324[1] = {
+/// Barrier patch's one quad, copied into fire-escape grid face 0.
+///
+/// Uses vertices 0..3, normal 0 and surface class 6. A killing hit clears the
+/// complete live face; all twelve bytes are transferred together.
+static WorldCollisionGridFace _gActor311500BarrierPatchFaces[1] = {
 #include "assets/actor_311500_collision_07504.inc"
 };
 
-TaskMessageEntry D_actor_311500_80169330[1] = {
+/// Fire-escape Stranger's sole supported message, `ACTOR_MESSAGE_IS_PRESENT`.
+///
+/// Borrowed by the live task and has no end marker: send only this ID. The
+/// first payload is ignored; the second must point to one writable u32, also
+/// receiving the returned presence flag (1 live, 0 once a killing hit lands).
+/// Existing room queries pass zero instead; their valid output backing is unproven.
+static TaskMessageEntry _gActor311500StrangerMessages[1] = {
     { ACTOR_MESSAGE_IS_PRESENT, _actor311500IsPresentMessage },
 };
 
@@ -367,7 +401,7 @@ static void _actor311500Init(Task* actorTask)
     model->lightMtx = &work->lightMtx;
     model->colorMtx = &work->colorMtx;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, D_actor_311500_801692F4, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor311500StrangerAnimationSets, model, work->rig.poses,
                          &work->rig.slots[0]);
     work->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->playerCoordMtx = gPlayerStatus.coordMtx;
@@ -385,7 +419,7 @@ static void _actor311500Init(Task* actorTask)
     enemy->hp                      = ACTOR_311500_INITIAL_HP;
     enemy->node.state.parts.flags  = 0;
     enemy->reactionFlags           = 0;
-    enemy->param                   = &D_actor_311500_801692C0;
+    enemy->param                   = &_gActor311500StrangerParams;
     work->hitBody.coord            = &actorTask->extra.tmd->coords[ACTOR_311500_BODY_PART];
     work->hitBody.context.contacts = &work->hitContacts[0];
     work->hitBody.pos.vx           = 0;
@@ -398,7 +432,7 @@ static void _actor311500Init(Task* actorTask)
     work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(&work->hitContacts[0], ARRAY_SIZE(work->hitContacts), 0);
     enemy->recs         = &work->hitContacts[0];
-    actorTask->msgTable = D_actor_311500_80169330;
+    actorTask->msgTable = _gActor311500StrangerMessages;
     work->present       = 1;
     placement           = areaGetVariant(&gGameSession->location.loc)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_311500_PLACEMENT_ID) {
@@ -732,9 +766,9 @@ static void _actor311500Task(Task* actorTask)
             switch (actorTask->state) {
                 case ACTOR_311500_PHASE_INIT:
                     // Install the opening barrier patch into the loaded fire-escape grid.
-                    memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollisionGridVerts, sizeof(D_actor_311500_80169304));
-                    memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollisionGridNormals, sizeof(D_actor_311500_801692FC));
-                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollisionGridFaces, sizeof(D_actor_311500_80169324));
+                    memCopyBytes(_gActor311500BarrierPatchVerts, gAcropolisFireEscapeCollisionGridVerts, sizeof(_gActor311500BarrierPatchVerts));
+                    memCopyBytes(_gActor311500BarrierPatchNormals, gAcropolisFireEscapeCollisionGridNormals, sizeof(_gActor311500BarrierPatchNormals));
+                    memCopyBytes(_gActor311500BarrierPatchFaces, gAcropolisFireEscapeCollisionGridFaces, sizeof(_gActor311500BarrierPatchFaces));
                     _actor311500Init(actorTask);
                     work = actorTask->work;
                     _actor311500TickAnim(actorTask);
@@ -764,9 +798,9 @@ static void _actor311500Task(Task* actorTask)
                         break;
                     }
                     if ((s16)_actor311500TickHitReaction(actorTask) < ACTOR_311500_HIT_REACTION_PLAYING) {
-                        memFillBytes(gAcropolisFireEscapeCollisionGridVerts, 0, sizeof(D_actor_311500_80169304));
-                        memFillBytes(gAcropolisFireEscapeCollisionGridNormals, 0, sizeof(D_actor_311500_801692FC));
-                        memFillBytes(gAcropolisFireEscapeCollisionGridFaces, 0, sizeof(D_actor_311500_80169324));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridVerts, 0, sizeof(_gActor311500BarrierPatchVerts));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridNormals, 0, sizeof(_gActor311500BarrierPatchNormals));
+                        memFillBytes(gAcropolisFireEscapeCollisionGridFaces, 0, sizeof(_gActor311500BarrierPatchFaces));
                         work->present     = 0;
                         work->step        = ACTOR_311500_DEATH_STEP_CRY;
                         actorTask->state += 1;

@@ -86,15 +86,6 @@ STATIC_ASSERT_SIZEOF(_Actor210600Work, 0x8D8);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// Animation source the spawn body starts the work block's animation context
-/// from.
-extern u8 D_actor_210600_8015A4B4[];
-
-/// Message table the spawn body publishes as `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_210600_8015A4CC[4];
-
 /// Integer part of the last movement step `func_actor_210600_8014A9D0`
 /// applied.
 static SVECTOR ActorContact_ScratchPosition;
@@ -212,34 +203,25 @@ static AnimationSet _gActor210600Animation10650 = {
 /// only requests clip 1 with RESET, so its retained BLEND path is not selected.
 static s8 _gActor210600AnimationBlendFrames[5][5] = { 0 };
 
-u8 D_actor_210600_8015A4B4[24] = {
-    0,
-    0,
-    0,
-    0,
-    112,
-    164,
-    21,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Grinning Stranger body bank, with its sole playable clip in slot 1.
+///
+/// Slots 0 and 2..5 are empty. The body rig borrows this six-pointer table
+/// and its clip data for the task lifetime; the package must stay loaded.
+static AnimationSet* _gActor210600GrinningStrangerAnimationSets[6] = {
+    NULL,
+    &_gActor210600Animation10650,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
 
-TaskMessageEntry D_actor_210600_8015A4CC[4] = {
+/// Grinning Stranger draw, placement and room-command message handlers.
+///
+/// Borrowed by the live body task. The final end marker permits unknown IDs
+/// to return zero. Payloads are a draw-mode word, ActorTransform pointer or
+/// ActorCommand pointer respectively; the second payload is unused.
+static TaskMessageEntry _gActor210600GrinningStrangerMessages[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210600SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor210600ApplyCommand },
@@ -592,12 +574,11 @@ static void _actor210600Spawn(Enemy* enemy, Task* task)
     enemy->field_4D               = 0;
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
-    // The byte-declared bank is consumed as an animation-set pointer table.
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_210600_8015A4B4, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor210600GrinningStrangerAnimationSets, model, work->rig.poses, work->rig.slots);
     work->animRequest = ACTOR_210600_ANIM_REQUEST_RESET;
     work->animId      = ACTOR_210600_INITIAL_ANIMATION_SET;
     _actor210600DriveAnimation(task);
-    task->msgTable          = D_actor_210600_8015A4CC;
+    task->msgTable          = _gActor210600GrinningStrangerMessages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);

@@ -2,7 +2,7 @@
 
 // Referenced in another actor load slot, resident beside this one.
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
-D_actor_206100_80155134 = 0x80155134; // size:0x60 defined:True
+_gActor206100BogDiverPlacements = 0x80155134; // size:0x60 defined:True
 _gActor206100SeaDiverShotAttack = 0x80155194; // size:0x4 defined:True
 _gActor206100SeaDiverParams = 0x80155198; // size:0x10 defined:True
 _gActor206100DiverEnergyBall = 0x80155110; // size:0x24 defined:True
@@ -97,7 +97,7 @@ _gActor206100Animation0ECA8Bank4 = 0x80158664; // size:0x1B0 defined:True
 _gActor206100Animation0ECA8Records = 0x80158814; // size:0x294 defined:True
 _gActor206100Animation0ECA8Indices = 0x80158AA8; // size:0x20 defined:True
 _gActor206100Animation0ECA8 = 0x80158AC8; // size:0x28 defined:True
-D_actor_206100_80158AF0 = 0x80158AF0; // size:0x18 defined:True
+_gActor206100EntranceWaveTaskDescriptors = 0x80158AF0; // size:0x18 defined:True
 _gScreenWaveAmplitude = 0x80158B08; // size:0x4 defined:True
 gActor206100SeaDiverTaskDescriptors = 0x80158B0C; // size:0x18 defined:True
 _gActor206100SeaDiverAnimationSets = 0x80158B24; // size:0x44 defined:True

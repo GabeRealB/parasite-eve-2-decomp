@@ -70,14 +70,6 @@
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// Placement records `_actor206100SpawnBogDiver` parks at `Enemy::place`
-/// -- the same slot `areaSpawnPlacements` fills from a room's own place list, so this
-/// is a local six-entry copy of one: `field_0` is 4 on the five live entries
-/// and 0xFF on the sixth, the value `areaSpawnPlacements` stops its walk on.  The
-/// overlay indexes it with the variant it was spawned for rather than walking
-/// it, so the tail entry is reachable.
-extern AreaPlacement D_actor_206100_80155134[];
-
 /// Frames a Bog Diver slot stays empty after the diver in it has died.
 #define ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN 0xB4
 
@@ -275,10 +267,6 @@ typedef struct {
     s32                   burstSize;   // size of the burst's spark and spray: `ACTOR_206100_SHOT_BURST_SIZE_STEP` at launch, growing by as much a frame up to `ACTOR_206100_SHOT_BURST_SIZE_MAX`
 } _Actor206100ShotWork;
 STATIC_ASSERT_SIZEOF(_Actor206100ShotWork, 0x68);
-
-/// Child task `_actor206100EntranceRelocateTick` starts with its wave context as its
-/// spawn arg.  Its callback is `_screenWaveTask`.
-extern TaskDesc D_actor_206100_80158AF0[];
 
 static void _actor206100InitEnemy(Task* task);
 
@@ -601,13 +589,21 @@ static TmdSource _gActor206100DiverEnergyBall = {
     _gActor206100DiverEnergyBallStream,
 };
 
-AreaPlacement D_actor_206100_80155134[6] = {
-    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 },
-    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 },
-    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7 },
-    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+enum { ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY = 4 };
+
+/// Borrowed placement records for the five Bog Divers summoned by the Sea Diver.
+///
+/// Summon indices 0..4 select resource entry 4 and shot-speed rows 0, 2, 5, 7
+/// and 0: forward spans 190, 210, 250, 290 and 190 game units per tick before
+/// the head's basis transforms them into velocity. The sixth record terminates
+/// an area-placement walk. Each enemy borrows its record for its lifetime.
+static AreaPlacement _gActor206100BogDiverPlacements[6] = {
+    { .entryId = ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY },
+    { .entryId = ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY, .rowIndex = 2 },
+    { .entryId = ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY, .rowIndex = 5 },
+    { .entryId = ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY, .rowIndex = 7 },
+    { .entryId = ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 enum { ACTOR_206100_SHOT_PLAYER_REACTION = 5 };
@@ -856,8 +852,14 @@ static AnimationSet _gActor206100Animation0ECA8 = {
     { NULL, _gActor206100Animation0ECA8Bank1, NULL, NULL, _gActor206100Animation0ECA8Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_206100_80158AF0[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+enum { ACTOR_206100_ENTRANCE_WAVE_TASK_PRIORITY = 192 };
+
+/// Screen distortion task used during the Sea Diver's entrance relocation.
+///
+/// Descriptor 0 has no body and borrows the entrance wave context until the
+/// task ends; descriptor 1 terminates the recipe table. Priority is 192.
+static TaskDesc _gActor206100EntranceWaveTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, ACTOR_206100_ENTRANCE_WAVE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1974,7 +1976,7 @@ static void _actor206100EntranceRelocateTick(Task* task)
         _gActor206100EntranceWaveContext.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
         _gActor206100EntranceWaveContext.g               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
         _gActor206100EntranceWaveContext.b               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
-        work->waveTask                                   = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &_gActor206100EntranceWaveContext);
+        work->waveTask                                   = taskSpawnFromTable(_gActor206100EntranceWaveTaskDescriptors, 0, 0, &_gActor206100EntranceWaveContext);
     }
 }
 /// Moves the Sea Diver out of the entrance view and stages its reappearance.
@@ -2966,7 +2968,7 @@ static Enemy* _actor206100SpawnBogDiver(s32 placementIndex)
     enemy = enemySpawnFromTable(gActor100400Tasks, ACTOR_00400_BODY_TASK_INDEX, ACTOR_206100_BOG_DIVER_VARIANT, NULL);
     if (enemy != NULL) {
         enemy->placeKey          = placementIndex << ENEMY_PLACE_INDEX_SHIFT;
-        enemy->place             = &D_actor_206100_80155134[(s16)placementIndex];
+        enemy->place             = &_gActor206100BogDiverPlacements[(s16)placementIndex];
         model                    = enemy->task->extra.tmd;
         model->texturePageOffset = 0;
         model->clutRowOffset     = ACTOR_206100_BOG_DIVER_CLUT_ROW_OFFSET;

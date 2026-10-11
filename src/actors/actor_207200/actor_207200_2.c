@@ -46,9 +46,6 @@
 
 #include "overlay.h"
 
-extern AnimationSet* D_actor_207200_80153ED4[13];
-/// `forwardSpeed` for frames 20..39 of the crawl animation, indexed by frame - 20.
-extern s16 D_actor_207200_80153F20[];
 /// Values of `_Actor207200CreepingStrangerWork::state`.
 enum {
     ACTOR_207200_STATE_DORMANT     = 0, // idles until the player comes near or the room alerts its enemies; a headless body only rests here between recoils
@@ -655,7 +652,12 @@ static AnimationSet _gActor207200Animation0A080 = {
 
 TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gActor207200CreepingStrangerBody } };
 
-AnimationSet* D_actor_207200_80153ED4[13] = {
+/// Creeping Stranger body clips indexed by `ACTOR_207200_ANIM_*`.
+///
+/// Slot 0 is empty and behavior selects clips 1..11. The thirteenth pointer
+/// is retained without a recovered selector. Live rigs borrow the table and
+/// all clip data for their lifetime, so this package must remain loaded.
+static AnimationSet* _gActor207200CreepingStrangerAnimationSets[13] = {
     NULL,
     &_gActor207200Animation07BF8,
     &_gActor207200Animation07F34,
@@ -692,7 +694,11 @@ static SVECTOR _gActor207200BodyHitOffset = { 0, -100, -150, 0 };
 /// halfword is not a coordinate component.
 static SVECTOR _gActor207200HeadLossSplatterOffset = { 0 };
 
-s16 D_actor_207200_80153F20[20] = {
+/// Crawl displacement per tick in parent-coordinate units, along the root's facing.
+///
+/// Animation frames 20..39 index this curve at frame minus 20; all other crawl
+/// frames use zero speed. Values rise to 27 and fall back to zero.
+static s16 _gActor207200CreepingStrangerCrawlSpeeds[20] = {
     0,
     3,
     6,
@@ -763,7 +769,7 @@ static void _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task)
     enemy->recs                   = work->headContacts;
     enemy->hp                     = _gActor207200CreepingStrangerParams.hpMax;
     work->rotation.vy             = rootCoord->param.rot.vy;
-    animationInitContext(&work->rig.anim, D_actor_207200_80153ED4, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor207200CreepingStrangerAnimationSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_207200_ANIM_IDLE);
     }
@@ -997,7 +1003,7 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
             work->field_498       = 0;
             work->headBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME && work->animFrames < ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_END_FRAME) {
-                work->forwardSpeed = D_actor_207200_80153F20[work->animFrames - ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME];
+                work->forwardSpeed = _gActor207200CreepingStrangerCrawlSpeeds[work->animFrames - ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME];
             } else {
                 work->forwardSpeed = 0;
             }

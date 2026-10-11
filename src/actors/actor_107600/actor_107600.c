@@ -331,14 +331,8 @@ static void _actor107600ApplyTargetScale(Task* task);
  * `_Actor107600TargetWork::hitMarkFirst`. */
 extern DVECTOR D_actor_107600_80135730[];
 
-/* The pair-source record the spawn state hangs off the enemy's `Enemy.param`
- * (a pointer to the zero-power `_gActor107600TargetAttacks`, 0x32 and 0xFF000000) and the
- * 16-entry HP table it indexes with the target kind. Both are trailing-blob
- * data, after the collision tables. */
 /* Pair-source record the spawn state hangs off `Enemy.param`. */
 extern EnemyParams D_actor_107600_80134F84;
-extern EnemyParams D_actor_107600_80135720;
-extern u16         D_actor_107600_80135750[];
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
@@ -973,7 +967,16 @@ static const _Actor107600Waypoint* _gActor107600MountPaths[] = {
 /// strike supplies damage separately rather than packing this row into a key.
 static DamageAttack _gActor107600TargetAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
 
-EnemyParams D_actor_107600_80135720 = { _gActor107600TargetAttacks, 50, 0, 0, 0, 255, 0, 0, 0 };
+/// Gallery target parameters, borrowed by each live target enemy.
+///
+/// Retains nominal maximum health 50 and a zero-power attack row. Spawn health
+/// comes separately from the target-kind table. Rewards and status pulse counts
+/// are zero; the base critical chance is 255 percent.
+static EnemyParams _gActor107600TargetParams = {
+    .attacks    = _gActor107600TargetAttacks,
+    .hpMax      = 50,
+    .critChance = 255,
+};
 
 DVECTOR D_actor_107600_80135730[8] = {
     { 0, -0x120 },
@@ -986,7 +989,12 @@ DVECTOR D_actor_107600_80135730[8] = {
     { 0, 0 },
 };
 
-u16 D_actor_107600_80135750[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
+/// Starting hit points indexed by the gallery target's spawn-kind nibble.
+///
+/// Serialized entries cover kinds 0..12. The fixed demonstration uses kind 13
+/// and retains a read beyond this table at the package end; its live backing
+/// and resulting health are unproven. No entries for kinds 13..15 are stored here.
+static u16 _gActor107600TargetHitPoints[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
 
 static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode);
 
@@ -1536,12 +1544,12 @@ static void _actor107600InitTarget(Task* task)
     work->mountBehaviour = ((u32)task->spawnArg1.value >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT) & ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_MASK;
     model->lightMtx      = &work->lightMatrix;
     model->colorMtx      = &work->colorMatrix;
-    enemy->param         = &D_actor_107600_80135720;
+    enemy->param         = &_gActor107600TargetParams;
     enemy->recs          = work->contacts;
     work->field_140      = task->extra.tmd->coords;
     work->field_144      = 0x140;
     work->field_146      = 2;
-    hitPoints            = D_actor_107600_80135750[task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK];
+    hitPoints            = _gActor107600TargetHitPoints[task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK];
     enemy->hpMax         = hitPoints;
     enemy->hp            = hitPoints;
     _actor107600InitTargetCollision(task);

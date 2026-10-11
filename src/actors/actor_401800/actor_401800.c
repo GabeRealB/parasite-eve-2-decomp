@@ -56,24 +56,6 @@
 
 static void _oddStrangerTick(Enemy* enemy, Task* actor);
 
-extern AnimationSet* D_actor_401800_801559F8[];
-
-/// Enemy description record the init body copies `hpMax` out of into
-/// `Enemy.hp` and points `Enemy.param` at. Same role
-/// `_gActor401300EnemyParams` plays for actor 401300.
-extern EnemyParams D_actor_401800_8013E6F0;
-
-/// The three `ActorStrangerVariant` tunings the init body picks from by the
-/// spawn argument's low nibble: `[0]` when it is 2, `[2]` when it is 1, `[1]`
-/// otherwise. Same table shape as `_gActor01900StrangerVariants`.
-extern ActorStrangerVariant D_actor_401800_8013E700[];
-
-/// Handler table the actor's task receives in `Task::msgTable`; same role
-/// `_gActor01900Messages` plays for actor 01900.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_401800_80155A80[8];
-
 static TmdSource _gActor401800Model12280;
 
 #include "../../shared/actor_contacts.h"
@@ -143,9 +125,28 @@ static DamageAttack _gActor401800OddStrangerAttacks[2] = {
     { 18, ACTOR_401800_PLAYER_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_401800_8013E6F0 = { _gActor401800OddStrangerAttacks, 180, 34, 34, 3, 100, 10, 100, 0 };
+/// Odd Stranger's health, rewards and hit-reaction parameters, borrowed by live enemies.
+///
+/// Starts at 180 HP; rewards are 34 experience, 34 battle points and 3 magic
+/// points. Critical and damage-over-time chances are 100 percent. Buildup has
+/// ten base 31-frame steps; the retained damage-over-time pulse count is zero.
+static EnemyParams _gActor401800OddStrangerParams = {
+    .attacks              = _gActor401800OddStrangerAttacks,
+    .hpMax                = 180,
+    .exp                  = 34,
+    .bp                   = 34,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+};
 
-ActorStrangerVariant D_actor_401800_8013E700[3] = {
+/// Odd Stranger tunings selected by the spawn argument's low nibble.
+///
+/// Selector 2 uses row 0, selector 1 row 2 and every other value row 1. The
+/// enemy copies down duration, sidestep angle/delay and notice radius into
+/// its own work; durations count ticks and angles use 4096 units per turn.
+static ActorStrangerVariant _gActor401800OddStrangerVariants[3] = {
     { 40, 400, 7, 2000, { 0, 0, 0, 0 } },
     { 20, 400, 9, 2500, { 0, 0, 0, 0 } },
     { 0, 600, 5, 3000, { 0, 0, 0, 0 } },
@@ -1044,7 +1045,12 @@ static AnimationSet* _gOddStrangerAnimSets[ODD_STRANGER_ANIM_SET_CAPACITY] = {
 /// is unproven, since grab stages request clips 1, 2 and 3.
 static AnimationSet* _gActor401800AlternatePlayerGrabAnimationSets[2] = { 0 };
 
-AnimationSet* D_actor_401800_801559F8[5] = {
+/// Character 1's player clips for the Odd Stranger's hold, strike and release.
+///
+/// Clip IDs 1..3 are populated; slots 0 and 4 are empty. The persistent grab
+/// request lends this table to the player, so its sets and this package must
+/// remain loaded until the grab playback is replaced.
+static AnimationSet* _gActor401800PlayerGrabAnimationSets[5] = {
     NULL,
     &_gActor401800Animation1F3F4,
     &_gActor401800Animation1FDEC,
@@ -1092,7 +1098,12 @@ static SVECTOR _gOddStrangerHitOffsets[12] = {
 
 enum { ACTOR_401800_MESSAGE_IGNORE = 2015 };
 
-TaskMessageEntry D_actor_401800_80155A80[8] = {
+/// Odd Stranger message handlers for scripted animation, placement and behavior.
+///
+/// The live task borrows this table. It accepts animation requests, draw modes,
+/// presence queries, placement transforms, hold release and actor commands;
+/// message 2015 is ignored. The final end marker makes unknown IDs return zero.
+static TaskMessageEntry _gActor401800OddStrangerMessages[8] = {
     { ACTOR_401800_MESSAGE_IGNORE, _actor401800IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _oddStrangerPlayMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
@@ -1218,8 +1229,8 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
-    enemy->param                  = &D_actor_401800_8013E6F0;
+    enemy->hp                     = (s16)_gActor401800OddStrangerParams.hpMax;
+    enemy->param                  = &_gActor401800OddStrangerParams;
     enemy->recs                   = work->hitContacts;
     animationInitContext(&work->rig.anim, _gOddStrangerAnimSets, model,
                          work->rig.poses, work->rig.slots);
@@ -1308,7 +1319,7 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     ACTOR_401800_INITIALIZE_PATROL_POINTS(actor, work, directionScratch, direction);
 #undef ACTOR_401800_INITIALIZE_PATROL_POINTS
 
-    actor->msgTable         = D_actor_401800_80155A80;
+    actor->msgTable         = _gActor401800OddStrangerMessages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -1338,23 +1349,23 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & ACTOR_401800_SPAWN_SELECTOR_MASK) {
         case ACTOR_401800_TUNING_FIRST_SELECTOR:
-            work->downFramesBase = D_actor_401800_8013E700[0].downFramesBase;
-            work->sidestepAngle  = D_actor_401800_8013E700[0].sidestepAngle;
-            work->sidestepDelay  = D_actor_401800_8013E700[0].sidestepDelay;
-            work->noticeRadius   = D_actor_401800_8013E700[0].noticeRadius;
+            work->downFramesBase = _gActor401800OddStrangerVariants[0].downFramesBase;
+            work->sidestepAngle  = _gActor401800OddStrangerVariants[0].sidestepAngle;
+            work->sidestepDelay  = _gActor401800OddStrangerVariants[0].sidestepDelay;
+            work->noticeRadius   = _gActor401800OddStrangerVariants[0].noticeRadius;
             break;
         case ACTOR_401800_TUNING_THIRD_SELECTOR:
-            work->downFramesBase = D_actor_401800_8013E700[2].downFramesBase;
-            work->sidestepAngle  = D_actor_401800_8013E700[2].sidestepAngle;
-            work->sidestepDelay  = D_actor_401800_8013E700[2].sidestepDelay;
-            work->noticeRadius   = D_actor_401800_8013E700[2].noticeRadius;
+            work->downFramesBase = _gActor401800OddStrangerVariants[2].downFramesBase;
+            work->sidestepAngle  = _gActor401800OddStrangerVariants[2].sidestepAngle;
+            work->sidestepDelay  = _gActor401800OddStrangerVariants[2].sidestepDelay;
+            work->noticeRadius   = _gActor401800OddStrangerVariants[2].noticeRadius;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_401800_8013E700[1].downFramesBase;
-            work->sidestepAngle  = D_actor_401800_8013E700[1].sidestepAngle;
-            work->sidestepDelay  = D_actor_401800_8013E700[1].sidestepDelay;
-            work->noticeRadius   = D_actor_401800_8013E700[1].noticeRadius;
+            work->downFramesBase = _gActor401800OddStrangerVariants[1].downFramesBase;
+            work->sidestepAngle  = _gActor401800OddStrangerVariants[1].sidestepAngle;
+            work->sidestepDelay  = _gActor401800OddStrangerVariants[1].sidestepDelay;
+            work->noticeRadius   = _gActor401800OddStrangerVariants[1].noticeRadius;
             break;
     }
 
@@ -1596,7 +1607,7 @@ static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
 {
     enum { ACTOR_401800_PRIMARY_CHARACTER_ID = 1 };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_401800_PRIMARY_CHARACTER_ID) {
-        _gOddStrangerPlayerGrabAnimationRequest.source.sets = D_actor_401800_801559F8;
+        _gOddStrangerPlayerGrabAnimationRequest.source.sets = _gActor401800PlayerGrabAnimationSets;
     } else {
         _gOddStrangerPlayerGrabAnimationRequest.source.sets = _gActor401800AlternatePlayerGrabAnimationSets;
     }

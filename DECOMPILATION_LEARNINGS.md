@@ -64715,7 +64715,7 @@ cannot happen is a subsegment with no owner.
 ## `.rodata` unit order does not have to follow `.text` unit order
 
 `actor_405800` has a local callback-table initializer at `_actor405800StunState`
-(`TaskFuncTable3 subStates = D_actor_405800_80131EAC`), whose `.rdata` table
+(`TaskFuncTable3 subStates = _gActor405800StunPhases`), whose `.rdata` table
 GCC 2.8.1 block-copies onto the stack in the prologue:
 
 ```
@@ -77249,7 +77249,7 @@ statements - not a shared variable - give two direct hard-register defs:
 
 ## m2c's pointer-typed add scales the index by 4 and combine folds it into the shift
 
-`_actor206100SpawnBogDiver` computes `&D_actor_206100_80155134[(s16)index]` as
+`_actor206100SpawnBogDiver` computes `&_gActor206100BogDiverPlacements[(s16)index]` as
 `sll $v1,$s0,16` / `sra $v1,$v1,12`. m2c renders the same address as a pointer
 add onto an untyped symbol:
 
@@ -85818,7 +85818,7 @@ nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
 `TaskMessageEntry` table (`{ s32 messageId; TaskMessageHandler handler; }`, terminator
-`TASK_MESSAGE_TABLE_END`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
+`TASK_MESSAGE_TABLE_END`) in the overlay's `.data` - here `_gActor210600GrinningStrangerMessages`, whose
 `0x7DB` row points at this function. `taskMessageDispatch` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
@@ -128448,7 +128448,7 @@ Two source levers restore the target:
         return 1;
     }
     ...
-    if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
+    if (_gActor342100BlazeClipSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
         goto ret1;                  /* bare jump, no [v0=1][USE] block */
     }
 ```

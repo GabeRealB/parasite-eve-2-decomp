@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_311500.
-D_actor_311500_801692B8 = 0x801692B8; // size:0x8 defined:True
-D_actor_311500_801692C0 = 0x801692C0; // size:0x10 defined:True
+_gActor311500StrangerAttacks = 0x801692B8; // size:0x8 defined:True
+_gActor311500StrangerParams = 0x801692C0; // size:0x10 defined:True
 _gActor311500StrangerBodySkeleton = 0x801636B4; // size:0x2AC defined:True
 _gActor311500StrangerBodyPartVerts = 0x80163960; // size:0x4C defined:True
 _gActor311500StrangerBodyVerts = 0x801639AC; // size:0x9B8 defined:True
@@ -18,11 +18,11 @@ _gActor311500Animation07470Records = 0x801690DC; // size:0x18C defined:True
 _gActor311500Animation07470Indices = 0x80169268; // size:0x28 defined:True
 _gActor311500Animation07470 = 0x80169290; // size:0x28 defined:True
 D_actor_311500_801692D0 = 0x801692D0; // size:0x24 defined:True
-D_actor_311500_801692F4 = 0x801692F4; // size:0x8 defined:True
-D_actor_311500_801692FC = 0x801692FC; // size:0x8 defined:True
-D_actor_311500_80169304 = 0x80169304; // size:0x20 defined:True
-D_actor_311500_80169324 = 0x80169324; // size:0xC defined:True
-D_actor_311500_80169330 = 0x80169330; // size:0x8 defined:True
+_gActor311500StrangerAnimationSets = 0x801692F4; // size:0x8 defined:True
+_gActor311500BarrierPatchNormals = 0x801692FC; // size:0x8 defined:True
+_gActor311500BarrierPatchVerts = 0x80169304; // size:0x20 defined:True
+_gActor311500BarrierPatchFaces = 0x80169324; // size:0xC defined:True
+_gActor311500StrangerMessages = 0x80169330; // size:0x8 defined:True
 gActor311500StrangerTaskDesc = 0x80169338; // size:0xC defined:True
 
 gAcropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=acropolis_fire_escape shared=rooms

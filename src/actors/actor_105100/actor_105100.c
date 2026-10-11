@@ -328,14 +328,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// varying address, this load a scalar MEM at a fixed one -- and sched2 then
 /// hoists this load above the store, ahead of the `sll`.
 
-/// The animation data `animationInitContext` builds the work block's clip context
-/// from; the spawn hands it over whole, so it is only ever a byte address here.
-extern u8 D_actor_105100_80141488[];
-
-/// Where each spawned projectile starts relative to the parent's coordinate,
-/// indexed by `_Actor105100Work::childCount`.
-extern SVECTOR D_actor_105100_801414E0[];
-
 /// The enemy task's state handlers, indexed by `Task::state`: spawn/setup,
 /// per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_actor_105100_80131E24 = {
@@ -740,23 +732,27 @@ static s16 _gActor105100SummonActions[16] = {
     ACTOR_105100_ACTION_BEAMS,
 };
 
-u16 D_actor_105100_801413C8[16] = {
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted beam-pattern choices for the summon's uniform sixteen-way draw.
+///
+/// Four slots select a pair, five a triple and seven a seeker. The low four
+/// bits of the random state's upper halfword index this complete table.
+static u16 _gActor105100BeamPatternDraws[16] = {
+    ACTOR_105100_BEAMS_PAIR,
+    ACTOR_105100_BEAMS_PAIR,
+    ACTOR_105100_BEAMS_PAIR,
+    ACTOR_105100_BEAMS_PAIR,
+    ACTOR_105100_BEAMS_TRIPLE,
+    ACTOR_105100_BEAMS_TRIPLE,
+    ACTOR_105100_BEAMS_TRIPLE,
+    ACTOR_105100_BEAMS_TRIPLE,
+    ACTOR_105100_BEAMS_TRIPLE,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
+    ACTOR_105100_BEAMS_SEEKER,
 };
 
 /// Beam start displacements from the parent root, in parent-coordinate units.
@@ -820,51 +816,22 @@ TaskDesc gActor105100TaskDescriptors[3] = {
     { { { TASK_BODY_COORD, 96 } }, _actor105100BeamTask, { .value = 0 } },
 };
 
-u8 D_actor_105100_80141488[44] = {
-    0,
-    0,
-    0,
-    0,
-    172,
-    185,
-    19,
-    128,
-    44,
-    193,
-    19,
-    128,
-    252,
-    205,
-    19,
-    128,
-    172,
-    210,
-    19,
-    128,
-    232,
-    214,
-    19,
-    128,
-    248,
-    221,
-    19,
-    128,
-    84,
-    243,
-    19,
-    128,
-    92,
-    227,
-    19,
-    128,
-    4,
-    230,
-    19,
-    128,
-    28,
-    234,
-    19,
-    128,
+/// Stinger body clips indexed by `ACTOR_105100_ANIM_*`.
+///
+/// Slot zero is empty; clips 1..10 are loaded. Live animation contexts borrow
+/// the table and its sets, so the package must remain loaded through playback.
+static AnimationSet* _gActor105100AnimationSets[11] = {
+    NULL,
+    [ACTOR_105100_ANIM_IDLE]         = &_gActor105100Animation09B8C,
+    [ACTOR_105100_ANIM_RAISE_SHIELD] = &_gActor105100Animation0A30C,
+    [ACTOR_105100_ANIM_CAST]         = &_gActor105100Animation0AFDC,
+    [ACTOR_105100_ANIM_STRIKE]       = &_gActor105100Animation0B48C,
+    [ACTOR_105100_ANIM_STRIKE_END]   = &_gActor105100Animation0B8C8,
+    [ACTOR_105100_ANIM_STAGGER]      = &_gActor105100Animation0BFD8,
+    [ACTOR_105100_ANIM_DIE]          = &_gActor105100Animation0D534,
+    [ACTOR_105100_ANIM_BUILDUP]      = &_gActor105100Animation0C53C,
+    [ACTOR_105100_ANIM_BUILDUP_END]  = &_gActor105100Animation0C7E4,
+    [ACTOR_105100_ANIM_CAST_END]     = &_gActor105100Animation0CBFC,
 };
 
 /// Player knockback and recovery clips borrowed during the training enemy's push.
@@ -893,7 +860,12 @@ static s16 _gActor105100AnimationBlendFrames[12] = {
     [ACTOR_105100_ANIM_BUILDUP]      = 2,
 };
 
-SVECTOR D_actor_105100_801414E0[7] = {
+/// Fireball start displacements added to the parent's translation, in game units.
+///
+/// The parent's summon count selects rows 0..4 on the recovered spawn path.
+/// XYZ are added without rotating the displacement; jitter is applied afterwards.
+/// All seven initialized rows are retained, and the fourth halfword is unused.
+static SVECTOR _gActor105100FireballStartOffsets[7] = {
     { 0, 0, 0, 0 },
     { 0, -4000, -2000, 0 },
     { -500, -4000, -2000, 0 },
@@ -902,11 +874,6 @@ SVECTOR D_actor_105100_801414E0[7] = {
     { -500, -3500, -2000, 0 },
     { 500, -3500, -2000, 0 },
 };
-
-/// The 16-entry run at 0x801413C8 the beam summon's LCG draw picks
-/// `_Actor105100Work::beamPattern` from. Four entries are 0 (two children), five are 1 (three), seven are 2
-/// (one).
-extern u16 D_actor_105100_801413C8[16];
 
 static inline void _actor105100AnimUpdate(Task* task);
 
@@ -968,7 +935,7 @@ static void _actor105100Spawn(Enemy* enemy, Task* task)
     work->hitEffectArg.coord      = &task->extra.tmd->coords[ACTOR_105100_HIT_PART];
     work->hitEffectArg.spawnArgLo = 0x500;
     work->hitEffectArg.spawnArgHi = 3;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_105100_80141488, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor105100AnimationSets, model, work->rig.poses,
                          work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, 1);
@@ -1526,9 +1493,9 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
 
             work->anim        = ACTOR_105100_ANIM_CAST;
             work->actionStep  = ACTOR_105100_BEAM_CAST_HOLD;
-            patterns          = D_actor_105100_801413C8;
+            patterns          = _gActor105100BeamPatternDraws;
             randomState       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            pattern           = patterns[(randomState >> 16) & (ARRAY_SIZE(D_actor_105100_801413C8) - 1)];
+            pattern           = patterns[(randomState >> 16) & (ARRAY_SIZE(_gActor105100BeamPatternDraws) - 1)];
             gRandomLcgState   = randomState;
             work->childCount  = 0;
             work->summonPhase = ACTOR_105100_SUMMON_BEAMS;
@@ -2130,14 +2097,14 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     task->work              = work;
     coord->parent           = &gGfxViewCoord;
     coord->coord            = parentCoord->coord;
-    coord->coord.t[0]       = parentCoord->coord.t[0] + D_actor_105100_801414E0[parentWork->childCount].vx;
-    offsetY                 = D_actor_105100_801414E0[parentWork->childCount].vy;
+    coord->coord.t[0]       = parentCoord->coord.t[0] + _gActor105100FireballStartOffsets[parentWork->childCount].vx;
+    offsetY                 = _gActor105100FireballStartOffsets[parentWork->childCount].vy;
     randomState             = gRandomLcgState;
     translationY            = &coord->coord.t[1];
     *translationY           = parentCoord->coord.t[1] + offsetY;
     jitterRollX             = (gRandomLcgState = randomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
     childIndexOrFlags       = parentWork->childCount;
-    startOffsetOrSweepCoord = &D_actor_105100_801414E0[childIndexOrFlags];
+    startOffsetOrSweepCoord = &_gActor105100FireballStartOffsets[childIndexOrFlags];
     coord->coord.t[2]       = parentCoord->coord.t[2] + (jitterX = ((SVECTOR*)startOffsetOrSweepCoord)->vz);
     jitterX                 = jitterRollX & 0x7F;
     addJitterX              = jitterRollX & 0x80;

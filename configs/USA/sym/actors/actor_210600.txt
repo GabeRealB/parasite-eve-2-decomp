@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_210600.
 _gActor210600AnimationBlendFrames = 0x8015A498; // size:0x19 defined:True
-D_actor_210600_8015A4B4 = 0x8015A4B4; // size:0x18 defined:True
-D_actor_210600_8015A4CC = 0x8015A4CC; // size:0x20 defined:True
+_gActor210600GrinningStrangerAnimationSets = 0x8015A4B4; // size:0x18 defined:True
+_gActor210600GrinningStrangerMessages = 0x8015A4CC; // size:0x20 defined:True
 gActor210600GrinningStrangerTaskDesc = 0x8015A4EC; // size:0xC defined:True
 _gActor210600Animation07EF4Bank1 = 0x8014CF28; // size:0x540 defined:True
 _gActor210600Animation07EF4Bank4 = 0x8014D468; // size:0x1938 defined:True

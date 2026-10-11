@@ -128,20 +128,6 @@ static void _actor342100TriggerBlazeDeath(void);
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-/// Null-terminated table of the overlay's per-state message tables, counted
-/// and reported by `_actor342100UpdateBlazeScene` when it arms the encounter:
-/// three live entries and the null word that ends them.
-extern AnimationSet* D_actor_342100_80164900[4];
-
-/// Animation step table `_actor342100AdvanceBlazeAnimation` walks: `s16` entries
-/// holding the clip one step on from the work block's `animationId`, both less
-/// `ANIMATION_BANK_BASE_SET_COUNT`; the first three entries are `-1`, which ends
-/// the chain, and only the fourth is live. Sits directly after
-/// `D_actor_342100_80164900`'s null word, and its first element is the address
-/// `_actor342100UpdateBlazeScene`'s encounter table of a different size would
-/// have started at, so splat cut it out as a symbol of its own.
-extern s16 D_actor_342100_80164910[];
-
 /// Placement tables the overlay's spawn task picks between by
 /// `gGameSession->location.loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
 /// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
@@ -263,18 +249,28 @@ static TaskMessageEntry _gBlazeFadeMessages[1] = {
     { BLAZE_FADE_MESSAGE_SET_STATE, _actor342100HandleBlazeFadeState },
 };
 
-AnimationSet* D_actor_342100_80164900[4] = {
+/// Three blaze-scene clips followed by the null terminator used to count them.
+///
+/// Copied into player bank extension slots 47..49, excluding the terminator.
+/// Clip selectors 0..2 refer to these sets relative to the extension base.
+/// The bank borrows the loaded descriptors and clip data through scene playback.
+static AnimationSet* _gActor342100BlazeAnimationSets[4] = {
     &_gActor342100Animation019F0,
     &_gActor342100Animation02A94,
     &_gActor342100Animation0242C,
     NULL,
 };
 
-s16 D_actor_342100_80164910[4] = {
-    -1,
-    -1,
-    -1,
-    0,
+enum { ACTOR_342100_BLAZE_NO_SUCCESSOR = -1 };
+
+/// Successor extension clip indices for the blaze scene, or a negative end marker.
+///
+/// Indexed by animation ID minus `ANIMATION_BANK_BASE_SET_COUNT`. Only clips
+/// 0..2 are installed and selected by the script; all three end their chain.
+static s16 _gActor342100BlazeClipSuccessors[3] = {
+    ACTOR_342100_BLAZE_NO_SUCCESSOR,
+    ACTOR_342100_BLAZE_NO_SUCCESSOR,
+    ACTOR_342100_BLAZE_NO_SUCCESSOR,
 };
 
 SVECTOR D_actor_342100_80164918[3] = {
@@ -416,7 +412,7 @@ static s32 _actor342100UpdateBlazeScene(Task* controller);
 /// Starts a burn clip's successor once the player's animation has settled.
 ///
 /// The controller and any non-NULL player task must remain live. An extension
-/// animation ID must index `D_actor_342100_80164910` after subtracting
+/// animation ID must index `_gActor342100BlazeClipSuccessors` after subtracting
 /// `ANIMATION_BANK_BASE_SET_COUNT`; a negative entry has no successor. The
 /// script supplies clips 0..2, whose entries all terminate. Successors blend
 /// over ten frames with world collision disabled; their clip data stays loaded.
@@ -441,8 +437,8 @@ static s32 _actor342100AdvanceBlazeAnimation(Task* controller)
     // A clip's boundary pose must settle before requesting its successor.
     if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         if (work->animationId >= ANIMATION_BANK_BASE_SET_COUNT) {
-            if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] >= 0) {
-                animationId  = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+            if (_gActor342100BlazeClipSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] >= 0) {
+                animationId  = _gActor342100BlazeClipSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
                 dispatchWork = controller->work;
                 weaponId     = gPlayerStatus.weapon;
                 bankIndex    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
@@ -621,10 +617,10 @@ static inline void _actor342100CopyBlazeAnimationSets(Task* controller)
     // Copy clip pointers before the script can request any of them.
     work     = controller->work;
     setCount = 0;
-    while (D_actor_342100_80164900[setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != NULL) {
+    while (_gActor342100BlazeAnimationSets[setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != NULL) {
         setCount += 1;
     }
-    bankCopyRequest.source.sets = D_actor_342100_80164900;
+    bankCopyRequest.source.sets = _gActor342100BlazeAnimationSets;
     bankCopyRequest.wordCount   = setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
 }

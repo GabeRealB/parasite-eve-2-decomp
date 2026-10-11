@@ -2168,8 +2168,11 @@ static const TaskFuncTable18 D_actor_405800_80131E64 = {
     },
 };
 
-/// Sub-state handlers of `_actor405800StunState`, by `subState`.
-static const TaskFuncTable3 D_actor_405800_80131EAC = {
+/// Ivory Stalker stun phases indexed by `subState` (0 start, 1 hold, 2 recover).
+///
+/// Copied by value before dispatch; the live task and its initialized rig are
+/// required. Each phase controls its transition within the three-entry domain.
+static const TaskFuncTable3 _gActor405800StunPhases = {
     {
         _actor405800StartStun,
         _actor405800TickStun,
@@ -2188,8 +2191,11 @@ static const TaskFuncTable5 D_actor_405800_80131EB8 = {
     },
 };
 
-/// Sub-state handlers of `_actor405800BackLeapState`, by `subState`.
-static const TaskFuncTable4 D_actor_405800_80131ECC = {
+/// Ivory Stalker back-leap phases indexed by `subState` in 0..3.
+///
+/// Probe, prepare, fly, then wait for the landing clip. The live task borrows
+/// body, root and collision-probe storage; the dispatcher copies this table by value.
+static const TaskFuncTable4 _gActor405800BackLeapPhases = {
     {
         _actor405800ProbeBackLeap,
         _actor405800PrepareBackLeap,
@@ -2198,8 +2204,11 @@ static const TaskFuncTable4 D_actor_405800_80131ECC = {
     },
 };
 
-/// Sub-state handlers of `_actor405800CeilingLeapState`, by `subState`.
-static const TaskFuncTable3 D_actor_405800_80131EDC = {
+/// Ivory Stalker ceiling-leap phases indexed by `subState` in 0..2.
+///
+/// Start, fly and finish transferring to the ceiling pose. Dispatch copies the
+/// three callbacks by value and requires live work, body rig and collision state.
+static const TaskFuncTable3 _gActor405800CeilingLeapPhases = {
     {
         _actor405800StartCeilingLeap,
         _actor405800TickCeilingLeap,
@@ -2207,8 +2216,11 @@ static const TaskFuncTable3 D_actor_405800_80131EDC = {
     },
 };
 
-/// Sub-state handlers of `_actor405800CeilingDropState`, by `subState`.
-static const TaskFuncTable3 D_actor_405800_80131EE8 = {
+/// Ivory Stalker upright ceiling-drop phases indexed by `subState` in 0..2.
+///
+/// Start, fall and finish the landing clip before resuming walking. Dispatch
+/// copies the callbacks by value and requires the live ceiling pose and rig.
+static const TaskFuncTable3 _gActor405800CeilingDropPhases = {
     {
         _actor405800StartCeilingDrop,
         _actor405800TickCeilingDrop,
@@ -2216,8 +2228,11 @@ static const TaskFuncTable3 D_actor_405800_80131EE8 = {
     },
 };
 
-/// Sub-state handlers of `_actor405800CeilingFallState`, by `subState`.
-static const TaskFuncTable4 D_actor_405800_80131EF4 = {
+/// Ivory Stalker ceiling-to-back fall phases indexed by `subState` in 0..3.
+///
+/// Start, fall, land and resolve the on-back/status state. The table is copied
+/// by value for dispatch; live work, root, body rig and Enemy storage are required.
+static const TaskFuncTable4 _gActor405800CeilingFallPhases = {
     {
         _actor405800StartCeilingFall,
         _actor405800TickCeilingFall,
@@ -3803,7 +3818,7 @@ static void _actor405800HeavyRecoilState(Task* task)
 static void _actor405800StunState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable3                subStates = D_actor_405800_80131EAC;
+    TaskFuncTable3                subStates = _gActor405800StunPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);
@@ -3859,7 +3874,7 @@ static void _actor405800PlayerHoldState(Task* task)
 static void _actor405800BackLeapState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable4                subStates = D_actor_405800_80131ECC;
+    TaskFuncTable4                subStates = _gActor405800BackLeapPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);
@@ -3912,7 +3927,7 @@ static void _actor405800RightingState(Task* task)
 static void _actor405800CeilingLeapState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable3                subStates = D_actor_405800_80131EDC;
+    TaskFuncTable3                subStates = _gActor405800CeilingLeapPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);
@@ -3926,7 +3941,7 @@ static void _actor405800CeilingLeapState(Task* task)
 static void _actor405800CeilingDropState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable3                subStates = D_actor_405800_80131EE8;
+    TaskFuncTable3                subStates = _gActor405800CeilingDropPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);
@@ -3940,7 +3955,7 @@ static void _actor405800CeilingDropState(Task* task)
 static void _actor405800CeilingFallState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable4                subStates = D_actor_405800_80131EF4;
+    TaskFuncTable4                subStates = _gActor405800CeilingFallPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);

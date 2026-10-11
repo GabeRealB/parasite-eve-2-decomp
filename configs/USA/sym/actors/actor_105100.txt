@@ -1,12 +1,12 @@
 // Overlay-local symbols for actor_105100.
 _gActor105100SummonActions = 0x801413A8; // size:0x20 defined:True
-D_actor_105100_801413C8 = 0x801413C8; // size:0x20 defined:True
+_gActor105100BeamPatternDraws = 0x801413C8; // size:0x20 defined:True
 _gActor105100BeamStartOffsets = 0x801413E8; // size:0x30 defined:True
 _gActor105100BeamWaypoints = 0x80141418; // size:0x30 defined:True
 _gActor105100BeamLifeTicks = 0x80141448; // size:0x8 defined:True
 _gActor105100BeamRoutes = 0x80141450; // size:0x14 defined:True
 gActor105100TaskDescriptors = 0x80141464; // size:0x24 defined:True
-D_actor_105100_80141488 = 0x80141488; // size:0x2C defined:True
+_gActor105100AnimationSets = 0x80141488; // size:0x2C defined:True
 _gActor105100PlayerAnimationSets = 0x801414B4; // size:0x14 defined:True
 _gActor105100StingerParams = 0x80141398; // size:0x10 defined:True
 _gActor105100StingerBodySkeleton = 0x801367CC; // size:0x2AC defined:True
@@ -87,7 +87,7 @@ _gActor105100Animation0F538Indices = 0x80141330; // size:0x28 defined:True
 _gActor105100Animation0F538 = 0x80141358; // size:0x28 defined:True
 _gActor105100Attacks = 0x80141380; // size:0x18 defined:True
 _gActor105100AnimationBlendFrames = 0x801414C8; // size:0x18 defined:True
-D_actor_105100_801414E0 = 0x801414E0; // size:0x38 defined:True
+_gActor105100FireballStartOffsets = 0x801414E0; // size:0x38 defined:True
 
 shelterB6TrainingRoomSpawnShieldArcs = 0x8018294C; // type:func absolute:True owner=shelter_b6_training_room
 

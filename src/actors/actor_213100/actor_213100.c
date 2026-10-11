@@ -53,10 +53,6 @@ STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
 extern TaskMessageEntry D_actor_213100_801521C0[4];
 
-/// Per-view visibility table the tick indexes with the session's current
-/// view: nonzero shows the actor and its child, zero hides both.
-extern s8 D_actor_213100_801521E0[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor213100UpdateBody(Task* actorTask);
 static void _actor213100HeldModelIdle(Task* unusedTask);
@@ -378,7 +374,12 @@ TaskMessageEntry D_actor_213100_801521C0[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s8 D_actor_213100_801521E0[24] = {
+/// Jodie's body and held-model visibility indexed by the one-based logical room view.
+///
+/// Zero hides both models and one shows them; only view 4 is visible. M.I.S.T.
+/// parking supplies active views 1..20. The complete 24-byte table is retained;
+/// its tail does not establish additional supported views.
+static s8 _gActor213100JodieVisibilityByView[24] = {
     0,
     0,
     0,
@@ -421,7 +422,7 @@ static inline void _actor213100TickBodyAnimation(ActorAnimRig19* rig)
 /// Updates Jodie's animation, ground shadow, lighting and paired model visibility.
 ///
 /// Requires initialized body work, live body and held-model tasks, and a valid
-/// room view index into `D_actor_213100_801521E0` (1..20 in M.I.S.T. parking).
+/// room view index into `_gActor213100JodieVisibilityByView` (1..20 in M.I.S.T. parking).
 /// The shadow uses body part 1's cached world position before the ready-view
 /// lighting/visibility update. Its half-side is 768 world-coordinate units.
 /// A pending buffer release advances even when hidden or the view is not ready;
@@ -455,7 +456,7 @@ static void _actor213100UpdateBody(Task* actorTask)
         actorRenderComposeCoord(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART]);
         worldCoordSetModelLighting(model, actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm.t, 0, ACTOR_213100_LIGHT_COUNT);
         heldModel = work->heldModelTask->extra.tmd;
-        if (D_actor_213100_801521E0[gGameSession->location.loc.view] != 0) {
+        if (_gActor213100JodieVisibilityByView[gGameSession->location.loc.view] != 0) {
             model->flags     &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             heldModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {

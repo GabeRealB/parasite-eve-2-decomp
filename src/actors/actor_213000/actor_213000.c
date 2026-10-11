@@ -58,8 +58,6 @@ STATIC_ASSERT_SIZEOF(_Actor213000EricBaldwinWork, 0x4C4);
 
 extern TaskMessageEntry D_actor_213000_80157E1C[];
 
-extern AnimationSet** D_actor_213000_80157DDC[1];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlagsTask(Task* childTask);
@@ -479,7 +477,12 @@ static AnimationSet* _gActor213000EricBaldwinAnimationSets[11] = {
     &_gActor213000Animation0DF68,
 };
 
-AnimationSet** D_actor_213000_80157DDC[1] = {
+/// Eric Baldwin's animation-bank directory, selected by a playback request's source index.
+///
+/// Bank 0 is the sole supported selector and contains clips 1..10 with slot 0
+/// empty. The rig borrows its clip table and sets until playback ends; the
+/// directory and its resources must remain loaded throughout the body task.
+static AnimationSet** _gActor213000EricBaldwinAnimationBanks[1] = {
     _gActor213000EricBaldwinAnimationSets,
 };
 
@@ -865,7 +868,7 @@ static s32 _actor213000PlayAnimation(Task* actorTask, s32 messageId, const Anima
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor213000EricBaldwinAnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
     work->animId = request->animationId;

@@ -19,7 +19,7 @@ gMistShootingGalleryModel0B2C0 = 0x801889A4; // absolute:True owner=mist_shootin
 gMistShootingGalleryModel0B4B0 = 0x80188B94; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0B6A0 = 0x80188D84; // absolute:True owner=mist_shooting_gallery
 D_actor_107600_80135730 = 0x80135730; // size:0x20 defined:True
-D_actor_107600_80135750 = 0x80135750; // size:0x1A defined:True
+_gActor107600TargetHitPoints = 0x80135750; // size:0x1A defined:True
 _gActor107600MountPath0 = 0x80135078; // size:0xC defined:True
 _gActor107600MountPath1 = 0x80135084; // size:0x12 defined:True
 _gActor107600MountPath2 = 0x80135098; // size:0x12 defined:True
@@ -84,7 +84,7 @@ _gActor107600MountPath60 = 0x801355FC; // size:0x12 defined:True
 _gActor107600MountPath61 = 0x80135610; // size:0x12 defined:True
 _gActor107600MountPaths = 0x80135624; // size:0xF8 defined:True
 _gActor107600TargetAttacks = 0x8013571C; // size:0x4 defined:True
-D_actor_107600_80135720 = 0x80135720; // size:0x10 defined:True
+_gActor107600TargetParams = 0x80135720; // size:0x10 defined:True
 _gActor107600MountAttacks = 0x80134F80; // size:0x4 defined:True
 D_actor_107600_80134F84 = 0x80134F84; // size:0x10 defined:True
 gActor107600TaskDescriptors = 0x80134F94; // size:0xE4 defined:True
