@@ -16,6 +16,9 @@
 #ifndef SPRITE_QUAD_TOP_V
 #error Define SPRITE_QUAD_TOP_V before including the arithmetic sprite quad drawer
 #endif
+#ifndef SPRITE_QUAD_BOTTOM_V
+#error Define SPRITE_QUAD_BOTTOM_V before including the arithmetic sprite quad drawer
+#endif
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
 #if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
 #error SPRITE_QUAD_CELLS_PER_ROW must be a positive integer constant
@@ -142,10 +145,10 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             // Advance through grid rows; the column count is not a frame limit.
             v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_H;
             // Add the signed first-row origin before the GPU V bytes wrap modulo 256.
-            setUV4(prim, u0, v0 + (SPRITE_QUAD_TOP_V), u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_TOP_V), u0, v0 + SPRITE_QUAD_V1,
-                   u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + SPRITE_QUAD_V1);
+            setUV4(prim, u0, v0 + (SPRITE_QUAD_TOP_V), u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_TOP_V), u0, v0 + (SPRITE_QUAD_BOTTOM_V),
+                   u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_BOTTOM_V));
 #else
-            setUV4(prim, u0, (SPRITE_QUAD_TOP_V), u1, (SPRITE_QUAD_TOP_V), u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
+            setUV4(prim, u0, (SPRITE_QUAD_TOP_V), u1, (SPRITE_QUAD_TOP_V), u0, (SPRITE_QUAD_BOTTOM_V), u1, (SPRITE_QUAD_BOTTOM_V));
 #endif
 #endif
             // Rotate the perspective-scaled half-diagonal into two pairs of opposite corners.
@@ -175,7 +178,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #undef SPRITE_QUAD_CELL_WIDTH
 #undef SPRITE_QUAD_CELLS_PER_ROW
 #undef SPRITE_QUAD_TOP_V
-#undef SPRITE_QUAD_V1
+#undef SPRITE_QUAD_BOTTOM_V
 #undef SPRITE_QUAD_SCALE
 #undef SPRITE_QUAD_OTZ_BIAS
 #undef SPRITE_QUAD_CELL_MASK

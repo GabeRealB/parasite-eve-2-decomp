@@ -676,7 +676,8 @@ static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SV
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V 0x18
-#define SPRITE_QUAD_V1    0x37
+/// Inclusive bottom texel row of the eight-frame flash strip's square cells, relative to its texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
 /// Perspective-sizing multiplier for Javelin's launch flash.
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

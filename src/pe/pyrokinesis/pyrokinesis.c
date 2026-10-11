@@ -638,7 +638,8 @@ static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V 0xC8
-#define SPRITE_QUAD_V1    0xFF
+/// Inclusive bottom texel row of both square flame cells, relative to their texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
 /// Perspective-sizing multiplier for the pyrokinesis flame sprite.
 ///
 /// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

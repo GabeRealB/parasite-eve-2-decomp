@@ -1385,7 +1385,8 @@ void shelterB6TrainingRoomEnergyArcTask(Task* task)
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V 0x38
-#define SPRITE_QUAD_V1    0x5F
+/// Inclusive bottom texel row of the energy-arc strip's square cells, relative to its texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
 /// Perspective-sizing multiplier for the training effect sprite.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

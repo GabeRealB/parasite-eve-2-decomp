@@ -1882,7 +1882,11 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
 /// GPU byte. Frames 0..4 start at V=0x80; frames 5..9 start at V=0xB0.
 /// The next drawer inclusion undefines this binding; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V (-0x80)
-#define SPRITE_QUAD_V1    -0x51
+/// Inclusive bottom texel row of the puff grid's first row, before adding the frame's row stride.
+///
+/// Keep the endpoint signed: -0x51 becomes V=0xAF for frames 0..4 and
+/// V=0xDF after the 48-texel row stride for frames 5..9. See `sprite_quad.h`.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_H - 1)
 /// Perspective-sizing multiplier for the sterilization room's drifting sprite.
 ///
 /// Uses the cell's inclusive 47-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

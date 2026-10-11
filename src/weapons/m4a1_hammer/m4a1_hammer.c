@@ -260,7 +260,8 @@ void m4a1HammerGlowTask(Task* task)
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V 0x88
-#define SPRITE_QUAD_V1    0x9F
+/// Inclusive bottom texel row of the charge-flare strip's square cells, relative to its texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
 /// Perspective-sizing multiplier for Hammer's charge flare.
 ///
 /// Uses the cell's inclusive 23-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
@@ -335,7 +336,8 @@ void m4a1HammerImpactFlashTask(Task* task)
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
 #define SPRITE_QUAD_TOP_V 0x38
-#define SPRITE_QUAD_V1    0x5F
+/// Inclusive bottom texel row of the repeating strip's square cells, relative to its texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
 /// Perspective-sizing multiplier for Hammer's repeating sprite strip.
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
