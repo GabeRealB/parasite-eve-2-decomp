@@ -395,6 +395,11 @@ void shelterB2PodBottomShadowTask(Task* task)
 #define EFFECT_SPRITE_DRIFT_TASK shelterB2PodBottomEffectSpriteDriftTask
 #include "../../shared/effect_sprite_drift.inc.c"
 
+/// Texture-page V origin of the pod bottom's twelve-frame banked sprite animation.
+///
+/// This `int` constant places the three 48-texel rows at V 112, 160 and 208;
+/// their inclusive endpoints reach 255. Bind before the banked drawer fragment,
+/// which undefines the binding afterwards. Palette selection is independent.
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 112
 #define EFFECT_SPRITE_BANKED_DEPTH_BIAS      1
 #include "../../shared/effect_sprite_draw_banked.inc.c"

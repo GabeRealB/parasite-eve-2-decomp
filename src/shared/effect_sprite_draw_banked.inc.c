@@ -1,10 +1,15 @@
 /* Part of the effect sprite library; see effect_sprite.h. */
 
 #ifndef EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW
-/// First cell's V origin, as a signed integer texel row before GPU byte narrowing.
+/// Texture-page V origin of the banked sprite animation, measured in texel rows.
 ///
-/// Bind before this fragment: pod bottom and garbage incinerator use 112;
-/// pod access tunnel and dumping hole use the default 104. Cleared after use.
+/// Supply an `int` constant before including this fragment to override 104.
+/// Frames 0..11 use three 48-texel rows with inclusive V endpoints, so origins
+/// 0..112 fit the GPU's byte coordinates without wrapping. The origin is added
+/// in signed integer arithmetic before each V coordinate is narrowed to a byte.
+/// Pod access tunnel and dumping hole use 104 (V 104..247); pod bottom and
+/// garbage incinerator bind 112 (V 112..255). Palette selection is independent.
+/// The fragment undefines the binding after the drawer definition.
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 104
 #endif
 
