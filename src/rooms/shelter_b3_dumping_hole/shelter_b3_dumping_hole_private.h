@@ -28,7 +28,13 @@ enum {
 /// files; the room overlay owns its lifetime.
 extern s16 gShelterB3DumpingHoleIncineratorExitBlocked;
 
-extern AnimationSet* D_shelter_b3_dumping_hole_801880A0[6];
+/// Five player animation sets for the debris scene, followed by a NULL counting sentinel.
+///
+/// Copied as five pointer words into the equipped weapon bank beginning at
+/// ANIMATION_BANK_BASE_SET_COUNT (clips 47..51). The sentinel is not copied.
+/// The pointer slots are immutable; playback borrows the room-owned first set
+/// and four actor_403200 sets until the bank is replaced or playback ends.
+extern AnimationSet* const gShelterB3DumpingHoleDebrisPlayerAnimationSets[6];
 
 enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_SHARD = 1 };
 

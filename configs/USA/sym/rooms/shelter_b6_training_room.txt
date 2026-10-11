@@ -157,3 +157,4 @@ shelterB6TrainingRoomHandlePartCommand = 0x8017d684; // type:func
 shelterB6TrainingRoomStartMovie = 0x8017dac8; // type:func
 shelterB6TrainingRoomReloadNursery = 0x8017db28; // type:func
 shelterB6TrainingRoomStartMovieTask = 0x8017dd98; // type:func
+_gShelterB6TrainingRoomRoomTaskStates = 0x8017d5c4;

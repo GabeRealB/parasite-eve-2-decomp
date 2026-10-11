@@ -82,11 +82,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB2SepticTankGlowPoints, 0x248);
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-extern EvsCommand D_shelter_b2_septic_tank_8018310C[];
-
-/// Tasks the room's first task state spawns.
-extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
-
 static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
 static void           _shelterB2SepticTankInitializeRoom(Task* task);
 static void           _shelterB2SepticTankMonitorEncounterIntro(Task* task);
@@ -203,10 +198,11 @@ static AnimationBankCopyRequest _gShelterB2SepticTankEncounterAnimationBankCopy 
 /// consuming the request. Clip data remains borrowed from the loaded room.
 static AnimationPlayRequest _gShelterB2SepticTankIntroAnimationRequest = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_INTERPOLATE, SHELTER_B2_SEPTIC_TANK_ENCOUNTER_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
+/// Three unreferenced command records tagged for this room; their intended use is unproven.
 ActorCommand D_shelter_b2_septic_tank_80182F94[3] = {
-    { { .loc = { 4, 34 } }, 0 },
-    { { .loc = { 4, 34 } }, 1 },
-    { { .loc = { 4, 34 } }, 2 },
+    { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, 0 },
+    { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, 1 },
+    { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, 2 },
 };
 
 /// Broadcast cue starting the introductory diver's 48-tick swim.
@@ -227,6 +223,7 @@ static ActorCommand _gShelterB2SepticTankIntroSurfaceCommand = { { .loc = { GAME
 /// waiting diver becomes targetable, claims a surface spot and enters its dive.
 static ActorCommand _gShelterB2SepticTankFightCommand = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, SHELTER_B2_SEPTIC_TANK_COMMAND_FIGHT };
 
+/// Unreferenced indexed request for bank 1/clip 1, reset with collision enabled; its receiver is unproven.
 AnimationPlayRequest D_shelter_b2_septic_tank_80182FAC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 /// Selects weapon-bank clip 1 before the player's encounter turn and combat setup.
@@ -276,32 +273,47 @@ static EvsCommand _gShelterB2SepticTankEncounterIntroScript[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB2SepticTankCombatSetupAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB2SepticTankPrepareEncounterFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gShelterB2SepticTankEncounterFacingRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankIntroSurfaceCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankFightCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB2SepticTankCombatPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB2SepticTankSetEncounterPhase }, { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    SHELTER_B2_SEPTIC_TANK_COMBAT_CAP_COMMAND   = 2,
+    SHELTER_B2_SEPTIC_TANK_COMBAT_VIEW          = 3,
+    SHELTER_B2_SEPTIC_TANK_COMBAT_SETTLE_FRAMES = 3,
+    SHELTER_B2_SEPTIC_TANK_WATER_TASK_PRIORITY  = 96,
+};
+
+/// Turns the player toward the diver, synchronizes CAP 2 and hands the encounter to combat.
+///
+/// Eighteen instructions including END; room action 2 starts this after phase 1.
+/// Broadcasts surface/fight cues, engages battle, places the player in view 3,
+/// ends scripted control and commits saved phase 2. Zero-count waits still yield
+/// between updates. The loaded room, actors, CAP and animation data remain borrowed.
+static EvsCommand _gShelterB2SepticTankCombatSetupScript[18] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gShelterB2SepticTankCombatSetupAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = SHELTER_B2_SEPTIC_TANK_COMBAT_CAP_COMMAND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB2SepticTankPrepareEncounterFacing } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, .operand3 = { .message = { .transform = &_gShelterB2SepticTankEncounterFacingRequest } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, .operand2 = { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, .operand3 = { .message = { .command = &_gShelterB2SepticTankIntroSurfaceCommand } }, .operand4 = { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = sceneEngageBattle }, .operand1 = { .value = 1 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B2_SEPTIC_TANK_COMBAT_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, .operand2 = { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, .operand3 = { .message = { .command = &_gShelterB2SepticTankFightCommand } }, .operand4 = { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB2SepticTankCombatPlayerPlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B2_SEPTIC_TANK_COMBAT_SETTLE_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB2SepticTankSetEncounterPhase }, .operand1 = { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 s16 gShelterB2SepticTankWaterY = 150;
 
-TaskDesc D_shelter_b2_septic_tank_801832C0[1] = {
-    { { { TASK_BODY_NONE, 96 } }, _shelterB2SepticTankWaterTask, { .value = 0 } },
-};
+/// Bodyless priority-96 water-surface task recipe, spawned at index 0 with unused zero payloads.
+///
+/// Spawning reads the recipe synchronously; water drawing borrows this room's
+/// geometry and reserved actor-load buffer until task teardown and GPU completion.
+static TaskDesc _gShelterB2SepticTankWaterTaskDesc = { { { TASK_BODY_NONE, SHELTER_B2_SEPTIC_TANK_WATER_TASK_PRIORITY } }, _shelterB2SepticTankWaterTask, { .value = 0 } };
 
 /// Two water rectangles starting at Z = -13500, drawn first, followed by the list end.
 static RoomWaterSurface _gShelterB2SepticTankFirstWaterWaveSurfaces[] = {
@@ -1363,6 +1375,7 @@ static u8 _gShelterB2SepticTankStagedEventStarted = 0;
 /// for the loaded room visit and is separate from the saved encounter phase.
 static u8 _gShelterB2SepticTankEncounterSceneStage = 0;
 
+/// Unreferenced initialized halfword; its role and access width are unproven.
 u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
 RoomLatchedEvent gRoomEventLatched;
@@ -1467,7 +1480,7 @@ static s32 _shelterB2SepticTankHandleRoomAction(Task* task, s32 messageId, const
     if (actionId == SHELTER_B2_SEPTIC_TANK_ACTION_START_COMBAT) {
         encounterPhase = gameFlagGetNibble(GAME_FLAG_0EB);
         if (encounterPhase == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE && _gShelterB2SepticTankEncounterSceneStage == encounterPhase) {
-            evsStartScript(D_shelter_b2_septic_tank_8018310C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gShelterB2SepticTankCombatSetupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             _gShelterB2SepticTankEncounterSceneStage = actionId;
         }
     }
@@ -1515,7 +1528,7 @@ static void _shelterB2SepticTankInitializeRoom(Task* task)
 {
     task->msgTable = _gShelterB2SepticTankRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
+    taskSpawnFromTable(&_gShelterB2SepticTankWaterTaskDesc, 0, 0, 0);
     task->state = task->state + 1;
 }
 

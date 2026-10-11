@@ -2,7 +2,7 @@
 _gRoomVisualEffectsGlowDiscShades = 0x80182630; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x80182538; // size:0xC defined:True
 _gShelterB2SouthMaintenanceWalkwayStagedEventTaskDesc = 0x80182544; // size:0xC defined:True
-D_shelter_b2_south_maintenance_walkway_80182550 = 0x80182550; // size:0x28 defined:True
+_gShelterB2SouthMaintenanceWalkwayRoomMessages = 0x80182550; // size:0x28 defined:True
 _gShelterB2SouthMaintenanceWalkwayGlowAnchors = 0x80182578; // size:0xA8 defined:True
 gShelterB2SouthMaintenanceWalkwayRoomViewMaps = 0x8018263C; // size:0x4 defined:True
 gShelterB2SouthMaintenanceWalkwayRoomViewCounts = 0x80182640; // size:0x2 defined:True
@@ -93,3 +93,4 @@ _shelterB2SouthMaintenanceWalkwayInitializeRoomTask = 0x8017dc20; // type:func
 _shelterB2SouthMaintenanceWalkwayIdleRoomTask = 0x8017dc64; // type:func
 shelterB2SouthMaintenanceWalkwayRoomTask = 0x8017dc6c; // type:func
 _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage = 0x8017da7c; // type:func
+_gShelterB2SouthMaintenanceWalkwayRoomTaskStates = 0x8017d5f0;

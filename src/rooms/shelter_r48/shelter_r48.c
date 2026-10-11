@@ -2410,9 +2410,11 @@ static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 un
     return accepted;
 }
 
-/// State handlers of the room task `shelterR48RoomTask` runs: its
-/// setup, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_shelter_r48_8017D608 = {
+/// Room-controller callbacks indexed by state: 0 setup, 1 idle, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the room's callback code loaded.
+static const TaskFuncTable3 _gShelterR48RoomTaskStates = {
     { _shelterR48RoomSetupState, _shelterR48RoomIdleState, taskKill }
 };
 
@@ -2521,7 +2523,7 @@ void shelterR48RoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_r48_8017D608;
+    handlers = _gShelterR48RoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

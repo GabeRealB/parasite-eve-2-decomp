@@ -43496,7 +43496,7 @@ the earlier case changes nothing: the merge compares `jal taskKill` /
 splits them and reproduces the ROM's duplicated tail (97.66% → 99.9%):
 
 ```c
-taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+taskSpawnFromTable(&_gShelterB3ElevatorHallFloorSelectionTaskDesc, 0, 0x542A0001, 0);
 taskKill(task);
 SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop */
 ```

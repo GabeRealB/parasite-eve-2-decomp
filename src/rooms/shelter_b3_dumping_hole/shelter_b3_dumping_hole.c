@@ -30,8 +30,6 @@
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
-
 static s32  _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _shelterB3DumpingHoleResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelterB3DumpingHoleHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
@@ -74,7 +72,13 @@ TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = {
     _gShelterB3DumpingHoleAcropolisSanctuaryModel090F0Stream,
 };
 
-TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
+/// Room receiver routes for departures, key items, actions, commands and actor events.
+///
+/// Five live IDs followed by END/NULL; other IDs return zero. Transition
+/// records and action requests are borrowed during synchronous dispatch;
+/// commands/events use integer words. The room receiver borrows this table
+/// and its callbacks while the overlay is loaded.
+static TaskMessageEntry _gShelterB3DumpingHoleRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3DumpingHoleResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3DumpingHoleRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3DumpingHoleIgnoreRoomAction },
@@ -203,7 +207,7 @@ static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4 = {
 
 s16 gShelterB3DumpingHoleIncineratorExitBlocked = SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BLOCKED;
 
-AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
+AnimationSet* const gShelterB3DumpingHoleDebrisPlayerAnimationSets[6] SECTION(".data") = {
     &_gShelterB3DumpingHoleAnimation0AAB4,
     &gActor403200Animation2CF64,
     &gActor403200Animation2D1D0,
@@ -309,7 +313,7 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
            DUMPING_HOLE_ENCOUNTER_FIRST_ROOM    = 2,
            DUMPING_HOLE_ENCOUNTER_TASK_INDEX    = 0 };
 
-    task->msgTable = D_shelter_b3_dumping_hole_80187574;
+    task->msgTable = _gShelterB3DumpingHoleRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     shelterB3DumpingHoleSelectCaptionResource(DUMPING_HOLE_CAPTION_TEXTURE_X_WORDS, DUMPING_HOLE_CAPTION_TEXTURE_Y_ROWS, DUMPING_HOLE_CAPTION_DATA_INDEX);
     // Record first arrival independently of whether this warp runs the entry scene.
@@ -339,10 +343,11 @@ static void _shelterB3DumpingHoleIdleRoom(Task* task)
     char unusedStackBytes[0x10];
 }
 
-/// State handlers of the room's controller task, run by
-/// `shelterB3DumpingHoleRoomTask`: set-up, an idle state, and the
-/// kill.
-static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
+/// Room-controller callbacks indexed by state: 0 initialize, 1 idle, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the room's callback code loaded.
+static const TaskFuncTable3 _gShelterB3DumpingHoleRoomTaskStates = { {
     _shelterB3DumpingHoleInitializeRoomTask,
     _shelterB3DumpingHoleIdleRoom,
     taskKill,
@@ -352,6 +357,6 @@ void shelterB3DumpingHoleRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_b3_dumping_hole_8017D5C4;
+    handlers = _gShelterB3DumpingHoleRoomTaskStates;
     handlers.funcs[task->state](task);
 }

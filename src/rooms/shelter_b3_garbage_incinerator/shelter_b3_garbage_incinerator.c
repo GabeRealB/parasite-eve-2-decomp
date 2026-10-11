@@ -44,20 +44,17 @@ static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 
 #include "mapui/map_shelter.h"
 
-extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
-
-extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
-
 static void _shelterB3GarbageIncineratorInitializeRoom(Task* task);
 static void _shelterB3GarbageIncineratorAdvanceSwitchTimer(Task* task);
 
 /// Minimum elapsed controller ticks before another blocked-switch notice.
 enum { SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS = 61 };
 
-/// State handlers of the room's controller task, run by
-/// `shelterB3GarbageIncineratorRoomTask`: set-up, a per-frame tick,
-/// and the kill.
-static const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
+/// Room-controller callbacks: 0 initialize, 1 advance the switch timer, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the room's callback code loaded.
+static const TaskFuncTable3 _gShelterB3GarbageIncineratorRoomTaskStates = { {
     _shelterB3GarbageIncineratorInitializeRoom,
     _shelterB3GarbageIncineratorAdvanceSwitchTimer,
     taskKill,
@@ -71,7 +68,12 @@ static s32  _shelterB3GarbageIncineratorHandleRoomAction(Task* task, s32 message
 static s32  _shelterB3GarbageIncineratorHandleActorEvent(Task* task, s32 messageId, s32 eventId, s32 unusedArg);
 static s32  _shelterB3GarbageIncineratorHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused);
 
-TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
+/// Room receiver routes for departures, key items, actions, commands, actor events and sounds.
+///
+/// Six live IDs followed by END/NULL; other IDs return zero. Transition and
+/// action records are borrowed synchronously; remaining payloads are integer
+/// words. The room receiver borrows this table and its loaded callback code.
+static TaskMessageEntry _gShelterB3GarbageIncineratorRoomMessages[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3GarbageIncineratorResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3GarbageIncineratorRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3GarbageIncineratorHandleRoomAction },
@@ -81,7 +83,14 @@ TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { { { TASK_BODY_NONE, 32 } }, _shelterB3GarbageIncineratorExitToControlRoomTask, { .value = 0 } };
+enum { SHELTER_B3_GARBAGE_INCINERATOR_CONTROL_ROOM_EXIT_TASK_PRIORITY = 32 };
+
+/// Bodyless priority-32 recipe for the deferred control-room departure choice.
+///
+/// Spawn only index 0 with unused zero payloads, after latching the destination.
+/// The callback borrows that snapshot and loaded CAP/sound resources through
+/// cancellation or reload; spawning retains no pointer to this recipe.
+static TaskDesc _gShelterB3GarbageIncineratorControlRoomExitTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_CONTROL_ROOM_EXIT_TASK_PRIORITY } }, _shelterB3GarbageIncineratorExitToControlRoomTask, { .value = 0 } };
 
 u16 gShelterB3GarbageIncineratorDoorEventSuspended;
 
@@ -204,7 +213,7 @@ static s32 _shelterB3GarbageIncineratorResolveRoomEvent(Task* task, s32 messageI
         gShelterB3GarbageIncineratorControlRoomExitDestination = *reply;
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
-        taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
+        taskSpawnFromTable(&_gShelterB3GarbageIncineratorControlRoomExitTaskDesc, 0, 0, 0);
         return SHELTER_B3_GARBAGE_INCINERATOR_EVENT_DEFERRED;
     }
     if (request->areaId == GAME_AREA_SHELTER_B3_DUMPING_HOLE && request->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -235,7 +244,7 @@ static s32 _shelterB3GarbageIncineratorHandleRoomAction(Task* task, s32 messageI
 
     if (request->actionId == SHELTER_B3_GARBAGE_INCINERATOR_EXIT_SWITCH_ACTION && gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_NONE) {
         if (gGameSession->incineratorDescentPhase == GAME_SESSION_INCINERATOR_DESCENT_COMPLETE) {
-            taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
+            taskSpawnFromTable(&gShelterB3GarbageIncineratorExitEncounterTaskDesc, 0, 0, 0);
             gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
         } else if (_gShelterB3GarbageIncineratorSwitchNoticeTicks >= SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
@@ -312,10 +321,10 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
         SHELTER_B3_GARBAGE_INCINERATOR_MAD_CHASER_VARIANT   = 2,
     };
 
-    task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
+    task->msgTable = _gShelterB3GarbageIncineratorRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     shelterB3GarbageIncineratorSelectCaptionResource(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_TEXTURE_X, 0, 0);
-    _gShelterB3GarbageIncineratorSpawnedLiftTask = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
+    _gShelterB3GarbageIncineratorSpawnedLiftTask = taskSpawnFromTable(&gShelterB3GarbageIncineratorLiftTaskDesc, 0, 0, 0);
     if (gGameSession->location.loc.room >= SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_FIRST_ROOM) {
         taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_PLAY_ALERT, 0);
     }
@@ -344,6 +353,6 @@ void shelterB3GarbageIncineratorRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_b3_garbage_incinerator_8017D5C4;
+    handlers = _gShelterB3GarbageIncineratorRoomTaskStates;
     handlers.funcs[task->state](task);
 }

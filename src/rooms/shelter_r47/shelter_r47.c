@@ -100,21 +100,18 @@ typedef struct {
 } _ShelterR47SpritePart;
 STATIC_ASSERT_SIZEOF(_ShelterR47SpritePart, 0xC);
 
-static TaskMessageEntry     D_shelter_r47_80186F2C[6];
-static AnimationPlayRequest D_shelter_r47_80186F5C;
-static TaskDesc             _gShelterR47AuxiliaryTaskDescs[3];
-static TaskDesc             D_shelter_r47_80186F94[2];
-static ActionPromptHotspot  _gShelterR47ConsoleHotspots[9];
-static s32                  _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-static s32                  _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
-static void                 _shelterR47AmbienceTask(Task* task);
-static s32                  _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
-static s32                  _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32                  _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
-static void                 _shelterR47PlayCapCommandTask(Task* task);
-static void                 _shelterR47RestoreActorsAfterTerminalTask(Task* task);
-static void                 _shelterR47PlayEntryScene8Task(Task* task);
-static void                 _shelterR47PlayEntryScene7Task(Task* task);
+static TaskDesc            _gShelterR47AuxiliaryTaskDescs[3];
+static ActionPromptHotspot _gShelterR47ConsoleHotspots[9];
+static s32                 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32                 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
+static void                _shelterR47AmbienceTask(Task* task);
+static s32                 _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32                 _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                 _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static void                _shelterR47PlayCapCommandTask(Task* task);
+static void                _shelterR47RestoreActorsAfterTerminalTask(Task* task);
+static void                _shelterR47PlayEntryScene8Task(Task* task);
+static void                _shelterR47PlayEntryScene7Task(Task* task);
 
 /// Phases and loaded-resource choices of this room's CAP playback tasks.
 enum {
@@ -162,7 +159,12 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
+/// Room receiver routes for variant resolution, key items, terminal actions, commands and sounds.
+///
+/// Five live IDs followed by END/NULL; other IDs return zero. Transition and
+/// action records are borrowed synchronously; other payloads are integer words.
+/// The receiver borrows this table and loaded callback code for the room visit.
+static TaskMessageEntry _gShelterR47RoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR47ResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR47RefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR47HandleDirectionAction },
@@ -171,7 +173,14 @@ static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { SHELTER_R47_ENTRY_COMPANION_CLIP = 1 };
+
+/// Mutable clip-1 reset request for the companion staged on room arrival, with grid collision off.
+///
+/// Arrival rewrites source.index to the saved companion's animation bank before
+/// synchronous playback dispatch. The initial selector 6 is replaced on every
+/// recovered use; keep the selected bank's clip data live through playback.
+static AnimationPlayRequest _gShelterR47EntryCompanionAnimationRequest = { { .index = 6 }, SHELTER_R47_ENTRY_COMPANION_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Slots of the terminal-room support-task table; every entry is bodyless.
 enum {
@@ -191,9 +200,22 @@ static TaskDesc _gShelterR47AuxiliaryTaskDescs[3] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayCapCommandTask, { .value = 0 } },
 };
 
-static TaskDesc D_shelter_r47_80186F94[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayEntryScene8Task, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayEntryScene7Task, { .value = 0 } },
+enum {
+    SHELTER_R47_ENTRY_SCENE_8_TASK_INDEX  = 0,
+    SHELTER_R47_ENTRY_SCENE_7_TASK_INDEX  = 1,
+    SHELTER_R47_ENTRY_SCENE_TASK_COUNT    = 2,
+    SHELTER_R47_ENTRY_SCENE_TASK_PRIORITY = 192,
+};
+
+/// Two bodyless priority-192 recipes for entry CAP scenes 8 and 7, without a terminator.
+///
+/// Room command 8 selects slot 0 for flag 083, otherwise slot 1 for flag 080.
+/// Payloads and zero metadata are unused. Spawning reads the chosen recipe
+/// synchronously; player control is held beforehand and CAP resources remain
+/// borrowed until the scene finishes and restores actors.
+static TaskDesc _gShelterR47EntrySceneTaskDescs[SHELTER_R47_ENTRY_SCENE_TASK_COUNT] = {
+    { { { TASK_BODY_NONE, SHELTER_R47_ENTRY_SCENE_TASK_PRIORITY } }, _shelterR47PlayEntryScene8Task, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_R47_ENTRY_SCENE_TASK_PRIORITY } }, _shelterR47PlayEntryScene7Task, { .value = 0 } },
 };
 
 /// Initial logical camera views for the five console rows.
@@ -608,12 +630,20 @@ ActionPromptHotspot gShelterR47MapTerminalTourHotspots[3] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-u8 D_shelter_r47_801873FC[8] = {
-    37,
-    38,
-    39,
-    40,
-    41,
+enum {
+    SHELTER_R47_MAP_B1_VIEW      = 37,
+    SHELTER_R47_MAP_B2_VIEW      = 38,
+    SHELTER_R47_MAP_B3_VIEW      = 39,
+    SHELTER_R47_MAP_NEO_ARK_VIEW = 40,
+    SHELTER_R47_MAP_1F_VIEW      = 41,
+};
+
+const u8 gShelterR47MapTerminalPageViews[8] SECTION(".data") = {
+    SHELTER_R47_MAP_B1_VIEW,
+    SHELTER_R47_MAP_B2_VIEW,
+    SHELTER_R47_MAP_B3_VIEW,
+    SHELTER_R47_MAP_NEO_ARK_VIEW,
+    SHELTER_R47_MAP_1F_VIEW,
     0,
     0,
     0,
@@ -632,9 +662,11 @@ void shelterR47TelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// The three states of the room's main task, run by `shelterR47RoomTask`:
-/// set-up, the per-frame handler and the kill.
-static const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
+/// Room-controller callbacks: 0 initialize, 1 advance the terminal tour, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the room's callback code loaded.
+static const TaskFuncTable3 _gShelterR47RoomTaskStates = {
     {
         _shelterR47InitializeRoomTask,
         _shelterR47AdvanceTerminalTour,
@@ -655,13 +687,13 @@ static void _shelterR47InitializeRoomTask(Task* task)
            SHELTER_R47_COMPANION_ROUTE_STARTED = 1 };
     Task* companion;
 
-    task->msgTable = D_shelter_r47_80186F2C;
+    task->msgTable = _gShelterR47RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     companion = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (companion != NULL && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0 && gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_R47_COMPANION_ROUTE_STARTED) {
         taskMessageDispatch(companion, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
-        companionWriteAnimationBankIndex(&D_shelter_r47_80186F5C.source.index);
-        TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
+        companionWriteAnimationBankIndex(&_gShelterR47EntryCompanionAnimationRequest.source.index);
+        TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &_gShelterR47EntryCompanionAnimationRequest, 0);
     }
     gShelterR47TerminalTask = NULL;
     shelterR47ResetTerminalFirstUseEvents();
@@ -960,15 +992,15 @@ static s32 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s
                 capRunCommandWithTransition(SHELTER_R47_CUTSCENE_UNAVAILABLE_COMMAND);
                 return 0;
             }
-            D_shelter_r47_8018A698.view            = SHELTER_R47_CUTSCENE_VIEW;
-            D_shelter_r47_8018A698.capSlot         = command;
-            D_shelter_r47_8018A698.capFile         = SHELTER_R47_CUTSCENE_RESOURCE;
-            D_shelter_r47_8018A698.skipScene       = 0;
-            D_shelter_r47_8018A698.startSound      = SHELTER_R47_CUTSCENE_START_SOUND;
-            D_shelter_r47_8018A698.endSound        = SHELTER_R47_CUTSCENE_END_SOUND;
-            D_shelter_r47_8018A698.sceneSound      = SHELTER_R47_CUTSCENE_SCENE_SOUND;
-            D_shelter_r47_8018A698.afterSceneSound = SHELTER_R47_CUTSCENE_AFTER_SCENE_SOUND;
-            taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_r47_8018A698);
+            gShelterR47RepeatUseCutscene.view            = SHELTER_R47_CUTSCENE_VIEW;
+            gShelterR47RepeatUseCutscene.capSlot         = command;
+            gShelterR47RepeatUseCutscene.capFile         = SHELTER_R47_CUTSCENE_RESOURCE;
+            gShelterR47RepeatUseCutscene.skipScene       = 0;
+            gShelterR47RepeatUseCutscene.startSound      = SHELTER_R47_CUTSCENE_START_SOUND;
+            gShelterR47RepeatUseCutscene.endSound        = SHELTER_R47_CUTSCENE_END_SOUND;
+            gShelterR47RepeatUseCutscene.sceneSound      = SHELTER_R47_CUTSCENE_SCENE_SOUND;
+            gShelterR47RepeatUseCutscene.afterSceneSound = SHELTER_R47_CUTSCENE_AFTER_SCENE_SOUND;
+            taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND, &gShelterR47RepeatUseCutscene);
         } else {
             gameFlagSetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -977,10 +1009,10 @@ static s32 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s
     } else if (command == SHELTER_R47_COMMAND_ENTRY_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_083) > 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r47_80186F94, 0, 0, 0);
+            taskSpawnFromTable(_gShelterR47EntrySceneTaskDescs, SHELTER_R47_ENTRY_SCENE_8_TASK_INDEX, 0, 0);
         } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) > 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r47_80186F94, 1, 0, 0);
+            taskSpawnFromTable(_gShelterR47EntrySceneTaskDescs, SHELTER_R47_ENTRY_SCENE_7_TASK_INDEX, 0, 0);
         }
     }
     return 0;
@@ -1144,7 +1176,7 @@ void shelterR47RoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_r47_8017D6A4;
+    states = _gShelterR47RoomTaskStates;
     states.funcs[task->state](task);
 }
 

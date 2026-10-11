@@ -610,8 +610,11 @@ static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask)
     }
 }
 
-/// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-static const TaskFuncTable3 D_shelter_b6_training_room_8017D5C4 = {
+/// Room-controller callbacks: 0 initialize, 1 update departure progress, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the room's callback code loaded.
+static const TaskFuncTable3 _gShelterB6TrainingRoomRoomTaskStates = {
     { _shelterB6TrainingRoomInitializeRoom, _shelterB6TrainingRoomUpdateRoom, taskKill },
 };
 
@@ -619,7 +622,7 @@ void shelterB6TrainingRoomRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b6_training_room_8017D5C4;
+    states = _gShelterB6TrainingRoomRoomTaskStates;
     states.funcs[task->state](task);
 }
 

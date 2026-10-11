@@ -3571,10 +3571,10 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             animationWork  = directorTask->work;
             extensionCount = 0;
             // Count the NULL-terminated extension in set pointers, retaining the halfword index.
-            while (D_shelter_b3_dumping_hole_801880A0[extensionCount & 0xFFFF] != NULL) {
+            while (gShelterB3DumpingHoleDebrisPlayerAnimationSets[extensionCount & 0xFFFF] != NULL) {
                 extensionCount += 1;
             }
-            bankCopyRequest.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
+            bankCopyRequest.source.sets = gShelterB3DumpingHoleDebrisPlayerAnimationSets;
             bankCopyRequest.wordCount   = extensionCount & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
             weaponId                       = gPlayerStatus.weapon;

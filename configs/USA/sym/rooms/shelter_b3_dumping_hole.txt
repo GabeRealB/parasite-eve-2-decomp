@@ -7,7 +7,7 @@ _gShelterB3DumpingHoleDebrisEventScript = 0x80188640; // size:0x438 defined:True
 _gShelterB3DumpingHoleDebrisEventSkipScript = 0x80188A78; // size:0x150 defined:True
 _gShelterB3DumpingHoleDebrisEventTaskDescriptors = 0x80188BC8; // size:0x3C defined:True
 _gShelterB3DumpingHoleSpriteTaskDescriptors = 0x80188C04; // size:0x30 defined:True
-D_shelter_b3_dumping_hole_80187574 = 0x80187574; // size:0x30 defined:True
+_gShelterB3DumpingHoleRoomMessages = 0x80187574; // size:0x30 defined:True
 _gShelterB3DumpingHoleModel0BAC8Skeleton = 0x80188C34; // size:0x90 defined:True
 _gShelterB3DumpingHoleModel0BAC8PartVerts = 0x80188CC4; // size:0x10 defined:True
 _gShelterB3DumpingHoleModel0BAC8Verts = 0x80188CD4; // size:0x320 defined:True
@@ -74,7 +74,7 @@ gActor403200Animation2D928 = 0x8015F748; // absolute:True owner=actor_403200
 gActor403200Animation2CDE0 = 0x8015EC00; // absolute:True owner=actor_403200
 _gShelterB3DumpingHoleArrivalAnimationSets = 0x8018AFC8; // size:0x10 defined:True
 _gShelterB3DumpingHoleArrivalAnimationBankCopy = 0x8018AFD8; // size:0x8 defined:True
-D_shelter_b3_dumping_hole_801880A0 = 0x801880A0; // size:0x18 defined:True
+gShelterB3DumpingHoleDebrisPlayerAnimationSets = 0x801880A0; // size:0x18 defined:True
 D_shelter_b3_dumping_hole_8018AFE0 = 0x8018AFE0; // size:0x14 defined:True
 _gShelterB3DumpingHoleArrivalAnimation48 = 0x8018AFF4; // size:0x14 defined:True
 _gShelterB3DumpingHoleArrivalAnimation49 = 0x8018B008; // size:0x14 defined:True
@@ -324,3 +324,4 @@ _gShelterB3DumpingHoleEncounterStates = 0x8017d654;
 _gShelterB3DumpingHoleEncounterMadChaserStates = 0x8017d664;
 _gShelterB3DumpingHoleEncounterSlouchStates = 0x8017d670;
 _gShelterB3DumpingHoleEncounterSucklercephPairStates = 0x8017d67c;
+_gShelterB3DumpingHoleRoomTaskStates = 0x8017d5c4;

@@ -131,9 +131,6 @@ typedef struct {
 } _ShelterB3GarbageIncineratorLiftWork;
 STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftWork, 0x68);
 
-extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
-extern ActorTransform   D_shelter_b3_garbage_incinerator_80185B88;
-
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 static s32 _gScreenWaveAmplitude;
@@ -228,7 +225,13 @@ enum {
     SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD = 1,
 };
 
-TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorExitEncounterTask, { .value = 0 } };
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ENCOUNTER_TASK_PRIORITY = 192,
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_PRIORITY           = 192,
+    SHELTER_B3_GARBAGE_INCINERATOR_CLOCK_CAPTION_TASK_PRIORITY  = 32,
+};
+
+TaskDesc gShelterB3GarbageIncineratorExitEncounterTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ENCOUNTER_TASK_PRIORITY } }, _shelterB3GarbageIncineratorExitEncounterTask, { .value = 0 } };
 
 static TmdBone _gShelterB3GarbageIncineratorModel081E4Skeleton[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_skeleton.inc"
@@ -262,7 +265,15 @@ static TmdSource _gShelterB3GarbageIncineratorModel081E4 = {
     _gShelterB3GarbageIncineratorModel081E4Stream,
 };
 
-TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
+/// Lift routes accepting only model-draw, placement and actor-event messages.
+///
+/// Exactly three live rows with no END marker: every dispatched ID must be
+/// ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_PLACE or ROOM_MESSAGE_ACTOR_EVENT.
+/// Drawing takes an integer mode; placement borrows a complete ActorTransform
+/// in the view-parent frame; actor-event payloads are ignored and start carrying.
+/// Draw/place handlers return no defined result, so senders must ignore it.
+/// The initialized lift borrows this table and loaded callback code until teardown.
+static TaskMessageEntry _gShelterB3GarbageIncineratorLiftMessages[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
     { ROOM_MESSAGE_ACTOR_EVENT, _shelterB3GarbageIncineratorHandleLiftActorEvent },
@@ -285,9 +296,13 @@ static ActorTransform _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3
     { { 0x36B0, 2000, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
 
-ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
+/// Lift pose before descent: view-parent position (14000, 3000, -18000), zero rotation.
+///
+/// Borrowed synchronously by the placement message only in the waiting descent
+/// phase. Coordinates are whole game units; angles use 4096 units per turn.
+static const ActorTransform _gShelterB3GarbageIncineratorLiftInitialPlacement SECTION(".data") = { .pos = { 14000, 3000, -18000, 0 }, .rot = { 0, 0, 0, 0 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
+TaskDesc gShelterB3GarbageIncineratorLiftTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_PRIORITY } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
 
 enum { SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY = 192 };
 
@@ -471,9 +486,12 @@ TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERAT
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _capCaptionRunSchedule, { .value = 0 } }
-};
+/// Bodyless priority-32 recipe displaying notices from the descending scene clock.
+///
+/// Spawn only index 0; spawnArg1's signed low halfword is the bottom baseline
+/// in screen pixels (208 here), and spawnArg2/metadata are unused. The task
+/// borrows the caption schedule and CAP data for the room's loaded lifetime.
+static TaskDesc _gShelterB3GarbageIncineratorClockCaptionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_CLOCK_CAPTION_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 } };
 
 #include "../../shared/cap_captions_schedule.inc.c"
 
@@ -1095,7 +1113,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                 model->colorMtx                      = &work->colorMtx;
                 gShelterB3GarbageIncineratorLiftTask = task;
                 model->lightMtx                      = &work->lightMtx;
-                task->msgTable                       = D_shelter_b3_garbage_incinerator_80185B40;
+                task->msgTable                       = _gShelterB3GarbageIncineratorLiftMessages;
                 work->carriedActor                   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
@@ -1105,7 +1123,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
             }
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_shelter_b3_garbage_incinerator_80185B88, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gShelterB3GarbageIncineratorLiftInitialPlacement, 0);
                     shelterB3GarbageIncineratorSetLiftCollisionWalls();
                     task->state = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTION;
                     break;
@@ -1358,7 +1376,7 @@ static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
                 work->playerTask                                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 gShelterB3GarbageIncineratorBlazeControllerTask = task;
             }
-            taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_BASELINE_Y, 0);
+            taskSpawnFromTable(&_gShelterB3GarbageIncineratorClockCaptionTaskDesc, 0, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_BASELINE_Y, 0);
             if (task->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
             }

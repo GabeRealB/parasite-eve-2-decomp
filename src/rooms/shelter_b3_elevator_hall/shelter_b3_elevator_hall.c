@@ -63,15 +63,6 @@
 #include "../../shared/room_events.h"
 #include "../../shared/shelter_elevator.h"
 
-/// Set when the gate latched a request and spawned the task that runs it.
-/// Descriptor of the task that runs a latched request.
-extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
-extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
-/// The room's message table, which its CAP scripts index.
-extern TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[];
-/// Per-palette right shifts applied to the halo's level for red, green and
-/// blue, selected by the palette index in the spawn argument.
-
 static void _shelterB3ElevatorHallInitRoomTask(Task* task);
 static void _shelterB3ElevatorHallIdleRoomTask(Task* task);
 
@@ -84,6 +75,8 @@ static s32  _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 
 
 enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
+enum { SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY = 32 };
+
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
@@ -92,11 +85,19 @@ enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
-    { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } },
-};
+/// Bodyless priority-32 recipe for CAP floor selection and the selected elevator ride.
+///
+/// Spawn only index 0, with the resolved ride-sound ID in spawnArg1 and unused
+/// zero spawnArg2. Spawning reads the recipe synchronously; CAP, sound and map
+/// resources and this overlay's callback code must remain loaded through travel.
+static TaskDesc _gShelterB3ElevatorHallFloorSelectionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY } }, shelterElevatorTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
+/// Room receiver routes for departures, key items, actions, commands and sound cues.
+///
+/// Five live IDs followed by END/NULL; other IDs return zero. Transition and
+/// action records are borrowed during synchronous dispatch; remaining payloads
+/// are integer words. The receiver borrows this table and loaded callback code.
+static TaskMessageEntry _gShelterB3ElevatorHallRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3ElevatorHallResolveRoomTransition },
     { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB3ElevatorHallRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3ElevatorHallIgnoreRoomAction },
@@ -105,9 +106,11 @@ TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } },
-};
+/// Bodyless priority-32 recipe offering floor selection or first-use cab entry.
+///
+/// Spawn only index 0; payloads and zero metadata are unused. The callback
+/// borrows this hall's CAP/sound resources through completion or room reload.
+static TaskDesc _gShelterB3ElevatorHallTransitTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } };
 
 /// World-space endpoints of four additive glow strips visible in mapped view 3.
 ///
@@ -176,9 +179,11 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/shelter_elevator_task.inc.c"
 
-/// State table of the room's message-driven task: publish the message table,
-/// idle, then kill the task.
-static const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
+/// Room-controller callbacks indexed by state: 0 initialize, 1 idle, 2 release.
+///
+/// Dispatch copies all three pointers; state must be 0..2. There is no
+/// terminator or bounds check; keep the hall's callback code loaded.
+static const TaskFuncTable3 _gShelterB3ElevatorHallRoomTaskStates = {
     {
         _shelterB3ElevatorHallInitRoomTask,
         _shelterB3ElevatorHallIdleRoomTask,
@@ -225,7 +230,7 @@ static void _shelterB3ElevatorHallElevatorTransitTask(Task* task)
         case SHELTER_B3_ELEVATOR_HALL_TRANSIT_OFFER:
             if (gameFlagGetNibble(GAME_FLAG_0CF) != 0) {
                 capRunCommand(SHELTER_B3_ELEVATOR_HALL_SELECT_FLOOR_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
-                taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, SHELTER_B3_ELEVATOR_HALL_FLOOR_SELECT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
+                taskSpawnFromTable(&_gShelterB3ElevatorHallFloorSelectionTaskDesc, SHELTER_B3_ELEVATOR_HALL_FLOOR_SELECT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
                 taskKill(task);
             } else {
                 capRunCommandWithTransition(SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CAP_COMMAND);
@@ -311,7 +316,7 @@ static s32 _shelterB3ElevatorHallResolveRoomTransition(Task* task, s32 messageId
             capRunCommandWithTransition(SHELTER_B3_ELEVATOR_HALL_FIRST_USE_CAP_COMMAND);
             gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ENABLED);
         }
-        taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A68, SHELTER_B3_ELEVATOR_HALL_TRANSIT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
+        taskSpawnFromTable(&_gShelterB3ElevatorHallTransitTaskDesc, SHELTER_B3_ELEVATOR_HALL_TRANSIT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
     }
     return SHELTER_B3_ELEVATOR_HALL_TRANSITION_HANDLED;
 }
@@ -344,7 +349,7 @@ static s32 _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 c
 /// State 0 advances to the idle state; no task work or body is allocated.
 static void _shelterB3ElevatorHallInitRoomTask(Task* task)
 {
-    task->msgTable = D_shelter_b3_elevator_hall_80182A38;
+    task->msgTable = _gShelterB3ElevatorHallRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -358,7 +363,7 @@ void shelterB3ElevatorHallRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b3_elevator_hall_8017D5F0;
+    states = _gShelterB3ElevatorHallRoomTaskStates;
     states.funcs[task->state](task);
 }
 

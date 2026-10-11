@@ -111,3 +111,4 @@ _shelterR48ResolveTransitionMessage = 0x8017e044; // type:func
 _shelterR48RoomActionMsg = 0x8017e090; // type:func
 _shelterR48AdvanceBossSceneMsg = 0x8017e0ec; // type:func
 _shelterR48RoomSetupState = 0x8017e1a4; // type:func
+_gShelterR48RoomTaskStates = 0x8017d608;

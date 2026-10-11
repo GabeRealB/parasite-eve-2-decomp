@@ -2107,7 +2107,7 @@ u8 gShelterR47MapPreviousFirstUseStarted;
 
 u8 gShelterR47MapNextFirstUseStarted;
 
-RoomCutsceneRec D_shelter_r47_8018A698;
+RoomCutsceneRec gShelterR47RepeatUseCutscene;
 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -2631,14 +2631,14 @@ static void _shelterR47MapTerminalSwitchPageTask(Task* task)
                 if (work->page < 0) {
                     work->page = SHELTER_R47_MAP_PAGE_1F;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[work->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47MapTerminalPageViews[work->page];
                 break;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
                 work->page++;
                 if (work->page >= SHELTER_R47_MAP_PAGE_COUNT) {
                     work->page = SHELTER_R47_MAP_PAGE_B1;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[work->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47MapTerminalPageViews[work->page];
                 break;
         }
         task->state++;

@@ -41,11 +41,6 @@
 #include "mapui/map_shelter.h"
 #include "../../shared/streamed_scene.h"
 
-extern EvsCommand D_shelter_r36_8017E8BC[];
-
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_shelter_r36_8017E97C[];
-
 static s32 _shelterR36RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterR36ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
 static s32 _shelterR36IgnoreCommand(Task* task, s32 messageId, s32 command, s32 unused);
@@ -610,18 +605,38 @@ static EvsCommand _gShelterR36MovieLeadInScript[25] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_r36_8017E8BC[8] = {
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterR36ReloadForMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    SHELTER_R36_MOVIE_SKIP_MUSIC_FADE_TICKS = 15,
+    SHELTER_R36_MOVIE_SKIP_CLEANUP_FRAMES   = 8,
+    SHELTER_R36_MOVIE_SKIP_RELOAD_FRAMES    = 60,
+    SHELTER_R36_MOVIE_SKIP_DISPLAY_ENABLE   = 1,
+};
+
+/// Skip stream that cleans up the movie lead-in and requests its movie-arrival reload.
+///
+/// Eight instructions including END. Requests an area-music fade with argument
+/// 15 (16 audio updates after encoding), starts the default primary fade, waits
+/// eight interpreter countdown updates,
+/// restores scene/display state and requests reload before a 60-update wait.
+/// The no-argument reload callback shares the normal path's attract-demo guard.
+/// Borrowed by the arrival director; keep this overlay loaded until consumption.
+static EvsCommand _gShelterR36MovieLeadInSkipScript[8] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, .operand0 = { .value = SHELTER_R36_MOVIE_SKIP_MUSIC_FADE_TICKS } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, .operand0 = { .value = GPU_BLEND_AVERAGE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_R36_MOVIE_SKIP_CLEANUP_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEANUP_SCENE },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = SetDispMask }, .operand1 = { .value = SHELTER_R36_MOVIE_SKIP_DISPLAY_ENABLE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterR36ReloadForMovie } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_R36_MOVIE_SKIP_RELOAD_FRAMES } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_shelter_r36_8017E97C[5] = {
+/// Room receiver routes for variant resolution, key-item refusal and ignored actions/commands.
+///
+/// Four live IDs followed by END/NULL; other IDs return zero. Transition and
+/// action records are borrowed synchronously; other payloads are integer words.
+/// The initialized room receiver borrows this table and loaded callback code.
+static TaskMessageEntry _gShelterR36RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR36ResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR36RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR36IgnoreRoomAction },
@@ -1141,7 +1156,7 @@ static void _shelterR36ArrivalSceneTask(Task* task)
             }
             break;
         case SHELTER_R36_ARRIVAL_START_FOLLOW_UP:
-            evsStartScriptWithSkip(_gShelterR36MovieLeadInScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E8BC);
+            evsStartScriptWithSkip(_gShelterR36MovieLeadInScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterR36MovieLeadInSkipScript);
             taskKill(task);
             break;
     }
@@ -1282,7 +1297,7 @@ static void _shelterR36InitializeTask(Task* task)
         SHELTER_R36_MOVIE_ENDING_TASK  = 1
     };
 
-    task->msgTable = D_shelter_r36_8017E97C;
+    task->msgTable = _gShelterR36RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == SHELTER_R36_SCENE_ARRIVAL) {
         taskSpawnFromTable(_gShelterR36ArrivalTasks, SHELTER_R36_ARRIVAL_SCENE_TASK, 0, 0);

@@ -25,8 +25,12 @@ extern ActionPromptHotspot gShelterR47MapTerminalHotspots[5];
 /// Previous and next page rectangles use centre-relative pixels and prompt
 /// kind 1 (Push). Hit latches are cleared at setup and rewritten by hit testing.
 extern ActionPromptHotspot gShelterR47MapTerminalTourHotspots[3];
-/// Room views of the map pages, indexed by `ShelterR47MapTerminalWork::page`.
-extern u8 D_shelter_r47_801873FC[];
+/// Logical views for the five map-terminal pages: B1, B2, B3, Neo Ark and 1F.
+///
+/// Indexed only by SHELTER_R47_MAP_PAGE_* values 0..4, yielding views 37..41.
+/// The final three zero bytes have no recovered accesses and an unproven role;
+/// retain the full eight-byte storage. The table is immutable and room-owned.
+extern const u8 gShelterR47MapTerminalPageViews[8];
 
 /// Console layout during ordinary use or while changing the selected view.
 enum {
@@ -212,7 +216,15 @@ extern u8 gShelterR47MapPreviousFirstUseStarted;
 /// Set when the request is issued and cleared on room entry; tours leave it alone.
 extern u8 gShelterR47MapNextFirstUseStarted;
 
-extern RoomCutsceneRec D_shelter_r47_8018A698;
+/// Mutable singleton request for room command 1's repeat-use view-44 cutscene.
+///
+/// The command handler initializes eight control/sound fields before spawning
+/// with CAP resource 3/slot 1 and follow-up command 10. The two texture-page
+/// fields remain zero-initialized, selecting default VRAM coordinates (960, 0).
+/// The deferred runner borrows this record until completion; serialize requests,
+/// keep it unchanged during playback and retain the room's CAP/sound resources
+/// and callback code.
+extern RoomCutsceneRec gShelterR47RepeatUseCutscene;
 
 /// Mutable logical room view selected by each control-console row.
 ///

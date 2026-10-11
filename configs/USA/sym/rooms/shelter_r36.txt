@@ -1,12 +1,12 @@
 // Overlay-local symbols for shelter_r36.
-D_shelter_r36_8017E97C = 0x8017E97C; // size:0x28 defined:True
+_gShelterR36RoomMessages = 0x8017E97C; // size:0x28 defined:True
 _gShelterR36FirstWalkerAnimation18 = 0x8017DEE8; // size:0x14 defined:True
 _gShelterR36ArrivalPlayerTransform = 0x8017DEFC; // size:0x18 defined:True
 _gShelterR36ArrivalTasks = 0x8017DF14; // size:0x18 defined:True
 _gShelterR36ArrivalScript = 0x8017DF2C; // size:0x678 defined:True
 _gShelterR36ArrivalSkipScript = 0x8017E5A4; // size:0xC0 defined:True
 _gShelterR36MovieLeadInScript = 0x8017E664; // size:0x258 defined:True
-D_shelter_r36_8017E8BC = 0x8017E8BC; // size:0xC0 defined:True
+_gShelterR36MovieLeadInSkipScript = 0x8017E8BC; // size:0xC0 defined:True
 _gShelterR36SecondWalkerAnimation10 = 0x8017DDD0; // size:0x14 defined:True
 _gShelterR36UnreferencedAnimationRequests = 0x8017DDE4; // size:0x104 defined:True
 _gShelterR36ArrivalPlayerAnimation = 0x8017DC10; // size:0x14 defined:True

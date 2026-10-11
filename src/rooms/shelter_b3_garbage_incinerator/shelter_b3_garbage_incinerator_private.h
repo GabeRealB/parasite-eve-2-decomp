@@ -17,9 +17,20 @@
 
 #include "overlay.h"
 
-extern TaskDesc D_shelter_b3_garbage_incinerator_801855E0;
+/// Bodyless priority-192 recipe running the exit encounter after lift descent.
+///
+/// Spawn only index 0 with unused zero payloads/metadata when the exit switch
+/// is accepted. Spawning reads the recipe synchronously; the deferred encounter
+/// borrows this room's actors, animation, CAP and collision resources until reload.
+extern TaskDesc gShelterB3GarbageIncineratorExitEncounterTaskDesc;
 
-extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
+/// Priority-192 TMD recipe for the incinerator lift's descent and actor-carry move.
+///
+/// Spawn only index 0 with unused zero payloads. The new task owns its model
+/// and work; geometry remains borrowed from this overlay until teardown.
+/// Automatic model-buffer allocation/recovery is disabled at spawn; the lift's
+/// setup then clears that runtime flag and enables later missing-buffer recovery.
+extern TaskDesc gShelterB3GarbageIncineratorLiftTaskDesc;
 
 /// Collision mesh and 5 by 7 XZ cell index shared by incinerator rooms 1..7.
 ///
