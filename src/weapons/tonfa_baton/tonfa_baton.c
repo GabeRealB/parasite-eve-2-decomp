@@ -1719,136 +1719,268 @@ static AnimationSet _gTonfaBatonAimIdleAnimation = {
     },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0A594Bank1[15] = {
+/// Translation/rotation poses for `_gTonfaBatonAimBackwardOrTurnAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0A594_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0A594Bank4[185] = {
+/// Rotation-only poses for `_gTonfaBatonAimBackwardOrTurnAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0A594_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0A594Records[269] = {
+/// Keyframes and loop controls for `_gTonfaBatonAimBackwardOrTurnAnimation`.
+///
+/// Durations count normal-rate frames. Child-track jumps return past the entry
+/// keyframes, except track 12's two-keyframe loop. Track 1 carries both footstep
+/// cues; stop records after the jumps are retained but bypassed during looping.
+static const AnimationRecord _gTonfaBatonAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0A594_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0A594Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonAimBackwardOrTurnAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0A594_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0A594 = {
-    _gTonfaBatonAnimation0A594Records,
-    _gTonfaBatonAnimation0A594Indices,
-    { NULL, _gTonfaBatonAnimation0A594Bank1, NULL, NULL, _gTonfaBatonAnimation0A594Bank4, NULL, NULL, NULL },
+/// Backward aim locomotion and stationary turning clip in the tonfa baton player bank.
+///
+/// Bank slot 13 supplies child tracks 1..18 when aiming with backward input or
+/// turning without movement. Repeats the child tracks and carries footstep cues
+/// on track 1. Borrows read-only, word-aligned data for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonAimBackwardOrTurnAnimation = {
+    .records           = _gTonfaBatonAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gTonfaBatonAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonAimBackwardOrTurnAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonAimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0AE50Bank1[15] = {
+/// Translation/rotation poses for `_gTonfaBatonAimForwardAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonAimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0AE50_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0AE50Bank4[203] = {
+/// Rotation-only poses for `_gTonfaBatonAimForwardAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonAimForwardAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0AE50_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0AE50Records[291] = {
+/// Keyframes and loop controls for `_gTonfaBatonAimForwardAnimation`.
+///
+/// Durations count normal-rate frames. Child-track jumps skip the four entry
+/// keyframes. Track 1 carries both footstep cues; stop records after the jumps
+/// are retained but bypassed during looping.
+static const AnimationRecord _gTonfaBatonAimForwardAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0AE50_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0AE50Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonAimForwardAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonAimForwardAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0AE50_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0AE50 = {
-    _gTonfaBatonAnimation0AE50Records,
-    _gTonfaBatonAnimation0AE50Indices,
-    { NULL, _gTonfaBatonAnimation0AE50Bank1, NULL, NULL, _gTonfaBatonAnimation0AE50Bank4, NULL, NULL, NULL },
+/// Forward aim locomotion clip in the tonfa baton player bank.
+///
+/// Bank slot 12 supplies child tracks 1..18 while aiming with forward input.
+/// Repeats the child tracks after entry and carries footstep cues on track 1.
+/// Borrows read-only, word-aligned data for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonAimForwardAnimation = {
+    .records           = _gTonfaBatonAimForwardAnimationRecords,
+    .trackStartIndices = _gTonfaBatonAimForwardAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonAimForwardAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonAimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0B5C8Bank1[16] = {
+/// Translation/rotation poses for `_gTonfaBatonBattleEndAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonBattleEndAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0B5C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0B5C8Bank4[170] = {
+/// Rotation-only poses for `_gTonfaBatonBattleEndAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonBattleEndAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0B5C8_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0B5C8Records[240] = {
+/// Keyframes and stop controls for `_gTonfaBatonBattleEndAnimation`.
+///
+/// Durations count normal-rate frames; each track holds its final pose.
+/// Records carry no embedded action cues.
+static const AnimationRecord _gTonfaBatonBattleEndAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0B5C8_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0B5C8Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonBattleEndAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonBattleEndAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0B5C8_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0B5C8 = {
-    _gTonfaBatonAnimation0B5C8Records,
-    _gTonfaBatonAnimation0B5C8Indices,
-    { NULL, _gTonfaBatonAnimation0B5C8Bank1, NULL, NULL, _gTonfaBatonAnimation0B5C8Bank4, NULL, NULL, NULL },
+/// Battle-end action clip in the tonfa baton player bank.
+///
+/// Bank slot 20 supplies child tracks 1..18 for the action after combat ends.
+/// Tracks stop at their final poses. The baton performs no ammunition load or
+/// reload sound during this action. Borrows read-only, word-aligned data for the
+/// loaded package's lifetime.
+static AnimationSet _gTonfaBatonBattleEndAnimation = {
+    .records           = _gTonfaBatonBattleEndAnimationRecords,
+    .trackStartIndices = _gTonfaBatonBattleEndAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonBattleEndAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonBattleEndAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0BC08Bank1[11] = {
+/// Translation/rotation poses for `_gTonfaBatonFirstStrikeAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonFirstStrikeAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0BC08_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0BC08Bank4[154] = {
+/// Rotation-only poses for `_gTonfaBatonFirstStrikeAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonFirstStrikeAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0BC08_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0BC08Records[193] = {
+/// Keyframes and stop controls for `_gTonfaBatonFirstStrikeAnimation`.
+///
+/// Durations count normal-rate frames; each track holds its final pose.
+/// Records carry no embedded action cues; strike timing belongs to the attack state.
+static const AnimationRecord _gTonfaBatonFirstStrikeAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0BC08_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0BC08Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonFirstStrikeAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonFirstStrikeAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0BC08_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0BC08 = {
-    _gTonfaBatonAnimation0BC08Records,
-    _gTonfaBatonAnimation0BC08Indices,
-    { NULL, _gTonfaBatonAnimation0BC08Bank1, NULL, NULL, _gTonfaBatonAnimation0BC08Bank4, NULL, NULL, NULL },
+/// First baton strike clip in the tonfa baton player bank.
+///
+/// Bank slot 10 supplies child tracks 1..18, entered with a three-frame blend
+/// from each track's start. Finishing track 1 selects either the queued combo strike
+/// or single-strike recovery. Borrows read-only, word-aligned data for the
+/// loaded package's lifetime.
+static AnimationSet _gTonfaBatonFirstStrikeAnimation = {
+    .records           = _gTonfaBatonFirstStrikeAnimationRecords,
+    .trackStartIndices = _gTonfaBatonFirstStrikeAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonFirstStrikeAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonFirstStrikeAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0C424Bank1[15] = {
+/// Translation/rotation poses for `_gTonfaBatonStrikeRecoveryAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonStrikeRecoveryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0C424_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0C424Bank4[206] = {
+/// Rotation-only poses for `_gTonfaBatonStrikeRecoveryAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonStrikeRecoveryAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0C424_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0C424Records[248] = {
+/// Keyframes and stop controls for `_gTonfaBatonStrikeRecoveryAnimation`.
+///
+/// Durations count normal-rate frames; each track holds its final pose.
+/// Records carry no embedded action cues.
+static const AnimationRecord _gTonfaBatonStrikeRecoveryAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0C424_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0C424Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonStrikeRecoveryAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonStrikeRecoveryAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0C424_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0C424 = {
-    _gTonfaBatonAnimation0C424Records,
-    _gTonfaBatonAnimation0C424Indices,
-    { NULL, _gTonfaBatonAnimation0C424Bank1, NULL, NULL, _gTonfaBatonAnimation0C424Bank4, NULL, NULL, NULL },
+/// Recovery clip after a single baton strike in the tonfa baton player bank.
+///
+/// Bank slot 14 supplies child tracks 1..18 when no second strike was queued;
+/// finishing track 1 returns control to the ordinary weapon-attack completion.
+/// Slot 15 aliases this same set in the generic reload table positions.
+/// Borrows read-only, word-aligned data for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonStrikeRecoveryAnimation = {
+    .records           = _gTonfaBatonStrikeRecoveryAnimationRecords,
+    .trackStartIndices = _gTonfaBatonStrikeRecoveryAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonStrikeRecoveryAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonStrikeRecoveryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0D42CBank1[30] = {
+/// Translation/rotation poses for `_gTonfaBatonComboStrikeAnimation`.
+///
+/// Tracks 0 and 1 use integer local coordinates and 4096 angle units per turn.
+static const AnimationPackedPose _gTonfaBatonComboStrikeAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0D42C_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0D42CBank4[424] = {
+/// Rotation-only poses for `_gTonfaBatonComboStrikeAnimation`, in 1/512-turn steps.
+///
+/// Tracks 2..18 preserve each model part's local translation.
+static const AnimationPackedRotation _gTonfaBatonComboStrikeAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0D42C_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0D42CRecords[492] = {
+/// Keyframes and stop controls for `_gTonfaBatonComboStrikeAnimation`.
+///
+/// Durations count normal-rate frames; each track holds its final pose.
+/// Records carry no embedded action cues; strike timing belongs to the attack state.
+static const AnimationRecord _gTonfaBatonComboStrikeAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0D42C_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0D42CIndices[20] = {
+/// Track-start record indices for `_gTonfaBatonComboStrikeAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonComboStrikeAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/tonfa_baton_animation_0D42C_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0D42C = {
-    _gTonfaBatonAnimation0D42CRecords,
-    _gTonfaBatonAnimation0D42CIndices,
-    { NULL, _gTonfaBatonAnimation0D42CBank1, NULL, NULL, _gTonfaBatonAnimation0D42CBank4, NULL, NULL, NULL },
+/// Queued second strike and its recovery in the tonfa baton player bank.
+///
+/// Bank slot 11 restarts child tracks 1..18 when the first strike ends with a
+/// second strike queued. Finishing track 1 completes the attack without a
+/// separate recovery clip. Borrows read-only, word-aligned data for the loaded
+/// package's lifetime.
+static AnimationSet _gTonfaBatonComboStrikeAnimation = {
+    .records           = _gTonfaBatonComboStrikeAnimationRecords,
+    .trackStartIndices = _gTonfaBatonComboStrikeAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonComboStrikeAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonComboStrikeAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gTonfaBatonAnimation0D6F4Bank1[5] = {
@@ -1950,17 +2082,17 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation0D6F4,
     &_gTonfaBatonAnimation0D8BC,
     &_gTonfaBatonAimIdleAnimation,
-    &_gTonfaBatonAnimation0BC08,
-    &_gTonfaBatonAnimation0D42C,
-    &_gTonfaBatonAnimation0AE50,
-    &_gTonfaBatonAnimation0A594,
-    &_gTonfaBatonAnimation0C424,
-    &_gTonfaBatonAnimation0C424,
+    &_gTonfaBatonFirstStrikeAnimation,
+    &_gTonfaBatonComboStrikeAnimation,
+    &_gTonfaBatonAimForwardAnimation,
+    &_gTonfaBatonAimBackwardOrTurnAnimation,
+    &_gTonfaBatonStrikeRecoveryAnimation,
+    &_gTonfaBatonStrikeRecoveryAnimation,
     &_gTonfaBatonHitPart4Animation,
     &_gTonfaBatonHitOtherBodyAnimation,
     &_gTonfaBatonDeathAnimation,
     &_gTonfaBatonWalkAnimation,
-    &_gTonfaBatonAnimation0B5C8,
+    &_gTonfaBatonBattleEndAnimation,
     &_gTonfaBatonIdleAnimation,
     &_gTonfaBatonIdleAnimation,
     &_gTonfaBatonHighHealthIdleAnimation,
