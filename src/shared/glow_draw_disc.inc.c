@@ -43,7 +43,7 @@ void glowDrawDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
     u8                      red;
     u8                      green;
     u8                      blue;
-#ifdef GLOW_DRAW_DISC_PULL
+#ifdef GLOW_DRAW_DISC_DEPTH_PULL
     s32 originalDepth;
 #endif
 
@@ -57,10 +57,10 @@ void glowDrawDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-#ifdef GLOW_DRAW_DISC_PULL
+#ifdef GLOW_DRAW_DISC_DEPTH_PULL
         originalDepth = block->otz;
         if (originalDepth > GLOW_DISC_PULL_THRESHOLD) {
-            block->otz = originalDepth - GLOW_DRAW_DISC_PULL;
+            block->otz = originalDepth - GLOW_DRAW_DISC_DEPTH_PULL;
         }
         // Preserve the signed low-halfword scaling before the depth divide.
         radiusScale = radiusScale << 16;
@@ -111,5 +111,5 @@ void glowDrawDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
     SCRATCH_STACK_RELEASE_BLOCK(GLOW_DRAW_DISC_SCRATCH);
 }
 
-#undef GLOW_DRAW_DISC_PULL
+#undef GLOW_DRAW_DISC_DEPTH_PULL
 #undef GLOW_DRAW_DISC_SHIFTED_FLICKER

@@ -23,8 +23,8 @@
 /// Each binding must set only vertex 2's RGB bytes; its arguments have no side
 /// effects. Breezeway uses red, Gas Station cyan, and Trailer Coach cyan with
 /// green at full intensity and blue at half intensity on the inner disc.
-/// `GLOW_DRAW_RAY_STAR_HALF_FIRST = 1` selects the Coach's early signed
-/// halving; `GLOW_DRAW_RAY_STAR_RAY_HALFWORD = 1` selects Breezeway's unsigned
+/// `GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY = 1` selects the Coach's early signed
+/// halving; `GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY = 1` selects Breezeway's unsigned
 /// halfword ray intensity. An undefined selector means zero. All five
 /// bindings are undefined after this fragment; define them before each include.
 static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale)
@@ -38,7 +38,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
     s32                   middleAngle;
     s32                   nextAngle;
     s32                   adjacentAngle;
-#if GLOW_DRAW_RAY_STAR_HALF_FIRST
+#if GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
     s32 intensityWork;
 #endif
 
@@ -63,7 +63,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
         pulseSine          = rsin(gDisplayState.animFrame * pulseRate);
         angle              = 0;
         block->outerRadius = (radiusScale * GLOW_RADIUS_SCALE) / block->otz;
-#if GLOW_DRAW_RAY_STAR_HALF_FIRST
+#if GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
         // Keep the halving source separate from the saved full intensity;
         // its later scratch-byte-count use preserves the source register.
         intensityWork   = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
@@ -79,7 +79,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             primitive      = gGpuPrimCursor;
             gGpuPrimCursor = primitive + 1;
             setPolyG4(primitive);
-#if !GLOW_DRAW_RAY_STAR_HALF_FIRST
+#if !GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
             halfIntensity = (s16)intensity >> 1;
 #endif
             setRGB0(primitive, 0, 0, 0);
@@ -121,9 +121,9 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);
 
-#if GLOW_DRAW_RAY_STAR_HALF_FIRST
+#if GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
         intensity = (s16)intensity >> 1;
-#elif GLOW_DRAW_RAY_STAR_RAY_HALFWORD
+#elif GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY
         // Breezeway uses the unsigned low halfword for the ray colour.
         intensity = (u16)halfIntensity;
 #else
@@ -175,7 +175,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);
     }
-#if GLOW_DRAW_RAY_STAR_HALF_FIRST
+#if GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
     intensityWork = sizeof(RoomGlowRadiiScratch);
     SCRATCH_STACK_RELEASE_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
 #else
@@ -184,7 +184,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
 }
 
 #undef GLOW_DRAW_RAY_STAR_OUTER
-#undef GLOW_DRAW_RAY_STAR_RAY_HALFWORD
-#undef GLOW_DRAW_RAY_STAR_HALF_FIRST
+#undef GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY
+#undef GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY
 #undef GLOW_DRAW_RAY_STAR_INNER
 #undef GLOW_DRAW_RAY_STAR_RAY

@@ -1526,7 +1526,11 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 #define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, h, 0, 0)
 #define GLOW_DRAW_RAY_STAR_INNER(p, c, h) setRGB2(p, c, 0, 0)
 #define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, c, 0, 0)
-#define GLOW_DRAW_RAY_STAR_RAY_HALFWORD   1
+/// Uses the unsigned low halfword of the disc's half intensity for red rays.
+///
+/// Bind 0 or 1 before the ray-star fragment; undefined means 0. This branch
+/// applies only without early signed halving. The fragment clears the binding.
+#define GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY 1
 #include "../../shared/glow_draw_ray_star.inc.c"
 
 void dryfieldBreezewayBouncingParticleTask(Task* task)

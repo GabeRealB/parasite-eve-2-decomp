@@ -1807,7 +1807,13 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
 #define SPRITE_QUAD_OTZ_BIAS 0
-#define SPRITE_QUAD_MIN_OTZ  0x41
+/// Minimum accepted camera Z / 4 depth for the nursery particle sprite.
+///
+/// Positive signed integer constant, tested after the optional depth bias
+/// and before perspective division. This instance disables the bias, so 65
+/// is the projected depth itself. Undefined omits the depth test. The next
+/// sprite-quad fragment clears the binding.
+#define SPRITE_QUAD_MIN_OTZ 0x41
 #include "../../shared/sprite_quad_draw.inc.c"
 
 void shelterB6NurserySparkShowerShardTask(Task* task)
@@ -1815,8 +1821,11 @@ void shelterB6NurserySparkShowerShardTask(Task* task)
     /// Spins one shard and advances it by its scaled Q12 direction.
     ///
     /// Arguments must be side-effect-free pointers, evaluated repeatedly; the
-    /// output vector receives coordinate units. Requires distinct live coordinate,
-    /// work and output storage. The macro is undefined after this callback.
+    /// output vector receives parent-coordinate units after multiplying the
+    /// Q12 movement vector by scale's speed. Spin uses 4096 units per
+    /// turn. Requires distinct live coordinate, work and output storage.
+    /// Marks the composed cache dirty without refreshing it; drawing stays
+    /// with the caller. Captures no locals and is undefined after this callback.
 #define SHELTER_B6_NURSERY_ADVANCE_SHARD(coordNode, effectWork, displacementOut)             \
     do {                                                                                     \
         gfxRotMatrixXYZ(&(coordNode)->coord, &(effectWork)->pos, GRAPHICS_ROTATION_COMPOSE); \

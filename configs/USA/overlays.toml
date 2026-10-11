@@ -3057,7 +3057,7 @@ objects = [
   { unit = "shelter_b6_training_room/shelter_b6_training_room_3", rodata = "0x2C", text = "0x828", data = "0x5534" },
   { kind = "animation", at = "0x5568", sets = ["0x5844", "0x5F74", "0x61B8", "0x63C0"], in_c = true },
   { kind = "collision", at = "0x6ED0", in_c = true },
-  { kind = "collisionSource", at = "0x7174", in_c = true },
+  { kind = "collisionSource", at = "0x7174", in_c = true, cell_ref_macro = "SHELTER_B6_TRAINING_ROOM_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0x78", data = "0x6E58", bss = "0x8698", tail = true },
 ]
 

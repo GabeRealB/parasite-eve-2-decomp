@@ -676,7 +676,8 @@ void shelterB6TrainingRoomSummonRingTask(Task* task)
         SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW    = 1,
         SHELTER_B6_TRAINING_ROOM_SUMMON_RING_FADE    = 2,
         SHELTER_B6_TRAINING_ROOM_SUMMON_RING_WAIT    = 3,
-        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_RELEASE = 4
+        SHELTER_B6_TRAINING_ROOM_SUMMON_RING_RELEASE = 4,
+        SHELTER_B6_TRAINING_ROOM_SUMMON_BAND_WIDTH   = 0x100
     };
     EffectWork* work;
     GfxCoord*   coord;
@@ -685,17 +686,21 @@ void shelterB6TrainingRoomSummonRingTask(Task* task)
     /// Stages violet RGB bytes and draws both discs and the outer band.
     ///
     /// Requires a live EffectWork, composed GfxCoord, writable RGB[3] and
-    /// signed sizing radius. Arguments must have no side effects: work, coord
-    /// and rgb are evaluated repeatedly. Captures no caller identifiers.
+    /// signed band inner radius. Radii and band width use the drawer's coordinate
+    /// scale (64 / (projected depth + 1)); RGB stores narrow to bytes. The second
+    /// disc doubles the first radius's low halfword before signed narrowing.
+    /// Arguments must have no side effects: work, coord
+    /// and rgb are evaluated repeatedly; bandInnerRadius is evaluated once.
+    /// Captures the fixed band-width constant, and no caller locals.
     /// Expands to multiple statements; use only in braced blocks. Undefined
     /// before this task ends.
-#define SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, outerRadius, rgb) \
-    (rgb)[0] = (work)->scale >> 1;                                               \
-    (rgb)[1] = (work)->scale >> 2;                                               \
-    (rgb)[2] = (work)->scale;                                                    \
-    effectDrawGouraudDisc((coord), (work)->angle, (rgb));                        \
-    effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb));        \
-    effectDrawOuterGlowBand((coord), (outerRadius), 0x100, (rgb));
+#define SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, bandInnerRadius, rgb) \
+    (rgb)[0] = (work)->scale >> 1;                                                   \
+    (rgb)[1] = (work)->scale >> 2;                                                   \
+    (rgb)[2] = (work)->scale;                                                        \
+    effectDrawGouraudDisc((coord), (work)->angle, (rgb));                            \
+    effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb));            \
+    effectDrawOuterGlowBand((coord), (bandInnerRadius), SHELTER_B6_TRAINING_ROOM_SUMMON_BAND_WIDTH, (rgb));
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1230,7 +1235,10 @@ static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const Gfx
     /// arguments must have no side effects and may be evaluated repeatedly.
     /// Captures s32 segmentIndex/yaw, SVECTOR* bottomVertex, GsWSMATRIX and
     /// this drawer's Q12 shift constant. Expands to multiple statements; invoke
-    /// unconditionally in the drawer. Undefined before it ends.
+    /// unconditionally in the drawer. Both rings have six vertices; the yaw
+    /// step is the truncated 4096 / 6 = 682 angle units. The bottom cursor is
+    /// addressed within the complete scratch object to retain the separate
+    /// vx and vy/vz store paths. Undefined before the drawer ends.
 #define SHELTER_B6_TRAINING_ROOM_BUILD_BAND_RINGS(scratch, coord, topRadius, bottomRadius, lift)                                                                         \
     gte_SetTransMatrix(&GsWSMATRIX);                                                                                                                                     \
     for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {                                                                 \

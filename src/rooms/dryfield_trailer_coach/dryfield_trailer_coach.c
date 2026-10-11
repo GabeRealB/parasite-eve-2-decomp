@@ -2470,10 +2470,15 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 
 #include "../../shared/glow_draw_star_local.inc.c"
 
-#define GLOW_DRAW_RAY_STAR_HALF_FIRST     1
-#define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, 0, h, h)
-#define GLOW_DRAW_RAY_STAR_INNER(p, c, h) setRGB2(p, 0, c, h)
-#define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, 0, c, c)
+/// Computes the ray star's signed half intensity before its first disc packet.
+///
+/// Bind 0 or 1 before the fragment; undefined means 0. Disc colours receive
+/// the early half intensity, while rays halve the saved full intensity. This
+/// mode takes precedence over unsigned ray intensity and is cleared afterwards.
+#define GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY 1
+#define GLOW_DRAW_RAY_STAR_OUTER(p, c, h)              setRGB2(p, 0, h, h)
+#define GLOW_DRAW_RAY_STAR_INNER(p, c, h)              setRGB2(p, 0, c, h)
+#define GLOW_DRAW_RAY_STAR_RAY(p, c)                   setRGB2(p, 0, c, c)
 #include "../../shared/glow_draw_ray_star.inc.c"
 
 void dryfieldTrailerCoachDrawGlowsTask(Task* task)

@@ -1199,10 +1199,22 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 
 #include "../../shared/water_tile_u16.inc.c"
 
-#define GLOW_DRAW_CAPSULE_PULL 0x40
+/// Depth subtracted from each capsule endpoint above camera Z / 4 = 80.
+///
+/// This signed integer constant changes both perspective sizing and sorting;
+/// 64 leaves a minimum adjusted depth of 17. Define before the capsule fragment,
+/// which clears it. An undefined binding leaves depth unchanged; 0 still
+/// selects the pull branch. Valid nonnegative pulls are at most 80.
+#define GLOW_DRAW_CAPSULE_DEPTH_PULL 0x40
 #include "../../shared/glow_draw_capsule.inc.c"
 
-#define GLOW_DRAW_DISC_PULL 0x40
+/// Depth subtracted from a disc centre above camera Z / 4 = 80.
+///
+/// This signed integer constant changes both perspective sizing and sorting;
+/// 64 leaves a minimum adjusted depth of 17. Define before the disc fragment,
+/// which clears it. An undefined binding leaves depth unchanged; 0 still
+/// selects the pull branch. Valid nonnegative pulls are at most 80.
+#define GLOW_DRAW_DISC_DEPTH_PULL 0x40
 #include "../../shared/glow_draw_disc.inc.c"
 
 /// Projects one face of the gallery's light prism into screen pixels.

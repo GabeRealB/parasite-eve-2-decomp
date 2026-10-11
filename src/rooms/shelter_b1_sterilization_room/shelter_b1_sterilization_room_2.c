@@ -1875,7 +1875,12 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
 #define SPRITE_QUAD_CELL_WIDTH 48
 /// Number of columns in the drifting sprite's grid of ten frames in two rows.
 #define SPRITE_QUAD_CELLS_PER_ROW 5
-#define SPRITE_QUAD_CELL_H        0x30
+/// Texel height and vertical stride of each cell in the two-row sprite grid.
+///
+/// Positive signed integer constant for the next drawer inclusion, with
+/// SPRITE_QUAD_CELLS_PER_ROW. Frames 0..4 use the first row; 5..9 add 48 texels
+/// to both V endpoints. The fragment clears this binding; see `sprite_quad.h`.
+#define SPRITE_QUAD_CELL_HEIGHT 0x30
 /// Inclusive top texel row of the grid's first row, relative to its texture page.
 ///
 /// Keep this signed: adding the frame's row stride precedes narrowing to the
@@ -1886,7 +1891,7 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
 ///
 /// Keep the endpoint signed: -0x51 becomes V=0xAF for frames 0..4 and
 /// V=0xDF after the 48-texel row stride for frames 5..9. See `sprite_quad.h`.
-#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_H - 1)
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_HEIGHT - 1)
 /// Perspective-sizing multiplier for the sterilization room's drifting sprite.
 ///
 /// Uses the cell's inclusive 47-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.

@@ -156,12 +156,19 @@ static s16 _gShelterB6TrainingRoomCollisionGridCells[] = {
 #include "assets/shelter_b6_training_room_collision_07174_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6TrainingRoomCollisionGridCells[i])
+/// Address of a cell's terminated face list at a halfword offset in this grid.
+///
+/// Captures the overlay-lifetime signed-halfword pool. The pure integer offset
+/// is evaluated once and must select a list start within that pool; the generated
+/// table supplies 0, 14, 32, 50, 60 and 70. It is neither a byte offset nor a
+/// cell-directory index. The collisionSource manifest's cell_ref_macro selects
+/// this binding for the next generated table, after which it is undefined.
+#define SHELTER_B6_TRAINING_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB6TrainingRoomCollisionGridCells[(halfwordOffset)])
 /// X-major pointers to the grid's two-by-three cell lists.
 static s16* _gShelterB6TrainingRoomCollisionGridTable[] = {
 #include "assets/shelter_b6_training_room_collision_07174_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B6_TRAINING_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB6TrainingRoomCollisionGrid = {
     .viewCoord   = NULL,

@@ -703,6 +703,12 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
     }
 }
 
+/// Selects additive odd-frame flicker encoded by packed colour bits 12..15.
+///
+/// Presence selects this branch, including a value of 0; leave undefined for
+/// the default bit-3 insertion. Each colour byte adds 1 << shift on odd frames
+/// and wraps, with shift restricted to 0..7. Bind before the capsule fragment;
+/// it clears the binding. The airlock's cyan capsules use shift 1 (add 2).
 #define GLOW_DRAW_CAPSULE_SHIFTED_FLICKER 1
 #include "../../shared/glow_draw_capsule.inc.c"
 

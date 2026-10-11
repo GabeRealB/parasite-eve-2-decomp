@@ -24,7 +24,7 @@ static inline void _glowInitCapsuleWedge(POLY_G4* capWedge, u8 red, u8 green, u8
 /// 4..7 and 0..3 supply RGB nibbles scaled by 16; odd frames insert bit 3.
 /// The shifted-flicker variant instead adds `1 << shift` to each byte, with
 /// shift in bits 12..15 restricted to 0..7. Colour bytes wrap.
-/// The pull variant subtracts `GLOW_DRAW_CAPSULE_PULL` from depths above 0x50
+/// The pull variant subtracts `GLOW_DRAW_CAPSULE_DEPTH_PULL` from depths above 0x50
 /// before sizing and sorting. Queues six additive Gouraud quads plus blend
 /// commands; the joining quads sort at the mean of the two end depths.
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor)
@@ -47,7 +47,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
     s32                      greenNibble;
     s32                      scaledRadius;
     s32                      sideAngle;
-#ifdef GLOW_DRAW_CAPSULE_PULL
+#ifdef GLOW_DRAW_CAPSULE_DEPTH_PULL
     s32 originalDepth;
 #endif
     u8 red;
@@ -66,10 +66,10 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
-#ifdef GLOW_DRAW_CAPSULE_PULL
+#ifdef GLOW_DRAW_CAPSULE_DEPTH_PULL
         originalDepth = block->otz0;
         if (originalDepth > GLOW_CAPSULE_PULL_THRESHOLD) {
-            block->otz0 = originalDepth - GLOW_DRAW_CAPSULE_PULL;
+            block->otz0 = originalDepth - GLOW_DRAW_CAPSULE_DEPTH_PULL;
         }
 #endif
         gte_ldv0(secondPoint);
@@ -78,10 +78,10 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz1);
-#ifdef GLOW_DRAW_CAPSULE_PULL
+#ifdef GLOW_DRAW_CAPSULE_DEPTH_PULL
             originalDepth = block->otz1;
             if (originalDepth > GLOW_CAPSULE_PULL_THRESHOLD) {
-                block->otz1 = originalDepth - GLOW_DRAW_CAPSULE_PULL;
+                block->otz1 = originalDepth - GLOW_DRAW_CAPSULE_DEPTH_PULL;
             }
 #endif
             scaledRadius   = (s16)radiusScale * GLOW_RADIUS_SCALE;
@@ -178,5 +178,5 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
     SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
-#undef GLOW_DRAW_CAPSULE_PULL
+#undef GLOW_DRAW_CAPSULE_DEPTH_PULL
 #undef GLOW_DRAW_CAPSULE_SHIFTED_FLICKER

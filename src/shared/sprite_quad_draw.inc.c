@@ -23,7 +23,7 @@
 #if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
 #error SPRITE_QUAD_CELLS_PER_ROW must be a positive integer constant
 #endif
-#elif defined(SPRITE_QUAD_CELL_H)
+#elif defined(SPRITE_QUAD_CELL_HEIGHT)
 #error A sprite cell grid requires SPRITE_QUAD_CELLS_PER_ROW
 #endif
 #endif
@@ -72,7 +72,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #ifdef SPRITE_QUAD_UV_TABLE
     const EffectSpriteTextureFrame* textureFrame;
 #endif
-#ifdef SPRITE_QUAD_CELL_H
+#ifdef SPRITE_QUAD_CELL_HEIGHT
     s32 v0;
 #endif
     s32 ang2;
@@ -123,7 +123,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
                    textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1));
 #else
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
-#ifdef SPRITE_QUAD_CELL_H
+#ifdef SPRITE_QUAD_CELL_HEIGHT
             u0 = (s16)(frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
 #else
             // Repeat the strip's column while keeping its texel rows fixed.
@@ -141,9 +141,9 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #else
             u1 = u0 + (SPRITE_QUAD_CELL_WIDTH - 1);
 #endif
-#ifdef SPRITE_QUAD_CELL_H
+#ifdef SPRITE_QUAD_CELL_HEIGHT
             // Advance through grid rows; the column count is not a frame limit.
-            v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_H;
+            v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_HEIGHT;
             // Add the signed first-row origin before the GPU V bytes wrap modulo 256.
             setUV4(prim, u0, v0 + (SPRITE_QUAD_TOP_V), u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_TOP_V), u0, v0 + (SPRITE_QUAD_BOTTOM_V),
                    u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_BOTTOM_V));
@@ -184,5 +184,5 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #undef SPRITE_QUAD_CELL_MASK
 #undef SPRITE_QUAD_U_BASE
 #undef SPRITE_QUAD_MIN_OTZ
-#undef SPRITE_QUAD_CELL_H
+#undef SPRITE_QUAD_CELL_HEIGHT
 #undef SPRITE_QUAD_UV_TABLE

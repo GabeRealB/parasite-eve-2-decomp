@@ -707,22 +707,25 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
 
     /// Composes spin, advances the shard, and draws its existing cached transform.
     ///
-    /// Captures `work` (EffectWork*), `coord` (GfxCoord*) and `displacement`
-    /// (SVECTOR lvalue), retaining the displacement for floor rollback.
-    /// Expands to multiple statements: use only in this function's switch
-    /// cases, never as an unbraced control-flow body. Takes no arguments.
-#define DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD()                    \
-    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE); \
-    MatrixNormal(&coord->coord, &coord->coord);                            \
-    gte_lddp((u16)work->scale);                                            \
-    gte_ldsv(&work->move);                                                 \
-    gte_gpf12();                                                           \
-    gte_stsv(&displacement);                                               \
-    coord->coord.t[0]  += displacement.vx;                                 \
-    coord->coord.t[1]  += displacement.vy;                                 \
-    coord->coord.t[2]  += displacement.vz;                                 \
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;                            \
-    _dryfieldNightMotelLoftDrawShard(coord, work->angle, work->period);
+    /// Borrows distinct writable EffectWork, GfxCoord and SVECTOR pointers.
+    /// Spin uses 4096 units per turn; speed scales the Q12 movement vector
+    /// into parent-coordinate units. The output remains available for floor
+    /// rollback. Drawing uses the existing composed cache after marking it
+    /// dirty; no composition is performed here. Arguments are evaluated
+    /// repeatedly and must have no side effects. Captures no caller locals.
+    /// Expands to statements; invoke only in braced switch cases.
+#define DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD(effectWork, coordNode, displacementOut) \
+    gfxRotMatrixXYZ(&(coordNode)->coord, &(effectWork)->pos, GRAPHICS_ROTATION_COMPOSE);      \
+    MatrixNormal(&(coordNode)->coord, &(coordNode)->coord);                                   \
+    gte_lddp((u16)(effectWork)->scale);                                                       \
+    gte_ldsv(&(effectWork)->move);                                                            \
+    gte_gpf12();                                                                              \
+    gte_stsv((displacementOut));                                                              \
+    (coordNode)->coord.t[0]  += (displacementOut)->vx;                                        \
+    (coordNode)->coord.t[1]  += (displacementOut)->vy;                                        \
+    (coordNode)->coord.t[2]  += (displacementOut)->vz;                                        \
+    (coordNode)->composeStamp = GRAPHICS_COORD_DIRTY;                                         \
+    _dryfieldNightMotelLoftDrawShard((coordNode), (effectWork)->angle, (effectWork)->period);
 
     if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -754,7 +757,7 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
                     task->state         = DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING;
                     break;
                 case DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING:
-                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD();
+                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD(work, coord, &displacement);
                     // Drawing precedes rollback; the first floor crossing starts fading.
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= displacement.vx;
@@ -774,7 +777,7 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
                         effectKillTask(work, task);
                         break;
                     }
-                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD();
+                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD(work, coord, &displacement);
                     // The fading shard can still bounce and lose half its velocity.
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= displacement.vx;

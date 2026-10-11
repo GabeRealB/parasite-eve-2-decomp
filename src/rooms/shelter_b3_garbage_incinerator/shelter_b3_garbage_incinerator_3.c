@@ -2816,6 +2816,11 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
     }
 }
 
+/// Selects additive odd-frame flicker encoded by packed colour bits 12..15.
+///
+/// Bind 0 or 1 before the disc fragment, which clears the binding; undefined
+/// or 0 selects bit-3 insertion. With 1, each colour byte adds 1 << shift on
+/// odd frames and wraps. Packed shifts must be 0..7; the lamps use shift 5.
 #define GLOW_DRAW_DISC_SHIFTED_FLICKER 1
 #include "../../shared/glow_draw_disc.inc.c"
 

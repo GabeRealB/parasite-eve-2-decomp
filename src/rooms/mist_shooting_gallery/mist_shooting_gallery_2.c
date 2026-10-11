@@ -2504,15 +2504,17 @@ void mistShootingGalleryTracerTask(Task* task)
     u32         randomZ;
     u32         randomAngle;
 
-    /// Queues the additive blue tint from this task's work and three-byte rgb buffer.
+    /// Queues an additive blue tint at the effect's current brightness.
     ///
-    /// Expands to four statements; invoke only inside an explicit brace-delimited block.
-    /// Each component narrows to a GPU byte. The work's scale is read three times.
-#define MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT() \
-    rgb[0] = work->scale >> 1;                   \
-    rgb[1] = work->scale >> 1;                   \
-    rgb[2] = work->scale;                        \
-    effectDrawScreenTint(rgb, GPU_BLEND_ADD)
+    /// Borrows an EffectWork and three writable colour bytes. Red and green
+    /// receive half brightness, blue full brightness, narrowing at each store.
+    /// Arguments are evaluated repeatedly and must have no side effects;
+    /// captures no caller locals. Expands to four statements inside braces.
+#define MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT(effectWork, colorBytes) \
+    (colorBytes)[0] = (effectWork)->scale >> 1;                        \
+    (colorBytes)[1] = (effectWork)->scale >> 1;                        \
+    (colorBytes)[2] = (effectWork)->scale;                             \
+    effectDrawScreenTint((colorBytes), GPU_BLEND_ADD)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -2520,7 +2522,7 @@ void mistShootingGalleryTracerTask(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         spriteQuadDraw(coord, work->index, MIST_SHOOTING_GALLERY_TRACER_HELD_SIZE, work->angle);
         _beamStripDraw(coord, &work->pos, work->index, MIST_SHOOTING_GALLERY_TRACER_HELD_SIZE);
-        MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT();
+        MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT(work, rgb);
         return;
     }
 
@@ -2552,7 +2554,7 @@ void mistShootingGalleryTracerTask(Task* task)
                 spriteQuadDraw(coord, ++work->index, MIST_SHOOTING_GALLERY_TRACER_RUNNING_SIZE, work->angle);
                 _beamStripDraw(coord, &work->pos, work->index, MIST_SHOOTING_GALLERY_TRACER_RUNNING_SIZE);
             }
-            MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT();
+            MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT(work, rgb);
             work->scale -= MIST_SHOOTING_GALLERY_TRACER_FADE_STEP;
             if (work->scale < MIST_SHOOTING_GALLERY_TRACER_FADE_STEP) {
                 effectKillTask(work, task);

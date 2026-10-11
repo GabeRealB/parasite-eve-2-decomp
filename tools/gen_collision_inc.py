@@ -9,11 +9,13 @@ so its initializers come from the extracted package.
 A grid is laid out as normals, vertices, faces, cell lists, cell table, then
 its header, each part ending where the next begins; `components` checks that
 against the header before anything is written. The cell lists are one run of
-halfwords, and the table's entries are written as `GRID_CELL(i)`, an index into
-that run, which the including source defines.
+halfwords. Each non-null table entry calls the including source's face-list
+binding with a halfword offset into that run. `--cell-ref-macro` selects the
+binding's identifier; existing grids default to `GRID_CELL`.
 """
 
 import argparse
+import re
 import struct
 from pathlib import Path
 
@@ -72,11 +74,15 @@ def initializer(data: bytes, load: int, part: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def table_initializer(data: bytes, load: int, table: dict, cells: dict) -> str:
+def table_initializer(data: bytes, load: int, table: dict, cells: dict,
+                      cell_ref_macro: str = "GRID_CELL") -> str:
+    """Emit face-list addresses through a carrier's halfword-offset binding."""
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", cell_ref_macro):
+        raise ValueError(f"invalid cell face-list binding: {cell_ref_macro!r}")
     count = table["size"] // 4
     lines = []
     for word in struct.unpack_from(f"<{count}I", data, table["offset"]):
-        lines.append("    NULL," if not word else f"    GRID_CELL({(word - load - cells['offset']) // 2}),")
+        lines.append("    NULL," if not word else f"    {cell_ref_macro}({(word - load - cells['offset']) // 2}),")
     return "\n".join(lines) + "\n"
 
 
@@ -108,6 +114,8 @@ def main() -> None:
     parser.add_argument("source", type=lambda s: int(s, 0))
     parser.add_argument("output", type=Path)
     parser.add_argument("pieces", nargs="*", help="for a patch: its arrays, e.g. 'vectors 8' 'faces 2'")
+    parser.add_argument("--cell-ref-macro", default="GRID_CELL",
+                        help="C binding that takes a cell face-list halfword offset")
     args = parser.parse_args()
     data = args.package.read_bytes()
     if args.pieces:
@@ -120,7 +128,7 @@ def main() -> None:
     parts = {p["name"]: p for p in components(data, args.load, args.source)}
     args.output.mkdir(parents=True, exist_ok=True)
     for name, part in parts.items():
-        text = (table_initializer(data, args.load, part, parts["cells"]) if name == "table"
+        text = (table_initializer(data, args.load, part, parts["cells"], args.cell_ref_macro) if name == "table"
                 else initializer(data, args.load, part))
         header = f"/* Generated from {args.package.as_posix()}; grid header at 0x{args.source:X}. */\n"
         (args.output / f"{args.package.stem}_collision_{args.source:05X}_{name}.inc").write_text(header + text)

@@ -12,7 +12,7 @@
  *   SPRITE_QUAD_BOTTOM_V    inclusive bottom texel row of the first cell row
  *   SPRITE_QUAD_SCALE       signed perspective-sizing multiplier
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: number of cell columns, not texels
- *   SPRITE_QUAD_CELL_H      optional, with CELLS_PER_ROW: a grid of cells this
+ *   SPRITE_QUAD_CELL_HEIGHT optional, with CELLS_PER_ROW: a grid of cells this
  *                           tall, added to TOP_V/BOTTOM_V for each row
  *   SPRITE_QUAD_UV_TABLE    optional: an EffectSpriteTextureFrame table supplying
  *                           UV origins; its palette fields are ignored
@@ -74,8 +74,8 @@
  * SPRITE_QUAD_CELLS_PER_ROW must be a positive signed integer preprocessor
  * constant, bound before each sprite_quad_draw.inc.c inclusion. In arithmetic
  * UV mode it selects the column with frame % count, taking precedence over
- * SPRITE_QUAD_CELL_MASK. Without SPRITE_QUAD_CELL_H, only the column repeats
- * and TOP_V/BOTTOM_V stay fixed. With CELL_H, the count is required and frame / count
+ * SPRITE_QUAD_CELL_MASK. Without SPRITE_QUAD_CELL_HEIGHT, only the column repeats
+ * and TOP_V/BOTTOM_V stay fixed. With CELL_HEIGHT, the count is required and frame / count
  * selects the row; the count does not limit the number of rows or frames.
  * Signed frames retain signed division/remainder behavior, and the resulting
  * UV coordinates narrow to GPU bytes. SPRITE_QUAD_UV_TABLE bypasses this
@@ -91,8 +91,8 @@
  * on screen. An enum constant is valid. The binding has no parameters or
  * captured locals, and is evaluated twice for each emitted arithmetic-mode quad.
  *
- * Strips keep this V coordinate fixed for every frame. With SPRITE_QUAD_CELL_H,
- * the drawer first adds (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * CELL_H using
+ * Strips keep this V coordinate fixed for every frame. With SPRITE_QUAD_CELL_HEIGHT,
+ * the drawer first adds (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * CELL_HEIGHT using
  * signed arithmetic, then setUV4 narrows both top coordinates modulo 256 into
  * GPU bytes. Sterilization retains -0x80 for its first row at V=0x80; the next
  * row starts at V=0xB0 after adding the 48-texel stride. The origin does not
@@ -113,10 +113,10 @@
  * other constant bindings is valid.
  *
  * Strips keep this endpoint fixed for every frame. Current strip cells are
- * square, so carriers derive it as TOP_V + CELL_WIDTH - 1. With CELL_H, the
- * drawer adds (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * CELL_H in signed
+ * square, so carriers derive it as TOP_V + CELL_WIDTH - 1. With CELL_HEIGHT, the
+ * drawer adds (s16)(frame / SPRITE_QUAD_CELLS_PER_ROW) * CELL_HEIGHT in signed
  * arithmetic before storing the resulting V coordinates modulo 256 in GPU
- * bytes. Sterilization derives its first bottom row as TOP_V + CELL_H - 1:
+ * bytes. Sterilization derives its first bottom row as TOP_V + CELL_HEIGHT - 1:
  * -0x51 becomes V=0xAF for the first row and V=0xDF for the next 48-texel row.
  * This endpoint does not select the row count, frame count or screen extent.
  *
@@ -124,6 +124,21 @@
  * fragment requires BOTTOM_V only in arithmetic UV mode and undefines it
  * after each inclusion; both instances in antibody and m4a1_hammer bind it
  * separately. The flicker drawer uses its own cell endpoints.
+ *
+ * SPRITE_QUAD_CELL_HEIGHT is a positive signed integer constant in texels,
+ * supplied before each arithmetic grid inclusion with CELLS_PER_ROW. It sets
+ * the vertical origin stride, not a row count or a screen-space size. The
+ * carrier independently chooses the inclusive TOP_V/BOTTOM_V span. The grid
+ * computes signed halfword row and column indices before applying their
+ * strides; GPU UV bytes retain the low eight bits. UV_TABLE mode bypasses
+ * this addressing. The fragment undefines the binding after each inclusion.
+ * Sterilization supplies 48 texels for its five-column, two-row animation.
+ *
+ * SPRITE_QUAD_MIN_OTZ is an optional positive signed integer constant in
+ * camera Z / 4 units. The drawer rejects negative projection flags first,
+ * applies OTZ_BIAS, then accepts depth >= MIN_OTZ before perspective division
+ * and packet allocation. Undefined omits this test. The fragment clears the
+ * binding after each inclusion; Nursery supplies 65 with OTZ_BIAS = 0.
  *
  * SPRITE_QUAD_U_BASE shifts computed cell columns within the selected texture
  * page; leaving it undefined starts at column zero. It is ignored when

@@ -82,7 +82,7 @@ enum {
 /// inserts bit 3 on odd animation frames. The shifted-flicker variant adds
 /// `1 << shift` instead, with shift in bits 12..15 restricted to 0..7.
 ///
-/// The pull variant subtracts `GLOW_DRAW_DISC_PULL` from depths above 0x50
+/// The pull variant subtracts `GLOW_DRAW_DISC_DEPTH_PULL` from depths above 0x50
 /// before sizing and sorting. All variants reject negative GTE flags and
 /// require a nonzero resulting depth. Borrows the point for this call and
 /// queues four packets plus their additive blend commands in the current frame.

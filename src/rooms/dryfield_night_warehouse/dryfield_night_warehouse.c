@@ -624,10 +624,13 @@ static void _dryfieldNightWarehouseDrawLightBeam(const GfxCoord* coord, s16 firs
     red   = brightness * 3 / 4;
     green = brightness;
     blue  = brightness;
-    // Rotate a scratch corner in place with the coordinate's composed matrix.
-    // Captures coord and block. vertexIndex is repeated and must be a
-    // side-effect-free index 0..3. Use only as statements in braced bodies;
-    // the binding is undefined before return.
+    /// Rotates one scratch corner in place with the coordinate's composed matrix.
+    ///
+    /// Captures `coord` (const GfxCoord*) and `block` (EffectQuadCornersScratch*).
+    /// `vertexIndex` is evaluated twice and must be a pure integer in 0..3.
+    /// Loads the Q12 rotation and stores signed-halfword XYZ; translation
+    /// remains for the caller. Expands to statements inside braces, and is
+    /// undefined before this drawer returns.
 #define DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(vertexIndex) \
     gte_SetRotMatrix(&coord->workm);                             \
     gte_ldv0(&block->vertices[(vertexIndex)]);                   \
