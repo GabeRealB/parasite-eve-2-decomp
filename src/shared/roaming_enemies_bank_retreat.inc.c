@@ -17,11 +17,11 @@ static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
 
     if (hp > 0) {
         for (slotIndex = 0; slotIndex < ARRAY_SIZE(gRoamerReserveHp); slotIndex++) {
-            if (((s16*)gRoamerReserveHp)[slotIndex] == 0) {
+            if (gRoamerReserveHp[slotIndex] == 0) {
                 bankedHp                    = hp * ROAMER_RETREAT_HP_PERCENT / 100;
                 gRoamerReserveHp[slotIndex] = bankedHp;
-                if (gRoamerParams.hpMax < bankedHp) {
-                    gRoamerReserveHp[slotIndex] = gRoamerParams.hpMax;
+                if (_gRoamerParams.hpMax < bankedHp) {
+                    gRoamerReserveHp[slotIndex] = _gRoamerParams.hpMax;
                 }
                 if (gSceneCombatState.battleRefs >= 2) {
                     sceneReleaseBattleRef(task, 0xD);

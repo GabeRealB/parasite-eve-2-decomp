@@ -208,7 +208,13 @@ extern RoomCutsceneRec D_shelter_r47_8018A698;
 
 extern u8 D_shelter_r47_80186FAC[5];
 
-extern u8* D_shelter_r47_80187374[10];
+/// Interior reveal-stop starts for console status messages 0..9.
+///
+/// Index by 2*row + off/on for the five rows. Bytes are message-relative X stops
+/// with 255 marking the end. All pointers borrow one containing buffer for the
+/// room-overlay lifetime: status 3 may read before its start or advance into
+/// status 4's stops when it inherits the preceding reveal cursor.
+extern const u8* gShelterR47ConsoleStatusRevealStarts[10];
 
 /// Steps and draws the console's subtractive circular wipe toward clear.
 ///

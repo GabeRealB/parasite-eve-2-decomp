@@ -11,7 +11,12 @@
 
 #include "main/task_types.h"
 
-extern s32 D_neo_ark_r31_8017DC54;
+/// Horizontal framebuffer displacement in pixels for the scene distortion.
+///
+/// Nonnegative values shift the captured image left; any negative value requests
+/// the redraw task's exit. The task starts at 3 and the scene actor publishes
+/// its 3..8-pixel ramp. Requires the R31 room overlay to remain loaded.
+extern s32 gNeoArkR31FramebufferShiftPixels;
 
 extern TaskDesc D_neo_ark_r31_8017D9E8;
 

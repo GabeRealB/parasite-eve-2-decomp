@@ -1125,12 +1125,12 @@ static void _actor461800SceneDistortionTask(Task* task)
             break;
         case ACTOR_461800_SCENE_DISTORTION_STOP:
             displaySetShakeY(0);
-            D_neo_ark_r31_8017DC54 = ACTOR_461800_SCENE_DISTORTION_DISABLED;
+            gNeoArkR31FramebufferShiftPixels = ACTOR_461800_SCENE_DISTORTION_DISABLED;
             return;
     }
 #undef ACTOR_461800_STEP_SCENE_RAMP
     task->killCountdown++;
-    D_neo_ark_r31_8017DC54 = _gActor461800SceneShiftRamp / ACTOR_461800_SCENE_DISTORTION_RAMP_PER_PIXEL + ACTOR_461800_SCENE_DISTORTION_BASE_SHIFT_PIXELS;
+    gNeoArkR31FramebufferShiftPixels = _gActor461800SceneShiftRamp / ACTOR_461800_SCENE_DISTORTION_RAMP_PER_PIXEL + ACTOR_461800_SCENE_DISTORTION_BASE_SHIFT_PIXELS;
 }
 
 /// Queues the scene's centered 320x256 subtractive fade at its current intensity.

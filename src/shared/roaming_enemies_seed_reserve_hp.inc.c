@@ -16,7 +16,7 @@ static __inline__ void _roamerSeedReserveHp(void)
     }
     for (reserveSlot = 0; reserveSlot < ROAMER_RESERVE_SLOTS; reserveSlot++) {
         if (reserveSlot < _gRoamerReserveCount) {
-            gRoamerReserveHp[reserveSlot] = gRoamerParams.hpMax;
+            gRoamerReserveHp[reserveSlot] = _gRoamerParams.hpMax;
         } else {
             gRoamerReserveHp[reserveSlot] = 0;
         }

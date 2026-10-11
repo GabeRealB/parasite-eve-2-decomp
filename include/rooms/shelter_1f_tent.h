@@ -38,7 +38,13 @@ enum {
 /// this room overlay; the mapping remains owned by gameplay.
 extern u8* gShelter1fTentViewMaps[1];
 
-extern ViewCount D_shelter_1f_tent_80181D48[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 10 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelter1fTentRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_1f_tent_80181D4C[];
 

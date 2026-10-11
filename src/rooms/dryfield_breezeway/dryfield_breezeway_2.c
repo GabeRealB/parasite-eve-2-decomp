@@ -556,8 +556,8 @@ static inline void _dryfieldBreezewayInitializeFirstEventWork(Task* task)
         taskKill(task);
     } else {
         memFillBytes(work, 0, sizeof(*work));
-        work->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        D_dryfield_breezeway_801843C0 = task;
+        work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        gDryfieldBreezewayFirstEventTask = task;
         // Placement indices 0 and 1 identify the two actors in this room.
         placeKey                   = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
         work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(placeKey)->task;
@@ -633,7 +633,7 @@ static inline void _dryfieldBreezewayStartFirstEventPursuit(void)
     enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER = 1 };
     _DryfieldBreezewayFirstEventWork* work;
 
-    work = D_dryfield_breezeway_801843C0->work;
+    work = gDryfieldBreezewayFirstEventTask->work;
     _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT);
     TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER], ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventChaserPlacement, 0);
 }
@@ -662,7 +662,7 @@ static void _dryfieldBreezewayRequestFirstEventAction(s16 action)
 {
     _DryfieldBreezewayFirstEventWork* work;
 
-    work             = D_dryfield_breezeway_801843C0->work;
+    work             = gDryfieldBreezewayFirstEventTask->work;
     work->action     = action;
     work->actionStep = 0;
 }

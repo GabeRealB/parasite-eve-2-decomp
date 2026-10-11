@@ -30,7 +30,12 @@ extern SVECTOR* gShelterB4LowerSewerDiverPatrolRings[4];
 /// moving or despawning; keep this room loaded through every diver's lifetime.
 extern SVECTOR gShelterB4LowerSewerDiverSurfaceSpots[10];
 
-extern s16 D_shelter_b4_lower_sewer_80181E6C;
+/// Undisplaced lower-sewer water height in signed world-coordinate units.
+///
+/// Initially -1700. Water drawing and the live session share this height; diver
+/// spawns copy it from their area configuration. Keep the room overlay loaded
+/// while its address is borrowed.
+extern s16 gShelterB4LowerSewerWaterY;
 
 /// Enemy layouts indexed by the saved lower-sewer placement variant, 0..11.
 ///

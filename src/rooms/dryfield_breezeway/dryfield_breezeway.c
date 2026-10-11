@@ -434,7 +434,7 @@ Task* D_dryfield_breezeway_801843A8 = NULL;
 
 RoomEventReq gRoomEventReq = { 0 };
 
-Task* D_dryfield_breezeway_801843C0;
+Task* gDryfieldBreezewayFirstEventTask;
 
 /// Progress values shared by this room's factory-door handlers.
 enum {

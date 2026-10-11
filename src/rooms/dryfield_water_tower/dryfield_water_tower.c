@@ -7,7 +7,7 @@
 /// message `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` and of the room's message 0x13F4.
 Task* D_dryfield_water_tower_801876A0;
 
-Task* D_dryfield_water_tower_801876A4;
+Task* gDryfieldWaterTowerPropSceneTask;
 
 #include "rooms/dryfield_water_tower.h"
 

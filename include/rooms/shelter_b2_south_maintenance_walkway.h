@@ -32,7 +32,13 @@ extern AreaVariant gShelterB2SouthMaintenanceWalkwayAreaVariants[SHELTER_B2_SOUT
 /// The directory remains valid while the walkway overlay is loaded.
 extern u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1];
 
-extern ViewCount D_shelter_b2_south_maintenance_walkway_80182640[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 5 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB2SouthMaintenanceWalkwayRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[];
 

@@ -57,28 +57,6 @@ static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 
-extern ActorCommand gRoamerCommand;
-
-/// The room's five spawn slots: `_roamerBankRetreat` fills the
-/// first free one with a countdown and `_roamerAmbushMsg`
-/// hands slot 0 to the spawn it triggers and clears it. Read as `lhu` by the
-/// handler and as `lh` by the slot filler, so each site names the view it uses
-/// (`[0]` here, an `s16*` cast there).
-extern u16 gRoamerReserveHp[5];
-
-/// Ceiling `_roamerBankRetreat` clamps a spawn slot to
-/// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
-/// continues into the room's parameter block, so the extent is splat's.
-
-/// The same run reached through its leading label, which is how
-/// `_roamerArmPoolB` reads the ceiling: element 2 is
-/// `D_...8494C[0]`, 420 frames. splat names both addresses because the compiled
-/// code names both, and the two are different code - an index keeps this
-/// symbol in a register and takes the offset as the load's displacement, while
-/// naming `D_...8494C` addresses it directly.
-extern EnemyParams  gRoamerParams;
-extern DamageAttack D_neo_ark_woodland_path_80184930[6];
-
 /// The second arming sequence's spawn placements, which
 /// `_roamerTickPoolB` picks from by `_gRoamerPendingSpawnPoint - 1`. Five of them; any
 /// request past the fourth takes the last.
@@ -92,7 +70,12 @@ static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, 
 static void _neoArkWoodlandPathRoamerPoolATask(Task* task);
 static void _neoArkWoodlandPathRoamerPoolBTask(Task* task);
 
-DamageAttack D_neo_ark_woodland_path_80184930[6] = {
+/// Retained six-row attack recipe borrowed by the reserve-enemy parameters.
+///
+/// Powers are 30, 30, 50, 50, 40 and 40 before HP-band scaling. The first four
+/// select category-4 reaction 7 (presentation unproven); the last two select
+/// ordinary reaction 0. The pool controllers do not index these attack rows.
+static DamageAttack _gNeoArkWoodlandPathRoamerAttacks[6] = {
     { 30, 7 },
     { 30, 7 },
     { 50, 7 },
@@ -101,7 +84,22 @@ DamageAttack D_neo_ark_woodland_path_80184930[6] = {
     { 40, 0 },
 };
 
-EnemyParams gRoamerParams = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10 };
+/// Reserve-enemy recipe with a 420-HP starting value and retreat-bank ceiling.
+///
+/// The pool uses hpMax to seed and cap banked health; the retained attack and
+/// reward/reaction tuning is not applied by the controllers to placed enemies.
+/// The recipe borrows its carrier's six attack rows for this overlay lifetime.
+static EnemyParams _gRoamerParams = {
+    .attacks              = _gNeoArkWoodlandPathRoamerAttacks,
+    .hpMax                = ROAMER_MAX_HP,
+    .exp                  = 115,
+    .bp                   = 200,
+    .mp                   = 5,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 10,
+};
 
 // Retained numeric records following the enemy parameters.
 u16 D_neo_ark_woodland_path_80184958[3][4] = {
@@ -258,7 +256,7 @@ TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
 
 ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };
 
-u16 gRoamerReserveHp[5];
+s16 gRoamerReserveHp[5];
 
 static void _neoArkWoodlandPathAdvanceRoamerPoolAState(Task* task);
 
@@ -459,7 +457,7 @@ static void _roamerTickPoolB(Task* task)
         persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         bankedCount      = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
@@ -468,14 +466,14 @@ static void _roamerTickPoolB(Task* task)
         persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         bankedCount      = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, previousKills + (persistedReserve - bankedCount));
         bankedCount = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
@@ -509,8 +507,8 @@ static void _roamerTickPoolB(Task* task)
             }
             if (enemy->hp == ROAMER_POOL_B_HP_AVAILABLE) {
                 for (reserveIndex = 0; reserveIndex < _gRoamerReserveCount; reserveIndex++) {
-                    if ((s16)gRoamerReserveHp[reserveIndex] > 0) {
-                        enemy->hp                      = gRoamerReserveHp[reserveIndex];
+                    if (gRoamerReserveHp[reserveIndex] > 0) {
+                        enemy->hp                      = (u16)gRoamerReserveHp[reserveIndex];
                         enemy->reactionFlags           = 0;
                         gRoamerReserveHp[reserveIndex] = 0;
                         break;

@@ -16,7 +16,11 @@
 /// owns the recipes and models and must remain loaded through task teardown.
 extern TaskDesc gDryfieldWaterTowerPropSceneTasks[3];
 
-extern Task* D_dryfield_water_tower_801876A4;
+/// Borrowed prop-scene driver published after its work allocation succeeds.
+///
+/// Normal and skip script callbacks require this task and its work to be live.
+/// The task system owns both; this room-visit handle is not cleared at teardown.
+extern Task* gDryfieldWaterTowerPropSceneTask;
 
 /// Borrowed controller for the introductory actor scene and its pending requests.
 ///

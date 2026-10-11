@@ -35,7 +35,13 @@ extern WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823
 /// of this room's five-view count. The directory stays live with this overlay.
 extern u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_south_maintenance_walkway_80182410[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 5 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB1SouthMaintenanceWalkwayRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[];
 

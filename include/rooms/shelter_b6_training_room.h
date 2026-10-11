@@ -36,7 +36,14 @@ enum { SHELTER_B6_TRAINING_ROOM_VIEW_COUNT = 8 };
 /// room overlay; the shared byte map lives with gameplay.
 extern u8* gShelterB6TrainingRoomViewMaps[1];
 
-extern ViewCount D_shelter_b6_training_room_8018441C[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 8 entries in its view map. The second stored zero is unread by
+/// the one-room directory; its role is unproven.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB6TrainingRoomRoomViewCounts[2];
 
 extern DirectionWarpEntry D_shelter_b6_training_room_80184420[];
 

@@ -81,7 +81,7 @@ u8* gShelter1fTentViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_tent_80181D48[1] = { 10 };
+ViewCount gShelter1fTentRoomViewCounts[1] = { SHELTER_1F_TENT_VIEW_RESOURCE_COUNT };
 
 DirectionWarpEntry D_shelter_1f_tent_80181D4C[1] = {
     { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

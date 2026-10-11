@@ -39,7 +39,13 @@ extern AreaVariant gShelterB1ControlRoomAreaVariants[SHELTER_B1_CONTROL_ROOM_ARE
 /// keep the room and gameplay overlays loaded while borrowing it.
 extern u8* gShelterB1ControlRoomRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_control_room_80181C74[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 8 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB1ControlRoomRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_control_room_80181C78[];
 

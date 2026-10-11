@@ -12,9 +12,8 @@
 
 #include "main/task_types.h"
 
-extern ActorCommand gRoamerCommand;
-
-extern u16 gRoamerReserveHp[5];
+// Data shared with this overlay's reserve-pool controller TU.
+#include "../../shared/roaming_enemies_data.h"
 
 /// Bodyless, priority-32 controller for the latched woodland-departure event.
 ///

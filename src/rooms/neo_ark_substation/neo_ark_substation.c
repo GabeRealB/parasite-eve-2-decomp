@@ -40,21 +40,14 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// The room's own `TaskMessageEntry[]` - the message table the message task publishes.
-extern TaskMessageEntry D_neo_ark_substation_8017E294[];
-/// Spawn table for the ambience task the message task starts.
-extern TaskDesc D_neo_ark_substation_8017E2BC[];
-/// The room's ambience table, one `(panOffset, attenuation)` entry per view slot.
-extern RoomAmbienceEntry D_neo_ark_substation_8017E2C8[];
-
 static void _neoArkSubstationInitializeRoom(Task* task);
 static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
 
-/// State table of the room's message task: set-up
-/// (`_neoArkSubstationInitializeRoom`), an empty per-frame state and
-/// `taskKill`. Its bytes open the room's rodata, ahead of the ambience task's
-/// jump table.
-static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
+/// Room-controller handlers indexed by Task::state: 0 initialize, 1 idle, 2 kill.
+///
+/// Copied as a complete three-handler value before dispatch. The controller
+/// borrows these callbacks while the substation overlay remains loaded.
+static const TaskFuncTable3 _gNeoArkSubstationRoomStateHandlers = {
     _neoArkSubstationInitializeRoom,
     _neoArkSubstationMessageTaskIdle,
     taskKill,
@@ -73,11 +66,15 @@ enum {
 };
 
 static WorldCollisionGrid    _gNeoArkSubstationCollisionGrid;
-extern WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12];
-extern WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10];
+static WorldCollisionTrigger _gNeoArkSubstationViewBoundaryTriggers[12];
+static WorldCollisionTrigger _gNeoArkSubstationActionTriggers[10];
 static WorldCoordRoomLights  _gNeoArkSubstationRoomLights;
 
-TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
+/// Room receiver messages for transitions, key items, actions and CAP commands.
+///
+/// The fifth record is TASK_MESSAGE_TABLE_END. The live room task borrows the
+/// table and its callbacks; keep this overlay loaded through dispatch.
+static TaskMessageEntry _gNeoArkSubstationRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubstationResolveRoomEvent },
     { NEO_ARK_SUBSTATION_MESSAGE_USE_KEY_ITEM, _neoArkSubstationRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubstationIgnoreRoomAction },
@@ -85,11 +82,22 @@ TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_substation_8017E2BC[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _neoArkSubstationAmbienceTask, { .value = 0 } },
+enum { NEO_ARK_SUBSTATION_AMBIENCE_PRIORITY = 32 };
+
+/// Bodyless priority-32 ambience task recipe, selected at index zero.
+///
+/// Spawn arguments are zero. The room starts it only before Power Plant 2
+/// clearance; it retunes independently until teardown. No END record is stored.
+static TaskDesc _gNeoArkSubstationAmbienceTaskDescs[1] = {
+    { { { TASK_BODY_NONE, NEO_ARK_SUBSTATION_AMBIENCE_PRIORITY } }, _neoArkSubstationAmbienceTask, { .value = 0 } },
 };
 
-RoomAmbienceEntry D_neo_ark_substation_8017E2C8[9] = {
+/// Ambience pan offsets and attenuation for logical view slots 0..8.
+///
+/// Stored values are unscaled signed halfwords: one pan unit is three SPU pan
+/// steps and attenuation 127 is silent. Slots 0 and 1 use the base mix; slots
+/// above 8 also select the base mix without indexing this table.
+static RoomAmbienceEntry _gNeoArkSubstationAmbienceMixesByView[9] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { -5, 0, 80, 0 },
@@ -137,8 +145,8 @@ static SVECTOR _gNeoArkSubstationGlowWorldPoints[28] = {
     { 8560, -2090, -7835, 0 },
 };
 
-WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[1] = {
-    { &_gNeoArkSubstationCollisionGrid, D_neo_ark_substation_8017FC5C, D_neo_ark_substation_8017FFEC, NULL },
+WorldCollisionRoomResources gNeoArkSubstationRoomCollisionResources[1] = {
+    { &_gNeoArkSubstationCollisionGrid, _gNeoArkSubstationViewBoundaryTriggers, _gNeoArkSubstationActionTriggers, NULL },
 };
 
 WorldCoordRoomLighting gNeoArkSubstationRoomLighting[1] = {
@@ -149,10 +157,15 @@ u8* gNeoArkSubstationViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_substation_8017E40C[1] = { 8 };
+ViewCount gNeoArkSubstationRoomViewCounts[1] = { 8 };
 
-DirectionWarpEntry D_neo_ark_substation_8017E410[2] = {
-    { { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, 0x55210002, 0x55210001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
+enum {
+    NEO_ARK_SUBSTATION_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBSTATION, 2),
+    NEO_ARK_SUBSTATION_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBSTATION, 1),
+};
+
+DirectionWarpEntry gNeoArkSubstationWarpEntries[2] = {
+    { { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 514, 0, -1440 }, { 0, 0, 0, 0 }, NEO_ARK_SUBSTATION_WARP_ARRIVAL_SOUND, NEO_ARK_SUBSTATION_WARP_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_ALTAR },
     { { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
@@ -482,7 +495,12 @@ static WorldCoordRoomLights _gNeoArkSubstationRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12] = {
+/// Directed camera boundaries between views 2..8, in six opposing pairs.
+///
+/// Room-coordinate quads are linked into the live collision lists; parameter0
+/// and parameter1 are the source and destination logical views. LAST marks the
+/// final record. The room overlay owns their mutable links for this visit.
+static WorldCollisionTrigger _gNeoArkSubstationViewBoundaryTriggers[12] = {
     { NULL, NULL, NULL, { 1887, -1632, -1521, 0 }, { { 206, -2256, 2489, 0 }, { -205, -2256, -2489, 0 }, { 206, 2256, 2489, 0 }, { -205, 2256, -2489, 0 } }, { -4091, 0, 337, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1759, -1632, -1472, 0 }, { { -205, -2256, -2489, 0 }, { 206, -2256, 2489, 0 }, { -205, 2256, -2489, 0 }, { 206, 2256, 2489, 0 } }, { 4089, 0, -338, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4015, -1633, 64, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -497,12 +515,26 @@ WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12] = {
     { NULL, NULL, NULL, { 8543, -1632, -5921, 0 }, { { 1209, -2256, -1, 0 }, { -1209, -2256, 1, 0 }, { 1209, 2256, -1, 0 }, { -1209, 2256, 1, 0 } }, { 3, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10] = {
-    { NULL, NULL, NULL, { 3744, -64, -1520, 0 }, { { -320, 0, -336, 0 }, { 320, 0, -336, 0 }, { -320, 0, 336, 0 }, { 320, 0, 336, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 463, WORLD_COLLISION_TRIGGER_ACTION_FACING, 37, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 5, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4607, -769, -1600, 0 }, { { -16, -1391, -496, 0 }, { 17, 1392, -496, 0 }, { -16, -1391, 496, 0 }, { 17, 1392, 496, 0 } }, { -4101, 42, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 16, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Five-step stair parameters: surface class in bits 4..6, count in bits 0..3.
+enum {
+    NEO_ARK_SUBSTATION_STAIR_STEPS           = 5,
+    NEO_ARK_SUBSTATION_ASCENDING_STAIR       = (2 << 4) | NEO_ARK_SUBSTATION_STAIR_STEPS,
+    NEO_ARK_SUBSTATION_DESCENDING_STAIR      = (0 << 4) | NEO_ARK_SUBSTATION_STAIR_STEPS,
+    NEO_ARK_SUBSTATION_STAIR_DESCEND_CONTROL = 0x100,
+    NEO_ARK_SUBSTATION_STAIR_YAW             = 64, // Quarter turn in 256 units per turn
+};
+
+/// Substation stairs, area warps, room action and CAP interaction regions.
+///
+/// Room-coordinate quads are linked into the live collision lists; action
+/// parameters select the appropriate warp, stair or script. LAST marks the
+/// final record. The room overlay owns their mutable links for this visit.
+static WorldCollisionTrigger _gNeoArkSubstationActionTriggers[10] = {
+    { NULL, NULL, NULL, { 3744, -64, -1520, 0 }, { { -320, 0, -336, 0 }, { 320, 0, -336, 0 }, { -320, 0, 336, 0 }, { 320, 0, 336, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 463, WORLD_COLLISION_TRIGGER_ACTION_FACING, NEO_ARK_SUBSTATION_ASCENDING_STAIR, NEO_ARK_SUBSTATION_STAIR_YAW, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_SUBSTATION_STAIR_DESCEND_CONTROL, NEO_ARK_SUBSTATION_DESCENDING_STAIR, NEO_ARK_SUBSTATION_STAIR_YAW, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4607, -769, -1600, 0 }, { { -16, -1391, -496, 0 }, { 17, 1392, -496, 0 }, { -16, -1391, 496, 0 }, { 17, 1392, 496, 0 } }, { -4101, 42, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_NEO_ARK_POWER_PLANT_2, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4927, -4673, -480, 0 }, { { -17, 1392, 496, 0 }, { 16, -1391, 496, 0 }, { -17, 1392, -496, 0 }, { 16, -1391, -496, 0 } }, { -4101, -49, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 418, -48, -1536, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 418, -48, -1536, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_GARDEN, (1 << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 7920, -64, -6528, 0 }, { { -976, 0, -560, 0 }, { 976, 0, -560, 0 }, { -976, 0, 560, 0 }, { 976, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 8448, -64, -7648, 0 }, { { -560, 0, -336, 0 }, { 560, 0, -336, 0 }, { -560, 0, 336, 0 }, { 560, 0, 336, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 652, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 8256, -64, -3952, 0 }, { { -432, 0, -1888, 0 }, { 432, 0, -1888, 0 }, { -432, 0, 1888, 0 }, { 432, 0, 1888, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -622,15 +654,15 @@ static void _neoArkSubstationAmbienceTask(Task* task)
     /// ambience table. Slots 0..8 index the table; higher slots select zero for
     /// both outputs. Writes both s32 locals with signed-halfword loads and
     /// evaluates no arguments. Undefined immediately after its sole expansion.
-#define NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX()                                  \
-    {                                                                           \
-        if (viewIndex < ARRAY_SIZE(D_neo_ark_substation_8017E2C8)) {            \
-            panOffset   = D_neo_ark_substation_8017E2C8[viewIndex].panOffset;   \
-            attenuation = D_neo_ark_substation_8017E2C8[viewIndex].attenuation; \
-        } else {                                                                \
-            panOffset   = 0;                                                    \
-            attenuation = 0;                                                    \
-        }                                                                       \
+#define NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX()                                          \
+    {                                                                                   \
+        if (viewIndex < ARRAY_SIZE(_gNeoArkSubstationAmbienceMixesByView)) {            \
+            panOffset   = _gNeoArkSubstationAmbienceMixesByView[viewIndex].panOffset;   \
+            attenuation = _gNeoArkSubstationAmbienceMixesByView[viewIndex].attenuation; \
+        } else {                                                                        \
+            panOffset   = 0;                                                            \
+            attenuation = 0;                                                            \
+        }                                                                               \
     }
 
     viewIndex = gGameSession->location.loc.view;
@@ -717,10 +749,10 @@ static void _neoArkSubstationInitializeRoom(Task* task)
 {
     enum { AMBIENCE_TASK_INDEX = 0 };
 
-    task->msgTable = D_neo_ark_substation_8017E294;
+    task->msgTable = _gNeoArkSubstationRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        taskSpawnFromTable(D_neo_ark_substation_8017E2BC, AMBIENCE_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(_gNeoArkSubstationAmbienceTaskDescs, AMBIENCE_TASK_INDEX, 0, 0);
     }
     task->state = task->state + 1;
 }
@@ -736,7 +768,7 @@ void neoArkSubstationRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_substation_8017D5C4;
+    stateHandlers = _gNeoArkSubstationRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

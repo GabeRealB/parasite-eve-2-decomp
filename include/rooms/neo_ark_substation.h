@@ -11,7 +11,12 @@
 #include "main/task_types.h"
 
 // neo_ark_substation
-extern WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[];
+/// Collision resources for the substation's sole room, indexed by room ID minus one.
+///
+/// Borrows its mutable grid, view-boundary and interaction triggers; no
+/// occluder list is stored. The stage map requires this overlay to remain
+/// loaded while the resources are linked. There is no terminator.
+extern WorldCollisionRoomResources gNeoArkSubstationRoomCollisionResources[1];
 
 /// Lighting for the substation's sole room, indexed by room ID minus one.
 ///
@@ -28,9 +33,21 @@ extern WorldCoordRoomLighting gNeoArkSubstationRoomLighting[1];
 /// The directory remains valid only while this overlay is loaded.
 extern u8* gNeoArkSubstationViewMaps[1];
 
-extern ViewCount D_neo_ark_substation_8017E40C[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 8 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gNeoArkSubstationRoomViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_substation_8017E410[];
+/// The substation's two warp endpoints, indexed by warp ID minus one.
+///
+/// Player and companion arrive at the same world placement, at views 2 and 3.
+/// Endpoint 1 supplies area-bank arrival/departure sounds and marks the altar
+/// on arrival; endpoint 2 is silent. The stage map borrows both complete
+/// records while this overlay is loaded; there is no terminator.
+extern DirectionWarpEntry gNeoArkSubstationWarpEntries[2];
 
 /// Authored cameras for mapped view indices 1..8, stored at index minus one.
 ///

@@ -232,7 +232,7 @@ gShelterB6CorridorRoomAmbientByView = 0x801804E8; // absolute:True owner=shelter
 gShelterB6CorridorSurfaceProperties = 0x80180548; // absolute:True owner=shelter_b6_corridor
 shelterB6TrainingRoomRoomTask = 0x8017D8E8; // type:func absolute:True owner=shelter_b6_training_room shared=rooms
 gShelterB6TrainingRoomViewMaps = 0x80184418; // absolute:True owner=shelter_b6_training_room
-D_shelter_b6_training_room_8018441C = 0x8018441C; // absolute:True owner=shelter_b6_training_room
+gShelterB6TrainingRoomRoomViewCounts = 0x8018441C; // absolute:True owner=shelter_b6_training_room
 D_shelter_b6_training_room_80184420 = 0x80184420; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomCollisionGrid = 0x80184734; // absolute:True owner=shelter_b6_training_room shared=rooms
 gShelterB6TrainingRoomViewCameras = 0x80184758; // absolute:True owner=shelter_b6_training_room
@@ -264,7 +264,7 @@ gNeoArkBridgeActionTriggers = 0x80184AB8; // absolute:True owner=neo_ark_bridge 
 gNeoArkBridgeSurfaceProperties = 0x80184BD4; // absolute:True owner=neo_ark_bridge
 shelter1fTentRoomTask = 0x8017FDB8; // type:func absolute:True owner=shelter_1f_tent
 gShelter1fTentViewMaps = 0x80181D44; // absolute:True owner=shelter_1f_tent
-D_shelter_1f_tent_80181D48 = 0x80181D48; // absolute:True owner=shelter_1f_tent
+gShelter1fTentRoomViewCounts = 0x80181D48; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80181D4C = 0x80181D4C; // absolute:True owner=shelter_1f_tent
 gShelter1fTentCollisionGrid = 0x801822F0; // absolute:True owner=shelter_1f_tent shared=rooms
 gShelter1fTentViewCameras = 0x80182314; // absolute:True owner=shelter_1f_tent
@@ -315,11 +315,11 @@ gNeoArkPyramidViewCameras = 0x801802E8; // absolute:True owner=neo_ark_pyramid
 gNeoArkPyramidSpriteViews = 0x80180E18; // absolute:True owner=neo_ark_pyramid
 gNeoArkPyramidSurfaceProperties = 0x80181884; // absolute:True owner=neo_ark_pyramid shared=rooms
 neoArkSubstationRoomTask = 0x8017D81C; // type:func absolute:True owner=neo_ark_substation
-D_neo_ark_substation_8017E3F0 = 0x8017E3F0; // absolute:True owner=neo_ark_substation
+gNeoArkSubstationRoomCollisionResources = 0x8017E3F0; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationRoomLighting = 0x8017E400; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationViewMaps = 0x8017E408; // absolute:True owner=neo_ark_substation
-D_neo_ark_substation_8017E40C = 0x8017E40C; // absolute:True owner=neo_ark_substation
-D_neo_ark_substation_8017E410 = 0x8017E410; // absolute:True owner=neo_ark_substation
+gNeoArkSubstationRoomViewCounts = 0x8017E40C; // absolute:True owner=neo_ark_substation
+gNeoArkSubstationWarpEntries = 0x8017E410; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationViewCameras = 0x8017E8C8; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationSpriteViews = 0x8017F584; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationSurfaceProperties = 0x80180328; // absolute:True owner=neo_ark_substation

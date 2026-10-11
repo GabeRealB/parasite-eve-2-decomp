@@ -133,7 +133,7 @@ u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_south_maintenance_walkway_80182410[1] = { 5 };
+ViewCount gShelterB1SouthMaintenanceWalkwayRoomViewCounts[1] = { 5 };
 
 DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[2] = {
     { { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, 0x540A0002, 0x540A0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

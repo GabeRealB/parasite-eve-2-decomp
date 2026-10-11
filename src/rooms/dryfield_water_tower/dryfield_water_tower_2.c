@@ -2953,9 +2953,9 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(newWork, 0, sizeof(*newWork));
-                newWork->playerTask             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_water_tower_801876A4 = task;
-                task->msgTable                  = _gDryfieldWaterTowerPropSceneMessages;
+                newWork->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                gDryfieldWaterTowerPropSceneTask = task;
+                task->msgTable                   = _gDryfieldWaterTowerPropSceneMessages;
             }
             memCopyBytes(_gDryfieldWaterTowerCollision04648, _gDryfieldWaterTowerRoomCollisionGridVerts, sizeof(_gDryfieldWaterTowerCollision04648));
             memCopyBytes(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerRoomCollisionGridNormals, sizeof(_gDryfieldWaterTowerCollision045F8));
@@ -3128,7 +3128,7 @@ static void _dryfieldWaterTowerRequestWeaponReequipOnce(void)
 {
     enum { DRYFIELD_WATER_TOWER_FIRST_CHASER_PLACEMENT_INDEX = 0 };
 
-    _DryfieldWaterTowerPropSceneWork* work = D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
 
     if (work->reequipRequested == 0) {
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
@@ -3156,7 +3156,7 @@ static void _dryfieldWaterTowerLockAttachmentsForPropScene(void)
 /// a later post replaces it. The adjacent, unread reset slot is also cleared.
 static void _dryfieldWaterTowerPostPropSceneRequest(s16 request)
 {
-    _DryfieldWaterTowerPropSceneWork* work = D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
 
     work->request  = request;
     work->field_5E = 0;
@@ -3176,7 +3176,7 @@ static void _dryfieldWaterTowerSkipRunOpening(void)
         DRYFIELD_WATER_TOWER_OPENING_SOUND_FADE_TICKS = 30
     };
 
-    _DryfieldWaterTowerPropSceneWork* work = D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
 
     if (work->runningSoundStarted == 0) {
         sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
@@ -3199,7 +3199,7 @@ static void _dryfieldWaterTowerSkipRunEnding(void)
 {
     enum { DRYFIELD_WATER_TOWER_ENDING_SOUND_ENTRY = 7 };
 
-    _DryfieldWaterTowerPropSceneWork* work = D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->nextView;
     gGameSession->viewDirty                                    = 1;
@@ -3225,7 +3225,7 @@ static void _dryfieldWaterTowerSkipPropClosingScene(void)
         DRYFIELD_WATER_TOWER_PROP_GROUND_PLACEMENT = DRYFIELD_WATER_TOWER_FALLING_PROP_GROUND
     };
 
-    _DryfieldWaterTowerPropSceneWork* work = D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
     _DryfieldWaterTowerPropSceneWork* fallingPropWork;
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_CLOSING_MAPPED_VIEW);

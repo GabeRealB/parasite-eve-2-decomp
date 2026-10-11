@@ -37,7 +37,13 @@ extern AreaVariant gShelterB1ArmoryAreaVariants[SHELTER_B1_ARMORY_AREA_VARIANT_C
 /// its shared byte map lives with gameplay. Neither level has a terminator.
 extern u8* gShelterB1ArmoryRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_armory_80182584[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 13 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB1ArmoryRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_armory_80182588[];
 

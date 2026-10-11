@@ -54,9 +54,6 @@ static void _roamerArmPoolA(Task* task);
 static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
 static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
 
-/// Enemy parameters shared by the spawn-slot controllers.
-extern EnemyParams gRoamerParams;
-
 static void _roamerTickPoolB(Task* unusedTask);
 static void _neoArkForestZoneFinishRoamerPoolAState(Task* task);
 
@@ -735,7 +732,22 @@ static DamageAttack _gNeoArkForestZoneRoamerAttacks[6] = {
     { 40, 0 },
 };
 
-EnemyParams gRoamerParams = { _gNeoArkForestZoneRoamerAttacks, 420, 115, 200, 5, 100, 10, 100, 10 };
+/// Reserve-enemy recipe with a 420-HP starting value and retreat-bank ceiling.
+///
+/// The pool uses hpMax to seed and cap banked health; the retained attack and
+/// reward/reaction tuning is not applied by the controllers to placed enemies.
+/// The recipe borrows its carrier's six attack rows for this overlay lifetime.
+static EnemyParams _gRoamerParams = {
+    .attacks              = _gNeoArkForestZoneRoamerAttacks,
+    .hpMax                = ROAMER_MAX_HP,
+    .exp                  = 115,
+    .bp                   = 200,
+    .mp                   = 5,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 10,
+};
 
 /// Retained, unused Horned Stranger spawn-tuning rows.
 ///
@@ -985,7 +997,7 @@ static void _roamerTickPoolB(Task* unusedTask)
         persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         bankedCount      = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
@@ -994,14 +1006,14 @@ static void _roamerTickPoolB(Task* unusedTask)
         persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         bankedCount      = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, previousKills + (persistedReserve - bankedCount));
         bankedCount = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
-            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+            if (gRoamerReserveHp[reserveSlot] > 0) {
                 bankedCount++;
             }
         }
@@ -1035,8 +1047,8 @@ static void _roamerTickPoolB(Task* unusedTask)
             }
             if (enemy->hp == ROAMER_POOL_B_HP_DORMANT) {
                 for (reserveIndex = 0; reserveIndex < _gRoamerReserveCount; reserveIndex++) {
-                    if ((s16)gRoamerReserveHp[reserveIndex] > 0) {
-                        enemy->hp                      = gRoamerReserveHp[reserveIndex];
+                    if (gRoamerReserveHp[reserveIndex] > 0) {
+                        enemy->hp                      = (u16)gRoamerReserveHp[reserveIndex];
                         enemy->reactionFlags           = 0;
                         gRoamerReserveHp[reserveIndex] = 0;
                         break;

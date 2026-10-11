@@ -2,8 +2,8 @@
 
 /// Returns the number of living reserve enemies across all five banked slots.
 ///
-/// The u16 storage is tested as signed HP: zero and negative halfwords do not
-/// count. Scans the complete bank regardless of the active reserve count and
+/// Positive signed-halfword HP denotes a live reserve; zero and negative
+/// values do not count. Scans the complete bank regardless of the active reserve count and
 /// returns 0..5 without consuming a slot.
 static __inline__ s16 _roamerCountReserveSlots(void)
 {
@@ -12,7 +12,7 @@ static __inline__ s16 _roamerCountReserveSlots(void)
 
     count = 0;
     for (slot = 0; slot < ARRAY_SIZE(gRoamerReserveHp); slot++) {
-        if ((s16)gRoamerReserveHp[slot] > 0) {
+        if (gRoamerReserveHp[slot] > 0) {
             count++;
         }
     }
@@ -106,8 +106,8 @@ static void _roamerTickPoolA(Task* task)
             }
             if (enemy->hp == ROAMER_WAITING_ACTOR_HP) {
                 for (reserveSlot = 0; reserveSlot < _gRoamerReserveCount; reserveSlot++) {
-                    if (((s16*)gRoamerReserveHp)[reserveSlot] > 0) {
-                        enemy->hp                     = gRoamerReserveHp[reserveSlot];
+                    if (gRoamerReserveHp[reserveSlot] > 0) {
+                        enemy->hp                     = (u16)gRoamerReserveHp[reserveSlot];
                         enemy->reactionFlags          = 0;
                         gRoamerReserveHp[reserveSlot] = 0;
                         break;

@@ -44,7 +44,7 @@ u8* gShelterB1ControlRoomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_control_room_80181C74[1] = { 8 };
+ViewCount gShelterB1ControlRoomRoomViewCounts[1] = { 8 };
 
 DirectionWarpEntry D_shelter_b1_control_room_80181C78[3] = {
     { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, 0x54120002, 0x54120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

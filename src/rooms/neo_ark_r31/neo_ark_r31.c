@@ -189,7 +189,7 @@ WorldCollisionSurfaceProperties* gNeoArkR31SurfacePropertiesByClass[8] = {
     &_gNeoArkR31SurfaceProperties,
 };
 
-s32 D_neo_ark_r31_8017DC54 = 0;
+s32 gNeoArkR31FramebufferShiftPixels = 0;
 
 static void _neoArkR31InitializeRoom(Task* task);
 static void _neoArkR31SetImageMaskMode(Task* unusedTask);
@@ -257,10 +257,10 @@ static void _neoArkR31FramebufferShiftTask(Task* task)
     drawDepth    = DRAW_DEPTH;
     sourceBuffer = gDisplayState.otBuffer;
     if (task->state == INITIALIZE) {
-        D_neo_ark_r31_8017DC54 = INITIAL_SHIFT_PIXELS;
+        gNeoArkR31FramebufferShiftPixels = INITIAL_SHIFT_PIXELS;
         task->state++;
     }
-    if (D_neo_ark_r31_8017DC54 < 0) {
+    if (gNeoArkR31FramebufferShiftPixels < 0) {
         taskCallExit(task);
         return;
     }
@@ -282,7 +282,7 @@ static void _neoArkR31FramebufferShiftTask(Task* task)
                 poly->y2 = poly->y3 = screenY + remainingRows;
                 poly->v2 = poly->v3 = poly->v0 + remainingRows;
             }
-            shiftedX = screenX - D_neo_ark_r31_8017DC54;
+            shiftedX = screenX - gNeoArkR31FramebufferShiftPixels;
             poly->x0 = poly->x2 = shiftedX;
             poly->u0 = poly->u2 = sourceX & TEXTURE_PAGE_X_MASK;
             if (poly->u0 < FULL_TILE_U_LIMIT) {

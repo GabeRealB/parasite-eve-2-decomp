@@ -104,7 +104,13 @@ extern WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[];
 /// All maps belong to the loaded room overlay.
 extern u8* gShelterB3GarbageIncineratorViewMaps[7];
 
-extern ViewCount D_shelter_b3_garbage_incinerator_8018740C[];
+/// Logical-view reverse-search limits for the incinerator's seven room variants.
+///
+/// Each room searches 40 map entries; index by room ID minus one in 0..6.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB3GarbageIncineratorRoomViewCounts[7];
 
 extern DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[];
 

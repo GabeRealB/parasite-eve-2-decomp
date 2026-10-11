@@ -69,9 +69,6 @@ extern s32 D_neo_ark_shrine_80181E74;
 /// indices per slot, `0xFF` terminated, into `gNeoArkShrinePuzzleCellTiles`.
 extern s16 D_neo_ark_shrine_801825EC[][5];
 
-extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16];
-extern NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16];
-
 static s16  _neoArkShrineCheckPuzzleArrangement(void);
 static void _neoArkShrineRoomIdle(Task* task);
 
@@ -202,7 +199,11 @@ TaskDesc D_neo_ark_shrine_80182508[3] = {
     { { { TASK_BODY_TMD, 192 } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
 };
 
-NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16] = {
+/// Screen origins of the sixteen puzzle cells, in row-major cell order.
+///
+/// Coordinates are display-centred pixels on a 4x4 grid of 32-pixel cells.
+/// The cell-to-tile board selects each tile's animation target from this table.
+static NeoArkShrineTileOrigin _gNeoArkShrinePuzzleCellOrigins[16] = {
     { -64, -64 },
     { -32, -64 },
     { 0, -64 },
@@ -240,7 +241,11 @@ NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16] = {
     { 0, 32 },
 };
 
-NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16] = {
+/// Texture-sheet origins of the puzzle tiles, indexed by tile number 0..15.
+///
+/// Coordinates are texels in the 32x32 tile sheet. Tile 0 is the undrawn gap;
+/// its retained (96, 96) origin is not sampled. The table has no terminator.
+static NeoArkShrineTileOrigin _gNeoArkShrinePuzzleTileTextureOrigins[16] = {
     { 96, 96 },
     { 0, 0 },
     { 32, 0 },
@@ -631,8 +636,8 @@ void neoArkShrineAnimateAndDrawPuzzle(void)
     // Convert the cell-to-tile board into per-tile animation targets.
     for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleCellTiles); cellIndex++) {
         tileNumber                                     = gNeoArkShrinePuzzleCellTiles[cellIndex];
-        gNeoArkShrinePuzzleTargetOrigins[tileNumber].x = D_neo_ark_shrine_8018252C[cellIndex].x;
-        gNeoArkShrinePuzzleTargetOrigins[tileNumber].y = D_neo_ark_shrine_8018252C[cellIndex].y;
+        gNeoArkShrinePuzzleTargetOrigins[tileNumber].x = _gNeoArkShrinePuzzleCellOrigins[cellIndex].x;
+        gNeoArkShrinePuzzleTargetOrigins[tileNumber].y = _gNeoArkShrinePuzzleCellOrigins[cellIndex].y;
     }
 
     // Animate the gap too, but reserve packets only for visible tiles.
@@ -643,7 +648,7 @@ void neoArkShrineAnimateAndDrawPuzzle(void)
             tileQuad       = gGpuPrimCursor;
             gGpuPrimCursor = tileQuad + 1;
             setPolyFT4(tileQuad);
-            setUVWH(tileQuad, D_neo_ark_shrine_801825AC[tileNumber].x, D_neo_ark_shrine_801825AC[tileNumber].y,
+            setUVWH(tileQuad, _gNeoArkShrinePuzzleTileTextureOrigins[tileNumber].x, _gNeoArkShrinePuzzleTileTextureOrigins[tileNumber].y,
                     NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
             tileQuad->tpage = NEO_ARK_SHRINE_PUZZLE_TPAGE;
             tileQuad->clut  = NEO_ARK_SHRINE_PUZZLE_CLUT;

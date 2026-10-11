@@ -91,7 +91,7 @@ ActorCommand gRoamerCommand = { 0 };
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-u16 gRoamerReserveHp[5] = {
+s16 gRoamerReserveHp[5] = {
     0,
     0,
     0,

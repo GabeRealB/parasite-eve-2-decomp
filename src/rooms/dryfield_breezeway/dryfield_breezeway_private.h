@@ -13,7 +13,12 @@ extern GpuImageUpload D_dryfield_breezeway_80183144[2];
 
 extern SVECTOR D_dryfield_breezeway_80183164;
 
-extern Task* D_dryfield_breezeway_801843C0;
+/// Borrowed first-event task published after its work allocation succeeds.
+///
+/// Both the temporary setup task and playback task publish this slot. Script
+/// callbacks require the current task and work to be live. Task teardown frees
+/// them without clearing the handle; this pointer does not retain either.
+extern Task* gDryfieldBreezewayFirstEventTask;
 
 /// Bodyless transition-task recipe shared by this overlay's gate and event task.
 ///

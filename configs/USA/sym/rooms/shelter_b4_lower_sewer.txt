@@ -1,9 +1,9 @@
 // Overlay-local symbols for shelter_b4_lower_sewer.
-D_shelter_b4_lower_sewer_80181E7C = 0x80181E7C; // size:0x14 defined:True
-D_shelter_b4_lower_sewer_80181E90 = 0x80181E90; // size:0x14 defined:True
+_gShelterB4LowerSewerXWaveSurfaces = 0x80181E7C; // size:0x14 defined:True
+_gShelterB4LowerSewerSingleStripWaterSurfaces = 0x80181E90; // size:0x14 defined:True
 _gShelterB4LowerSewerGlowEndpoints = 0x80181EA4; // size:0xF0 defined:True
 _gShelterB4LowerSewerRoomMessages = 0x80181E44; // size:0x28 defined:True
-D_shelter_b4_lower_sewer_80181E6C = 0x80181E6C; // size:0x2 defined:True
+gShelterB4LowerSewerWaterY = 0x80181E6C; // size:0x2 defined:True
 _gShelterB4LowerSewerWaterTaskDesc = 0x80181E70; // size:0xC defined:True
 gShelterB4LowerSewerViewMaps = 0x80181FA4; // size:0x4 defined:True
 gShelterB4LowerSewerRoomViewCounts = 0x80181FA8; // size:0x2 defined:True

@@ -719,7 +719,7 @@ u8* gShelterB3GarbageIncineratorViewMaps[7] = {
     _gShelterB3GarbageIncineratorRoom7ViewMap,
 };
 
-ViewCount D_shelter_b3_garbage_incinerator_8018740C[7] = { 40, 40, 40, 40, 40, 40, 40 };
+ViewCount gShelterB3GarbageIncineratorRoomViewCounts[7] = { 40, 40, 40, 40, 40, 40, 40 };
 
 DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[3] = {
     { { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

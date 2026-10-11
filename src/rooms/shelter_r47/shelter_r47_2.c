@@ -698,7 +698,7 @@ static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY)
     s32                    stopX;
 
     work       = task->work;
-    revealStop = D_shelter_r47_80187374[work->status] + work->revealPos;
+    revealStop = gShelterR47ConsoleStatusRevealStarts[work->status] + work->revealPos;
     stopX      = *revealStop;
     if (stopX != SHELTER_R47_CONSOLE_REVEAL_END) {
         shelterR47ConsoleDrawSprite(stopX - 0x9D, messageY, SHELTER_R47_CONSOLE_MARKER_SPRITE);

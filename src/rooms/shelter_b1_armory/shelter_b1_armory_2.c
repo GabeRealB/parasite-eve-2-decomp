@@ -70,7 +70,7 @@ u8* gShelterB1ArmoryRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_armory_80182584[1] = { 13 };
+ViewCount gShelterB1ArmoryRoomViewCounts[1] = { 13 };
 
 DirectionWarpEntry D_shelter_b1_armory_80182588[4] = {
     { { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, 0x540D0004, 0x540D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

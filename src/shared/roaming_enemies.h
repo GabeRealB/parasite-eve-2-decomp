@@ -24,6 +24,9 @@
 
 #include "gameplay/message.h"
 
+/// Starting and maximum banked HP for both room-specific reserve recipes.
+enum { ROAMER_MAX_HP = 420 };
+
 /// Shared pool timing in per-frame state calls; zero enables requests and reset.
 ///
 /// Positive values count down; -1 pauses until another pool action changes it.
@@ -76,5 +79,9 @@ static s16              _gRoamerPreviousBattleRefs;
 static RoamerSpawnPoint _gRoamerPoolASpawnPoints[7];
 
 static void _roamerTickPoolA(Task* task);
+
+// Includes external storage after the private controller declarations to
+// preserve the compiler's first-declaration order in each carrier.
+#include "roaming_enemies_data.h"
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

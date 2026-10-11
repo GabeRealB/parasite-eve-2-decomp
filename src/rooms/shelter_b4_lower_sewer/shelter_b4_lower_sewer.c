@@ -31,9 +31,6 @@
 
 #include "rooms/room.h"
 
-extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[];
-extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[];
-
 static void _shelterB4LowerSewerInitializeWater(Task* task);
 static void _shelterB4LowerSewerDrawWater(Task* task);
 
@@ -66,7 +63,7 @@ static TaskMessageEntry _gShelterB4LowerSewerRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s16 D_shelter_b4_lower_sewer_80181E6C = -1700;
+s16 gShelterB4LowerSewerWaterY = -1700;
 
 /// Bodyless water-surface task recipe started after the reservoir event.
 ///
@@ -77,12 +74,20 @@ static TaskDesc _gShelterB4LowerSewerWaterTaskDesc = {
     { { TASK_BODY_NONE, 96 } }, _shelterB4LowerSewerWaterTask, { .value = 0 }
 };
 
-RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[2] = {
+/// World-unit rectangle list for the water with two strips and a waving X seam.
+///
+/// One drawable rectangle spans 23400 by 2900 units, followed by
+/// WATER_SURFACE_LIST_END. Both strips use the shared undisplaced water Y.
+static RoomCompactWaterSurface _gShelterB4LowerSewerXWaveSurfaces[] = {
     { -0x28A0, 0, 0x5B68, 2900, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[2] = {
+/// World-unit rectangle list for the eight-segment water strip with a waving far edge.
+///
+/// One drawable rectangle spans 3600 by 1450 units, followed by
+/// WATER_SURFACE_LIST_END. Its near edge uses the shared undisplaced water Y.
+static RoomCompactWaterSurface _gShelterB4LowerSewerSingleStripWaterSurfaces[] = {
     { -0x32C8, 0, 3600, 1450, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
@@ -206,7 +211,7 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
-    surface                    = D_shelter_b4_lower_sewer_80181E7C;
+    surface                    = _gShelterB4LowerSewerXWaveSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     wavePhase                  = -(gDisplayState.animFrame * SHELTER_B4_LOWER_SEWER_WAVE_PHASE_PER_FRAME);
@@ -216,7 +221,7 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    strip->y = D_shelter_b4_lower_sewer_80181E6C;
+    strip->y = gShelterB4LowerSewerWaterY;
     // Subdivide along X; the displaced Z edge joins the two strips.
     for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
         strip->dx = surface->width / SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP;
@@ -348,7 +353,7 @@ static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
-    surface                    = D_shelter_b4_lower_sewer_80181E90;
+    surface                    = _gShelterB4LowerSewerSingleStripWaterSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     wavePhase                  = -(gDisplayState.animFrame * SHELTER_B4_LOWER_SEWER_WAVE_PHASE_PER_FRAME);
@@ -358,7 +363,7 @@ static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    strip->y = D_shelter_b4_lower_sewer_80181E6C;
+    strip->y = gShelterB4LowerSewerWaterY;
     // Keep the near Z edge flat and displace the far edge along each X segment.
     for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
         strip->dx = surface->width / SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP;
@@ -420,7 +425,7 @@ static void _shelterB4LowerSewerWaterTask(Task* task)
     TaskFunc states[] = { _shelterB4LowerSewerInitializeWater, _shelterB4LowerSewerDrawWater };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b4_lower_sewer_80181E6C;
+    gGameSession->waterY = gShelterB4LowerSewerWaterY;
 }
 
 /// Prepares the unused actor-load buffer for water packets and enters the drawing state.

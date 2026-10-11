@@ -841,7 +841,7 @@ DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
     gNeoArkSubmarineGalleryWarpEntries,
     D_neo_ark_r31_8017DA24,
     gNeoArkPyramidWarpEntries,
-    D_neo_ark_substation_8017E410,
+    gNeoArkSubstationWarpEntries,
 };
 
 static ViewCount* D_map_neo_ark_8017AB04[33] = {
@@ -869,15 +869,15 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
     gShelterB6NurseryViewCounts,
     gShelterB6GrowthRoomViewCounts,
     gShelterB6CorridorViewCounts,
-    D_shelter_b6_training_room_8018441C,
+    gShelterB6TrainingRoomRoomViewCounts,
     gNeoArkR26ViewCounts,
     gNeoArkBridgeViewCounts,
-    D_shelter_1f_tent_80181D48,
+    gShelter1fTentRoomViewCounts,
     gNeoArkWoodlandPathViewCounts,
     gNeoArkSubmarineGalleryViewCounts,
     gNeoArkR31ViewCounts,
     gNeoArkPyramidViewCounts,
-    D_neo_ark_substation_8017E40C,
+    gNeoArkSubstationRoomViewCounts,
 };
 
 ViewCountTable D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
@@ -951,7 +951,7 @@ static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
     D_map_neo_ark_8017ABFC,
     D_map_neo_ark_8017AC0C,
     gNeoArkPyramidRoomCollisionResources,
-    D_neo_ark_substation_8017E3F0,
+    gNeoArkSubstationRoomCollisionResources,
 };
 
 WorldCollisionStageResources D_map_neo_ark_8017ACA0 = { D_map_neo_ark_8017AC1C };

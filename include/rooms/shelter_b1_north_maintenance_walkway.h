@@ -30,7 +30,13 @@ extern AreaVariant gShelterB1NorthMaintenanceWalkwayAreaVariants[SHELTER_B1_NORT
 /// the matching camera, image and sprite view. Both overlays must stay loaded.
 extern u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1];
 
-extern ViewCount D_shelter_b1_north_maintenance_walkway_80184B84[];
+/// Logical-view reverse-search limit for this area's sole room.
+///
+/// Room 1 searches 6 entries in its view map. Index zero corresponds to room ID 1.
+/// Counts are signed halfword element counts, independent of map capacity.
+/// The stage map borrows this array while the room overlay is loaded; there
+/// is no terminator.
+extern ViewCount gShelterB1NorthMaintenanceWalkwayRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[];
 

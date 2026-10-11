@@ -24,7 +24,7 @@ static inline void _roamerReviveAmbushEnemy(void)
         sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord.t[1] = ROAMER_AMBUSH_WORLD_Y;
         sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord.t[2] = ROAMER_AMBUSH_WORLD_Z;
         if (enemy != NULL) {
-            enemy->hp                                    = gRoamerReserveHp[ROAMER_AMBUSH_RESERVE_SLOT];
+            enemy->hp                                    = (u16)gRoamerReserveHp[ROAMER_AMBUSH_RESERVE_SLOT];
             gRoamerReserveHp[ROAMER_AMBUSH_RESERVE_SLOT] = 0;
             enemy->reactionFlags                         = 0;
         }

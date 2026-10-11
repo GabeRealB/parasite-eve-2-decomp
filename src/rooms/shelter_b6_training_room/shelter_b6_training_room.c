@@ -96,7 +96,7 @@ u8* gShelterB6TrainingRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b6_training_room_8018441C[2] = { 8, 0 };
+ViewCount gShelterB6TrainingRoomRoomViewCounts[2] = { SHELTER_B6_TRAINING_ROOM_VIEW_COUNT, 0 };
 
 DirectionWarpEntry D_shelter_b6_training_room_80184420[2] = {
     { { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, 0x55190005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

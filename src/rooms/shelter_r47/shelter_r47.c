@@ -542,7 +542,7 @@ static u8 _gShelterR47ConsoleStatusRevealStops[SHELTER_R47_CONSOLE_REVEAL_BYTES]
     0,
 };
 
-u8* D_shelter_r47_80187374[10] = {
+const u8* gShelterR47ConsoleStatusRevealStarts[10] = {
     _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_OFF_OFFSET,
     _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_ON_OFFSET,
     _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_OFF_OFFSET,
