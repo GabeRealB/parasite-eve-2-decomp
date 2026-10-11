@@ -1,8 +1,8 @@
 // Overlay-local symbols for actor_207200.
 _gSkullStalkerDeathParticleOffset = 0x8014E7BC; // size:0x8 defined:True
 _gSkullStalkerDeathGlowOffset = 0x8014E7C4; // size:0x8 defined:True
-D_actor_207200_80153F08 = 0x80153F08; // size:0x8 defined:True
-D_actor_207200_80153F10 = 0x80153F10; // size:0x8 defined:True
+_gActor207200HeadHitOffset = 0x80153F08; // size:0x8 defined:True
+_gActor207200BodyHitOffset = 0x80153F10; // size:0x8 defined:True
 _gActor207200HeadLossSplatterOffset = 0x80153F18; // size:0x8 defined:True
 D_actor_207200_80153F20 = 0x80153F20; // size:0x28 defined:True
 _gSkullStalkerAnimSets = 0x8014E7B0; // size:0xC defined:True

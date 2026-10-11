@@ -85427,9 +85427,9 @@ Writing the call in each arm instead:
 
 ```c
 if (areaGetCurrentObjectState(3) == requestState) {
-    evsStartScript((s32)&D_actor_161500_801378D8, 0);
+    evsStartScript(_gActor161500CompanionRequestPendingPlacementReminderScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
 } else {
-    evsStartScript((s32)&D_actor_161500_801376F8, 0);
+    evsStartScript(_gActor161500CompanionRequestReminderScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
 }
 ```
 

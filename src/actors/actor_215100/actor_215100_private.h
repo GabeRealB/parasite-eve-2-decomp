@@ -22,7 +22,12 @@ extern TaskDesc gActor215100GalleryDecisionTaskDescs[2];
 /// confirmation by clearing it. Independent of the active-training latch.
 extern s32 gActor215100GalleryExitInputBlocked;
 
-extern s32 D_actor_215100_8014D044;
+/// Signed update-tick countdown before movement can request a gallery exit.
+///
+/// Active attachment modes 2/3 reload 60; each nonzero countdown is decremented
+/// before exit checks and suppresses input for that update. Zero permits testing.
+/// Retains signed behavior, including decrementing a negative nonzero value.
+extern s32 gActor215100GalleryExitInputCooldownTicks;
 
 extern AnimationSet gActor215100Animation034E4;
 

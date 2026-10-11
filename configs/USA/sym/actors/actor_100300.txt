@@ -247,5 +247,5 @@ _gActor00300DryfieldNightMainStreetPatrolMode1Points = 0x80148088; // size:0x10 
 _gActor00300PatrolRoutes = 0x80148098; // size:0x78 defined:True
 gActor00300Tasks = 0x80148110; // size:0x24 defined:True
 _gActor00300Messages = 0x80148134; // size:0x28 defined:True
-Actor00300_D1633C = 0x8014815C; // size:0x58 defined:True
+_gActor00300StingerAnimationSets = 0x8014815C; // size:0x58 defined:True
 _gActor00300AnimationBlendFrames = 0x801481B4; // size:0x26 defined:True

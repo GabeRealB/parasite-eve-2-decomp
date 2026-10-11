@@ -344,8 +344,6 @@ static void _actor00300TeardownFireball(Enemy* enemy, Task* task);
 
 // Typed callback views for the task message dispatcher.
 
-extern AnimationSet* Actor00300_D1633C[22];
-
 /// Enemy task states: 0 initialization, 1 event/combat update, 2 death.
 ///
 /// Indexed by `Task::state` in 0..2; each callback receives the live enemy and task.
@@ -1415,7 +1413,11 @@ static TaskMessageEntry _gActor00300Messages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* Actor00300_D1633C[22] = {
+/// Stinger body clips indexed by combat requests and the three event animations.
+///
+/// Entries 1..21 are loaded sets; entry 0 is unplayable. Event requests 0..2
+/// select entries 19..21. The model tracks borrow these sets while this overlay lives.
+static AnimationSet* _gActor00300StingerAnimationSets[22] = {
     NULL,
     &_gActor00300Actor100300Animation0CAD4,
     &_gActor00300Actor100300Animation0D8A8,
@@ -1606,7 +1608,7 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     work->hitEffectArg.coord      = task->extra.tmd->coords + ACTOR_00300_HIT_PART;
     work->hitEffectArg.spawnArgLo = ACTOR_00300_HIT_EFFECT_ARG_LOW;
     work->hitEffectArg.spawnArgHi = ACTOR_00300_HIT_EFFECT_ARG_HIGH;
-    animationInitContext(&work->rig.anim, Actor00300_D1633C, model,
+    animationInitContext(&work->rig.anim, _gActor00300StingerAnimationSets, model,
                          work->rig.poses, work->rig.slots);
     do {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_00300_ANIM_STAND);

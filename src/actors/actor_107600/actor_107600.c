@@ -367,9 +367,13 @@ static const TaskFuncTable3 _gActor107600MountBehaviourHandlers = { {
     [ACTOR_107600_MOUNT_FIXED]    = _actor107600UpdateFixedMount,
 } };
 
-DamageAttack D_actor_107600_80134F80[1] = { 0 };
+/// The gallery mount's single zero-power, ordinary-reaction attack row.
+///
+/// This is an actual attack entry: packing it produces category 4, not the
+/// zero/no-contact key. It remains live with the mount's enemy parameters.
+static DamageAttack _gActor107600MountAttacks[1] = { { .power = 0, .reaction = 0 } };
 
-EnemyParams D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0 };
+EnemyParams D_actor_107600_80134F84 = { _gActor107600MountAttacks, 50, 0, 0, 0, 255, 0, 0, 0 };
 
 /// Execution priority shared by the gallery mount and its carried target.
 enum { ACTOR_107600_TASK_PRIORITY = 96 };
@@ -2087,12 +2091,17 @@ static void _actor107600ApplyTargetHits(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_107600_TARGET_HIT_SCRATCH_BYTES);
 }
 
-/// Corner offsets of the quad `_actor107600DrawTargetDeathBurst` draws.
-static const DVECTOR D_actor_107600_80131ED8[] = {
-    { -0x100, -0x100 },
-    { -0x100, 0x100 },
-    { 0x100, -0x100 },
-    { 0x100, 0x100 },
+enum { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT = 256 };
+
+/// Four X/Y offsets of the target death-burst quad, in game-coordinate units.
+///
+/// Corners span 512 units and follow GPU corner order. They are added to the
+/// mark centre and root translation before signed-halfword projection.
+static const DVECTOR _gActor107600TargetDeathBurstCorners[4] = {
+    { -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
+    { -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
+    { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
+    { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
 };
 
 /// Draws the 512-unit burst replacing the final hit mark on a dead target.
@@ -2114,8 +2123,8 @@ static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SV
 
     projection = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(projection->vertices); cornerIndex++) {
-        projection->vertices[cornerIndex].vx = centerOffset->vx + (D_actor_107600_80131ED8[cornerIndex].vx + rootCoord->coord.t[0]);
-        projection->vertices[cornerIndex].vy = centerOffset->vy + (D_actor_107600_80131ED8[cornerIndex].vy + rootCoord->coord.t[1]);
+        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gActor107600TargetDeathBurstCorners[cornerIndex].vx + rootCoord->coord.t[0]);
+        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gActor107600TargetDeathBurstCorners[cornerIndex].vy + rootCoord->coord.t[1]);
         projection->vertices[cornerIndex].vz = rootCoord->coord.t[2] + centerOffset->vz;
     }
     // Project four signed-halfword corners through the cached root transform.
@@ -2153,13 +2162,17 @@ static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SV
     SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
 }
 
-/// Corner offsets of the quad `_actor107600DrawTargetHitMark` draws; the
-/// zero fifth entry is never read.
-static const DVECTOR D_actor_107600_80131EE8[] = {
-    { -0x60, -0x60 },
-    { -0x60, 0x60 },
-    { 0x60, -0x60 },
-    { 0x60, 0x60 },
+enum { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT = 96 };
+
+/// Four X/Y offsets of a target hit-mark quad, followed by an unused zero record.
+///
+/// Corners span 192 game-coordinate units and follow GPU corner order. They
+/// are added to the mark centre and root translation before projection.
+static const DVECTOR _gActor107600TargetHitMarkCorners[5] = {
+    { -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
+    { -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
+    { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
+    { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
     { 0, 0 },
 };
 
@@ -2182,8 +2195,8 @@ static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECT
 
     projection = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(projection->vertices); cornerIndex++) {
-        projection->vertices[cornerIndex].vx = centerOffset->vx + (D_actor_107600_80131EE8[cornerIndex].vx + rootCoord->coord.t[0]);
-        projection->vertices[cornerIndex].vy = centerOffset->vy + (D_actor_107600_80131EE8[cornerIndex].vy + rootCoord->coord.t[1]);
+        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gActor107600TargetHitMarkCorners[cornerIndex].vx + rootCoord->coord.t[0]);
+        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gActor107600TargetHitMarkCorners[cornerIndex].vy + rootCoord->coord.t[1]);
         projection->vertices[cornerIndex].vz = rootCoord->coord.t[2] + centerOffset->vz;
     }
     // Project four signed-halfword corners through the cached root transform.

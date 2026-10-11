@@ -15,8 +15,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/actor_303600.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -183,7 +181,6 @@ static s32  _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const
 static void _actor403600UpdateSceneFigure(struct Enemy* enemy, Task* task);
 static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale);
 
-extern TaskDesc D_actor_303600_8016E468[];
 /// Static storage for the cursor of the boss's record of its last two
 /// attacks.
 ///
@@ -4559,7 +4556,7 @@ static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const 
             break;
         case ACTOR_403600_COMMAND_SPAWN_SCENE_FIGURE:
             // The figure and shaft controller take over presentation from both actors.
-            _gActor403600SceneShaftTask = taskSpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
+            _gActor403600SceneShaftTask = taskSpawnFromTable(gActor303600ShaftTaskDescriptors, ACTOR_303600_SHAFT_ROOT_DESCRIPTOR, 0, 0);
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

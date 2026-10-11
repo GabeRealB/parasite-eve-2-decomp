@@ -22,9 +22,7 @@
 #include "rooms/mist_shooting_gallery.h"
 
 extern AnimationPlayRequest D_actor_215100_8014CF84;
-extern AnimationPlayRequest D_actor_215100_8014CFAC;
 extern AnimationPlayRequest D_actor_215100_8014D010;
-extern AnimationPlayRequest D_actor_215100_8014D024;
 extern s32                  D_actor_215100_8014D040;
 
 TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
@@ -36,7 +34,22 @@ AnimationPlayRequest D_actor_215100_8014CF84 = { { .index = 1 }, 9, ANIMATION_BL
 
 AnimationPlayRequest D_actor_215100_8014CF98 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014CFAC = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    ACTOR_215100_LEVEL_REPLY_FIRST_CLIP  = 24,
+    ACTOR_215100_LEVEL_REPLY_SECOND_CLIP = 18,
+};
+
+/// Resets Pierce to clip 18 twenty-two updates after the course-level reply's first clip.
+///
+/// Sent synchronously at reply countdown -22; the live actor and clip bank
+/// must remain loaded. Pierce ignores the stored bank and collision selectors.
+static AnimationPlayRequest _gActor215100GalleryLevelReplyAnimation18Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_215100_LEVEL_REPLY_SECOND_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8014CFC0[4] = {
     { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -47,7 +60,17 @@ AnimationPlayRequest D_actor_215100_8014CFC0[4] = {
 
 AnimationPlayRequest D_actor_215100_8014D010 = { { .index = 1 }, 23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014D024 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Pierce to clip 24 when the course-level reply countdown reaches zero.
+///
+/// The borrowed request is consumed synchronously; Pierce ignores its stored
+/// bank and collision selectors. The live actor and clip bank must stay loaded.
+static AnimationPlayRequest _gActor215100GalleryLevelReplyAnimation24Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_215100_LEVEL_REPLY_FIRST_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 s32 gActor215100GalleryTrainingActive = 0;
 
@@ -55,7 +78,7 @@ s32 gActor215100GalleryExitInputBlocked = 0;
 
 s32 D_actor_215100_8014D040 = 0;
 
-s32 D_actor_215100_8014D044 = 0;
+s32 gActor215100GalleryExitInputCooldownTicks = 0;
 
 static AnimationPackedPose _gActor215100Animation034E4Bank1[5] = {
 #include "assets/actor_215100_animation_034E4_bank1.inc"
@@ -225,10 +248,10 @@ static inline void _actor215100UpdateLevelReplyAnimations(Task* task)
         task->killCountdown--;
     }
     if (task->killCountdown == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014D024, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor215100GalleryLevelReplyAnimation24Request, 0);
     }
     if (task->killCountdown == ACTOR_215100_LEVEL_REPLY_SECOND_ANIMATION_TICK) {
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014CFAC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor215100GalleryLevelReplyAnimation18Request, 0);
     }
 }
 

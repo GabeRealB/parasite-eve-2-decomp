@@ -43,15 +43,11 @@
 static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static void _pairWalkSubModelTask(Task* task);
 
-extern TaskDesc D_actor_150400_80132CF0;
-static Task*    _gActor150400FirstSlidingModelTask;
-static Task*    _gActor150400SecondSlidingModelTask;
+static Task* _gActor150400FirstSlidingModelTask;
+static Task* _gActor150400SecondSlidingModelTask;
 
-extern u8 D_actor_150400_8013C90C[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
@@ -105,38 +101,91 @@ static TmdSource _gActor150400Model00C44 = {
     _gActor150400Model00C44Stream,
 };
 
-TaskDesc D_actor_150400_80132CF0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, _actor150400SlidingModelTask, { .model = &_gActor150400Model00C44 } };
+enum { ACTOR_150400_SLIDING_MODEL_PRIORITY = 32 };
+
+/// Recipe used twice for the freezer scene's sliding TMD models.
+///
+/// Spawn argument 1 selects copy 1 or 2; scene cues initialize and then slide
+/// both live tasks. Spawning skips automatic primitive-buffer allocation.
+static TaskDesc _gActor150400SlidingModelTaskDesc = {
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_150400_SLIDING_MODEL_PRIORITY } },
+    .callback = _actor150400SlidingModelTask,
+    .data     = { .model = &_gActor150400Model00C44 },
+};
 
 AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_150400_80132D10 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    ACTOR_150400_FREEZER_WALK_BLEND_FRAMES = 10,
+    ACTOR_150400_FREEZER_PLAYER_CLIP       = 1,
+};
 
-AnimationPlayRequest D_actor_150400_80132D24 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts No. 9's walk clip with a ten-frame blend in the freezer scene.
+///
+/// The walker consumes clip and blend values during dispatch; its bank-selector
+/// and world-collision words are ignored. Keep the clip bank loaded during travel.
+static AnimationPlayRequest _gActor150400FreezerNo9Animation4Request = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_WALK,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_150400_FREEZER_WALK_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024, 0, 0 } };
+/// Resets equipped-weapon clip 1 and drops player grid participation for the freezer scene.
+///
+/// The event interpreter copies this request and resolves its bank selector
+/// against the equipped weapon before synchronous player dispatch.
+static AnimationPlayRequest _gActor150400FreezerPlayerAnimation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_150400_FREEZER_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
+/// No. 9's initial freezer-scene position and negative-quarter-turn yaw.
+///
+/// XYZ are whole units in the model root's parent frame. The placement message
+/// consumes the record synchronously; the fourth vector components have no role.
+static ActorTransform _gActor150400FreezerNo9Placement = {
+    .pos = { 6705, -500, -3316, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-EvsSceneKey D_actor_150400_80132D68 = { 5, 4, 11 };
+/// No. 9's freezer-scene walk destination in the root's parent-coordinate frame.
+///
+/// Only X/Z are consumed: the receiver stores a derived yaw and whole 17-unit
+/// travel ticks. Y and rotation are retained data but do not affect this request.
+static ActorTransform _gActor150400FreezerNo9WalkTarget = {
+    .pos = { 1535, -500, -3316, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
+
+/// Scene/audio stream key for the freezer confrontation.
+///
+/// Selects group 5, stream 4, qualifier 11; the absent second qualifier is zero.
+/// Event playback borrows this key while the actor overlay remains loaded.
+static EvsSceneKey _gActor150400FreezerSceneKey = { .group = 5, .streamId = 4, .subId = 11 };
 
 EvsCommand D_actor_150400_80132D70[33] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_150400_80132D68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor150400FreezerSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_150400_80132D24 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor150400FreezerPlayerAnimation1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor150400SetSlidingModelState }, { .value = ACTOR_150400_SLIDING_MODEL_INITIALIZE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_150400_80132D38 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_150400_80132D10 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor150400FreezerNo9Placement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor150400FreezerNo9Animation4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_150400_80132D50 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor150400FreezerNo9WalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -324,7 +373,11 @@ static TmdSource _gActor150400GolemBeamSword = {
     _gActor150400GolemBeamSwordStream,
 };
 
-TaskMessageEntry D_actor_150400_8013C8C4[6] = {
+/// No. 9's animation, visibility, placement, ignored-command and walk messages.
+///
+/// Five handlers are followed by the end sentinel. The live pair walker borrows
+/// this table; animation IDs must select loaded entries 1..4 in its clip bank.
+static TaskMessageEntry _gActor150400No9Messages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
@@ -352,31 +405,18 @@ TaskDesc gActor150400No9GolemTaskDescriptors[2] = {
     },
 };
 
-u8 D_actor_150400_8013C90C[24] = {
-    0,
-    0,
-    0,
-    0,
-    152,
-    166,
-    19,
-    128,
-    0,
-    174,
-    19,
-    128,
-    240,
-    185,
-    19,
-    128,
-    88,
-    195,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// No. 9's six-entry body-animation bank, with loaded clips 1..4.
+///
+/// Entries 0 and 5 are unplayable NULL holes. Idle uses 1 and walking uses 4;
+/// message requests may also select 2 or 3. Playback borrows the sets and tracks
+/// while this overlay is loaded. The table is six native PS1 pointer words.
+static AnimationSet* _gActor150400No9AnimationSets[6] = {
+    NULL,
+    &_gActor150400Animation08878,
+    &_gActor150400Animation08FE0,
+    &_gActor150400Animation09BD0,
+    &_gActor150400Animation0A538,
+    NULL,
 };
 
 /// Retained first sliding-model task of the freezer scene, placed at Z = -4460.
@@ -509,8 +549,8 @@ void actor150400SpawnSlidingModels(void)
         ACTOR_150400_SLIDING_SECOND_COPY = 2,
     };
 
-    _gActor150400FirstSlidingModelTask  = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_FIRST_COPY, 0);
-    _gActor150400SecondSlidingModelTask = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_SECOND_COPY, 0);
+    _gActor150400FirstSlidingModelTask  = taskSpawnFromTable(&_gActor150400SlidingModelTaskDesc, 0, ACTOR_150400_SLIDING_FIRST_COPY, 0);
+    _gActor150400SecondSlidingModelTask = taskSpawnFromTable(&_gActor150400SlidingModelTaskDesc, 0, ACTOR_150400_SLIDING_SECOND_COPY, 0);
 }
 
 /// Binds the walker’s work matrices and samples its cached root lighting.
@@ -571,11 +611,11 @@ static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task)
     taskReparent(task, attachmentEnemy->task);
     work->pairTask = attachmentEnemy->task;
     ACTOR_150400_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, lightPosition);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_150400_8013C90C, model,
+    animationInitContext(&work->rig.anim, _gActor150400No9AnimationSets, model,
                          work->rig.poses, work->rig.slots);
     work->st.animId = ACTOR_150400_SPAWN_CLIP;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable  = D_actor_150400_8013C8C4;
+    task->msgTable  = _gActor150400No9Messages;
     _pairWalkUpdate(task);
     task->state++;
 }

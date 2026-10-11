@@ -48,9 +48,6 @@ STATIC_ASSERT_SIZEOF(_Actor202900Work, 0x564);
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry D_actor_202900_80156E0C[3];
-extern AnimationSet*    D_actor_202900_80156E3C[6];
-
 /// Borrowed body task of this package's active scripted actor.
 ///
 /// Published after successful spawn for animation messages, paired visibility
@@ -212,7 +209,11 @@ static AnimationSet _gActor202900Animation0CFC4 = {
     { NULL, _gActor202900Animation0CFC4Bank1, NULL, NULL, _gActor202900Animation0CFC4Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_actor_202900_80156E0C[3] = {
+/// Cafeteria woman's animation and paired-model visibility messages with an end sentinel.
+///
+/// The body task borrows this three-entry table. Animation requests require a
+/// loaded normalized clip (1 or 4); visibility applies to the body and its helper.
+static TaskMessageEntry _gActor202900WomanMessages[3] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor202900PlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -235,7 +236,13 @@ TaskDesc gActor202900WomanTaskDescriptors[2] = {
     },
 };
 
-AnimationSet* D_actor_202900_80156E3C[6] = {
+/// Cafeteria woman's six-entry animation bank, with loaded sets 1 and 4.
+///
+/// Entries 0, 2, 3 and 5 are unplayable NULL holes. Setup starts 4; set 1 carries
+/// the sound cue. Direct-slot initialization maps request 0 to 1 and negatives
+/// to their magnitude, which must still select a loaded entry. The rig borrows
+/// this table and its clips while the overlay is loaded.
+static AnimationSet* _gActor202900WomanAnimationSets[6] = {
     NULL,
     &_gActor202900Animation0CDB4,
     NULL,
@@ -302,12 +309,12 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
     model->colorMtx = &_gActor202900Work->color;
     // Bind work-owned lighting before sampling it and starting the body tracks.
     ACTOR_202900_RELIGHT_SPAWN_MODEL();
-    animationBindModelContext(&_gActor202900Work->rig.anim, D_actor_202900_80156E3C, model,
+    animationBindModelContext(&_gActor202900Work->rig.anim, _gActor202900WomanAnimationSets, model,
                               _gActor202900Work->rig.poses);
     _gActor202900Work->st.animId    = ACTOR_202900_INITIAL_CLIP;
     _gActor202900Work->st.state     = ACTOR_ENEMY_ANIM_RESET;
     _gActor202900Work->st.cueRecord = 0;
-    task->msgTable                  = D_actor_202900_80156E0C;
+    task->msgTable                  = _gActor202900WomanMessages;
     _actor202900StepAnim(task);
     task->state++;
 

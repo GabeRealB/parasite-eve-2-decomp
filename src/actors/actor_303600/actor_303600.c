@@ -145,8 +145,7 @@ static Task* _gActor303600CutsceneControllerTask;
 /// Initialization, fade completion and cancellation only write NULL; fade
 /// spawn results are discarded. Conditional task kills retain the original
 /// behavior, although this package never publishes a live handle here.
-static Task*    _gActor303600FadeTaskSlot;
-extern TaskDesc D_actor_303600_8016E468[];
+static Task* _gActor303600FadeTaskSlot;
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -183,11 +182,15 @@ static void _actor303600StageCutsceneAudio(void);
 static void _actor303600StartCutscenePlayback(void);
 static void _actor303600CancelCutscenePlayback(void);
 
-EvsSceneKey D_actor_303600_80162AE8 = { 6, 12, 11 };
+/// Scene/audio stream key for the Neo Ark shaft-and-figure cutscene.
+///
+/// Selects group 6, stream 12, qualifier 11; the absent second qualifier is zero.
+/// Event playback borrows this key while the actor overlay remains loaded.
+static EvsSceneKey _gActor303600CutsceneSceneKey = { .group = 6, .streamId = 12, .subId = 11 };
 
 EvsCommand D_actor_303600_80162AF0[31] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_303600_80162AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor303600CutsceneSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600StageCutsceneAudio }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600LockCutsceneControls }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -396,9 +399,19 @@ Actor303600ViewKey D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT] = {
 #include "assets/actor_303600_path_090D8.inc"
 };
 
-TaskDesc D_actor_303600_8016E468[2] = {
-    { { { TASK_BODY_COORD, 192 } }, _actor303600ShaftTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor303600ShaftSegmentTask, { .model = &_gActor303600Model0814C } },
+enum { ACTOR_303600_SHAFT_TASK_PRIORITY = 192 };
+
+TaskDesc gActor303600ShaftTaskDescriptors[ACTOR_303600_SHAFT_DESCRIPTOR_COUNT] = {
+    [ACTOR_303600_SHAFT_ROOT_DESCRIPTOR] = {
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_303600_SHAFT_TASK_PRIORITY } },
+        .callback = _actor303600ShaftTask,
+        .data     = { .value = 0 },
+    },
+    [ACTOR_303600_SHAFT_SEGMENT_DESCRIPTOR] = {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_303600_SHAFT_TASK_PRIORITY } },
+        .callback = _actor303600ShaftSegmentTask,
+        .data     = { .model = &_gActor303600Model0814C },
+    },
 };
 
 TaskMessageEntry D_actor_303600_8016E480[2] = {
@@ -840,7 +853,7 @@ static void _actor303600InitShaft(Task* task)
     shaftCoord->coord.t[2] = 0;
     // Identical TMD segments follow the coordinate body, centred two pitches below it.
     for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(work->segments); segmentIndex++) {
-        segmentTask = taskSpawnFromTable(D_actor_303600_8016E468, ACTOR_303600_SHAFT_SEGMENT_TASK_INDEX, 0, task);
+        segmentTask = taskSpawnFromTable(gActor303600ShaftTaskDescriptors, ACTOR_303600_SHAFT_SEGMENT_TASK_INDEX, 0, task);
         if (segmentTask == NULL) {
             break;
         }

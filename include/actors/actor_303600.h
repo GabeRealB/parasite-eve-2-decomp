@@ -71,4 +71,19 @@ extern TmdSource gActor303600Model02DD0;
 /// Keep actor_303600 and the scene's borrowed resources loaded until teardown.
 extern TaskDesc gActor303600CutsceneFadeTaskDescriptors[4];
 
+/// Recipe indices for the scrolling shaft root and its repeating TMD segments.
+enum {
+    ACTOR_303600_SHAFT_ROOT_DESCRIPTOR    = 0,
+    ACTOR_303600_SHAFT_SEGMENT_DESCRIPTOR = 1,
+    ACTOR_303600_SHAFT_DESCRIPTOR_COUNT   = 2,
+};
+
+/// Scrolling-shaft recipes: a coordinate-body root and a TMD segment, both priority 192.
+///
+/// There is no terminator. The root ignores spawn arguments and owns its work
+/// and up to five segments. A segment requires its live root task as parent,
+/// borrows the root coordinate and joins its teardown tree. Eve loads this
+/// package before spawning the root; keep it loaded until all tasks finish.
+extern TaskDesc gActor303600ShaftTaskDescriptors[ACTOR_303600_SHAFT_DESCRIPTOR_COUNT];
+
 #endif // INCLUDE_ACTORS_ACTOR_303600_H

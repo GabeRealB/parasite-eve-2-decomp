@@ -1017,7 +1017,12 @@ static s32 _gGolemPawnRookSilenceCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BAN
 /// Pawn carriers retain a no-op ID in the same cue slot.
 static s32 _gGolemPawnRookShieldBreakCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 21);
 
-u16 Actor05700_D1723C[22] = {
+/// Stage-1 area-indexed motion sound-bank selectors for the launcher Rook.
+///
+/// Published area IDs 0..20 index directly; the final zero halfword is unused.
+/// Zero disables bank loading and motion cues; 1..4 select a sound file and
+/// its footstep/fall cue set. All 22 stored halfwords are retained.
+static u16 _gActor05700Stage1AreaSoundSets[22] = {
     0,
     0,
     0,
@@ -1042,7 +1047,12 @@ u16 Actor05700_D1723C[22] = {
     0,
 };
 
-u16 Actor05700_D17268[40] = {
+/// Stage-2 area-indexed motion sound-bank selectors for the launcher Rook.
+///
+/// Published area IDs 0..38 index directly; the final zero halfword is unused.
+/// Zero disables loading and motion cues; 1..4 select the sound file and
+/// footstep/fall cue set. All 40 stored halfwords are retained.
+static u16 _gActor05700Stage2AreaSoundSets[40] = {
     0,
     0,
     4,
@@ -1085,7 +1095,12 @@ u16 Actor05700_D17268[40] = {
     0,
 };
 
-u16 Actor05700_D172B8[40] = {
+/// Stage-3 area-indexed motion sound-bank selectors for the launcher Rook.
+///
+/// Published area IDs 0..38 index directly; the final zero halfword is unused.
+/// Zero disables loading and motion cues; 1..4 select the sound file and
+/// footstep/fall cue set. All 40 stored halfwords are retained.
+static u16 _gActor05700Stage3AreaSoundSets[40] = {
     0,
     4,
     0,
@@ -1128,7 +1143,11 @@ u16 Actor05700_D172B8[40] = {
     0,
 };
 
-u16 Actor05700_D17308[50] = {
+/// Stage-4 area-indexed motion sound-bank selectors for the launcher Rook.
+///
+/// Published area IDs 0..49 index the 50 halfwords directly; 0 disables loading and motion
+/// cues, and 1..4 select the sound file and footstep/fall cue set.
+static u16 _gActor05700Stage4AreaSoundSets[50] = {
     0,
     4,
     4,
@@ -1181,7 +1200,11 @@ u16 Actor05700_D17308[50] = {
     0,
 };
 
-u16 Actor05700_D1736C[34] = {
+/// Stage-5 area-indexed motion sound-bank selectors for the launcher Rook.
+///
+/// Published area IDs 0..33 index the 34 halfwords directly; 0 disables loading and motion
+/// cues, and 1..4 select the sound file and footstep/fall cue set.
+static u16 _gActor05700Stage5AreaSoundSets[34] = {
     0,
     0,
     2,
@@ -1220,11 +1243,11 @@ u16 Actor05700_D1736C[34] = {
 
 u16* gGolemPawnRookAreaParams[6] = {
     NULL,
-    Actor05700_D1723C,
-    Actor05700_D17268,
-    Actor05700_D172B8,
-    Actor05700_D17308,
-    Actor05700_D1736C,
+    _gActor05700Stage1AreaSoundSets,
+    _gActor05700Stage2AreaSoundSets,
+    _gActor05700Stage3AreaSoundSets,
+    _gActor05700Stage4AreaSoundSets,
+    _gActor05700Stage5AreaSoundSets,
 };
 
 /// Projected vertex indices of the laser sight's two fading ribbon quads.
@@ -1409,9 +1432,11 @@ static void _actor05700GrenadeLauncherTask(Task* launcher)
 
 #include "../../shared/golem_pawn_rook_launcher_tick.inc.c"
 
-/// State handlers of the effect child - spawn/setup, per-frame tick and
-/// teardown - dispatched through by `_actor05700GrenadeTask`.
-static const EnemyTaskFuncTable3 Actor05700_D0008C = {
+/// Grenade lifecycle states: 0 launch/detach, 1 flight, 2 delayed destruction.
+///
+/// The dispatcher copies all three handlers before indexing by task state.
+/// State 2 unlinks collision, then keeps the grenade alive for 61 update ticks.
+static const EnemyTaskFuncTable3 _gActor05700GrenadeStates = {
     _golemPawnRookGrenadeSpawn,
     _golemPawnRookGrenadeFly,
     _golemPawnRookGrenadeDestroy,
@@ -1426,16 +1451,18 @@ static const EnemyTaskFuncTable3 Actor05700_D0008C = {
 /// grenade's own work and lighting. Destruction may release the task and enemy.
 static void _actor05700GrenadeTask(Task* grenade)
 {
-    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D0008C;
+    EnemyTaskFuncTable3 lifecycleHandlers = _gActor05700GrenadeStates;
 
     lifecycleHandlers.funcs[grenade->state](grenade->spawnArg2.pointer, grenade);
 }
 
 #include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"
 
-/// State handlers of the burst child parented to the actor's part 11 - spawn,
-/// per-frame tick and teardown - dispatched through by `_actor05700ShieldTask`.
-static const EnemyTaskFuncTable3 Actor05700_D00098 = {
+/// Shield lifecycle states: 0 attach, 1 follow/break, 2 destroy.
+///
+/// The shield attaches to body part 11 and borrows the live body's work and
+/// lighting. The dispatcher copies all three handlers before indexing by task state.
+static const EnemyTaskFuncTable3 _gActor05700ShieldStates = {
     _golemPawnRookShieldSpawn,
     _golemPawnRookShieldTick,
     enemyDestroy,
@@ -1450,17 +1477,18 @@ static const EnemyTaskFuncTable3 Actor05700_D00098 = {
 /// Destruction may release the task and enemy before returning.
 static void _actor05700ShieldTask(Task* shield)
 {
-    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D00098;
+    EnemyTaskFuncTable3 lifecycleHandlers = _gActor05700ShieldStates;
 
     lifecycleHandlers.funcs[shield->state](shield->spawnArg2.pointer, shield);
 }
 
 #include "../../shared/golem_pawn_rook_shield_spawn.inc.c"
 
-/// The actor's own state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by `_actor05700RookGolemTask`. The tick and
-/// teardown take the task as the actor view it is.
-static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
+/// Launcher Rook body lifecycle states: 0 initialize, 1 combat, 2 persistent corpse.
+///
+/// The dispatcher copies all three handlers before indexing by task state.
+/// The dead state ends combat participation while retaining the body and pose.
+static const EnemyTaskFuncTable3 _gActor05700RookGolemStates = {
     _golemPawnRookSpawn,
     _golemPawnRookFrameState,
     _golemPawnRookDeadState,
@@ -1477,7 +1505,7 @@ static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
 /// may release the task and enemy before returning.
 static void _actor05700RookGolemTask(Task* golem)
 {
-    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D000A4;
+    EnemyTaskFuncTable3 lifecycleHandlers = _gActor05700RookGolemStates;
 
     lifecycleHandlers.funcs[golem->state](golem->spawnArg2.pointer, golem);
 }

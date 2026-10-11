@@ -1,9 +1,9 @@
 // Overlay-local symbols for actor_150400.
-D_actor_150400_8013C90C = 0x8013C90C; // size:0x18 defined:True
+_gActor150400No9AnimationSets = 0x8013C90C; // size:0x18 defined:True
 _gActor150400FirstSlidingModelTask = 0x8013C924; // size:0x4 defined:True
 _gActor150400SecondSlidingModelTask = 0x8013C928; // size:0x4 defined:True
 gActor150400No9GolemTaskDescriptors = 0x8013C8F4; // size:0x18 defined:True
-D_actor_150400_8013C8C4 = 0x8013C8C4; // size:0x30 defined:True
+_gActor150400No9Messages = 0x8013C8C4; // size:0x30 defined:True
 _gActor150400GolemBeamSwordSkeleton = 0x8013C380; // size:0x24 defined:True
 _gActor150400GolemBeamSwordPartVerts = 0x8013C3A4; // size:0x4 defined:True
 _gActor150400GolemBeamSwordVerts = 0x8013C3A8; // size:0xE8 defined:True
@@ -42,13 +42,13 @@ _gActor150400Model00C44PartVerts = 0x80132950; // size:0x4 defined:True
 _gActor150400Model00C44Verts = 0x80132954; // size:0x110 defined:True
 _gActor150400Model00C44Stream = 0x80132A64; // size:0x268 defined:True
 _gActor150400Model00C44 = 0x80132CCC; // size:0x24 defined:True
-D_actor_150400_80132CF0 = 0x80132CF0; // size:0xC defined:True
+_gActor150400SlidingModelTaskDesc = 0x80132CF0; // size:0xC defined:True
 D_actor_150400_80132CFC = 0x80132CFC; // size:0x14 defined:True
-D_actor_150400_80132D10 = 0x80132D10; // size:0x14 defined:True
-D_actor_150400_80132D24 = 0x80132D24; // size:0x14 defined:True
-D_actor_150400_80132D38 = 0x80132D38; // size:0x18 defined:True
-D_actor_150400_80132D50 = 0x80132D50; // size:0x18 defined:True
-D_actor_150400_80132D68 = 0x80132D68; // size:0x6 defined:True
+_gActor150400FreezerNo9Animation4Request = 0x80132D10; // size:0x14 defined:True
+_gActor150400FreezerPlayerAnimation1Request = 0x80132D24; // size:0x14 defined:True
+_gActor150400FreezerNo9Placement = 0x80132D38; // size:0x18 defined:True
+_gActor150400FreezerNo9WalkTarget = 0x80132D50; // size:0x18 defined:True
+_gActor150400FreezerSceneKey = 0x80132D68; // size:0x6 defined:True
 D_actor_150400_80132D70 = 0x80132D70; // size:0x318 defined:True
 
 D_shelter_b1_control_room_80181BBC = 0x80181BBC; // absolute:True owner=shelter_b1_control_room shared=rooms

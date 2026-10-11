@@ -49,11 +49,6 @@
 extern AnimationSet* D_actor_207200_80153ED4[13];
 /// `forwardSpeed` for frames 20..39 of the crawl animation, indexed by frame - 20.
 extern s16 D_actor_207200_80153F20[];
-/// Base damage the shatter hit doubles, before a 0..99 roll is added.
-/// Effect offsets `effectSpawnHit` is handed for the two hit tables.
-extern SVECTOR D_actor_207200_80153F08;
-extern SVECTOR D_actor_207200_80153F10;
-
 /// Values of `_Actor207200CreepingStrangerWork::state`.
 enum {
     ACTOR_207200_STATE_DORMANT     = 0, // idles until the player comes near or the room alerts its enemies; a headless body only rests here between recoils
@@ -676,9 +671,17 @@ AnimationSet* D_actor_207200_80153ED4[13] = {
     &_gActor207200Animation0A080,
 };
 
-SVECTOR D_actor_207200_80153F08 = { 0 };
+/// Zero local XYZ offset for damage-hit effects at the Creeping Stranger's head part.
+///
+/// Effects place at coordinate 3's origin. The offset stays borrowed while an
+/// effect uses it, so this overlay must remain loaded; the fourth halfword is unused.
+static SVECTOR _gActor207200HeadHitOffset = { 0 };
 
-SVECTOR D_actor_207200_80153F10 = { 0, -100, -150, 0 };
+/// Local XYZ offset of body damage-hit effects, in whole game-coordinate units.
+///
+/// Added in body coordinate 1's frame: X 0, Y -100, Z -150. The offset stays
+/// borrowed while an effect uses it; the fourth halfword is unused.
+static SVECTOR _gActor207200BodyHitOffset = { 0, -100, -150, 0 };
 
 /// Head-loss splatter's zero local offset, also selecting a random spray heading.
 ///
@@ -1275,7 +1278,7 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
                 damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value);
                 contactMagnitude = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, contactMagnitude, 0, 0);
                 effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[contactIndex].key.value),
-                               task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_BODY_HIT_PART, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
+                               task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_BODY_HIT_PART, &_gActor207200BodyHitOffset, &work->bodyHitEffectArg);
                 contactValue = damageGetPlayerAttackHitCooldown(work->bodyContacts[contactIndex].key.value);
                 if ((s16)contactValue > 0) {
                     work->hitCooldown = contactValue;
@@ -1375,7 +1378,7 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
                     damageAccumulateLifeDrainHp(enemy, work->headContacts[contactIndex].key.value, contactMagnitude, 0);
                     _actor207200CreepingStrangerApplyHeadDamage(task, contactMagnitude);
                     effectSpawnHit(damageGetPlayerAttackEffectId(work->headContacts[contactIndex].key.value),
-                                   task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_HIT_PART, &D_actor_207200_80153F08, &work->headHitEffectArg);
+                                   task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_HIT_PART, &_gActor207200HeadHitOffset, &work->headHitEffectArg);
                     contactValue = damageGetPlayerAttackHitCooldown(work->headContacts[contactIndex].key.value);
                     if ((s16)contactValue > 0) {
                         work->hitCooldown = contactValue;

@@ -31,7 +31,7 @@ _gActor111800Animation08600Bank4 = 0x80139ECC; // size:0x248 defined:True
 _gActor111800Animation08600Records = 0x8013A114; // size:0x2E4 defined:True
 _gActor111800Animation08600Indices = 0x8013A3F8; // size:0x28 defined:True
 _gActor111800Animation08600 = 0x8013A420; // size:0x28 defined:True
-D_actor_111800_8013A448 = 0x8013A448; // size:0x20 defined:True
+_gActor111800GrinningStrangerAnimationSets = 0x8013A448; // size:0x20 defined:True
 
 acropolisSquareStartSirenSequence = 0x80182360; // type:func absolute:True owner=acropolis_square
 _actorRenderYawJointInWorld = 0x80131E40; // type:func

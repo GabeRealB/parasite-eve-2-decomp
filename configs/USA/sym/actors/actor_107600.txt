@@ -85,7 +85,7 @@ _gActor107600MountPath61 = 0x80135610; // size:0x12 defined:True
 _gActor107600MountPaths = 0x80135624; // size:0xF8 defined:True
 _gActor107600TargetAttacks = 0x8013571C; // size:0x4 defined:True
 D_actor_107600_80135720 = 0x80135720; // size:0x10 defined:True
-D_actor_107600_80134F80 = 0x80134F80; // size:0x4 defined:True
+_gActor107600MountAttacks = 0x80134F80; // size:0x4 defined:True
 D_actor_107600_80134F84 = 0x80134F84; // size:0x10 defined:True
 gActor107600TaskDescriptors = 0x80134F94; // size:0xE4 defined:True
 
@@ -133,3 +133,5 @@ _actor107600UpdateTargetRootColor = 0x801349e0; // type:func
 _actor107600UpdateActiveTarget = 0x801332d4; // type:func
 _actor107600UpdateTarget = 0x80133024; // type:func
 _gActor107600MountBehaviourHandlers = 0x80131e34;
+_gActor107600TargetDeathBurstCorners = 0x80131ed8;
+_gActor107600TargetHitMarkCorners = 0x80131ee8;

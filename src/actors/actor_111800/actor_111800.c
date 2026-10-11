@@ -81,10 +81,6 @@ typedef struct {
 } _Actor111800Work;
 STATIC_ASSERT_SIZEOF(_Actor111800Work, 0x498);
 
-/// Animation bank `animationInitContext` builds the work block's clip context from;
-/// the actor hands it over whole, so it is only ever a byte address here.
-extern AnimationSet* D_actor_111800_8013A448[8];
-
 static TmdSource _gActor111800GrinningStrangerBody;
 static void      _actor111800GrinningStrangerTask(Task* task);
 
@@ -230,7 +226,12 @@ static AnimationSet _gActor111800Animation08600 = {
     { NULL, _gActor111800Animation08600Bank1, NULL, NULL, _gActor111800Animation08600Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_111800_8013A448[8] = {
+/// Grinning Stranger body clips for its staged turn and departure sequence.
+///
+/// Loaded entries are 0, 1, 2, 5 and 6; 3, 4 and 7 are unplayable NULL holes.
+/// Setup starts 5, the sequence blends to 0 and then 2. Sets and tracks remain
+/// borrowed by the body rig while the overlay is loaded.
+static AnimationSet* _gActor111800GrinningStrangerAnimationSets[8] = {
     &_gActor111800Animation065FC,
     &_gActor111800Animation07120,
     &_gActor111800Animation07BA4,
@@ -442,7 +443,7 @@ static void _actor111800InitBody(Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, D_actor_111800_8013A448, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor111800GrinningStrangerAnimationSets, model, work->rig.poses,
                          &work->rig.slots[0]);
     work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->playerMtx  = gPlayerStatus.coordMtx;

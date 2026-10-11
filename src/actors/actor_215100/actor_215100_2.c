@@ -2712,10 +2712,10 @@ void actor215100CheckGalleryExitInput(void)
             }
             // Rearm the interaction only after the attachment action has settled.
             if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) < 2U) {
-                D_actor_215100_8014D044 = ACTOR_215100_GALLERY_EXIT_INPUT_COOLDOWN_TICKS;
+                gActor215100GalleryExitInputCooldownTicks = ACTOR_215100_GALLERY_EXIT_INPUT_COOLDOWN_TICKS;
             }
-            if (D_actor_215100_8014D044 != 0) {
-                D_actor_215100_8014D044 -= 1;
+            if (gActor215100GalleryExitInputCooldownTicks != 0) {
+                gActor215100GalleryExitInputCooldownTicks -= 1;
                 return;
             }
             if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gActor215100GalleryExitInputBlocked == 0) &&
