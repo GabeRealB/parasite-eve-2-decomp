@@ -92090,13 +92090,13 @@ the merge point there.
 switch (arg2->field_2) {
     case 1:
         if (gameFlagGetNibble(0x5E) == 0) {
-            taskSpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
+            taskSpawnFromTable(&_gDryfieldGeneralStoreSceneCueTaskDesc, 0, 0, 0);
             gameFlagSetNibble(0x5E, 1);
         }
         break;
     case 2:
         if (gSceneCombatState.signals.bytes.battlePhase != 1 && gameFlagGetNibble(0x5E) == 1) {
-            evsStartScript((s32)&D_dryfield_general_store_8017E568, 1);
+            evsStartScript((s32)&_gDryfieldGeneralStoreEncounterScript, 1);
         }
         gameFlagSetNibble(0x5E, 2);
         break;

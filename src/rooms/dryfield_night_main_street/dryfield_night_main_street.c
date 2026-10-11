@@ -156,15 +156,9 @@ extern TaskDesc gMainStreetEventTaskDesc;
 /// Descriptor of the task `_mainStreetFinishIceBagEvent` runs as.
 extern TaskDesc gMainStreetPlayTimeTaskDesc;
 
-/// Message table installed at `Task::msgTable` by the room task's state 0
-/// (ids `0x13EE`-`0x13F1`).
-extern TaskMessageEntry D_dryfield_night_main_street_801820B0[];
-
 /// The room effect mode of each view, indexed by view - 1.
-extern u16 D_dryfield_night_main_street_80182178[];
 
 /// View masks of the room task's anchors.
-extern s32 D_dryfield_night_main_street_80182230[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -212,7 +206,11 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIO
 
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
+/// Room-task message interface, borrowed from this overlay until receiver teardown.
+///
+/// Transition resolution, refused key-item use, direction actions, CAP commands and sound cues.
+/// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
+static const TaskMessageEntry _gDryfieldNightMainStreetMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
     { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMainStreetIgnoreRoomAction },
@@ -341,31 +339,35 @@ static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySec
 /// Stored root of balcony section 7's borrowed two-state patch directory.
 static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection7SpritePatchTable = _gDryfieldNightMainStreetBalconySection7SpritePatchLists;
 
-u16 D_dryfield_night_main_street_80182178[24] = {
-    0,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
-    0,
-    2,
-    2,
-    2,
-    0,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
-    0,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Ambient-effect enable state for each of the 24 mapped street views.
+///
+/// Indexed by mapped view minus one; the selector must be in 1..24. Entries
+/// publish `ROOM_EFFECT_VIEW_ENABLED` (2) or `ROOM_EFFECT_VIEW_DISABLED` (0).
+static const u16 _gDryfieldNightMainStreetAmbientEffectGateByView[24] SECTION(".data") = {
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
 };
 
 /// Authored shaft/flare positions and the next puff's reusable spawn position.
@@ -392,23 +394,28 @@ static _DryfieldNightMainStreetAmbientEffectAnchors _gDryfieldNightMainStreetAmb
     .puffSpawnPoint = { -850, -1320, 9770, 0 },
 };
 
-s32 D_dryfield_night_main_street_80182230[16] = {
-    0x2C858,
+/// Writable mapped-view bitsets selecting the street's shaft and flare anchors.
+///
+/// Bit n selects mapped view n (0..31). Entries 0..9 parallel five endpoint
+/// pairs, with each even entry selecting its shaft; 10..15 select six flares.
+/// The broken-lamp flag permanently clears both entries 2/3 for this load.
+static u32 _gDryfieldNightMainStreetGlowViewMasks[16] = {
+    (1u << 3) | (1u << 4) | (1u << 6) | (1u << 11) | (1u << 14) | (1u << 15) | (1u << 17),
     0,
-    1096,
-    64,
-    0x1042484,
-    0x40080,
-    0xC818,
-    0xC818,
-    0x1E42084,
-    0x1E02004,
-    0x1C838,
-    0x3C078,
-    0x3C078,
-    0x1043084,
-    0x2C018,
-    0x4008,
+    (1u << 3) | (1u << 6) | (1u << 10),
+    (1u << 6),
+    (1u << 2) | (1u << 7) | (1u << 10) | (1u << 13) | (1u << 18) | (1u << 24),
+    (1u << 7) | (1u << 18),
+    (1u << 3) | (1u << 4) | (1u << 11) | (1u << 14) | (1u << 15),
+    (1u << 3) | (1u << 4) | (1u << 11) | (1u << 14) | (1u << 15),
+    (1u << 2) | (1u << 7) | (1u << 13) | (1u << 18) | (1u << 21) | (1u << 22) | (1u << 23) | (1u << 24),
+    (1u << 2) | (1u << 13) | (1u << 21) | (1u << 22) | (1u << 23) | (1u << 24),
+    (1u << 3) | (1u << 4) | (1u << 5) | (1u << 11) | (1u << 14) | (1u << 15) | (1u << 16),
+    (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 14) | (1u << 15) | (1u << 16) | (1u << 17),
+    (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 14) | (1u << 15) | (1u << 16) | (1u << 17),
+    (1u << 2) | (1u << 7) | (1u << 12) | (1u << 13) | (1u << 18) | (1u << 24),
+    (1u << 3) | (1u << 4) | (1u << 14) | (1u << 15) | (1u << 17),
+    (1u << 3) | (1u << 14),
 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0xE0DC }
@@ -1912,7 +1919,7 @@ static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, c
 /// and enables CAP completion sound cues. Stop messaging before task teardown.
 static void _dryfieldNightMainStreetInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_main_street_801820B0;
+    task->msgTable = _gDryfieldNightMainStreetMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _dryfieldNightMainStreetRestoreSectionSpriteVisibility();
     task->state = task->state + 1;
@@ -1967,7 +1974,7 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
         FLARE_RADIUS_SCALE          = 0x380,
         FLARE_TEXTURE               = 1,
         FIRST_FLARE                 = 10,
-        FLARE_END                   = ARRAY_SIZE(D_dryfield_night_main_street_80182230),
+        FLARE_END                   = ARRAY_SIZE(_gDryfieldNightMainStreetGlowViewMasks),
         PUFF_VIEW_FIRST             = 8,
         PUFF_VIEW_SECOND            = 19,
         PUFF_ENTRY_COUNT            = 48,
@@ -1988,30 +1995,30 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
     }
     // A broken balcony lamp no longer contributes its distant shaft.
     if (gameFlagGetNibble(GAME_FLAG_07F) != 0) {
-        D_dryfield_night_main_street_80182230[3] = 0;
-        D_dryfield_night_main_street_80182230[2] = 0;
+        _gDryfieldNightMainStreetGlowViewMasks[3] = 0;
+        _gDryfieldNightMainStreetGlowViewMasks[2] = 0;
     }
-    if (viewMask & D_dryfield_night_main_street_80182230[0]) {
+    if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[0]) {
         _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[0], SHAFT_RADIUS_SCALE);
     }
-    if (viewMask & D_dryfield_night_main_street_80182230[2]) {
+    if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[2]) {
         _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[1], SHAFT_RADIUS_SCALE);
     }
-    if (viewMask & D_dryfield_night_main_street_80182230[4]) {
+    if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[4]) {
         _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[2], SHAFT_RADIUS_SCALE);
     }
-    if (viewMask & D_dryfield_night_main_street_80182230[6]) {
+    if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[6]) {
         _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[3], SHAFT_RADIUS_SCALE);
     }
-    if (viewMask & D_dryfield_night_main_street_80182230[8]) {
+    if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[8]) {
         _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[4], SHAFT_RADIUS_SCALE);
     }
     for (effectIndex = FIRST_FLARE; effectIndex < FLARE_END; effectIndex++) {
-        if (viewMask & D_dryfield_night_main_street_80182230[effectIndex]) {
+        if (viewMask & _gDryfieldNightMainStreetGlowViewMasks[effectIndex]) {
             _glowDrawFlare(&_gDryfieldNightMainStreetAmbientEffectAnchors.flareCenters[effectIndex - FIRST_FLARE], FLARE_TEXTURE, FLARE_RADIUS_SCALE);
         }
     }
-    gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(viewGetMappedIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = _gDryfieldNightMainStreetAmbientEffectGateByView[(viewGetMappedIndex() & 0xFF) - 1];
     // Seed the view with puffs on entry, then replenish on alternate animation frames.
     if ((viewGetMappedIndex() & 0xFF) == PUFF_VIEW_FIRST || (viewGetMappedIndex() & 0xFF) == PUFF_VIEW_SECOND) {
         if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {

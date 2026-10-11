@@ -313,8 +313,12 @@ static void _dryfieldNightDilapidatedHouseIdleRoomTask(Task* task)
     char unusedStackFrame[16];
 }
 
-/// The room task's three states: setup, idle, and exit.
-static const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldNightDilapidatedHouseRoomTaskStates = {
     {
         _dryfieldNightDilapidatedHouseSetupRoomTask,
         _dryfieldNightDilapidatedHouseIdleRoomTask,
@@ -326,7 +330,7 @@ void dryfieldNightDilapidatedHouseRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_night_dilapidated_house_8017D5DC;
+    handlers = _gDryfieldNightDilapidatedHouseRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

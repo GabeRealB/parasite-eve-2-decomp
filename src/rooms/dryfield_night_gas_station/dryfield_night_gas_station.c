@@ -37,6 +37,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -85,27 +86,6 @@ static Task* _gDryfieldNightGasStationCompanionHeadAimTask;
 static Task* _gDryfieldNightGasStationRedStreakTask;
 
 static WorldCollisionGrid _gDryfieldNightGasStationRooms1To3CollisionGrid;
-
-extern EvsCommand D_dryfield_night_gas_station_80188B64[];
-extern EvsCommand D_dryfield_night_gas_station_80188BF4[];
-extern EvsCommand D_dryfield_night_gas_station_80189014[];
-extern EvsCommand D_dryfield_night_gas_station_8018920C[];
-extern EvsCommand D_dryfield_night_gas_station_801892E4[];
-extern EvsCommand D_dryfield_night_gas_station_80189A7C[];
-
-/// Entries 21-24 of the anchor list, reached by name: two
-/// `_glowDrawCapsule` pairs drawn together whenever
-/// one of views 2, 3, 13 or 14 is current.
-extern SVECTOR D_dryfield_night_gas_station_80189D34[];
-
-/// Per-anchor view masks, one word per anchor: bit `n` set draws the anchor
-/// while view `n` is current.
-extern s32 D_dryfield_night_gas_station_80189D54[];
-
-/// The beam's two end points relative to the effect's parent coordinate;
-/// the second is also read by its own name.
-
-extern AreaApplyRec D_dryfield_night_gas_station_801907A0[];
 
 static Task* _gDryfieldNightGasStationSpriteFlickerTask;
 
@@ -1159,7 +1139,18 @@ static EvsSceneKey _gDryfieldNightGasStationEncounterSceneKey = {
     .subId    = 11,
 };
 
-EvsCommand D_dryfield_night_gas_station_80188B64[6] = {
+/// CAP command slots selected by the room's scripted presentations.
+enum {
+    DRYFIELD_NIGHT_GAS_STATION_FOLLOWUP_CAP_COMMAND              = 13,
+    DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTERACTION_CAP_COMMAND = 14,
+    DRYFIELD_NIGHT_GAS_STATION_ENCOUNTER_CAP_COMMAND             = 22,
+};
+
+/// Restores the player and companion cutscene idle poses after the actor event.
+///
+/// Waits 60 callback ticks, installs both extension banks and starts clip 48.
+/// HUD visibility is retained; both receivers and the borrowed clip data must be live.
+static EvsCommand _gDryfieldNightGasStationRestoreActorAnimationsScript[6] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy } }, { .value = 0 } },
@@ -1168,27 +1159,33 @@ EvsCommand D_dryfield_night_gas_station_80188B64[6] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_gas_station_80188BF4[44] = {
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Runs the deferred post-encounter conversation and clears its remaining actors.
+///
+/// Fades to view 5, runs CAP command 13 and cue-timed animation changes, then
+/// places the companion at its waiting point, removes Scavengers, restores view 2
+/// and clears the obstacle. Commands, both receivers and payload data stay live
+/// until interpreter cleanup. The paired skip stream converges on the same room setup.
+static EvsCommand _gDryfieldNightGasStationFollowupScript[44] = {
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation55 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 10 }, { .value = 10 }, { .value = 10 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationPlayerIntroTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationCompanionConversationTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationCancelCutsceneEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_GAS_STATION_FOLLOWUP_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation49 }, { .value = 0 } },
@@ -1201,13 +1198,13 @@ EvsCommand D_dryfield_night_gas_station_80188BF4[44] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation52 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationCompanionWaitingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation48 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerDestroyCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationResetCutsceneObstacleCollision }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1215,18 +1212,23 @@ EvsCommand D_dryfield_night_gas_station_80188BF4[44] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_gas_station_80189014[21] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skips the follow-up conversation and restores its final room setup.
+///
+/// Restores actor placement and idle poses, clears ambient colour and collision,
+/// cancels scene effects, removes Scavengers and marks view 2 dirty under a fade.
+/// Borrowed room payloads and both actor receivers must remain live through cleanup.
+static EvsCommand _gDryfieldNightGasStationFollowupSkipScript[21] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationPlayerIntroTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationCompanionWaitingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation48Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation48Reset }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationResetCutsceneObstacleCollision }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationCancelCutsceneEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1239,26 +1241,38 @@ EvsCommand D_dryfield_night_gas_station_80189014[21] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_gas_station_8018920C[9] = {
+/// Runs the companion interaction available after the follow-up scene starts.
+///
+/// Installs both extension banks, starts CAP command 14, advances the poses
+/// on CAP cues and returns player control. Requires both live actor receivers;
+/// the interpreter and animation playback borrow this overlay through completion.
+static EvsCommand _gDryfieldNightGasStationCompanionInteractionScript[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTERACTION_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation54 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
+/// Runs the first-visit Scavenger encounter before engaging battle.
+///
+/// Stages actor movement, CAP command 22 and streamed scene 51/11, coordinating
+/// sprite flicker, head aim, flashes and two red-streak tasks on CAP cues. Ends
+/// with the final actor wave and view 3. Both actors, callback code, command and
+/// payload storage must stay live through playback. The companion and track
+/// streaks are stopped after CAP waits; their lifetimes depend on those cue timings.
+static EvsCommand _gDryfieldNightGasStationEncounterScript[81] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 10 }, { .value = 10 }, { .value = 10 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationPlayerCutsceneWalkStartTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gDryfieldNightGasStationPlayerCutsceneWalkTargetTransform } }, { .message = { .moveAnimation = &_gDryfieldNightGasStationPlayerCutsceneWalkAnimations } } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnCompanionHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1268,7 +1282,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 22 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_GAS_STATION_ENCOUNTER_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerCue1Command } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationEnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1277,7 +1291,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneSpritesHidden }, { .value = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_SHOWN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStopSpriteFlicker }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerCue2Command } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1297,10 +1311,10 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_ON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationPlayerBattleTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationPlayerWeaponAnimation52 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationCompanionBattleTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGasStationCompanionAnimation57 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerHideCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
@@ -1310,8 +1324,8 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStopCompanionRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerCue3Command } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnTrackRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1325,22 +1339,27 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerFinalWaveCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_gas_station_80189A7C[22] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skips the encounter presentation and commits its battle-ready state.
+///
+/// Cancels the stream, places both actors, starts the final wave, stops scene
+/// effects and engages battle under the primary fade. Commands, callbacks and
+/// borrowed actor payloads stay loaded until interpreter cleanup.
+static EvsCommand _gDryfieldNightGasStationEncounterSkipScript[22] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationCancelScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationPlayerBattleTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGasStationCompanionBattleTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldNightGasStationScavengerFinalWaveCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
@@ -1355,8 +1374,8 @@ EvsCommand D_dryfield_night_gas_station_80189A7C[22] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1391,33 +1410,40 @@ static SVECTOR _gDryfieldNightGasStationAmbientEffectAnchors[21] = {
     { 15810, -250, -3200, 0 },
 };
 
-SVECTOR D_dryfield_night_gas_station_80189D34[4] = {
-    { 0x3412, -3360, 320, 0 },
-    { 0x3926, -3360, 320, 0 },
-    { 0x3412, -3500, 140, 0 },
-    { 0x3926, -3500, 140, 0 },
+/// Two bright capsule-glow endpoint pairs in world game-coordinate units.
+///
+/// Both pairs draw in mapped views 2, 3, 13 and 14. The drawer borrows each
+/// complete pair during projection; the points remain owned by this overlay.
+static const SVECTOR _gDryfieldNightGasStationBrightCapsuleEndpoints[2][2] SECTION(".data") = {
+    { { 13330, -3360, 320, 0 }, { 14630, -3360, 320, 0 } },
+    { { 13330, -3500, 140, 0 }, { 14630, -3500, 140, 0 } },
 };
 
-s32 D_dryfield_night_gas_station_80189D54[19] = {
-    0x600C,
-    0x600C,
-    0x600C,
-    0x600C,
-    0x110850,
-    0x110850,
-    0x100810,
-    0x100810,
-    0x100810,
-    0x100810,
-    0x4008,
-    0x4008,
-    0x4008,
-    0x100810,
-    0x100810,
-    8196,
-    8196,
-    8196,
-    8196,
+/// Mapped-view bitsets selecting the 19 ordinary glow anchors.
+///
+/// Bit n selects mapped view n (0..31). Entries 0..9 parallel five capsule
+/// endpoint pairs; only each even entry is tested. Entries 10..18 select
+/// individual flares. Scatter anchors 19/20 and the bright pairs use no entry.
+static const u32 _gDryfieldNightGasStationGlowViewMasks[19] SECTION(".data") = {
+    (1u << 2) | (1u << 3) | (1u << 13) | (1u << 14),
+    (1u << 2) | (1u << 3) | (1u << 13) | (1u << 14),
+    (1u << 2) | (1u << 3) | (1u << 13) | (1u << 14),
+    (1u << 2) | (1u << 3) | (1u << 13) | (1u << 14),
+    (1u << 4) | (1u << 6) | (1u << 11) | (1u << 16) | (1u << 20),
+    (1u << 4) | (1u << 6) | (1u << 11) | (1u << 16) | (1u << 20),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 3) | (1u << 14),
+    (1u << 3) | (1u << 14),
+    (1u << 3) | (1u << 14),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 4) | (1u << 11) | (1u << 20),
+    (1u << 2) | (1u << 13),
+    (1u << 2) | (1u << 13),
+    (1u << 2) | (1u << 13),
+    (1u << 2) | (1u << 13),
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
@@ -3055,8 +3081,12 @@ WorldCollisionSurfaceProperties* gDryfieldNightGasStationSurfacePropertiesByClas
     &_gDryfieldNightGasStationSilentSurfaceProperties,
 };
 
-AreaApplyRec D_dryfield_night_gas_station_801907A0[1] = {
-    { 255, 0, 0, 0 },
+/// Empty saved-area update list retained at the follow-up scene transition.
+///
+/// Its sole record is `AREA_APPLY_END`, so the synchronous apply call changes no
+/// area state. Route-opening game flags are committed separately by the caller.
+static const AreaApplyRec _gDryfieldNightGasStationFollowupAreaUpdates[1] SECTION(".data") = {
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Borrowed handle of the player's head-aim task toward the companion, or NULL.
@@ -3123,7 +3153,7 @@ static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTRO_SCHEDULE);
         _dryfieldNightGasStationClearCutsceneTaskHandles();
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-            evsStartScriptWithSkip(D_dryfield_night_gas_station_801892E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189A7C);
+            evsStartScriptWithSkip(_gDryfieldNightGasStationEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightGasStationEncounterSkipScript);
         }
     }
     task->state += 1;
@@ -3233,7 +3263,7 @@ static s32 _dryfieldNightGasStationCompanionActionMsg(Task* task, s32 messageId,
     enum { DRYFIELD_NIGHT_GAS_STATION_COMPANION_ACTION = 14 };
 
     if ((request->actionId == DRYFIELD_NIGHT_GAS_STATION_COMPANION_ACTION) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED)) {
-        evsStartScript(D_dryfield_night_gas_station_8018920C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gDryfieldNightGasStationCompanionInteractionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -3250,9 +3280,9 @@ static s32 _dryfieldNightGasStationArmFollowupSceneMsg(Task* task, s32 messageId
 
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_INITIAL) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING);
-        evsStartScript(D_dryfield_night_gas_station_80188B64, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(_gDryfieldNightGasStationRestoreActorAnimationsScript, EVENT_SCRIPT_HUD_KEEP);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        areaApplySavedUpdates(D_dryfield_night_gas_station_801907A0);
+        areaApplySavedUpdates(_gDryfieldNightGasStationFollowupAreaUpdates);
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
         gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 0);
         sndEvtRequestMidiStop(0, DRYFIELD_NIGHT_GAS_STATION_FOLLOWUP_MIDI_FADE_TICKS);
@@ -3293,7 +3323,7 @@ static void _dryfieldNightGasStationUpdateRoomTask(Task* task)
         progress = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
         if ((progress == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL)) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED);
-            evsStartScriptWithSkip(D_dryfield_night_gas_station_80188BF4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189014);
+            evsStartScriptWithSkip(_gDryfieldNightGasStationFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightGasStationFollowupSkipScript);
         }
     }
 }
@@ -4077,16 +4107,16 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
     }
     // Capsule pairs and individual flares use the current mapped view's bit.
     for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_FIRST; anchorIndex < DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_END; anchorIndex += 2) {
-        if (viewMask & D_dryfield_night_gas_station_80189D54[anchorIndex]) {
+        if (viewMask & _gDryfieldNightGasStationGlowViewMasks[anchorIndex]) {
             _glowDrawCapsule(&_gDryfieldNightGasStationAmbientEffectAnchors[anchorIndex], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_DIM_RGB_NIBBLES);
         }
     }
     if (viewMask & DRYFIELD_NIGHT_GAS_STATION_EXTRA_CAPSULE_VIEWS) {
-        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[0], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
-        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[2], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
+        _glowDrawCapsule(_gDryfieldNightGasStationBrightCapsuleEndpoints[0], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
+        _glowDrawCapsule(_gDryfieldNightGasStationBrightCapsuleEndpoints[1], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
     }
-    for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_FLARE_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(D_dryfield_night_gas_station_80189D54); anchorIndex++) {
-        if (viewMask & D_dryfield_night_gas_station_80189D54[anchorIndex]) {
+    for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_FLARE_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(_gDryfieldNightGasStationGlowViewMasks); anchorIndex++) {
+        if (viewMask & _gDryfieldNightGasStationGlowViewMasks[anchorIndex]) {
             _glowDrawFlare(&_gDryfieldNightGasStationAmbientEffectAnchors[anchorIndex], DRYFIELD_NIGHT_GAS_STATION_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_GAS_STATION_FLARE_RADIUS_SCALE);
         }
     }

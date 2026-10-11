@@ -2,7 +2,7 @@
 _gDryfieldMotelRoom1FirstStagingPlacements = 0x8017E0D0; // size:0x30 defined:True
 _gDryfieldMotelRoom1SecondStagingPlacements = 0x8017E100; // size:0x30 defined:True
 _gDryfieldMotelRoom1EnemyCombatPlacements = 0x8017E130; // size:0x30 defined:True
-D_dryfield_motel_room_1_8017E0A8 = 0x8017E0A8; // size:0x28 defined:True
+_gDryfieldMotelRoom1MessageTable = 0x8017E0A8; // size:0x28 defined:True
 _gDryfieldMotelRoom1OpeningScript = 0x8017E160; // size:0x1E0 defined:True
 _gDryfieldMotelRoom1OpeningSkipScript = 0x8017E340; // size:0x138 defined:True
 gDryfieldMotelRoom1OpeningEventTaskDesc = 0x8017E478; // size:0xC defined:True
@@ -79,3 +79,4 @@ _dryfieldMotelRoom1ExecuteEventAction = 0x8017d7ac; // type:func
 _dryfieldMotelRoom1HandleRoomAction = 0x8017d624; // type:func
 _dryfieldMotelRoom1InitializeOpeningEvent = 0x8017dc2c; // type:func
 _dryfieldMotelRoom1OpeningEventTask = 0x8017dd3c; // type:func
+_gDryfieldMotelRoom1RoomTaskStates = 0x8017d5c4;

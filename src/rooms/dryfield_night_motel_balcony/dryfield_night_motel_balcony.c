@@ -105,7 +105,7 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
 {
     u8 variant;
 
-    task->msgTable = D_dryfield_night_motel_balcony_80182804;
+    task->msgTable = gDryfieldNightMotelBalconyMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     dryfieldNightMotelBalconyRestoreSectionStates();
     variant = gGameSession->location.loc.variant;
@@ -133,9 +133,12 @@ static void _dryfieldNightMotelBalconyCheckFollowUpScene(Task* unusedTask)
     }
 }
 
-/// The room task's three states: setup, the per-tick balcony event check,
-/// and exit.
-static const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldNightMotelBalconyRoomTaskStates = {
     _dryfieldNightMotelBalconyInitRoom,
     _dryfieldNightMotelBalconyCheckFollowUpScene,
     taskKill,
@@ -145,6 +148,6 @@ void dryfieldNightMotelBalconyRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_dryfield_night_motel_balcony_8017D5DC;
+    states = _gDryfieldNightMotelBalconyRoomTaskStates;
     states.funcs[task->state](task);
 }

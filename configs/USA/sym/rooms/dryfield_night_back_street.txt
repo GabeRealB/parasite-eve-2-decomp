@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_back_street.
 _gDryfieldNightBackStreetGlowPoints = 0x8018034C; // size:0x50 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x8018039C; // size:0x10 defined:True
-D_dryfield_night_back_street_80180324 = 0x80180324; // size:0x28 defined:True
+_gDryfieldNightBackStreetMessageTable = 0x80180324; // size:0x28 defined:True
 D_dryfield_night_back_street_801803AC = 0x801803AC; // size:0x10 defined:True
 gDryfieldNightBackStreetRoomLighting = 0x801803BC; // size:0x8 defined:True
 gDryfieldNightBackStreetViewMaps = 0x801803C4; // size:0x4 defined:True
@@ -70,3 +70,4 @@ _dryfieldNightBackStreetIgnoreRoomActionMessage = 0x8017d734; // type:func
 _dryfieldNightBackStreetIdleState = 0x8017d780; // type:func
 _dryfieldNightBackStreetInitRoomTask = 0x8017d73c; // type:func
 dryfieldNightBackStreetRoomTask = 0x8017d788; // type:func
+_gDryfieldNightBackStreetRoomTaskStates = 0x8017d5c4;

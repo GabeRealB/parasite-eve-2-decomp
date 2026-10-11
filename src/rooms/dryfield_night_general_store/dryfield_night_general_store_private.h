@@ -10,7 +10,13 @@
 
 extern u8 gStoreSavedView;
 
-extern ScreenFade gStoreFade;
+/// Room-owned subtractive fade control for an accepted underpass departure.
+///
+/// The shared transition starts an eight-frame ramp; the resident fade task
+/// borrows and may update this record throughout its lifetime. Keep the room
+/// loaded for that task; the transition requests reload without a return ramp
+/// or completion wait.
+extern ScreenFade gGeneralStoreUnderpassFade;
 
 /// Snapshot of the accepted transition, copied by the gate for the deferred event.
 ///

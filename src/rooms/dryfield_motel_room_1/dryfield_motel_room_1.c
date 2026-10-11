@@ -1,6 +1,6 @@
 #include "rooms/dryfield_motel_room_1.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_motel_room_1_private.h"
 
@@ -13,14 +13,16 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[];
-
 static s32 _dryfieldMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom1ResolveTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedCommandArg);
 static s32 _dryfieldMotelRoom1HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[5] = {
+/// Room-task message interface, borrowed from this overlay until receiver teardown.
+///
+/// Transition resolution, refused key-item use, direction actions and CAP commands.
+/// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
+static const TaskMessageEntry _gDryfieldMotelRoom1MessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom1ResolveTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom1HandleRoomAction },
@@ -96,7 +98,7 @@ static void _dryfieldMotelRoom1InitRoomTask(Task* task)
     };
     ActorCommand entryCommand;
 
-    task->msgTable = D_dryfield_motel_room_1_8017E0A8;
+    task->msgTable = _gDryfieldMotelRoom1MessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
         entryCommand.context.loc.stage = gGameSession->location.loc.stage;
@@ -113,10 +115,12 @@ static void _dryfieldMotelRoom1IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the room entry task `dryfieldMotelRoom1Task`,
-/// indexed by `Task::state`: the set-up tick, which advances the state, the
-/// idle tick, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4 = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldMotelRoom1RoomTaskStates = {
     { _dryfieldMotelRoom1InitRoomTask, _dryfieldMotelRoom1IdleRoomTask, taskKill },
 };
 
@@ -124,6 +128,6 @@ void dryfieldMotelRoom1Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_motel_room_1_8017D5C4;
+    stateHandlers = _gDryfieldMotelRoom1RoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

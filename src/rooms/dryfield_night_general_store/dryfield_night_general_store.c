@@ -1,6 +1,6 @@
 #include "rooms/dryfield_night_general_store.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_general_store_private.h"
 
@@ -45,9 +45,6 @@ static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueK
 /// `_generalStoreUnderpassTransitionTask`.
 extern TaskDesc gStoreTaskDescs[];
 
-/// The room's message table, installed by the room task's entry state.
-extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
-
 static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task);
 static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask);
 
@@ -68,7 +65,11 @@ TaskDesc gStoreTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
+/// Room-task message interface, borrowed from this overlay until receiver teardown.
+///
+/// Transition resolution, refused key-item use, direction actions, CAP commands and sound cues.
+/// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
+static const TaskMessageEntry _gDryfieldNightGeneralStoreMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGeneralStoreMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGeneralStoreRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGeneralStoreIgnoreRoomAction },
@@ -83,13 +84,17 @@ TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
 
 #include "../../shared/general_store_door_msg.inc.c"
 
+/// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
+#define GENERAL_STORE_UNDERPASS_FADE gGeneralStoreUnderpassFade
 #include "../../shared/general_store_cutscene_task.inc.c"
+#undef GENERAL_STORE_UNDERPASS_FADE
 
-/// The room task's three-state table, run from a stack copy by
-/// `dryfieldNightGeneralStoreRoomTask`: the entry state
-/// `_dryfieldNightGeneralStoreInitializeRoomTask`, the idle state
-/// `_dryfieldNightGeneralStoreRoomIdle`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldNightGeneralStoreRoomTaskStates = {
     { _dryfieldNightGeneralStoreInitializeRoomTask, _dryfieldNightGeneralStoreRoomIdle, taskKill },
 };
 
@@ -125,7 +130,7 @@ static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unus
 /// Stop sending room messages before releasing the task; teardown leaves the slot.
 static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_general_store_8017E7BC;
+    task->msgTable = _gDryfieldNightGeneralStoreMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
     D_80115598  = true;
@@ -140,6 +145,6 @@ void dryfieldNightGeneralStoreRoomTask(Task* task)
 {
     TaskFuncTable3 roomStates;
 
-    roomStates = D_dryfield_night_general_store_8017D5F4;
+    roomStates = _gDryfieldNightGeneralStoreRoomTaskStates;
     roomStates.funcs[task->state](task);
 }

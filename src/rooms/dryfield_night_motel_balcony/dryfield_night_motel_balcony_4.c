@@ -4335,10 +4335,10 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
         _glowDrawShaft(&gDryfieldNightMotelBalconyLampShaftStart, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][4]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&gDryfieldNightMotelBalconyShaft3Start, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][6]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&gDryfieldNightMotelBalconyShaft4Start, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][8]) {
         _glowDrawShaft(&_gDryfieldNightMotelBalconyShaft5Start, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);

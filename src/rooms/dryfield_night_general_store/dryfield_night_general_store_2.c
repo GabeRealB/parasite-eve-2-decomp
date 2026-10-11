@@ -1760,7 +1760,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightGeneralStoreSurfacePropertiesByCl
 
 u8 gStoreSavedView = 0;
 
-ScreenFade gStoreFade = { 0 };
+ScreenFade gGeneralStoreUnderpassFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 

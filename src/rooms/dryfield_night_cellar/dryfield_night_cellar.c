@@ -39,9 +39,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/cellar.h"
 
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_dryfield_night_cellar_8017DAA8[];
-
 /// Room message sent by the inventory's key-item use prompt.
 enum { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -57,7 +54,11 @@ extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FFFC[10];
 static WorldCoordRoomLights   _gDryfieldNightCellarRoom1Lights;
 static WorldCoordRoomLights   _gDryfieldNightCellarRoom2Lights;
 
-TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
+/// Room-task message interface, borrowed from this overlay until receiver teardown.
+///
+/// Transition resolution, refused key-item use, direction actions and cellar CAP commands.
+/// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
+static const TaskMessageEntry _gDryfieldNightCellarMessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveCellar },
     { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldNightCellarRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightCellarIgnoreActionMessage },
@@ -1075,7 +1076,7 @@ static s32 _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, co
 /// Keep the overlay loaded while the registered receiver can be messaged.
 static void _dryfieldNightCellarInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_cellar_8017DAA8;
+    task->msgTable = _gDryfieldNightCellarMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -1088,8 +1089,12 @@ static void _dryfieldNightCellarIdle(Task* task)
 {
 }
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_dryfield_night_cellar_8017D5C4 = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldNightCellarRoomTaskStates = {
     { _dryfieldNightCellarInitRoomTask, _dryfieldNightCellarIdle, taskKill },
 };
 
@@ -1097,7 +1102,7 @@ void dryfieldNightCellarRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_night_cellar_8017D5C4;
+    handlers = _gDryfieldNightCellarRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

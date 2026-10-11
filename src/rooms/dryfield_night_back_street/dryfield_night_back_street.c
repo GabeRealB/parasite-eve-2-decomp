@@ -52,9 +52,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/back_street.h"
 
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
-
 enum { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 // World-radius inputs to the flare and shaft projection formulas.
@@ -71,7 +68,11 @@ extern WorldCollisionTrigger      D_dryfield_night_back_street_80180F38[10];
 static WorldCoordRoomAmbientEntry _gDryfieldNightBackStreetAmbientByView[6];
 static WorldCoordRoomLights       _gDryfieldNightBackStreetRoomLights;
 
-TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
+/// Room-task message interface, borrowed from this overlay until receiver teardown.
+///
+/// Transition resolution, refused key-item use, direction actions and CAP commands.
+/// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
+static const TaskMessageEntry _gDryfieldNightBackStreetMessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
     { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightBackStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBackStreetIgnoreRoomActionMessage },
@@ -583,7 +584,7 @@ static s32 _dryfieldNightBackStreetIgnoreRoomActionMessage(Task* task, s32 messa
 /// borrowed for the room task's lifetime.
 static void _dryfieldNightBackStreetInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_back_street_80180324;
+    task->msgTable = _gDryfieldNightBackStreetMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state += 1;
 }
@@ -593,8 +594,12 @@ static void _dryfieldNightBackStreetIdleState(Task* task)
 {
 }
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
+/// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
+///
+/// The dispatcher copies all three callback pointers before indexing by `Task::state`.
+/// The selector must be in 0..2; there is no terminator or bounds check.
+/// Keep this overlay loaded until the room task is released.
+static const TaskFuncTable3 _gDryfieldNightBackStreetRoomTaskStates = {
     { _dryfieldNightBackStreetInitRoomTask, _dryfieldNightBackStreetIdleState, taskKill },
 };
 
@@ -602,7 +607,7 @@ void dryfieldNightBackStreetRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_night_back_street_8017D5C4;
+    handlers = _gDryfieldNightBackStreetRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

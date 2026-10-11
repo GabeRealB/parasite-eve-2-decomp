@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_cellar.
 _gDryfieldNightCellarView2GlowWorldPoints = 0x8017DAD0; // size:0x10 defined:True
 _gDryfieldNightCellarView3GlowWorldPoints = 0x8017DAE0; // size:0x10 defined:True
-D_dryfield_night_cellar_8017DAA8 = 0x8017DAA8; // size:0x28 defined:True
+_gDryfieldNightCellarMessageTable = 0x8017DAA8; // size:0x28 defined:True
 gDryfieldNightCellarRoomLighting = 0x8017DAF0; // size:0x10 defined:True
 D_dryfield_night_cellar_8017DB00 = 0x8017DB00; // size:0x20 defined:True
 _gDryfieldNightCellarRoom2ViewMap = 0x8017DB20; // size:0x8 defined:True
@@ -67,3 +67,4 @@ _dryfieldNightCellarIgnoreActionMessage = 0x8017d6f4; // type:func
 _dryfieldNightCellarIdle = 0x8017d740; // type:func
 _dryfieldNightCellarInitRoomTask = 0x8017d6fc; // type:func
 dryfieldNightCellarRoomTask = 0x8017d748; // type:func
+_gDryfieldNightCellarRoomTaskStates = 0x8017d5c4;

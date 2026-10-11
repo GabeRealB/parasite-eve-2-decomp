@@ -266,7 +266,7 @@ gShelterB2ElevatorViewCounts = 0x8017DFDC; // absolute:True owner=shelter_b2_ele
 gShelterB2ElevatorWarps = 0x8017DFE0; // absolute:True owner=shelter_b2_elevator
 gShelterB2ElevatorCollisionGrid = 0x8017E0E4; // absolute:True owner=shelter_b2_elevator shared=rooms
 gShelterB2ElevatorViewCameras = 0x8017E108; // absolute:True owner=shelter_b2_elevator
-gShelterB2ElevatorSpriteViews = 0x8017E7BC; // absolute:True owner=shelter_b2_elevator shared=rooms
+gShelterB2ElevatorSpriteViews = 0x8017E7BC; // absolute:True owner=shelter_b2_elevator
 gShelterB2ElevatorRoomLights = 0x8017E840; // absolute:True owner=shelter_b2_elevator
 gShelterB2ElevatorViewBoundaryTriggers = 0x8017E858; // absolute:True owner=shelter_b2_elevator shared=rooms
 gShelterB2ElevatorActionTriggers = 0x8017E8F0; // absolute:True owner=shelter_b2_elevator

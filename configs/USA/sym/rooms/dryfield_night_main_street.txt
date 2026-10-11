@@ -1,11 +1,11 @@
 // Overlay-local symbols for dryfield_night_main_street.
-D_dryfield_night_main_street_80182178 = 0x80182178; // size:0x30 defined:True
+_gDryfieldNightMainStreetAmbientEffectGateByView = 0x80182178; // size:0x30 defined:True
 _gDryfieldNightMainStreetAmbientEffectAnchors = 0x801821A8; // size:0x88 defined:True
-D_dryfield_night_main_street_80182230 = 0x80182230; // size:0x40 defined:True
+_gDryfieldNightMainStreetGlowViewMasks = 0x80182230; // size:0x40 defined:True
 gMainStreetEventTaskDesc = 0x8018208C; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x80182098; // size:0xC defined:True
 gMainStreetPlayTimeTaskDesc = 0x801820A4; // size:0xC defined:True
-D_dryfield_night_main_street_801820B0 = 0x801820B0; // size:0x30 defined:True
+_gDryfieldNightMainStreetMessageTable = 0x801820B0; // size:0x30 defined:True
 _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches = 0x801820E0; // size:0x10 defined:True
 _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches = 0x801820F0; // size:0x10 defined:True
 _gDryfieldNightMainStreetBalconySection3SpritePatchLists = 0x80182100; // size:0x8 defined:True

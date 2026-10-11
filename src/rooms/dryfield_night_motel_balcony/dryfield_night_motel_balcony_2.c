@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_motel_balcony_private.h"
 
@@ -33,7 +33,7 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
+const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightMotelBalconyRefuseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightMotelBalconyIgnoreRoomActionMsg },

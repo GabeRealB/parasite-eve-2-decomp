@@ -1,4 +1,7 @@
-/* Included General Store underpass transition; each carrier declares its static instance. */
+/* Included General Store underpass transition; each carrier declares its static instance.
+ * GENERAL_STORE_UNDERPASS_FADE selects a writable room-owned ScreenFade lvalue.
+ * Its storage must remain loaded throughout the resident fade task's lifetime.
+ */
 
 /// Cancels the underpass prompt by restoring actor control and the saved view.
 ///
@@ -24,7 +27,7 @@ static inline void _generalStoreCancelUnderpassTransition(void)
 /// another key restores the view, player presentation and actor control.
 /// The intervening states each consume one callback tick; the task does not
 /// poll CAP completion or fade completion. Spawn arguments are unused.
-/// Keep the room loaded through the task and its borrowed `gStoreFade` record
+/// Keep the room loaded through the task and its borrowed `GENERAL_STORE_UNDERPASS_FADE` record
 /// live for the fade task. Spawn failures do not roll back the transition.
 static void _generalStoreUnderpassTransitionTask(Task* task)
 {
@@ -65,10 +68,10 @@ static void _generalStoreUnderpassTransitionTask(Task* task)
             return;
         case GENERAL_STORE_TRANSITION_CHECK_CHOICE:
             if (capGetVariantKey() == GENERAL_STORE_TRANSITION_ACCEPT_KEY) {
-                gStoreFade.blend      = SCREEN_FADE_SUBTRACT;
-                gStoreFade.phase      = SCREEN_FADE_RUNNING;
-                gStoreFade.rampFrames = GENERAL_STORE_TRANSITION_FADE_FRAMES;
-                taskSpawn(GENERAL_STORE_TRANSITION_FADE_TASK_BANK, GENERAL_STORE_TRANSITION_FADE_TASK_TYPE, 0, &gStoreFade);
+                GENERAL_STORE_UNDERPASS_FADE.blend      = SCREEN_FADE_SUBTRACT;
+                GENERAL_STORE_UNDERPASS_FADE.phase      = SCREEN_FADE_RUNNING;
+                GENERAL_STORE_UNDERPASS_FADE.rampFrames = GENERAL_STORE_TRANSITION_FADE_FRAMES;
+                taskSpawn(GENERAL_STORE_TRANSITION_FADE_TASK_BANK, GENERAL_STORE_TRANSITION_FADE_TASK_TYPE, 0, &GENERAL_STORE_UNDERPASS_FADE);
                 task->state += 1;
                 return;
             }

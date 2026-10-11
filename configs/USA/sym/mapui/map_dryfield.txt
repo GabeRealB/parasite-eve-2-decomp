@@ -86,7 +86,7 @@ gDryfieldMotelRoom1RoomCollisionResources = 0x8017E484; // absolute:True owner=d
 gDryfieldMotelRoom1RoomViewMaps = 0x8017E4B0; // absolute:True owner=dryfield_motel_room_1
 gDryfieldMotelRoom1RoomViewCounts = 0x8017E4B8; // absolute:True owner=dryfield_motel_room_1
 gDryfieldMotelRoom1RoomLighting = 0x8017E4BC; // absolute:True owner=dryfield_motel_room_1
-gDryfieldMotelRoom1WarpEntries = 0x8017E4CC; // absolute:True owner=dryfield_motel_room_1 shared=rooms
+gDryfieldMotelRoom1WarpEntries = 0x8017E4CC; // absolute:True owner=dryfield_motel_room_1
 gDryfieldMotelRoom1ViewCameras = 0x8017EAE0; // absolute:True owner=dryfield_motel_room_1
 gDryfieldMotelRoom1SpriteViews = 0x80180C90; // absolute:True owner=dryfield_motel_room_1
 gDryfieldMotelRoom1SurfacePropertiesByClass = 0x8018157C; // absolute:True owner=dryfield_motel_room_1

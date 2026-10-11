@@ -75,15 +75,12 @@ extern u8 gStoreSavedView;
 extern u8 gStoreWarp;
 extern u8 gStoreRoom;
 
-/// The 4-byte record `_generalStoreUnderpassTransitionTask` hands the helper
-/// task 0x31 when the script's CAP event key asks for it.
-extern ScreenFade gStoreFade;
+/// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
+#define GENERAL_STORE_UNDERPASS_FADE _gGeneralStoreUnderpassFade
 
 extern TaskMessageEntry D_dryfield_general_store_8017E188[];
 extern s32              D_dryfield_general_store_8017E1B8;
-extern TaskDesc         D_dryfield_general_store_8017E4C0;
 extern s32              D_dryfield_general_store_8017E564;
-extern EvsCommand       D_dryfield_general_store_8017E568[];
 
 static void _dryfieldGeneralStoreInitRoomTask(Task* task);
 static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
@@ -125,6 +122,12 @@ enum {
 enum {
     DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY        = 40,
     DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY = 140,
+};
+
+/// Execution priority shared by the encounter cue and retained drop-in recipes.
+enum {
+    DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY = 192,
+    DRYFIELD_GENERAL_STORE_ENTRANCE_WAIT_FRAMES    = 70,
 };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
@@ -174,9 +177,29 @@ static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
     { NULL, _gDryfieldGeneralStoreAnimation00ED8Bank1, NULL, NULL, _gDryfieldGeneralStoreAnimation00ED8Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStorePlaySceneCueTask, { .value = 0 } };
+/// Bodyless recipe for the encounter sound cue and its timed wait.
+///
+/// Priority 192, no owned body, unused metadata and ignored spawn payloads.
+/// Spawning reads the recipe synchronously; actor/player resources and callback
+/// code must remain live through the spawned task.
+/// Direction action 1 starts it once before the encounter script.
+static TaskDesc _gDryfieldGeneralStoreSceneCueTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY } },
+    .callback = _dryfieldGeneralStorePlaySceneCueTask,
+    .data     = { .value = 0 },
+};
 
-TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStoreDropInActorsTask, { .value = 0 } };
+/// Retained bodyless recipe for the staged actor drop-in and player hold.
+///
+/// Priority 192, no owned body, unused metadata and ignored spawn payloads.
+/// Spawning reads the recipe synchronously; actor/player resources and callback
+/// code must remain live through the spawned task.
+/// No C, assembly or import consumer of this retained recipe is established.
+static TaskDesc _gDryfieldGeneralStoreDropInActorsTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY } },
+    .callback = _dryfieldGeneralStoreDropInActorsTask,
+    .data     = { .value = 0 },
+};
 
 /// Two extension words installing NULL at clip 47 and the encounter clip at 48.
 ///
@@ -194,7 +217,11 @@ static AnimationBankCopyRequest _gDryfieldGeneralStoreEncounterAnimationBankCopy
     .wordCount = ARRAY_SIZE(_gDryfieldGeneralStoreEncounterAnimationSets),
 };
 
-AnimationPlayRequest D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained record compatible with a bank-1 animation request resetting clip 1.
+///
+/// The candidate request disables world collision and has no blend.
+/// No consumer confirms that interpretation or the intended receiver.
+static AnimationPlayRequest D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Plays the installed encounter clip with a 20-frame blend and no grid collision.
 ///
@@ -208,8 +235,11 @@ static AnimationPlayRequest _gDryfieldGeneralStoreEncounterPlayerAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained record compatible with a bank-1 animation request playing clip 9.
+///
+/// The candidate request disables world collision and blends over ten frames.
+/// No consumer confirms that interpretation or the intended receiver.
+static AnimationPlayRequest D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Player placement at the start of the encounter run.
 ///
@@ -254,17 +284,23 @@ static ActorCommand _gDryfieldGeneralStoreActorEntranceCommand __attribute__((al
 
 s32 D_dryfield_general_store_8017E564 = 0x20302;
 
-EvsCommand D_dryfield_general_store_8017E568[11] = {
+/// Stages the General Store encounter and returns the player to battle control.
+///
+/// Selects view 3, installs the custom clip, places and runs the player, starts
+/// actor entrances, waits 70 callback ticks and engages battle. The final player
+/// message retains the accumulated root offset. Commands, actor resources and
+/// borrowed animation/placement payloads must stay loaded through script completion.
+static EvsCommand _gDryfieldGeneralStoreEncounterScript[11] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldGeneralStoreEncounterAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldGeneralStoreEncounterPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldGeneralStoreEncounterPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldGeneralStoreEncounterPlayerRunTarget } }, { .message = { .moveAnimation = &_gDryfieldGeneralStoreEncounterPlayerRunAnimations } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldGeneralStoreActorEntranceCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_GENERAL_STORE_ENTRANCE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldGeneralStoreEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1763,7 +1799,12 @@ WorldCollisionSurfaceProperties* gDryfieldGeneralStoreSurfacePropertiesByClass[8
 
 u8 gStoreSavedView = 0;
 
-ScreenFade gStoreFade = { 0 };
+/// Room-owned subtractive fade control for an accepted underpass departure.
+///
+/// The transition starts an eight-frame ramp and passes this writable record
+/// to the resident fade task. Keep it loaded for that task's whole lifetime;
+/// the transition requests reload without a return ramp or completion wait.
+static ScreenFade _gGeneralStoreUnderpassFade = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -1778,7 +1819,8 @@ u8 gStoreWarp = 0;
 
 u8 gStoreRoom = 0;
 
-u8 D_dryfield_general_store_8018570B = 208;
+/// Retained byte initialized to 208; no consumer or semantic role is established.
+static u8 D_dryfield_general_store_8018570B = 208;
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
@@ -1789,6 +1831,7 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 #include "../../shared/general_store_door_msg.inc.c"
 
 #include "../../shared/general_store_cutscene_task.inc.c"
+#undef GENERAL_STORE_UNDERPASS_FADE
 
 /// The room task's three-state table, run from a stack copy by
 /// `dryfieldGeneralStoreRoomTask`: the entry state
@@ -1831,13 +1874,13 @@ static s32 _dryfieldGeneralStoreHandleRoomAction(Task* unusedTask, s32 unusedMes
     switch (request->actionId) {
         case DRYFIELD_GENERAL_STORE_ACTION_START_SCENE:
             if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_SCENE_NOT_STARTED) {
-                taskSpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
+                taskSpawnFromTable(&_gDryfieldGeneralStoreSceneCueTaskDesc, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_SCENE_STARTED);
             }
             break;
         case DRYFIELD_GENERAL_STORE_ACTION_COMPLETE_SCENE:
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_SCENE_STARTED) {
-                evsStartScript(D_dryfield_general_store_8017E568, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gDryfieldGeneralStoreEncounterScript, EVENT_SCRIPT_HUD_KEEP);
             }
             gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_SCENE_COMPLETE);
             break;

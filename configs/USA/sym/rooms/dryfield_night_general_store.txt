@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_general_store.
 _gRoomEventTaskDesc = 0x8017E78C; // size:0xC defined:True
 gStoreTaskDescs = 0x8017E798; // size:0x24 defined:True
-D_dryfield_night_general_store_8017E7BC = 0x8017E7BC; // size:0x30 defined:True
+_gDryfieldNightGeneralStoreMessageTable = 0x8017E7BC; // size:0x30 defined:True
 _gDryfieldNightGeneralStoreLightShaftPoints = 0x8017E7EC; // size:0x20 defined:True
 _gDryfieldNightGeneralStoreView12LightShaftPoints = 0x8017E80C; // size:0x10 defined:True
 _gDryfieldNightGeneralStoreView13LightShaftPoints = 0x8017E81C; // size:0x10 defined:True
@@ -65,7 +65,7 @@ _gDryfieldNightGeneralStoreClass1SurfaceProperties = 0x80185884; // size:0x8 def
 _gDryfieldNightGeneralStoreClass2SurfaceProperties = 0x8018588C; // size:0x8 defined:True
 gDryfieldNightGeneralStoreSurfacePropertiesByClass = 0x80185894; // size:0x20 defined:True
 gStoreSavedView = 0x801858B4; // size:0x1 defined:True
-gStoreFade = 0x801858B8; // size:0x4 defined:True
+gGeneralStoreUnderpassFade = 0x801858B8; // size:0x4 defined:True
 gRoomEventMsg = 0x801858BC; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor00700RatTaskDesc = 0x80138C80; // absolute:True owner=actor_100700
@@ -97,3 +97,4 @@ _dryfieldNightGeneralStoreIgnoreRoomAction = 0x8017de2c; // type:func
 _dryfieldNightGeneralStoreRoomIdle = 0x8017de80; // type:func
 _dryfieldNightGeneralStoreInitializeRoomTask = 0x8017de34; // type:func
 dryfieldNightGeneralStoreRoomTask = 0x8017de88; // type:func
+_gDryfieldNightGeneralStoreRoomTaskStates = 0x8017d5f4;

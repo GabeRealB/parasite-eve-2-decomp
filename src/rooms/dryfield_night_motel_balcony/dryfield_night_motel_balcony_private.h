@@ -17,7 +17,12 @@
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6];
+/// Room receiver interface shared by this overlay's initializer and data TU.
+///
+/// Six records cover transitions, refused key use, ignored actions/commands,
+/// sound cues and `TASK_MESSAGE_TABLE_END`. Keep the table and callbacks loaded
+/// while the room task borrows them.
+extern const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6];
 
 /// World-space base points for the balcony's light shafts and flares.
 ///
@@ -34,9 +39,17 @@ extern const SVECTOR gDryfieldNightMotelBalconyGlowPoints[2];
 /// a second point from the following storage; its aggregate remains unresolved.
 extern SVECTOR gDryfieldNightMotelBalconyLampShaftStart;
 
-extern SVECTOR D_dryfield_night_motel_balcony_80182C80;
+/// World-space start point of balcony light shaft 3, in game-coordinate units.
+///
+/// Drawing borrows this point and a second vector in the following storage.
+/// The two-vector aggregate boundary remains unproven in the declarations.
+extern const SVECTOR gDryfieldNightMotelBalconyShaft3Start;
 
-extern SVECTOR D_dryfield_night_motel_balcony_80182C90;
+/// World-space start point of balcony light shaft 4, in game-coordinate units.
+///
+/// Drawing borrows this point and a second vector in the following storage.
+/// The two-vector aggregate boundary remains unproven in the declarations.
+extern const SVECTOR gDryfieldNightMotelBalconyShaft4Start;
 
 // Callbacks referenced by the overlay's shared data tables.
 
