@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import select
 import socket
 import struct
 import subprocess
@@ -259,7 +260,8 @@ class Gdb:
         body = payload.encode()
         self.sock.sendall(b"$" + body + b"#" + f"{sum(body) & 0xFF:02x}".encode())
 
-    def _recv(self) -> str:
+    def _recv(self, wait: float | None = None) -> str | None:
+        """The next packet; with `wait`, None when none arrives within that many seconds."""
         while True:
             start = self.buf.find(b"$")
             end = self.buf.find(b"#", start + 1) if start >= 0 else -1
@@ -267,17 +269,31 @@ class Gdb:
                 packet, self.buf = self.buf[start + 1:end], self.buf[end + 3:]
                 self.sock.sendall(b"+")
                 return packet.decode(errors="replace")
+            if wait is not None and not select.select([self.sock], [], [], wait)[0]:
+                return None
             chunk = self.sock.recv(65536)
             if not chunk:
                 raise ConnectionError("the GDB server closed the connection")
             self.buf += chunk
 
+    @staticmethod
+    def _is_stop(packet: str) -> bool:
+        # A stop reply is S or T and a signal number. No other reply this tool reads can look like one: memory and
+        # registers are lower-case hex, and the rest are "OK", an "E" error, or empty.
+        return len(packet) >= 3 and packet[0] in "ST" and all(c in "0123456789abcdefABCDEF" for c in packet[1:3])
+
     def ask(self, payload: str) -> str:
+        """Send a query and return its reply. A server can report one stop twice (once for the breakpoint and once
+        for the pause that follows); the extra report arrives in front of the next reply and is passed over."""
         self._send(payload)
-        return self._recv()
+        while True:
+            packet = self._recv()
+            if not self._is_stop(packet):
+                return packet
 
     def halt_reason(self) -> str:
-        return self.ask("?")
+        self._send("?")
+        return self._recv()
 
     def registers(self) -> list[int]:
         """Every register of the `g` reply, in its order. A server writes one it does not have (the FPU's, on this
@@ -315,7 +331,16 @@ class Gdb:
 
     def resume(self) -> str:
         """Continue, and wait for the next stop."""
-        return self.ask("c")
+        while self._recv(0) is not None:              # nothing left over from the last stop may answer for this one
+            pass
+        self._send("c")
+        while True:
+            packet = self._recv()
+            if self._is_stop(packet):
+                break
+        while self._recv(0.02) is not None:           # the same stop, reported again
+            pass
+        return packet
 
 
 # ---- a session
