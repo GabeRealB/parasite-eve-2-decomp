@@ -77,9 +77,10 @@ static __inline__ void _ratInitCollisionBodies(RatWork* work, const Task* actor,
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = RAT_ATTACK_FORWARD_OFFSET;
     work->gridBody.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&RAT_ATTACK_PARAMS, 0);
-    work->attackBody.radius           = RAT_ATTACK_RADIUS;
-    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    // Snapshot the bite descriptor; each later bite reuses this collision key.
+    work->attackBody.key    = damagePackAttackKey(RAT_BITE_ATTACK, 0);
+    work->attackBody.radius = RAT_ATTACK_RADIUS;
+    work->attackBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

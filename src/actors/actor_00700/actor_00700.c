@@ -596,13 +596,16 @@ static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
     { 96, 0, 224, 0 },
 };
 
-// Bind the spawn fragment to this carrier's attack, enemy tuning and clip table.
-// Each binding is a plain writable object identifier; see the contract in rat.h.
-#define RAT_ATTACK_PARAMS _gRatAttack
-#define RAT_ENEMY_PARAMS  _gRatParams
-#define RAT_ANIM_SETS     _gRatAnimSets
+/// Bite descriptor borrowed by the rat spawn fragment.
+///
+/// Points to the single `DamageAttack` entry also selected by the enemy parameters.
+/// Spawn reads entry zero once and retains only its packed collision key.
+/// Define before including the fragment and undefine afterwards; see `rat.h`.
+#define RAT_BITE_ATTACK  (&_gRatAttack)
+#define RAT_ENEMY_PARAMS _gRatParams
+#define RAT_ANIM_SETS    _gRatAnimSets
 #include "../../shared/rat_spawn.inc.c"
-#undef RAT_ATTACK_PARAMS
+#undef RAT_BITE_ATTACK
 #undef RAT_ENEMY_PARAMS
 #undef RAT_ANIM_SETS
 

@@ -67,10 +67,14 @@ enum { RAT_BITE_REACTION_POISON = 3 };
 
 // The spawn fragment requires three carrier bindings before inclusion.
 //
-// `RAT_ATTACK_PARAMS` names a writable `DamageAttack` object;
+// `RAT_BITE_ATTACK` supplies a non-NULL pointer readable as `const DamageAttack*`.
+// It selects the single bite entry (index 0), also selected by the enemy
+// parameters' `attacks` pointer. Spawn evaluates the binding once and copies
+// the packed collision key; it neither writes nor retains the descriptor.
+// The descriptor must remain live through that read; the binding has no side effects.
 // `RAT_ENEMY_PARAMS` names a writable `EnemyParams` object;
 // `RAT_ANIM_SETS` names a writable `AnimationSet*` array with
-// `RAT_ANIM_SET_COUNT` entries. Bind plain identifiers without side effects.
+// `RAT_ANIM_SET_COUNT` entries. Bind these two as plain identifiers without side effects.
 // The carrier undefines the bindings after the fragment. actor_00700 binds
 // TU-local objects; actor_300700 binds its private two-TU interface.
 

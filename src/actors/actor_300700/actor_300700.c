@@ -234,12 +234,15 @@ static const EnemyTaskFuncTable3 _gMothStateHandlers = {
 
 #include "../../shared/moth_squash.inc.c"
 
-// Bind the spawn fragment to this carrier's attack, enemy tuning and clip table.
-// Each binding is a plain writable object identifier; see the contract in rat.h.
-#define RAT_ATTACK_PARAMS gRatAttack
-#define RAT_ENEMY_PARAMS  gRatParams
-#define RAT_ANIM_SETS     gRatAnimSets
+/// Bite descriptor borrowed by the rat spawn fragment.
+///
+/// Points to the single `DamageAttack` entry also selected by the enemy parameters.
+/// Spawn reads entry zero once and retains only its packed collision key.
+/// Define before including the fragment and undefine afterwards; see `rat.h`.
+#define RAT_BITE_ATTACK  (&gRatAttack)
+#define RAT_ENEMY_PARAMS gRatParams
+#define RAT_ANIM_SETS    gRatAnimSets
 #include "../../shared/rat_spawn.inc.c"
-#undef RAT_ATTACK_PARAMS
+#undef RAT_BITE_ATTACK
 #undef RAT_ENEMY_PARAMS
 #undef RAT_ANIM_SETS
