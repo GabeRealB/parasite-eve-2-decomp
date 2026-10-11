@@ -730,11 +730,11 @@ enum {
     /// Set to 1 when the shrine's arrangement puzzle completes (helper returns 1);
     /// while clear the transition to Power Plant 1 is refused.
     GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED = 0x0DB,
-    /// Set when the first tile sequence (D_neo_ark_altar_8017F050) is walked on the
+    /// Set when the first tile sequence (_gNeoArkAltarFirstTileSolution) is walked on the
     /// altar; opens the garden's transition to the Substation and selects room
     /// variants.
     GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED = 0x0DC,
-    /// Set when the second tile sequence (D_neo_ark_altar_8017F068) is walked on the
+    /// Set when the second tile sequence (_gNeoArkAltarSecondTileSolution) is walked on the
     /// altar; selects room variants in the Neo Ark map resolver.
     GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED = 0x0DD,
     /// Set to 1 in Power Plant 1 once the area's first placed actor is no longer

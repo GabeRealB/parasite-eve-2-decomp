@@ -73,7 +73,12 @@ extern s16 gDryfieldWarehouseSkipRoomChanged;
 
 extern TaskMessageEntry D_dryfield_warehouse_8017F554[3];
 
-extern TaskDesc D_dryfield_warehouse_8017F56C[2];
+/// Bodyless priority-32 recipes for the warehouse event and its independent ambience.
+///
+/// Entry 0 starts the Monkey Wrench event; entry 1 follows room views with
+/// ambience. Both take zero spawn arguments and have no descriptor metadata.
+/// Keep this room's callbacks and sound resources loaded while either task lives.
+extern TaskDesc gDryfieldWarehouseRoomTaskDescs[2];
 
 /// Empty sprite list for mapped view 1, retaining decoded background strips.
 ///

@@ -108,9 +108,6 @@ typedef struct {
 } _DryfieldWarehouseCutsceneWork;
 STATIC_ASSERT_SIZEOF(_DryfieldWarehouseCutsceneWork, 0x10);
 
-extern AnimationSet*  D_dryfield_warehouse_8017F848[2];
-extern ActorTransform D_dryfield_warehouse_8017F850;
-
 extern EvsCommand D_dryfield_warehouse_8017F880[];
 extern EvsCommand D_dryfield_warehouse_8017FA00[];
 
@@ -139,9 +136,11 @@ TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_warehouse_8017F56C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, dryfieldWarehouseEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
+enum { DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY = 32 };
+
+TaskDesc gDryfieldWarehouseRoomTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY } }, dryfieldWarehouseEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldWarehouseAnimation02260Bank1[2] = {
@@ -166,12 +165,20 @@ static AnimationSet _gDryfieldWarehouseAnimation02260 = {
     { NULL, _gDryfieldWarehouseAnimation02260Bank1, NULL, NULL, _gDryfieldWarehouseAnimation02260Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_dryfield_warehouse_8017F848[2] = {
+/// Player clip table installed for the Monkey Wrench cutscene.
+///
+/// Entry 0 is absent; entry 1 borrows the room's twenty-part clip. Installation
+/// retains the table and data through playback, until equipment-bank restoration.
+static AnimationSet* _gDryfieldWarehouseCutscenePlayerAnimationSets[2] = {
     NULL,
     &_gDryfieldWarehouseAnimation02260,
 };
 
-ActorTransform D_dryfield_warehouse_8017F850 = { { 5540, 0, -2300, 0 }, { 0, 0, 0, 0 } };
+/// Player's room-space placement at the start of the Monkey Wrench cutscene.
+///
+/// XYZ use world game units; rotation is zero in 4096 units per turn.
+/// The placement message borrows this record only during synchronous dispatch.
+static ActorTransform _gDryfieldWarehouseCutscenePlayerTransform = { { 5540, 0, -2300, 0 }, { 0, 0, 0, 0 } };
 
 /// Player's final room-space placement for normal and skipped warehouse cutscenes.
 ///
@@ -762,14 +769,14 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
                     work->playerEffectsSuppressed = 1;
                     animationWork                 = task->work;
                     if (animationWork->player != NULL) {
-                        scratch.animation.source.sets          = D_dryfield_warehouse_8017F848;
+                        scratch.animation.source.sets          = _gDryfieldWarehouseCutscenePlayerAnimationSets;
                         scratch.animation.animationId          = DRYFIELD_WAREHOUSE_PLAYER_SCENE_CLIP;
                         scratch.animation.blend                = ANIMATION_BLEND_RESET;
                         scratch.animation.blendFrames          = 0;
                         scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch.animation, 0);
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F850, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWarehouseCutscenePlayerTransform, 0);
                     work->commandFrames = 0;
                     work->commandStep++;
                     break;

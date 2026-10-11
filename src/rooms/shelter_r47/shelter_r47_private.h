@@ -13,10 +13,18 @@
 
 extern Task* gRoomCutsceneSoundTask;
 
-/// Hotspot tables of the map terminal. Spawn argument `SHELTER_R47_MAP_MODE_TOUR`
-/// selects the second, which carries only the previous and next pages.
-extern ActionPromptHotspot D_shelter_r47_8018739C[];
-extern ActionPromptHotspot D_shelter_r47_801873D8[];
+/// Map-terminal choices for player use and timed viewing, followed by a terminator.
+///
+/// Four centre-relative pixel rectangles select title, previous page, next
+/// page and panel. Prompt kinds 0/1 select Examine/Push commands. The terminal
+/// clears hit latches at setup and hit testing rewrites them during the session.
+extern ActionPromptHotspot gShelterR47MapTerminalHotspots[5];
+
+/// Navigation-only map-terminal choices for tour mode, followed by a terminator.
+///
+/// Previous and next page rectangles use centre-relative pixels and prompt
+/// kind 1 (Push). Hit latches are cleared at setup and rewritten by hit testing.
+extern ActionPromptHotspot gShelterR47MapTerminalTourHotspots[3];
 /// Room views of the map pages, indexed by `ShelterR47MapTerminalWork::page`.
 extern u8 D_shelter_r47_801873FC[];
 

@@ -167,7 +167,7 @@ TaskDesc gNeoArkShrinePuzzleCursorTaskDescs[1] = {
     },
 };
 
-u16 D_neo_ark_shrine_80182410[16] = {
+u16 gNeoArkShrinePuzzleInitialCellTiles[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT] = {
     1,
     2,
     3,
@@ -238,7 +238,7 @@ static NeoArkShrineTileOrigin _gNeoArkShrinePuzzleCellOrigins[16] = {
     { 32, 32 },
 };
 
-NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16] = {
+NeoArkShrineTileOrigin gNeoArkShrinePuzzleInitialTileOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT] = {
     { 32, 32 },
     { -64, -64 },
     { -32, -64 },

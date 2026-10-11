@@ -192,7 +192,7 @@ gDryfieldNightMotelBalconyBurnerTurnAreaUpdates = 0x8018F2CC; // size:0x8 define
 _gDryfieldNightMotelBalconyShaft4End = 0x80182C98; // size:0x8 defined:True
 gRoomEventTaskDesc = 0x801827F8; // size:0xC defined:True
 gDryfieldNightMotelBalconyMessageTable = 0x80182804; // size:0x30 defined:True
-D_dryfield_night_motel_balcony_80182834 = 0x80182834; // size:0x18 defined:True
+gDryfieldNightMotelBalconyMovieTaskDescs = 0x80182834; // size:0x18 defined:True
 
 dryfieldNightMotelBalconyTrySpawnFlame = 0x80182730; // type:func
 

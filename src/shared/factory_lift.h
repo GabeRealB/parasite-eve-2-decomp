@@ -305,9 +305,7 @@ extern Task** gFactoryPanelSlot;
  * source. Each build defines its own spawn table, collision grid, jolt script,
  * panel descriptor and view-sprite routines, and names the other build's by
  * address; the code picks between the two by stage. */
-extern TaskDesc                  gFactoryNightSpawnTable[];
-extern PadScriptCmd              gFactoryNightJoltCmds[3];
-extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
+extern TaskDesc gFactoryNightSpawnTable[];
 
 /// Binds the factory glow callback definition to this carrier's exported task.
 ///

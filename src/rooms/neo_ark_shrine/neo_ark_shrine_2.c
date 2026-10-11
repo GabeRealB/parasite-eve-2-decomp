@@ -1776,11 +1776,11 @@ void neoArkShrineResetPuzzle(void)
     gNeoArkShrinePuzzleLayoutActive         = false;
     // Restore per-tile drawn positions before reseeding the cell-to-tile board.
     for (tileIndex = 0; tileIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleDrawnOrigins); tileIndex++) {
-        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].x = D_neo_ark_shrine_8018256C[tileIndex].x;
-        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].y = D_neo_ark_shrine_8018256C[tileIndex].y;
+        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].x = gNeoArkShrinePuzzleInitialTileOrigins[tileIndex].x;
+        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].y = gNeoArkShrinePuzzleInitialTileOrigins[tileIndex].y;
     }
     for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleCellTiles); cellIndex++) {
-        gNeoArkShrinePuzzleCellTiles[cellIndex] = D_neo_ark_shrine_80182410[cellIndex];
+        gNeoArkShrinePuzzleCellTiles[cellIndex] = gNeoArkShrinePuzzleInitialCellTiles[cellIndex];
     }
 }
 

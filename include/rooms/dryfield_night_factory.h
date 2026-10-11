@@ -16,6 +16,21 @@
 
 #include "main/task_types.h"
 
+/// Two-lane controller-vibration commands for a jammed nighttime factory lift turn.
+///
+/// The binary motor plays segment 2 then stops; the variable motor plays
+/// segments 0 and 1 then stops. Both factory instances select this script outside
+/// daytime Dryfield and borrow it until script teardown. Keep the night overlay loaded.
+extern PadScriptCmd gDryfieldNightFactoryLiftJoltCommands[3];
+
+/// Timed vibration segments for the nighttime lift's jam jolt.
+///
+/// Segment 0 holds intensity 255 for eight eligible frames; segment 1 ramps
+/// 150 toward 80 over twenty; segment 2 holds the binary motor for five.
+/// Intensities are bytes (0..255). The fourth byte is unread metadata with
+/// unproven meaning. The script borrows this table through teardown.
+extern PadScriptVibrationSegment gDryfieldNightFactoryLiftJoltSegments[3];
+
 /// Bodyless priority-192 recipe for the nighttime factory's operator panel.
 ///
 /// Room setup borrows its address for the selected panel descriptor; spawning

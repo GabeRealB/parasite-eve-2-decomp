@@ -56,8 +56,6 @@
 #include "../../shared/room_events.h"
 #include "../../shared/falling_leaves.h"
 
-extern s8 D_neo_ark_forest_zone_80182E40;
-
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -76,7 +74,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_neo_ark_forest_zone_80182E40 = 0;
+/// Whether the latest transition-event gate call requested a controller spawn (0/1).
+///
+/// Every call clears it, including queries and already-seen events. Execution
+/// sets it after the spawn attempt even on failure; it does not track task
+/// lifetime. There is no current reader. Storage remains one signed byte.
+static s8 _gNeoArkForestZoneEventStartRequested = 0;
 
 /// Retained, unreferenced byte containing 123; its role is unproven.
 static u8 D_neo_ark_forest_zone_80182E41 = 123;
@@ -126,7 +129,7 @@ static __inline__ s32 _neoArkForestZoneStartEvent(const RoomEventMsg* transition
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_neo_ark_forest_zone_80182E40 = ROOM_EVENT_NOT_STARTED;
+    _gNeoArkForestZoneEventStartRequested = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *transition;
@@ -135,7 +138,7 @@ static __inline__ s32 _neoArkForestZoneStartEvent(const RoomEventMsg* transition
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&gNeoArkForestZoneStagedEventTaskDesc, 0, 0, 0);
-            D_neo_ark_forest_zone_80182E40 = ROOM_EVENT_STARTED;
+            _gNeoArkForestZoneEventStartRequested = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }

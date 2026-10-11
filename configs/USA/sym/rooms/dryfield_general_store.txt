@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_general_store.
 _gDryfieldGeneralStoreAwaitBattleActorCommand = 0x8017E55C; // size:0x4 defined:True
 _gDryfieldGeneralStoreActorEntranceCommand = 0x8017E560; // size:0x4 defined:True
-D_dryfield_general_store_8017E564 = 0x8017E564; // size:0x4 defined:True
+_gDryfieldGeneralStoreHideStagedActorCommand = 0x8017E564; // size:0x4 defined:True
 _gDryfieldGeneralStoreEncounterPlayerPlacement = 0x8017E524; // size:0x18 defined:True
 _gDryfieldGeneralStoreEncounterPlayerRunTarget = 0x8017E53C; // size:0x18 defined:True
 _gDryfieldGeneralStoreEncounterPlayerRunAnimations = 0x8017E554; // size:0x8 defined:True

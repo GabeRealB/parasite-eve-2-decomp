@@ -39,7 +39,7 @@ static s32 _factoryLiftJamTurnOut(Task* task)
                     padScriptSpawn(gDryfieldFactoryLiftJoltCommands, gDryfieldFactoryLiftJoltSegments);
                 } else {
                     sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                    padScriptSpawn(gFactoryNightJoltCmds, gFactoryNightJoltRecs);
+                    padScriptSpawn(gDryfieldNightFactoryLiftJoltCommands, gDryfieldNightFactoryLiftJoltSegments);
                 }
                 work->yawStep++;
             }

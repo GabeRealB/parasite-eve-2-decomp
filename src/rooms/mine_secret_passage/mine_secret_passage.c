@@ -31,9 +31,13 @@
 
 #include "../../shared/room_variants.h"
 
-/// Staging save location this room's warp handler latches: area /
-/// `field_4` / `field_1` take the three bytes the outgoing location carries.
-extern RoomEventMsg D_mine_secret_passage_80183448;
+/// Destination location cell retained while the player confirms passage departure.
+///
+/// Only room, area and warp are latched and committed; area narrows to a byte.
+/// Other bytes are untouched and are not a complete destination key. A later
+/// executable request replaces these selectors; there is no queue. The eight-byte
+/// cell retains its original two-byte alignment and lives with the room overlay.
+static GameLoc _gMineSecretPassageStagedDestination __attribute__((aligned(2)));
 
 static void _mineSecretPassageInitRoomTask(Task* task);
 static void _mineSecretPassageTryIntroEvent(Task* task);
@@ -47,8 +51,6 @@ static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
     _mineSecretPassageIdleRoomTask,
     taskKill,
 };
-
-RoomEventMsg D_mine_secret_passage_80183448;
 
 /// Starts the persistent subtractive departure fade and exit-transit sound.
 ///
@@ -84,8 +86,7 @@ void mineSecretPassageDepartureTask(Task* task)
         MINE_SECRET_PASSAGE_DEPARTURE_COMMAND      = 2,
         MINE_SECRET_PASSAGE_DEPARTURE_CONFIRM_KEY  = 10,
         MINE_SECRET_PASSAGE_DEPARTURE_ESCAPE_DELAY = 3,
-        MINE_SECRET_PASSAGE_RELOAD_SPRITE_VARIANT  = 1,
-        MINE_SECRET_PASSAGE_STAGED_ROOM_BYTE       = 1
+        MINE_SECRET_PASSAGE_RELOAD_SPRITE_VARIANT  = 1
     };
     s16 ticksLeft;
 
@@ -135,9 +136,9 @@ void mineSecretPassageDepartureTask(Task* task)
             // Commit the staged destination only after the exit-transit sound ends.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                = MINE_SECRET_PASSAGE_RELOAD_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_mine_secret_passage_80183448.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_mine_secret_passage_80183448.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[MINE_SECRET_PASSAGE_STAGED_ROOM_BYTE];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gMineSecretPassageStagedDestination.loc.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gMineSecretPassageStagedDestination.loc.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gMineSecretPassageStagedDestination.loc.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -151,16 +152,14 @@ s32 mineSecretPassageRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 un
 
 s32 mineSecretPassageResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    enum { MINE_SECRET_PASSAGE_STAGED_ROOM_BYTE = 1 };
-
     *reply = *request;
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Latch the resolved destination for the asynchronous confirmation task.
-            D_mine_secret_passage_80183448.warp                                                 = (u8)reply->areaId;
-            D_mine_secret_passage_80183448.field_4                                              = reply->warp;
-            ((u8*)&D_mine_secret_passage_80183448.areaId)[MINE_SECRET_PASSAGE_STAGED_ROOM_BYTE] = reply->room;
+            _gMineSecretPassageStagedDestination.loc.area = (u8)reply->areaId;
+            _gMineSecretPassageStagedDestination.loc.warp = reply->warp;
+            _gMineSecretPassageStagedDestination.loc.room = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&gMineSecretPassageDepartureTaskDesc, 0, 0, 0);
         }

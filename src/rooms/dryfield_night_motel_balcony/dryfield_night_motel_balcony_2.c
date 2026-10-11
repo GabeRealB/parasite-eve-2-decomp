@@ -42,9 +42,11 @@ const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6] SECTION(".data"
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
-    { { { TASK_BODY_NONE, 192 } }, dryfieldNightMotelBalconyBeginMoviesTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
+enum { DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY = 192 };
+
+TaskDesc gDryfieldNightMotelBalconyMovieTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY } }, dryfieldNightMotelBalconyBeginMoviesTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
 };
 
 enum { DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_PRIORITY = 192 };

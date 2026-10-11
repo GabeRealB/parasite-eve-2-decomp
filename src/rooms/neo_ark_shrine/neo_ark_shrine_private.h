@@ -115,9 +115,18 @@ extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZ
 /// separate cursor task for explicit teardown; keep the room overlay loaded.
 extern TaskDesc gNeoArkShrinePuzzleCursorTaskDescs[1];
 
-extern u16 D_neo_ark_shrine_80182410[16];
+/// Initial cell-to-tile permutation for the sixteen-cell sliding puzzle.
+///
+/// Cell indices 0..15 run across rows: tiles 1..15 then gap 0 in the last
+/// cell. Reset copies all sixteen unsigned halfwords; there is no terminator.
+extern u16 gNeoArkShrinePuzzleInitialCellTiles[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
-extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16];
+/// Initial screen origins indexed by puzzle tile number 0..15.
+///
+/// Signed pixels relative to the display centre, on a 32-pixel grid. Tile 0
+/// starts at the bottom-right gap cell (32,32); reset copies every origin to
+/// the drawn-position table. Keep the room-owned sixteen-entry table loaded.
+extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleInitialTileOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
 /// Live puzzle controller awaiting completion by the room's puzzle session.
 ///

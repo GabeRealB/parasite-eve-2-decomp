@@ -120,7 +120,7 @@ _gActor335800FlintAnimationBanks = 0x80172E98; // size:0x4 defined:True
 gActor335800FlintTaskDesc = 0x80172E9C; // size:0xC defined:True
 _gActor335800FlintMessages = 0x80172EA8; // size:0x30 defined:True
 
-D_dryfield_night_motel_balcony_80182834 = 0x80182834; // absolute:True owner=dryfield_night_motel_balcony
+gDryfieldNightMotelBalconyMovieTaskDescs = 0x80182834; // absolute:True owner=dryfield_night_motel_balcony
 _actorMotionArrive = 0x80162B3C; // type:func
 _actorMotionFaceTarget = 0x80163064; // type:func
 _actorMotionTurnToYaw = 0x801631A4; // type:func

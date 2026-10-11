@@ -75,10 +75,7 @@ static s32 _neoArkSubmarineTunnelHandleCapCommand(Task* unusedTask, s32 unusedMe
 static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0;
 static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
 
-extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A88;
-extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A9C;
-extern AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80;
-static void                     _neoArkSubmarineTunnelSetEventSeen(s32 seenValue);
+static void _neoArkSubmarineTunnelSetEventSeen(s32 seenValue);
 
 enum { NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN = 1 };
 
@@ -170,15 +167,59 @@ static AnimationSet* _gNeoArkSubmarineTunnelEncounterAnimationSets[2] = {
     &_gNeoArkSubmarineTunnelAnimation03EE0,
 };
 
-AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80 = { { .sets = _gNeoArkSubmarineTunnelEncounterAnimationSets }, ARRAY_SIZE(_gNeoArkSubmarineTunnelEncounterAnimationSets) };
+/// Copies both encounter clip pointers into the player's equipped-bank extension.
+///
+/// Exactly two words populate slots 47/48. The script borrows this request
+/// through dispatch; copied pointers and room clip data remain live through playback.
+static AnimationBankCopyRequest _gNeoArkSubmarineTunnelEncounterAnimationBankCopy = {
+    .source    = { .sets = _gNeoArkSubmarineTunnelEncounterAnimationSets },
+    .wordCount = ARRAY_SIZE(_gNeoArkSubmarineTunnelEncounterAnimationSets),
+};
 
-AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK   = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_47 = ANIMATION_BANK_BASE_SET_COUNT,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_48 = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_BLEND_FRAMES   = 8,
+    NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_SWIM       = 1,
+};
 
-AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Later player clip request for the Diver encounter, interpolating extension clip 47.
+///
+/// Eight normal-rate blend frames; grid collision is disabled. The script copies
+/// the request and resolves the equipped bank, ignoring the stored seed.
+/// The borrowed extension clips must remain loaded through playback.
+static AnimationPlayRequest _gNeoArkSubmarineTunnelEncounterPlayerClip47Request = {
+    { .index = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK },
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_47,
+    ANIMATION_BLEND_INTERPOLATE,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_BLEND_FRAMES,
+    ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// First player clip request for the Diver encounter, interpolating extension clip 48.
+///
+/// Eight normal-rate blend frames; grid collision is disabled. The script copies
+/// the request and resolves the equipped bank, ignoring the stored seed.
+/// The borrowed extension clips must remain loaded through playback.
+static AnimationPlayRequest _gNeoArkSubmarineTunnelEncounterPlayerClip48Request = {
+    { .index = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK },
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_48,
+    ANIMATION_BLEND_INTERPOLATE,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_BLEND_FRAMES,
+    ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 ActorCommand D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
 
-ActorCommand D_neo_ark_submarine_tunnel_80181AB4 = { { .loc = { 5, 12 } }, 1 };
+/// Releases the Bog Divers' tunnel-introduction wait into their timed forward swim.
+///
+/// The encounter script broadcasts this room-context command synchronously.
+/// Divers latch command 1 without inspecting context; payload storage is not retained.
+static ActorCommand _gNeoArkSubmarineTunnelDiverSwimCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL } },
+    .command = NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_SWIM,
+};
 
 ActorCommand D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
 
@@ -191,7 +232,7 @@ EvsSceneKey D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
 EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_neo_ark_submarine_tunnel_80181AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181A80 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gNeoArkSubmarineTunnelEncounterAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -199,14 +240,14 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181AD0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A9C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_submarine_tunnel_80181AB4 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gNeoArkSubmarineTunnelDiverSwimCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A88 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

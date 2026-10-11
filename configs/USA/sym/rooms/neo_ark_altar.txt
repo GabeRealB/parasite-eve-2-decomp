@@ -1,9 +1,9 @@
 // Overlay-local symbols for neo_ark_altar.
 _gNeoArkAltarSwitchAnimationStep = 0x801800AE; // type:s16 size:0x2 defined:True
 D_neo_ark_altar_8017EFD8 = 0x8017EFD8; // size:0x3C defined:True
-D_neo_ark_altar_8017F014 = 0x8017F014; // size:0x3C defined:True
-D_neo_ark_altar_8017F050 = 0x8017F050; // size:0x18 defined:True
-D_neo_ark_altar_8017F068 = 0x8017F068; // size:0x20 defined:True
+_gNeoArkAltarWallFootprints = 0x8017F014; // size:0x3C defined:True
+_gNeoArkAltarFirstTileSolution = 0x8017F050; // size:0x18 defined:True
+_gNeoArkAltarSecondTileSolution = 0x8017F068; // size:0x20 defined:True
 D_neo_ark_altar_8017EF8C = 0x8017EF8C; // size:0xC defined:True
 D_neo_ark_altar_8017EF98 = 0x8017EF98; // size:0x28 defined:True
 D_neo_ark_altar_8017F088 = 0x8017F088; // size:0xC defined:True

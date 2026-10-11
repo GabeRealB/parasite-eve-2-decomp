@@ -330,7 +330,7 @@ s32 dryfieldWarehouseUseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unuse
         if (_dryfieldWarehouseHasHitEventTrigger() != 0) {
             gameFlagSetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
             gGameSession->eventState = 1;
-            taskSpawnFromTableOnDefaultList(D_dryfield_warehouse_8017F56C, WAREHOUSE_EVENT_TASK, 0, 0);
+            taskSpawnFromTableOnDefaultList(gDryfieldWarehouseRoomTaskDescs, WAREHOUSE_EVENT_TASK, 0, 0);
             return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
         }
     }
@@ -398,7 +398,7 @@ static void _dryfieldWarehouseInitializeRoomTask(Task* task)
 
     task->msgTable = D_dryfield_warehouse_8017F554;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_dryfield_warehouse_8017F56C, WAREHOUSE_AMBIENCE_TASK, 0, 0);
+    taskSpawnFromTable(gDryfieldWarehouseRoomTaskDescs, WAREHOUSE_AMBIENCE_TASK, 0, 0);
     task->state = task->state + 1;
 }
 

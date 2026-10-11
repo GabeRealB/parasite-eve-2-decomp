@@ -2141,7 +2141,7 @@ static void _shelterR47MapTerminalInitTask(Task* task)
     task->state            += 1;
     displayAcquireMenuHold();
     // The tour exposes only navigation; discard hits from an earlier session.
-    work->hotspots = task->spawnArg1.value == SHELTER_R47_MAP_MODE_TOUR ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
+    work->hotspots = task->spawnArg1.value == SHELTER_R47_MAP_MODE_TOUR ? gShelterR47MapTerminalTourHotspots : gShelterR47MapTerminalHotspots;
     // Retained scheduling boundary before walking the stored table pointer.
     do {
     } while (0);

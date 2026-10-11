@@ -101,11 +101,6 @@ typedef struct {
 } _NeoArkAltarTileSequenceWork;
 STATIC_ASSERT_SIZEOF(_NeoArkAltarTileSequenceWork, 0x10);
 
-extern _NeoArkAltarTile D_neo_ark_altar_8017F014[];
-
-extern s16 D_neo_ark_altar_8017F050[];
-extern s16 D_neo_ark_altar_8017F068[];
-
 extern _NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
 extern AreaApplyRec     D_neo_ark_altar_8018007C[];
 
@@ -135,7 +130,12 @@ _NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
     { 0, 0, 0, 0, NEO_ARK_ALTAR_TILE_END, 0 },
 };
 
-_NeoArkAltarTile D_neo_ark_altar_8017F014[5] = {
+/// Four world-space footprints of the altar's raised light walls, then a terminator.
+///
+/// Tile index 0..3 selects a 700-by-700 rectangle. The final entry carries
+/// `NEO_ARK_ALTAR_TILE_END` and is not drawn. These footprints are independent
+/// of the walk-on rectangles, whose third and fourth pads extend farther in Z.
+static _NeoArkAltarTile _gNeoArkAltarWallFootprints[5] = {
     { 8640, -9840, 700, 700, 1, 0 },
     { 8640, -5830, 700, 700, 2, 0 },
     { 0x2C9C, -9870, 700, 700, 3, 0 },
@@ -143,7 +143,11 @@ _NeoArkAltarTile D_neo_ark_altar_8017F014[5] = {
     { 0, 0, 0, 0, NEO_ARK_ALTAR_TILE_END, 0 },
 };
 
-s16 D_neo_ark_altar_8017F050[12] = {
+/// Twelve required pad IDs for the altar's first solution, without a terminator.
+///
+/// First-solution feedback also reads the following second-solution storage
+/// at indices 12..15 while a longer second-solution prefix remains active.
+static s16 _gNeoArkAltarFirstTileSolution[12] = {
     3,
     4,
     1,
@@ -158,7 +162,11 @@ s16 D_neo_ark_altar_8017F050[12] = {
     3,
 };
 
-s16 D_neo_ark_altar_8017F068[16] = {
+/// Sixteen required pad IDs for the altar's second solution, without a terminator.
+///
+/// The first four IDs also supply the first solution's feedback reads for
+/// longer second-solution prefixes; their contiguous order must be retained.
+static s16 _gNeoArkAltarSecondTileSolution[16] = {
     1,
     1,
     1,
@@ -1090,25 +1098,25 @@ static s16 _neoArkAltarEvaluateTileSequence(Task* task)
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0) {
         for (historyIndex = 0; historyIndex < _gNeoArkAltarEnteredTileCount; historyIndex++) {
-            if (D_neo_ark_altar_8017F050[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
+            if (_gNeoArkAltarFirstTileSolution[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
                 firstMismatch = 1;
                 break;
             }
-            if (historyIndex == ARRAY_SIZE(D_neo_ark_altar_8017F050) - 1) {
+            if (historyIndex == ARRAY_SIZE(_gNeoArkAltarFirstTileSolution) - 1) {
                 return NEO_ARK_ALTAR_SEQUENCE_FIRST_SOLVED;
             }
         }
     } else {
         firstMismatch = 1;
     }
-    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(D_neo_ark_altar_8017F050, firstMismatch);
+    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(_gNeoArkAltarFirstTileSolution, firstMismatch);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) == 0) {
         for (historyIndex = 0; historyIndex < _gNeoArkAltarEnteredTileCount; historyIndex++) {
-            if (D_neo_ark_altar_8017F068[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
+            if (_gNeoArkAltarSecondTileSolution[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
                 secondMismatch = 1;
                 break;
             }
-            if (historyIndex == ARRAY_SIZE(D_neo_ark_altar_8017F068) - 1) {
+            if (historyIndex == ARRAY_SIZE(_gNeoArkAltarSecondTileSolution) - 1) {
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
                 return NEO_ARK_ALTAR_SEQUENCE_SECOND_SOLVED;
             }
@@ -1116,7 +1124,7 @@ static s16 _neoArkAltarEvaluateTileSequence(Task* task)
     } else {
         secondMismatch = 1;
     }
-    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(D_neo_ark_altar_8017F068, secondMismatch);
+    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(_gNeoArkAltarSecondTileSolution, secondMismatch);
     if (firstMismatch == 1 && secondMismatch == firstMismatch) {
         _neoArkAltarResetTileSequence();
         return NEO_ARK_ALTAR_SEQUENCE_IDLE;
@@ -1266,7 +1274,7 @@ static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height)
     s16                     floorY;
     s16                     raisedY;
 
-    footprints = D_neo_ark_altar_8017F014;
+    footprints = _gNeoArkAltarWallFootprints;
     floorY     = NEO_ARK_ALTAR_TILE_FLOOR_Y;
 
     // All four walls share the composed world-to-view transform.

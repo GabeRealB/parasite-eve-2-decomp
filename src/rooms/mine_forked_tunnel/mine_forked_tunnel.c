@@ -488,19 +488,83 @@ static const AnimationPlayRequest _gMineForkedTunnelUnusedBank1Clip1ResetRequest
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mine_forked_tunnel_80183148 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    MINE_FORKED_TUNNEL_SWITCH_REQUEST_BANK       = 1,
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_48     = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_49     = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_50     = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    MINE_FORKED_TUNNEL_SWITCH_FINAL_BLEND_FRAMES = 30,
+};
 
-AnimationPlayRequest D_mine_forked_tunnel_8018315C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Final player clip request for the normal switch scene, interpolated over thirty frames.
+///
+/// Clip 48 occupies extension slot 1. The script copies this request and resolves
+/// the equipped weapon bank before dispatch; its stored bank seed is not used.
+/// Grid collision stays disabled. The extension's room data must remain loaded.
+static AnimationPlayRequest _gMineForkedTunnelSwitchScenePlayerClip48Request = {
+    { .index = MINE_FORKED_TUNNEL_SWITCH_REQUEST_BANK },
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_48,
+    ANIMATION_BLEND_INTERPOLATE,
+    MINE_FORKED_TUNNEL_SWITCH_FINAL_BLEND_FRAMES,
+    ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// First player clip request for the normal switch scene, resetting extension clip 49.
+///
+/// Zero blend frames; grid collision stays disabled. The script resolves the
+/// equipped bank in a copy, ignoring the seed; room clip data remains borrowed.
+static AnimationPlayRequest _gMineForkedTunnelSwitchScenePlayerClip49Request = {
+    { .index = MINE_FORKED_TUNNEL_SWITCH_REQUEST_BANK },
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_49,
+    ANIMATION_BLEND_RESET,
+    0,
+    ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
+/// Middle player clip request for the normal switch scene, resetting extension clip 50.
+///
+/// Zero blend frames; grid collision stays disabled. The script resolves the
+/// equipped bank in a copy, ignoring the seed; room clip data remains borrowed.
+static AnimationPlayRequest _gMineForkedTunnelSwitchScenePlayerClip50Request = {
+    { .index = MINE_FORKED_TUNNEL_SWITCH_REQUEST_BANK },
+    MINE_FORKED_TUNNEL_SWITCH_PLAYER_CLIP_50,
+    ANIMATION_BLEND_RESET,
+    0,
+    ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorCommand D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_RESET };
+/// Player's room-space placement after the switch scene's first clip starts.
+///
+/// XYZ use world game units; yaw is 2047 of 4096 units per turn. The normal
+/// event script borrows the record through synchronous placement dispatch.
+static ActorTransform _gMineForkedTunnelSwitchScenePlayerTransform = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
 
-ActorCommand D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_TILT_CHILD };
+/// Stops the area object and its child and restores the parent's first path pose.
+///
+/// The normal switch script borrows this command through dispatch. The receiver
+/// ignores context and resets both motion cursors, leaving the child's pose intact.
+static ActorCommand _gMineForkedTunnelAreaObjectResetCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL } },
+    .command = MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_RESET,
+};
 
-ActorCommand D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH };
+/// Starts the area object's child tilt when the child task exists.
+///
+/// The normal switch script borrows this command through dispatch. The receiver
+/// ignores context and preserves the parent's motion and both path cursors.
+static ActorCommand _gMineForkedTunnelAreaObjectTiltChildCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL } },
+    .command = MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_TILT_CHILD,
+};
+
+/// Starts the area object's parent path motion without rewinding its cursor.
+///
+/// The normal switch script borrows this command through dispatch. The receiver
+/// ignores context and leaves the child's motion unchanged.
+static ActorCommand _gMineForkedTunnelAreaObjectStartPathCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL } },
+    .command = MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH,
+};
 
 /// Parks and stops the area object at the end of either normal or skipped switch playback.
 ///
@@ -516,24 +580,24 @@ EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineForkedTunnelSwitchSceneAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_8018315C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_forked_tunnel_80183184 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_8018319C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMineForkedTunnelSwitchScenePlayerTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectResetCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectTiltChildCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_80183170 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070005 }, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectStartPathCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_80183148 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineForkedTunnelRestoreAreaObjectSoundMix }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 59 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

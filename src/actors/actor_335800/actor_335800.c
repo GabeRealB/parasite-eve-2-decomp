@@ -1560,7 +1560,7 @@ static void _actor335800StartSceneVariantTask(Task* task)
 static void _actor335800StartBalconyMovies(void)
 {
     enum { ACTOR_335800_BALCONY_MOVIES_START_TASK = 0 };
-    taskSpawnFromTable(D_dryfield_night_motel_balcony_80182834, ACTOR_335800_BALCONY_MOVIES_START_TASK, 0, NULL);
+    taskSpawnFromTable(gDryfieldNightMotelBalconyMovieTaskDescs, ACTOR_335800_BALCONY_MOVIES_START_TASK, 0, NULL);
 }
 
 /// Enables display output at the scene's presentation or skip-recovery boundary.

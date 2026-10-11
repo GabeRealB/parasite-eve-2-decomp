@@ -68,8 +68,6 @@ static u8 _gGeneralStoreUnderpassRoom;
 /// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
 #define GENERAL_STORE_UNDERPASS_FADE _gGeneralStoreUnderpassFade
 
-extern s32 D_dryfield_general_store_8017E564;
-
 static void _dryfieldGeneralStoreInitRoomTask(Task* task);
 static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
 
@@ -97,6 +95,7 @@ enum {
 enum {
     DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE      = 0,
     DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER             = 1,
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_HIDE_STAGED       = 2,
     DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_HIDE_BEFORE_SCENE = 9,
 };
 
@@ -292,7 +291,13 @@ static ActorCommand _gDryfieldGeneralStoreActorEntranceCommand __attribute__((al
     .command = DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER,
 };
 
-s32 D_dryfield_general_store_8017E564 = 0x20302;
+/// Hides the staged Suckler after its drop-in; ordinary Sucklers ignore this command.
+///
+/// The scene manager borrows this four-byte payload during synchronous broadcast.
+static ActorCommand _gDryfieldGeneralStoreHideStagedActorCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE } },
+    .command = DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_HIDE_STAGED,
+};
 
 /// Stages the General Store encounter and returns the player to battle control.
 ///
@@ -2042,7 +2047,7 @@ static void _dryfieldGeneralStoreDropInActorsTask(Task* task)
             return;
         case DRYFIELD_GENERAL_STORE_DROP_IN_WAIT:
             if (_dryfieldGeneralStoreDropInExpired(task)) {
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E564, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldGeneralStoreHideStagedActorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }

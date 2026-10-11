@@ -788,7 +788,7 @@ const SVECTOR gDryfieldNightMotelBalconyShaft4Start SECTION(".data") = { -160, -
 
 void dryfieldNightMotelBalconyBeginMoviesTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
+    displaySpawnTaskFromTable(gDryfieldNightMotelBalconyMovieTaskDescs, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);

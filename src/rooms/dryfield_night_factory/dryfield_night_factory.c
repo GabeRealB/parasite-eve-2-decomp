@@ -381,9 +381,23 @@ WorldCollisionSurfaceProperties* gDryfieldNightFactorySurfacePropertiesByClass[8
     &_gDryfieldNightFactoryDefaultSurfaceProperties,
 };
 
-PadScriptCmd gFactoryNightJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
+enum {
+    DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT  = 0,
+    DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT = 1,
+    DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT         = 2,
+};
 
-PadScriptVibrationSegment gFactoryNightJoltRecs[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
+PadScriptCmd gDryfieldNightFactoryLiftJoltCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+};
+
+PadScriptVibrationSegment gDryfieldNightFactoryLiftJoltSegments[3] = {
+    [DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT]  = { 255, 255, 8, 1 },
+    [DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT] = { 150, 80, 20, 1 },
+    [DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT]         = { 0, 0, 5, 0 },
+};
 
 RoomEventMsg gRoomEventMsg = { 0 };
 

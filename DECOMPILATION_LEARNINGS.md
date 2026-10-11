@@ -120123,7 +120123,7 @@ Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
 whole function is one basic block and nothing branches, so only where those two
 halves were written distinguishes them.
 
-The natural `t = &D_neo_ark_altar_8017F014[index];` placed after the GTE block
+The natural `t = &_gNeoArkAltarWallFootprints[index];` placed after the GTE block
 gives `lui v0` / `addiu v0` in the same position but into a **caller-saved**
 scratch register, and 96.989% - a `regs`-only residue otherwise: the allocator
 then hands the three stack-vector addresses a different set of callee-saved
@@ -120155,7 +120155,7 @@ Fix - split the address in the source, not with casts or barriers: take the
 array base before the call, index it after.
 
 ```c
-    footprints = D_neo_ark_altar_8017F014;   /* before the call: base is live across it */
+    footprints = _gNeoArkAltarWallFootprints;   /* before the call: base is live across it */
     floorY     = NEO_ARK_ALTAR_TILE_FLOOR_Y;
 
     gGfxViewCoord.composeStamp = 0;

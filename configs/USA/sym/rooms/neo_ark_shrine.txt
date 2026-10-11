@@ -22,7 +22,7 @@ _gNeoArkShrineActiveCollisionGridVerts = 0x80182D98; // size:0x180 defined:True
 _gNeoArkShrineActiveCollisionGridFaces = 0x80182F18; // size:0x174 defined:True
 _gNeoArkShrineActiveCollisionGridCells = 0x8018308C; // size:0x11C defined:True
 _gNeoArkShrinePuzzleCellOrigins = 0x8018252C; // size:0x40 defined:True
-D_neo_ark_shrine_8018256C = 0x8018256C; // size:0x40 defined:True
+gNeoArkShrinePuzzleInitialTileOrigins = 0x8018256C; // size:0x40 defined:True
 _gNeoArkShrineActiveCollisionGridTable = 0x801831A8; // size:0x30 defined:True
 _gNeoArkShrineActiveCollisionGrid = 0x801831D8; // size:0x24 defined:True
 _gNeoArkShrineEnemyReleaseCollisionGridNormals = 0x801831FC; // size:0x48 defined:True
@@ -116,7 +116,7 @@ _gNeoArkShrineModel04C6CVerts = 0x8018219C; // size:0x90 defined:True
 _gNeoArkShrineModel04C6CStream = 0x8018222C; // size:0x1B4 defined:True
 _gNeoArkShrineModel04C6C = 0x801823E0; // size:0x24 defined:True
 gNeoArkShrinePuzzleCursorTaskDescs = 0x80182404; // size:0xC defined:True
-D_neo_ark_shrine_80182410 = 0x80182410; // size:0x20 defined:True
+gNeoArkShrinePuzzleInitialCellTiles = 0x80182410; // size:0x20 defined:True
 gNeoArkShrinePuzzleHotspots = 0x80182430; // size:0xD8 defined:True
 gNeoArkShrinePuzzleTaskDescs = 0x80182508; // size:0x24 defined:True
 

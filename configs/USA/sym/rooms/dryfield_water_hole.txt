@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_water_hole.
-D_dryfield_water_hole_8017FD1C = 0x8017FD1C; // size:0x10 defined:True
-D_dryfield_water_hole_8017FCBC = 0x8017FCBC; // size:0x60 defined:True
+_gDryfieldWaterHolePreviousPartPositions = 0x8017FD1C; // size:0x10 defined:True
+_gDryfieldWaterHoleSwitchBeamEndpoints = 0x8017FCBC; // size:0x60 defined:True
 _gWaterHoleSurfaces = 0x8017FC98; // size:0x24 defined:True
 gDryfieldWaterHoleRoomCollisionResources = 0x8017FD2C; // size:0x40 defined:True
 _gDryfieldWaterHoleUnlitViewMap = 0x8017FD6C; // size:0x8 defined:True
@@ -52,8 +52,8 @@ _gDryfieldWaterHoleUnlitActionTriggers = 0x80181D60; // size:0x1C8 defined:True
 _gDryfieldWaterHoleOccluders = 0x80181F28; // size:0x78 defined:True
 _gDryfieldWaterHoleLitPointLights = 0x80181FA0; // size:0x240 defined:True
 _gDryfieldWaterHoleLitSpotLightStorage = 0x801821E0; // size:0x288 defined:True
-D_dryfield_water_hole_8017FC5C = 0x8017FC5C; // size:0x30 defined:True
-D_dryfield_water_hole_8017FC8C = 0x8017FC8C; // size:0xC defined:True
+_gDryfieldWaterHoleRoomMessages = 0x8017FC5C; // size:0x30 defined:True
+_gDryfieldWaterHoleWaterTaskDesc = 0x8017FC8C; // size:0xC defined:True
 _gDryfieldWaterHoleLitLights = 0x80182468; // size:0x18 defined:True
 _gDryfieldWaterHoleUnlitPointLights = 0x80182480; // size:0x2A0 defined:True
 _gDryfieldWaterHoleUnlitSpotLights = 0x80182720; // size:0x6C defined:True
@@ -94,3 +94,4 @@ _dryfieldWaterHolePlaySoundCue = 0x8017d78c; // type:func
 _dryfieldWaterHoleCommandMessage = 0x8017d73c; // type:func
 _dryfieldWaterHoleInitializeRoomTask = 0x8017d7dc; // type:func
 dryfieldWaterHoleRoomTask = 0x8017d840; // type:func
+_gDryfieldWaterHoleRoomTaskStates = 0x8017d5c4;

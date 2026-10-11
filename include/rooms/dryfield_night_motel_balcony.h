@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_motel_balcony_80182834[2];
+/// Two bodyless priority-192 recipes for the balcony's two-movie presentation.
+///
+/// Entry 0 hands presentation to entry 1, the display-list playback/restore
+/// controller. Both take zero spawn arguments; there is no terminator.
+/// The Burner scene borrows this table; keep the room and movie resources loaded
+/// through playback and restoration of normal presentation.
+extern TaskDesc gDryfieldNightMotelBalconyMovieTaskDescs[2];
 
 /// Saved-area change applied when the Burner begins its scripted balcony turn.
 ///

@@ -2,8 +2,8 @@
 _gTelephoneMenuTitle = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
 _gShelterR47MapTerminalPageTitleV = 0x801875EC; // size:0xC defined:True
 _gShelterR47MapTerminalPageCaptionVOffsets = 0x801875F8; // size:0x14 defined:True
-D_shelter_r47_8018739C = 0x8018739C; // size:0x3C defined:True
-D_shelter_r47_801873D8 = 0x801873D8; // size:0x24 defined:True
+gShelterR47MapTerminalHotspots = 0x8018739C; // size:0x3C defined:True
+gShelterR47MapTerminalTourHotspots = 0x801873D8; // size:0x24 defined:True
 D_shelter_r47_801873FC = 0x801873FC; // size:0x8 defined:True
 _gShelterR47MapTerminal1fMarks = 0x80187404; // size:0x38 defined:True
 _gShelterR47MapTerminalB1Marks = 0x8018743C; // size:0x88 defined:True
