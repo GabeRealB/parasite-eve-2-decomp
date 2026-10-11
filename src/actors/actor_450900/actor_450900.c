@@ -527,8 +527,18 @@ static AnimationBankCopyRequest _gActor450900CompanionAnimationBankCopy = { { .s
 /// Installs the player's ten clips and adjacent words into its 32-word bank extension.
 static AnimationBankCopyRequest _gActor450900PlayerAnimationBankCopy = { { .sets = _gActor450900PlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-// Requests for the companion's extended ids start here. This one is not referenced.
-AnimationPlayRequest D_actor_450900_80135F10 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unplayed clip-47 reset preset at the start of the companion request run.
+///
+/// The neighboring dispatched requests suggest the companion as receiver.
+/// Both 32-word bank-extension copies read this complete record as opaque
+/// words, so retain its data position and disabled world-collision word.
+static AnimationPlayRequest _gActor450900UnusedCompanionClip47Request = {
+    .source               = { .index = ACTOR_450900_INITIAL_ANIMATION_BANK },
+    .animationId          = ACTOR_450900_COMPANION_DISTRESS_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Writable companion reaction request played at each eligible distress period.
 ///
@@ -542,10 +552,19 @@ static AnimationPlayRequest _gActor450900CompanionDistressAnimation = { { .index
 /// world collision; the following cue restores the companion's idle clip.
 static AnimationPlayRequest _gActor450900CompanionConversationReactionAnimation = { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_COMPANION_CONVERSATION_REACTION_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_450900_COMPANION_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-// Not referenced.
-AnimationPlayRequest D_actor_450900_80135F4C[2] = {
-    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+enum {
+    ACTOR_450900_COMPANION_CLIP_49 = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_450900_COMPANION_CLIP_50 = ANIMATION_BANK_BASE_SET_COUNT + 3,
+};
+
+/// Unplayed clip-49/50 reset presets within the companion request run.
+///
+/// The receiver is inferred from neighboring dispatched requests. The
+/// companion's 32-word bank copy reads all of entry 0 and the source and clip
+/// words of entry 1 as opaque data; retain this two-record span in data order.
+static AnimationPlayRequest _gActor450900UnusedCompanionClip49To50Requests[2] = {
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_COMPANION_CLIP_49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_COMPANION_CLIP_50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Companion clip 51 played at the first cue of the post-choice conversation.
@@ -554,12 +573,25 @@ AnimationPlayRequest D_actor_450900_80135F4C[2] = {
 /// world collision before the next cue requests a turn.
 static AnimationPlayRequest _gActor450900CompanionPostChoiceAnimation = { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_COMPANION_POST_CHOICE_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_450900_COMPANION_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450900_80135F88[5] = {
-    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+enum {
+    ACTOR_450900_PLAYER_CLIP_47 = ANIMATION_BANK_BASE_SET_COUNT,
+    ACTOR_450900_PLAYER_CLIP_48 = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACTOR_450900_PLAYER_CLIP_49 = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_450900_PLAYER_CLIP_50 = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    ACTOR_450900_PLAYER_CLIP_52 = ANIMATION_BANK_BASE_SET_COUNT + 5,
+};
+
+/// Five unplayed reset presets preceding the dispatched player clip-51 request.
+///
+/// Stored ids are 47, 47, 48, 49 and 50; only entry 0 disables world collision.
+/// The player receiver is inferred from position. No consumer establishes
+/// indexing or the original grouping of this retained five-record span.
+static AnimationPlayRequest _gActor450900UnusedPlayerClip47To50Requests[5] = {
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_CLIP_47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_CLIP_47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_CLIP_48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_CLIP_49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_CLIP_50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Writable player clip 51 request used by the periodic growth-room response.
@@ -568,7 +600,17 @@ AnimationPlayRequest D_actor_450900_80135F88[5] = {
 /// twelve frames and restores world collision; control is released later.
 static AnimationPlayRequest _gActor450900PlayerPeriodicResponseAnimation = { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_PLAYER_RESPONSE_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_450900_PLAYER_RESPONSE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_actor_450900_80136000 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unplayed clip-52 preset with a ten-frame blend and world collision disabled.
+///
+/// Its position between the dispatched player clips 51 and 53 suggests the
+/// player receiver; no dispatch establishes that interpretation.
+static AnimationPlayRequest _gActor450900UnusedPlayerClip52Request = {
+    .source               = { .index = ACTOR_450900_INITIAL_ANIMATION_BANK },
+    .animationId          = ACTOR_450900_PLAYER_CLIP_52,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Player clip 53 used by the growth-room entry scene.
 ///
@@ -606,7 +648,17 @@ static AnimationPlayRequest _gActor450900CompanionConversationAnimation = { { .i
 /// restores world collision.
 static AnimationPlayRequest _gActor450900PlayerIdleAnimation = { { .index = ACTOR_450900_INITIAL_ANIMATION_BANK }, ACTOR_450900_IDLE_ANIMATION, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_actor_450900_8013608C = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unplayed clip-1 preset with a ten-frame blend and world collision enabled.
+///
+/// It follows the dispatched player idle reset and precedes the companion's
+/// idle requests. The player receiver is inferred from that position.
+static AnimationPlayRequest _gActor450900UnusedPlayerIdleBlendRequest = {
+    .source               = { .index = ACTOR_450900_INITIAL_ANIMATION_BANK },
+    .animationId          = ACTOR_450900_IDLE_ANIMATION,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Companion idle request used by entry setup and the early conversation's closing cue.
 ///

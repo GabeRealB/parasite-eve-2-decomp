@@ -11,7 +11,11 @@
 
 // This package contains no code. Its retained data shares the existing ID TU.
 
-static const s32 packageId = PKG_ID;
+/// Package identity stored in the image's first read-only 32-bit word.
+///
+/// PKG_ID supplies this image's manifest id (126), zero-extended into the word.
+/// The retained scene data follows this private format object in the same unit.
+static const u32 _gPackageId = PKG_ID;
 
 enum {
     ACTOR_142600_RETAINED_TASK_PRIORITY = 192,

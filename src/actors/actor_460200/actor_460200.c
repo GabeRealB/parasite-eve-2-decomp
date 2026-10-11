@@ -460,9 +460,24 @@ static AnimationSet _gActor460200Animation03FAC = {
     { NULL, _gActor460200Animation03FACBank1, NULL, NULL, _gActor460200Animation03FACBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_460200_80135DF4[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _actor460200NegativeCaptureTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+enum { ACTOR_460200_CONTROL_TASK_PRIORITY = 32 };
+
+/// Unspawned negative-frame capture recipe followed by a descriptor terminator.
+///
+/// Only entry 0 can spawn. The callback requires writable
+/// `ScreenNegativeCaptureArgs` in spawnArg2 through completion; spawnArg1 and
+/// descriptor data are unused. No spawner establishes the argument's owner.
+static TaskDesc _gActor460200UnusedNegativeCaptureTaskDescs[2] = {
+    {
+        .header   = { .fields = { TASK_BODY_NONE, ACTOR_460200_CONTROL_TASK_PRIORITY } },
+        .callback = _actor460200NegativeCaptureTask,
+        .data     = { .value = 0 },
+    },
+    {
+        .header   = { .fields = { TASK_DESC_END, 0 } },
+        .callback = NULL,
+        .data     = { .value = 0 },
+    },
 };
 
 /// Fixed VRAM rectangle read as one contiguous RGB555 frame in negative debug mode.
@@ -550,7 +565,17 @@ static AnimationPlayRequest _gActor460200SoldierAClip15Request = { { .index = 1 
 /// weapon bank; the request and clip data belong to this loaded package.
 static AnimationPlayRequest _gActor460200PlayerClip61Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80135F64 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unplayed duplicate of the player's clip-47 reset preset.
+///
+/// Bank selector 1 and disabled world collision match the adjacent dispatched
+/// request. The player receiver is inferred; this record itself has no dispatch.
+static AnimationPlayRequest _gActor460200UnusedPlayerClip47Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_460200_PLAYER_CLIP_47,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Restarts the equipped player's clip 47 without blending, disabling world-grid participation.
 ///
@@ -625,9 +650,18 @@ static AnimationPlayRequest _gActor460200PlayerClip56Request = { { .index = 1 },
 /// through playback.
 static AnimationPlayRequest _gActor460200PlayerClip57Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136054[2] = {
-    { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+enum {
+    ACTOR_460200_SOLDIER_C_CLIP_0 = 0,
+    ACTOR_460200_SOLDIER_C_CLIP_1 = 1,
+};
+
+/// Unplayed clip-0/1 reset presets preceding Soldier C's dispatched requests.
+///
+/// The receiver and original two-record grouping are unproven. Soldier C's
+/// bank has NULL at clip 0 and his play handler ignores source and collision.
+static AnimationPlayRequest _gActor460200UnusedSoldierCClip0To1Requests[2] = {
+    { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Restarts Soldier C's clip 2 without blending.
@@ -795,7 +829,16 @@ static ActorTransform _gActor460200SoldierBSecondWalkTarget = { { -1000, 0, 4490
 /// ignoring pitch and roll. The placement is borrowed only through dispatch.
 static ActorTransform _gActor460200SoldierBCutsceneRepositionPlacement = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
 
-TaskDesc D_actor_460200_801362AC = { { { TASK_BODY_NONE, 32 } }, _actor460200ModeExitCountdownTask, { .value = 0 } };
+/// Unspawned bodyless recipe for delayed stage-mode teardown.
+///
+/// Entry 0 takes a signed tick countdown in spawnArg1; a nonnegative N requests
+/// exit on invocation N+2. spawnArg2 and descriptor data are unused. This
+/// overlay's callback must remain loaded until task completion.
+static TaskDesc _gActor460200UnusedModeExitCountdownTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, ACTOR_460200_CONTROL_TASK_PRIORITY } },
+    .callback = _actor460200ModeExitCountdownTask,
+    .data     = { .value = 0 },
+};
 
 EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

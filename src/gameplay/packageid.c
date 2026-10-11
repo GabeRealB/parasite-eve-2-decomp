@@ -1,9 +1,9 @@
 #include "types.h"
 
-/* Every package opens with its own id, a u16 in a u32 slot; the gameplay
- * package's is 4. Nothing refers to the word: the unit exists to place the
- * bytes ahead of the rest of the package's read-only data. It is `const`
- * because the id belongs to the image's read-only region.
- */
+enum { PACKAGE_GAMEPLAY_ID = 4 };
 
-static const s32 packageId = 4;
+/// Gameplay package identity stored in the image's first read-only 32-bit word.
+///
+/// The format word is zero-extended from id 4. This private object places
+/// bytes before gameplay's other read-only data; no C reference is required.
+static const u32 _gPackageId = PACKAGE_GAMEPLAY_ID;

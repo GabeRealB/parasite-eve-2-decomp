@@ -560,7 +560,7 @@ record = 0x8013EF38
 
 [[enemy]]
 name = "Glutton"
-variant = "First encounter"
+variant = "Unused incinerator tuning"
 package = "actor_444000"
 record = 0x80144A18
 

@@ -1,9 +1,9 @@
 #include "types.h"
 
-/* Every package opens with its own id, a u16 in a u32 slot; the title
- * package's is 5. Nothing refers to the word: the unit exists to place the
- * bytes ahead of the rest of the package's read-only data. It is `const`
- * because the id belongs to the image's read-only region.
- */
+enum { PACKAGE_TITLE_ID = 5 };
 
-static const s32 packageId = 5;
+/// Title package identity stored in the image's first read-only 32-bit word.
+///
+/// The format word is zero-extended from id 5. This private object places
+/// bytes before the title's other read-only data; no C reference is required.
+static const u32 _gPackageId = PACKAGE_TITLE_ID;

@@ -327,7 +327,11 @@ DamageAttack gActor403600DoubleAttacks[ACTOR_403600_DOUBLE_ATTACK_COUNT] = {
     { 25, GAME_ACTOR_REACTION_DARKNESS },
 };
 
-/// Unused copy of the four projectile attack rows; no runtime consumer is known.
+/// Retained duplicate of the four power-32 projectile attacks, with no recovered consumer.
+///
+/// Rows 0..3 apply silence, paralysis, berserker and confusion respectively.
+/// The live projectile reads the separate `_gActor403600ProjectileAttacks`;
+/// this duplicate must remain stored to preserve the package's data layout.
 static DamageAttack _gActor403600UnusedProjectileAttacks[4] = {
     { 32, GAME_ACTOR_REACTION_SILENCE },
     { 32, GAME_ACTOR_REACTION_PARALYSIS },

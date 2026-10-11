@@ -136,7 +136,19 @@ static ActorCommand _gActor535700AyaTurnCommand = {
     .command = ACTOR_535700_SCENE_AYA_COMMAND_TURN
 };
 
-AnimationPlayRequest D_actor_535700_80133490 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_535700_AYA_CLIP_0 = 0 };
+
+/// Unplayed bank-0 clip-0 reset preset at the start of the scene-Aya request run.
+///
+/// The receiver is inferred from neighboring requests; Aya's bank entry 0 is
+/// NULL. No dispatch establishes a use for this retained preset.
+static AnimationPlayRequest _gActor535700UnusedAyaClip0Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Blends scene Aya back to her native startup clip 1.
 ///
@@ -174,7 +186,19 @@ static AnimationPlayRequest _gActor535700AyaTurnBlendRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-AnimationPlayRequest D_actor_535700_801334E0 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_535700_AYA_CLIP_4 = 4 };
+
+/// Unplayed bank-0 clip-4 reset preset within the scene-Aya request run.
+///
+/// The receiver is inferred from neighboring requests. No dispatch establishes
+/// the clip's action; source and collision words retain their stored zeros.
+static AnimationPlayRequest _gActor535700UnusedAyaClip4Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Restarts scene Aya's native clip 5 after her final offset placement.
 ///
@@ -296,17 +320,28 @@ static AnimationPlayRequest _gActor535700PawnGolemIdleRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-AnimationPlayRequest D_actor_535700_801335BC[10] = {
-    { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+enum {
+    ACTOR_535700_UNUSED_REQUEST_CLIP_1 = 1,
+    ACTOR_535700_UNUSED_REQUEST_CLIP_2 = 2,
+    ACTOR_535700_UNUSED_REQUEST_CLIP_3 = 3,
+};
+
+/// Ten unplayed bank-0 presets retained between the Pawn GOLEM request records.
+///
+/// Entry 0 resets clip 2, entry 1 blends to clip 3 over eight frames, and entries
+/// 2..9 reset clip 1. All disable world collision. No consumer establishes their
+/// receivers, indexing or original grouping; keep the stored ten-record span.
+static AnimationPlayRequest _gActor535700UnusedAnimationRequests[10] = {
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_3, ANIMATION_BLEND_INTERPOLATE, ACTOR_535700_SCENE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, ACTOR_535700_UNUSED_REQUEST_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Restarts the travel clip shared by all three scene Pawn GOLEMs.
@@ -474,9 +509,14 @@ static ActorTransform _gActor535700PawnGolemCenterWalkTarget = {
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 2, 0, 0 }
 };
 
-ActorTransform D_actor_535700_80133830[2] = {
-    { { 3500, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
-    { { 0, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
+/// Two unreferenced room-coordinate transforms beside the scene's Pawn GOLEM placements.
+///
+/// Positions lie at Y=0, Z=-2000 with X=3500 and X=0; both face a negative
+/// quarter-turn in the 4096-unit angle scale. Receiver, placement-versus-walk
+/// use and original grouping are unproven; retain both complete transforms.
+static ActorTransform _gActor535700UnusedPlacementTransforms[2] = {
+    { .pos = { 3500, 0, -2000, 0 }, .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
+    { .pos = { 0, 0, -2000, 0 }, .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
 /// Placement of the third scene Pawn GOLEM for its walk from the rear.

@@ -383,6 +383,12 @@ exports even though their saved state and sound queue are resident.
 
 ### Packages and included shared implementations
 
+`package` owns the format metadata emitted by the overlay packaging tools.
+The generated per-image `packageid.c` unit stores a private `_gPackageId`:
+the manifest id, zero-extended into the first read-only 32-bit word. Its shared
+declaration template lives in `tools/gen_overlay_configs.py`; individual load
+slots supply their own `PKG_ID`. This format object has no exported C interface.
+
 `bezierCurve` owns the included cubic Bezier coefficient conversion and reverse
 3D sampling shared by actor chains and room curve displays. Its private
 implementation interface is `src/shared/bezier_curve.h`; each carrier keeps

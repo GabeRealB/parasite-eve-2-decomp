@@ -929,7 +929,17 @@ static AnimationBankCopyRequest _gActor443500TourOpeningPlayerBankExtension = {
     .wordCount = ARRAY_SIZE(_gActor443500TourOpeningPlayerAnimationSets),
 };
 
-AnimationPlayRequest D_actor_443500_80140E78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unplayed clip-1 reset preset beside the tour-opening player requests.
+///
+/// Bank selector 1 and enabled world collision are retained. Its position in
+/// the player request run suggests Aya as receiver; no dispatch proves that.
+static AnimationPlayRequest _gActor443500UnusedTourOpeningPlayerClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Aya's shared extension clip with a four-frame blend during the opening tour.
 ///
@@ -1132,7 +1142,17 @@ static AnimationBankCopyRequest _gActor443500TerminalFollowupPlayerBankExtension
     .wordCount = ARRAY_SIZE(_gActor443500TerminalFollowupPlayerAnimationSets),
 };
 
-AnimationPlayRequest D_actor_443500_80140FF0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unplayed clip-1 reset preset beside the terminal-follow-up player requests.
+///
+/// Bank selector 1 and enabled world collision are retained. Its position in
+/// the player request run suggests Aya as receiver; no dispatch proves that.
+static AnimationPlayRequest _gActor443500UnusedTerminalFollowupPlayerClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Aya's shared extension clip with a ten-frame blend in terminal follow-ups.
 ///
@@ -1236,7 +1256,19 @@ static AnimationPlayRequest _gActor443500TerminalFollowupPlayerClip53Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_actor_443500_8014107C = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { ACTOR_443500_TERMINAL_FOLLOWUP_PLAYER_CLIP_54 = ANIMATION_BANK_BASE_SET_COUNT + 7 };
+
+/// Unplayed clip-54 reset preset in the terminal-follow-up player request run.
+///
+/// Requests world collision with bank selector 1. The receiver is inferred
+/// from the neighboring player requests; no dispatch proves it.
+static AnimationPlayRequest _gActor443500UnusedTerminalFollowupPlayerClip54Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_443500_TERMINAL_FOLLOWUP_PLAYER_CLIP_54,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Aya's terminal-follow-up clip 55 preset, resetting playback without a pose blend.
 ///
@@ -1407,7 +1439,19 @@ static AnimationPlayRequest _gActor443500TerminalFollowupPlayerClip67Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_actor_443500_80141194 = { { .index = 1 }, 68, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { ACTOR_443500_TERMINAL_FOLLOWUP_PLAYER_CLIP_68 = ANIMATION_BANK_BASE_SET_COUNT + 21 };
+
+/// Unplayed clip-68 preset with a ten-frame blend in the player request run.
+///
+/// Requests world collision with bank selector 1. The receiver is inferred
+/// from the neighboring player requests; no dispatch proves it.
+static AnimationPlayRequest _gActor443500UnusedTerminalFollowupPlayerClip68Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_443500_TERMINAL_FOLLOWUP_PLAYER_CLIP_68,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Aya's terminal-follow-up clip 69 preset, blending over 20 frames.
 ///
@@ -1466,7 +1510,17 @@ static ActorTransform _gActor443500PlayerMapTerminalPlacement = {
     .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 3, 0, 0 },
 };
 
-AnimationPlayRequest D_actor_443500_80141214 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unplayed bank-0 clip-1 reset preset beside Pierce's animation requests.
+///
+/// Its receiver is inferred from the neighboring Pierce requests. That actor
+/// ignores the retained world-collision word; no dispatch proves this preset's use.
+static AnimationPlayRequest _gActor443500UnusedPierceClip1ResetRequest = {
+    .source               = { .index = ACTOR_443500_PIERCE_ANIMATION_BANK },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Pierce's bank-0 clip 1 preset for the console follow-up, requesting a 20-frame blend.
 ///

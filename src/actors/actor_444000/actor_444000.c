@@ -561,7 +561,21 @@ static DamageAttack _gActor444000GluttonAttacks[6] = {
     { 35, GAME_ACTOR_REACTION_ORDINARY },   // Healing-sequence debris chunk
 };
 
-EnemyParams D_actor_444000_80144A18 = { _gActor444000GluttonAttacks, 3000, 500, 200, 100, 100, 0, 0, 0 };
+/// Retained Glutton tuning with 3000 HP and rewards of 500 experience, 200 BP and 100 MP.
+///
+/// Borrows the host's contact-attack rows. No enemy installs this record;
+/// the live host uses the separate 700-experience tuning.
+static EnemyParams _gActor444000UnusedGluttonParams = {
+    .attacks              = _gActor444000GluttonAttacks,
+    .hpMax                = 3000,
+    .exp                  = 500,
+    .bp                   = 200,
+    .mp                   = 100,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
 /// Host combat parameters and release rewards for the incinerator encounter.
 ///
@@ -2783,7 +2797,16 @@ static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
     { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gActor444000Actor403200Model1AC48 } },
 };
 
-TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
+/// Unspawned recipe for a Glutton floor spinner with its own TMD body.
+///
+/// Entry 0 requires a live Enemy in spawnArg2 and a delay class in the low
+/// half of spawnArg1 (0 short, 1 medium, otherwise long). Model geometry and
+/// callbacks belong to this overlay and must outlive the task.
+static TaskDesc _gActor444000UnusedGluttonSpinnerTaskDesc = {
+    .header   = { .fields = { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } },
+    .callback = _gluttonSpinnerTask,
+    .data     = { .model = &_gActor444000Actor403200Model19284 },
+};
 
 /// Host message dispatch for drawing, presence, placement, commands and room events.
 ///
@@ -2813,7 +2836,8 @@ TaskDesc gActor444000GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_444000_GLU
 /// Teardown does not clear it, so callbacks require the live event.
 static Task* _gActor444000IncineratorEventTask = NULL;
 
-u32 D_actor_444000_80161864 = 0x1A90C60D;
+/// Unreferenced initialized word; its role and encoding are unproven.
+static u32 D_actor_444000_80161864 = 0x1A90C60D;
 
 /// Catch progress latch: zero for part-relative placement, one after root placement.
 ///
