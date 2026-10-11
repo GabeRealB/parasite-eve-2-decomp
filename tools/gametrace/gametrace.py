@@ -44,6 +44,12 @@ the instructions it replaces are in memory as the image has them, so an address 
 ever hooked under the right one. An instruction a hook displaces must be free to move: `check` refuses a branch
 or a jump there (see `movable`).
 
+Where the emulator publishes the console's memory as a shared mapping and the tool runs on the same machine, the
+buffer is read from that mapping as the game runs: no stop for a drain at all, and the log follows the game within
+a quarter of a second (`[memory] shared`: "auto" looks for one, a name picks one, false turns it off). The mapping
+is checked before it is trusted - the blob written through the server must be readable in it. Writes always go
+through the server.
+
 The blob needs memory of its own (`blob.address`); by default just above 2 MB, which a target has only with more
 than the console's 2 MB. The tool refuses to write where that memory is a mirror of lower memory.
 
@@ -128,6 +134,7 @@ def load(path: Path) -> dict:
     blob.setdefault("address", 0x80200000)
     blob.setdefault("bytes", 0x100000)
     blob.setdefault("poke", [])
+    cfg.setdefault("memory", {}).setdefault("shared", "auto")
     at = cfg.get("install_at", [])
     cfg["install_at"] = [at] if isinstance(at, int) else list(at)
     problems, seen = [], {}
@@ -789,8 +796,9 @@ class Gdb:
         self._send("c")
         return True
 
-    def wait(self, also: list) -> str:
-        """Block until the running target stops ("stop") or one of the files in `also` has something to read ("input")."""
+    def wait(self, also: list, timeout: float | None = None) -> str:
+        """Block until the running target stops ("stop"), one of the files in `also` has something to read ("input"),
+        or `timeout` seconds pass ("tick")."""
         while True:
             packet = self._recv(0)
             if packet is not None:
@@ -799,7 +807,9 @@ class Gdb:
                         pass
                     return "stop"
                 continue
-            ready = select.select([self.sock, *also], [], [])[0]
+            ready = select.select([self.sock, *also], [], [], timeout)[0]
+            if not ready:
+                return "tick"
             if self.sock in ready:
                 chunk = self.sock.recv(65536)
                 if not chunk:
@@ -827,6 +837,63 @@ class Gdb:
         self._send("c")
 
 
+# ---- the console's memory, shared by the emulator: read without asking the server and without stopping the game
+
+class Shared:
+    """An emulator can publish the console's memory as a shared mapping other programs may open (`duckstation_<pid>`
+    for one that does). Reading it costs nothing and does not stop the game, where a read through the GDB server is
+    a round trip with the game stopped. It is only ever read here: a write would bypass the emulator's own
+    bookkeeping of changed code.
+
+    The mapping belongs to the machine the emulator runs on. A tool running elsewhere - in a Linux guest beside
+    a Windows emulator, say - cannot open it, and goes on through the server."""
+
+    def __init__(self, name: str, ram: int = 0x80000000, offset: int = 0) -> None:
+        self.name, self.ram, self.offset = name, ram & 0x1FFFFFFF, offset
+        if sys.platform == "win32":
+            import ctypes
+            from ctypes import wintypes
+            k = ctypes.WinDLL("kernel32", use_last_error=True)
+            k.OpenFileMappingW.restype = wintypes.HANDLE
+            k.OpenFileMappingW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+            k.MapViewOfFile.restype = ctypes.c_void_p
+            k.MapViewOfFile.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_size_t]
+            k.VirtualQuery.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t]
+            handle = k.OpenFileMappingW(0x0004, False, name)                   # FILE_MAP_READ
+            if not handle:
+                raise OSError(f"no shared mapping named {name}")
+            view = k.MapViewOfFile(handle, 0x0004, 0, 0, 0)
+            if not view:
+                raise OSError(f"the shared mapping {name} could not be mapped")
+            info = (ctypes.c_size_t * 8)()                                    # MEMORY_BASIC_INFORMATION: RegionSize is its fourth pointer-sized field
+            k.VirtualQuery(view, info, ctypes.sizeof(info))
+            self.size = int(info[3])
+            self.view = (ctypes.c_ubyte * self.size).from_address(view)
+            self.peek = lambda at, length: bytes(self.view[at:at + length])
+        else:
+            import mmap
+            path = Path(name) if "/" in name else Path("/dev/shm") / name
+            with path.open("rb") as handle:
+                self.map = mmap.mmap(handle.fileno(), 0, access=mmap.ACCESS_READ)
+            self.size = len(self.map)
+            self.peek = lambda at, length: self.map[at:at + length]
+
+    def read(self, address: int, length: int) -> bytes | None:
+        """`length` bytes of the console's memory at `address`, or None when the mapping does not hold them."""
+        at = (address & 0x1FFFFFFF) - self.ram + self.offset
+        return self.peek(at, length) if 0 <= at and at + length <= self.size else None
+
+    @staticmethod
+    def find(wanted) -> list[str]:
+        """The mappings to try: the name the config gives, or every emulator process found."""
+        if isinstance(wanted, str) and wanted != "auto":
+            return [wanted]
+        if sys.platform == "win32":
+            listing = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True).stdout
+            return [f"duckstation_{row.split(',')[1].strip(chr(34))}" for row in listing.splitlines() if row.lower().startswith(chr(34) + "duckstation")]
+        return sorted(p.name for p in Path("/dev/shm").glob("duckstation_*")) if Path("/dev/shm").is_dir() else []
+
+
 # ---- a session
 
 class Session:
@@ -838,6 +905,8 @@ class Session:
         self.session_number = self.session_at = self.session_count = 0
         self.session_name = self.awaiting = ""          # awaiting: the name of a session just dropped, until the next begins
         self.drains: set[int] = set()
+        self.shared: Shared | None = None
+        self.read_at = 0                              # how far into the buffer the log has got
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
         self.layout = {}                              # a record's first word -> (event, phase, captures)
@@ -998,6 +1067,35 @@ class Session:
                 self.gdb.breakpoint(address)
             print(f"waiting for the game to reach {', '.join(self.names.at(a) for a in sorted(self.installers))}", file=sys.stderr)
 
+    def peek(self, address: int, length: int) -> bytes:
+        """Memory for reading only: from the shared mapping where there is one, else through the server (stopped)."""
+        if self.shared is not None:
+            data = self.shared.read(address, length)
+            if data is not None:
+                return data
+        return self.gdb.read(address, length)
+
+    def open_shared(self) -> None:
+        """Find the emulator's shared memory and make sure it is this game's: the blob just written through the
+        server has to be readable in it, at the same place."""
+        wanted = self.cfg["memory"]["shared"]
+        if wanted in (False, "", "no", "off"):
+            return
+        base, reasons = self.cfg["blob"]["address"], []
+        for name in Shared.find(wanted):
+            try:
+                shared = Shared(name)
+            except OSError as error:
+                reasons.append(str(error))
+                continue
+            if shared.read(base, len(self.code)) == self.code:
+                self.shared = shared
+                print(f"reading memory from the shared mapping {name}: the buffer is read as the game runs, without stopping it", file=sys.stderr)
+                return
+            reasons.append(f"{name} does not hold this game's memory where expected")
+        if wanted != "auto" or reasons:
+            print("no usable shared memory (" + "; ".join(reasons or ["none found"]) + "): reading through the GDB server", file=sys.stderr)
+
     def setup(self) -> None:
         base = self.cfg["blob"]["address"]
         self.refuse_mirror(base)
@@ -1006,10 +1104,13 @@ class Session:
         except OSError as error:
             raise SystemExit(f"{error}\nThe blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
         self.gdb.breakpoint(self.symbols["gt_full"])
+        self.read_at = self.symbols["gt_buffer"]
+        self.open_shared()
         # An event marked `drain` has the buffer read each time it is over: at its returns where the config gives
-        # them, and otherwise straight after its entry record.
+        # them, and otherwise straight after its entry record. With shared memory the buffer is read as the game
+        # runs, and none of these stops is needed.
         self.drains = set()
-        for event in self.events:
+        for event in self.events if self.shared is None else ():
             if event["drain"]:
                 ends = [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]
                 self.drains |= {self.symbols[name] for name in ends}
@@ -1057,7 +1158,7 @@ class Session:
             address, original, stub = hooks[0]
             jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
             if not everything:
-                first = struct.unpack("<2I", self.gdb.read(address, 8))
+                first = struct.unpack("<2I", self.peek(address, 8))
                 if first == jump and self.known.get(image):
                     placed += self.known[image]       # still hooked
                     continue
@@ -1086,18 +1187,20 @@ class Session:
                 self.gdb.write(address, struct.pack("<2I", *original))
 
     def drain(self, reset: bool) -> None:
-        """Write out everything the buffer holds. `reset` starts it again from here; where the game is stopped on
-        gt_full its own next instructions do that."""
+        """Write out what the buffer holds beyond what the log already has. `reset` starts the buffer again from
+        here (the game must be stopped); where the game is stopped on gt_full its own next instructions do that."""
         start = self.symbols["gt_buffer"]
-        cursor = struct.unpack("<I", self.gdb.read(self.symbols["gt_cursor"], 4))[0]
-        if not start < cursor <= self.symbols["gt_end"]:
+        cursor = struct.unpack("<I", self.peek(self.symbols["gt_cursor"], 4))[0]
+        if not start <= cursor <= self.symbols["gt_end"]:
             return
-        data, at = self.gdb.read(start, cursor - start), 0
+        if cursor < self.read_at:                     # the game started the buffer again since the last look
+            self.read_at = start
+        data, at = self.peek(self.read_at, cursor - self.read_at), 0
         while at + 4 <= len(data):
             word = struct.unpack_from("<I", data, at)[0]
             known = self.layout.get(word)
             if known is None:
-                self.emit({"note": f"the buffer does not parse from byte {at} of {len(data)} (first word {word:#010x}); the rest of this read is dropped"})
+                self.emit({"note": f"the buffer does not parse at {self.read_at + at:#010x} (first word {word:#010x}); what was read after it is dropped"})
                 break
             event, phase, captures = known
             record, field = {"id": event["id"], "name": event["name"], "phase": phase}, at + 4
@@ -1107,8 +1210,11 @@ class Session:
             self.log(event, record)
             at = field
         self.out.flush()
-        if reset:
+        self.read_at = cursor
+        if reset and cursor != start:
             self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", start))
+        if reset:
+            self.read_at = start
 
     def close(self) -> None:
         """Leave the game as it was found, running: no hook, no breakpoint. What the buffer still holds is read first."""
@@ -1133,16 +1239,39 @@ class Session:
                 self.install()
         elif self.ready and pc == self.symbols["gt_full"]:
             self.drain(reset=False)
+            self.read_at = self.symbols["gt_buffer"]  # the game's next instructions start the buffer again
             self.install()
         elif self.ready and pc in self.drains:
             self.drain(reset=True)
             self.install()
         return pc
 
+    def lost_hooks(self) -> bool:
+        """Whether some image has been loaded again without its hooks: a look that does not stop the game."""
+        for image, hooks in self.by_image.items():
+            if image in self.settled:
+                continue
+            address, original, _stub = hooks[0]
+            if struct.unpack("<2I", self.peek(address, 8)) == tuple(original):
+                return True
+        return False
+
     def run(self, first_session: str | None = None) -> None:
         self.session(first_session)
         self.start()
-        keyboard, typed, pc = [sys.stdin], "", None
+        # Commands arrive from a thread: a keyboard cannot be waited on together with a socket on every system.
+        import queue
+        import threading
+        lines: queue.Queue = queue.Queue()
+        wake, woken = socket.socketpair()
+        def listen() -> None:
+            for line in sys.stdin:
+                lines.put(line)
+                wake.send(b"x")
+            lines.put(None)
+            wake.send(b"x")
+        threading.Thread(target=listen, daemon=True).start()
+        keyboard, pc = [woken], None
         print("type `help` for the commands; Ctrl-C detaches", file=sys.stderr)
         while True:
             if not self.running and not self.paused:
@@ -1151,30 +1280,37 @@ class Session:
                     pc = self.stopped()
                     continue
             if self.running:
-                if self.gdb.wait(keyboard) == "stop":
+                what = self.gdb.wait(keyboard, 0.25 if self.shared is not None and self.ready else None)
+                if what == "stop":
                     self.running = False
                     pc = self.stopped()
+                    continue
+                if what == "tick":                    # shared memory: bring the log up to date as the game runs
+                    self.drain(reset=False)
+                    if self.lost_hooks():             # putting a hook back is a write: that needs the game stopped
+                        self.gdb.interrupt()
+                        self.running = False
+                        pc = self.stopped()
+                        self.install()
                     continue
             elif keyboard:
                 select.select(keyboard, [], [])
             else:
                 self.paused = False                   # nobody can say `resume` any more
                 continue
-            data = os.read(sys.stdin.fileno(), 4096).decode(errors="replace")
-            if not data:
+            woken.recv(1)
+            line = lines.get()
+            if line is None:
                 keyboard = []                         # the input is closed; the trace goes on without commands
                 continue
-            typed += data
-            while "\n" in typed:
-                line, typed = typed.split("\n", 1)
-                if not line.strip():
-                    continue
-                if self.running:                      # a command is carried out with the game stopped
-                    self.gdb.interrupt()
-                    self.running = False
-                    pc = self.stopped()               # it may have been about to stop on its own
-                self.command(line)
-                self.out.flush()
+            if not line.strip():
+                continue
+            if self.running:                          # a command is carried out with the game stopped
+                self.gdb.interrupt()
+                self.running = False
+                pc = self.stopped()                   # it may have been about to stop on its own
+            self.command(line)
+            self.out.flush()
 
 
 def main() -> int:

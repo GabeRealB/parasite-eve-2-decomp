@@ -31,6 +31,12 @@ port = 2345
 [renderer]
 files = ["renderers/pe2.py"]
 
+# The console's memory as the emulator shares it with other programs, where it does (DuckStation: "Export Shared
+# Memory", a mapping called duckstation_<pid>). "auto" looks for one; a name picks one; false reads everything
+# through the GDB server. It only works when this tool runs on the machine the emulator runs on.
+[memory]
+shared = "auto"
+
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
 bytes = 0x100000         # the buffer. The game stops only when it is full, for as long as reading it takes
