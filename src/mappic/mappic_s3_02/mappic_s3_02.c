@@ -323,32 +323,37 @@ TmdSource gMappicS302MotelRoom3Shape = {
     .stream           = _gMappicS302MotelRoom3ShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800664Skeleton[1] = {
+/// Identity transform and self-parented root for the Motel room 4 shape.
+static TmdBone _gMappicS302MotelRoom4ShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00664_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800664PartVerts[1] = {
+/// Vertex count of the Motel room 4 shape's sole part (four vertices).
+static u32 _gMappicS302MotelRoom4ShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00664_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800664Verts[4] = {
+/// Motel room 4's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302MotelRoom4ShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00664_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800664Stream[9] = {
+/// Packed command stream for the Motel room 4 shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS302MotelRoom4ShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00664_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F5AC = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800664PartVerts,
-    _gMappicS302MappicS202Model00C4800664Verts,
-    &_gMappicS302MappicS202Model00C4800664Verts[4],
-    _gMappicS302MappicS202Model00C4800664Skeleton,
-    _gMappicS302MappicS202Model00C4800664Stream,
+TmdSource gMappicS302MotelRoom4Shape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302MotelRoom4ShapeSkeleton),
+    .partVertexCounts = _gMappicS302MotelRoom4ShapePartVerts,
+    .verts            = _gMappicS302MotelRoom4ShapeVerts,
+    .normals          = &_gMappicS302MotelRoom4ShapeVerts[ARRAY_SIZE(_gMappicS302MotelRoom4ShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302MotelRoom4ShapeSkeleton,
+    .stream           = _gMappicS302MotelRoom4ShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00710Skeleton[1] = {
