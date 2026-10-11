@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_main_corridor.
 _gShelterB1MainCorridorEntryBeamPoints = 0x801830D4; // size:0x40 defined:True
 _gShelterB1MainCorridorViewLightPoints = 0x80183114; // size:0xC0 defined:True
-gRoomEventTaskDesc = 0x8018308C; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x8018308C; // size:0xC defined:True
 _gShelterB1MainCorridorStagedEventTaskDesc = 0x80183098; // size:0xC defined:True
 _gShelterB1MainCorridorRoomMessages = 0x801830A4; // size:0x30 defined:True
 _gRoomVisualEffectsHaloShades = 0x801831D4; // size:0x14 defined:True

@@ -41,7 +41,8 @@
 
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
+#define ROOM_EVENT_ACTIVE    gRoomEventActive.eventStarted
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/garage.h"
 
@@ -52,7 +53,6 @@ extern RoomEventActiveBytes gRoomEventActive;
 extern RoomEventReq gRoomEventReq;
 
 /// Descriptor of the event task `roomEventTask`.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// Storage for the task of the scene that turns the player back from the
 /// junk-yard door.
@@ -85,7 +85,13 @@ static s32                              _dryfieldGarageHandleRoomCommand(Task* u
 static s32                              _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void                             _dryfieldGarageJunkYardRefusalTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// The room receiver's five message handlers and unsupported-message terminator.
 ///

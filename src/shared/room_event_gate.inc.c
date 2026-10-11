@@ -41,7 +41,7 @@ static inline void _roomEventLatchAndSpawn(const RoomEventReq* request, const Ro
         flagValue = ROOM_EVENT_GATE_FLAG_CLEAR;
     }
     gameFlagSetNibble(flagId, flagValue);
-    taskSpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
+    taskSpawnFromTable(&ROOM_EVENT_TASK_DESC, 0, 0, 0);
     ROOM_EVENT_ACTIVE = ROOM_EVENT_GATE_STARTED;
 }
 

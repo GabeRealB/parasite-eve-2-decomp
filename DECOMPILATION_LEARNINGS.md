@@ -86622,11 +86622,11 @@ strongest confirmation: `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM
 A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
 neighbouring words say which kind. `_dryfieldBreezewayUseBottlecapMagnet` sits in
-`D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
+`_gDryfieldBreezewayKeyItemMessageTable[0].handler` with `0x13F1` in the word before it and
 `TASK_MESSAGE_TABLE_END` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
-it - `_dryfieldBreezewayInitializeKeyItemEvent` stores `&D_dryfield_breezeway_80182DCC`
-(the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
+it - `_dryfieldBreezewayInitializeKeyItemEvent` stores `_gDryfieldBreezewayKeyItemMessageTable`
+(the table's first id word) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
 The trap is the argument split. `TaskMessageHandler` is

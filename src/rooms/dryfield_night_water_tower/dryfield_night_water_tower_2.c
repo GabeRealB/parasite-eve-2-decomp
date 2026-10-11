@@ -61,7 +61,7 @@ static WorldCollisionTrigger _gDryfieldNightWaterTowerViewBoundaryTriggers[14];
 static WorldCollisionTrigger _gDryfieldNightWaterTowerActionTriggers[9];
 static WorldCoordRoomLights  _gDryfieldNightWaterTowerRoomLights;
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry gDryfieldNightWaterTowerRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },

@@ -19,7 +19,8 @@
  *                     gRoomEventMsg       the cross-TU latched message
  *   RoomEventReq      gRoomEventReq       the latched request (gate and task)
  *   u8                gRoomEventActive    raised while an event runs
- *   TaskDesc          gRoomEventTaskDesc  the event task the gate spawns
+ *   TaskDesc          _gRoomEventTaskDesc the TU-local event spawn recipe
+ *                     gRoomEventTaskDesc  the cross-TU event spawn recipe
  *   RoomEventMsg      _gRoomEventStagedMsg the TU-local staged destination
  *                     gRoomEventStagedDestination the cross-TU staged destination
  *   RoomLatchedEvent  gRoomEventLatched   the latched event (staged task)
@@ -71,6 +72,23 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+
+/// Ascending execution priority of the gate's bodyless transition task.
+enum { ROOM_EVENT_TASK_PRIORITY = 32 };
+
+#ifndef ROOM_EVENT_TASK_DESC
+/// Bodyless transition-task recipe selected by the room's event gate.
+///
+/// Requires a live `TaskDesc` lvalue using `roomEventTask`, priority
+/// `ROOM_EVENT_TASK_PRIORITY`, and zero metadata. The gate spawns entry 0
+/// with two zero payloads after latching the room-owned request/destination.
+/// Spawning reads the descriptor synchronously; the latched records and room
+/// callback code remain loaded until the deferred task requests session reload.
+/// The default is the cross-TU `gRoomEventTaskDesc`; a single-TU carrier binds
+/// its static `_gRoomEventTaskDesc` before including this header. The binding
+/// allocates no storage and its lvalue is evaluated once per spawn.
+#define ROOM_EVENT_TASK_DESC gRoomEventTaskDesc
+#endif
 
 #ifndef ROOM_EVENT_MSG
 /// Complete room-owned transition snapshot copied by the gate and read through reload.

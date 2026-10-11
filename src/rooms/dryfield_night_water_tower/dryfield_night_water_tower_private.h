@@ -8,6 +8,11 @@
 
 #include "main/task_types.h"
 
+/// Bodyless transition-task recipe shared by this overlay's gate and event task.
+///
+/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// reads the recipe synchronously after latching the request and destination;
+/// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
 /// Message handlers borrowed by the night Water Tower's registered room task.

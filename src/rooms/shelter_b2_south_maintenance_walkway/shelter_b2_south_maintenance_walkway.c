@@ -64,7 +64,8 @@
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
-#define ROOM_EVENT_REQ gRoomEventReq.request
+#define ROOM_EVENT_REQ       gRoomEventReq.request
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -73,7 +74,6 @@ extern u8 D_shelter_b2_south_maintenance_walkway_801838F4[4];
 
 /// Descriptors of the two event tasks: the one the event gate spawns, and the
 /// one the walkway's handler spawns for its own event.
-extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_south_maintenance_walkway_80182544;
 
 /// The walkway's message table, installed as the room task's `msgTable`.
@@ -101,7 +101,13 @@ static s32 _shelterB2SouthMaintenanceWalkwayIgnoreAction(Task* task, s32 message
 
 enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskDesc D_shelter_b2_south_maintenance_walkway_80182544 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 

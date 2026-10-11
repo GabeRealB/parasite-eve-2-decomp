@@ -31,7 +31,7 @@ static void _dryfieldNightMotelBalconyBlackoutTask(Task* task);
 
 static void _dryfieldNightMotelBalconyMovieTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },

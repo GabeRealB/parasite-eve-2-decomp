@@ -61,6 +61,7 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 /// Selects the nighttime factory instance for shared room declarations and code.
@@ -78,8 +79,6 @@ static void _factoryPanelExit(Task* task);
 static void _factoryPanelWaitMove(Task* task);
 
 static void _actionPromptResetDefault(Task* task);
-
-extern TaskDesc gRoomEventTaskDesc;
 
 static void _factoryPromptTask(Task* task);
 static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
@@ -267,7 +266,13 @@ TaskDesc gFactoryNightSpawnTable[8] = {
     { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel093E4 } },
 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Bodyless priority-32 operator-panel session poller and an unspawned end entry.
 ///

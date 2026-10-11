@@ -52,7 +52,7 @@
 
 TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, shelterB2NorthMaintenanceWalkwayResolveRoomEvent },

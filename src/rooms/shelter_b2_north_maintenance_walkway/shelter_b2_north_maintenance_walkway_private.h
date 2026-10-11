@@ -13,6 +13,11 @@
 
 extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
 
+/// Bodyless transition-task recipe shared by this overlay's gate and event task.
+///
+/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// reads the recipe synchronously after latching the request and destination;
+/// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6];

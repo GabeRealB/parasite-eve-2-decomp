@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_g_r_kitchen.
 _gDryfieldGRKitchenLightBeamEndpoints = 0x8017EBE8; // size:0x40 defined:True
-gRoomEventTaskDesc = 0x8017EBB4; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x8017EBB4; // size:0xC defined:True
 _gDryfieldGRKitchenMessageTable = 0x8017EBC0; // size:0x28 defined:True
 gDryfieldGRKitchenRoomCollisionResources = 0x8017EC28; // size:0x10 defined:True
 gDryfieldGRKitchenViewMaps = 0x8017EC38; // size:0x4 defined:True

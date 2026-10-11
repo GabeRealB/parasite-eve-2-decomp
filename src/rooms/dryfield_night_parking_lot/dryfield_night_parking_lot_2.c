@@ -78,7 +78,7 @@ static AnimationSet _gDryfieldNightParkingLotAnimation0166C = {
     { NULL, _gDryfieldNightParkingLotAnimation0166CBank1, NULL, NULL, _gDryfieldNightParkingLotAnimation0166CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },

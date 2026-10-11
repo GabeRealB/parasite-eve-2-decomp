@@ -60,7 +60,8 @@
 
 #include "../../shared/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
+#define ROOM_EVENT_ACTIVE    gRoomEventActive.eventStarted
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
@@ -70,7 +71,6 @@ static s32 _motelBalconyCueSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 s
 extern RoomEventActiveBytes gRoomEventActive;
 
 /// Descriptor of the event task the gate spawns.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// Per-tint channel shifts for the halo task, indexed by the tint the spawn
 /// argument selects.
@@ -97,7 +97,13 @@ static s32 _dryfieldMotelBalconyUseKeyItemMsg(Task* task, s32 messageId, s32 ite
 static s32 _dryfieldMotelBalconyCommandMsg(Task* task, s32 messageId, s32 commandId, s32 secondArg);
 static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Five room-message handlers followed by the unsupported-message terminator.
 ///

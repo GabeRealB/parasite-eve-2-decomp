@@ -56,7 +56,7 @@ static WorldCollisionTrigger _gDryfieldNightDilapidatedHouseViewBoundaries[8];
 static void _dryfieldNightDilapidatedHouseMovieTask(Task* task);
 static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldNightDilapidatedHouseGateBackStreetExit },

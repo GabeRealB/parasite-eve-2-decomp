@@ -47,7 +47,8 @@
 #include "../../shared/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
+#define ROOM_EVENT_ACTIVE    gRoomEventActive.eventStarted
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 /// Selects the nighttime sound bank for the shared G & R kitchen door handler.
@@ -60,10 +61,9 @@ extern RoomEventActiveBytes gRoomEventActive;
 
 /// The event the room's gate `_roomEventGate`
 /// latched: the incoming message and the request, kept for the event task it
-/// spawns from `gRoomEventTaskDesc`, and the flag the gate
+/// spawns from `_gRoomEventTaskDesc`, and the flag the gate
 /// sets once it has done so.
 extern RoomEventReq gRoomEventReq;
-extern TaskDesc     gRoomEventTaskDesc;
 
 static s32 _roomVariantGRKitchenMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -115,7 +115,13 @@ static WorldCollisionTrigger _gDryfieldNightGRKitchenViewBoundaryTriggers[2];
 static WorldCollisionTrigger _gDryfieldNightGRKitchenActionTriggers[7];
 static WorldCoordRoomLights  _gDryfieldNightGRKitchenRoomLights;
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Room-message routes for departure resolution, refused key items and ignored commands.
 ///

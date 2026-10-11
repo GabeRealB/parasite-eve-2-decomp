@@ -443,7 +443,7 @@ gShelterB3IncineratorControlRoomViewBoundaryTriggers = 0x801824B8; // absolute:T
 gShelterB3IncineratorControlRoomRoom1ActionTriggers = 0x80182668; // absolute:True owner=shelter_b3_incinerator_control_room
 gShelterB3IncineratorControlRoomRoom2ActionTriggers = 0x801827E4; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 gShelterB3IncineratorControlRoomOccluders = 0x801829AC; // absolute:True owner=shelter_b3_incinerator_control_room
-gShelterB3IncineratorControlRoomSurfacePropertiesByClass = 0x80182A20; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
+gShelterB3IncineratorControlRoomSurfacePropertiesByClass = 0x80182A20; // absolute:True owner=shelter_b3_incinerator_control_room
 shelterB3ElevatorHallRoomTask = 0x8017DE18; // type:func absolute:True owner=shelter_b3_elevator_hall
 gShelterB3ElevatorHallViewMaps = 0x80182B54; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 gShelterB3ElevatorHallRoomViewCounts = 0x80182B58; // absolute:True owner=shelter_b3_elevator_hall

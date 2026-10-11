@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_general_store.
-gRoomEventTaskDesc = 0x8017E78C; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x8017E78C; // size:0xC defined:True
 gStoreTaskDescs = 0x8017E798; // size:0x24 defined:True
 D_dryfield_night_general_store_8017E7BC = 0x8017E7BC; // size:0x30 defined:True
 _gDryfieldNightGeneralStoreLightShaftPoints = 0x8017E7EC; // size:0x20 defined:True

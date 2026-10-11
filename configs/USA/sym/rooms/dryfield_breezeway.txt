@@ -2,8 +2,8 @@
 _gRoomEventMsg = 0x8018439C; // size:0x8 defined:True
 gRoomEventActive = 0x801843A4; // size:0x1 defined:True
 D_dryfield_breezeway_801843A8 = 0x801843A8; // size:0x4 defined:True
-D_dryfield_breezeway_80181E28 = 0x80181E28; // size:0x18 defined:True
-D_dryfield_breezeway_80181E40 = 0x80181E40; // size:0x30 defined:True
+_gDryfieldBreezewayFirstEventChaserPlacement = 0x80181E28; // size:0x18 defined:True
+_gDryfieldBreezewayFirstEventPlayerPlacements = 0x80181E40; // size:0x30 defined:True
 _gDryfieldBreezewayVariant10Placements = 0x801842C8; // size:0x30 defined:True
 D_dryfield_breezeway_801842F8 = 0x801842F8; // size:0x68 defined:True
 _gDryfieldBreezewayFootstepSounds = 0x80184360; // size:0xC defined:True
@@ -49,28 +49,28 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor323400DesertChaserTaskDesc = 0x8017120C; // absolute:True owner=actor_323400
-D_dryfield_breezeway_80181E70 = 0x80181E70; // size:0x120 defined:True
-D_dryfield_breezeway_80181F90 = 0x80181F90; // size:0x120 defined:True
-D_dryfield_breezeway_801820B0 = 0x801820B0; // size:0x18 defined:True
-D_dryfield_breezeway_801820C8 = 0x801820C8; // size:0xC defined:True
+_gDryfieldBreezewayFirstEventScript = 0x80181E70; // size:0x120 defined:True
+_gDryfieldBreezewayFirstEventSkipScript = 0x80181F90; // size:0x120 defined:True
+gDryfieldBreezewayFirstEventTaskDescs = 0x801820B0; // size:0x18 defined:True
+_gDryfieldBreezewayImmediateExitTaskDesc = 0x801820C8; // size:0xC defined:True
 _gDryfieldBreezewayModel04E8CSkeleton = 0x801820D4; // size:0x24 defined:True
 _gDryfieldBreezewayModel04E8CPartVerts = 0x801820F8; // size:0x4 defined:True
 _gDryfieldBreezewayModel04E8CVerts = 0x801820FC; // size:0x2C0 defined:True
 _gDryfieldBreezewayModel04E8CNormals = 0x801823BC; // size:0x90 defined:True
 _gDryfieldBreezewayModel04E8CStream = 0x8018244C; // size:0x950 defined:True
 _gDryfieldBreezewayModel04E8C = 0x80182D9C; // size:0x24 defined:True
-D_dryfield_breezeway_80182DC0 = 0x80182DC0; // size:0xC defined:True
-D_dryfield_breezeway_80182DCC = 0x80182DCC; // size:0x10 defined:True
-D_dryfield_breezeway_80182DDC = 0x80182DDC; // size:0x24 defined:True
-D_dryfield_breezeway_80182E00 = 0x80182E00; // size:0x18 defined:True
-D_dryfield_breezeway_80182E18 = 0x80182E18; // size:0xC defined:True
-D_dryfield_breezeway_80182E24 = 0x80182E24; // size:0x100 defined:True
-D_dryfield_breezeway_80182F24 = 0x80182F24; // size:0x20 defined:True
+_gDryfieldBreezewayKeyItemCursorTaskDesc = 0x80182DC0; // size:0xC defined:True
+_gDryfieldBreezewayKeyItemMessageTable = 0x80182DCC; // size:0x10 defined:True
+_gDryfieldBreezewayLineTargetHotspots = 0x80182DDC; // size:0x24 defined:True
+_gDryfieldBreezewayKeyItemModelHotspots = 0x80182E00; // size:0x18 defined:True
+gDryfieldBreezewayKeyItemModelTaskDesc = 0x80182E18; // size:0xC defined:True
+_gDryfieldBreezewayKeyItemLinePixels = 0x80182E24; // size:0x100 defined:True
+_gDryfieldBreezewayKeyItemLineUploads = 0x80182F24; // size:0x20 defined:True
 D_dryfield_breezeway_80182F44 = 0x80182F44; // size:0x200 defined:True
 D_dryfield_breezeway_80183144 = 0x80183144; // size:0x20 defined:True
 gRoomEventTaskDesc = 0x80181DD4; // size:0xC defined:True
-D_dryfield_breezeway_80181DE0 = 0x80181DE0; // size:0x30 defined:True
-D_dryfield_breezeway_80181E10 = 0x80181E10; // size:0x18 defined:True
+gDryfieldBreezewayRoomMessageTable = 0x80181DE0; // size:0x30 defined:True
+gDryfieldBreezewayInteractionTaskDescs = 0x80181E10; // size:0x18 defined:True
 
 dryfieldBreezewayBouncingParticleTask = 0x80181264; // type:func
 
@@ -118,3 +118,4 @@ dryfieldBreezewayFactoryDoorDialogueTask = 0x8017dce4; // type:func
 _dryfieldBreezewayInitMessageTask = 0x8017ddb0; // type:func
 _dryfieldBreezewayLeadKeyItemLine = 0x8017e81c; // type:func
 _dryfieldBreezewayFinishKeyItemCommand = 0x8017fe08; // type:func
+_gDryfieldBreezewayKeyItemStateHandlers = 0x8017d5e8;

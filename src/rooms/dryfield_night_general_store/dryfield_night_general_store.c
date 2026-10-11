@@ -29,6 +29,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
@@ -38,9 +39,6 @@ static void _generalStoreToggleFlagTask(Task* task);
 static s32  _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
-
-/// Descriptor of the event task `roomEventTask`.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's two spawnable tasks: entry 0 the CAP-command task
 /// `_generalStoreToggleFlagTask`, entry 1 the cutscene task
@@ -56,7 +54,13 @@ static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask);
 static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gStoreTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, _generalStoreToggleFlagTask, { .value = 0 } },

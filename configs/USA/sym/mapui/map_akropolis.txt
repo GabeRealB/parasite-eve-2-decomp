@@ -88,7 +88,7 @@ acropolisForkedRoadRoomTask = 0x8017D9CC; // type:func absolute:True owner=acrop
 gAcropolisForkedRoadRoomCollisionResources = 0x80182214; // absolute:True owner=acropolis_forked_road
 gAcropolisForkedRoadViewMaps = 0x8018225C; // absolute:True owner=acropolis_forked_road
 gAcropolisForkedRoadViewCounts = 0x80182268; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadRoomLightingTable = 0x80182270; // absolute:True owner=acropolis_forked_road shared=rooms
+gAcropolisForkedRoadRoomLightingTable = 0x80182270; // absolute:True owner=acropolis_forked_road
 gAcropolisForkedRoadWarpEntries = 0x80182288; // absolute:True owner=acropolis_forked_road
 gAcropolisForkedRoadSpriteViews = 0x801844E0; // absolute:True owner=acropolis_forked_road shared=rooms
 gAcropolisForkedRoadViewCameras = 0x80184E88; // absolute:True owner=acropolis_forked_road

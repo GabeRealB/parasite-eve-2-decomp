@@ -67,6 +67,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 // Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
@@ -105,7 +106,6 @@ extern TaskDesc D_actor_143000_80134564;
 /// View saved when the cutscene starts and restored when it ends.
 
 /// Task descriptor for the flag-gated exit's transition.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// This room's cutscene sound-task slot. The runner uses `task`.
 extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
@@ -190,7 +190,13 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Laboratory room-message routes, with five handlers followed by the end marker.
 ///

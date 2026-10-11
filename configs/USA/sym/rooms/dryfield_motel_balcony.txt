@@ -80,7 +80,7 @@ gMapDryfieldMotelBalconyVariant3Placements = 0x8017BA84; // absolute:True owner=
 gMapDryfieldMotelBalconyVariant7Placements = 0x8017BAF4; // absolute:True owner=map_dryfield
 gMapDryfieldMotelBalconyVariant8Placements = 0x8017BB24; // absolute:True owner=map_dryfield
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801822C0; // size:0x10 defined:True
-gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
 _gDryfieldMotelBalconyRoomMessages = 0x8018227C; // size:0x30 defined:True
 _gRoomVisualEffectsHaloShades = 0x801822AC; // size:0x14 defined:True
 gRoomEventActive = 0x8018672C; // size:0x4 defined:True

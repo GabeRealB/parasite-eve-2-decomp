@@ -69,7 +69,8 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The latched-event symbol carries four unproven bytes after the event.
-#define ROOM_EVENT_LATCHED gRoomEventLatched.event
+#define ROOM_EVENT_LATCHED   gRoomEventLatched.event
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 /// Binds the shared puff task to this package's public void (Task*) effect callback.
 /// Must precede main_street.h and remain defined through main_street_puff_task.inc.c.
@@ -93,7 +94,6 @@ extern RoomEventActiveBytes gRoomEventActive;
 extern TaskDesc gMainStreetEventTaskDesc;
 
 /// Descriptor of the event task the event gate spawns.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// Descriptor of the task `_mainStreetTalkMessage` spawns.
 extern TaskDesc gMainStreetPlayTimeTaskDesc;
@@ -160,7 +160,13 @@ enum {
 
 TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 

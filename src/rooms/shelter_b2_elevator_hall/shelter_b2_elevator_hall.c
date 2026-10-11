@@ -65,13 +65,13 @@
 #include "../../shared/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
+#define ROOM_EVENT_ACTIVE    gRoomEventActive.eventStarted
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 #include "../../shared/shelter_elevator.h"
 
 /// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `roomEventTask` to warp from.
@@ -98,7 +98,13 @@ static s32 _shelterB2ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 c
 /// Room message whose first payload word is the key-item ID to use.
 enum { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Scheduler priority for the hall's bodyless elevator-selection task.
 enum { SHELTER_B2_ELEVATOR_HALL_ELEVATOR_TASK_PRIORITY = 32 };

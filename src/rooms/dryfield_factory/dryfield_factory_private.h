@@ -44,6 +44,11 @@ extern WorldCoordRoomLights gDryfieldFactoryRoomLights;
 /// Both room variants borrow the same table for the loaded overlay's lifetime.
 extern WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20];
 
+/// Bodyless transition-task recipe shared by this overlay's gate and event task.
+///
+/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// reads the recipe synchronously after latching the request and destination;
+/// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_factory_801826BC[2];

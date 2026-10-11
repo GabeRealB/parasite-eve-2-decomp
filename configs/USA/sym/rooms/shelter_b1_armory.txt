@@ -143,7 +143,7 @@ _gShopWeaponSupplyRefillDescriptor = 0x8018247C; // size:0x1C defined:True
 _gShopItemPreviewDescriptor = 0x80182498; // size:0x1C defined:True
 _gShopPurchaseQuantityDescriptor = 0x801824B4; // size:0x1C defined:True
 gShelterB1ArmoryShopSessionTaskDesc = 0x801824D0; // size:0xC defined:True
-gRoomEventTaskDesc = 0x801824DC; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x801824DC; // size:0xC defined:True
 D_shelter_b1_armory_801824E8 = 0x801824E8; // size:0x18 defined:True
 D_shelter_b1_armory_80182500 = 0x80182500; // size:0x28 defined:True
 

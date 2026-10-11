@@ -20,7 +20,7 @@ gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_40010
 gMapDryfieldGarageVariant1Placements = 0x8017B724; // absolute:True owner=map_dryfield
 gMapDryfieldGarageVariant2Placements = 0x8017B744; // absolute:True owner=map_dryfield
 gMapDryfieldGarageVariant3Placements = 0x8017B7A4; // absolute:True owner=map_dryfield
-gRoomEventTaskDesc = 0x8017DC70; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x8017DC70; // size:0xC defined:True
 _gDryfieldGarageMessageTable = 0x8017DC7C; // size:0x30 defined:True
 _gDryfieldGarageJunkYardRefusalTaskDescriptors = 0x8017DCAC; // size:0x18 defined:True
 _gDryfieldGarageCompanionEntryPlacement = 0x8017DCC4; // size:0x18 defined:True

@@ -66,7 +66,8 @@
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
-#define ROOM_EVENT_REQ gRoomEventReq.request
+#define ROOM_EVENT_REQ       gRoomEventReq.request
+#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 
 /// The event the gate last accepted: the message that triggered it, whose
@@ -76,7 +77,6 @@ extern RoomEventReqStorage gRoomEventReq;
 /// Set once the gate has latched an event and spawned its task.
 extern RoomEventStartStorage gRoomEventActive;
 /// Spawn descriptor of the event task, `roomEventTask`.
-extern TaskDesc gRoomEventTaskDesc;
 
 /// The event the message handler last started: the message that triggered it,
 /// the flag saying one was latched and its task spawned, and the event record.
@@ -102,7 +102,13 @@ static s32  _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, 
 
 enum { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+/// Bodyless transition task spawned by this room's event gate at priority 32.
+///
+/// Uses the latched request and destination to play CAP and optional sounds,
+/// then reload the session. Spawn payloads and metadata are unused. The gate
+/// reads the recipe synchronously; room snapshots and callback code must remain
+/// live through the deferred transition.
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
 /// Spawn recipe for the corridor's deferred CAP, sound and room-reload controller.
 ///

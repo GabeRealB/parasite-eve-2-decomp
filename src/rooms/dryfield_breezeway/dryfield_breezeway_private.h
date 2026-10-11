@@ -15,15 +15,43 @@ extern SVECTOR D_dryfield_breezeway_80183164;
 
 extern Task* D_dryfield_breezeway_801843C0;
 
+/// Bodyless transition-task recipe shared by this overlay's gate and event task.
+///
+/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// reads the recipe synchronously after latching the request and destination;
+/// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_dryfield_breezeway_80181DE0[6];
+/// Message routes installed on the breezeway's registered room task.
+///
+/// Five handlers resolve transitions, forward key-item queries, and process
+/// CAP commands, sound cues and directed room actions. The sixth entry ends
+/// lookup, making unsupported IDs return zero. The task borrows this table
+/// and the room's callback code until room teardown.
+extern TaskMessageEntry gDryfieldBreezewayRoomMessageTable[6];
 
-extern TaskDesc D_dryfield_breezeway_80181E10[2];
+/// Bodyless room-interaction tasks, indexed by `DRYFIELD_BREEZEWAY_*_TASK_INDEX`.
+///
+/// Entry 0 runs the key-item session with unused payloads; entry 1 runs factory
+/// door dialogue with a CAP command index in the first payload. Both run at
+/// priority 32. There is no terminator; only indices 0 and 1 are valid.
+extern TaskDesc gDryfieldBreezewayInteractionTaskDescs[2];
 
-extern TaskDesc D_dryfield_breezeway_801820B0[2];
+/// Bodyless first-encounter setup and playback tasks at priority 192.
+///
+/// Entry 0 publishes borrowed actor bindings on room initialization, then
+/// retires; entry 1 starts and services the encounter's normal/skip scripts.
+/// The room sends zero payloads. There is no terminator; indices are the
+/// `DRYFIELD_BREEZEWAY_FIRST_*_TASK_INDEX` choices 0 and 1.
+extern TaskDesc gDryfieldBreezewayFirstEventTaskDescs[2];
 
-extern TaskDesc D_dryfield_breezeway_80182E18;
+/// Model task that owns the bottlecap-magnet interaction's line, work and message receiver.
+///
+/// The body attaches the room's embedded TMD source and runs at priority 192.
+/// The session task sends zero payloads, publishes the child's borrowed handle
+/// for item queries, and waits for exit. Keep the room's geometry and callbacks
+/// loaded throughout the interaction.
+extern TaskDesc gDryfieldBreezewayKeyItemModelTaskDesc;
 
 /// Holds and hides the player while the bottlecap-magnet interaction runs.
 ///

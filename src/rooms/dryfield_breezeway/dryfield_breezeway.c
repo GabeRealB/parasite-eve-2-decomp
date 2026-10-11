@@ -53,7 +53,7 @@ extern RoomEventReq gRoomEventReq;
 
 /// Handle of the room's key-item event task, which
 /// `dryfieldBreezewayKeyItemSessionTask` spawns from
-/// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
+/// `gDryfieldBreezewayKeyItemModelTaskDesc` in its state 0 and drops again once
 /// `taskPollKill` reaps it; `_dryfieldBreezewayInitMessageTask` clears it when
 /// the message task starts. `dryfieldBreezewayForwardKeyItemUse` forwards message
 /// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
@@ -543,14 +543,14 @@ s32 dryfieldBreezewayHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s3
             } else {
                 _dryfieldBreezewayUpdateFactoryDoorProgress();
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_dryfield_breezeway_80181E10, DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_TASK_INDEX, command, 0);
+                taskSpawnFromTable(gDryfieldBreezewayInteractionTaskDescs, DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_TASK_INDEX, command, 0);
             }
             break;
         case DRYFIELD_BREEZEWAY_COMMAND_KEY_ITEM:
             if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) >= DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY) {
                 if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                     if (areaGetCurrentObjectState(DRYFIELD_BREEZEWAY_KEY_ITEM_OBJECT) == DRYFIELD_BREEZEWAY_OBJECT_AVAILABLE) {
-                        taskSpawnFromTable(D_dryfield_breezeway_80181E10, DRYFIELD_BREEZEWAY_KEY_ITEM_TASK_INDEX, 0, 0);
+                        taskSpawnFromTable(gDryfieldBreezewayInteractionTaskDescs, DRYFIELD_BREEZEWAY_KEY_ITEM_TASK_INDEX, 0, 0);
                         gameFlagSetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE, 1);
                     }
                 } else {
@@ -580,7 +580,7 @@ s32 dryfieldBreezewayHandleRoomAction(Task* unusedTask, s32 unusedMessageId, con
     };
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_BREEZEWAY_ACTION_FIRST_ENCOUNTER) {
         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN, 1);
-        taskSpawnFromTable(D_dryfield_breezeway_801820B0, DRYFIELD_BREEZEWAY_FIRST_ENCOUNTER_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gDryfieldBreezewayFirstEventTaskDescs, DRYFIELD_BREEZEWAY_FIRST_ENCOUNTER_TASK_INDEX, 0, 0);
     }
     return 0;
 }
@@ -597,7 +597,7 @@ void dryfieldBreezewayKeyItemSessionTask(Task* task)
         case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
+            D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&gDryfieldBreezewayKeyItemModelTaskDesc, 0, 0, 0);
             task->state                  += 1;
             return;
         case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_WAIT:
@@ -651,14 +651,14 @@ static void _dryfieldBreezewayInitMessageTask(Task* task)
     };
     ActorCommand actorCommand;
 
-    task->msgTable = D_dryfield_breezeway_80181DE0;
+    task->msgTable = gDryfieldBreezewayRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         actorCommand.context.loc.stage = gGameSession->location.loc.stage;
         actorCommand.context.loc.area  = gGameSession->location.loc.area;
         actorCommand.command           = DRYFIELD_BREEZEWAY_ACTOR_COMMAND_INITIALIZE;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
-        taskSpawnFromTable(D_dryfield_breezeway_801820B0, DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gDryfieldBreezewayFirstEventTaskDescs, DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX, 0, 0);
     }
     task->state++;
     D_dryfield_breezeway_801843A8 = NULL;

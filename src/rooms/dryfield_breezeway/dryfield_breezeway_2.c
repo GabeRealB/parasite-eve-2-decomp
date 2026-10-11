@@ -170,6 +170,16 @@ enum {
 /// Equipped-bank clip the opening encounter plays before starting pursuit.
 enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION = 9 };
 
+/// Opening encounter's CAP command and player-placement table slots.
+enum {
+    DRYFIELD_BREEZEWAY_FIRST_EVENT_CAP_COMMAND  = 6,
+    DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_PLACE = 0,
+    DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_TURN  = 1,
+};
+
+/// Item-command label selected by the hanging model's confirmation hotspot.
+enum { DRYFIELD_BREEZEWAY_KEY_ITEM_ACTION_EXAMINE = 0 };
+
 /// Actor commands used by this room to stage and start its desert-chaser encounter.
 enum { DRYFIELD_BREEZEWAY_ACTOR_COMMAND_STAGE         = 1,
        DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT = 2 };
@@ -212,14 +222,6 @@ typedef struct {
 } _DryfieldBreezewayKeyItemEventWork;
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayKeyItemEventWork, 0x60);
 
-/// The `TaskDesc` `_dryfieldBreezewayInitializeKeyItemEvent` spawns the room's prompt
-/// task (`_dryfieldBreezewayActionPromptTask`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
-/// so `taskMessageDispatch` routes the family's messages (the 0x13F1 "can this key
-/// item be used here?" query) into it. Both sit in the room's trailing data
-/// blob, the table immediately after the descriptor.
-extern TaskDesc         D_dryfield_breezeway_80182DC0;
-extern TaskMessageEntry D_dryfield_breezeway_80182DCC[];
-
 /// Far edge of the line segment drawn last, which the next segment starts from.
 ///
 /// The key-item event's line is a strip of textured quads. Each segment is
@@ -232,38 +234,6 @@ typedef struct {
     s16     joined; // 0 the segment opens a line and draws its own near edge; otherwise it starts from `left` and `right`
 } _DryfieldBreezewayLineEdge;
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayLineEdge, 0x12);
-
-/// Placement this room hands on with message 0x7D4 from
-/// `_dryfieldBreezewayStageSecondDesertChaser`, `_dryfieldBreezewayStageFirstEventSkip` and
-/// `_dryfieldBreezewayProcessFirstEventAction`: world x 17000, y 0, z 3000, yaw 0xA00.
-extern ActorTransform D_dryfield_breezeway_80181E28;
-
-/// The two placements that follow it in the same three-record run, which
-/// `_dryfieldBreezewayProcessFirstEventAction` sends to slot 3 as the second and third
-/// message of its state-1 sequence: `[0]` is the record message 0x3E9 places the
-/// player with, and `[1]` -- the run's third record -- the one message 0x3EE
-/// does. The label the decomp references is the start of this array, so the
-/// third record is reached as `[1]` rather than by a symbol of its own.
-extern ActorTransform D_dryfield_breezeway_80181E40[];
-
-/// The key-item prompt's own hotspot table: the one-entry
-/// `ActionPromptHotspot` run, ended by `ACTION_PROMPT_HOTSPOT_END`, that
-/// `_dryfieldBreezewayScanKeyItemHotspot` hit-tests at the
-/// prompt's own screen position and walks for the entry the cursor landed on,
-/// where the prop table below is hit-tested at the drawn line tip. Its `id` is
-/// the script variant the prompt confirms, which the scan parks in the event
-/// work block (`_DryfieldBreezewayKeyItemEventWork::hotspotId`, with `promptKind`) before state
-/// 3. `_dryfieldBreezewayInitializeKeyItemEvent` clears its `hit` along with the other
-/// table's.
-extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
-
-/// This room's prop hotspot table: an `ActionPromptHotspot` run ended by
-/// `ACTION_PROMPT_HOTSPOT_END`. Its entries are the room's interactive props:
-/// `_dryfieldBreezewayInitializeKeyItemEvent` clears every entry's `hit` through it
-/// before the first frame -- both tables', so the key-item prompt above starts
-/// clean too. `_dryfieldBreezewayLeadKeyItemLine` hit-tests the drawn line tip and walks
-/// the entries to find the prop it reached.
-extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
 static void _actionPromptResetDefault(Task* task);
 static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task);
@@ -281,11 +251,12 @@ static void _actionPromptEventEnd(Task* eventTask);
 static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
 static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3]);
 
-/// State handlers of the room's key-item event task, indexed by its state
-/// through `_dryfieldBreezewayKeyItemEventTask`: set-up, prompt arming, the
-/// prompt-position scan, prompt spawning, the key-item answer, the exit and
-/// the cursor-hotspot scan.
-static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
+/// State dispatch for the breezeway's model-and-line key-item interaction.
+///
+/// Slots follow `DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_*` (0..6), with no
+/// terminator. The dispatcher copies all seven callbacks before calling one;
+/// a handler may end the task.
+static const TaskFuncTable7 _gDryfieldBreezewayKeyItemStateHandlers = {
     {
         _dryfieldBreezewayInitializeKeyItemEvent,
         _dryfieldBreezewayArmKeyItemPrompt,
@@ -309,9 +280,9 @@ static s32  _dryfieldBreezewayUseBottlecapMagnet(Task* task, s32 unusedMessageId
 static void _dryfieldBreezewayActionPromptTask(Task* task);
 static void _dryfieldBreezewayKeyItemEventTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
+TaskMessageEntry gDryfieldBreezewayRoomMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldBreezewayResolveRoomEventMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldBreezewayForwardKeyItemUse },
     { ROOM_MESSAGE_COMMAND, dryfieldBreezewayHandleRoomCommand },
@@ -320,20 +291,35 @@ TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_breezeway_80181E10[2] = {
+TaskDesc gDryfieldBreezewayInteractionTaskDescs[2] = {
     { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayKeyItemSessionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayFactoryDoorDialogueTask, { .value = 0 } },
 };
 
-ActorTransform D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
+/// Staging mark shared by the opening encounter's cutscene and combat chasers.
+///
+/// Position is (17000, 0, 3000) in room coordinates; yaw is 2560 in a
+/// 4096-unit turn. Placement messages borrow the full transform synchronously.
+static ActorTransform _gDryfieldBreezewayFirstEventChaserPlacement = { { 17000, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
 
-ActorTransform D_dryfield_breezeway_80181E40[2] = {
-    { { 0x4074, 0, 1500, 0 }, { 0, 1024, 0, 0 } },
-    { { 0x4074, 0, 1500, 0 }, { 0, 512, 0, 0 } },
+/// Player placement and subsequent facing target for the opening encounter.
+///
+/// Entry 0 places the player at room position (16500, 0, 1500), yaw 1024;
+/// entry 1 supplies only the target yaw 512. Angles use 4096 units per turn.
+/// Both messages read their borrowed transform during dispatch.
+static ActorTransform _gDryfieldBreezewayFirstEventPlayerPlacements[2] = {
+    { { 16500, 0, 1500, 0 }, { 0, 1024, 0, 0 } },
+    { { 16500, 0, 1500, 0 }, { 0, 512, 0, 0 } },
 };
 
-EvsCommand D_dryfield_breezeway_80181E70[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
+/// Caption-synchronized opening encounter, from actor staging to player release.
+///
+/// Starts CAP command 6, stages the actors, plays the player's reaction, then
+/// hands pursuit to the combat chaser and engages battle. Frame waits count
+/// interpreter updates. The twelve-command stream ends at `EVENT_SCRIPT_OPCODE_END`
+/// and stays loaded with its callbacks until interpretation finishes.
+static EvsCommand _gDryfieldBreezewayFirstEventScript[12] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldBreezewayRequestFirstEventAction }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -343,12 +329,18 @@ EvsCommand D_dryfield_breezeway_80181E70[12] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayStageSecondDesertChaser }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayEngageFirstEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_breezeway_80181F90[12] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path that stages the opening encounter under a fade before engaging battle.
+///
+/// Uses the default seven-frame average-blend fade, installs the final player
+/// pose and combat chaser, cleans up CAP, returns the fade, and releases the
+/// player while keeping the root offset. The twelve-command terminated stream
+/// and its callbacks stay loaded until interpretation finishes.
+static EvsCommand _gDryfieldBreezewayFirstEventSkipScript[12] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayStageFirstEventSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -357,17 +349,20 @@ EvsCommand D_dryfield_breezeway_80181F90[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayEngageFirstEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_breezeway_801820B0[2] = {
+TaskDesc gDryfieldBreezewayFirstEventTaskDescs[2] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayInitFirstEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayFirstEventTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_breezeway_801820C8 = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
+/// Unused bodyless task recipe that retires on its first update at priority 192.
+///
+/// No room code spawns this descriptor.
+static TaskDesc _gDryfieldBreezewayImmediateExitTaskDesc = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
 static TmdBone _gDryfieldBreezewayModel04E8CSkeleton[1] = {
 #include "assets/dryfield_breezeway_model_04E8C_skeleton.inc"
@@ -401,40 +396,64 @@ static TmdSource _gDryfieldBreezewayModel04E8C = {
     _gDryfieldBreezewayModel04E8CStream,
 };
 
-TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayActionPromptTask, { .value = 0 } };
+/// Bodyless action cursor spawned separately by the key-item model event.
+///
+/// Runs at priority 192. The event passes first payload 1 to select port 0
+/// and retains the child handle until event exit; the second payload is unused.
+static TaskDesc _gDryfieldBreezewayKeyItemCursorTaskDesc = { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayActionPromptTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_breezeway_80182DCC[2] = {
+/// Key-item-use receiver installed on the TMD event that owns the hanging line.
+///
+/// Accepts the bottlecap magnet without consuming it, latching the answer in
+/// event work and returning the item-menu notice choice. The second entry
+/// terminates lookup; unsupported messages return zero. Borrowed by the event
+/// task through teardown, alongside the room's loaded callback code.
+static TaskMessageEntry _gDryfieldBreezewayKeyItemMessageTable[2] = {
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldBreezewayUseBottlecapMagnet },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActionPromptHotspot D_dryfield_breezeway_80182DDC[3] = {
+/// Two target rectangles that complete the magnet interaction when the line tip reaches either.
+///
+/// Geometry uses screen-centred pixels with inclusive far edges. Both entries
+/// share id 1 and trigger the same CAP command; the final entry terminates the
+/// table. Hit testing rewrites each `hit`, and event initialization clears them.
+static ActionPromptHotspot _gDryfieldBreezewayLineTargetHotspots[3] = {
     { 102, -80, 34, 30, 1, 0, 0 },
     { 115, -50, 20, 30, 1, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-ActionPromptHotspot D_dryfield_breezeway_80182E00[2] = {
-    { -16, 20, 32, 48, 1, 0, 0 },
+/// Cursor-confirmation rectangle for the hanging model before a key item is offered.
+///
+/// Screen-centred pixels, with inclusive far edges; confirmation copies id 1
+/// and the Examine prompt kind before opening item commands. The second entry terminates
+/// the table. The hit latch is reset on event entry and refreshed by hit testing.
+static ActionPromptHotspot _gDryfieldBreezewayKeyItemModelHotspots[2] = {
+    { -16, 20, 32, 48, 1, DRYFIELD_BREEZEWAY_KEY_ITEM_ACTION_EXAMINE, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, _dryfieldBreezewayKeyItemEventTask, { .model = &_gDryfieldBreezewayModel04E8C } };
+TaskDesc gDryfieldBreezewayKeyItemModelTaskDesc = { { { TASK_BODY_TMD, 192 } }, _dryfieldBreezewayKeyItemEventTask, { .model = &_gDryfieldBreezewayModel04E8C } };
 
-u_long D_dryfield_breezeway_80182E24[64] = {
+/// Packed eight-bit indexed artwork for the hanging line, 16 by 16 texels.
+///
+/// The 64 words hold 256 bytes, uploaded as eight 16-bit VRAM words per row.
+/// The line samples U 0..16 and V 0..4 from this image with its separate CLUT.
+/// GPU transfer borrows the word-aligned room storage until completion.
+static u_long _gDryfieldBreezewayKeyItemLinePixels[64] = {
 #include "assets/dryfield_breezeway_image_05864.inc"
 };
 
-GpuImageUpload D_dryfield_breezeway_80182F24[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 896, 0, 8, 16 }, D_dryfield_breezeway_80182E24 },
+/// Uploads the hanging-line artwork to its eight-bit texture page at VRAM (896, 0).
+///
+/// Destination width 8 counts 16-bit VRAM words; height 16 counts rows.
+/// One copy record is followed by `GP_IMG_REC_END`. The records are read during
+/// queuing; their pixel storage remains borrowed until GPU transfer completes.
+static GpuImageUpload _gDryfieldBreezewayKeyItemLineUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 896, 0, 8, 16 }, _gDryfieldBreezewayKeyItemLinePixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
-
-/// The event script and its input skip script started with `evsStartScriptWithSkip`.
-/// Both live in the room's trailing data blob.
-extern EvsCommand D_dryfield_breezeway_80181E70[];
-
-extern EvsCommand D_dryfield_breezeway_80181F90[];
 
 static void _dryfieldBreezewayProcessFirstEventAction(Task* task);
 
@@ -507,9 +526,9 @@ static void _dryfieldBreezewayProcessFirstEventAction(Task* task)
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE:
             _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_STAGE);
-            TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_CUTSCENE_CHASER], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E40[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_breezeway_80181E40[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_CUTSCENE_CHASER], ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventChaserPlacement, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventPlayerPlacements[DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_PLACE], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &_gDryfieldBreezewayFirstEventPlayerPlacements[DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_TURN], 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
@@ -590,7 +609,7 @@ static void _dryfieldBreezewayFirstEventTask(Task* task)
             // Bind the actors before scripts can send their staging requests.
             _dryfieldBreezewayInitializeFirstEventWork(task);
             _dryfieldBreezewayPlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 10);
-            evsStartScriptWithSkip(D_dryfield_breezeway_80181E70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_breezeway_80181F90);
+            evsStartScriptWithSkip(_gDryfieldBreezewayFirstEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldBreezewayFirstEventSkipScript);
             task->state += 1;
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_RUN_SCRIPT:
@@ -616,7 +635,7 @@ static inline void _dryfieldBreezewayStartFirstEventPursuit(void)
 
     work = D_dryfield_breezeway_801843C0->work;
     _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT);
-    TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER], ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventChaserPlacement, 0);
 }
 
 /// Starts the opening encounter's desert-chaser pursuit and places its second chaser at the mark.
@@ -738,8 +757,8 @@ static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task)
         return;
     }
 
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0, NULL);
-    task->msgTable                                             = D_dryfield_breezeway_80182DCC;
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gDryfieldBreezewayKeyItemCursorTaskDesc, 0, DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0, NULL);
+    task->msgTable                                             = _gDryfieldBreezewayKeyItemMessageTable;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_BREEZEWAY_KEY_ITEM_VIEW;
     task->state                                               += 1;
@@ -747,9 +766,9 @@ static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task)
     displayAcquireMenuHold();
 
     // Clear both the model-confirmation and cursor-prop hit latches.
-    _dryfieldBreezewayClearKeyItemHotspotHits(D_dryfield_breezeway_80182E00);
+    _dryfieldBreezewayClearKeyItemHotspotHits(_gDryfieldBreezewayKeyItemModelHotspots);
 
-    _dryfieldBreezewayClearKeyItemHotspotHits(D_dryfield_breezeway_80182DDC);
+    _dryfieldBreezewayClearKeyItemHotspotHits(_gDryfieldBreezewayLineTargetHotspots);
 
     model->colorMtx   = &work->colorMatrix;
     model->flags      = 0;
@@ -782,12 +801,12 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
 
     coord   = task->extra.tmd->coords;
     work    = task->work;
-    hotspot = D_dryfield_breezeway_80182E00;
+    hotspot = _gDryfieldBreezewayKeyItemModelHotspots;
     prompt  = gActionPromptSlots;
 
     // Upload the line artwork once per entry into this state.
     if (task->killCountdown == 0) {
-        gpuUploadImages(&D_dryfield_breezeway_80182F24[0]);
+        gpuUploadImages(_gDryfieldBreezewayKeyItemLineUploads);
         gpuUploadImages(&D_dryfield_breezeway_80183144[0]);
         task->killCountdown = (u16)task->killCountdown + 1;
     }
@@ -842,7 +861,7 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
     ActionPrompt*                       prompt  = gActionPromptSlots;
     GfxCoord*                           coord   = task->extra.tmd->coords;
     _DryfieldBreezewayKeyItemEventWork* work    = task->work;
-    ActionPromptHotspot*                hotspot = D_dryfield_breezeway_80182DDC;
+    ActionPromptHotspot*                hotspot = _gDryfieldBreezewayLineTargetHotspots;
 
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
@@ -1223,7 +1242,7 @@ static void _dryfieldBreezewayKeyItemEventTask(Task* task)
 {
     TaskFuncTable7 stateHandlers;
 
-    stateHandlers = D_dryfield_breezeway_8017D5E8;
+    stateHandlers = _gDryfieldBreezewayKeyItemStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

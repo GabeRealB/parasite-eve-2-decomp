@@ -34,6 +34,11 @@ extern WorldCollisionOccluder D_dryfield_night_dilapidated_house_80189F08[1];
 /// while this overlay is loaded and uses default minima above its count.
 extern WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12];
 
+/// Bodyless transition-task recipe shared by this overlay's gate and event task.
+///
+/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// reads the recipe synchronously after latching the request and destination;
+/// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5];

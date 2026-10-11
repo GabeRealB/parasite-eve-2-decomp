@@ -1,6 +1,6 @@
 // Overlay-local symbols for shelter_b1_access_tunnel.
 _gShelterB1AccessTunnelGlowEndpoints = 0x8017E744; // size:0xA0 defined:True
-gRoomEventTaskDesc = 0x8017E704; // size:0xC defined:True
+_gRoomEventTaskDesc = 0x8017E704; // size:0xC defined:True
 _gShelterB1AccessTunnelStagedEventTaskDesc = 0x8017E710; // size:0xC defined:True
 _gShelterB1AccessTunnelRoomMessages = 0x8017E71C; // size:0x28 defined:True
 gShelterB1AccessTunnelRoomViewMaps = 0x8017E7E4; // size:0x4 defined:True
