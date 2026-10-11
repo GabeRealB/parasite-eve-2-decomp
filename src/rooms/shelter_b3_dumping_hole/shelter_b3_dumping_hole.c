@@ -28,8 +28,6 @@
 
 #include "mapui/map_shelter.h"
 
-extern u8 D_shelter_b3_dumping_hole_8018F4A4;
-
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
@@ -318,8 +316,8 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
         if (gGameSession->location.loc.variant == DUMPING_HOLE_ARRIVAL_VARIANT) {
             if (gGameSession->location.loc.warp == DUMPING_HOLE_ARRIVAL_WARP) {
-                evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018B080, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                       D_shelter_b3_dumping_hole_8018B428);
+                evsStartScriptWithSkip(gShelterB3DumpingHoleArrivalEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       gShelterB3DumpingHoleArrivalEventSkipScript);
             }
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DUMPING_HOLE_ARRIVAL_OBJECTIVE);
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, DUMPING_HOLE_ARRIVAL_SEEN);

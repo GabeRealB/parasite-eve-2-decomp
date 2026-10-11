@@ -36,7 +36,7 @@ D_actor_342100_80164900 = 0x80164900; // size:0x10 defined:True
 
 gShelterB3DumpingHoleEncounterTaskDescriptors = 0x8018B83C; // absolute:True owner=shelter_b3_dumping_hole
 
-D_shelter_b3_dumping_hole_8018B57C = 0x8018B57C; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleEncounterCaptionTaskDescriptors = 0x8018B57C; // absolute:True owner=shelter_b3_dumping_hole
 _screenWaveGridTask = 0x80161E70; // type:func
 _blazeFadeTask = 0x80162748; // type:func
 _blazeBodyFireTask = 0x80162DDC; // type:func

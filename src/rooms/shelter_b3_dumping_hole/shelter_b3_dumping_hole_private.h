@@ -29,9 +29,23 @@ enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_SHARD = 1 };
 /// Keep the room loaded until the director, callbacks and shards finish.
 extern TaskDesc gShelterB3DumpingHoleCollapseTaskDescriptors[2];
 
-extern EvsCommand D_shelter_b3_dumping_hole_8018B080[39];
+/// First-arrival scene for placement variant 1 through warp 3.
+///
+/// Installs player clips 48..50, hides placement 0, stages shake and sprites,
+/// then plays CAP command 2 and restores weapons at the final player pose/view.
+/// All 39 commands end at `EVENT_SCRIPT_OPCODE_END`; waits count unfrozen
+/// interpreter updates. The room and borrowed actors/resources must stay loaded.
+extern EvsCommand gShelterB3DumpingHoleArrivalEventScript[39];
 
-extern EvsCommand D_shelter_b3_dumping_hole_8018B428[14];
+/// Skip path for the first-arrival scene, restoring its final player pose and view.
+///
+/// Stops both arrival sounds, requests player-sprite teardown and restores weapons
+/// before scene cleanup. All 14 commands end at `EVENT_SCRIPT_OPCODE_END`;
+/// keep the room and its borrowed payloads live until playback and effects finish.
+extern EvsCommand gShelterB3DumpingHoleArrivalEventSkipScript[14];
+
+/// Retained byte cleared during room initialization; its role is unproven.
+extern u8 D_shelter_b3_dumping_hole_8018F4A4;
 
 /// Returns the incinerator-exit block flag, except that room 2 always permits passage.
 ///

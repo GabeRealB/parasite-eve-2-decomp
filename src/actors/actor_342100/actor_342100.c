@@ -720,7 +720,7 @@ static void _actor342100EncounterBlazeControllerTask(Task* task)
                 break;
             }
             _actor342100InitializeBlazeController(task);
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, ACTOR_342100_CONTROLLER_CAPTION_PRIORITY, 0);
+            taskSpawnFromTable(gShelterB3DumpingHoleEncounterCaptionTaskDescriptors, 0, ACTOR_342100_CONTROLLER_CAPTION_PRIORITY, 0);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_ALERT, 0, 0);
             switch (gGameSession->spawnPhase[0]) {
                 case GAME_SESSION_SPAWN_IDLE:

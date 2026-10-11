@@ -36,7 +36,13 @@ enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_TASK_CONTROLLER = 0 };
 /// allocate task-owned work and borrow room tables, which must remain loaded.
 extern TaskDesc gShelterB3DumpingHoleEncounterTaskDescriptors[4];
 
-extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
+/// One bodyless task recipe for the dumping-hole encounter's scene-clock captions.
+///
+/// Spawn index 0 runs the room's caption schedule at priority 32. Argument 1's
+/// low signed halfword is the bottom baseline in screen pixels (normally 208);
+/// argument 2 is unused. The task owns no work and does not end itself. Keep the
+/// room's relocated CAP command/key data, textures and callbacks loaded until teardown.
+extern TaskDesc gShelterB3DumpingHoleEncounterCaptionTaskDescriptors[1];
 
 /// Placement/resource variants for Mine/Shelter area 38, the dumping hole.
 ///
