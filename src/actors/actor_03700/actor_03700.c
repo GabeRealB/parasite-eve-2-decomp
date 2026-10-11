@@ -119,11 +119,6 @@ typedef struct {
 } _Actor03700Work;
 STATIC_ASSERT_SIZEOF(_Actor03700Work, 0x270);
 
-/// Halfword tables `_actor03700Retreat` indexes by a 4-bit LCG draw:
-/// the countdowns of `ACTION_RETREAT`, seeded into `retreatTimer` and `timer`.
-extern u16 Actor03700_D07F3C[];
-extern u16 Actor03700_D07F5C[];
-
 /// One segment of the path a perched actor leaves its perch along.
 ///
 /// A take-off table lists its segments in frame order, the last one ending on
@@ -139,17 +134,6 @@ typedef struct {
     s16 advance;    // distance the root covers along its facing over the whole segment; negative moves it backwards
 } _Actor03700TakeoffSegment;
 STATIC_ASSERT_SIZEOF(_Actor03700TakeoffSegment, 0x8);
-
-extern _Actor03700TakeoffSegment Actor03700_D07FF4[];
-extern _Actor03700TakeoffSegment Actor03700_D0802C[];
-
-/// The enemy's parameters. The spawn stores them in `Enemy::param` and
-/// seeds hit points from `hpMax`, which retail addresses as its own label.
-extern EnemyParams Actor03700_D07F0C;
-
-/// Animation-set table bound by `animationInitContext`, and the task's `field_24` table.
-extern AnimationSet*    Actor03700_D080E4[6];
-extern TaskMessageEntry Actor03700_D08108[2];
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
 extern s16 Actor03700_D08074[];
@@ -532,7 +516,21 @@ enum { ACTOR_03700_HELD_PLAYER_HIT_REACTION = 7 };
 /// Storage must remain loaded through enemy and player-hold use.
 static DamageAttack _gActor03700HeldPlayerAttack = { 3, ACTOR_03700_HELD_PLAYER_HIT_REACTION };
 
-EnemyParams Actor03700_D07F0C = { &_gActor03700HeldPlayerAttack, 1, 5, 18, 1, 100, 0, 100, 99 };
+/// Bat combat tuning and release rewards shared by live enemies.
+///
+/// Starts at 1 HP and borrows the held-player strike; rewards are 5 EXP,
+/// 18 BP and 1 MP. The record and attack remain loaded through enemy use.
+static EnemyParams _gActor03700EnemyParams = {
+    .attacks              = &_gActor03700HeldPlayerAttack,
+    .hpMax                = 1,
+    .exp                  = 5,
+    .bp                   = 18,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 99,
+};
 
 /// Bat dash and held-player return speeds, in parent-coordinate units per tick.
 ///
@@ -557,7 +555,11 @@ static s16 _gActor03700DashSpeeds[16] = {
     60,
 };
 
-u16 Actor03700_D07F3C[16] = {
+/// Bat back-away countdown seeds, in active retreat ticks.
+///
+/// A four-bit LCG draw selects one of sixteen entries (10..30). Predecrement
+/// ends backward motion at zero; the enclosing retreat phase lasts 30 ticks.
+static s16 _gActor03700RetreatBackAwayTicks[16] = {
     10,
     12,
     14,
@@ -576,7 +578,11 @@ u16 Actor03700_D07F3C[16] = {
     30,
 };
 
-u16 Actor03700_D07F5C[16] = {
+/// Bat repelled-retreat countdown seeds, in active retreat ticks.
+///
+/// A four-bit LCG draw selects one of sixteen entries (245..310). The total
+/// countdown includes the initial recoil before the stationary hover.
+static s16 _gActor03700RepelledHoverTicks[16] = {
     245,
     250,
     255,
@@ -675,17 +681,25 @@ static s16 _gActor03700SwayWaveQ12[16] = {
     0,
 };
 
-_Actor03700TakeoffSegment Actor03700_D07FF4[7] = {
+/// Seven motion segments of the Bat's dropping, forward takeoff.
+///
+/// Ordered inclusive animation-tick endpoints cover 0..50. Segment totals
+/// are parent-coordinate distances; integer division truncates per-tick steps.
+static _Actor03700TakeoffSegment _gActor03700DropTakeoffPath[7] = {
     { 20, 21, 0, 0 },
     { 23, 3, 45, 5 },
     { 26, 3, 170, 47 },
     { 30, 4, 105, 189 },
     { 35, 5, -60, 70 },
     { 40, 5, -10, 50 },
-    { 50, 10, 0, 0 },
+    { ACTOR_03700_TAKEOFF_LAST_TICK, 10, 0, 0 },
 };
 
-_Actor03700TakeoffSegment Actor03700_D0802C[9] = {
+/// Nine motion segments of the Bat's backward push off its perch.
+///
+/// Ordered inclusive animation-tick endpoints cover 0..50. Segment totals
+/// are parent-coordinate distances; integer division truncates per-tick steps.
+static _Actor03700TakeoffSegment _gActor03700BackTakeoffPath[9] = {
     { 10, 11, 0, 0 },
     { 17, 7, 0, -20 },
     { 22, 5, 4, -276 },
@@ -694,7 +708,7 @@ _Actor03700TakeoffSegment Actor03700_D0802C[9] = {
     { 37, 5, 16, -26 },
     { 40, 3, -42, -7 },
     { 45, 5, -19, -5 },
-    { 50, 5, 0, 0 },
+    { ACTOR_03700_TAKEOFF_LAST_TICK, 5, 0, 0 },
 };
 
 s16 Actor03700_D08074[56] = {
@@ -756,7 +770,11 @@ s16 Actor03700_D08074[56] = {
     0,
 };
 
-AnimationSet* Actor03700_D080E4[6] = {
+/// Bat body clips indexed by `ACTOR_03700_ANIM_*` (1..5).
+///
+/// Entry 0 is NULL. The rig borrows the six-entry bank and its sets for
+/// the enemy task's lifetime; player hold clips use a separate bank.
+static AnimationSet* _gActor03700AnimationSets[ACTOR_03700_ANIM_TAKEOFF_BACK + 1] = {
     NULL,
     &_gActor03700Actor103700Animation047C4,
     &_gActor03700Actor103700Animation04AC0,
@@ -775,7 +793,10 @@ static AnimationSet* _gActor03700PlayerHoldAnimationSets[3] = {
     &_gActor03700Actor103700Animation07EE0,
 };
 
-TaskMessageEntry Actor03700_D08108[2] = {
+/// Bat message dispatch: release the player's hold, then the end marker.
+///
+/// The enemy task borrows the table and callback while this package is loaded.
+static TaskMessageEntry _gActor03700MessageTable[2] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor03700ReleaseHoldMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -878,7 +899,7 @@ static void _actor03700InitEnemy(Enemy* enemy, Task* task)
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
     worldTargetLinkNode(&enemy->node);
-    enemy->param                  = &Actor03700_D07F0C;
+    enemy->param                  = &_gActor03700EnemyParams;
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = 0;
     enemy->bodyPos.vx             = 0;
@@ -930,10 +951,10 @@ static void _actor03700InitEnemy(Enemy* enemy, Task* task)
             break;
     }
     // All driven parts start at one randomly offset animation rate.
-    enemy->hp         = Actor03700_D07F0C.hpMax;
+    enemy->hp         = _gActor03700EnemyParams.hpMax;
     work->playingAnim = work->anim;
-    task->msgTable    = Actor03700_D08108;
-    animationInitContext(&work->rig.anim, Actor03700_D080E4, model, work->rig.poses, work->rig.slots);
+    task->msgTable    = _gActor03700MessageTable;
+    animationInitContext(&work->rig.anim, _gActor03700AnimationSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, work->anim);
     }
@@ -1333,7 +1354,7 @@ static void _actor03700DropFromPerch(Task* task)
             break;
         // Integrate the first segment that still covers this animation tick.
         case ACTOR_03700_PERCH_TAKEOFF:
-            _actor03700StepTakeoffPath(work, coord, Actor03700_D07FF4, ARRAY_SIZE(Actor03700_D07FF4));
+            _actor03700StepTakeoffPath(work, coord, _gActor03700DropTakeoffPath, ARRAY_SIZE(_gActor03700DropTakeoffPath));
             if (work->animFrame >= ACTOR_03700_TAKEOFF_LAST_TICK) {
                 work->anim                         = ACTOR_03700_ANIM_FLY;
                 work->action                       = ACTOR_03700_ACTION_CHASE;
@@ -1376,7 +1397,7 @@ static void _actor03700BackOffPerch(Task* task)
             break;
         // Integrate the first segment that still covers this animation tick.
         case ACTOR_03700_PERCH_TAKEOFF:
-            _actor03700StepTakeoffPath(work, coord, Actor03700_D0802C, ARRAY_SIZE(Actor03700_D0802C));
+            _actor03700StepTakeoffPath(work, coord, _gActor03700BackTakeoffPath, ARRAY_SIZE(_gActor03700BackTakeoffPath));
             if (work->animFrame >= ACTOR_03700_TAKEOFF_LAST_TICK) {
                 work->anim                         = ACTOR_03700_ANIM_FLY;
                 work->action                       = ACTOR_03700_ACTION_CHASE;
@@ -1605,7 +1626,7 @@ static void _actor03700Retreat(Task* task)
         case ACTOR_03700_RETREAT_BEGIN:
             work->actionStep   = ACTOR_03700_RETREAT_BACK_AWAY;
             work->timer        = 30;
-            work->retreatTimer = Actor03700_D07F3C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            work->retreatTimer = _gActor03700RetreatBackAwayTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700RetreatBackAwayTicks) - 1)];
             work->attackCount  = 0;
             animationRate      = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 10;
             for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -1646,7 +1667,7 @@ static void _actor03700Retreat(Task* task)
             break;
         // Repelling hits enter here and keep the existing heading.
         case ACTOR_03700_RETREAT_BEGIN_REPEL:
-            work->timer        = Actor03700_D07F5C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            work->timer        = _gActor03700RepelledHoverTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700RepelledHoverTicks) - 1)];
             work->retreatTimer = 15;
             work->actionStep   = ACTOR_03700_RETREAT_REPEL_HOVER;
             work->turnRate     = 0;

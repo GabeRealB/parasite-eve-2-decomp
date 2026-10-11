@@ -306,18 +306,49 @@ static DamageAttack _gActor04000Attacks[3] = {
     { 30, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor04000_D07084 = { _gActor04000Attacks, 1, 8, 28, 4, 100, 100, 100, 0 };
+/// Blood Suckler combat tuning and release rewards shared by live enemies.
+///
+/// Starts at 1 HP and borrows the latch/burst attacks; rewards are 8 EXP,
+/// 28 BP and 4 MP. The record and attacks remain loaded through enemy use.
+static EnemyParams _gActor04000EnemyParams = {
+    .attacks              = _gActor04000Attacks,
+    .hpMax                = 1,
+    .exp                  = 8,
+    .bp                   = 28,
+    .mp                   = 4,
+    .critChance           = 100,
+    .buildupSteps         = 100,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-PadScriptCmd Actor04000_D07094[3] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+/// Segment selectors shared by the burst's two motor lanes.
+enum {
+    ACTOR_04000_BURST_BINARY_SEGMENT = 0,
+    ACTOR_04000_BURST_PEAK_SEGMENT   = 1,
+    ACTOR_04000_BURST_FADE_SEGMENT   = 2,
+};
+
+/// Two-lane controller vibration for each Blood Suckler burst.
+///
+/// The binary motor plays segment 0 then stops; the variable motor plays
+/// segments 1 and 2 then stops. Both arrays are borrowed until script teardown.
+static PadScriptCmd _gActor04000BurstVibrationCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_04000_BURST_BINARY_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_04000_BURST_PEAK_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_04000_BURST_FADE_SEGMENT) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment Actor04000_D070A0[3] = {
-    { 0, 0, 9, 0 },
-    { 255, 255, 12, 1 },
-    { 100, 50, 6, 1 },
+/// Timed motor records selected by the Blood Suckler's burst script.
+///
+/// Segment 0 holds the binary motor for 9 frames; segment 1 holds variable
+/// intensity 255 for 12 frames, then segment 2 ramps 100 to 50 over 6 frames.
+/// Spatial bursts attenuate the variable lane by depth. The final byte is
+/// retained in each record; its role is unproven and the interpreter ignores it.
+static PadScriptVibrationSegment _gActor04000BurstVibrationSegments[3] = {
+    [ACTOR_04000_BURST_BINARY_SEGMENT] = { 0, 0, 9, 0 },
+    [ACTOR_04000_BURST_PEAK_SEGMENT]   = { 255, 255, 12, 1 },
+    [ACTOR_04000_BURST_FADE_SEGMENT]   = { 100, 50, 6, 1 },
 };
 
 static TmdBone _gActor04000BloodSucklerBodySkeleton[6] = {
@@ -814,7 +845,11 @@ static AnimationSet _gActor04000Actor104000Animation0C49C = {
     { NULL, _gActor04000Actor104000Animation0C49CBank1, NULL, NULL, _gActor04000Actor104000Animation0C49CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* Actor04000_D0C4C4[19] = {
+/// Blood Suckler body-animation bank for behavior and scripted requests.
+///
+/// Clips 1..17 are loaded; entries 0 and 18 are NULL. The nineteen-entry bank
+/// and its sets are borrowed for the enemy task's lifetime.
+static AnimationSet* _gActor04000AnimationSets[19] = {
     NULL,
     &_gActor04000Actor104000Animation08878,
     &_gActor04000Actor104000Animation08B3C,
@@ -836,7 +871,12 @@ AnimationSet* Actor04000_D0C4C4[19] = {
     NULL,
 };
 
-AnimationSet* Actor04000_D0C510[4] = {
+/// Player clips for a Blood Suckler latched on the player's local -X side.
+///
+/// Clip 1 enters the hold and clip 2 releases it; entries 0 and 3 are NULL.
+/// The player borrows this bank until its animation bank changes, so keep the
+/// selected actor-slot package loaded through the hold and release.
+static AnimationSet* _gActor04000PlayerLeftLatchAnimationSets[4] = {
     NULL,
     &_gActor04000Actor104000Animation0A260,
     &_gActor04000Actor104000Animation0A71C,
@@ -1237,7 +1277,11 @@ u8 Actor04000_D0C544[364] = {
     0,
 };
 
-TaskMessageEntry Actor04000_D0C6B0[6] = {
+/// Blood Suckler draw, animation, command, placement and hold-release messages.
+///
+/// Five callbacks precede the end marker. The enemy task borrows this table
+/// and its callback code while the actor package is loaded.
+static TaskMessageEntry _gActor04000MessageTable[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor04000SetModelDraw },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor04000RequestAnimation },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor04000ApplyCommand },
@@ -1271,18 +1315,6 @@ SVECTOR ActorContact_ScratchPosition;
 /// NULL means no candidate. Handles and their Enemy/work/model must remain
 /// live until removed; this table does not own or destroy any task.
 static Task* _gActor04000HangingTasksByPlacement[8];
-
-extern EnemyParams Actor04000_D07084;
-
-extern AnimationSet* Actor04000_D0C4C4[19];
-
-extern TaskMessageEntry Actor04000_D0C6B0[6];
-
-extern PadScriptCmd Actor04000_D07094[3];
-
-extern PadScriptVibrationSegment Actor04000_D070A0[3];
-
-extern AnimationSet* Actor04000_D0C510[4];
 
 static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
 static void _actor04000SpawnEnemy(Enemy* enemy, Task* task);
@@ -1556,14 +1588,14 @@ static void _actor04000SpawnEnemy(Enemy* enemy, Task* task)
         return;
     }
     rootCoord->parent = &gGfxViewCoord;
-    task->msgTable    = Actor04000_D0C6B0;
+    task->msgTable    = _gActor04000MessageTable;
     work->field_180   = 0;
     work->field_184   = 1;
     work->field_18C   = 3;
     work->field_188   = 0;
     work->field_190   = 1;
     model->flags      = 0;
-    animationInitContext(&work->rig.anim, Actor04000_D0C4C4, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor04000AnimationSets, model, work->rig.poses, work->rig.slots);
 
     // Link the grid probe, hit sphere and two initially inactive burst bodies.
     // Link two probes and two initially inactive burst spheres.
@@ -1632,8 +1664,8 @@ static void _actor04000SpawnEnemy(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp = enemy->hpMax  = Actor04000_D07084.hpMax;
-    enemy->param              = &Actor04000_D07084;
+    enemy->hp = enemy->hpMax  = _gActor04000EnemyParams.hpMax;
+    enemy->param              = &_gActor04000EnemyParams;
     enemy->recs               = hitContacts;
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
     work->driver.requestedSet = ACTOR_04000_ANIMATION_HOLD;
@@ -1766,7 +1798,7 @@ static void _actor04000StateLunge(Enemy* enemy, Task* task)
                     yawDelta      = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-facingCoord->coord.m[2][0], facingCoord->coord.m[2][2]);
                     scratch->turn = _actorAngleNormalizeYaw(yawDelta);
                     if (scratch->turn < 0) {
-                        _gActor04000PlayerHoldAnimationRequest.source.sets = Actor04000_D0C510;
+                        _gActor04000PlayerHoldAnimationRequest.source.sets = _gActor04000PlayerLeftLatchAnimationSets;
                     } else {
                         _gActor04000PlayerHoldAnimationRequest.source.sets = _gActor04000PlayerRightLatchAnimationSets;
                     }
@@ -1907,7 +1939,7 @@ static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task)
             task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case ACTOR_04000_RELEASE_PULSE_TICK:
-            padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
+            padScriptSpawnDepthScaled(_gActor04000BurstVibrationCommands, _gActor04000BurstVibrationSegments,
                                       (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
             work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_START_RADIUS;
@@ -2174,7 +2206,7 @@ static void _actor04000StateSelfBurst(Enemy* enemy, Task* task)
             task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case ACTOR_04000_SELF_PULSE_TICK:
-            padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
+            padScriptSpawnDepthScaled(_gActor04000BurstVibrationCommands, _gActor04000BurstVibrationSegments,
                                       (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
             work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_START_RADIUS;
@@ -2324,7 +2356,7 @@ static void _actor04000StateDeathBurst(Enemy* enemy, Task* task)
             work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], 1, NULL);
-            padScriptSpawn(Actor04000_D07094, Actor04000_D070A0);
+            padScriptSpawn(_gActor04000BurstVibrationCommands, _gActor04000BurstVibrationSegments);
             break;
         case ACTOR_04000_DEATH_WAVE_TICK:
             sceneReleaseBattleRefWithRewards(task, 0xC);

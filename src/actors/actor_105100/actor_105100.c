@@ -717,23 +717,27 @@ static DamageAttack _gActor105100Attacks[6] = {
 /// record and its attack table for the actor package's loaded lifetime.
 static EnemyParams _gActor105100StingerParams = { _gActor105100Attacks, 4000, 1000, 500, 100, 200, 5, 100, 4 };
 
-u16 D_actor_105100_801413A8[16] = {
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted Stinger summon-action draw used during idle and after a broken charge.
+///
+/// A four-bit LCG index selects five fireball entries or eleven beam entries.
+/// The sixteen halfwords store `ACTOR_105100_ACTION_*` values.
+static s16 _gActor105100SummonActions[16] = {
+    ACTOR_105100_ACTION_FIREBALLS,
+    ACTOR_105100_ACTION_FIREBALLS,
+    ACTOR_105100_ACTION_FIREBALLS,
+    ACTOR_105100_ACTION_FIREBALLS,
+    ACTOR_105100_ACTION_FIREBALLS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
+    ACTOR_105100_ACTION_BEAMS,
 };
 
 u16 D_actor_105100_801413C8[16] = {
@@ -898,14 +902,6 @@ SVECTOR D_actor_105100_801414E0[7] = {
     { -500, -3500, -2000, 0 },
     { 500, -3500, -2000, 0 },
 };
-
-/// The run of actions at 0x801413A8 the idle action's draw picks from, one
-/// `s16` entry per draw. Declared as an aggregate on purpose: a bare `extern u16`
-/// makes `true_dependence` (`sched.c:846`) drop the dependence between the
-/// entry load and the `sh` to `_Actor105100Work::actionStep`, and sched2 then
-/// sinks that store past the `sw` of the LCG state instead of leaving the
-/// lookup and the action store adjacent at the end of the block.
-extern u16 D_actor_105100_801413A8[16];
 
 /// The 16-entry run at 0x801413C8 the beam summon's LCG draw picks
 /// `_Actor105100Work::beamPattern` from. Four entries are 0 (two children), five are 1 (three), seven are 2
@@ -1376,10 +1372,10 @@ static void _actor105100Idle(Task* task, Enemy* unusedEnemy)
             }
             return;
         case ACTOR_105100_IDLE_SELECT_SUMMON: {
-            u16* actions     = D_actor_105100_801413A8;
+            s16* actions     = _gActor105100SummonActions;
             u32  randomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
 
-            nextAction       = (s16)actions[(randomState >> 16) & (ARRAY_SIZE(D_actor_105100_801413A8) - 1)];
+            nextAction       = actions[(randomState >> 16) & (ARRAY_SIZE(_gActor105100SummonActions) - 1)];
             gRandomLcgState  = randomState;
             work->actionStep = 0;
             work->summonCount++;
@@ -1392,11 +1388,11 @@ static void _actor105100Idle(Task* task, Enemy* unusedEnemy)
             work->summonCount = 0;
             return;
         case ACTOR_105100_IDLE_REPLACE_CHARGE: {
-            u16* actions     = D_actor_105100_801413A8;
+            s16* actions     = _gActor105100SummonActions;
             u32  randomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
 
             gRandomLcgState  = randomState;
-            work->action     = (s16)actions[(randomState >> 16) & (ARRAY_SIZE(D_actor_105100_801413A8) - 1)];
+            work->action     = actions[(randomState >> 16) & (ARRAY_SIZE(_gActor105100SummonActions) - 1)];
             work->actionStep = 0;
             break;
         }

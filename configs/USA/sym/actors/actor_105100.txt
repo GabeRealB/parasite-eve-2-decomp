@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_105100.
-D_actor_105100_801413A8 = 0x801413A8; // size:0x20 defined:True
+_gActor105100SummonActions = 0x801413A8; // size:0x20 defined:True
 D_actor_105100_801413C8 = 0x801413C8; // size:0x20 defined:True
 _gActor105100BeamStartOffsets = 0x801413E8; // size:0x30 defined:True
 _gActor105100BeamWaypoints = 0x80141418; // size:0x30 defined:True

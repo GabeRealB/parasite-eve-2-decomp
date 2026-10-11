@@ -216,8 +216,7 @@ static TmdSource _gActor03800BlackBeetleEffect3;
 static TmdSource _gActor03800BlackBeetleEffect4;
 static TmdSource _gActor03800BlackBeetleEffect5;
 
-extern s16           Actor03800_D05FA8[];
-extern AnimationSet* Actor03800_D05F60[12];
+extern s16 Actor03800_D05FA8[];
 
 static void        _actor03800ActionIdle(Task* task);
 static void        _actor03800ActionWander(Task* task);
@@ -731,7 +730,11 @@ static EnemyParams _gActor03800EnemyParams = { _gActor03800ContactAttacks, 280, 
 
 TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
 
-AnimationSet* Actor03800_D05F60[12] = {
+/// Black Beetle body clips indexed by `ACTOR_03800_ANIM_*` (1..11).
+///
+/// Entry 0 is NULL; initial spawn resets the driven parts to stand.
+/// The rig borrows the twelve-entry bank and its sets for the task's lifetime.
+static AnimationSet* _gActor03800AnimationSets[ACTOR_03800_ANIM_FLINCH + 1] = {
     NULL,
     &_gActor03800Actor103800Animation04B24,
     &_gActor03800Actor103800Animation04D20,
@@ -808,7 +811,7 @@ static void _actor03800Spawn(Enemy* enemy, Task* task)
     work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x200;
     work->hitEffectArg.spawnArgHi = 1;
-    animationInitContext(&work->rig.anim, Actor03800_D05F60, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor03800AnimationSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_03800_ANIM_STAND);
     }

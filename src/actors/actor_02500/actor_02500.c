@@ -237,13 +237,10 @@ typedef struct {
     s16 z;
 } _Actor02500DustDirection;
 
-extern s16                      Actor02500_D05B78[];
-extern AnimationSet*            Actor02500_D05BA0[12];
-extern s16                      Actor02500_D05BD0[];
-extern _Actor02500DustDirection Actor02500_D05BE8[];
-static TmdSource                _gActor02500ScorpionBurstHead;
-static TmdSource                _gActor02500ScorpionBurstPincer2;
-static TmdSource                _gActor02500ScorpionBurstPincer1;
+extern s16       Actor02500_D05BD0[];
+static TmdSource _gActor02500ScorpionBurstHead;
+static TmdSource _gActor02500ScorpionBurstPincer2;
+static TmdSource _gActor02500ScorpionBurstPincer1;
 
 static void _actor02500Spawn(Enemy* enemy, Task* actor);
 static void _actor02500Die(Enemy* enemy, Task* actor);
@@ -658,7 +655,11 @@ static s16 _gActor02500ChaseTurnRates[8] = {
     30,
 };
 
-s16 Actor02500_D05B78[8] = {
+/// Scorpion chase speeds for the eight placement tuning rows.
+///
+/// Indexed by `AreaPlacement::rowIndex` (0..7), without a bounds check.
+/// Signed distances are parent-coordinate units per active movement tick.
+static s16 _gActor02500ChaseSpeeds[8] = {
     30,
     34,
     34,
@@ -674,7 +675,11 @@ TaskDesc gActor02500Tasks[2] = {
     { { { TASK_BODY_COORD, 96 } }, _actor02500CorpsePoisonTask, { .value = 0 } },
 };
 
-AnimationSet* Actor02500_D05BA0[12] = {
+/// Scorpion body clips indexed by `ACTOR_02500_ANIM_*`.
+///
+/// All twelve entries belong to the bank; 0, 2, 5 and 9 are NULL.
+/// The rig borrows the bank and its sets for the enemy task's lifetime.
+static AnimationSet* _gActor02500AnimationSets[ACTOR_02500_ANIM_BUILDUP + 1] = {
     NULL,
     &_gActor02500Actor102500Animation04C64,
     NULL,
@@ -704,14 +709,21 @@ s16 Actor02500_D05BD0[12] = {
     4,
 };
 
-_Actor02500DustDirection Actor02500_D05BE8[8] = {
-    { 0, 4096 },
+/// Unit magnitude for the dust ring's twelve-fractional-bit directions.
+enum { ACTOR_02500_DUST_UNIT_Q12 = 1 << 12 };
+
+/// Eight Q12 XZ directions for the Scorpion's emerging dust ring.
+///
+/// Even indices are the axes and odd indices the diagonals, with 4096 as one.
+/// Each burst samples four entries of one parity; successive bursts alternate.
+static _Actor02500DustDirection _gActor02500DustDirections[8] = {
+    { 0, ACTOR_02500_DUST_UNIT_Q12 },
     { 2896, 2896 },
-    { 4096, 0 },
+    { ACTOR_02500_DUST_UNIT_Q12, 0 },
     { 2896, -2896 },
-    { 0, -4096 },
+    { 0, -ACTOR_02500_DUST_UNIT_Q12 },
     { -2896, -2896 },
-    { -4096, 0 },
+    { -ACTOR_02500_DUST_UNIT_Q12, 0 },
     { -2896, 2896 },
 };
 
@@ -838,7 +850,7 @@ static void _actor02500Spawn(Enemy* enemy, Task* actor)
     work->hitEffectArg.spawnArgLo = ACTOR_02500_HIT_EFFECT_ARG_LO;
     work->hitEffectArg.coord      = rootCoord;
     work->hitEffectArg.spawnArgHi = 1;
-    animationInitContext(&work->rig.anim, Actor02500_D05BA0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor02500AnimationSets, model, work->rig.poses, work->rig.slots);
     work->anim        = ACTOR_02500_ANIM_STAND;
     work->playingAnim = ACTOR_02500_ANIM_STAND;
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -1231,7 +1243,7 @@ static void _actor02500Chase(Task* actor)
             work->actionStep = ACTOR_02500_CHASE_STEP_RUN;
             break;
         case ACTOR_02500_CHASE_STEP_RUN:
-            work->speed      = Actor02500_D05B78[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+            work->speed      = _gActor02500ChaseSpeeds[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
             targetOffset->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
             targetOffset->vy = 0;
             targetOffset->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
@@ -1461,7 +1473,7 @@ static void _actor02500Ambush(Task* actor)
             gRandomLcgState = randomState;
             directionParity = (((u16)work->dustTimer >> ACTOR_02500_AMBUSH_DUST_PERIOD_SHIFT) ^ 1) & 1;
             for (; puffIndex < ACTOR_02500_AMBUSH_PUFFS_PER_BURST; puffIndex++) {
-                direction       = &Actor02500_D05BE8[directionParity + puffIndex * 2];
+                direction       = &_gActor02500DustDirections[directionParity + puffIndex * 2];
                 scratch->rot.vx = (direction->x * distance) >> ACTOR_02500_AMBUSH_DIRECTION_FRACTION_BITS;
                 scratch->rot.vy = 0;
                 scratch->rot.vz = (direction->z * distance) >> ACTOR_02500_AMBUSH_DIRECTION_FRACTION_BITS;
