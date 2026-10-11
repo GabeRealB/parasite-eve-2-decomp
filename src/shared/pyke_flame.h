@@ -9,8 +9,8 @@
  * address, so each package keeps its own name for it and calls the inline
  * body. The two builds differ in:
  *   PYKE_FLAME_KEY                    the flame body's collision key
- *   PYKE_FLAME_REDRAW_UPDATES_COORD   1: a paused flame recomposes its
- *                                     coordinate before redrawing (actor_800100)
+ *   PYKE_FLAME_REDRAW_UPDATES_COORD   optional nonrunning-redraw cache policy;
+ *                                     values and scope: pyke_flame_task.inc.c
  * Splash increment/store ordering is configured at the splash fragment;
  * its PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE binding documents both
  * instances and is consumed by that inclusion.

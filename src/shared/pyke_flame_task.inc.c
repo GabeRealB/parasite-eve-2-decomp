@@ -1,6 +1,14 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
 #ifndef PYKE_FLAME_REDRAW_UPDATES_COORD
+/// Selects whether nonrunning flame redraws refresh the composed transform.
+///
+/// A carrier may define this preprocessor integer to 0 or 1 before including
+/// the fragment. The default 0 (M4A1 Pyke) draws from the existing `workm`;
+/// 1 composes the coordinate through its parents before drawing. This applies
+/// to every nonzero `effectControl` below `ROOM_EFFECT_CONTROL_CANCEL_MIN`,
+/// including `ROOM_EFFECT_CONTROL_HIDDEN`. Neither policy advances the local
+/// transform, age, size or spin. The fragment undefines the binding at its end.
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 0
 #endif
 
@@ -37,7 +45,7 @@ static inline void _pykeFlameAdvanceCoord(GfxCoord* flameCoord, const EffectWork
 /// without resetting age. Expiry is checked at age 21, after drawing; the tick
 /// that enters drift returns before that check. Allocation failure retries
 /// initialization with age zero. Nonzero control below cancellation redraws
-/// without aging; the companion carrier also refreshes the coordinate then.
+/// without aging; `PYKE_FLAME_REDRAW_UPDATES_COORD` selects cache refresh then.
 /// Cancellation or expiry releases the task, coordinate body and owned work blocks.
 static inline void _pykeFlameTask(Task* task)
 {
@@ -177,3 +185,5 @@ static inline void _pykeFlameTask(Task* task)
             break;
     }
 }
+
+#undef PYKE_FLAME_REDRAW_UPDATES_COORD

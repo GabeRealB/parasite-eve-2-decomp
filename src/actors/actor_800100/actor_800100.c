@@ -885,7 +885,10 @@ void actor800100PykeEmitterTask(Task* task)
 
 #include "../../shared/pyke_flame_nozzle.inc.c"
 
-#define PYKE_FLAME_KEY                  0x21C9E
+#define PYKE_FLAME_KEY 0x21C9E
+/// Selects composed-transform refresh for the companion's nonrunning flame redraws.
+///
+/// Consumed and undefined by `pyke_flame_task.inc.c`; flight remains stopped.
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 1
 #include "../../shared/pyke_flame_task.inc.c"
 
