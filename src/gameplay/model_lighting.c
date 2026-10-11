@@ -158,9 +158,6 @@ enum {
     PLAY_CLOCK_MAX_MINUTES      = 59999
 };
 
-/// Unreferenced nonzero word before the stored BSS.
-extern u32 D_80114BAC;
-
 void func_807150F8(s32 arg0);
 
 void func_80715198(void);
@@ -176,8 +173,10 @@ static CVECTOR _gModelLightingEnvironmentLayerMaterial = { 0, 0, 0, 0 };
 /// The next material update sets all channels to 128 for a nonpositive layer
 /// input, otherwise (255 - clamped layer)/2. The code byte stays zero.
 static CVECTOR _gModelLightingEnvironmentBaseMaterial = { 0, 0, 0, 0 };
-/// Unreferenced nonzero word before the stored BSS.
-u32 D_80114BAC = 0x10FF2220;
+/// Retained bytes between the environment materials and stored BSS.
+///
+/// No identified access establishes their meaning or original object boundary.
+static u32 D_80114BAC = 0x10FF2220;
 
 /// Tests whether a quad's second triangle faces the viewer.
 ///

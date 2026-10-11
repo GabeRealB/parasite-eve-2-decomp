@@ -19,9 +19,6 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// Unreferenced nonzero tail; its original purpose is unknown.
-extern u32 D_80114B7C;
-
 TaskDesc gEffectBurstTaskDescriptors[6] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
@@ -31,8 +28,10 @@ TaskDesc gEffectBurstTaskDescriptors[6] = {
     { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { .model = NULL } },
 };
 
-/// Unreferenced nonzero tail; its original purpose is unknown.
-u32 D_80114B7C = 0x323010CE;
+/// Retained bytes after the burst-part task descriptors.
+///
+/// No identified access establishes their meaning or original object boundary.
+static u32 D_80114B7C = 0x323010CE;
 
 void effectBurstModelPartTask(Task* task)
 {

@@ -397,12 +397,6 @@ extern TaskMessageEntry Gp_PlayerMsgTable[28];
 
 extern u16 D_80112DF4[4];
 
-/// Unused, probably stale program data: likely per-weapon boolean flags.
-/// No reader identified; the original flag meaning is unknown.
-extern u8 D_80112ED4[33];
-
-extern u16 D_801132BC[33][2];
-
 static const TaskFuncTable3 Gp_EffTask07States;
 
 /// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
@@ -1021,10 +1015,11 @@ u16 D_80112E30[33] = {
 };
 GpuImageUpload* const* D_80112E74[16] = { gAya10400EyesRestSequence, gAya10300EyesRestSequence, gAya10200EyesRestSequence, gAya10500EyesRestSequence, gAya10400EyesClosingSequence, gAya10300EyesClosingSequence, gAya10200EyesClosingSequence, gAya10500EyesClosingSequence, gAya10400EyesOpeningSequence, gAya10300EyesOpeningSequence, gAya10200EyesOpeningSequence, gAya10500EyesOpeningSequence, gAya10400EyesBlinkSequence, gAya10300EyesBlinkSequence, gAya10200EyesBlinkSequence, gAya10500EyesBlinkSequence };
 GpuImageUpload* const* D_80112EB4[8]  = { gAya10400MouthOpenSequence, gAya10300MouthOpenSequence, gAya10200MouthAlternateSequence, gAya10500MouthAlternateSequence, gAya10400MouthRestSequence, gAya10300MouthRestSequence, gAya10200MouthRestSequence, gAya10500MouthRestSequence };
-/// Unused, probably stale program data: likely per-weapon boolean flags.
-/// No reader identified; the original flag meaning is unknown.
-u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
-u8 D_80112EF8[33] = {
+/// Thirty-three retained zero/one bytes with no identified reader.
+///
+/// Their meaning and index domain are unproven.
+static u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
+u8        D_80112EF8[33] = {
     0,
     0,
     0,
@@ -1199,7 +1194,11 @@ SVECTOR D_801131B4[33] = {
     { -256, 496, -96, 0 },
     { -256, 496, -96, 0 }
 };
-u16 D_801132BC[33][2] = {
+/// Retained halfword pairs with no identified reader.
+///
+/// First values are 43, 106, 107, 108 or 161; every second value is 6.
+/// Pair meanings, units and index domain are unproven.
+static u16 D_801132BC[33][2] = {
     { 43, 6 },
     { 43, 6 },
     { 43, 6 },

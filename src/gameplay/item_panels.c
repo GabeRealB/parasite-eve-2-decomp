@@ -185,8 +185,6 @@ extern u8 Gp_StrWater[];
 
 extern u8 Gp_StrEarth[];
 
-extern UiObjectDesc D_8010F654[1];
-
 static const char _gItemMenuHealingStatusTitle[];
 
 extern const char Gp_StrInvoke[];
@@ -520,7 +518,24 @@ u8* D_8010F644[4] = {
     Gp_StrEarth,
 };
 
-UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE, 192, itemMenuItemCommandTask, 0 } };
+/// Style selector and execution priority of the Item command panel recipe.
+enum {
+    ITEM_MENU_ITEM_COMMAND_PANEL_UNTITLED_STYLE = 3,
+    ITEM_MENU_ITEM_COMMAND_PANEL_TASK_PRIORITY  = 192
+};
+
+/// Recipe for the Item menu's Use/Attach and Key Item command panel.
+///
+/// Bounds are screen-centered pixels and the ordering-table seed counts tags.
+/// No construction site is known for this retained recipe.
+static UiObjectDesc _gItemMenuItemCommandPanelDesc = {
+    .style           = ITEM_MENU_ITEM_COMMAND_PANEL_UNTITLED_STYLE,
+    .bounds          = { -136, -50, 60, 80 },
+    .otIndexSeed     = 24,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = ITEM_MENU_ITEM_COMMAND_PANEL_TASK_PRIORITY,
+    .contentCallback = itemMenuItemCommandTask,
+};
 
 UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, itemMenuPeCommandTask, 0 };
 

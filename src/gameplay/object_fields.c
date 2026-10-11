@@ -43,9 +43,6 @@ extern _HazardPlayerDamage Gp_IdField0[];
 /// 6-byte records selected by `damageGetHazardDamage(..., 1)`.
 extern _HazardEnemyDamage Gp_IdField1[];
 
-/// Unreferenced nonzero halfword following the ID-field table.
-extern u16 D_80114096;
-
 _HazardPlayerDamage Gp_IdField0[11] = {
     { 0, 0 },
     { 0, 0 },
@@ -72,8 +69,10 @@ _HazardEnemyDamage Gp_IdField1[11] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
 };
-/// Unreferenced nonzero halfword following the ID-field table.
-u16 D_80114096 = 0x3430;
+/// Retained bytes between the hazard-damage and new-game map-mark tables.
+///
+/// No identified access establishes their meaning or original object boundary.
+static u16 D_80114096 = 0x3430;
 
 /// Restarts the countdown to an enemy's next damage-over-time pulse.
 ///

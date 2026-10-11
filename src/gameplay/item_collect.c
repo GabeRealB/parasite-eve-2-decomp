@@ -31,9 +31,6 @@
 /// low 7 bits index a collected-item bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits`.
 extern u16 Gp_CollectedIds[];
 
-/// Unreferenced nonzero halfword after the collected-item terminator.
-extern u16 D_80114B32;
-
 /// Catalogue identification flags stored in the live save.
 enum {
     ITEM_IDENTIFICATION_ID_LIMIT      = 0x180,
@@ -281,8 +278,11 @@ u16 Gp_CollectedIds[41] = {
     304,
     65535
 };
-/// Unreferenced nonzero halfword after the collected-item terminator.
-u16 D_80114B32 = 0x1131;
+/// Retained bytes after the collected-item list's end marker.
+///
+/// The list walker stops before these bytes; their meaning and original object
+/// boundary are unproven.
+static u16 D_80114B32 = 0x1131;
 
 s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused)
 {
