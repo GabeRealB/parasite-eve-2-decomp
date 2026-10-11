@@ -30090,9 +30090,9 @@ Index the global directly and only write `flag` on the success goto /
 shared zero tail:
 
 ```c
-bytes = D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
+bytes = _gCompanionFamily2Schedules[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
 if (bytes != NULL) {
-    if (D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage) {
+    if (_gCompanionFamily2Schedules[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage) {
         if (bytes[save->state.location.loc.area - 1] != 0) {
             flag = 1;
             goto done;

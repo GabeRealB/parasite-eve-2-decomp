@@ -80,51 +80,50 @@ STATIC_ASSERT_SIZEOF(_CompanionSchedule, 8);
      (outputAreaPresence) != NULL && (schedules)[gameFlagGetNibble(scheduleFlagId)].stage == (stageId) &&         \
          ((outputAreaPresence)[(areaId) - 1] & (presenceMask)) != 0)
 
-extern _CompanionSchedule D_80114198[];
+/// Schedule domains, including schedule 0 for absence.
+enum {
+    COMPANION_FAMILY_1_SCHEDULE_COUNT = 11,
+    COMPANION_FAMILY_2_SCHEDULE_COUNT = 11,
+    COMPANION_FAMILY_3_SCHEDULE_COUNT = 2,
+};
 
-extern _CompanionSchedule D_801141F0[];
+/// Area-table extents: one byte for every one-based area ID in the stage.
+enum {
+    COMPANION_DRYFIELD_AREA_COUNT        = GAME_AREA_DRYFIELD_UNDERPASS,
+    COMPANION_MINE_SHELTER_AREA_COUNT    = GAME_AREA_SHELTER_R49,
+    COMPANION_SHELTER_NEO_ARK_AREA_COUNT = GAME_AREA_NEO_ARK_SUBSTATION,
+    COMPANION_AREA_PRESENT               = 1,
+};
 
-extern _CompanionSchedule D_80114248[];
+/// Packs a present family-1 area with its resource variant.
+///
+/// `resourceVariant` is an integer constant in 0..15, evaluated once. The low
+/// nibble is presence; the high nibble selects the package requested on entry.
+#define COMPANION_PACK_AREA_PRESENCE(resourceVariant) \
+    (((resourceVariant) << COMPANION_FAMILY_1_VARIANT_SHIFT) | COMPANION_AREA_PRESENT)
 
-extern u8 D_80114258[38];
+/// Retained byte extent of family 3's schedule-1 storage, including an unknown tail.
+enum { COMPANION_FAMILY_3_SCHEDULE_1_STORAGE_BYTES = 36 };
 
-extern u8 D_80114280[38];
-
-extern u8 D_801142A8[38];
-
-extern u8 D_801142D0[49];
-
-extern u8 D_80114304[49];
-
-extern u8 D_80114338[38];
-
-extern u8 D_80114360[38];
-
-extern u8 D_80114388[38];
-
-extern u8 D_801143B0[38];
-
-extern u8 D_801143D8[38];
-
-extern u8 D_80114400[38];
-
-extern u8 D_80114428[33];
-
-extern u8 D_8011444C[33];
-
-extern u8 D_80114470[49];
-
-extern u8 D_801144A4[49];
-
-extern u8 D_801144D8[49];
-
-extern u8 D_8011450C[33];
-
-extern u8 D_80114530[49];
-
-/// 33 room flags, then the unexplained 3D F0 71 tail.
-/// The tail is not a room-mask entry.
-extern u8 D_80114564[36];
+static u8 _gCompanionFamily1Schedule1AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule2AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule3AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule4AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule5AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule6AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule1AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule2AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule3AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule5AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule7AreaPresence[COMPANION_DRYFIELD_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule8AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule9AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT];
+static u8 _gCompanionFamily2Schedule10AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule7AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule8AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule9AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT];
+static u8 _gCompanionFamily1Schedule10AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT];
+static u8 _gCompanionFamily3Schedule1AreaPresence[COMPANION_FAMILY_3_SCHEDULE_1_STORAGE_BYTES];
 
 void func_80724E2C(void);
 
@@ -146,57 +145,188 @@ static inline void _fadeFinishSessionResume(Task* fadeTask, CdCmdQueue* queue)
     taskKill(fadeTask);
 }
 
-_CompanionSchedule D_80114198[11] = {
+/// Family-2 stage and area schedules selected by `GAME_FLAG_COMPANION_2_SCHEDULE`.
+///
+/// The selector must be 0..10, as supplied by the story flag writers; extracting
+/// a nibble alone does not enforce the bound. Area tables live with gameplay.
+/// Entries use whole-byte presence and always select resource variant 0.
+static _CompanionSchedule _gCompanionFamily2Schedules[COMPANION_FAMILY_2_SCHEDULE_COUNT] = {
     { NULL, GAME_STAGE_NONE },
-    { D_80114360, GAME_STAGE_DRYFIELD },
-    { D_80114388, GAME_STAGE_DRYFIELD },
-    { D_801143B0, GAME_STAGE_DRYFIELD },
-    { D_80114388, GAME_STAGE_DRYFIELD },
-    { D_801143D8, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_80114388, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_80114400, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_80114428, GAME_STAGE_SHELTER_NEO_ARK },
-    { D_8011444C, GAME_STAGE_SHELTER_NEO_ARK },
-    { D_80114470, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily2Schedule1AreaPresence, GAME_STAGE_DRYFIELD },
+    { _gCompanionFamily2Schedule2AreaPresence, GAME_STAGE_DRYFIELD },
+    { _gCompanionFamily2Schedule3AreaPresence, GAME_STAGE_DRYFIELD },
+    { _gCompanionFamily2Schedule2AreaPresence, GAME_STAGE_DRYFIELD },
+    { _gCompanionFamily2Schedule5AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily2Schedule2AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily2Schedule7AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily2Schedule8AreaPresence, GAME_STAGE_SHELTER_NEO_ARK },
+    { _gCompanionFamily2Schedule9AreaPresence, GAME_STAGE_SHELTER_NEO_ARK },
+    { _gCompanionFamily2Schedule10AreaPresence, GAME_STAGE_MINE_SHELTER },
 };
-_CompanionSchedule D_801141F0[11] = {
+/// Family-1 stage and packed area schedules selected by `GAME_FLAG_COMPANION_1_SCHEDULE`.
+///
+/// The selector must be 0..10. Schedule 0 is absent; present entries encode
+/// resource variants 1..5, with variant 5 remapped to 3 after its package loads.
+/// Each borrowed area table remains live for the gameplay overlay's lifetime.
+static _CompanionSchedule _gCompanionFamily1Schedules[COMPANION_FAMILY_1_SCHEDULE_COUNT] = {
     { NULL, GAME_STAGE_NONE },
-    { D_80114258, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_80114280, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_801142A8, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_801142D0, GAME_STAGE_MINE_SHELTER },
-    { D_80114304, GAME_STAGE_MINE_SHELTER },
-    { D_80114338, GAME_STAGE_DRYFIELD_NIGHT },
-    { D_801144A4, GAME_STAGE_MINE_SHELTER },
-    { D_801144D8, GAME_STAGE_MINE_SHELTER },
-    { D_8011450C, GAME_STAGE_SHELTER_NEO_ARK },
-    { D_80114530, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily1Schedule1AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily1Schedule2AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily1Schedule3AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily1Schedule4AreaPresence, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily1Schedule5AreaPresence, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily1Schedule6AreaPresence, GAME_STAGE_DRYFIELD_NIGHT },
+    { _gCompanionFamily1Schedule7AreaPresence, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily1Schedule8AreaPresence, GAME_STAGE_MINE_SHELTER },
+    { _gCompanionFamily1Schedule9AreaPresence, GAME_STAGE_SHELTER_NEO_ARK },
+    { _gCompanionFamily1Schedule10AreaPresence, GAME_STAGE_MINE_SHELTER },
 };
-_CompanionSchedule D_80114248[2] = {
+/// Family-3 absence/presence schedules selected by `GAME_FLAG_COMPANION_3_SCHEDULE`.
+///
+/// The selector must be 0 or 1. Schedule 1 uses whole-byte presence in
+/// Shelter/Neo Ark and resource variant 0, borrowing its gameplay-owned table.
+static _CompanionSchedule _gCompanionFamily3Schedules[COMPANION_FAMILY_3_SCHEDULE_COUNT] = {
     { NULL, GAME_STAGE_NONE },
-    { D_80114564, GAME_STAGE_SHELTER_NEO_ARK },
+    { _gCompanionFamily3Schedule1AreaPresence, GAME_STAGE_SHELTER_NEO_ARK },
 };
-u8 D_80114258[38] = { 17, 0, 17, 0, 17, 17, 17, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114280[38] = { 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_801142A8[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_801142D0[49] = { 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114304[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 49, 49, 49, 49, 49, 0, 0, 0 };
-u8 D_80114338[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 0, 0, 0, 0, 0 };
-u8 D_80114360[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114388[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_801143B0[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_801143D8[38] = { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114400[38] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114428[33] = { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_8011444C[33] = { 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114470[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_801144A4[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0 };
-u8 D_801144D8[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 33, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0 };
-u8 D_8011450C[33] = { 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-u8 D_80114530[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 65, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 65, 65, 65, 65, 65, 65, 0, 0, 0 };
-/// 33 room flags, then the unexplained 3D F0 71 tail.
-/// The tail is not a room-mask entry.
-u8 D_80114564[36] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61, 240, 113 };
+/// Night Dryfield area presence for family-1 schedule 1, using resource variant 1.
+static u8 _gCompanionFamily1Schedule1AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_GAS_STATION - 1]       = COMPANION_PACK_AREA_PRESENCE(1),
+    [GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE - 1]     = COMPANION_PACK_AREA_PRESENCE(1),
+    [GAME_AREA_DRYFIELD_NIGHT_BACK_STREET - 1]       = COMPANION_PACK_AREA_PRESENCE(1),
+    [GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP - 1]     = COMPANION_PACK_AREA_PRESENCE(1),
+    [GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE - 1]         = COMPANION_PACK_AREA_PRESENCE(1),
+    [GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE - 1] = COMPANION_PACK_AREA_PRESENCE(1),
+};
+
+/// Night gas-station presence for family-1 schedule 2, using resource variant 1.
+static u8 _gCompanionFamily1Schedule2AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_GAS_STATION - 1] = COMPANION_PACK_AREA_PRESENCE(1),
+};
+
+/// Night garage presence for family-1 schedule 3, using resource variant 1.
+static u8 _gCompanionFamily1Schedule3AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_GARAGE - 1] = COMPANION_PACK_AREA_PRESENCE(1),
+};
+
+/// Mine mesa presence for family-1 schedule 4, using resource variant 1.
+static u8 _gCompanionFamily1Schedule4AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_MINE_MESA - 1] = COMPANION_PACK_AREA_PRESENCE(1),
+};
+
+/// Shelter B2 elevator and B3/B4 presence for family-1 schedule 5, using variant 3.
+static u8 _gCompanionFamily1Schedule5AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                 = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1] = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]            = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]              = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]              = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                = COMPANION_PACK_AREA_PRESENCE(3),
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]             = COMPANION_PACK_AREA_PRESENCE(3),
+};
+
+/// Night Water Hole presence for family-1 schedule 6, loading variant 5 before remapping to 3.
+static u8 _gCompanionFamily1Schedule6AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE - 1] = COMPANION_PACK_AREA_PRESENCE(5),
+};
+
+/// Day factory, garage, driveway and junk-yard presence for family-2 schedule 1.
+static u8 _gCompanionFamily2Schedule1AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_FACTORY - 1]   = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_GARAGE - 1]    = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_DRIVEWAY - 1]  = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_JUNK_YARD - 1] = COMPANION_AREA_PRESENT,
+};
+
+/// Trailer-coach presence shared by family-2 schedules 2/4 (day) and 6 (night).
+static u8 _gCompanionFamily2Schedule2AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_TRAILER_COACH - 1] = COMPANION_AREA_PRESENT,
+};
+
+/// Day junk-yard and trailer-coach presence for family-2 schedule 3.
+static u8 _gCompanionFamily2Schedule3AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_JUNK_YARD - 1]     = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_TRAILER_COACH - 1] = COMPANION_AREA_PRESENT,
+};
+
+/// Night main-street presence for family-2 schedule 5.
+static u8 _gCompanionFamily2Schedule5AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET - 1] = COMPANION_AREA_PRESENT,
+};
+
+/// Night water-tower, breezeway, factory and driveway presence for family-2 schedule 7.
+static u8 _gCompanionFamily2Schedule7AreaPresence[COMPANION_DRYFIELD_AREA_COUNT] = {
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER - 1] = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY - 1]   = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_NIGHT_FACTORY - 1]     = COMPANION_AREA_PRESENT,
+    [GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY - 1]    = COMPANION_AREA_PRESENT,
+};
+
+/// Shelter 1F heliport presence for family-2 schedule 8.
+static u8 _gCompanionFamily2Schedule8AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1] = COMPANION_AREA_PRESENT,
+};
+
+/// Shelter 1F parking-garage through airlock presence for family-2 schedule 9.
+static u8 _gCompanionFamily2Schedule9AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = COMPANION_AREA_PRESENT,
+};
+
+/// Shelter B1 corridor, sterilization, access, parking and transfer presence for family-2 schedule 10.
+static u8 _gCompanionFamily2Schedule10AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]       = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]  = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]       = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1] = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]     = COMPANION_AREA_PRESENT,
+};
+
+/// Shelter R47 presence for family-1 schedule 7, using resource variant 2.
+static u8 _gCompanionFamily1Schedule7AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_R47 - 1] = COMPANION_PACK_AREA_PRESENCE(2),
+};
+
+/// Shelter B1/B2 route and R47 presence for family-1 schedule 8, using variant 2.
+static u8 _gCompanionFamily1Schedule8AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1] = COMPANION_PACK_AREA_PRESENCE(2),
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]     = COMPANION_PACK_AREA_PRESENCE(2),
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]       = COMPANION_PACK_AREA_PRESENCE(2),
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1] = COMPANION_PACK_AREA_PRESENCE(2),
+    [GAME_AREA_SHELTER_R47 - 1]                  = COMPANION_PACK_AREA_PRESENCE(2),
+};
+
+/// Neo Ark observatory presence for family-1 schedule 9, using resource variant 2.
+static u8 _gCompanionFamily1Schedule9AreaPresence[COMPANION_SHELTER_NEO_ARK_AREA_COUNT] = {
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1] = COMPANION_PACK_AREA_PRESENCE(2),
+};
+
+/// Shelter B2 elevator and B3/B4 presence for family-1 schedule 10, using variant 4.
+static u8 _gCompanionFamily1Schedule10AreaPresence[COMPANION_MINE_SHELTER_AREA_COUNT] = {
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                 = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1] = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]            = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]              = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]              = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                = COMPANION_PACK_AREA_PRESENCE(4),
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]             = COMPANION_PACK_AREA_PRESENCE(4),
+};
+
+/// Shelter B6 nursery and growth-room presence for family-3 schedule 1.
+///
+/// Only the first `COMPANION_SHELTER_NEO_ARK_AREA_COUNT` bytes are area entries.
+/// The final three bytes are retained storage of unproven role and ownership;
+/// they do not extend the valid area domain.
+static u8 _gCompanionFamily3Schedule1AreaPresence[COMPANION_FAMILY_3_SCHEDULE_1_STORAGE_BYTES] = {
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]         = COMPANION_AREA_PRESENT,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]     = COMPANION_AREA_PRESENT,
+    [COMPANION_SHELTER_NEO_ARK_AREA_COUNT]     = 0x3D,
+    [COMPANION_SHELTER_NEO_ARK_AREA_COUNT + 1] = 0xF0,
+    [COMPANION_SHELTER_NEO_ARK_AREA_COUNT + 2] = 0x71,
+};
 
 s32 companionSelectForArea(void)
 {
@@ -208,7 +338,7 @@ s32 companionSelectForArea(void)
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     // The first scheduled family present wins: 2, then 1, then 3.
-    if (COMPANION_SCHEDULE_HAS_AREA(D_80114198, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         save->state.companionType    = COMPANION_TYPE_FAMILY_2;
@@ -216,7 +346,7 @@ s32 companionSelectForArea(void)
         return (session->companionType != COMPANION_TYPE_FAMILY_2) * COMPANION_TYPE_FAMILY_2;
     }
 
-    if (COMPANION_SCHEDULE_HAS_AREA(D_801141F0, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = COMPANION_TYPE_FAMILY_1;
@@ -232,7 +362,7 @@ s32 companionSelectForArea(void)
         return COMPANION_TYPE_FAMILY_1;
     }
 
-    if (COMPANION_SCHEDULE_HAS_AREA(D_80114248, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = COMPANION_TYPE_FAMILY_3;
@@ -264,13 +394,13 @@ static inline s32 _companionShouldRetainSoundBank(void)
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0)) {
-        if (COMPANION_SCHEDULE_HAS_AREA(D_80114198, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        if (COMPANION_SCHEDULE_HAS_AREA(D_801141F0, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        if (COMPANION_SCHEDULE_HAS_AREA(D_80114248, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
     }

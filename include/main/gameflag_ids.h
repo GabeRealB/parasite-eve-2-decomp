@@ -225,18 +225,18 @@ enum {
     /// (CAP key 3) or command 21. The factory's door to the garage is refused (CAP slot
     /// 4) until 2, and the glow position differs between 1 and 2.
     GAME_FLAG_FACTORY_LAMP_PROGRESS = 0x04A,
-    /// Story index into the room-presence table D_80114198 for companion type 2:
+    /// Story index into the room-presence table `_gCompanionFamily2Schedules` for companion type 2:
     /// selects which Dryfield rooms that ally appears in and is passed as its spawn
     /// variant. Values 1-7 set across the Dryfield story (trailer coach 1, driveway 2,
     /// garage 3, junk yard 4, night garage 5, dilapidated house 6, actor_146000 7), 0
     /// for none.
     GAME_FLAG_COMPANION_2_SCHEDULE = 0x04B,
-    /// Story index into the room-presence table D_801141F0 for companion type 1 (the
+    /// Story index into the room-presence table `_gCompanionFamily1Schedules` for companion type 1 (the
     /// combat ally with four variants, apparently Kyle): selects the rooms/stage where
     /// that ally joins. Set 1-4 across Dryfield and the mine (e.g. 4 entering the mine
     /// mesa), 0 when he leaves.
     GAME_FLAG_COMPANION_1_SCHEDULE = 0x04C,
-    /// Story index into the room-presence table D_80114248 for companion type 3: 1 set
+    /// Story index into the room-presence table `_gCompanionFamily3Schedules` for companion type 3: 1 set
     /// in the shelter B6 training room sequence, 0 cleared by actor_450900.
     GAME_FLAG_COMPANION_3_SCHEDULE = 0x04D,
     /// Transient factory hatch state: 1 while the hatch cutscene is open (set at its
