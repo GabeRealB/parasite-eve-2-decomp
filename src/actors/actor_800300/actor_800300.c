@@ -38,10 +38,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-extern TaskMessageEntry D_actor_800300_80168880[26];
-extern GpuImageUpload** D_actor_800300_80168950[];
-extern GpuImageUpload** D_actor_800300_80168960[];
-
 static void _actor800300Init(Task* task);
 static void _actor800300UpdateMove(Task* task);
 static void _actor800300DeferRemoval(Task* task);
@@ -76,12 +72,35 @@ enum {
 // Active phase shared by the approach state and its entry helper.
 enum { ACTOR_800300_APPROACH_MOVE = 1 };
 
-extern GpuImageUpload* D_actor_800300_80169A20[2];
-extern GpuImageUpload* D_actor_800300_80169A28[4];
-extern GpuImageUpload* D_actor_800300_80169A38[4];
-extern GpuImageUpload* D_actor_800300_80169A48[6];
-extern GpuImageUpload* D_actor_800300_80169A60[2];
-extern GpuImageUpload* D_actor_800300_80169A68[2];
+static GpuImageUpload* _gActor800300EyesOpenFrames[2];
+static GpuImageUpload* _gActor800300EyesClosingFrames[4];
+static GpuImageUpload* _gActor800300EyesOpeningFrames[4];
+static GpuImageUpload* _gActor800300BlinkFrames[6];
+static GpuImageUpload* _gActor800300MouthClosedFrames[2];
+static GpuImageUpload* _gActor800300MouthOpenFrames[2];
+
+/// Dimensions of the companion's 8-bit facial patches and their packed RAM buffers.
+///
+/// VRAM width counts sixteen-bit words; each holds two texels. Each u_long
+/// transfer word holds two VRAM words. Both rectangle areas are even.
+enum {
+    ACTOR_800300_EYE_PATCH_WIDTH_WORDS      = 25,
+    ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS    = 14,
+    ACTOR_800300_FACIAL_PATCH_HEIGHT        = 20,
+    ACTOR_800300_EYE_PATCH_TRANSFER_WORDS   = ACTOR_800300_EYE_PATCH_WIDTH_WORDS * ACTOR_800300_FACIAL_PATCH_HEIGHT / 2,
+    ACTOR_800300_MOUTH_PATCH_TRANSFER_WORDS = ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS * ACTOR_800300_FACIAL_PATCH_HEIGHT / 2,
+};
+
+/// Additional receiver IDs sharing animation playback or native-control reset.
+///
+/// These aliases use the selected callback's payload contract; their
+/// sender-level distinctions are unproven.
+enum {
+    ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1002 = 1002,
+    ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1003 = 1003,
+    ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1004 = 1004,
+    ACTOR_800300_MESSAGE_END_SCRIPTED_ALIAS_1024   = 1024,
+};
 
 static AnimationSet _gActor800300Animation07E3C;
 static AnimationSet _gActor800300Animation08218;
@@ -126,11 +145,25 @@ TmdSource gActor800300Model02CF4 = {
     _gActor800300Model02CF4Stream,
 };
 
-TaskMessageEntry D_actor_800300_80168880[26] = {
+/// Synchronous messages of the noncombatant companion, with installed IDs 1000..1025.
+///
+/// There is no TASK_MESSAGE_TABLE_END record: send only an installed ID, and
+/// keep this overlay and its gameplay callbacks loaded while the task can
+/// receive messages. The task borrows the table; dispatch does not modify it.
+///
+/// IDs 1002..1004, CLIMB_STAIRS, AWAIT_BUTTON_PRESSES, ENTER_SCRIPTED_PRESENTATION
+/// and SET_RUN_MOVEMENT read an indexed AnimationPlayRequest, rather than the
+/// player's command-specific payload. A button-press hold must initialize its
+/// leading animation request for this receiver. REPLACE_AND_PLAY and 1024 end
+/// scripted control without reading a playback request. WALK_STEPS takes control
+/// and remains motion-pending because scripted state 5 only advances animation.
+/// RUN_TO selects state 8, outside this package's seven scripted handlers;
+/// callers must not leave that state for the next scripted update.
+static TaskMessageEntry _gActor800300MessageTable[26] = {
     { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
-    { 1002, companionPlayScriptedAnimation },
-    { 1003, companionPlayScriptedAnimation },
-    { 1004, companionPlayScriptedAnimation },
+    { ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1002, companionPlayScriptedAnimation },
+    { ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1003, companionPlayScriptedAnimation },
+    { ACTOR_800300_MESSAGE_PLAY_ANIMATION_ALIAS_1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
@@ -145,26 +178,39 @@ TaskMessageEntry D_actor_800300_80168880[26] = {
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionApplyDamage },
-    { 1018, companionPlayScriptedAnimation },
+    { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_RUN_TO, companionRunTo },
-    { 1020, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, companionMoveBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
-    { 1024, companionEndScriptedMotion },
+    { ACTOR_800300_MESSAGE_END_SCRIPTED_ALIAS_1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
 };
 
-GpuImageUpload** D_actor_800300_80168950[4] = {
-    D_actor_800300_80169A20,
-    D_actor_800300_80169A28,
-    D_actor_800300_80169A38,
-    D_actor_800300_80169A48,
+/// Eye frame lists selected by textureSequenceA - 1 (1..4; zero inactive).
+///
+/// Selectors restore open eyes, close them, open them or blink. Frame indices
+/// start at zero and reach each list's NULL terminator; uploads are four active
+/// update ticks apart. Message requests 1..3 select closing, opening and blink;
+/// request 0 restores open eyes and the closed mouth. Lists and writable uploads
+/// belong to this overlay; pixels must survive all queued GPU transfers.
+static GpuImageUpload** _gActor800300EyeTextureSequences[4] = {
+    _gActor800300EyesOpenFrames,
+    _gActor800300EyesClosingFrames,
+    _gActor800300EyesOpeningFrames,
+    _gActor800300BlinkFrames,
 };
 
-GpuImageUpload** D_actor_800300_80168960[2] = {
-    D_actor_800300_80169A68,
-    D_actor_800300_80169A60,
+/// Mouth frame lists selected by textureSequenceB - 1 (1 open, 2 closed; zero inactive).
+///
+/// Message requests 4 and 5 select open and closed. Each list uploads once,
+/// then consumes its NULL terminator after eight active update ticks. Request 0
+/// selects closed and resets the eye sequence too. Lists and writable uploads
+/// belong to this overlay; pixels must survive all queued GPU transfers.
+static GpuImageUpload** _gActor800300MouthTextureSequences[2] = {
+    _gActor800300MouthOpenFrames,
+    _gActor800300MouthClosedFrames,
 };
 
 /// Packed pixels of the companion's first texture-A frame.
@@ -176,82 +222,147 @@ static u_long _gActor800300TextureAFirstFramePixels[250] = {
 #include "assets/actor_121300_image_09DC8.inc"
 };
 
-GpuImageUpload D_actor_800300_80168D50[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, _gActor800300TextureAFirstFramePixels },
+/// Open-eye upload followed by its nonzero-operation terminator.
+///
+/// Contains a 50-by-20 8-bit patch. The renderer rewrites the first destination
+/// to the model's eye region (0, 64) before queuing it; these records are writable.
+/// The pixel buffer must stay loaded and unchanged until GPU transfer completes.
+static GpuImageUpload _gActor800300EyesOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300TextureAFirstFramePixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800300_80168D70[250] = {
+/// Half-closed eyes packed as 250 transfer words for a 50-by-20 8-bit patch.
+///
+/// Borrowed by its upload list; keep loaded and unchanged until queued GPU
+/// transfers finish. Closing, opening and blink sequences share this frame.
+static u_long _gActor800300EyesHalfClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_WORDS] = {
 #include "assets/actor_121300_image_0A1B0.inc"
 };
 
-GpuImageUpload D_actor_800300_80169158[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_800300_80168D70 },
+/// Half-closed-eye upload followed by its nonzero-operation terminator.
+///
+/// Contains a 50-by-20 8-bit patch. The renderer rewrites the first destination
+/// to the model's eye region (0, 64); records are writable and pixel storage
+/// must remain loaded and unchanged until queued GPU transfers complete.
+static GpuImageUpload _gActor800300EyesHalfClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300EyesHalfClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800300_80169178[250] = {
+/// Closed eyes packed as 250 transfer words for a 50-by-20 8-bit patch.
+///
+/// Borrowed by its upload list; keep loaded and unchanged until queued GPU
+/// transfers finish. Closing, opening and blink sequences share this frame.
+static u_long _gActor800300EyesClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_WORDS] = {
 #include "assets/actor_121300_image_0A598.inc"
 };
 
-GpuImageUpload D_actor_800300_80169560[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_800300_80169178 },
+/// Closed-eye upload followed by its nonzero-operation terminator.
+///
+/// Contains a 50-by-20 8-bit patch. The renderer rewrites the first destination
+/// to the model's eye region (0, 64); records are writable and pixel storage
+/// must remain loaded and unchanged until queued GPU transfers complete.
+static GpuImageUpload _gActor800300EyesClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_EYE_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300EyesClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800300_80169580[140] = {
+/// Closed mouth packed as 140 transfer words for a 28-by-20 8-bit patch.
+///
+/// Borrowed by its upload list; keep loaded and unchanged until queued GPU
+/// transfers finish.
+static u_long _gActor800300MouthClosedPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_WORDS] = {
 #include "assets/actor_121300_image_0A980.inc"
 };
 
-GpuImageUpload D_actor_800300_801697B0[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_800300_80169580 },
+/// Closed-mouth upload followed by its nonzero-operation terminator.
+///
+/// Contains a 28-by-20 8-bit patch. The renderer rewrites the first destination
+/// to the model's mouth region (12, 96); records are writable and pixel storage
+/// must remain loaded and unchanged until queued GPU transfers complete.
+static GpuImageUpload _gActor800300MouthClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300MouthClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_800300_801697D0[140] = {
+/// Open mouth packed as 140 transfer words for a 28-by-20 8-bit patch.
+///
+/// Borrowed by its upload list; keep loaded and unchanged until queued GPU
+/// transfers finish.
+static u_long _gActor800300MouthOpenPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_WORDS] = {
 #include "assets/actor_121300_image_0ABB0.inc"
 };
 
-GpuImageUpload D_actor_800300_80169A00[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_800300_801697D0 },
+/// Open-mouth upload followed by its nonzero-operation terminator.
+///
+/// Contains a 28-by-20 8-bit patch. The renderer rewrites the first destination
+/// to the model's mouth region (12, 96); records are writable and pixel storage
+/// must remain loaded and unchanged until queued GPU transfers complete.
+static GpuImageUpload _gActor800300MouthOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_800300_MOUTH_PATCH_WIDTH_WORDS, ACTOR_800300_FACIAL_PATCH_HEIGHT }, _gActor800300MouthOpenPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpuImageUpload* D_actor_800300_80169A20[2] = {
-    D_actor_800300_80168D50,
+/// Restores open eyes with one writable upload list and a NULL frame terminator.
+///
+/// Starts at frame zero; after the upload, the terminator disables the sequence
+/// four active update ticks later. The uploaded patch remains in VRAM.
+static GpuImageUpload* _gActor800300EyesOpenFrames[2] = {
+    _gActor800300EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800300_80169A28[4] = {
-    D_actor_800300_80168D50,
-    D_actor_800300_80169158,
-    D_actor_800300_80169560,
+/// Closes the eyes through open, half-closed and closed patches, then NULL.
+///
+/// Starts at frame zero and advances every four active update ticks. The NULL
+/// entry disables the sequence, leaving the closed-eye patch in VRAM.
+static GpuImageUpload* _gActor800300EyesClosingFrames[4] = {
+    _gActor800300EyesOpenUploads,
+    _gActor800300EyesHalfClosedUploads,
+    _gActor800300EyesClosedUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800300_80169A38[4] = {
-    D_actor_800300_80169560,
-    D_actor_800300_80169158,
-    D_actor_800300_80168D50,
+/// Opens the eyes through closed, half-closed and open patches, then NULL.
+///
+/// Starts at frame zero and advances every four active update ticks. The NULL
+/// entry disables the sequence, leaving the open-eye patch in VRAM.
+static GpuImageUpload* _gActor800300EyesOpeningFrames[4] = {
+    _gActor800300EyesClosedUploads,
+    _gActor800300EyesHalfClosedUploads,
+    _gActor800300EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800300_80169A48[6] = {
-    D_actor_800300_80168D50,
-    D_actor_800300_80169158,
-    D_actor_800300_80169560,
-    D_actor_800300_80169158,
-    D_actor_800300_80168D50,
+/// Blinks through open, half-closed, closed, half-closed and open patches, then NULL.
+///
+/// Starts at frame zero and advances every four active update ticks. The NULL
+/// entry disables the sequence, leaving the open-eye patch in VRAM.
+static GpuImageUpload* _gActor800300BlinkFrames[6] = {
+    _gActor800300EyesOpenUploads,
+    _gActor800300EyesHalfClosedUploads,
+    _gActor800300EyesClosedUploads,
+    _gActor800300EyesHalfClosedUploads,
+    _gActor800300EyesOpenUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800300_80169A60[2] = {
-    D_actor_800300_801697B0,
+/// Closes the mouth with one writable upload list and a NULL frame terminator.
+///
+/// Starts at frame zero; after the upload, the terminator disables the sequence
+/// eight active update ticks later. The uploaded patch remains in VRAM.
+static GpuImageUpload* _gActor800300MouthClosedFrames[2] = {
+    _gActor800300MouthClosedUploads,
     NULL,
 };
 
-GpuImageUpload* D_actor_800300_80169A68[2] = {
-    D_actor_800300_80169A00,
+/// Opens the mouth with one writable upload list and a NULL frame terminator.
+///
+/// Starts at frame zero; after the upload, the terminator disables the sequence
+/// eight active update ticks later. The uploaded patch remains in VRAM.
+static GpuImageUpload* _gActor800300MouthOpenFrames[2] = {
+    _gActor800300MouthOpenUploads,
     NULL,
 };
 
@@ -632,7 +743,7 @@ static void _actor800300Init(Task* task)
     coordsSlot = &model->coords;
     rootCoord  = *coordsSlot;
     task->state++;
-    task->msgTable                                 = D_actor_800300_80168880;
+    task->msgTable                                 = _gActor800300MessageTable;
     task->exitCallback                             = &_actor800300KillTask;
     actor->animationSlotCount                      = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
@@ -810,7 +921,7 @@ static void _actor800300TickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceA != 0) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            sequences     = D_actor_800300_80168950;
+            sequences     = _gActor800300EyeTextureSequences;
             sequenceIndex = (s8)actor->textureSequenceA - 1;
             uploadList    = sequences[sequenceIndex][(s8)actor->textureFrameA];
             if (uploadList != NULL) {
@@ -830,7 +941,7 @@ static void _actor800300TickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceB != 0) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            sequences           = D_actor_800300_80168960;
+            sequences           = _gActor800300MouthTextureSequences;
             secondSequenceIndex = (s8)actor->textureSequenceB - 1;
             uploadList          = sequences[secondSequenceIndex][(s8)actor->textureFrameB];
             if (uploadList != NULL) {
@@ -875,10 +986,12 @@ static void _actor800300KillTask(Task* task)
     taskKill(task);
 }
 
-/// State handlers of the actor's main task, indexed by its state: set-up, the
-/// per-frame update, a step that only advances to the last state, and the
-/// teardown.
-static const TaskFuncTable4 D_actor_800300_80161E24 = { {
+/// Companion task lifecycle indexed by `Task::state` (0 initialize, 1 update, 2 defer removal, 3 teardown).
+///
+/// Copied by value for dispatch; every selector must be 0..3. New tasks start
+/// at zero, initialization advances to update, and removal selects teardown.
+/// There is no terminator. The final callback destroys the task.
+static const TaskFuncTable4 _gActor800300TaskStates = { {
     _actor800300Init,
     _actor800300UpdateMove,
     _actor800300DeferRemoval,
@@ -889,19 +1002,27 @@ void actor800300Task(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_actor_800300_80161E24;
+    states = _gActor800300TaskStates;
     states.funcs[task->state](task);
 }
 
-/// Handlers `_actor800300TickMode` runs, indexed by `mode`.
-static const TaskFuncTable3 D_actor_800300_80161E34 = { {
+/// Companion control modes indexed by `GameActor::mode` (0 normal, 1 damage, 2 scripted).
+///
+/// Copied by value for dispatch; the mode must stay within 0..2. The selected
+/// handler owns this tick's movement and turn requests. There is no terminator.
+static const TaskFuncTable3 _gActor800300ModeHandlers = { {
     _actor800300TickNormalMode,
     _actor800300TickDamageMode,
     _actor800300TickScriptedMode,
 } };
 
-/// Behaviours `_actor800300TickNormalMode` runs, indexed by `state`.
-static const TaskFuncTable9 D_actor_800300_80161E40 = { {
+/// Native companion behaviors indexed by `GameActor::state` in normal mode (0..8).
+///
+/// Slots 1 and 2 follow the player and turn toward the target; 5 waits for a
+/// distress flinch to finish, and 7 approaches the target. Slots 0, 3, 4, 6 and
+/// 8 all make idle decisions. Copied by value for dispatch with no terminator;
+/// this selector's meaning differs from the scripted-state table.
+static const TaskFuncTable9 _gActor800300NormalStates = { {
     _actor800300IdleDecisionState,
     _actor800300FollowPlayerState,
     _actor800300TurnToTargetState,
@@ -952,7 +1073,7 @@ static void _actor800300TickNormalMode(Task* task)
     s32            animationSet;
     s32            hitSound;
 
-    states    = D_actor_800300_80161E40;
+    states    = _gActor800300NormalStates;
     actor     = task->work;
     companion = actor->companionWork;
     rootCoord = task->extra.tmd->coords;
@@ -1184,7 +1305,7 @@ static void _actor800300TickMode(Task* task)
     GameActor*     actor;
     TaskFuncTable3 modes;
 
-    modes               = D_actor_800300_80161E34;
+    modes               = _gActor800300ModeHandlers;
     actor               = task->work;
     actor->movementSign = 0;
     actor->turnSign     = 0;
@@ -1365,9 +1486,14 @@ static void _actor800300TickDamageMode(Task* task)
     }
 }
 
-/// Handlers `_actor800300TickScriptedMode` runs, indexed by `state`: the
-/// gameplay module's own mode-2 player states.
-static const TaskFuncTable7 D_actor_800300_80161E64 = { {
+/// Companion scripted behaviors indexed by `GameActor::state` (0..6).
+///
+/// Uses the player's direct animation, animation-only, turn, move-to and hold
+/// handlers. Stairs slot 3 and counted-walk slot 5 advance animation only;
+/// WALK_STEPS therefore remains motion-pending until scripted control ends.
+/// The table is copied by value before unchecked dispatch. There is no slot 8
+/// for RUN_TO, so that message-selected state must not reach a scripted update.
+static const TaskFuncTable7 _gActor800300ScriptedStates = { {
     playerActorScriptedState0,
     playerActorTickScriptedAnimation,
     playerActorMode2State2,
@@ -1387,7 +1513,7 @@ static void _actor800300TickScriptedMode(Task* task)
     GameActor*     actor;
     TaskFuncTable7 states;
 
-    states = D_actor_800300_80161E64;
+    states = _gActor800300ScriptedStates;
     actor  = task->work;
     states.funcs[(u16)actor->state](task);
     playerActorUpdateFacing(task);
