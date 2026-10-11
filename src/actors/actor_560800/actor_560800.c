@@ -3116,53 +3116,136 @@ static ActorTransform _gActor560800PlayerCut29Placement = { { 5000, 0, 3200, 0 }
 /// per turn. The placement message borrows the record only during dispatch.
 static ActorTransform _gActor560800No9Cut1Placement = { { 7500, 0, 3000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EF14 = { { 7850, 0, 3400, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for No. 9 in scene cuts 2, 23.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut2Placement = { { 7850, 0, 3400, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EF2C = { 0 };
+/// Hide marker for No. 9 in scene cuts 3, 5, 9, 12.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut3Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EF44 = { { 7500, 0, 3400, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for No. 9 in scene cuts 6, 8, 11.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut6Placement = { { 7500, 0, 3400, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EF5C = { 0 };
+/// Hide marker for No. 9 in scene cuts 7, 19.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut7Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EF74 = { 0 };
+/// Hide marker for No. 9 in scene cuts 14, 16, 18, 20.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut14Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EF8C = { { 9150, 0, 3750, 0 }, { 0, -170, 0, 0 } };
+/// Root placement for No. 9 in scene cuts 15, 17.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut15Placement = { { 9150, 0, 3750, 0 }, { 0, -170, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EFA4 = { 0 };
+/// Hide marker for No. 9 in scene cut 21.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut21Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EFBC = { { 8050, 0, 3700, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for No. 9 in scene cuts 22, 24.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut22Placement = { { 8050, 0, 3700, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016EFD4 = { 0 };
+/// Hide marker for No. 9 in scene cut 25.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut25Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016EFEC = { { 6950, 0, 3650, 0 }, { 0, 1536, 0, 0 } };
+/// Root placement for No. 9 in scene cut 26.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut26Placement = { { 6950, 0, 3650, 0 }, { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F004 = { { 6950, 0, 3650, 0 }, { 0, 1365, 0, 0 } };
+/// Root placement for No. 9 in scene cut 27.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800No9Cut27Placement = { { 6950, 0, 3650, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 3, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F01C = { 0 };
+/// Hide marker for No. 9 in scene cuts 28, 30, 32.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut28Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F034 = { 0 };
+/// Hide marker for No. 9 in scene cuts 29, 31.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut29Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F04C = { 0 };
+/// Hide marker for No. 9 in scene cut 33.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800No9Cut33Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F064 = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for Eve in scene cuts 1, 4, 10, 13.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut1Placement = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F07C = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for Eve in scene cuts 2, 23.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut2Placement = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F094 = { 0 };
+/// Hide marker for Eve in scene cuts 3, 5, 9, 12.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut3Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F0AC = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for Eve in scene cuts 6, 8, 11.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut6Placement = { { 8350, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F0C4 = { 0 };
+/// Hide marker for Eve in scene cuts 7, 19.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut7Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F0DC = { 0 };
+/// Hide marker for Eve in scene cuts 14, 16, 18, 20.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut14Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F0F4 = { 0 };
+/// Hide marker for Eve in scene cuts 15, 17.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut15Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F10C = { 0 };
+/// Hide marker for Eve in scene cut 21.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut21Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F124 = { { 8350, 0, 4300, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for Eve in scene cuts 22, 24.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut22Placement = { { 8350, 0, 4300, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F13C = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } };
+/// Root placement for Eve in scene cut 25.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut25Placement = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } };
 
 /// Root placement of Eve's replacement body and of her body in cut 26.
 ///
@@ -3170,13 +3253,27 @@ ActorTransform D_actor_560800_8016F13C = { { 8340, 0, 4000, 0 }, { 0, 0, 0, 0 } 
 /// uses this record after the texture/model swap; dispatch retains no pointer.
 static ActorTransform _gActor560800EveReplacementPlacement = { { 8130, 0, 2850, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F16C = { 0 };
+/// Hide marker for Eve in scene cut 27.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut27Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F184 = { { 8700, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+/// Root placement for Eve in scene cuts 28, 30, 32.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut28Placement = { { 8700, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F19C = { 0 };
+/// Hide marker for Eve in scene cuts 29, 31.
+///
+/// Zero position X selects hiding; no placement message reads the remaining fields.
+static ActorTransform _gActor560800EveCut29Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F1B4 = { { 8600, 0, 3500, 0 }, { 0, -512, 0, 0 } };
+/// Root placement for Eve in scene cut 33.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800EveCut33Placement = { { 8600, 0, 3500, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
 enum { ACTOR_560800_KYLE_APPROACH_PLACEMENT = 5 };
 
@@ -3195,13 +3292,29 @@ static ActorTransform _gActor560800KyleCutPlacements[6] = {
     { { 7800, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
-ActorTransform D_actor_560800_8016F25C = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+/// Root placement for Kyle in scene cuts 15, 17.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut15Placement = { { 7800, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F274 = { { 7800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+/// Root placement for Kyle in scene cut 21.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut21Placement = { { 7800, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F28C = { { 6350, 0, 3200, 0 }, { 0, -967, 0, 0 } };
+/// Root placement for Kyle in scene cuts 22, 24.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut22Placement = { { 6350, 0, 3200, 0 }, { 0, -967, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F2A4 = { { 6350, 0, 3200, 0 }, { 0, 796, 0, 0 } };
+/// Root placement for Kyle in scene cut 25.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut25Placement = { { 6350, 0, 3200, 0 }, { 0, 796, 0, 0 } };
 
 ActorTransform D_actor_560800_8016F2BC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
 
@@ -3267,38 +3380,38 @@ ActorTransform* D_actor_560800_8016F35C[34] = {
 ActorTransform* D_actor_560800_8016F3E4[34] = {
     NULL,
     &_gActor560800No9Cut1Placement,
-    &D_actor_560800_8016EF14,
-    &D_actor_560800_8016EF2C,
+    &_gActor560800No9Cut2Placement,
+    &_gActor560800No9Cut3Hidden,
     &_gActor560800No9Cut1Placement,
-    &D_actor_560800_8016EF2C,
-    &D_actor_560800_8016EF44,
-    &D_actor_560800_8016EF5C,
-    &D_actor_560800_8016EF44,
-    &D_actor_560800_8016EF2C,
+    &_gActor560800No9Cut3Hidden,
+    &_gActor560800No9Cut6Placement,
+    &_gActor560800No9Cut7Hidden,
+    &_gActor560800No9Cut6Placement,
+    &_gActor560800No9Cut3Hidden,
     &_gActor560800No9Cut1Placement,
-    &D_actor_560800_8016EF44,
-    &D_actor_560800_8016EF2C,
+    &_gActor560800No9Cut6Placement,
+    &_gActor560800No9Cut3Hidden,
     &_gActor560800No9Cut1Placement,
-    &D_actor_560800_8016EF74,
-    &D_actor_560800_8016EF8C,
-    &D_actor_560800_8016EF74,
-    &D_actor_560800_8016EF8C,
-    &D_actor_560800_8016EF74,
-    &D_actor_560800_8016EF5C,
-    &D_actor_560800_8016EF74,
-    &D_actor_560800_8016EFA4,
-    &D_actor_560800_8016EFBC,
-    &D_actor_560800_8016EF14,
-    &D_actor_560800_8016EFBC,
-    &D_actor_560800_8016EFD4,
-    &D_actor_560800_8016EFEC,
-    &D_actor_560800_8016F004,
-    &D_actor_560800_8016F01C,
-    &D_actor_560800_8016F034,
-    &D_actor_560800_8016F01C,
-    &D_actor_560800_8016F034,
-    &D_actor_560800_8016F01C,
-    &D_actor_560800_8016F04C,
+    &_gActor560800No9Cut14Hidden,
+    &_gActor560800No9Cut15Placement,
+    &_gActor560800No9Cut14Hidden,
+    &_gActor560800No9Cut15Placement,
+    &_gActor560800No9Cut14Hidden,
+    &_gActor560800No9Cut7Hidden,
+    &_gActor560800No9Cut14Hidden,
+    &_gActor560800No9Cut21Hidden,
+    &_gActor560800No9Cut22Placement,
+    &_gActor560800No9Cut2Placement,
+    &_gActor560800No9Cut22Placement,
+    &_gActor560800No9Cut25Hidden,
+    &_gActor560800No9Cut26Placement,
+    &_gActor560800No9Cut27Placement,
+    &_gActor560800No9Cut28Hidden,
+    &_gActor560800No9Cut29Hidden,
+    &_gActor560800No9Cut28Hidden,
+    &_gActor560800No9Cut29Hidden,
+    &_gActor560800No9Cut28Hidden,
+    &_gActor560800No9Cut33Hidden,
 };
 
 ActorTransform* D_actor_560800_8016F46C[34] = {
@@ -3317,17 +3430,17 @@ ActorTransform* D_actor_560800_8016F46C[34] = {
     &_gActor560800KyleCutPlacements[2],
     _gActor560800KyleCutPlacements,
     &D_actor_560800_8016F334,
-    &D_actor_560800_8016F25C,
+    &_gActor560800KyleCut15Placement,
     &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
-    &D_actor_560800_8016F25C,
+    &_gActor560800KyleCut15Placement,
     &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
     &_gActor560800KyleCutPlacements[4],
     &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
-    &D_actor_560800_8016F274,
-    &D_actor_560800_8016F28C,
+    &_gActor560800KyleCut21Placement,
+    &_gActor560800KyleCut22Placement,
     &_gActor560800KyleCutPlacements[1],
-    &D_actor_560800_8016F28C,
-    &D_actor_560800_8016F2A4,
+    &_gActor560800KyleCut22Placement,
+    &_gActor560800KyleCut25Placement,
     &D_actor_560800_8016F2BC,
     &D_actor_560800_8016F2D4,
     &D_actor_560800_8016F2EC,
@@ -3340,39 +3453,39 @@ ActorTransform* D_actor_560800_8016F46C[34] = {
 
 ActorTransform* D_actor_560800_8016F4F4[34] = {
     NULL,
-    &D_actor_560800_8016F064,
-    &D_actor_560800_8016F07C,
-    &D_actor_560800_8016F094,
-    &D_actor_560800_8016F064,
-    &D_actor_560800_8016F094,
-    &D_actor_560800_8016F0AC,
-    &D_actor_560800_8016F0C4,
-    &D_actor_560800_8016F0AC,
-    &D_actor_560800_8016F094,
-    &D_actor_560800_8016F064,
-    &D_actor_560800_8016F0AC,
-    &D_actor_560800_8016F094,
-    &D_actor_560800_8016F064,
-    &D_actor_560800_8016F0DC,
-    &D_actor_560800_8016F0F4,
-    &D_actor_560800_8016F0DC,
-    &D_actor_560800_8016F0F4,
-    &D_actor_560800_8016F0DC,
-    &D_actor_560800_8016F0C4,
-    &D_actor_560800_8016F0DC,
-    &D_actor_560800_8016F10C,
-    &D_actor_560800_8016F124,
-    &D_actor_560800_8016F07C,
-    &D_actor_560800_8016F124,
-    &D_actor_560800_8016F13C,
+    &_gActor560800EveCut1Placement,
+    &_gActor560800EveCut2Placement,
+    &_gActor560800EveCut3Hidden,
+    &_gActor560800EveCut1Placement,
+    &_gActor560800EveCut3Hidden,
+    &_gActor560800EveCut6Placement,
+    &_gActor560800EveCut7Hidden,
+    &_gActor560800EveCut6Placement,
+    &_gActor560800EveCut3Hidden,
+    &_gActor560800EveCut1Placement,
+    &_gActor560800EveCut6Placement,
+    &_gActor560800EveCut3Hidden,
+    &_gActor560800EveCut1Placement,
+    &_gActor560800EveCut14Hidden,
+    &_gActor560800EveCut15Hidden,
+    &_gActor560800EveCut14Hidden,
+    &_gActor560800EveCut15Hidden,
+    &_gActor560800EveCut14Hidden,
+    &_gActor560800EveCut7Hidden,
+    &_gActor560800EveCut14Hidden,
+    &_gActor560800EveCut21Hidden,
+    &_gActor560800EveCut22Placement,
+    &_gActor560800EveCut2Placement,
+    &_gActor560800EveCut22Placement,
+    &_gActor560800EveCut25Placement,
     &_gActor560800EveReplacementPlacement,
-    &D_actor_560800_8016F16C,
-    &D_actor_560800_8016F184,
-    &D_actor_560800_8016F19C,
-    &D_actor_560800_8016F184,
-    &D_actor_560800_8016F19C,
-    &D_actor_560800_8016F184,
-    &D_actor_560800_8016F1B4,
+    &_gActor560800EveCut27Hidden,
+    &_gActor560800EveCut28Placement,
+    &_gActor560800EveCut29Hidden,
+    &_gActor560800EveCut28Placement,
+    &_gActor560800EveCut29Hidden,
+    &_gActor560800EveCut28Placement,
+    &_gActor560800EveCut33Placement,
 };
 
 s32 D_actor_560800_8016F57C[19] = {
