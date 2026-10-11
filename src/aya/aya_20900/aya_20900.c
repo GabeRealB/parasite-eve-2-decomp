@@ -1,3 +1,5 @@
+#include "aya/aya_20900.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -314,10 +316,10 @@ static void _aya20900GameOverTask(Task* task)
     }
 }
 
-/// The package's task descriptors, spawned by gameplay from entry 0.
-TaskDesc D_aya_20900_80115D9C[4] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, _aya20900GameOverTask, { NULL } },
-    { { { TASK_BODY_NONE, 0xC0 } }, NULL, { NULL } },
-    { { { TASK_BODY_NONE, 0xC0 } }, NULL, { NULL } },
-    { { { TASK_BODY_NONE, 0xC0 } }, _aya20900RedFlashTask, { NULL } },
+enum { AYA_20900_PRESENTATION_TASK_PRIORITY = 0xC0 };
+TaskDesc gAya20900TaskDescriptors[AYA_20900_TASK_COUNT] = {
+    { { { TASK_BODY_NONE, AYA_20900_PRESENTATION_TASK_PRIORITY } }, _aya20900GameOverTask, { NULL } },
+    { { { TASK_BODY_NONE, AYA_20900_PRESENTATION_TASK_PRIORITY } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, AYA_20900_PRESENTATION_TASK_PRIORITY } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, AYA_20900_PRESENTATION_TASK_PRIORITY } }, _aya20900RedFlashTask, { NULL } },
 };

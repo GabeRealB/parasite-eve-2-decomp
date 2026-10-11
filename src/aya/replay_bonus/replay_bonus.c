@@ -30,7 +30,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static const char   D_replay_bonus_801157C8[];
+static const u8     _gReplayBonusBpLabel[3];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
@@ -330,10 +330,14 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
     list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
 #undef REPLAY_BONUS_FIND_ITEM_IN_WHITELIST
 }
-static const char D_replay_bonus_80115774[] = "Complete Bonus";
-static const char D_replay_bonus_80115784[] = "GET ITEM";
-static const char D_replay_bonus_80115790[] = "BONUS BP";
-static const char D_replay_bonus_8011579C[] = "TOTAL BP";
+/// Title of the completed run's item-credit panel.
+static const char _gReplayBonusCompleteBonusTitle[] = "Complete Bonus";
+/// Heading of the acquired-item column in the Complete Bonus list.
+static const u8 _gReplayBonusGetItemHeading[] = "GET ITEM";
+/// Heading of each item's half-price BP credit in the Complete Bonus list.
+static const u8 _gReplayBonusBonusBpHeading[] = "BONUS BP";
+/// Heading of the BP balance plus the revealed items' credits.
+static const u8 _gReplayBonusTotalBpHeading[] = "TOTAL BP";
 
 /// Returns the BP balance plus item credit from the first visible row to the list's end.
 ///
@@ -463,7 +467,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     list           = &D_replay_bonus_80119130;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, D_replay_bonus_80115774);
+    uiDrawPanelLabel(&object->panel, _gReplayBonusCompleteBonusTitle);
     if (task->state == REPLAY_BONUS_COMPLETE_INITIALIZE) {
         // Build the owned row storage and compute the awards before scrolling.
         playerStatus = &gPlayerStatus;
@@ -576,15 +580,15 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     uiDrawHorizontalSeparator(&object->panel, leftInset, object->panel.contentRight.signedValue - 2, textY);
     textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, itemOtIndex, D_replay_bonus_80115784);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, itemOtIndex, _gReplayBonusGetItemHeading);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, bonusOtIndex, D_replay_bonus_80115790);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, bonusOtIndex, _gReplayBonusBonusBpHeading);
 
     contentBottom = object->panel.contentBottom.signedValue;
     textY         = contentBottom - 1;
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 0x10);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, totalOtIndex, D_replay_bonus_8011579C);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, totalOtIndex, _gReplayBonusTotalBpHeading);
 
     displayedTotalBp = _replayBonusGetDisplayedTotalBp(list, object);
     textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -594,9 +598,12 @@ void replayBonusCompleteBonusPanelTask(Task* task)
 #undef REPLAY_BONUS_DRAW_COMPLETE_HEADING
 }
 
-static const char D_replay_bonus_801157A8[] = "Balance";
-static const char D_replay_bonus_801157B0[] = "NEXT REPLAY BONUS";
-static const char D_replay_bonus_801157C4[] = "EXP";
+/// Title of the completed run's EXP/BP balance panel.
+static const char _gReplayBonusBalanceTitle[] = "Balance";
+/// Title of the base EXP/BP awards for the next replay, before extra BP.
+static const char _gReplayBonusNextReplayBonusTitle[] = "NEXT REPLAY BONUS";
+/// EXP row label shared by the current-balance and next-replay panels.
+static const u8 _gReplayBonusExpLabel[] = "EXP";
 
 void replayBonusBalancePanelTask(Task* task)
 {
@@ -649,20 +656,20 @@ void replayBonusBalancePanelTask(Task* task)
     }
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_CURRENT) {
-        uiDrawPanelLabel(&(object)->panel, D_replay_bonus_801157A8);
+        uiDrawPanelLabel(&(object)->panel, _gReplayBonusBalanceTitle);
     } else {
-        uiDrawPanelLabel(&(object)->panel, D_replay_bonus_801157B0);
+        uiDrawPanelLabel(&(object)->panel, _gReplayBonusNextReplayBonusTitle);
     }
     textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
     leftInset = object->panel.contentLeft.signedValue + 2;
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, expOtIndex, D_replay_bonus_801157C4);
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, expOtIndex, _gReplayBonusExpLabel);
     balance = playerStatus->exp;
     if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
         balance = D_replay_bonus_80119274.nextExp;
     }
     rightInset = -leftInset;
     textDrawUiLine(object, rightInset, -2, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, bpOtIndex, D_replay_bonus_801157C8);
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, bpOtIndex, _gReplayBonusBpLabel);
     balance = D_replay_bonus_80119274.totalBp;
     if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
         balance = D_replay_bonus_80119274.nextBp;
@@ -698,7 +705,8 @@ void replayBonusBalancePanelTask(Task* task)
 #undef REPLAY_BONUS_DRAW_BALANCE_LABEL
 }
 
-static const char D_replay_bonus_801157C8[] = "BP";
+/// BP row label shared by both balance panels and the extra-award panel.
+static const u8 _gReplayBonusBpLabel[3] = "BP";
 
 void replayBonusQuitWarningTask(Task* task)
 {
@@ -866,7 +874,7 @@ void replayBonusExtraBpPanelTask(Task* task)
     bpLabel.alignment  = TEXT_ALIGNMENT_LEFT;
     bpLabel.drawMode   = TEXT_DRAW_OUTLINED;
     bpLabel.otIndex    = otIndex + 1;
-    textDrawString(&bpLabel, D_replay_bonus_801157C8);
+    textDrawString(&bpLabel, _gReplayBonusBpLabel);
     textDrawUiLine(object, -leftInset, 6, textItoaSigned(numberText, extraBonusBp), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     holdTicksLeft       = (u16)task->killCountdown - 1;
     task->killCountdown = holdTicksLeft;

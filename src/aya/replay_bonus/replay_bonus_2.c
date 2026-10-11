@@ -1,11 +1,11 @@
+#include "replay_bonus_private.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/strings.h>
 
 #include "common.h"
-
-#include "replay_bonus_private.h"
 
 #include "gameplay/ending.h"
 #include "gameplay/inventory.h"
@@ -31,10 +31,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-extern u8           D_replay_bonus_801157A8[];
-extern u8           D_replay_bonus_801157B0[];
-extern u8           D_replay_bonus_801157C4[];
-extern u8           D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
@@ -45,6 +41,19 @@ extern UiObjectDesc D_replay_bonus_8011918C;
 extern UiObjectDesc D_replay_bonus_801191C4;
 extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
+
+static u8                          _gReplayBonusNextCreditsPrimitiveBufferIndex;
+static ReplayBonusStfFile*         _gReplayBonusCreditsFile;
+static const ReplayBonusStfGlyph*  _gReplayBonusCreditsGlyphs;
+static ReplayBonusStfLine*         _gReplayBonusCreditsLines;
+static const ReplayBonusStfSprite* _gReplayBonusCreditsSprites;
+static s32                         _gReplayBonusCreditsLineCount;
+static s32                         _gReplayBonusCreditsScrollY;
+static s32                         _gReplayBonusCreditsScrollFraction;
+static s32                         _gReplayBonusCreditsDrawFrameCount;
+static s32                         _gReplayBonusCreditsPrimitiveBytesUsed;
+static u16                         _gReplayBonusCreditsPictureLeftX;
+static u8*                         _gReplayBonusCreditsPrimitiveBuffer;
 
 /// Where a credits picture is decoded to and how large it is drawn.
 ///
@@ -479,9 +488,9 @@ static void _replayBonusCreditsTask(Task* task)
             SetDispMask(true);
             displayConfigureFramebuffers(REPLAY_BONUS_CREDITS_DISPLAY_SETUP);
             _replayBonusClearCreditsPictureBuffers();
-            D_replay_bonus_801192A4                 = -REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
+            _gReplayBonusCreditsScrollY             = -REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            D_replay_bonus_801192B0                 = 0;
+            _gReplayBonusCreditsDrawFrameCount      = 0;
             task->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             cdCmdSelectScene(REPLAY_BONUS_CREDITS_AUDIO_GROUP, REPLAY_BONUS_CREDITS_AUDIO_STREAM_ID, REPLAY_BONUS_CREDITS_AUDIO_SUB_ID);
             cdCmdEnqueueSceneAudioStart();
@@ -495,7 +504,7 @@ static void _replayBonusCreditsTask(Task* task)
             }
             return;
         case REPLAY_BONUS_CREDITS_START_HOLD:
-            D_replay_bonus_801192B0 += 1;
+            _gReplayBonusCreditsDrawFrameCount += 1;
             _replayBonusDrawCreditsFrame();
             startHoldTicksLeft  = task->killCountdown - 1;
             task->killCountdown = startHoldTicksLeft;
@@ -512,20 +521,20 @@ static void _replayBonusCreditsTask(Task* task)
             }
             break;
         case REPLAY_BONUS_CREDITS_SCROLL:
-            D_replay_bonus_801192B0 += 1;
+            _gReplayBonusCreditsDrawFrameCount += 1;
             _replayBonusDrawCreditsFrame();
             // Carry whole pixels into document Y, retaining the fractional byte.
-            creditsParams           = D_replay_bonus_80119294;
-            scrollFixedPoint        = D_replay_bonus_801192A8 + creditsParams->scrollSpeed;
-            nextScrollY             = D_replay_bonus_801192A4 + (scrollFixedPoint >> REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS);
-            D_replay_bonus_801192A8 = scrollFixedPoint;
-            D_replay_bonus_801192A4 = nextScrollY;
-            D_replay_bonus_801192A8 = scrollFixedPoint & REPLAY_BONUS_CREDITS_SCROLL_FRACTION_MASK;
-            lastScrollY             = D_replay_bonus_80119298[D_replay_bonus_801192A0 - 1].y - REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
+            creditsParams                      = D_replay_bonus_80119294;
+            scrollFixedPoint                   = _gReplayBonusCreditsScrollFraction + creditsParams->scrollSpeed;
+            nextScrollY                        = _gReplayBonusCreditsScrollY + (scrollFixedPoint >> REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS);
+            _gReplayBonusCreditsScrollFraction = scrollFixedPoint;
+            _gReplayBonusCreditsScrollY        = nextScrollY;
+            _gReplayBonusCreditsScrollFraction = scrollFixedPoint & REPLAY_BONUS_CREDITS_SCROLL_FRACTION_MASK;
+            lastScrollY                        = _gReplayBonusCreditsLines[_gReplayBonusCreditsLineCount - 1].y - REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
             if (lastScrollY < nextScrollY) {
-                D_replay_bonus_801192A4 = lastScrollY;
-                task->state            += 1;
-                task->killCountdown     = creditsParams->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
+                _gReplayBonusCreditsScrollY = lastScrollY;
+                task->state                += 1;
+                task->killCountdown         = creditsParams->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             }
             if (padIsStartPressed() != 0) {
                 cdCmdCancelScene();
@@ -536,7 +545,7 @@ static void _replayBonusCreditsTask(Task* task)
             }
             break;
         case REPLAY_BONUS_CREDITS_END_HOLD:
-            D_replay_bonus_801192B0 += 1;
+            _gReplayBonusCreditsDrawFrameCount += 1;
             _replayBonusDrawCreditsFrame();
             endHoldTicksLeft    = task->killCountdown - 1;
             task->killCountdown = endHoldTicksLeft;
@@ -600,9 +609,9 @@ static void _replayBonusSetCreditsFade(u8 fadeAmount)
 static inline void _replayBonusSelectCreditsPrimitiveBuffer(void)
 {
     enum { REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES = 0x10000 };
-    D_replay_bonus_801192B4  = 0;
-    D_replay_bonus_801192C0  = gGpuPrimitiveBufferBase + gGpuPrimitiveBufferBytes + D_replay_bonus_80119224 * REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES;
-    D_replay_bonus_80119224 ^= 1;
+    _gReplayBonusCreditsPrimitiveBytesUsed        = 0;
+    _gReplayBonusCreditsPrimitiveBuffer           = gGpuPrimitiveBufferBase + gGpuPrimitiveBufferBytes + _gReplayBonusNextCreditsPrimitiveBufferIndex * REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES;
+    _gReplayBonusNextCreditsPrimitiveBufferIndex ^= 1;
 }
 
 /// Draws the visible STF credits rows and advances any picture cross-fade.
@@ -644,15 +653,15 @@ static void _replayBonusDrawCreditsFrame(void)
     // Alternate private glyph buffers while the preceding frame is drawn.
     firstLine = 0;
     lineIndex = firstLine;
-    lineCount = D_replay_bonus_801192A0;
+    lineCount = _gReplayBonusCreditsLineCount;
     _replayBonusSelectCreditsPrimitiveBuffer();
     lastLine = lineCount - 1;
 
     // Retain up to two rows above the viewport and the first below its bottom edge.
     if (lineCount > 0) {
         scanLineCount  = lineCount;
-        scanLine       = D_replay_bonus_80119298;
-        scrollY        = D_replay_bonus_801192A4;
+        scanLine       = _gReplayBonusCreditsLines;
+        scrollY        = _gReplayBonusCreditsScrollY;
         visibleBottomY = scrollY + REPLAY_BONUS_CREDITS_SCREEN_HEIGHT;
         do {
             if (scanLine->y < scrollY) {
@@ -672,11 +681,11 @@ static void _replayBonusDrawCreditsFrame(void)
     }
 
     for (; lineIndex < lastLine + 1; lineIndex++) {
-        rowGuide                 = (LINE_F2*)(D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
-        D_replay_bonus_801192B4 += sizeof(*rowGuide);
+        rowGuide                                = (LINE_F2*)(_gReplayBonusCreditsPrimitiveBuffer + _gReplayBonusCreditsPrimitiveBytesUsed);
+        _gReplayBonusCreditsPrimitiveBytesUsed += sizeof(*rowGuide);
         // Retained row-guide packets consume space but are never linked for drawing.
         setLineF2(rowGuide);
-        bottomY      = D_replay_bonus_80119298[lineIndex].y - (D_replay_bonus_801192A4 & REPLAY_BONUS_CREDITS_SCROLL_Y_MASK) - REPLAY_BONUS_CREDITS_HALF_HEIGHT;
+        bottomY      = _gReplayBonusCreditsLines[lineIndex].y - (_gReplayBonusCreditsScrollY & REPLAY_BONUS_CREDITS_SCROLL_Y_MASK) - REPLAY_BONUS_CREDITS_HALF_HEIGHT;
         rowGuide->x0 = -REPLAY_BONUS_CREDITS_HALF_WIDTH;
         rowGuide->x1 = REPLAY_BONUS_CREDITS_HALF_WIDTH;
         rowGuide->r0 = 0x40;
@@ -684,7 +693,7 @@ static void _replayBonusDrawCreditsFrame(void)
         rowGuide->b0 = 0x40;
         rowGuide->y0 = bottomY;
         rowGuide->y1 = bottomY;
-        _replayBonusDrawCreditsRow(bottomY, D_replay_bonus_80119298[lineIndex].cmds.pointer);
+        _replayBonusDrawCreditsRow(bottomY, _gReplayBonusCreditsLines[lineIndex].cmds.pointer);
     }
 
     drawPage       = gGpuPrimCursor;
@@ -696,7 +705,7 @@ static void _replayBonusDrawCreditsFrame(void)
         pictureSprite  = gGpuPrimCursor;
         gGpuPrimCursor = pictureSprite + 1;
         setSprt(pictureSprite);
-        pictureSprite->x0 = D_replay_bonus_801192B8 - REPLAY_BONUS_CREDITS_HALF_WIDTH;
+        pictureSprite->x0 = _gReplayBonusCreditsPictureLeftX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
         pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
         pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
         pictureSprite->h  = REPLAY_BONUS_PICTURE_HEIGHT;
@@ -719,7 +728,7 @@ static void _replayBonusDrawCreditsFrame(void)
     gGpuPrimCursor = pictureSprite + 1;
     setSprt(pictureSprite);
     pictureBrightness = (D_replay_bonus_801192AC * (REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES - D_replay_bonus_80119227)) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
-    pictureSprite->x0 = D_replay_bonus_801192B8 - REPLAY_BONUS_CREDITS_HALF_WIDTH;
+    pictureSprite->x0 = _gReplayBonusCreditsPictureLeftX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
     pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
     pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
     pictureSprite->h  = REPLAY_BONUS_PICTURE_HEIGHT;
@@ -740,7 +749,7 @@ static void _replayBonusDrawCreditsFrame(void)
     gGpuPrimCursor = pictureSprite + 1;
     setSprt(pictureSprite);
     pictureBrightness = (D_replay_bonus_801192AC * D_replay_bonus_80119227) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
-    pictureSprite->x0 = D_replay_bonus_801192B8 - REPLAY_BONUS_CREDITS_HALF_WIDTH;
+    pictureSprite->x0 = _gReplayBonusCreditsPictureLeftX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
     pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
     pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
     pictureSprite->h  = REPLAY_BONUS_PICTURE_HEIGHT;
@@ -852,7 +861,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                     drawWidth   = 0;
                     glyphOffset = 0;
                     while (commands[commandIndex + glyphOffset].op == REPLAY_BONUS_STF_COMMAND_GLYPH) {
-                        drawWidth += D_replay_bonus_80119290[commands[commandIndex + glyphOffset].arg].width;
+                        drawWidth += _gReplayBonusCreditsGlyphs[commands[commandIndex + glyphOffset].arg].width;
                         glyphOffset++;
                     }
                     penX = 0;
@@ -860,13 +869,13 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                     penX       -= REPLAY_BONUS_CREDITS_HALF_WIDTH;
                     glyphOffset = 0;
                     while (commands[commandIndex + glyphOffset].op == REPLAY_BONUS_STF_COMMAND_GLYPH) {
-                        glyph                    = &D_replay_bonus_80119290[commands[commandIndex + glyphOffset].arg];
-                        drawWidth                = glyph->width;
-                        heightValue              = glyph->heightAndPage;
-                        textureU                 = glyph->u;
-                        textureV                 = glyph->v;
-                        glyphQuad                = (POLY_FT4*)(D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
-                        D_replay_bonus_801192B4 += sizeof(*glyphQuad);
+                        glyph                                   = &_gReplayBonusCreditsGlyphs[commands[commandIndex + glyphOffset].arg];
+                        drawWidth                               = glyph->width;
+                        heightValue                             = glyph->heightAndPage;
+                        textureU                                = glyph->u;
+                        textureV                                = glyph->v;
+                        glyphQuad                               = (POLY_FT4*)(_gReplayBonusCreditsPrimitiveBuffer + _gReplayBonusCreditsPrimitiveBytesUsed);
+                        _gReplayBonusCreditsPrimitiveBytesUsed += sizeof(*glyphQuad);
                         setPolyFT4(glyphQuad);
                         glyphHeight       = heightValue & REPLAY_BONUS_STF_GLYPH_HEIGHT_MASK;
                         glyphQuad->u0     = textureU;
@@ -926,23 +935,23 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         // Mark before spawning: visible rows are interpreted again next frame.
                         commands[commandIndex].arg = REPLAY_BONUS_STF_PICTURE_STARTED;
                         REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, REPLAY_BONUS_PICTURE_WIDTH, penX);
-                        D_replay_bonus_801192B8 = penX;
+                        _gReplayBonusCreditsPictureLeftX = penX;
                         taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX, imageIndex + 1, 0);
                     }
                     break;
                 case REPLAY_BONUS_STF_COMMAND_SPRITE:
                     imageIndex = commands[commandIndex].arg;
-                    drawWidth  = D_replay_bonus_8011929C[imageIndex].width;
+                    drawWidth  = _gReplayBonusCreditsSprites[imageIndex].width;
                     penX       = 0;
                     REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, drawWidth, penX);
                     pixelsPerVramWordShift = 2;
-                    texturePageX           = D_replay_bonus_8011929C[imageIndex].tpageX;
-                    textureU               = D_replay_bonus_8011929C[imageIndex].u;
+                    texturePageX           = _gReplayBonusCreditsSprites[imageIndex].tpageX;
+                    textureU               = _gReplayBonusCreditsSprites[imageIndex].u;
                     // The chained V load retains the matching allocation of shared height storage.
-                    textureV = heightValue = D_replay_bonus_8011929C[imageIndex].v;
-                    heightValue            = D_replay_bonus_8011929C[imageIndex].height;
-                    clutId                 = getClut(D_replay_bonus_8011929C[imageIndex].clutX, D_replay_bonus_8011929C[imageIndex].clutY);
-                    pixelMode              = D_replay_bonus_8011929C[imageIndex].pixelMode;
+                    textureV = heightValue = _gReplayBonusCreditsSprites[imageIndex].v;
+                    heightValue            = _gReplayBonusCreditsSprites[imageIndex].height;
+                    clutId                 = getClut(_gReplayBonusCreditsSprites[imageIndex].clutX, _gReplayBonusCreditsSprites[imageIndex].clutY);
+                    pixelMode              = _gReplayBonusCreditsSprites[imageIndex].pixelMode;
                     switch (pixelMode) {
                         case REPLAY_BONUS_STF_PIXEL_MODE_8_BIT:
                             pixelsPerVramWordShift = 1;
@@ -980,9 +989,9 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         gGpuPrimCursor = drawPage + 1;
                         setaddr(gGpuCurrentOt + REPLAY_BONUS_CREDITS_TEXT_OT_INDEX, imageSprite);
                         setlen(drawPage, 1);
-                        drawPixelMode     = D_replay_bonus_8011929C[imageIndex].pixelMode;
+                        drawPixelMode     = _gReplayBonusCreditsSprites[imageIndex].pixelMode;
                         texturePageColumn = (u32)(texturePageX & REPLAY_BONUS_STF_VRAM_X_MASK) >> REPLAY_BONUS_STF_VRAM_PAGE_X_SHIFT;
-                        drawPage->code[0] = ((drawPixelMode & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[imageIndex].tpageY & 0x100) << 16) >> 20) | texturePageColumn | ((s16)(D_replay_bonus_8011929C[imageIndex].tpageY & 0x200) * 4) | _get_mode(0, 1, 0);
+                        drawPage->code[0] = ((drawPixelMode & 3) << 7) | (s16)((s32)((_gReplayBonusCreditsSprites[imageIndex].tpageY & 0x100) << 16) >> 20) | texturePageColumn | ((s16)(_gReplayBonusCreditsSprites[imageIndex].tpageY & 0x200) * 4) | _get_mode(0, 1, 0);
                         texturePageX     += REPLAY_BONUS_STF_TEXTURE_PAGE_PIXELS >> pixelsPerVramWordShift;
                         penX              = penX + pieceWidth;
                         addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_TEXT_OT_INDEX, drawPage);
@@ -1014,23 +1023,23 @@ static s32 _replayBonusRelocateCreditsFile(ReplayBonusStfFile* file, s32 unusedR
 
     // Convert serialized byte offsets to PS1 address words exactly once.
     if (file->glyphs.offset > 0) {
-        file->glyphs.offset    += (s32)file;
-        file->params.offset    += (s32)file;
-        file->lineTable.offset += (s32)file;
-        file->sprites.offset   += (s32)file;
-        D_replay_bonus_80119298 = file->lineTable.pointer->lines;
-        D_replay_bonus_801192A0 = file->lineTable.pointer->count;
-        for (lineIndex = 0; lineIndex < D_replay_bonus_801192A0; lineIndex++) {
-            line                    = D_replay_bonus_80119298;
-            D_replay_bonus_80119298 = line + 1;
-            line->cmds.offset      += (s32)file;
+        file->glyphs.offset          += (s32)file;
+        file->params.offset          += (s32)file;
+        file->lineTable.offset       += (s32)file;
+        file->sprites.offset         += (s32)file;
+        _gReplayBonusCreditsLines     = file->lineTable.pointer->lines;
+        _gReplayBonusCreditsLineCount = file->lineTable.pointer->count;
+        for (lineIndex = 0; lineIndex < _gReplayBonusCreditsLineCount; lineIndex++) {
+            line                      = _gReplayBonusCreditsLines;
+            _gReplayBonusCreditsLines = line + 1;
+            line->cmds.offset        += (s32)file;
         }
     }
 
-    D_replay_bonus_80119290 = file->glyphs.pointer;
-    D_replay_bonus_80119294 = file->params.pointer;
-    D_replay_bonus_80119298 = file->lineTable.pointer->lines;
-    D_replay_bonus_8011929C = file->sprites.pointer;
+    _gReplayBonusCreditsGlyphs  = file->glyphs.pointer;
+    D_replay_bonus_80119294     = file->params.pointer;
+    _gReplayBonusCreditsLines   = file->lineTable.pointer->lines;
+    _gReplayBonusCreditsSprites = file->sprites.pointer;
     return 1;
 }
 
@@ -1157,8 +1166,8 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
         resourceSlot = &gFsResourceSlots[slotIndex];
         if (resourceSlot->kind == resourceKind) {
             if (dataResourcesSeen == dataResourceIndex) {
-                file                    = resourceSlot->data;
-                D_replay_bonus_8011928C = file;
+                file                     = resourceSlot->data;
+                _gReplayBonusCreditsFile = file;
                 _replayBonusRelocateCreditsFile(file, slotIndex);
                 return;
             }
@@ -1294,9 +1303,13 @@ UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0
 
 UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, replayBonusExtraBpPanelTask, 0 };
 
-TaskDesc D_replay_bonus_80119218 = { { { TASK_BODY_NONE, 0xC0 } }, _replayBonusAwardScreenTask, { NULL } };
+enum { REPLAY_BONUS_AWARD_SCREEN_TASK_PRIORITY = 0xC0 };
+TaskDesc gReplayBonusAwardScreenTaskDescriptor = { { { TASK_BODY_NONE, REPLAY_BONUS_AWARD_SCREEN_TASK_PRIORITY } }, _replayBonusAwardScreenTask, { NULL } };
 
-u8 D_replay_bonus_80119224 = 0;
+/// Next credits packet arena to select (0 first 64-KiB arena, 1 second).
+///
+/// Toggles after each selection and persists for the loaded package's lifetime.
+static u8 _gReplayBonusNextCreditsPrimitiveBufferIndex = 0;
 
 u8 D_replay_bonus_80119225 = 0;
 
@@ -1331,38 +1344,88 @@ s16 D_replay_bonus_8011926E = 0;
 
 u16 D_replay_bonus_80119270 = 0;
 
-/// Not zero and never read: the original toolchain left these two bytes in the
-/// alignment gap before the totals.
-u8 D_replay_bonus_80119272 = 0x43;
+/// Byte initialized to 0x43 with no observed accesses; its role is unproven.
+static u8 D_replay_bonus_80119272 = 0x43;
 
-u8 D_replay_bonus_80119273 = 0x42;
+/// Byte initialized to 0x42 with no observed accesses; its role is unproven.
+static u8 D_replay_bonus_80119273 = 0x42;
 
 ReplayBonusTotals D_replay_bonus_80119274 = { 0, 0, 0, 0, 0, 0 };
 
-ReplayBonusStfFile* D_replay_bonus_8011928C = NULL;
+/// Borrowed data resource selected as the credits STF document.
+///
+/// Selection records the resource before validating its magic. Drawing uses
+/// the separately published tables; this retained pointer has no reader.
+static ReplayBonusStfFile* _gReplayBonusCreditsFile = NULL;
 
-ReplayBonusStfGlyph* D_replay_bonus_80119290 = NULL;
+/// Borrowed font-cell table published from the relocated credits document.
+///
+/// Glyph commands supply byte indices; each must address a complete live cell.
+/// The serialized file supplies no glyph count here and must outlive drawing.
+static const ReplayBonusStfGlyph* _gReplayBonusCreditsGlyphs = NULL;
 
 ReplayBonusStfParams* D_replay_bonus_80119294 = NULL;
 
-ReplayBonusStfLine* D_replay_bonus_80119298 = NULL;
+/// Borrowed credits rows, paired with `_gReplayBonusCreditsLineCount`.
+///
+/// Rows have increasing document Y. Relocation temporarily advances this
+/// pointer while fixing command offsets, then restores the first row. Keep
+/// the writable document loaded through drawing; command lists end at the
+/// STF command terminator rather than at a length stored in each row.
+static ReplayBonusStfLine* _gReplayBonusCreditsLines = NULL;
 
-ReplayBonusStfSprite* D_replay_bonus_8011929C = NULL;
+/// Borrowed image descriptors published from the relocated credits document.
+///
+/// Sprite commands supply byte indices into this read-only view. No count is
+/// published; every selected descriptor must fit the file and remain loaded.
+static const ReplayBonusStfSprite* _gReplayBonusCreditsSprites = NULL;
 
-s32 D_replay_bonus_801192A0 = 0;
+/// Number of rows copied from the STF line table on its first relocation.
+///
+/// Credits playback requires at least one row and a complete array. Selecting
+/// an already relocated file retains this count, so it must still describe
+/// that file's `_gReplayBonusCreditsLines` array.
+static s32 _gReplayBonusCreditsLineCount = 0;
 
-s32 D_replay_bonus_801192A4 = 0;
+/// Top of the credits viewport in whole document pixels.
+///
+/// Starts at -480 and stops at the last row's bottom Y minus 480. Drawing
+/// retains only bits 1..23 before converting to centred screen coordinates.
+static s32 _gReplayBonusCreditsScrollY = 0;
 
-s32 D_replay_bonus_801192A8 = 0;
+/// Fractional pixel remainder of the credits' 8.8 scroll, normally 0..255.
+///
+/// Each step stores the full speed-plus-remainder sum, updates whole-pixel Y,
+/// then stores the low eight bits. It is initialized on package load rather
+/// than reset when a credits controller starts.
+static s32 _gReplayBonusCreditsScrollFraction = 0;
 
 u8 D_replay_bonus_801192AC = 0;
 
-s32 D_replay_bonus_801192B0 = 0;
+/// Draw callbacks elapsed during credits' initial hold, scroll and final hold.
+///
+/// Reset by the controller; only its increments read the retained count.
+static s32 _gReplayBonusCreditsDrawFrameCount = 0;
 
-s32 D_replay_bonus_801192B4 = 0;
+/// Allocated bytes in the selected credits row-guide/glyph packet arena.
+///
+/// Reset on arena selection, then advanced by each complete packet's sizeof.
+/// The frame's packets must fit 64 KiB; allocation performs no bounds check.
+static s32 _gReplayBonusCreditsPrimitiveBytesUsed = 0;
 
-u16 D_replay_bonus_801192B8 = 0;
+/// Picture's left edge in pixels from the credits viewport's left edge.
+///
+/// A new picture command applies its selected column alignment and stores
+/// the low 16 bits of the resulting X. Drawing subtracts 320 for centred
+/// screen coordinates; the position persists until another picture command.
+static u16 _gReplayBonusCreditsPictureLeftX = 0;
 
 ReplayBonusPictureDecode* D_replay_bonus_801192BC = NULL;
 
-u8* D_replay_bonus_801192C0 = NULL;
+/// Byte base of the active credits row-guide/glyph packet arena.
+///
+/// Borrows one of two 64-KiB arenas immediately after the normal GPU arena,
+/// reserved by ending memory setup. `_gReplayBonusCreditsPrimitiveBytesUsed`
+/// is a byte offset; typed packet views remain word-aligned. Keep storage and
+/// queued packets live through GPU completion before that arena is reused.
+static u8* _gReplayBonusCreditsPrimitiveBuffer = NULL;

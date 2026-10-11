@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include "aya/replay_bonus.h"
+
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 
@@ -242,45 +244,14 @@ extern Task* D_replay_bonus_80119228;
 /// Heap pointer to the current `ReplayBonusPictureDecode`.
 extern ReplayBonusPictureDecode* D_replay_bonus_801192BC;
 
-extern ReplayBonusStfFile* D_replay_bonus_8011928C;
-
 /// TaskDesc table spawned from the credits task (hold / fade / stream workers).
 extern TaskDesc D_replay_bonus_8011922C[4];
-
-/// Relocated STF glyph and sprite tables.
-extern ReplayBonusStfGlyph* D_replay_bonus_80119290;
-
-extern ReplayBonusStfSprite* D_replay_bonus_8011929C;
 
 /// Relocated STF presentation parameters.
 extern ReplayBonusStfParams* D_replay_bonus_80119294;
 
-/// Relocated STF row array; `D_replay_bonus_801192A0` is the count.
-extern ReplayBonusStfLine* D_replay_bonus_80119298;
-
-extern s32 D_replay_bonus_801192A0;
-
-/// Integer scroll Y; starts at `-0x1E0`.
-extern s32 D_replay_bonus_801192A4;
-
-/// 8.8 fractional accumulator for the scroll.
-extern s32 D_replay_bonus_801192A8;
-
-/// Frame counter incremented while the credits draw.
-extern s32 D_replay_bonus_801192B0;
-
-/// Credits primitive-buffer selector and current buffer address.
-extern u8 D_replay_bonus_80119224;
-
-extern u8* D_replay_bonus_801192C0;
-
-/// Bytes allocated in the current credits primitive buffer.
-extern s32 D_replay_bonus_801192B4;
-
-/// Stream sprite brightness and horizontal position.
+/// Stream sprite brightness.
 extern u8 D_replay_bonus_801192AC;
-
-extern u16 D_replay_bonus_801192B8;
 
 extern ReplayBonusTotals D_replay_bonus_80119274;
 

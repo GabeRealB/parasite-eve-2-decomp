@@ -12,3 +12,6 @@ _gAya10300EyesHalfClosedUploads = 0x8011c51c;
 _gAya10300EyesClosedUploads = 0x8011c85c;
 _gAya10300MouthRestUploads = 0x8011caac;
 _gAya10300MouthOpenUploads = 0x8011ccfc;
+gAya10300EyesBlinkSequence = 0x8011cd44;
+gAya10300MouthRestSequence = 0x8011cd5c;
+gAya10300MouthOpenSequence = 0x8011cd64;

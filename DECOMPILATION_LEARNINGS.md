@@ -5205,9 +5205,9 @@ tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
 
 ```c
 if (task->spawnArg1.value == 0) {
-    uiDrawPanelLabel(&object->panel, D_replay_bonus_801157A8);
+    uiDrawPanelLabel(&object->panel, _gReplayBonusBalanceTitle);
 } else {
-    uiDrawPanelLabel(&object->panel, D_replay_bonus_801157B0);
+    uiDrawPanelLabel(&object->panel, _gReplayBonusNextReplayBonusTitle);
 }
 ```
 
@@ -67277,7 +67277,7 @@ The next session matched Replay Bonus by giving the existing flags read its
 own byte local before computing the page:
 
 ```c
-drawPixelMode = D_replay_bonus_8011929C[imageIndex].pixelMode;
+drawPixelMode = _gReplayBonusCreditsSprites[imageIndex].pixelMode;
 texturePageColumn = (u32)(texturePageX & 0x3FF) >> 6;
 drawPage->code[0] = ((drawPixelMode & 3) << 7) | otherPageBits;
 ```
@@ -152633,8 +152633,8 @@ more references with nothing added: phantom ones.
 **Fix (fitted).** In the sprite's load run:
 
 ```c
-textureV = heightValue = D_replay_bonus_8011929C[imageIndex].v;
-heightValue = D_replay_bonus_8011929C[imageIndex].height;
+textureV = heightValue = _gReplayBonusCreditsSprites[imageIndex].v;
+heightValue = _gReplayBonusCreditsSprites[imageIndex].height;
 ```
 
 Flow counts `heightValue`'s set and the copy's use (2 + 2 at that depth); combine

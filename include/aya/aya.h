@@ -141,6 +141,24 @@ extern GpuImageUpload* const gAya10400EyesClosingSequence[4];
 /// Frame format, tick cadence and package lifetime follow `gAya10400EyesRestSequence`.
 extern GpuImageUpload* const gAya10400EyesOpeningSequence[4];
 
+/// Blinks through open, half-closed, closed, half-closed and open (eye selector 4; command 3).
+///
+/// Frame format, cadence and package lifetime follow `gAya10400EyesRestSequence`.
+extern GpuImageUpload* const gAya10400EyesBlinkSequence[6];
+
+/// Restores the closed mouth with one frame (mouth selector 2; reset command 0 or command 5).
+///
+/// Read-only frame pointers refer to writable uploads of 28x20 8-bit texels
+/// (14x20 VRAM words), placed at texture U/V (12, 104), with an eight-tick
+/// cadence. The final NULL stops playback and leaves the texels in place.
+/// Keep the package loaded through playback and GPU transfer completion.
+extern GpuImageUpload* const gAya10400MouthRestSequence[2];
+
+/// Selects the open mouth with one frame (mouth selector 1; command 4).
+///
+/// Frame format, cadence and package lifetime follow `gAya10400MouthRestSequence`.
+extern GpuImageUpload* const gAya10400MouthOpenSequence[2];
+
 /// Restores open eyes with one frame, then terminates (eye selector 1; reset command 0).
 ///
 /// Variant 2's eye sequences hold read-only frame pointers to writable upload
@@ -160,6 +178,24 @@ extern GpuImageUpload* const gAya10300EyesClosingSequence[4];
 ///
 /// Bounds, tick cadence and package lifetime follow `gAya10300EyesRestSequence`.
 extern GpuImageUpload* const gAya10300EyesOpeningSequence[4];
+
+/// Blinks through open, half-closed, closed, half-closed and open (eye selector 4; command 3).
+///
+/// Frame format, cadence and package lifetime follow `gAya10300EyesRestSequence`.
+extern GpuImageUpload* const gAya10300EyesBlinkSequence[6];
+
+/// Restores the resting mouth with one frame (mouth selector 2; reset command 0 or command 5).
+///
+/// Read-only frame pointers refer to writable uploads of 28x20 8-bit texels
+/// (14x20 VRAM words), placed at texture U/V (12, 104), with an eight-tick
+/// cadence. The final NULL stops playback and leaves the texels in place.
+/// Keep the package loaded through playback and GPU transfer completion.
+extern GpuImageUpload* const gAya10300MouthRestSequence[2];
+
+/// Selects the open mouth with one frame (mouth selector 1; command 4).
+///
+/// Frame format, cadence and package lifetime follow `gAya10300MouthRestSequence`.
+extern GpuImageUpload* const gAya10300MouthOpenSequence[2];
 
 /// Aya's nineteen-part body model for player resource variant 3.
 ///

@@ -11,3 +11,6 @@ _gAya10400MouthOpenUploads = 0x8011cc74;
 gAya10400EyesRestSequence = 0x8011cc94;
 gAya10400EyesClosingSequence = 0x8011cc9c;
 gAya10400EyesOpeningSequence = 0x8011ccac;
+gAya10400EyesBlinkSequence = 0x8011ccbc;
+gAya10400MouthRestSequence = 0x8011ccd4;
+gAya10400MouthOpenSequence = 0x8011ccdc;

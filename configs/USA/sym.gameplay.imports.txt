@@ -274,8 +274,8 @@ gLoadUiDiskSwapState = 0x8007A394; // absolute:True
 gMidiMusicVolume = 0x8007A396; // absolute:True
 gStageMusicParams = 0x8007A39C; // absolute:True
 gCdAudioProgress = 0x80082798; // absolute:True
-D_aya_20900_80115D9C = 0x80115D9C; // absolute:True owner=aya_20900
-D_replay_bonus_80119218 = 0x80119218; // absolute:True owner=replay_bonus
+gAya20900TaskDescriptors = 0x80115D9C; // absolute:True owner=aya_20900
+gReplayBonusAwardScreenTaskDescriptor = 0x80119218; // absolute:True owner=replay_bonus
 D_replay_bonus_8011922C = 0x8011922C; // absolute:True owner=replay_bonus
 gActor361100StreamWaterTaskDesc = 0x801637C8; // absolute:True owner=actor_361100
 actor800100EnterReload = 0x80166E94; // type:func absolute:True owner=actor_800100
@@ -460,16 +460,16 @@ gAya10400EyesOpeningSequence = 0x8011CCAC; // absolute:True owner=aya_10400
 gAya10300EyesOpeningSequence = 0x8011CD34; // absolute:True owner=aya_10300
 gAya10200EyesOpeningSequence = 0x8011D0AC; // absolute:True owner=aya_10200
 gAya10500EyesOpeningSequence = 0x8011D180; // absolute:True owner=aya_10500
-D_aya_10400_8011CCBC = 0x8011CCBC; // absolute:True owner=aya_10400
-D_aya_10300_8011CD44 = 0x8011CD44; // absolute:True owner=aya_10300
+gAya10400EyesBlinkSequence = 0x8011CCBC; // absolute:True owner=aya_10400
+gAya10300EyesBlinkSequence = 0x8011CD44; // absolute:True owner=aya_10300
 gAya10200EyesBlinkSequence = 0x8011D0BC; // absolute:True owner=aya_10200
 gAya10500EyesBlinkSequence = 0x8011D190; // absolute:True owner=aya_10500
-D_aya_10400_8011CCDC = 0x8011CCDC; // absolute:True owner=aya_10400
-D_aya_10300_8011CD64 = 0x8011CD64; // absolute:True owner=aya_10300
+gAya10400MouthOpenSequence = 0x8011CCDC; // absolute:True owner=aya_10400
+gAya10300MouthOpenSequence = 0x8011CD64; // absolute:True owner=aya_10300
 gAya10200MouthAlternateSequence = 0x8011D0DC; // absolute:True owner=aya_10200
 gAya10500MouthAlternateSequence = 0x8011D1B0; // absolute:True owner=aya_10500
-D_aya_10400_8011CCD4 = 0x8011CCD4; // absolute:True owner=aya_10400
-D_aya_10300_8011CD5C = 0x8011CD5C; // absolute:True owner=aya_10300
+gAya10400MouthRestSequence = 0x8011CCD4; // absolute:True owner=aya_10400
+gAya10300MouthRestSequence = 0x8011CD5C; // absolute:True owner=aya_10300
 gAya10200MouthRestSequence = 0x8011D0D4; // absolute:True owner=aya_10200
 gAya10500MouthRestSequence = 0x8011D1A8; // absolute:True owner=aya_10500
 gKyle800101KyleMadiganAnimationBank = 0x801756D0; // absolute:True owner=kyle_800101

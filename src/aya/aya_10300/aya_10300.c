@@ -7,12 +7,6 @@
 
 #include "gameplay/collision.h"
 
-extern GpuImageUpload* D_aya_10300_8011CD44[];
-
-extern GpuImageUpload* D_aya_10300_8011CD5C[];
-
-extern GpuImageUpload* D_aya_10300_8011CD64[];
-
 /// Facial-frame dimensions, in 16-bit VRAM words and rows.
 enum {
     AYA_10300_EYES_FRAME_WIDTH_WORDS  = 25,
@@ -263,7 +257,7 @@ static GpuImageUpload _gAya10300MouthOpenUploads[2] = {
 GpuImageUpload* const gAya10300EyesRestSequence[2] __attribute__((section(".data")))    = { _gAya10300EyesOpenUploads, NULL };
 GpuImageUpload* const gAya10300EyesClosingSequence[4] __attribute__((section(".data"))) = { _gAya10300EyesOpenUploads, _gAya10300EyesHalfClosedUploads, _gAya10300EyesClosedUploads, NULL };
 GpuImageUpload* const gAya10300EyesOpeningSequence[4] __attribute__((section(".data"))) = { _gAya10300EyesClosedUploads, _gAya10300EyesHalfClosedUploads, _gAya10300EyesOpenUploads, NULL };
-GpuImageUpload*       D_aya_10300_8011CD44[]                                            = {
+GpuImageUpload* const gAya10300EyesBlinkSequence[6] __attribute__((section(".data")))   = {
     _gAya10300EyesOpenUploads,
     _gAya10300EyesHalfClosedUploads,
     _gAya10300EyesClosedUploads,
@@ -271,5 +265,5 @@ GpuImageUpload*       D_aya_10300_8011CD44[]                                    
     _gAya10300EyesOpenUploads,
     NULL,
 };
-GpuImageUpload* D_aya_10300_8011CD5C[] = { _gAya10300MouthRestUploads, NULL };
-GpuImageUpload* D_aya_10300_8011CD64[] = { _gAya10300MouthOpenUploads, NULL };
+GpuImageUpload* const gAya10300MouthRestSequence[2] __attribute__((section(".data"))) = { _gAya10300MouthRestUploads, NULL };
+GpuImageUpload* const gAya10300MouthOpenSequence[2] __attribute__((section(".data"))) = { _gAya10300MouthOpenUploads, NULL };
