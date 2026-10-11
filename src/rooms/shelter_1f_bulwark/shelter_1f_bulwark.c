@@ -414,12 +414,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_bulwark_80180ECC = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_1f_bulwark_80180ECD = 33;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_1f_bulwark_80180ECD = 33;
 
-u8 D_shelter_1f_bulwark_80180ECE = 178;
+static u8 D_shelter_1f_bulwark_80180ECE = 178;
 
-u8 D_shelter_1f_bulwark_80180ECF = 137;
+static u8 D_shelter_1f_bulwark_80180ECF = 137;
 
 RoomLatchedEvent gRoomEventLatched;
 

@@ -457,12 +457,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_1f_parking_garage_80181984 = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_1f_parking_garage_80181985 = 25;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_1f_parking_garage_80181985 = 25;
 
-u8 D_shelter_1f_parking_garage_80181986 = 36;
+static u8 D_shelter_1f_parking_garage_80181986 = 36;
 
-u8 D_shelter_1f_parking_garage_80181987 = 75;
+static u8 D_shelter_1f_parking_garage_80181987 = 75;
 
 RoomDeparture gRoomDeparture;
 

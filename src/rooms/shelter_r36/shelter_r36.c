@@ -99,9 +99,25 @@ static ActorCommand _gShelterR36ShowSecondWalkerAttachment1Command = {
     .command = SHELTER_R36_SHOW_SECOND_WALKER_ATTACHMENT_1,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DC2C[2] = {
-    { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Unreferenced bank-1 clip-1 and clip-2 requests with ten-frame blends.
+///
+/// Both disable world collision. Their intended receiver and original
+/// grouping are unproven; no event-script instruction points into these records.
+static AnimationPlayRequest _gShelterR36UnreferencedBlendRequests[2] = {
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 10,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 2,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 10,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 /// Arrival-scene clip 3 for the second scripted walker, restarting without interpolation.
@@ -116,7 +132,14 @@ static AnimationPlayRequest _gShelterR36SecondWalkerAnimation3 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DC68 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced bank-1 clip-4 reset request with collision disabled; its receiver is unproven.
+static AnimationPlayRequest _gShelterR36UnreferencedClip4Request = {
+    .source               = { .index = 1 },
+    .animationId          = 4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Arrival-scene clip 5 for the second scripted walker, restarting without interpolation.
 ///

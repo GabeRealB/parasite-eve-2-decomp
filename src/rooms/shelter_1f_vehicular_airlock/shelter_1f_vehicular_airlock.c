@@ -387,12 +387,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 /// Every gate call clears it, including queries; this byte does not track task lifetime.
 static s8 _gShelter1fVehicularAirlockEventStarted = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_1f_vehicular_airlock_80182AB1 = 2;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_1f_vehicular_airlock_80182AB1 = 2;
 
-u8 D_shelter_1f_vehicular_airlock_80182AB2 = 240;
+static u8 D_shelter_1f_vehicular_airlock_80182AB2 = 240;
 
-u8 D_shelter_1f_vehicular_airlock_80182AB3 = 65;
+static u8 D_shelter_1f_vehicular_airlock_80182AB3 = 65;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 

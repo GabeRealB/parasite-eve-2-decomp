@@ -287,7 +287,7 @@ gDryfieldCellarRoomCollisionResources = 0x8017DBDC; // absolute:True owner=dryfi
 gDryfieldCellarRoomViewMaps = 0x8017DC04; // absolute:True owner=dryfield_cellar
 gDryfieldCellarRoomViewCounts = 0x8017DC0C; // absolute:True owner=dryfield_cellar
 gDryfieldCellarRoomLighting = 0x8017DC10; // absolute:True owner=dryfield_cellar
-gDryfieldCellarWarpEntries = 0x8017DC20; // absolute:True owner=dryfield_cellar shared=rooms
+gDryfieldCellarWarpEntries = 0x8017DC20; // absolute:True owner=dryfield_cellar
 gDryfieldCellarViewCameras = 0x8017DF78; // absolute:True owner=dryfield_cellar
 gDryfieldCellarSpriteViews = 0x8017FE40; // absolute:True owner=dryfield_cellar
 gDryfieldCellarSurfacePropertiesByClass = 0x80180B40; // absolute:True owner=dryfield_cellar

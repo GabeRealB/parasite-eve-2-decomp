@@ -1900,7 +1900,8 @@ static u8 _gShelterB1UndergroundParkingPanelCommittedPattern = 0;
 /// directly with it. Stored as one unsigned byte for the room's lifetime.
 static u8 _gShelterB1UndergroundParkingPanelPendingPattern = 0;
 
-u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
+/// Retained, unreferenced halfword after the panel-selection bytes; its role is unproven.
+static u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
 
 /// Cyan room-light pulse selection (0 slow, nonzero fast).
 ///

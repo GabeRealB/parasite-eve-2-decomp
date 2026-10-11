@@ -12,6 +12,8 @@
 
 #include "neo_ark_woodland_path_private.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
@@ -101,11 +103,14 @@ static EnemyParams _gRoamerParams = {
     .damageOverTimeTicks  = 10,
 };
 
-// Retained numeric records following the enemy parameters.
-u16 D_neo_ark_woodland_path_80184958[3][4] = {
-    { 0, 900, 3, 0 },
-    { 0, 800, 5, 0 },
-    { 0, 500, 7, 0 },
+/// Retained Horned Stranger spawn tunings, unused by the reserve controllers.
+///
+/// Down-duration bases are ticks; sidestep angles use 4096 units per turn.
+/// The delay values and final zero halfwords have no reader in this room.
+static ActorHornedStrangerVariant _gNeoArkWoodlandPathUnusedHornedStrangerVariants[3] = {
+    { .downFramesBase = 0, .sidestepAngle = 900, .sidestepDelay = 3, .unknown_6 = 0 },
+    { .downFramesBase = 0, .sidestepAngle = 800, .sidestepDelay = 5, .unknown_6 = 0 },
+    { .downFramesBase = 0, .sidestepAngle = 500, .sidestepDelay = 7, .unknown_6 = 0 },
 };
 
 /// Pool-B reserve additions by location variant 0..15, also gating arm/tick work.
@@ -242,11 +247,15 @@ RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5] = {
     { -6500, 0, 2000, 2200 },
 };
 
-s16 D_neo_ark_woodland_path_80184A3C[4] = {
-    0x7FFF,
-    0x7FFF,
-    0x7FFF,
-    0x7FFF,
+/// Unread marker row following pool B's five live spawn points.
+///
+/// Pool B selects only live rows 0..4. These four halfwords retain the same
+/// end marker as pool A, rather than another selectable placement.
+static RoamerSpawnPoint _gRoamerPoolBSpawnPointEnd = {
+    .x   = ROAMER_SPAWN_POINT_END,
+    .y   = ROAMER_SPAWN_POINT_END,
+    .z   = ROAMER_SPAWN_POINT_END,
+    .yaw = ROAMER_SPAWN_POINT_END,
 };
 
 enum { NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY = 32 };

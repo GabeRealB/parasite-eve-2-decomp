@@ -658,8 +658,16 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip9Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182F28 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced bank-0 clip-10 request with a twenty-frame blend and collision disabled.
+///
+/// The intended receiver is unproven.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelUnreferencedClip10Request = {
+    .source               = { .index = 0 },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Scripted Aya's placement before her slow walk.
 ///
@@ -1449,12 +1457,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 /// requesting a child task even if allocation failed; no reader is established.
 static u8 _gShelterB1PodAccessTunnelEventStartAttempted = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_b1_pod_access_tunnel_80184D0D = 63;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_b1_pod_access_tunnel_80184D0D = 63;
 
-u8 D_shelter_b1_pod_access_tunnel_80184D0E = 253;
+static u8 D_shelter_b1_pod_access_tunnel_80184D0E = 253;
 
-u8 D_shelter_b1_pod_access_tunnel_80184D0F = 225;
+static u8 D_shelter_b1_pod_access_tunnel_80184D0F = 225;
 
 RoomLatchedEvent gRoomEventLatched;
 

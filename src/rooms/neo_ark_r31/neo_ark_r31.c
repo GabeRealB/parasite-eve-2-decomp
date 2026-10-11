@@ -23,6 +23,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -179,10 +180,19 @@ AreaVariant gNeoArkR31AreaVariants[NEO_ARK_R31_AREA_VARIANT_COUNT] = {
     [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkR31DefaultPlacements, .resources = _gNeoArkR31DefaultResources },
 };
 
-s32 D_neo_ark_r31_8017DC20[3] = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+enum {
+    NEO_ARK_R31_UNUSED_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    NEO_ARK_R31_UNUSED_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
+};
+
+/// Retained walking, running and scripted-jump cue bases, unused by this room.
+///
+/// These type-1 requests select the loaded sound bank. No surface record
+/// borrows them; every surface class uses a NULL footstep-sound pointer.
+static WorldCollisionFootstepSounds _gNeoArkR31UnusedFootstepSounds = {
+    .walk         = NEO_ARK_R31_UNUSED_WALK_CUE_BASE,
+    .run          = NEO_ARK_R31_UNUSED_RUN_CUE_BASE,
+    .scriptedJump = NEO_ARK_R31_UNUSED_WALK_CUE_BASE,
 };
 
 /// Collision policy for surface classes 0..7: probes block, impacts are enabled and pushback applies.

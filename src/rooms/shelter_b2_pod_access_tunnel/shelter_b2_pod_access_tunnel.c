@@ -40,10 +40,19 @@ extern RoomFadeStorage  gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-s32 D_shelter_b2_pod_access_tunnel_801856A0[3] = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+enum {
+    SHELTER_B2_POD_ACCESS_TUNNEL_UNUSED_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B2_POD_ACCESS_TUNNEL_UNUSED_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+};
+
+/// Retained walking, running and scripted-jump cue bases, unused by this room.
+///
+/// These type-1 requests select the loaded sound bank. Surface class 3
+/// borrows a different record; the other classes have no footstep sounds.
+static WorldCollisionFootstepSounds _gShelterB2PodAccessTunnelUnusedFootstepSounds = {
+    .walk         = SHELTER_B2_POD_ACCESS_TUNNEL_UNUSED_WALK_CUE_BASE,
+    .run          = SHELTER_B2_POD_ACCESS_TUNNEL_UNUSED_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_POD_ACCESS_TUNNEL_UNUSED_WALK_CUE_BASE,
 };
 
 /// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
@@ -129,12 +138,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_pod_access_tunnel_80185708 = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_b2_pod_access_tunnel_80185709 = 83;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_b2_pod_access_tunnel_80185709 = 83;
 
-u8 D_shelter_b2_pod_access_tunnel_8018570A = 70;
+static u8 D_shelter_b2_pod_access_tunnel_8018570A = 70;
 
-u8 D_shelter_b2_pod_access_tunnel_8018570B = 179;
+static u8 D_shelter_b2_pod_access_tunnel_8018570B = 179;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 

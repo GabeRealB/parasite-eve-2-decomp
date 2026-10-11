@@ -26,6 +26,7 @@
 #include "main/random.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -86,10 +87,19 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+enum {
+    SHELTER_B1_POD_SERVICE_GANTRY_UNUSED_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    SHELTER_B1_POD_SERVICE_GANTRY_UNUSED_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
+};
+
+/// Retained walking, running and scripted-jump cue bases, unused by this room.
+///
+/// These type-1 requests select the loaded sound bank. No surface record
+/// borrows them; every surface class uses a NULL footstep-sound pointer.
+static WorldCollisionFootstepSounds _gShelterB1PodServiceGantryUnusedFootstepSounds = {
+    .walk         = SHELTER_B1_POD_SERVICE_GANTRY_UNUSED_WALK_CUE_BASE,
+    .run          = SHELTER_B1_POD_SERVICE_GANTRY_UNUSED_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B1_POD_SERVICE_GANTRY_UNUSED_WALK_CUE_BASE,
 };
 
 /// Collision policy for surface classes 0..7: probes block, impacts are enabled and pushback applies.

@@ -323,7 +323,14 @@ static ActorTransform _gShelterB6TrainingRoomDefeatEveFirstWalkTarget = { .pos =
 /// Masked Eve's departure walk target in room units, ending at yaw 1024.
 static ActorTransform _gShelterB6TrainingRoomDefeatEveExitWalkTarget = { .pos = { 5000, 0, 10000, 0 }, .rot = { 0, 1024, 0, 0 } };
 
-ActorCommand D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
+/// Unreferenced command 1 in the retained stage-5/area-24 namespace, before the walk setup.
+///
+/// The intended receiver and action are unproven; context tags alone do not
+/// establish that it has the controller-stop command's interpretation.
+static ActorCommand _gShelterB6TrainingRoomUnreferencedCommand1A = {
+    .context = { .loc = { SHELTER_B6_TRAINING_ROOM_COMMAND_STAGE_TAG, SHELTER_B6_TRAINING_ROOM_COMMAND_AREA_TAG } },
+    .command = 1,
+};
 
 /// Selects forward travel for Masked Eve's nineteen-part reversing walker.
 static ActorCommand _gShelterB6TrainingRoomDefeatEveWalkForwardCommand = {
@@ -334,7 +341,14 @@ static ActorCommand _gShelterB6TrainingRoomDefeatEveWalkForwardCommand = {
 /// Masked Eve's first walk uses bank-0 clip 3, followed by clip 4 on arrival.
 static ActorMotionWalkAnim _gShelterB6TrainingRoomDefeatEveFirstWalkAnimations = { .animationId = 3, .nextAnimId = 4 };
 
-ActorCommand D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
+/// Unreferenced command 1 in the retained stage-5/area-24 namespace, after the walk setup.
+///
+/// The intended receiver and action are unproven. Retain this independent
+/// record even though its four bytes equal the earlier command.
+static ActorCommand _gShelterB6TrainingRoomUnreferencedCommand1B = {
+    .context = { .loc = { SHELTER_B6_TRAINING_ROOM_COMMAND_STAGE_TAG, SHELTER_B6_TRAINING_ROOM_COMMAND_AREA_TAG } },
+    .command = 1,
+};
 
 EvsCommand gShelterB6TrainingRoomDefeatScript[58] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

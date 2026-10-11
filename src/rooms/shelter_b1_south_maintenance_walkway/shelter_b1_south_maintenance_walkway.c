@@ -594,12 +594,12 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_b1_south_maintenance_walkway_80183644 = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_shelter_b1_south_maintenance_walkway_80183645 = 26;
+/// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
+static u8 D_shelter_b1_south_maintenance_walkway_80183645 = 26;
 
-u8 D_shelter_b1_south_maintenance_walkway_80183646 = 67;
+static u8 D_shelter_b1_south_maintenance_walkway_80183646 = 67;
 
-u8 D_shelter_b1_south_maintenance_walkway_80183647 = 220;
+static u8 D_shelter_b1_south_maintenance_walkway_80183647 = 220;
 
 RoomLatchedEvent gRoomEventLatched;
 
