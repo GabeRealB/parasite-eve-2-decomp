@@ -21,13 +21,16 @@
 
 #include "main/task_types.h"
 
-// Define the carrier bindings before this header and retain them through the
-// event fragments. DRIVEWAY_ENCOUNTER_SCRIPT, DRIVEWAY_BLACKOUT_SCRIPT and
-// DRIVEWAY_BLACKOUT_SKIP_SCRIPT select complete END-terminated EvsCommand
-// arrays; DRIVEWAY_SCENE_TASKS selects a three-entry TaskDesc table (0 blackout,
+// Define DRIVEWAY_ENCOUNTER_SCRIPT, DRIVEWAY_BLACKOUT_SKIP_SCRIPT and
+// DRIVEWAY_SCENE_TASKS before this header and retain them through the event
+// fragments. Script bindings select complete END-terminated EvsCommand arrays;
+// DRIVEWAY_SCENE_TASKS selects a three-entry TaskDesc table (0 blackout,
 // 1 encounter, 2 end). They only select identifiers, with no storage, argument
 // evaluation or side effects. The script arrays and their borrowed resources
 // remain loaded through playback; task spawning reads recipes synchronously.
+// Bind DRIVEWAY_BLACKOUT_SCRIPT immediately before the blackout fragment and
+// undefine it immediately afterwards; this header and the other fragments do
+// not require it.
 
 /// Scheduling and playback choices shared by the paired driveway scene recipes.
 enum {

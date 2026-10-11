@@ -61,8 +61,6 @@
 // Bind this overlay's private scripts and spawn recipes to the shared controllers.
 /// Selects this room's END-terminated encounter stream for the shared controller.
 #define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldNightDrivewayEncounterScript
-/// Selects this room's END-terminated wire-rope stream for the shared controller.
-#define DRIVEWAY_BLACKOUT_SCRIPT _gDryfieldNightDrivewayBlackoutScript
 /// Selects this room's END-terminated wire-rope skip continuation.
 #define DRIVEWAY_BLACKOUT_SKIP_SCRIPT _gDryfieldNightDrivewayBlackoutSkipScript
 /// Selects this room's blackout/encounter/end task recipes for the shared resolver.
@@ -1409,11 +1407,20 @@ static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
 
 #include "../../shared/dryfield_driveway_resolve.inc.c"
 
+/// Selects this room's retained wire-rope blackout entry stream for the shared controller.
+///
+/// Expands to a private END-terminated `EvsCommand` array, passed as
+/// `EvsCommand*` with `DRIVEWAY_BLACKOUT_SKIP_SCRIPT` as its skip continuation.
+/// Playback borrows the stream and its resources until the interpreter ends,
+/// beyond the controller task's lifetime. The night room's key-item receiver
+/// refuses all items, so it does not start this controller. This identifier
+/// binding has no arguments or side effects and is needed only by the following fragment.
+#define DRIVEWAY_BLACKOUT_SCRIPT _gDryfieldNightDrivewayBlackoutScript
 #include "../../shared/dryfield_driveway_blackout.inc.c"
+#undef DRIVEWAY_BLACKOUT_SCRIPT
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 #undef DRIVEWAY_ENCOUNTER_SCRIPT
-#undef DRIVEWAY_BLACKOUT_SCRIPT
 #undef DRIVEWAY_BLACKOUT_SKIP_SCRIPT
 #undef DRIVEWAY_SCENE_TASKS
 
