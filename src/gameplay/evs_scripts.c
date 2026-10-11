@@ -10,7 +10,6 @@
 #include "captions.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
-#include "evs.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
@@ -107,83 +106,165 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_EvsInterpreterWork, 0x34);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-u16 D_801156C0;
+/// Requested 16-bit music level captured when a timed fade initializes.
+///
+/// Snapshots `gMidiMusicVolume`, including override bits; it is not an audible
+/// gain measurement. The snapshot remains fixed through the fade's updates.
+static u16 _gEvsMusicVolumeFadeStartLevel;
 
-u16 D_801156C2;
+/// Updates elapsed in the timed music fade, excluding its initialization update.
+///
+/// Reset to zero on initialization, incremented before interpolation, and
+/// compared with the request's unsigned 16-bit duration to end the task.
+static u16 _gEvsMusicVolumeFadeElapsedUpdates;
 
-u16 D_801156C4;
+/// Unsigned attenuation captured from the shared sound record at fade initialization.
+///
+/// This is the last scripted sound-start or fade level, regardless of sound ID;
+/// sound requests consume its low signed byte (0 full, magnitude 127 silent).
+static u16 _gEvsSoundAttenuationFadeStartLevel;
 
-u16 D_801156C6;
+/// Updates elapsed in the timed sound fade, excluding its initialization update.
+///
+/// Reset to zero on initialization and incremented before interpolation;
+/// reaching the unsigned 16-bit requested duration ends the task.
+static u16 _gEvsSoundAttenuationFadeElapsedUpdates;
 
-u8 D_801156C8;
+/// Whether this interpreter has issued its one area-music start request (0 no, 1 yes).
+///
+/// Cleared at interpreter initialization. Stopping area music does not clear it.
+static u8 _gEvsAreaMusicStarted;
 
-u8 D_801156C9;
+/// Whether this event has issued its one scene-music load request (0 no, 1 yes).
+///
+/// Cleared when launching an event; subsequent requests are ignored even after
+/// the resident music loader finishes.
+static u8 _gEvsSceneMusicRequested;
 
-u8 D_801156CA;
+/// Whether any non-NULL scene key was selected during this interpreter (0 no, 1 yes).
+///
+/// Cleared at initialization and retained after a later NULL selection so END
+/// still finishes scene streaming and restores its saved random state.
+static u8 _gEvsSceneWasSelected;
 
-u8 D_801156CB;
+/// Byte set to one at interpreter initialization and command advances; role unproven.
+static u8 D_801156CB;
 
-u8 D_801156CC;
+/// Input-skip sound policy (0 stop non-ambient scripts, nonzero keep them running).
+///
+/// Cleared when launching an event; the script sets it from its operand's low byte.
+static u8 _gEvsSkipKeepsSound;
 
-u8 D_801156CD;
+/// Whether the script has requested player equipment removal pending restoration.
+///
+/// Zero at event launch, one on HIDE_WEAPONS, zero after RESTORE_WEAPONS.
+static u8 _gEvsPlayerEquipmentRestorePending;
 
-u8 D_801156CE;
+/// Whether the script has requested companion equipment removal pending restoration.
+///
+/// Zero at event launch, one on HIDE_WEAPONS even without a companion task,
+/// zero after RESTORE_WEAPONS. Restoration requires a live companion task.
+static u8 _gEvsCompanionEquipmentRestorePending;
 
-EvsCommand* D_801156D0;
+/// Borrowed command stream consumed by the next accepted input skip (NULL disabled).
+///
+/// Event launch installs the optional skip script and SET_SKIP_TARGET replaces
+/// it. Keep its commands and referenced resources loaded through interpretation.
+/// Accepting a skip clears this pointer before executing that stream next update.
+static EvsCommand* _gEvsSkipTarget;
 
-ScreenFade D_801156D4;
+/// Control record for the interpreter's primary full-screen fade.
+///
+/// START_PRIMARY_FADE borrows this record for the display task's life, using
+/// seven ramp frames for a zero duration operand. RETURN_PRIMARY_FADE requests
+/// ramp-down; the work block's primary handle also holds screen flashes.
+static ScreenFade _gEvsPrimaryFade;
 
-ScreenFade D_801156D8;
+/// Control record for the interpreter's independently held secondary screen fade.
+///
+/// The script supplies its ordering-table offset and selects seven ramp frames
+/// for a zero start duration. Return may replace the signed 16-bit ramp length;
+/// completion marks the record done so cancellation avoids the stale task handle.
+static ScreenFade _gEvsSecondaryFade;
 
-_EvsMusicVolumeFade D_801156DC;
+/// Singleton music-fade request borrowed by the active EVS volume-fade task.
+///
+/// A new request kills the previous task before overwriting its target and
+/// duration. Both operands narrow to unsigned 16 bits; zero duration applies
+/// the target once, and target zero selects the saved music-volume option.
+static _EvsMusicVolumeFade _gEvsMusicVolumeFade;
 
-_EvsSoundAttenuationFade D_801156E0;
+/// Singleton sound-fade request and last level sent by scripted starts or fades.
+///
+/// A new fade kills the previous task before replacing sound ID, target and
+/// duration; it keeps the most recent level even if it belonged to another sound.
+/// Attenuation and duration narrow to unsigned 16 bits. The task borrows this
+/// record and sends attenuation's low signed byte with unchanged pan.
+static _EvsSoundAttenuationFade _gEvsSoundAttenuationFade;
 
-s32 D_801156EC;
+/// Player weapon index captured at event launch for later equipment restoration.
+///
+/// Copies `PlayerStatus::weapon` (0 none, 1..32 weapon item ID minus 0x7F).
+/// The snapshot occupies a word and is unchanged by later hide/restore commands.
+static s32 _gEvsSavedPlayerWeapon;
 
-u8 D_801156F0;
+/// Unpaused interpreter updates remaining before input skipping is eligible.
+///
+/// Event launch sets five; execution decrements after checking input, including
+/// frame/CAP waits. The shared playback pause suspends this byte countdown.
+static u8 _gEvsSkipDelayUpdates;
 
-// Scene/audio selection shared with CAP tasks.
-EvsOperand D_801156F4;
+const EvsSceneKey* gEvsSelectedSceneKey;
 
-u8 D_801156F8;
+/// Saved 1-based room view slot restored by RESTORE_VIEW.
+///
+/// Event launch and SAVE_VIEW capture the live save's location view; this is
+/// the room's view slot, before any mapping to a camera or background image.
+static u8 _gEvsSavedView;
 
-u8 D_801156F9;
+u8 gEvsPlaybackPaused;
 
 #include "gameplay/evs_scripts.h"
 
 #include "evs_scripts.h"
 
-extern Task* D_8010FBE0;
-
-extern Task* D_8010FBE4;
-
-extern Task* D_8010FBE8;
-
-static const TaskFuncTable3 Gp_ScriptTaskStates;
-
-static const char Gp_StrDemoWait[];
-
-static const char Gp_StrDemoPause[];
-
 static void _evsExecuteInterpreterTask(Task* task);
 
 static void _evsInitializeInterpreterTask(Task* task);
 
-Task* D_8010FBE0 = NULL;
+/// Previous-framebuffer blend task retained by the event interpreter (NULL none).
+///
+/// SET_FRAMEBUFFER_BLEND starts it; disabling, scene cleanup and END request
+/// its exit and forget it. Event launch only clears the handle. Repeated enable
+/// commands overwrite the handle without ending the earlier task.
+static Task* _gEvsFramebufferBlendTask = NULL;
 
-Task* D_8010FBE4 = NULL;
+/// Active singleton event-script music-volume fade task (NULL none).
+///
+/// A new fade kills and replaces it; fade completion clears it. Event launch
+/// clears the handle without killing an earlier fade, so events must not overlap.
+static Task* _gEvsMusicVolumeFadeTask = NULL;
 
-Task* D_8010FBE8 = NULL;
+/// Active singleton event-script sound-attenuation fade task (NULL none).
+///
+/// A new fade kills and replaces it; fade completion clears it. The handle is
+/// retained across event launch and scene cleanup until completion or replacement.
+static Task* _gEvsSoundAttenuationFadeTask = NULL;
 
-static const TaskFuncTable3 Gp_ScriptTaskStates = { {
+/// Interpreter state handlers (0 initialize, 1 execute, 2 release the task).
+///
+/// Copied as a three-entry value before unchecked dispatch through `Task::state`.
+static const TaskFuncTable3 _gEvsInterpreterStates = { {
     _evsInitializeInterpreterTask,
     _evsExecuteInterpreterTask,
     taskKill,
 } };
 
-static const char Gp_StrDemoWait[]  = "Demo Wait";
-static const char Gp_StrDemoPause[] = "Demo Pause";
+/// Byte-encoded demo status label while the interpreter counts a frame wait.
+static const u8 _gEvsDemoWaitLabel[] = "Demo Wait";
+
+/// Byte-encoded demo status label while the interpreter waits for a CAP cue.
+static const u8 _gEvsDemoPauseLabel[] = "Demo Pause";
 
 // Script light values gain four fractional bits before their s16 conversion.
 enum { EVENT_SCRIPT_LIGHT_VALUE_SCALE = 16 };
@@ -195,7 +276,7 @@ enum { EVENT_SCRIPT_LIGHT_VALUE_SCALE = 16 };
 static inline void _evsCancelSecondaryFade(_EvsInterpreterWork* work)
 {
     if (work->secondaryFadeTask != NULL) {
-        if (D_801156D8.phase != SCREEN_FADE_DONE) {
+        if (_gEvsSecondaryFade.phase != SCREEN_FADE_DONE) {
             taskKill(work->secondaryFadeTask);
         }
         work->secondaryFadeTask = NULL;
@@ -216,7 +297,7 @@ static inline void _evsCancelSecondaryFade(_EvsInterpreterWork* work)
         (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM; \
         (request).alignment  = TEXT_ALIGNMENT_LEFT;     \
         (request).drawMode   = TEXT_DRAW_FILL_ONLY;     \
-        textDrawString(&(request), (const u8*)(label)); \
+        textDrawString(&(request), (label));            \
     }
 
 /// Executes an event script until it ends or yields to a later task update.
@@ -261,7 +342,7 @@ static void _evsExecuteInterpreterTask(Task* task)
     };
 
     work = task->work;
-    if (D_801156F9 != 0) {
+    if (gEvsPlaybackPaused != 0) {
         return;
     }
 
@@ -270,38 +351,38 @@ static void _evsExecuteInterpreterTask(Task* task)
     }
 
     // Skipping consumes the target but retains any pending script returns.
-    if (padIsStartPressed() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
-        if (D_801156F4.sceneKey != NULL) {
+    if (padIsStartPressed() != 0 && _gEvsSkipTarget != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && _gEvsSkipDelayUpdates == 0) {
+        if (gEvsSelectedSceneKey != NULL) {
             cdCmdCancelScene();
         }
         D_801156A4               = 0;
-        skipTarget               = D_801156D0;
+        skipTarget               = _gEvsSkipTarget;
         work->waitFrames         = 0;
-        D_801156D0               = NULL;
+        _gEvsSkipTarget          = NULL;
         work->command            = skipTarget;
         gCapSuppressViewChanges  = CAP_SEQUENCE_VIEW_CHANGES_SUPPRESSED;
         gGameSession->evtSkipped = 1;
-        if (D_801156CC != 0) {
+        if (_gEvsSkipKeepsSound != 0) {
             return;
         }
         sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL);
         return;
     }
-    if (D_801156F0 != 0) {
-        D_801156F0--;
+    if (_gEvsSkipDelayUpdates != 0) {
+        _gEvsSkipDelayUpdates--;
     }
 
     if (work->waitFrames != 0) {
         work->waitFrames--;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == EVENT_SCRIPT_STATUS_DEMO_SCENE) {
-            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, Gp_StrDemoWait);
+            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, _gEvsDemoWaitLabel);
         }
         return;
     }
 
     if (D_801156A4 & EVENT_SCRIPT_WAITING_FOR_CAP_CUE) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == EVENT_SCRIPT_STATUS_DEMO_SCENE) {
-            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, Gp_StrDemoPause);
+            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, _gEvsDemoPauseLabel);
         }
         return;
     }
@@ -330,18 +411,18 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_END:
-                if (D_8010FBE0 != NULL) {
-                    taskCallExit(D_8010FBE0);
-                    D_8010FBE0 = NULL;
+                if (_gEvsFramebufferBlendTask != NULL) {
+                    taskCallExit(_gEvsFramebufferBlendTask);
+                    _gEvsFramebufferBlendTask = NULL;
                 }
-                D_801156F4.sceneKey      = NULL;
+                gEvsSelectedSceneKey     = NULL;
                 gGameSession->eventState = 0;
                 if (task->spawnArg1.value == EVENT_SCRIPT_HUD_HIDE_RESTORE) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
                 task->state++;
                 displayReleaseMenuHold();
-                if (D_801156CA != 0) {
+                if (_gEvsSceneWasSelected != 0) {
                     streamFinishScene();
                 }
                 gCapUseDirectViewIndex = CAP_VIEW_SELECTOR_LOGICAL;
@@ -414,14 +495,14 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_VIEW:
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_801156F8;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gEvsSavedView;
                 break;
 
             case EVENT_SCRIPT_OPCODE_SELECT_SCENE:
-                D_801156F4.sceneKey = work->command->operand0.sceneKey;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SELECT_SCENE, D_801156F4.sceneKey, 0);
-                if (D_801156F4.sceneKey != NULL) {
-                    D_801156CA = 1;
+                gEvsSelectedSceneKey = work->command->operand0.sceneKey;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SELECT_SCENE, gEvsSelectedSceneKey, 0);
+                if (gEvsSelectedSceneKey != NULL) {
+                    _gEvsSceneWasSelected = true;
                 }
                 break;
 
@@ -435,7 +516,7 @@ static void _evsExecuteInterpreterTask(Task* task)
 
             case EVENT_SCRIPT_OPCODE_START_SOUND:
                 sndEvtRequestScriptStart(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
-                D_801156E0.attenuation = work->command->operand2.value;
+                _gEvsSoundAttenuationFade.attenuation = work->command->operand2.value;
                 break;
 
             case EVENT_SCRIPT_OPCODE_STOP_SOUND:
@@ -444,17 +525,17 @@ static void _evsExecuteInterpreterTask(Task* task)
 
             case EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND:
                 if (work->command->operand0.value != 0) {
-                    D_8010FBE0 = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT, 0, 0);
-                } else if (D_8010FBE0 != NULL) {
-                    taskCallExit(D_8010FBE0);
-                    D_8010FBE0 = NULL;
+                    _gEvsFramebufferBlendTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT, 0, 0);
+                } else if (_gEvsFramebufferBlendTask != NULL) {
+                    taskCallExit(_gEvsFramebufferBlendTask);
+                    _gEvsFramebufferBlendTask = NULL;
                 }
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_AREA_MUSIC:
-                if (D_801156C8 == 0) {
+                if (_gEvsAreaMusicStarted == 0) {
                     stageMusicRequestAreaStart((s16)work->command->operand0.value);
-                    D_801156C8 = 1;
+                    _gEvsAreaMusicStarted = true;
                 }
                 break;
 
@@ -463,11 +544,11 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC:
-                if (D_801156C9 != 0) {
+                if (_gEvsSceneMusicRequested != 0) {
                     break;
                 }
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = (u8)work->command->operand0.value;
-                D_801156C9                                          = 1;
+                _gEvsSceneMusicRequested                            = true;
                 gStageMusicParams.fadeOutTicks                      = work->command->operand1.value;
                 gStageMusicLoadState                                = STAGE_MUSIC_LOAD_ACTIVE;
                 gStageMusicParams.field_2                           = work->command->operand2.value;
@@ -492,9 +573,9 @@ static void _evsExecuteInterpreterTask(Task* task)
                 capAbortPlayback();
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
-                if (D_8010FBE0 != NULL) {
-                    taskCallExit(D_8010FBE0);
-                    D_8010FBE0 = NULL;
+                if (_gEvsFramebufferBlendTask != NULL) {
+                    taskCallExit(_gEvsFramebufferBlendTask);
+                    _gEvsFramebufferBlendTask = NULL;
                 }
                 _evsCancelSecondaryFade(task->work);
                 break;
@@ -503,37 +584,37 @@ static void _evsExecuteInterpreterTask(Task* task)
                 if (work->primaryEffectTask != NULL) {
                     break;
                 }
-                D_801156D4.blend = (u8)work->command->operand0.value;
-                D_801156D4.phase = SCREEN_FADE_RUNNING;
+                _gEvsPrimaryFade.blend = (u8)work->command->operand0.value;
+                _gEvsPrimaryFade.phase = SCREEN_FADE_RUNNING;
                 if (work->command->operand1.value == 0) {
-                    D_801156D4.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
+                    _gEvsPrimaryFade.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
                 } else {
-                    D_801156D4.rampFrames = (u16)work->command->operand1.value;
+                    _gEvsPrimaryFade.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, 0, &D_801156D4);
+                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, 0, &_gEvsPrimaryFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE:
-                D_801156D4.phase = SCREEN_FADE_RETURN;
+                _gEvsPrimaryFade.phase = SCREEN_FADE_RETURN;
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_VOLUME:
-                if (D_8010FBE4 != NULL) {
-                    taskKill(D_8010FBE4);
+                if (_gEvsMusicVolumeFadeTask != NULL) {
+                    taskKill(_gEvsMusicVolumeFadeTask);
                 }
-                D_801156DC.targetVolume   = work->command->operand0.value;
-                D_801156DC.durationFrames = work->command->operand1.value;
-                D_8010FBE4                = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT, 0, &D_801156DC);
+                _gEvsMusicVolumeFade.targetVolume   = work->command->operand0.value;
+                _gEvsMusicVolumeFade.durationFrames = work->command->operand1.value;
+                _gEvsMusicVolumeFadeTask            = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT, 0, &_gEvsMusicVolumeFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION:
-                if (D_8010FBE8 != NULL) {
-                    taskKill(D_8010FBE8);
+                if (_gEvsSoundAttenuationFadeTask != NULL) {
+                    taskKill(_gEvsSoundAttenuationFadeTask);
                 }
-                D_801156E0.soundId           = work->command->operand0.value;
-                D_801156E0.targetAttenuation = work->command->operand1.value;
-                D_801156E0.durationFrames    = work->command->operand2.value;
-                D_8010FBE8                   = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SOUND_FADE_TASK_SLOT, 0, &D_801156E0);
+                _gEvsSoundAttenuationFade.soundId           = work->command->operand0.value;
+                _gEvsSoundAttenuationFade.targetAttenuation = work->command->operand1.value;
+                _gEvsSoundAttenuationFade.durationFrames    = work->command->operand2.value;
+                _gEvsSoundAttenuationFadeTask               = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SOUND_FADE_TASK_SLOT, 0, &_gEvsSoundAttenuationFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
@@ -576,23 +657,23 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE:
-                if (work->secondaryFadeTask != NULL && D_801156D8.phase != SCREEN_FADE_DONE) {
+                if (work->secondaryFadeTask != NULL && _gEvsSecondaryFade.phase != SCREEN_FADE_DONE) {
                     break;
                 }
-                D_801156D8.blend = (u8)work->command->operand0.value;
-                D_801156D8.phase = SCREEN_FADE_RUNNING;
+                _gEvsSecondaryFade.blend = (u8)work->command->operand0.value;
+                _gEvsSecondaryFade.phase = SCREEN_FADE_RUNNING;
                 if (work->command->operand1.value == 0) {
-                    D_801156D8.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
+                    _gEvsSecondaryFade.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
                 } else {
-                    D_801156D8.rampFrames = (u16)work->command->operand1.value;
+                    _gEvsSecondaryFade.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->secondaryFadeTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, work->command->operand2.value, &D_801156D8);
+                work->secondaryFadeTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, work->command->operand2.value, &_gEvsSecondaryFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE:
-                D_801156D8.phase = SCREEN_FADE_RETURN;
+                _gEvsSecondaryFade.phase = SCREEN_FADE_RETURN;
                 if (work->command->operand0.value != 0) {
-                    D_801156D8.rampFrames = (u16)work->command->operand0.value;
+                    _gEvsSecondaryFade.rampFrames = (u16)work->command->operand0.value;
                 }
                 break;
 
@@ -603,16 +684,16 @@ static void _evsExecuteInterpreterTask(Task* task)
             case EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS:
                 equipmentTargets = work->command->operand0.value;
                 if (equipmentTargets == EVENT_SCRIPT_WEAPONS_PLAYER || equipmentTargets == EVENT_SCRIPT_WEAPONS_BOTH) {
-                    if (D_801156CD != 0) {
-                        gPlayerStatus.weapon = D_801156EC;
+                    if (_gEvsPlayerEquipmentRestorePending != 0) {
+                        gPlayerStatus.weapon = _gEvsSavedPlayerWeapon;
                         playerActorRestoreEquipment();
-                        D_801156CD = 0;
+                        _gEvsPlayerEquipmentRestorePending = false;
                     }
                 }
                 if ((u32)(equipmentTargets - EVENT_SCRIPT_WEAPONS_COMPANION) < 2U) {
-                    if (D_801156CE != 0) {
+                    if (_gEvsCompanionEquipmentRestorePending != 0) {
                         companionRestoreEquipment();
-                        D_801156CE = 0;
+                        _gEvsCompanionEquipmentRestorePending = false;
                     }
                 }
                 break;
@@ -620,13 +701,13 @@ static void _evsExecuteInterpreterTask(Task* task)
             case EVENT_SCRIPT_OPCODE_HIDE_WEAPONS:
                 equipmentTargets = work->command->operand0.value;
                 if (equipmentTargets == EVENT_SCRIPT_WEAPONS_PLAYER || equipmentTargets == EVENT_SCRIPT_WEAPONS_BOTH) {
-                    D_801156CD = 1;
+                    _gEvsPlayerEquipmentRestorePending = true;
                     playerActorRemoveEquipment();
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 }
                 if ((u32)(equipmentTargets - EVENT_SCRIPT_WEAPONS_COMPANION) < 2U) {
-                    D_801156CE    = 1;
-                    recipientTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+                    _gEvsCompanionEquipmentRestorePending = true;
+                    recipientTask                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (recipientTask != NULL) {
                         companionRemoveEquipment(recipientTask);
                         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -640,7 +721,7 @@ static void _evsExecuteInterpreterTask(Task* task)
 
             case EVENT_SCRIPT_OPCODE_START_STAGE_SOUND:
                 sndEvtRequestStageScriptStart(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
-                D_801156E0.attenuation = work->command->operand2.value;
+                _gEvsSoundAttenuationFade.attenuation = work->command->operand2.value;
                 break;
 
             // Each control transfer compensates for the common advance below.
@@ -660,15 +741,15 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET:
-                D_801156D0 = work->command->operand0.commands;
+                _gEvsSkipTarget = work->command->operand0.commands;
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND:
-                D_801156CC = (u8)work->command->operand0.value;
+                _gEvsSkipKeepsSound = (u8)work->command->operand0.value;
                 break;
 
             case EVENT_SCRIPT_OPCODE_SAVE_VIEW:
-                D_801156F8 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                _gEvsSavedView = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                 break;
         }
         D_801156CB    = 1;
@@ -693,21 +774,21 @@ void evsMusicVolumeFadeTask(Task* task)
             if (fade->durationFrames == 0) {
                 midiApplyMusicVolume(fade->targetVolume);
                 taskKill(task);
-                D_8010FBE4 = NULL;
+                _gEvsMusicVolumeFadeTask = NULL;
             } else {
-                D_801156C2 = 0;
-                D_801156C0 = gMidiMusicVolume;
+                _gEvsMusicVolumeFadeElapsedUpdates = 0;
+                _gEvsMusicVolumeFadeStartLevel     = gMidiMusicVolume;
             }
             task->state++;
             break;
         case EVENT_SCRIPT_MUSIC_FADE_UPDATE:
             // Count fade updates after initialization, applying the target on the last one.
-            D_801156C2++;
-            musicLevel = (D_801156C0 * (fade->durationFrames - D_801156C2) + fade->targetVolume * D_801156C2) / fade->durationFrames;
+            _gEvsMusicVolumeFadeElapsedUpdates++;
+            musicLevel = (_gEvsMusicVolumeFadeStartLevel * (fade->durationFrames - _gEvsMusicVolumeFadeElapsedUpdates) + fade->targetVolume * _gEvsMusicVolumeFadeElapsedUpdates) / fade->durationFrames;
             midiApplyMusicVolume(musicLevel);
-            if (D_801156C2 == fade->durationFrames) {
+            if (_gEvsMusicVolumeFadeElapsedUpdates == fade->durationFrames) {
                 taskKill(task);
-                D_8010FBE4 = NULL;
+                _gEvsMusicVolumeFadeTask = NULL;
             }
             break;
     }
@@ -730,22 +811,22 @@ void evsSoundAttenuationFadeTask(Task* task)
                 sndEvtRequestScriptMix(fade->soundId, EVENT_SCRIPT_SOUND_FADE_BASE_PAN_OFFSET, (s8)fade->targetAttenuation);
                 fade->attenuation = fade->targetAttenuation;
                 taskKill(task);
-                D_8010FBE8 = NULL;
+                _gEvsSoundAttenuationFadeTask = NULL;
             } else {
-                D_801156C6 = 0;
-                D_801156C4 = fade->attenuation;
+                _gEvsSoundAttenuationFadeElapsedUpdates = 0;
+                _gEvsSoundAttenuationFadeStartLevel     = fade->attenuation;
             }
             task->state++;
             break;
         case EVENT_SCRIPT_SOUND_FADE_UPDATE:
             // Retain the halfword level while the sound request consumes its signed low byte.
-            D_801156C6++;
-            attenuation = (D_801156C4 * (fade->durationFrames - D_801156C6) + fade->targetAttenuation * D_801156C6) / fade->durationFrames;
+            _gEvsSoundAttenuationFadeElapsedUpdates++;
+            attenuation = (_gEvsSoundAttenuationFadeStartLevel * (fade->durationFrames - _gEvsSoundAttenuationFadeElapsedUpdates) + fade->targetAttenuation * _gEvsSoundAttenuationFadeElapsedUpdates) / fade->durationFrames;
             sndEvtRequestScriptMix(fade->soundId, EVENT_SCRIPT_SOUND_FADE_BASE_PAN_OFFSET, (s8)attenuation);
             fade->attenuation = attenuation;
-            if (D_801156C6 == fade->durationFrames) {
+            if (_gEvsSoundAttenuationFadeElapsedUpdates == fade->durationFrames) {
                 taskKill(task);
-                D_8010FBE8 = NULL;
+                _gEvsSoundAttenuationFadeTask = NULL;
             }
             break;
     }
@@ -766,18 +847,18 @@ void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScr
     };
 
     // Reset the shared event controls before queuing the interpreter.
-    gGameSession->eventState = EVENT_SCRIPT_INITIAL_EVENT_STATE;
-    gGameSession->evtSkipped = 0;
-    D_8010FBE0               = NULL;
-    D_8010FBE4               = NULL;
-    D_801156D0               = skipScript;
-    D_801156C9               = 0;
-    D_801156CC               = 0;
-    D_801156F0               = EVENT_SCRIPT_SKIP_DELAY_UPDATES;
-    D_801156CD               = 0;
-    D_801156CE               = 0;
-    D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    D_801156EC               = gPlayerStatus.weapon;
+    gGameSession->eventState              = EVENT_SCRIPT_INITIAL_EVENT_STATE;
+    gGameSession->evtSkipped              = 0;
+    _gEvsFramebufferBlendTask             = NULL;
+    _gEvsMusicVolumeFadeTask              = NULL;
+    _gEvsSkipTarget                       = skipScript;
+    _gEvsSceneMusicRequested              = false;
+    _gEvsSkipKeepsSound                   = false;
+    _gEvsSkipDelayUpdates                 = EVENT_SCRIPT_SKIP_DELAY_UPDATES;
+    _gEvsPlayerEquipmentRestorePending    = false;
+    _gEvsCompanionEquipmentRestorePending = false;
+    _gEvsSavedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    _gEvsSavedPlayerWeapon                = gPlayerStatus.weapon;
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     taskSpawn(EVENT_SCRIPT_INTERPRETER_BANK, EVENT_SCRIPT_INTERPRETER_TYPE, hudMode, script);
 }
@@ -809,16 +890,16 @@ static void _evsInitializeInterpreterTask(Task* task)
         taskKill(task);
         return;
     }
-    D_801156F9          = 0;
-    D_801156F4.sceneKey = NULL;
+    gEvsPlaybackPaused   = false;
+    gEvsSelectedSceneKey = NULL;
     displayAcquireMenuHold();
-    entryCommand     = task->spawnArg2.pointer;
-    D_801156A4       = 0;
-    task->work       = work;
-    work->waitFrames = 0;
-    D_801156C8       = 0;
-    work->command    = entryCommand;
-    D_801156CA       = 0;
+    entryCommand          = task->spawnArg2.pointer;
+    D_801156A4            = 0;
+    task->work            = work;
+    work->waitFrames      = 0;
+    _gEvsAreaMusicStarted = false;
+    work->command         = entryCommand;
+    _gEvsSceneWasSelected = false;
     if (task->spawnArg1.value == EVENT_SCRIPT_HUD_HIDE_RESTORE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
     }
@@ -834,7 +915,7 @@ void evsInterpreterTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Gp_ScriptTaskStates;
+    states = _gEvsInterpreterStates;
     states.funcs[task->state](task);
 }
 

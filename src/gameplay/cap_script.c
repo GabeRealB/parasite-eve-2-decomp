@@ -17,7 +17,7 @@ void capPlaybackTask(Task* task)
            CAP_ACTION_CAPTURE_ROOM_EFFECT_MESSAGE = 3000,
            CAP_ACTION_CAPTURE_ENTER               = 1 };
 
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         switch (task->state) {
             case CAP_PLAYBACK_INITIAL_STATE:
                 // Notify the room receiver before the first action-capture playback update.

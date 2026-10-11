@@ -3912,7 +3912,7 @@ static void _mineMesaPlayerHeadAimTask(Task* task)
 
     playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if ((playerTask == NULL) || (companionTask == NULL)) {
             task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }
@@ -3956,7 +3956,7 @@ static void _mineMesaCompanionHeadAimTask(Task* task)
     AnimationHeadAim* aim;
 
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if (companionTask == NULL) {
             task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }
@@ -4216,7 +4216,7 @@ static void _mineMesaPlayerHeadBlendTask(Task* task)
 
     playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if ((playerTask == NULL) || (companionTask == NULL)) {
             task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }

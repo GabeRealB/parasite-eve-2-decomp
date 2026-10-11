@@ -7,7 +7,14 @@
 
 #include "main/task_types.h"
 
-extern u8 D_801156F9;
+/// Shared event/scene playback pause latch (0 running, nonzero paused).
+///
+/// Suspends EVS input, waits and dispatch, CAP playback, and participating
+/// scene head-aim and image-effect tasks, including their teardown phases.
+/// Interpreter initialization clears it. A scene-view monitor may hold it
+/// during view preparation and release it once the view is no longer ready.
+/// This is one shared latch, not a nesting count; the holder controls release.
+extern u8 gEvsPlaybackPaused;
 
 /// HUD handling selected when an event script starts.
 enum {

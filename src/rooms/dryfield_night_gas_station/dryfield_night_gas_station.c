@@ -3725,7 +3725,7 @@ static void _dryfieldNightGasStationCompanionHeadAimTask(Task* task)
     u16   nextBlendWeight;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if (playerTask == NULL) {
             task->state = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_EXIT;
         }

@@ -5294,7 +5294,7 @@ objects = [
 ]
 
 [actors.overlays.actor_460200]
-label = "Code starts at 0x4: GCC hoisted the lui/lbu of D_801156F9 above the capture task's addiu $sp prologue, so the span detector starts 8 bytes late; the actor's task table names 0x80131E24 as the entry"
+label = "Code starts at 0x4: GCC hoisted the lui/lbu of gEvsPlaybackPaused above the capture task's addiu $sp prologue, so the span detector starts 8 bytes late; the actor's task table names 0x80131E24 as the entry"
 slot = 1
 id = 271
 text = ["0x4", "0x2074"]

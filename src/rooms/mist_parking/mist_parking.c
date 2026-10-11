@@ -1071,7 +1071,7 @@ void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)
     s32              animationRequestsAim;
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         // Extension index zero has no aim flag; the copied bank bounds the lookup.
         extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
         if ((extensionIndex > 0) && (extensionIndex < gMistParkingPlayerConversationBankCopy.wordCount)) {

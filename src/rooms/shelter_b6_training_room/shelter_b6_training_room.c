@@ -620,7 +620,7 @@ void shelterB6TrainingRoomPlayerHeadAimTask(Task* task)
     Enemy* targetEnemy;
     s16    blendWeight;
 
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if (task->state == SHELTER_B6_TRAINING_ROOM_HEAD_AIM_ACTIVE) {
             // Preserve the wrapping halfword step before the signed endpoint tests.
             if (task->spawnArg1.value != 0) {

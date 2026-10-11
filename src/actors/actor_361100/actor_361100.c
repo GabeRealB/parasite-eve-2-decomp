@@ -1896,7 +1896,7 @@ static void _actor361100HeadAimTask(Task* task)
 
     subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     target  = sceneFindPlacedActor(ACTOR_361100_HEAD_AIM_TARGET);
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if ((subject == NULL) || (target == NULL)) {
             task->state = ACTOR_361100_HEAD_AIM_KILL;
         }

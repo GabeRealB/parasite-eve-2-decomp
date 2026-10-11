@@ -38384,7 +38384,7 @@ common tail that is a *single* instruction. `_evsExecuteInterpreterTask` needs
 
 ```c
 if (cmd->arg1 != 0) { val = (u16)cmd->arg1; } else { val = 7; }
-D_801156D4.field_2 = val;
+_gEvsPrimaryFade.rampFrames = val;
 ```
 
 (one `sh` at the join, with the `li 7` scheduled into the branch delay slot).
@@ -66658,7 +66658,7 @@ MERGE:
 sh     v0,2(a0)          <- a0 is dead here in the target
 li     a0,1
 ...
-lui    a3,%hi(D_801156D4) <- recomputed, not shared
+lui    a3,%hi(_gEvsPrimaryFade) <- recomputed, not shared
 ```
 
 The chain: `jump.c` hoists the constant `x = 7` above the branch because the
@@ -85131,7 +85131,7 @@ maps together so the relocation uses the same spelling
 
 The function itself is the standard "story trigger unless the demo is running"
 shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `taskSpawn` bank the
-`Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
+`_gEvsDemoWaitLabel` / `_gEvsDemoPauseLabel` prompts key off — then arm the scene event
 byte `field_5C5` and spawn the table's task. `_actor450800EnterGrowthRoom` and
 `_shelterR36ReloadForMovie` are the same shape with `taskSpawn` instead.
 

@@ -1632,7 +1632,7 @@ static void _dryfieldMainStreetPlayerHeadAimTask(Task* task)
     };
     Enemy* areaActor;
 
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         if (task->state == DRYFIELD_MAIN_STREET_HEAD_AIM_ACTIVE) {
             _dryfieldMainStreetStepHeadAimWeight(task);
             areaActor = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));

@@ -3489,7 +3489,7 @@ static void _dryfieldDilapidatedHouseBlackoutTask(Task* task)
     s32 remainingFrames;
 
     paintBlack = false;
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         switch (task->state) {
             case BLACKOUT_RESET:
                 task->state += 1;

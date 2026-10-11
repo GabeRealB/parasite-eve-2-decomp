@@ -26,7 +26,7 @@ static inline void _screenNegativeCaptureTask(Task* task)
     u_long(*strip)[FILE_SYSTEM_IMAGE_STRIP_WORDS];
 
     args = task->spawnArg2.pointer;
-    if (D_801156F9 == 0) {
+    if (gEvsPlaybackPaused == 0) {
         switch (task->state) {
             case SCREEN_NEGATIVE_CAPTURE_START:
                 args->done          = 0;

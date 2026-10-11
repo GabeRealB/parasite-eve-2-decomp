@@ -2532,7 +2532,7 @@ static void _mistR18StartSceneScriptPause(void)
     enum { MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
 
     if (taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
-        D_801156F9 = 1;
+        gEvsPlaybackPaused = true;
     }
 }
 
@@ -2571,7 +2571,7 @@ static void _mistR18CancelScene(void)
 static void _mistR18ReleaseScriptPauseTask(Task* task)
 {
     if (gGameSession->viewReady != 1) {
-        D_801156F9 = 0;
+        gEvsPlaybackPaused = false;
     }
 }
 

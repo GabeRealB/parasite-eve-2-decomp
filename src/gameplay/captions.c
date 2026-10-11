@@ -7,7 +7,6 @@
 
 #include "gameplay/cap.h"
 #include "cap.h"
-#include "evs.h"
 #include "gameplay/evs_scripts.h"
 #include "evs_scripts.h"
 #include "gameplay/items.h"
@@ -359,7 +358,7 @@ void capUpdatePlaybackTask(Task* task)
                     if (hasPendingViewChange != 0) {
                         pendingViewPhase     = gCapPendingViewPhase;
                         gCapPendingViewPhase = pendingViewPhase + 1;
-                        if (D_801156F4.sceneKey != NULL) {
+                        if (gEvsSelectedSceneKey != NULL) {
                             cdCmdSceneViewChangeNoOp();
                         }
                     } else if (!(recordFlags & CAP_SEQUENCE_SCENE_PHASE)) {
@@ -1051,10 +1050,10 @@ static void _capFinishPlayback(Task* task)
         }
     }
     // Three unsigned-halfword decimal fields fit this 32-byte debug filename.
-    if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != NULL) {
+    if (gDisplayState.debugMode != 0 && gEvsSelectedSceneKey != NULL) {
         sprintf(
-            sceneFilename, gCapSceneKeyFilenameFormat, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
-            D_801156F4.sceneKey->subId);
+            sceneFilename, gCapSceneKeyFilenameFormat, gEvsSelectedSceneKey->group, gEvsSelectedSceneKey->streamId,
+            gEvsSelectedSceneKey->subId);
         func_807244CC(sceneFilename);
     }
     gCapSelectedSequence = NULL;
