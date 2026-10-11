@@ -519,7 +519,6 @@ enum {
 /// Constants of the small-orb emitter.
 enum {
     ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME = 66, // Value of the attack's frame count at which the first orb of the volley is launched
-    ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS        = 6,  // Orbs in a volley, launched one a frame
     ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME = 8,  // Value of the dying frame count at which the VRAM block is copied
     ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES        = 31, // Value of the dying frame count after which the emitter stops shedding effects
 };
@@ -830,7 +829,7 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     work->side = side;
 
     // Bind the target to the same boss limb as this side's arm.
-    coord->parent = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[side]];
+    coord->parent = &parent->extra.tmd->coords[gActor503500LargeOrbEmitterParentParts[side]];
     gfxSetRotIdentity(&coord->coord);
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -859,7 +858,7 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     work->hitEffect.coord      = coord;
     work->hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     work->body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    MoveImage(&D_actor_503500_8016F100, 0, ACTOR_503500_LARGE_ORB_EMITTER_VRAM_ROW_Y);
+    MoveImage(&gActor503500LargeOrbEmitterVramRowSourceRect, 0, ACTOR_503500_LARGE_ORB_EMITTER_VRAM_ROW_Y);
     task->exitCallback = _actor503500LargeOrbEmitterExit;
     task->state       += 1;
 }
@@ -1220,10 +1219,10 @@ static void _actor503500LargeOrbEmitterStepDying(Task* task)
         case ACTOR_503500_LARGE_ORB_DEATH_EFFECTS:
             // Shed mirrored effects while the side's two texture regions are replaced.
             if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_LARGE_ORB_DEATH_EFFECT_COST) != 0) {
-                effectOffsetIndex  = (s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F168));
-                effectPosition.vx  = D_actor_503500_8016F168[effectOffsetIndex].vx;
-                effectPosition.vy  = D_actor_503500_8016F168[effectOffsetIndex].vy;
-                effectPosition.vz  = D_actor_503500_8016F168[effectOffsetIndex].vz;
+                effectOffsetIndex  = (s16)(work->stateFrames % (s32)ARRAY_SIZE(gActor503500LargeOrbEmitterDeathEffectOffsets));
+                effectPosition.vx  = gActor503500LargeOrbEmitterDeathEffectOffsets[effectOffsetIndex].vx;
+                effectPosition.vy  = gActor503500LargeOrbEmitterDeathEffectOffsets[effectOffsetIndex].vy;
+                effectPosition.vz  = gActor503500LargeOrbEmitterDeathEffectOffsets[effectOffsetIndex].vz;
                 effectPosition.vx -= work->stateFrames * 10;
                 effectPosition.vy -= work->stateFrames * 20;
                 if (work->side != 0) {
@@ -1247,8 +1246,8 @@ static void _actor503500LargeOrbEmitterStepDying(Task* task)
                 if (side != 0) {
                     repaintIndex = ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_1;
                 }
-                MoveImage(&D_actor_503500_8016F148[side][0], (repaintIndex << 6) + ACTOR_503500_LARGE_ORB_REPAINT_BASE_X, ACTOR_503500_LARGE_ORB_REPAINT_Y);
-                MoveImage(&D_actor_503500_8016F148[side][1], 0, repaintIndex + ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE);
+                MoveImage(&gActor503500LargeOrbEmitterDeathRepaintSources[side].textureRect, (repaintIndex << 6) + ACTOR_503500_LARGE_ORB_REPAINT_BASE_X, ACTOR_503500_LARGE_ORB_REPAINT_Y);
+                MoveImage(&gActor503500LargeOrbEmitterDeathRepaintSources[side].rowRect, 0, repaintIndex + ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE);
             }
             break;
         default:
@@ -1671,13 +1670,13 @@ static void _actor503500RearPartStepDying(Task* task)
                 if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_REAR_PART_DEATH_EFFECT_COST) != 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_FIRST_PUFF_ARG,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
+                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_SECOND_PUFF_ARG,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
+                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_REAR_PART_DEATH_DRIFT_ARG,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
+                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
                 }
             }
             partScale.vx = ONE;
@@ -2111,9 +2110,9 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
                 // Place the shot in world space before composing its mirrored aim.
                 gfxComposeNodeWorldTransform(baseCoord, &rotationMatrix, &poseVector);
                 shotCoord       = shotTask->extra.coordBody->coord;
-                launchOffset.vx = D_actor_503500_8016F258.vx;
-                launchOffset.vy = D_actor_503500_8016F258.vy;
-                launchOffset.vz = D_actor_503500_8016F258.vz;
+                launchOffset.vx = gActor503500ChainBaseLaunchOffset.vx;
+                launchOffset.vy = gActor503500ChainBaseLaunchOffset.vy;
+                launchOffset.vz = gActor503500ChainBaseLaunchOffset.vz;
                 if (emitterTask->spawnArg1.value == ACTOR_503500_SLOT_CHAIN_BASE_1) {
                     mirroredComponent = launchOffset.vx;
                     launchOffset.vx   = -mirroredComponent;
@@ -2132,9 +2131,9 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
                     *rotationDestinationWords++ = *rotationSourceWords++;
                 }
                 shotCoord->coord.m[2][2] = rotationMatrix.m[2][2];
-                poseVector.vx            = D_actor_503500_8016F260.vx;
-                poseVector.vy            = D_actor_503500_8016F260.vy;
-                poseVector.vz            = D_actor_503500_8016F260.vz;
+                poseVector.vx            = gActor503500ChainBaseLaunchAngles.vx;
+                poseVector.vy            = gActor503500ChainBaseLaunchAngles.vy;
+                poseVector.vz            = gActor503500ChainBaseLaunchAngles.vz;
                 if (emitterTask->spawnArg1.value == ACTOR_503500_SLOT_CHAIN_BASE_1) {
                     mirroredComponent = poseVector.vy;
                     poseVector.vy     = -mirroredComponent;
@@ -2201,7 +2200,6 @@ static void _actor503500ChainBaseStepDying(Task* task)
         ACTOR_503500_CHAIN_BASE_DEATH_EFFECTS           = 1,
         ACTOR_503500_CHAIN_BASE_DEATH_EFFECT_COST       = 2,
         ACTOR_503500_CHAIN_BASE_DEATH_BURST_EFFECT_COST = 6,
-        ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT      = 3,
         ACTOR_503500_CHAIN_BASE_DEATH_HIT_PUFF_ARG      = 0x01001C00,
         ACTOR_503500_CHAIN_BASE_DEATH_FIRST_DRIFT_ARG   = 0x04404600,
         ACTOR_503500_CHAIN_BASE_DEATH_SECOND_DRIFT_ARG  = 0x05404600,
@@ -2222,9 +2220,9 @@ static void _actor503500ChainBaseStepDying(Task* task)
         case ACTOR_503500_CHAIN_BASE_DEATH_EFFECTS:
             // Each side uses its first three offsets; the second table has other rows.
             if (task->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
-                effectOffsets = D_actor_503500_8016F278;
+                effectOffsets = gActor503500ChainBaseDeathEffectOffsetsSide0;
             } else {
-                effectOffsets = D_actor_503500_8016F290;
+                effectOffsets = gActor503500ChainBaseDeathEffectOffsetsSide1;
             }
             if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_CHAIN_BASE_DEATH_EFFECT_COST) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_CHAIN_BASE_DEATH_HIT_PUFF_ARG, &effectOffsets[work->stateFrames % ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT]);
@@ -2756,7 +2754,7 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
         case ACTOR_503500_SMALL_ORB_ATTACK_VOLLEY:
             // The live delay step falls through and indexes the six-shot volley.
             shotIndex   = work->stateFrames - ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME;
-            launchSpeed = (D_actor_503500_8016F2E0[shotIndex] << ACTOR_503500_SMALL_ORB_SPEED_TABLE_SHIFT) + (-gPlayerStatus.coordMtx->t[1] << ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_SHIFT) / ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_DIVISOR;
+            launchSpeed = (gActor503500SmallOrbEmitterLaunchSpeeds[shotIndex] << ACTOR_503500_SMALL_ORB_SPEED_TABLE_SHIFT) + (-gPlayerStatus.coordMtx->t[1] << ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_SHIFT) / ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_DIVISOR;
             shotTask    = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_SMALL_ORB_BALLISTIC_TASK, ACTOR_503500_SMALL_ORB_KIND, launchSpeed);
             if (shotTask != NULL) {
                 gfxComposeNodeWorldTransform(emitterCoord, &rotationMatrix, &worldPosition);
@@ -2778,7 +2776,7 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
                     *rotationDestinationWords++ = *rotationSourceWords++;
                 }
                 shotCoord->coord.m[2][2] = rotationMatrix.m[2][2];
-                RotMatrix(&D_actor_503500_8016F2EC[shotIndex], &rotationMatrix);
+                RotMatrix(&gActor503500SmallOrbEmitterLaunchAngles[shotIndex], &rotationMatrix);
                 ACTOR_503500_SMALL_ORB_COMPOSE_LAUNCH_ROTATION();
             }
             if (shotIndex >= ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS - 1) {
@@ -2855,15 +2853,15 @@ static void _actor503500SmallOrbEmitterStepDying(Task* task)
             // Shed local effects while replacing the defeated emitter's texture.
             if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_EFFECT_COST) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_HIT_PUFF_ARG,
-                            &D_actor_503500_8016F31C[work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F31C)]);
+                            &gActor503500SmallOrbEmitterDeathEffectOffsets[work->stateFrames % (s32)ARRAY_SIZE(gActor503500SmallOrbEmitterDeathEffectOffsets)]);
                 if (work->stateFrames & 1) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_DRIFT_ARG,
-                                &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F31C))]);
+                                &gActor503500SmallOrbEmitterDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500SmallOrbEmitterDeathEffectOffsets))]);
                 }
             }
             if (work->stateFrames == ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME) {
-                MoveImage(&D_actor_503500_8016F364, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_X, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_Y);
+                MoveImage(&gActor503500SmallOrbEmitterDeathRepaintSourceRect, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_X, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_Y);
             }
             if (work->stateFrames++ >= ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES) {
                 actor503500ReleaseSlotEffects(task->spawnArg1.value);
@@ -3354,15 +3352,15 @@ static void _actor503500YellowFlashEmitterStepDying(Task* task)
             // Shed local effects while replacing the defeated emitter's texture.
             if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_EFFECT_COST) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_HIT_PUFF_ARG,
-                            &D_actor_503500_8016F374[work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F374)]);
+                            &gActor503500YellowFlashEmitterDeathEffectOffsets[work->stateFrames % (s32)ARRAY_SIZE(gActor503500YellowFlashEmitterDeathEffectOffsets)]);
                 if (work->stateFrames & 1) {
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_ARG,
-                                &D_actor_503500_8016F374[work->stateFrames % ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_COUNT + ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_FIRST]);
+                                &gActor503500YellowFlashEmitterDeathEffectOffsets[work->stateFrames % ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_COUNT + ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_FIRST]);
                 }
             }
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES) {
-                MoveImage(&D_actor_503500_8016F3A4, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_X, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_Y);
+                MoveImage(&gActor503500YellowFlashEmitterDeathRepaintSourceRect, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_X, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_Y);
                 sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_SOUND_FADE);
                 actor503500ReleaseSlotEffects(task->spawnArg1.value);
                 work->stateStep++;
@@ -3590,11 +3588,11 @@ static void _actor503500LungingChainInit(Task* task)
 
     // Hang the root from the boss; targeting and attack spheres ride the tip.
     rootCoord->parent     = &task->parent->extra.tmd->coords[1];
-    rootCoord->coord.t[0] = D_actor_503500_8016F3AC[chainIndex].vx;
-    rootCoord->coord.t[1] = D_actor_503500_8016F3AC[chainIndex].vy;
-    rootCoord->coord.t[2] = D_actor_503500_8016F3AC[chainIndex].vz;
+    rootCoord->coord.t[0] = gActor503500LungingChainRootOffsets[chainIndex].vx;
+    rootCoord->coord.t[1] = gActor503500LungingChainRootOffsets[chainIndex].vy;
+    rootCoord->coord.t[2] = gActor503500LungingChainRootOffsets[chainIndex].vz;
     gfxSetRotIdentity(&rootRotation);
-    RotMatrix(&D_actor_503500_8016F3CC[chainIndex], &rootRotation);
+    RotMatrix(&gActor503500LungingChainRootAngles[chainIndex], &rootRotation);
     MulMatrix0(&rootCoord->coord, &rootRotation, &rootCoord->coord);
     rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
     work->bufferFreeCountdown = ACTOR_503500_LUNGING_CHAIN_BUFFER_RELEASE_IDLE;
@@ -3628,9 +3626,9 @@ static void _actor503500LungingChainInit(Task* task)
     work->attackBody.coord            = tipCoord;
     work->attackBody.context.contacts = attackContacts;
     work->body.flags                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.pos.vx           = D_actor_503500_8016F3F4[chainIndex].vx;
-    work->attackBody.pos.vy           = D_actor_503500_8016F3F4[chainIndex].vy;
-    work->attackBody.pos.vz           = D_actor_503500_8016F3F4[chainIndex].vz;
+    work->attackBody.pos.vx           = gActor503500LungingChainTipAttackOffsets[chainIndex].vx;
+    work->attackBody.pos.vy           = gActor503500LungingChainTipAttackOffsets[chainIndex].vy;
+    work->attackBody.pos.vz           = gActor503500LungingChainTipAttackOffsets[chainIndex].vz;
     work->attackBody.key              = damagePackAttackKey(enemy->param->attacks, 0);
     work->attackBody.radius           = ACTOR_503500_LUNGING_CHAIN_ATTACK_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -4080,9 +4078,9 @@ static void _actor503500LungingChainStepDying(Task* task)
     if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_LUNGING_CHAIN_DEATH_EFFECT_COST) != 0 && work->stateStep < ACTOR_503500_LUNGING_CHAIN_DEATH_SQUASH &&
         gDisplayState.animFrame % ACTOR_503500_LUNGING_CHAIN_DEATH_SMOKE_PERIOD == 0) {
         for (linkIndex = ACTOR_503500_LUNGING_CHAIN_TIP_PART, elementIndex = 0; linkIndex > 0; linkIndex--) {
-            effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[linkIndex], ACTOR_503500_LUNGING_CHAIN_DEATH_SMOKE_ARG, &D_actor_503500_8016F448[elementIndex]);
+            effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[linkIndex], ACTOR_503500_LUNGING_CHAIN_DEATH_SMOKE_ARG, &gActor503500LungingChainDeathSmokeOffsets[elementIndex]);
             elementIndex++;
-            elementIndex = (elementIndex < (s32)ARRAY_SIZE(D_actor_503500_8016F448)) ? elementIndex : 0;
+            elementIndex = (elementIndex < (s32)ARRAY_SIZE(gActor503500LungingChainDeathSmokeOffsets)) ? elementIndex : 0;
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep > 0) {
@@ -4885,7 +4883,7 @@ static void _actor503500ArmInit(Task* task)
     task->work = work;
 
     // Keep the detached model hidden while the boss's own limb supplies the pose.
-    coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[side]];
+    coord->parent       = &parent->extra.tmd->coords[gActor503500ArmParentParts[side]];
     coord->coord.t[0]   = D_actor_503500_80171478.vx;
     coord->coord.t[1]   = D_actor_503500_80171478.vy;
     coord->coord.t[2]   = D_actor_503500_80171478.vz;

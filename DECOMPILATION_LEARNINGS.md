@@ -69846,7 +69846,7 @@ the `-dp` uid comment used to crash it (`could not convert string to float`);
 ## A cast store into a stack `MATRIX` is a "fixed scalar": it leaves the store chain and steals sched1 idle slots
 
 `_actor503500LargeChainInit` stalled at 80% with one callee-saved register too
-many: the target keeps the `D_actor_503500_8016F090[chainIndex]` row pointer in `$v0` and the
+many: the target keeps the `gActor503500LargeChainRootOffsets[chainIndex]` row pointer in `$v0` and the
 identity-matrix pointer in `$s0`, the build put the row pointer in `$s0` and
 needed `$s7`. Every source-order and pointer-naming variant produced identical
 assembly.
@@ -69858,8 +69858,8 @@ local. A cast indirection is a scalar MEM, and `fp+16` is a fixed address, so
 stores. It becomes an independent priority-2 store, and in sched1's backward
 pass it wins the load-latency idle slot on potential hazard (`.sched`: "insn N
 has a greater potential hazard"). That pushes the `a1` / `a0` argument moves
-into the next slots, so the `a0 = F0A0 + chainIndex*8` add lands *before* the
-`F090 + chainIndex*8` row add. `chainIndex*8` then dies at the row add, local-alloc ties the
+into the next slots, so the `a0 = gActor503500LargeChainRootAngles + chainIndex*8` add lands *before* the
+`gActor503500LargeChainRootOffsets + chainIndex*8` row add. `chainIndex*8` then dies at the row add, local-alloc ties the
 row pointer into `chainIndex`'s call-crossing `$s0` quantity, and the matrix pointer
 needs a fresh saved register.
 
@@ -69977,7 +69977,7 @@ compiles to two `slti` compares.
 ## `tbl[i].f` with a pre-extended `s32 i` puts `%hi/%lo` between `sll 16` and `sra 13`
 
 `_actor503500LargeOrbEmitterStepDying` copies three halfwords out of an `SVECTOR`
-table indexed by `(s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F168))`, and the target emits `sll
+table indexed by `(s16)(work->stateFrames % (s32)ARRAY_SIZE(gActor503500LargeOrbEmitterDeathEffectOffsets))`, and the target emits `sll
 a0,a0,16; lui v0,%hi(tbl); addiu v0,v0,%lo(tbl); sra a0,a0,13; addu`. A
 `SVECTOR *src = &tbl[(s16)(...)]` pointer gives every instruction but puts the
 `sra 13` *before* the `lui` (99.7%): `&tbl[x]` is pointer arithmetic, and
@@ -70057,7 +70057,7 @@ expression (uid 114). Evaluating the argument first reverses the RTL order and
 matched outright:
 
 ```c
-launchSpeed = (D_actor_503500_8016F2E0[shotIndex] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
+launchSpeed = (gActor503500SmallOrbEmitterLaunchSpeeds[shotIndex] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
 shotTask = taskSpawnFromTable(gActor503500AttackTaskDescs, 0, 1, launchSpeed);
 ```
 
@@ -70065,7 +70065,7 @@ The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.
 
 ### A table address that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the symbol
 
-`_actor503500LungingChainInit` loads `lui/addiu %lo(D_actor_503500_8016F3AC)`
+`_actor503500LungingChainInit` loads `lui/addiu %lo(gActor503500LungingChainRootOffsets)`
 twice in one basic block: once as `D[idx]` (`chainIndex = task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0`) and again,
 six loads later and after several calls, in a fresh `$v1` that is reused for
 six `lw spawnArg1; sll 3; addu; lhu` accesses. Writing both as
@@ -70199,7 +70199,7 @@ places them later, and the tied quantity outranks the `lb`. That gives 100%:
 
 ```c
 bit  = (work->progressFlags >> 3) & 1;           /* only on the lookup that needs it */
-choice = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
+choice = (*gActor503500AttackChoices[bit][work->heightBand])[work->bearingBand];
 ```
 
 Doing the same to the first lookup broke it (96%). Other things that did not
@@ -86110,8 +86110,9 @@ wrong stride; the shift pair is the only place it shows.
 first — the same asymmetry `[30]` records for `_actor342400InCullZone`.
 Writing `T[i].vx` / `T[i].vy` / `T[i].vz` at every use with no pointer local
 lets CSE build the address symbol-first: 100%, and it matches the house shape
-already in the tree (`src/actors/actor_503500/actor_503500_6.c` writes
-`D_actor_503500_8016F0A8[index->spawnArg1].vx` three times the same way).
+already in the tree (`src/actors/actor_503500/actor_503500_3.c` reads each component of
+`gActor503500LargeChainRestTipOffsets` through its in-bounds byte displacement
+from `task->spawnArg1.value` the same way).
 
 Two-step forms reach the same order here — `SVECTOR *tbl = D_...;
 SVECTOR *src = &tbl[(s16)arg1];` also scored 100%, where the `p = T; p += i;`

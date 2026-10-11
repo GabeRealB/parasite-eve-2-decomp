@@ -420,9 +420,34 @@ extern AnimationPlayRequest gActor503500BossAnimationPresets[ACTOR_503500_BOSS_A
 /// Boss target/sphere center in part-3 local game units, also the orange-flash origin.
 extern SVECTOR gActor503500BossTargetOffset;
 
-extern const Actor503500AttackChoice* const* D_actor_503500_8016EF10[2][3];
+/// Dimensions of the fight-set, height and absolute-bearing attack policy.
+enum {
+    ACTOR_503500_ATTACK_SET_COUNT          = 2,
+    ACTOR_503500_ATTACK_HEIGHT_BAND_COUNT  = 3,
+    ACTOR_503500_ATTACK_BEARING_BAND_COUNT = 4,
+};
 
-extern const s16* D_actor_503500_8016EF28[2][3];
+/// Four immutable weighted-list pointers in increasing absolute-bearing bands.
+typedef const Actor503500AttackChoice* const Actor503500AttackChoicesByBearing[ACTOR_503500_ATTACK_BEARING_BAND_COUNT];
+
+/// Four inclusive absolute-bearing limits, at 4096 units per turn.
+typedef const s16 Actor503500AttackLimitsByBearing[ACTOR_503500_ATTACK_BEARING_BAND_COUNT];
+
+/// Weighted boss attack lists selected by fight set, player height and bearing.
+///
+/// Index the root by progressFlags room-event bit (0/1), then height band
+/// (0 upper, 1 middle, 2 lower). Each row supplies four bearing-band lists,
+/// parallel to `gActor503500AttackBearingLimits`; NULL attack ends each list.
+/// All rows and lists remain live for the actor overlay lifetime.
+extern Actor503500AttackChoicesByBearing* const gActor503500AttackChoices[ACTOR_503500_ATTACK_SET_COUNT][ACTOR_503500_ATTACK_HEIGHT_BAND_COUNT];
+
+/// Inclusive absolute-bearing limits parallel to the boss's attack-choice rows.
+///
+/// Index by progressFlags room-event bit (0/1) and height band (0 upper,
+/// 1 middle, 2 lower). Four ascending limits classify |playerBearing| at
+/// 4096 units per turn; equality stays in the current band. Every row ends
+/// at the half-turn limit, so normalized bearings select band 0..3.
+extern Actor503500AttackLimitsByBearing* gActor503500AttackBearingLimits[ACTOR_503500_ATTACK_SET_COUNT][ACTOR_503500_ATTACK_HEIGHT_BAND_COUNT];
 
 /// Cooldowns in boss upkeep frames, parallel to either side's four chain candidates.
 ///
@@ -439,7 +464,11 @@ extern s16 gActor503500PositiveSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDI
 /// Entries are boss descriptor slots, paired with `gActor503500SideChainCooldownFrames`.
 extern s16 gActor503500NegativeSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT];
 
-extern SVECTOR D_actor_503500_8016EF58[7];
+/// Seven hit-puff spawn positions in boss-part-3 local game units.
+///
+/// The phase-transition spray chooses cyclic and random entries. Effect
+/// placement copies XYZ and retains the pointer; storage outlives the puffs.
+extern SVECTOR gActor503500PhaseTransitionPuffOffsets[7];
 
 /// Source mesh for the boss's four-face obstacle in the room collision grid.
 ///
@@ -448,36 +477,53 @@ extern SVECTOR D_actor_503500_8016EF58[7];
 /// The source remains loaded with the actor overlay and is never rebuilt in place.
 extern WorldCollisionGrid gActor503500BossBodyCollisionGrid;
 
-extern SVECTOR D_actor_503500_8016F060;
+/// Pink-flash emitter attachment position in boss-part-8 local game units.
+extern SVECTOR gActor503500PinkFlashEmitterRootOffset;
 
 /// Pink-flash emitter target/sphere center in emitter-root local game units.
 extern SVECTOR gActor503500PinkFlashEmitterTargetOffset;
 
-extern SVECTOR D_actor_503500_8016F070;
+/// Shared origin of the two pink-flash attacks in emitter-root local game units.
+extern SVECTOR gActor503500PinkFlashEmitterAttackOffset;
 
-extern SVECTOR D_actor_503500_8016F078[3];
+/// Three dying pink-emitter smoke positions in emitter-root local game units.
+///
+/// Successive smoke puffs cycle through all entries; storage outlives the effects.
+extern SVECTOR gActor503500PinkFlashEmitterDeathSmokeOffsets[3];
 
-extern SVECTOR D_actor_503500_8016F090[2];
+/// Large-chain root positions in boss-part-1 local game units, ordered by slots 2, 3.
+extern SVECTOR gActor503500LargeChainRootOffsets[ACTOR_503500_SIDE_COUNT];
 
-extern SVECTOR D_actor_503500_8016F0A0[1];
-
-extern SVECTOR D_actor_503500_8016F0A8[1];
+/// Large-chain root XYZ Euler rotations, ordered by slots 2, 3, at 4096 units per turn.
+extern SVECTOR gActor503500LargeChainRootAngles[ACTOR_503500_SIDE_COUNT];
 
 /// Large-chain target/sphere center in tip-coordinate local game units.
 extern SVECTOR gActor503500LargeChainTipTargetOffset;
 
-extern SVECTOR D_actor_503500_8016F0B8[2];
+/// Large-chain resting tip positions in boss-part-1 local game units, ordered by slots 2, 3.
+///
+/// Initialization seeds tip position and target; idle orbit offsets are added
+/// to these same parent-frame positions.
+extern SVECTOR gActor503500LargeChainRestTipOffsets[ACTOR_503500_SIDE_COUNT];
 
-extern SVECTOR D_actor_503500_8016F0C8;
+/// 1000-unit local vector rotated about each large chain's resting tip position.
+extern const SVECTOR gActor503500LargeChainIdleOrbitOffset;
 
-extern SVECTOR D_actor_503500_8016F0D0[3];
+/// Three link-local smoke positions cycled from tip toward root on dying large chains.
+///
+/// Each link supplies its own coordinate frame; storage outlives the spawned puffs.
+extern SVECTOR gActor503500LargeChainDeathSmokeOffsets[3];
 
-extern s32 D_actor_503500_8016F0E8[2];
+/// Boss model mount-part indices for large-orb emitter slots 4, 5 (parts 11, 5).
+extern const s32 gActor503500LargeOrbEmitterParentParts[ACTOR_503500_SIDE_COUNT];
 
 /// Large-orb emitter target/sphere centers in root-local game units, ordered by slots 4, 5.
 extern SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
-extern RECT D_actor_503500_8016F100;
+/// Source VRAM row copied to (0, 261) when either large-orb emitter initializes.
+///
+/// RECT X/width count VRAM words and Y/height count rows; this transfers 256 words.
+extern RECT gActor503500LargeOrbEmitterVramRowSourceRect;
 
 enum {
     ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT = 2,
@@ -498,52 +544,124 @@ extern SVECTOR gActor503500LargeOrbLaunchOffsets[ACTOR_503500_LARGE_ORB_LAUNCH_P
 /// launcher; their intended use is unproven.
 extern const SVECTOR gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT];
 
-extern RECT D_actor_503500_8016F148[2][2];
+/// Source VRAM regions copied when one large-orb emitter is destroyed.
+typedef struct {
+    RECT textureRect; // 64-word-wide texture block copied into the boss texture page
+    RECT rowRect;     // 256-word row copied to the side's replacement VRAM row
+} Actor503500LargeOrbRepaintSources;
+STATIC_ASSERT_SIZEOF(Actor503500LargeOrbRepaintSources, 0x10);
 
-extern SVECTOR D_actor_503500_8016F168[9];
+/// Texture-block and row sources for large-orb emitter death, ordered by slots 4, 5.
+///
+/// RECT X/width count VRAM words and Y/height count rows. The texture blocks
+/// copy to (448, 256)/(576, 256); the rows copy to (0, 249)/(0, 251).
+extern Actor503500LargeOrbRepaintSources gActor503500LargeOrbEmitterDeathRepaintSources[ACTOR_503500_SIDE_COUNT];
+
+/// Nine base death-effect positions in large-orb-emitter local game units.
+///
+/// The death step cycles over these, subtracts frame-dependent X/Y drift,
+/// mirrors X for slot 5, then emits another pair with Z mirrored.
+extern SVECTOR gActor503500LargeOrbEmitterDeathEffectOffsets[9];
 
 /// Rear-part target/sphere center in root-local game units (root attached to boss part 16).
 extern SVECTOR gActor503500RearPartTargetOffset;
 
-extern SVECTOR D_actor_503500_8016F1B8[18];
+/// Eighteen rear-part-local death-effect positions in game units.
+///
+/// Each dying hit puff and drifting sprite chooses an independent random entry;
+/// storage outlives the effects.
+extern SVECTOR gActor503500RearPartDeathEffectOffsets[18];
 
 /// Chain-base target/sphere centers in root-local game units, ordered by slots 7, 8.
 extern SVECTOR gActor503500ChainBaseTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
-extern SVECTOR D_actor_503500_8016F258;
+/// Chain-base projectile launch position in base-local game units for slot 7.
+///
+/// Slot 8 mirrors X before the base's composed rotation takes it into world space.
+extern const SVECTOR gActor503500ChainBaseLaunchOffset;
 
-extern SVECTOR D_actor_503500_8016F260;
+/// Chain-base projectile XYZ Euler rotation at 4096 units per turn for slot 7.
+///
+/// Slot 8 mirrors yaw; the launch composes this ZYX rotation onto the base's facing.
+extern SVECTOR gActor503500ChainBaseLaunchAngles;
 
-extern SVECTOR D_actor_503500_8016F278[3];
+/// Number of effect positions consumed by either chain base's death burst.
+enum { ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT = 3 };
 
-extern SVECTOR D_actor_503500_8016F290[9];
+/// Three chain-base death-effect positions in slot-7 local game units.
+///
+/// The hit-puff cycle and final three-sprite burst use the whole table;
+/// storage outlives the effects.
+extern SVECTOR gActor503500ChainBaseDeathEffectOffsetsSide0[ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT];
+
+/// Slot-8 chain-base death-effect positions in base-local game units.
+///
+/// Only the first three entries feed the hit-puff cycle and sprite burst.
+/// The remaining six stored positions have no established use; their role is
+/// unproven. Storage outlives the effects.
+extern SVECTOR gActor503500ChainBaseDeathEffectOffsetsSide1[9];
 
 /// Small-orb emitter target/sphere center in emitter-root local game units.
 extern SVECTOR gActor503500SmallOrbEmitterTargetOffset;
 
-extern s16 D_actor_503500_8016F2E0[6];
+/// Six shots per small-orb volley; speed entries have four fractional bits.
+enum {
+    ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS = 6,
+    ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE     = 1 << 4,
+};
 
-extern SVECTOR D_actor_503500_8016F2EC[6];
+/// Per-shot small-orb launch speeds in sixteenths of a game unit per frame.
+///
+/// Volley indices 0..5 parallel `gActor503500SmallOrbEmitterLaunchAngles`.
+/// Shifting left 12 converts these entries to signed 16.16 speed before the
+/// launch adds its player-height correction.
+extern const s16 gActor503500SmallOrbEmitterLaunchSpeeds[ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS];
 
-extern SVECTOR D_actor_503500_8016F31C[9];
+/// Per-shot small-orb XYZ Euler rotations, at 4096 units per turn.
+///
+/// Volley indices 0..5 parallel `gActor503500SmallOrbEmitterLaunchSpeeds`;
+/// launch composes each rotation onto the emitter's world facing.
+extern SVECTOR gActor503500SmallOrbEmitterLaunchAngles[ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS];
 
-extern RECT D_actor_503500_8016F364;
+/// Nine small-orb-emitter-local death-effect positions in game units.
+///
+/// Hit puffs cycle through all entries; odd frames choose a random entry for
+/// a drifting sprite. Storage outlives the effects.
+extern SVECTOR gActor503500SmallOrbEmitterDeathEffectOffsets[9];
+
+/// Source VRAM texture region copied to (321, 298) when the small-orb emitter dies.
+///
+/// RECT X/width count VRAM words and Y/height count rows.
+extern RECT gActor503500SmallOrbEmitterDeathRepaintSourceRect;
 
 /// Yellow-flash emitter target/sphere center in emitter-root local game units.
 extern SVECTOR gActor503500YellowFlashEmitterTargetOffset;
 
-extern SVECTOR D_actor_503500_8016F374[6];
+/// Six yellow-flash-emitter-local death-effect positions in game units.
+///
+/// Hit puffs cycle through all entries; drifting sprites cycle through entries
+/// 3..5 on odd frames. Storage outlives the effects.
+extern SVECTOR gActor503500YellowFlashEmitterDeathEffectOffsets[6];
 
-extern RECT D_actor_503500_8016F3A4;
+/// Source VRAM texture region copied to (320, 256) when the yellow-flash emitter dies.
+///
+/// RECT X/width count VRAM words and Y/height count rows.
+extern RECT gActor503500YellowFlashEmitterDeathRepaintSourceRect;
 
-extern SVECTOR D_actor_503500_8016F3AC[4];
+/// Lunging-chain root positions in boss-part-1 local game units, ordered by slots 13..16.
+extern SVECTOR gActor503500LungingChainRootOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
-extern SVECTOR D_actor_503500_8016F3CC[4];
+/// Lunging-chain root XYZ Euler rotations, ordered by slots 13..16, at 4096 units per turn.
+extern SVECTOR gActor503500LungingChainRootAngles[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
 /// Lunging-chain target/sphere center in tip-coordinate local game units.
 extern SVECTOR gActor503500LungingChainTipTargetOffset;
 
-extern SVECTOR D_actor_503500_8016F3F4[4];
+/// Lunging-chain attack-sphere centers in tip-local game units, ordered by slots 13..16.
+///
+/// The separate target sphere has its own center; these offsets belong to the
+/// player-damaging sphere.
+extern SVECTOR gActor503500LungingChainTipAttackOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
 /// Resting tip positions in boss-part-1 local game units, ordered by slots 13..16.
 ///
@@ -552,9 +670,13 @@ extern SVECTOR gActor503500LungingChainRestTipOffsets[ACTOR_503500_LUNGING_CHAIN
 
 extern s16 D_actor_503500_8016F434[10];
 
-extern SVECTOR D_actor_503500_8016F448[3];
+/// Three link-local smoke positions cycled from tip toward root on dying lunging chains.
+///
+/// Each link supplies its own coordinate frame; storage outlives the spawned puffs.
+extern SVECTOR gActor503500LungingChainDeathSmokeOffsets[3];
 
-extern s32 D_actor_503500_80171464[2];
+/// Boss model mount-part indices for arm slots 10, 11 (parts 11, 5).
+extern s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT];
 
 extern TaskDesc D_actor_503500_8017146C;
 

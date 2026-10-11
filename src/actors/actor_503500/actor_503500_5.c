@@ -419,8 +419,6 @@ static Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing0[3] =
     { NULL, 0 },
 };
 
-enum { ACTOR_503500_ATTACK_BEARING_BAND_COUNT = 4 };
-
 /// Set-0 middle-height attacks for absolute bearing 701..1000.
 ///
 /// Angles use 4096 units per turn. The first cumulative weight reaching a
@@ -718,14 +716,14 @@ static const s16 _gActor503500AttackBearingLimitsSet1Lower[ACTOR_503500_ATTACK_B
     ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-const Actor503500AttackChoice* const* D_actor_503500_8016EF10[2][3] = {
-    { _gActor503500AttackChoicesSet0Upper, _gActor503500AttackChoicesSet0Middle, _gActor503500AttackChoicesSet0Lower },
-    { _gActor503500AttackChoicesSet1Upper, _gActor503500AttackChoicesSet1Middle, _gActor503500AttackChoicesSet1Lower },
+Actor503500AttackChoicesByBearing* const gActor503500AttackChoices[ACTOR_503500_ATTACK_SET_COUNT][ACTOR_503500_ATTACK_HEIGHT_BAND_COUNT] __attribute__((section(".data"))) = {
+    { &_gActor503500AttackChoicesSet0Upper, &_gActor503500AttackChoicesSet0Middle, &_gActor503500AttackChoicesSet0Lower },
+    { &_gActor503500AttackChoicesSet1Upper, &_gActor503500AttackChoicesSet1Middle, &_gActor503500AttackChoicesSet1Lower },
 };
 
-const s16* D_actor_503500_8016EF28[2][3] = {
-    { _gActor503500AttackBearingLimitsSet0Upper, _gActor503500AttackBearingLimitsSet0Middle, _gActor503500AttackBearingLimitsSet0Lower },
-    { _gActor503500AttackBearingLimitsSet1Upper, _gActor503500AttackBearingLimitsSet1Middle, _gActor503500AttackBearingLimitsSet1Lower },
+Actor503500AttackLimitsByBearing* gActor503500AttackBearingLimits[ACTOR_503500_ATTACK_SET_COUNT][ACTOR_503500_ATTACK_HEIGHT_BAND_COUNT] = {
+    { &_gActor503500AttackBearingLimitsSet0Upper, &_gActor503500AttackBearingLimitsSet0Middle, &_gActor503500AttackBearingLimitsSet0Lower },
+    { &_gActor503500AttackBearingLimitsSet1Upper, &_gActor503500AttackBearingLimitsSet1Middle, &_gActor503500AttackBearingLimitsSet1Lower },
 };
 
 enum {
@@ -754,7 +752,7 @@ s16 gActor503500NegativeSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_CO
     ACTOR_503500_SLOT_CHAIN_BASE_1,
 };
 
-SVECTOR D_actor_503500_8016EF58[7] = {
+SVECTOR gActor503500PhaseTransitionPuffOffsets[7] = {
     { 0, -1000, 2000, 0 },
     { 0, -500, 2500, 0 },
     { 0, 0, 3000, 0 },
@@ -788,49 +786,52 @@ static s16* _gActor503500BossBodyCollisionGridTable[2] = {
 
 WorldCollisionGrid gActor503500BossBodyCollisionGrid = { NULL, _gActor503500BossBodyCollisionGridNormals, _gActor503500BossBodyCollisionGridVerts, _gActor503500BossBodyCollisionGridFaces, _gActor503500BossBodyCollisionGridTable, 2393, 1502, 2, 1, 4000, ARRAY_SIZE(_gActor503500BossBodyCollisionGridFaces) };
 
-SVECTOR D_actor_503500_8016F060 = { 0, -80, 596, 0 };
+SVECTOR gActor503500PinkFlashEmitterRootOffset = { 0, -80, 596, 0 };
 
 SVECTOR gActor503500PinkFlashEmitterTargetOffset = { 0, -80, 1000, 0 };
 
-SVECTOR D_actor_503500_8016F070 = { 0, -200, 800, 0 };
+SVECTOR gActor503500PinkFlashEmitterAttackOffset = { 0, -200, 800, 0 };
 
-SVECTOR D_actor_503500_8016F078[3] = {
+SVECTOR gActor503500PinkFlashEmitterDeathSmokeOffsets[3] = {
     { 0, -300, -300, 0 },
     { 0, 300, 300, 0 },
     { 0, 300, -300, 0 },
 };
 
-SVECTOR D_actor_503500_8016F090[2] = {
+SVECTOR gActor503500LargeChainRootOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 1300, -1468, -2700, 0 },
     { -1300, -1468, -2700, 0 },
 };
 
-SVECTOR D_actor_503500_8016F0A0[1] = {
+SVECTOR gActor503500LargeChainRootAngles[ACTOR_503500_SIDE_COUNT] = {
     { -364, 1479, 0, 0 },
-};
-
-SVECTOR D_actor_503500_8016F0A8[1] = {
     { -364, -1479, 0, 0 },
 };
 
 SVECTOR gActor503500LargeChainTipTargetOffset = { 0, 0, 400, 0 };
 
-SVECTOR D_actor_503500_8016F0B8[2] = {
+SVECTOR gActor503500LargeChainRestTipOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 3500, -1500, -5200, 0 },
     { -3500, -1500, -5200, 0 },
 };
 
-SVECTOR D_actor_503500_8016F0C8 = { 0, 0, 1000, 0 };
+const SVECTOR gActor503500LargeChainIdleOrbitOffset __attribute__((section(".data"))) = { 0, 0, 1000, 0 };
 
-SVECTOR D_actor_503500_8016F0D0[3] = {
+SVECTOR gActor503500LargeChainDeathSmokeOffsets[3] = {
     { 0, -600, 0, 0 },
     { -600, 0, 0, 0 },
     { 600, 0, 0, 0 },
 };
 
-s32 D_actor_503500_8016F0E8[2] = {
-    11,
-    5,
+/// Boss arm roots shared by the matching arm and large-orb-emitter sides.
+enum {
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_0 = 11,
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_1 = 5,
+};
+
+const s32 gActor503500LargeOrbEmitterParentParts[ACTOR_503500_SIDE_COUNT] __attribute__((section(".data"))) = {
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_0,
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_1,
 };
 
 SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
@@ -838,7 +839,7 @@ SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { -300, 0, 0, 0 },
 };
 
-RECT D_actor_503500_8016F100 = { 0, 253, 256, 1 };
+RECT gActor503500LargeOrbEmitterVramRowSourceRect = { 0, 253, 256, 1 };
 
 SVECTOR gActor503500LargeOrbLaunchOffsets[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT] = {
     { 2000, 0, 1000, 0 },
@@ -854,12 +855,12 @@ const SVECTOR gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_POI
     { -750, 1100, 0, 0 },
 };
 
-RECT D_actor_503500_8016F148[2][2] = {
+Actor503500LargeOrbRepaintSources gActor503500LargeOrbEmitterDeathRepaintSources[ACTOR_503500_SIDE_COUNT] = {
     { { 640, 256, 64, 256 }, { 0, 252, 256, 1 } },
     { { 704, 256, 64, 256 }, { 0, 261, 256, 1 } },
 };
 
-SVECTOR D_actor_503500_8016F168[9] = {
+SVECTOR gActor503500LargeOrbEmitterDeathEffectOffsets[9] = {
     { 1600, 0, 1000, 0 },
     { 1200, -400, 1000, 0 },
     { 1600, 400, 1000, 0 },
@@ -873,7 +874,7 @@ SVECTOR D_actor_503500_8016F168[9] = {
 
 SVECTOR gActor503500RearPartTargetOffset = { 0, 500, -1500, 0 };
 
-SVECTOR D_actor_503500_8016F1B8[18] = {
+SVECTOR gActor503500RearPartDeathEffectOffsets[18] = {
     { 0, -400, -2000, 0 },
     { -800, -200, -1800, 0 },
     { 800, -200, -2200, 0 },
@@ -899,22 +900,22 @@ SVECTOR gActor503500ChainBaseTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { -1300, -1468, -2800, 0 },
 };
 
-SVECTOR D_actor_503500_8016F258 = { 1300, -1468, -2700, 0 };
+const SVECTOR gActor503500ChainBaseLaunchOffset __attribute__((section(".data"))) = { 1300, -1468, -2700, 0 };
 
-SVECTOR D_actor_503500_8016F260 = { 500, 1700, 0, 0 };
+SVECTOR gActor503500ChainBaseLaunchAngles = { 500, 1700, 0, 0 };
 
 SVECTOR D_actor_503500_8016F268[2] = {
     { 500, 1400, 0, 0 },
     { 500, 1100, 0, 0 },
 };
 
-SVECTOR D_actor_503500_8016F278[3] = {
+SVECTOR gActor503500ChainBaseDeathEffectOffsetsSide0[ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT] = {
     { 1300, -1468, -2700, 0 },
     { 1700, -1668, -2900, 0 },
     { 2100, -1868, -3100, 0 },
 };
 
-SVECTOR D_actor_503500_8016F290[9] = {
+SVECTOR gActor503500ChainBaseDeathEffectOffsetsSide1[9] = {
     { -1300, -1468, -2700, 0 },
     { -1700, -1668, -2900, 0 },
     { -2100, -1868, -3100, 0 },
@@ -928,16 +929,16 @@ SVECTOR D_actor_503500_8016F290[9] = {
 
 SVECTOR gActor503500SmallOrbEmitterTargetOffset = { 0, 800, 2000, 0 };
 
-s16 D_actor_503500_8016F2E0[6] = {
-    3584,
-    3328,
-    3712,
-    3456,
-    3584,
-    3712,
+const s16 gActor503500SmallOrbEmitterLaunchSpeeds[ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS] __attribute__((section(".data"))) = {
+    224 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
+    208 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
+    232 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
+    216 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
+    224 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
+    232 * ACTOR_503500_SMALL_ORB_LAUNCH_SPEED_ONE,
 };
 
-SVECTOR D_actor_503500_8016F2EC[6] = {
+SVECTOR gActor503500SmallOrbEmitterLaunchAngles[ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS] = {
     { 712, 0, 0, 0 },
     { 688, 24, 0, 0 },
     { 780, 88, 0, 0 },
@@ -946,7 +947,7 @@ SVECTOR D_actor_503500_8016F2EC[6] = {
     { 780, -80, 0, 0 },
 };
 
-SVECTOR D_actor_503500_8016F31C[9] = {
+SVECTOR gActor503500SmallOrbEmitterDeathEffectOffsets[9] = {
     { 0, 800, 3000, 0 },
     { -50, 1000, 2800, 0 },
     { 100, 1200, 2700, 0 },
@@ -958,11 +959,11 @@ SVECTOR D_actor_503500_8016F31C[9] = {
     { 600, 600, 2700, 0 },
 };
 
-RECT D_actor_503500_8016F364 = { 358, 480, 25, 31 };
+RECT gActor503500SmallOrbEmitterDeathRepaintSourceRect = { 358, 480, 25, 31 };
 
 SVECTOR gActor503500YellowFlashEmitterTargetOffset = { 0, 0, 800, 0 };
 
-SVECTOR D_actor_503500_8016F374[6] = {
+SVECTOR gActor503500YellowFlashEmitterDeathEffectOffsets[6] = {
     { 0, 250, 800, 0 },
     { 400, 300, 1000, 0 },
     { -400, 350, 1100, 0 },
@@ -971,16 +972,16 @@ SVECTOR D_actor_503500_8016F374[6] = {
     { 0, -150, 1000, 0 },
 };
 
-RECT D_actor_503500_8016F3A4 = { 352, 256, 31, 40 };
+RECT gActor503500YellowFlashEmitterDeathRepaintSourceRect = { 352, 256, 31, 40 };
 
-SVECTOR D_actor_503500_8016F3AC[4] = {
+SVECTOR gActor503500LungingChainRootOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT] = {
     { 1300, -1468, -2700, 0 },
     { 1300, -1468, -2700, 0 },
     { -1300, -1468, -2700, 0 },
     { -1300, -1468, -2700, 0 },
 };
 
-SVECTOR D_actor_503500_8016F3CC[4] = {
+SVECTOR gActor503500LungingChainRootAngles[ACTOR_503500_LUNGING_CHAIN_COUNT] = {
     { -364, 1479, 0, 0 },
     { -364, 1479, 0, 0 },
     { -364, -1479, 0, 0 },
@@ -989,7 +990,7 @@ SVECTOR D_actor_503500_8016F3CC[4] = {
 
 SVECTOR gActor503500LungingChainTipTargetOffset = { 0, 0, 400, 0 };
 
-SVECTOR D_actor_503500_8016F3F4[4] = {
+SVECTOR gActor503500LungingChainTipAttackOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT] = {
     { -200, 0, 400, 0 },
     { 200, 0, 400, 0 },
     { -200, 0, 400, 0 },
@@ -1016,7 +1017,7 @@ s16 D_actor_503500_8016F434[10] = {
     0,
 };
 
-SVECTOR D_actor_503500_8016F448[3] = {
+SVECTOR gActor503500LungingChainDeathSmokeOffsets[3] = {
     { 0, -600, 0, 0 },
     { -400, 0, 0, 0 },
     { 400, 0, 0, 0 },
@@ -1110,9 +1111,9 @@ static AnimationSet _gActor503500Animation3F61C = {
     { NULL, _gActor503500Animation3F61CBank1, NULL, NULL, _gActor503500Animation3F61CBank4, NULL, NULL, NULL },
 };
 
-s32 D_actor_503500_80171464[2] = {
-    11,
-    5,
+s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT] = {
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_0,
+    ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_1,
 };
 
 TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, actor503500KnockbackTask, { .value = 0 } };

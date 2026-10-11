@@ -806,12 +806,12 @@ static void _actor503500StepAttackState(Task* task)
             work->previousHeightBand  = work->heightBand;
             work->previousBearingBand = work->bearingBand;
             _actor503500ClassifyAttackHeight(work);
-            bearingThreshold = D_actor_503500_8016EF28[(work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1][work->heightBand];
+            bearingThreshold = *gActor503500AttackBearingLimits[(work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1][work->heightBand];
             bearingMagnitude = abs(playerBearing);
             for (work->bearingBand = 0; *bearingThreshold++ < bearingMagnitude; work->bearingBand++) {
             }
             attackTableIndex = (work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1;
-            choice           = D_actor_503500_8016EF10[attackTableIndex][work->heightBand][work->bearingBand];
+            choice           = (*gActor503500AttackChoices[attackTableIndex][work->heightBand])[work->bearingBand];
             randomRoll       = (u8)work->randomRoll;
             if (choice->attack != NULL) {
                 cumulativeWeight = choice->weight;
@@ -1292,13 +1292,13 @@ static void _actor503500StepPhaseTransitionState(Task* task)
             work->stateStep          = work->stateStep + 1;
             break;
         case ACTOR_503500_PHASE_STEP_SPRAY:
-            // Spray cyclic and random directions while the room scene repositions the boss.
+            // Spawn puffs at cyclic and random offsets while the room scene repositions the boss.
             if (work->stateFrames < ACTOR_503500_PHASE_PUFF_FRAMES) {
                 effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
-                            &D_actor_503500_8016EF58[(s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016EF58))]);
+                            &gActor503500PhaseTransitionPuffOffsets[(s16)(work->stateFrames % (s32)ARRAY_SIZE(gActor503500PhaseTransitionPuffOffsets))]);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
-                            &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016EF58))]);
+                            &gActor503500PhaseTransitionPuffOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500PhaseTransitionPuffOffsets))]);
             }
             if (work->stateFrames == ACTOR_503500_PHASE_PUFF_FRAMES) {
                 sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_PHASE_SOUND), ACTOR_503500_PHASE_SOUND_FADE_FRAMES);
@@ -3022,9 +3022,9 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     task->work = &D_actor_503500_80176D88;
 
     rootCoord->parent       = &parent->extra.tmd->coords[ACTOR_503500_PINK_FLASH_EMITTER_PARENT_PART];
-    rootCoord->coord.t[0]   = D_actor_503500_8016F060.vx;
-    rootCoord->coord.t[1]   = D_actor_503500_8016F060.vy;
-    rootCoord->coord.t[2]   = D_actor_503500_8016F060.vz;
+    rootCoord->coord.t[0]   = gActor503500PinkFlashEmitterRootOffset.vx;
+    rootCoord->coord.t[1]   = gActor503500PinkFlashEmitterRootOffset.vy;
+    rootCoord->coord.t[2]   = gActor503500PinkFlashEmitterRootOffset.vz;
     model->lightMtx         = parentModel->lightMtx;
     model->colorMtx         = parentModel->colorMtx;
     model->otOffset         = ACTOR_503500_PINK_FLASH_EMITTER_OT_OFFSET;
@@ -3107,9 +3107,9 @@ static void _actor503500PinkFlashEmitterStepAttack(Task* task)
                     if (attackTask != NULL) {
                         attackCoord             = attackTask->extra.coordBody->coord;
                         attackCoord->parent     = task->extra.tmd->coords;
-                        attackCoord->coord.t[0] = D_actor_503500_8016F070.vx;
-                        attackCoord->coord.t[1] = D_actor_503500_8016F070.vy;
-                        attackCoord->coord.t[2] = D_actor_503500_8016F070.vz;
+                        attackCoord->coord.t[0] = gActor503500PinkFlashEmitterAttackOffset.vx;
+                        attackCoord->coord.t[1] = gActor503500PinkFlashEmitterAttackOffset.vy;
+                        attackCoord->coord.t[2] = gActor503500PinkFlashEmitterAttackOffset.vz;
                         taskReparent(task, attackTask);
                     }
                 }
@@ -3290,7 +3290,7 @@ static void _actor503500PinkFlashEmitterStepDying(Task* task)
             case 2:
             case 4:
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_503500_DYING_SMOKE_SPAWN_ARG,
-                            &D_actor_503500_8016F078[work->smokePuffCount++ % (s32)ARRAY_SIZE(D_actor_503500_8016F078)]);
+                            &gActor503500PinkFlashEmitterDeathSmokeOffsets[work->smokePuffCount++ % (s32)ARRAY_SIZE(gActor503500PinkFlashEmitterDeathSmokeOffsets)]);
                 break;
         }
     }
@@ -3652,11 +3652,11 @@ static void _actor503500LargeChainInit(Task* task)
 
     rootCoord->parent     = &task->parent->extra.tmd->coords[ACTOR_503500_LARGE_CHAIN_PARENT_PART];
     tipCoord              = &rootCoord[ACTOR_503500_LARGE_CHAIN_TIP_PART];
-    rootCoord->coord.t[0] = D_actor_503500_8016F090[chainIndex].vx;
-    rootCoord->coord.t[1] = D_actor_503500_8016F090[chainIndex].vy;
-    rootCoord->coord.t[2] = D_actor_503500_8016F090[chainIndex].vz;
+    rootCoord->coord.t[0] = gActor503500LargeChainRootOffsets[chainIndex].vx;
+    rootCoord->coord.t[1] = gActor503500LargeChainRootOffsets[chainIndex].vy;
+    rootCoord->coord.t[2] = gActor503500LargeChainRootOffsets[chainIndex].vz;
     gfxSetRotIdentity(&rootRotation);
-    RotMatrix(&D_actor_503500_8016F0A0[chainIndex], &rootRotation);
+    RotMatrix(&gActor503500LargeChainRootAngles[chainIndex], &rootRotation);
     MulMatrix0(&rootCoord->coord, &rootRotation, &rootCoord->coord);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     for (partIndex = 1; partIndex < ACTOR_503500_LARGE_CHAIN_PART_COUNT; partIndex++) {
@@ -3696,16 +3696,13 @@ static void _actor503500LargeChainInit(Task* task)
     work->hitEffect.coord      = tipCoord;
     work->hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     work->body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->tipTarget.vx         = D_actor_503500_8016F0A8[task->spawnArg1.value].vx;
-    work->tipTarget.vy         = D_actor_503500_8016F0A8[task->spawnArg1.value].vy;
-    work->tipTarget.vz         = D_actor_503500_8016F0A8[task->spawnArg1.value].vz;
-    work->tipPosition.vx       = D_actor_503500_8016F0A8[task->spawnArg1.value].vx;
-    work->tipPosition.vy       = D_actor_503500_8016F0A8[task->spawnArg1.value].vy;
-    work->tipPosition.vz       = D_actor_503500_8016F0A8[task->spawnArg1.value].vz;
-    work->tipSpeedLimit.word   = ACTOR_503500_LARGE_CHAIN_INITIAL_TIP_SPEED_LIMIT;
-    work->tipAdvancing         = 1;
-    task->exitCallback         = _actor503500LargeChainExit;
-    task->state               += 1;
+    // Seed tip position and target in the boss-part parent frame; slots 2/3 select bytes 0/8 of the whole table.
+    copyVector(&work->tipTarget, (const SVECTOR*)((const u8*)&gActor503500LargeChainRestTipOffsets + (task->spawnArg1.value * sizeof(SVECTOR) - ACTOR_503500_SLOT_LARGE_CHAIN_0 * sizeof(SVECTOR))));
+    copyVector(&work->tipPosition, (const SVECTOR*)((const u8*)&gActor503500LargeChainRestTipOffsets + (task->spawnArg1.value * sizeof(SVECTOR) - ACTOR_503500_SLOT_LARGE_CHAIN_0 * sizeof(SVECTOR))));
+    work->tipSpeedLimit.word = ACTOR_503500_LARGE_CHAIN_INITIAL_TIP_SPEED_LIMIT;
+    work->tipAdvancing       = 1;
+    task->exitCallback       = _actor503500LargeChainExit;
+    task->state             += 1;
 }
 
 /// Maintains a large chain's model and advances its tip, links and behavior.
@@ -3793,9 +3790,9 @@ static void _actor503500LargeChainStepIdle(Task* task)
     work       = task->work;
     chainIndex = task->spawnArg1.value - ACTOR_503500_SLOT_LARGE_CHAIN_0;
     if (work->stateStep == ACTOR_503500_LARGE_CHAIN_IDLE_STEP_SEED_TARGET) {
-        work->tipTarget.vx = D_actor_503500_8016F0B8[chainIndex].vx;
-        work->tipTarget.vy = D_actor_503500_8016F0B8[chainIndex].vy;
-        work->tipTarget.vz = D_actor_503500_8016F0B8[chainIndex].vz;
+        work->tipTarget.vx = gActor503500LargeChainRestTipOffsets[chainIndex].vx;
+        work->tipTarget.vy = gActor503500LargeChainRestTipOffsets[chainIndex].vy;
+        work->tipTarget.vz = gActor503500LargeChainRestTipOffsets[chainIndex].vz;
         work->stateStep++;
     }
     enemy  = task->spawnArg2.pointer;
@@ -3811,12 +3808,12 @@ static void _actor503500LargeChainStepIdle(Task* task)
     gfxSetRotIdentity(&orbitRotation);
     RotMatrix(&work->tipOrbitAngles, &orbitRotation);
     gte_SetRotMatrix(&orbitRotation);
-    gte_ldv0(&D_actor_503500_8016F0C8);
+    gte_ldv0(&gActor503500LargeChainIdleOrbitOffset);
     gte_rtv0();
     gte_stsv(&orbitOffset);
-    work->tipTarget.vx       = D_actor_503500_8016F0B8[chainIndex].vx + orbitOffset.vx;
-    work->tipTarget.vy       = D_actor_503500_8016F0B8[chainIndex].vy + orbitOffset.vy;
-    work->tipTarget.vz       = D_actor_503500_8016F0B8[chainIndex].vz + orbitOffset.vz;
+    work->tipTarget.vx       = gActor503500LargeChainRestTipOffsets[chainIndex].vx + orbitOffset.vx;
+    work->tipTarget.vy       = gActor503500LargeChainRestTipOffsets[chainIndex].vy + orbitOffset.vy;
+    work->tipTarget.vz       = gActor503500LargeChainRestTipOffsets[chainIndex].vz + orbitOffset.vz;
     work->tipOrbitAngles.vx += ACTOR_503500_LARGE_CHAIN_ORBIT_STEP_X;
     work->tipOrbitAngles.vy += ACTOR_503500_LARGE_CHAIN_ORBIT_STEP_Y;
     work->tipOrbitAngles.vz += ACTOR_503500_LARGE_CHAIN_ORBIT_STEP_Z;
@@ -4106,9 +4103,9 @@ static void _actor503500LargeChainStepDying(Task* task)
     if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_LARGE_CHAIN_DYING_EFFECT_COST) != 0 && work->stateStep < ACTOR_503500_LARGE_CHAIN_DYING_STEP_SQUASH &&
         gDisplayState.animFrame % ACTOR_503500_LARGE_CHAIN_DYING_SMOKE_PERIOD == 0) {
         for (linkIndex = ACTOR_503500_LARGE_CHAIN_TIP_PART, elementIndex = 0; linkIndex > 0; linkIndex--) {
-            effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[linkIndex], ACTOR_503500_DYING_SMOKE_SPAWN_ARG, &D_actor_503500_8016F0D0[elementIndex]);
+            effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[linkIndex], ACTOR_503500_DYING_SMOKE_SPAWN_ARG, &gActor503500LargeChainDeathSmokeOffsets[elementIndex]);
             elementIndex++;
-            elementIndex = (elementIndex < (s32)ARRAY_SIZE(D_actor_503500_8016F0D0)) ? elementIndex : 0;
+            elementIndex = (elementIndex < (s32)ARRAY_SIZE(gActor503500LargeChainDeathSmokeOffsets)) ? elementIndex : 0;
         }
     }
     if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep > ACTOR_503500_LARGE_CHAIN_DYING_STEP_UNLINK) {
