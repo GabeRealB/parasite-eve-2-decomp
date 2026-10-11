@@ -148,22 +148,21 @@ void itemPickupTask(Task* task)
 /// live player with loaded actor resources whenever the reload is requested.
 static inline void _menuApplyPendingConsumableReload(Task* playerTask)
 {
-    if ((Gp_PendingRelatedId != INVENTORY_ITEM_NONE) && (Gp_RelatedPending != 0)) {
+    if ((gEquipmentPendingConsumableId != INVENTORY_ITEM_NONE) && (gEquipmentMenuReloadPending != EQUIPMENT_MENU_RELOAD_NONE)) {
         if (sceneIsBattleActive() == 0) {
-            Gp_PendingRelatedId = INVENTORY_ITEM_NONE;
-        } else if (Gp_PendingRelatedId > 0) {
+            gEquipmentPendingConsumableId = INVENTORY_ITEM_NONE;
+        } else if (gEquipmentPendingConsumableId > 0) {
             playerActorEnterReload(playerTask, EQUIPMENT_WEAPON_SUPPLY_PRIMARY, PLAYER_ACTOR_RELOAD_MENU);
         } else {
             playerActorEnterReload(playerTask, EQUIPMENT_WEAPON_SUPPLY_SECONDARY, PLAYER_ACTOR_RELOAD_MENU);
         }
-        Gp_RelatedPending = 0;
+        gEquipmentMenuReloadPending = EQUIPMENT_MENU_RELOAD_NONE;
     }
 }
 
 void menuApplyPendingItemUseTask(Task* task)
 {
     enum {
-        MENU_ITEM_USE_PRESENTATION_PENDING = 1,
         MENU_ITEM_EAU_DE_TOILETTE          = 0x3E,
         MENU_ITEM_USE_APPLY_STATUS_EFFECTS = 0
     };
@@ -172,15 +171,15 @@ void menuApplyPendingItemUseTask(Task* task)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     // Resume deferred player actions only after the menu has restored world resources.
     _menuApplyPendingConsumableReload(playerTask);
-    if (Gp_HealPending == MENU_ITEM_USE_PRESENTATION_PENDING) {
+    if (gItemMenuUsePresentationPending == ITEM_MENU_USE_PRESENTATION_PENDING) {
         taskMessageDispatch(playerTask, PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE, 0, 0);
-        Gp_HealPending = 0;
+        gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_NONE;
     }
-    if (Gp_UsedItemId != INVENTORY_ITEM_NONE) {
-        if (Gp_UsedItemId == MENU_ITEM_EAU_DE_TOILETTE) {
+    if (gItemMenuAttemptedUseItemId != INVENTORY_ITEM_NONE) {
+        if (gItemMenuAttemptedUseItemId == MENU_ITEM_EAU_DE_TOILETTE) {
             playerStateSetStatusEffects(MENU_ITEM_USE_APPLY_STATUS_EFFECTS, PLAYER_STATUS_BERSERKER);
         }
-        Gp_UsedItemId = INVENTORY_ITEM_NONE;
+        gItemMenuAttemptedUseItemId = INVENTORY_ITEM_NONE;
     }
     displayReleaseMenuHold();
     taskCallExit(task);

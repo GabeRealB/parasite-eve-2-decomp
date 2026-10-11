@@ -230,9 +230,9 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
             weaponItemId             = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
             weaponLoad               = equipmentGetWeaponLoad(weaponItemId);
             if (equipmentLoadCarriedWeaponConsumable(EQUIPMENT_WEAPON_SUPPLY_PRIMARY, weaponItemId, itemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
-                Gp_PendingRelatedId      = itemId;
-                Gp_RelatedPending        = consumeRow;
-                previousConsumableItemId = weaponLoad->primaryItemId;
+                gEquipmentPendingConsumableId = itemId;
+                gEquipmentMenuReloadPending   = consumeRow;
+                previousConsumableItemId      = weaponLoad->primaryItemId;
                 if (previousConsumableItemId != itemId) {
                     // Encode the one-based consumable selector modulo the stored byte.
                     player->weaponSlotItem    = itemId + ITEM_USE_PRIMARY_CONSUMABLE_SELECTOR_BIAS;
@@ -242,9 +242,9 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                 itemSetIdentified(itemId, 1);
                 applied = 1;
             } else if (equipmentLoadCarriedWeaponConsumable(EQUIPMENT_WEAPON_SUPPLY_SECONDARY, weaponItemId, itemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
-                Gp_PendingRelatedId      = -itemId;
-                Gp_RelatedPending        = consumeRow;
-                previousConsumableItemId = weaponLoad->secondaryItemId;
+                gEquipmentPendingConsumableId = -itemId;
+                gEquipmentMenuReloadPending   = consumeRow;
+                previousConsumableItemId      = weaponLoad->secondaryItemId;
                 if (previousConsumableItemId != itemId) {
                     weaponLoad->secondaryItemId = itemId;
                     weaponLoad->secondaryQty    = 0;
@@ -303,7 +303,7 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
             }
         } else if ((u32)(itemId - ITEM_USE_ARMOR_ITEM_FIRST) >= (u32)ITEM_USE_ARMOR_ITEM_COUNT) {
             // Apply immediate medicine effects, or lend the row to a queued defense action.
-            Gp_UsedItemId = itemId;
+            gItemMenuAttemptedUseItemId = itemId;
 
             if ((u32)(itemId - ITEM_USE_ORDINARY_ITEM_FIRST) < (u32)ITEM_USE_ORDINARY_ITEM_COUNT) {
                 switch (itemId) {
@@ -321,8 +321,8 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                             if (player->hp > player->hpMax) {
                                 player->hp = player->hpMax;
                             }
-                            Gp_HealPending = 1;
-                            applied        = 1;
+                            gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                            applied                         = 1;
                         }
                         break;
                     case INVENTORY_ITEM_PROTEIN_CAPSULE:
@@ -330,17 +330,17 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus += 5;
                         }
                         equipmentRecalculateMaxHp();
-                        Gp_HealPending = 1;
-                        applied        = 1;
-                        player->hp     = player->hpMax;
+                        gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                        applied                         = 1;
+                        player->hp                      = player->hpMax;
                         break;
                     case INVENTORY_ITEM_STIM:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
-                        applied = Gp_HealPending = gAttachmentState.mindWard = 1;
+                        applied = gItemMenuUsePresentationPending = gAttachmentState.mindWard = ITEM_MENU_USE_PRESENTATION_PENDING;
                         break;
                     case INVENTORY_ITEM_PENICILLIN:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
-                        applied = Gp_HealPending = gAttachmentState.bodyWard = 1;
+                        applied = gItemMenuUsePresentationPending = gAttachmentState.bodyWard = ITEM_MENU_USE_PRESENTATION_PENDING;
                         break;
                     case INVENTORY_ITEM_COLA:
                         if (player->mp < player->mpMax || player->hp < player->hpMax) {
@@ -352,8 +352,8 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                             if (player->hp > player->hpMax) {
                                 player->hp = player->hpMax;
                             }
-                            Gp_HealPending = 1;
-                            applied        = 1;
+                            gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                            applied                         = 1;
                         }
                         break;
                     case INVENTORY_ITEM_MP_BOOST1:
@@ -367,8 +367,8 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                             if (player->mp > player->mpMax) {
                                 player->mp = player->mpMax;
                             }
-                            Gp_HealPending = 1;
-                            applied        = 1;
+                            gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                            applied                         = 1;
                         }
                         break;
                     case INVENTORY_ITEM_FLARE:
@@ -388,16 +388,16 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                         break;
                     case INVENTORY_ITEM_RINGERS_SOLUTION:
                         if (player->mp < player->mpMax || player->hp < player->hpMax) {
-                            player->mp     = player->mpMax;
-                            Gp_HealPending = 1;
-                            player->hp     = player->hpMax;
+                            player->mp                      = player->mpMax;
+                            gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                            player->hp                      = player->hpMax;
                         }
-                        Gp_HealPending = 1;
-                        applied        = 1;
+                        gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                        applied                         = 1;
                         break;
                     case INVENTORY_ITEM_EAU_DE_TOILETTE:
-                        Gp_HealPending = 1;
-                        applied        = 1;
+                        gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_PENDING;
+                        applied                         = 1;
                         break;
                 }
             }
@@ -564,19 +564,19 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
     selectedUsable = 1;
     if (panelTask->state == ITEM_MENU_ATTACHMENT_PANEL_INITIAL) {
         // Reset item-use notifications and open the companion weapon summary once.
-        Gp_HealPending = 0;
-        Gp_UsedItemId  = INVENTORY_ITEM_NONE;
-        if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
-            D_8010F884 = 0;
+        gItemMenuUsePresentationPending = ITEM_MENU_USE_PRESENTATION_NONE;
+        gItemMenuAttemptedUseItemId     = INVENTORY_ITEM_NONE;
+        if (gItemMenuSelectedAttachmentIndex >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
+            gItemMenuSelectedAttachmentIndex = 0;
         }
-        uiSpawnObject(&D_8010F8B4, 0, 0, 0, object);
+        uiSpawnObject(&gItemMenuAttachmentUseWeaponPanelDesc, 0, 0, 0, object);
         panelTask->state++;
     }
     attachmentX = object->panel.contentLeft.signedValue + 4;
     attachmentY = object->panel.contentTop.signedValue + 0x2B;
     if (panelTask->state == ITEM_MENU_ATTACHMENT_PANEL_SELECTING) {
         // Enlarge the selected attachment and dim every currently unusable item.
-        selectedAttachmentIndex = D_8010F884;
+        selectedAttachmentIndex = gItemMenuSelectedAttachmentIndex;
         iconX                   = attachmentX + selectedAttachmentIndex * 13;
         selectedRow             = NULL;
         selectedRange           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -609,7 +609,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
         itemMenuDrawItemIcon(object, iconX, attachmentY, itemId, iconFlags);
         iconX = attachmentX;
         for (attachmentIndex = 0; attachmentIndex < equipmentGetArmorAttachmentSlotCount(armorItemId); attachmentIndex++, iconX += 13) {
-            if (attachmentIndex != D_8010F884) {
+            if (attachmentIndex != gItemMenuSelectedAttachmentIndex) {
                 attachedRow = NULL;
                 range       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 row         = inventoryGetRangeTable(range);
@@ -641,7 +641,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
         // Re-read the selected position on Confirm before applying its item use.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
             if (selectedUsable == 1) {
-                useAttachmentIndex = D_8010F884;
+                useAttachmentIndex = gItemMenuSelectedAttachmentIndex;
                 useRow             = NULL;
                 useRange           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 useScanRow         = inventoryGetRangeTable(useRange);
@@ -657,15 +657,15 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT)) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            D_8010F884--;
-            if (D_8010F884 < 0) {
-                D_8010F884 += equipmentGetArmorAttachmentSlotCount(armorItemId);
+            gItemMenuSelectedAttachmentIndex--;
+            if (gItemMenuSelectedAttachmentIndex < 0) {
+                gItemMenuSelectedAttachmentIndex += equipmentGetArmorAttachmentSlotCount(armorItemId);
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT)) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            D_8010F884++;
-            if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
-                D_8010F884 = 0;
+            gItemMenuSelectedAttachmentIndex++;
+            if (gItemMenuSelectedAttachmentIndex >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
+                gItemMenuSelectedAttachmentIndex = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask)) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -693,14 +693,14 @@ s32 equipmentLoadPendingConsumable(s32 weaponItemId, s32 unused)
 {
     s32 consumableItemId;
 
-    consumableItemId = Gp_PendingRelatedId;
+    consumableItemId = gEquipmentPendingConsumableId;
     if (consumableItemId <= 0) {
         if (consumableItemId >= 0) {
             return EQUIPMENT_WEAPON_LOAD_FAILED;
         }
         consumableItemId = -consumableItemId;
     }
-    Gp_PendingRelatedId = INVENTORY_ITEM_NONE;
+    gEquipmentPendingConsumableId = INVENTORY_ITEM_NONE;
     return equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, consumableItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
 }
 

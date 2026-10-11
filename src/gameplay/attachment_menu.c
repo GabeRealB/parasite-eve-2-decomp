@@ -3,7 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/attachment_state.h"
 #include "gameplay/inventory.h"
@@ -21,10 +21,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern UiListRowCallback Gp_ItemCmdRows[2];
-
-extern const u8 Gp_StrWrongAmmo2[];
-
 enum {
     ITEM_MENU_ARMOR_ITEM_FIRST       = 0x60,
     ITEM_MENU_EQUIPMENT_ITEM_COUNT_U = 0x20U,
@@ -32,6 +28,12 @@ enum {
     ITEM_MENU_NOTICE_DISMISSED_TICKS = 0x7FFF,
     ITEM_MENU_NOTICE_TEXT_COLOR_RGB  = 0x606060,
     ITEM_MENU_NOTICE_ITEM_COLOR_RGB  = 0x037A78
+};
+
+/// Task priority and untitled panel style used by these item-menu recipes.
+enum {
+    ITEM_MENU_TASK_PRIORITY       = 192,
+    ITEM_MENU_HOTSPOT_PANEL_STYLE = 3
 };
 
 /// Opening delay for equipment command and confirmation panels, in callback ticks.
@@ -265,34 +267,39 @@ static inline void _itemMenuUpdateNoticeResult(UiObject* object, Task* task)
     }
 }
 
-UiObjectDesc D_8010F6FC    = { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, -30, 120, 60 }, 8, 0, TASK_BODY_NONE, 192, itemMenuDiscardTask, 0 };
-UiObjectDesc D_8010F718[4] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -80, 144, 72 }, 292, 0, TASK_BODY_NONE, 192, itemMenuPeElementTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -8, 144, 72 }, 288, 0, TASK_BODY_NONE, 192, itemMenuPeElementTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -80, 144, 72 }, 284, 0, TASK_BODY_NONE, 192, itemMenuPeElementTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -8, 144, 72 }, 280, 0, TASK_BODY_NONE, 192, itemMenuPeElementTask, 0 },
+UiObjectDesc gItemMenuDiscardPanelDesc                                      = { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, -30, 120, 60 }, 8, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuDiscardTask, 0 };
+UiObjectDesc gItemMenuPeElementPanelDescs[ITEM_MENU_PE_ELEMENT_PANEL_COUNT] = {
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -80, 144, 72 }, 292, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeElementTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -8, 144, 72 }, 288, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeElementTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -80, 144, 72 }, 284, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeElementTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -8, 144, 72 }, 280, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeElementTask, 0 },
 };
-UiObjectDesc D_8010F788    = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 0, 1, 1 }, 8, 0, TASK_BODY_NONE, 192, itemMenuNoticeTask, 0 };
-UiObjectDesc D_8010F7A4    = { 0, { -128, 64, 256, 32 }, 264, 0, TASK_BODY_NONE, 192, itemMenuPeUpgradeTask, 0 };
-UiObjectDesc D_8010F7C0[2] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -128, -80, 192, 144 }, 12, 0, TASK_BODY_NONE, 192, itemMenuPeNextLevelTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -72, 176, 112 }, 8, 0, TASK_BODY_NONE, 192, itemMenuHealingTask, 0 },
+UiObjectDesc gItemMenuNoticeDesc                                                = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 0, 1, 1 }, 8, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuNoticeTask, 0 };
+UiObjectDesc gItemMenuPeUpgradePanelDesc                                        = { 0, { -128, 64, 256, 32 }, 264, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeUpgradeTask, 0 };
+UiObjectDesc gItemMenuPeAuxiliaryPanelDescs[ITEM_MENU_PE_AUXILIARY_PANEL_COUNT] = {
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -128, -80, 192, 144 }, 12, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeNextLevelTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -72, 176, 112 }, 8, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuHealingTask, 0 },
 };
-UiObjectDesc      D_8010F7F8          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -104, 192, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuPeSpecificationsTask, 0 };
-UiListRowCallback Gp_ItemCmdRows[2]   = { itemMenuDrawHotspotActionRow, itemMenuDrawHotspotItemRow };
-UiList            D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiObjectDesc      D_8010F840          = { 3, { 0, 0, 70, 64 }, 60, 0, TASK_BODY_NONE, 192, itemMenuHotspotCommandTask, 0 };
-TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, itemMenuHotspotMenuTask, { NULL } };
-UiObjectDesc      D_8010F868          = { 0, { 0, -104, 144, 16 }, 36, 0, TASK_BODY_NONE, 192, itemMenuPreviewPanelTask, 0 };
-s32               D_8010F884          = 0;
-s32               Gp_HealPending      = 0;
-s32               Gp_PendingRelatedId = 0;
-s32               Gp_RelatedPending   = 0;
-s32               Gp_UsedItemId       = 0;
-UiObjectDesc      D_8010F898          = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 28, 152, 72 }, 56, 0, TASK_BODY_NONE, 192, itemMenuArmorAttachmentPanelTask, 0 };
-UiObjectDesc      D_8010F8B4          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -152, 28, 152, 72 }, 60, 0, TASK_BODY_NONE, 192, itemMenuAttachmentUseWeaponPanelTask, 0 };
+UiObjectDesc gItemMenuPeSpecificationsPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -104, 192, 208 }, 8, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPeSpecificationsTask, 0 };
+/// Per-row dispatch for the hotspot list: action choice first, then the Item submenu.
+///
+/// The list keeps this table for the gameplay image's lifetime. Its two entries
+/// have the UiListRowCallback signature; the shared-row-callback flag stays clear.
+static UiListRowCallback _gItemMenuHotspotCommandRows[]        = { itemMenuDrawHotspotActionRow, itemMenuDrawHotspotItemRow };
+UiList                   gItemMenuHotspotCommandList           = { _gItemMenuHotspotCommandRows, ARRAY_SIZE(_gItemMenuHotspotCommandRows), { ARRAY_SIZE(_gItemMenuHotspotCommandRows) }, 1, USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiObjectDesc             gItemMenuHotspotCommandPanelDesc      = { ITEM_MENU_HOTSPOT_PANEL_STYLE, { 0, 0, 70, 64 }, 60, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuHotspotCommandTask, 0 };
+TaskDesc                 gItemMenuHotspotMenuTaskDesc          = { { { TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY } }, itemMenuHotspotMenuTask, { NULL } };
+UiObjectDesc             gItemMenuPreviewPanelDesc             = { 0, { 0, -104, 144, 16 }, 36, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuPreviewPanelTask, 0 };
+s32                      gItemMenuSelectedAttachmentIndex      = 0;
+s32                      gItemMenuUsePresentationPending       = ITEM_MENU_USE_PRESENTATION_NONE;
+s32                      gEquipmentPendingConsumableId         = INVENTORY_ITEM_NONE;
+s32                      gEquipmentMenuReloadPending           = EQUIPMENT_MENU_RELOAD_NONE;
+s32                      gItemMenuAttemptedUseItemId           = INVENTORY_ITEM_NONE;
+UiObjectDesc             gItemMenuArmorAttachmentPanelDesc     = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 28, 152, 72 }, 56, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuArmorAttachmentPanelTask, 0 };
+UiObjectDesc             gItemMenuAttachmentUseWeaponPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -152, 28, 152, 72 }, 60, 0, TASK_BODY_NONE, ITEM_MENU_TASK_PRIORITY, itemMenuAttachmentUseWeaponPanelTask, 0 };
 
-const u8 Gp_StrWrongAmmo2[] = "You do not have the correct ammo.";
+/// Notice shown when the selected weapon has no carried compatible consumable choice.
+static const u8 _gItemMenuNoCompatibleAmmoText[] = "You do not have the correct ammo.";
 
 void itemMenuConsumableChoiceListTask(Task* choiceTask)
 {
@@ -348,7 +355,7 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
                     }
                 }
             }
-            uiSizePanelForTextDefault(&object->panel, Gp_StrWrongAmmo2);
+            uiSizePanelForTextDefault(&object->panel, _gItemMenuNoCompatibleAmmoText);
             if (choiceTask->state != ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO) {
                 itemMenuSizeEquippedNotice(&object->panel, weaponItemId);
             }
@@ -380,7 +387,7 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
         s32 drawMode = selectingState;
 
         uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNoticePanelTitle);
-        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, _gItemMenuNoCompatibleAmmoText, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
         uiDrawPanelLabel(&object->panel, (const char*)gItemMenuEquipTitle);
         itemMenuDrawEquippedNotice(object, weaponItemId);

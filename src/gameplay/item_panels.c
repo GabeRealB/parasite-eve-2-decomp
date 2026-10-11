@@ -1236,7 +1236,7 @@ void itemMenuParasiteEnergyListTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(object)->panel, Gp_StrPeList);
     if (task->state == ITEM_MENU_PE_LIST_STATE_INIT) {
-        elementPanelDescs = D_8010F718;
+        elementPanelDescs = gItemMenuPeElementPanelDescs;
         uiSpawnObject(elementPanelDescs, ITEM_MENU_PE_LIST_ELEMENT_FIRE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_PE_LIST_OPEN_DELAY, object);
         uiSpawnObject(elementPanelDescs + 1, ITEM_MENU_PE_LIST_ELEMENT_WIND, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_PE_LIST_OPEN_DELAY, object);
         uiSpawnObject(elementPanelDescs + 2, ITEM_MENU_PE_LIST_ELEMENT_WATER, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_PE_LIST_OPEN_DELAY, object);

@@ -37654,10 +37654,10 @@ insns, and that happens when the variable's assignment does **not** come first:
 ```c
 /* sw s5 — cse folds the store's temp into ret */
 ret        = 1;
-Gp_HealPending = 1;
+gItemMenuUsePresentationPending = 1;
 
 /* li s5,1 / move v1,s5 / sw v1 — target shape */
-Gp_HealPending = 1;
+gItemMenuUsePresentationPending = 1;
 ret        = 1;
 ```
 
@@ -37666,7 +37666,7 @@ the narrower store forces a separate QImode quantity that cse cannot unify with
 the SImode one:
 
 ```c
-ret = Gp_HealPending = gAttachmentState.mindWard = 1; /* sb then sw, each via `move v0,s5` */
+ret = gItemMenuUsePresentationPending = gAttachmentState.mindWard = 1; /* sb then sw, each via `move v0,s5` */
 ```
 
 `_itemUseAttachedItem` needed both spellings (cases 4/8 chained, case 0x3C reordered);
@@ -42159,7 +42159,7 @@ exact rename list is ever needed.
 `configs/USA/sym.gameplay.aliases.txt` used to hold labels splat folds into a
 parent symbol, appended onto `undefined_syms_auto.gameplay.txt` by
 `ninja_config.py`. Over time all eight of its entries — `Gp_StrTotal2`,
-`Gp_StrWrongAmmo2` and the `D_8011xxxx` interiors — were *also* added to
+`_gItemMenuNoCompatibleAmmoText` and the `D_8011xxxx` interiors — were *also* added to
 `sym.gameplay.txt`, so the linker received each assignment twice.
 
 Identical assignments link fine, which is why it went unnoticed: nothing warns,

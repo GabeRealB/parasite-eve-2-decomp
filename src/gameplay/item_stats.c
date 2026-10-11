@@ -964,7 +964,7 @@ void itemMenuCollectedItemsTask(Task* task)
         collectedList->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         if (task->spawnArg1.value == 0) {
             uiSetPanelContentSize(&object->panel, 0, uiGetTextRowsHeight(ITEM_MENU_COLLECTED_LIST_ROWS) + 1);
-            uiSpawnObject(&D_8010F868, 0, 0, ITEM_MENU_COLLECTED_PREVIEW_PROFILE, object);
+            uiSpawnObject(&gItemMenuPreviewPanelDesc, 0, 0, ITEM_MENU_COLLECTED_PREVIEW_PROFILE, object);
         }
         collectedList->selectedItemIndex                   = 0;
         collectedList->firstVisibleItemIndex.unsignedValue = 0;

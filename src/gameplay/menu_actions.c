@@ -2375,7 +2375,7 @@ void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object)
                 itemMenuSpawnNotice(object, noticeId, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                uiSpawnObject(&D_8010F7A4, abilityId, USER_INTERFACE_PANEL_ACTIVE, 0xA, object);
+                uiSpawnObject(&gItemMenuPeUpgradePanelDesc, abilityId, USER_INTERFACE_PANEL_ACTIVE, 0xA, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
@@ -2595,7 +2595,7 @@ void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             activeMode = USER_INTERFACE_PANEL_ACTIVE;
-            uiSpawnObject(&D_8010F7F8, abilityId, activeMode, activeMode, object);
+            uiSpawnObject(&gItemMenuPeSpecificationsPanelDesc, abilityId, activeMode, activeMode, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -2862,7 +2862,7 @@ void itemMenuPeUpgradeTask(Task* task)
             confirmationMenu->panel.animationTicks         = object->panel.animationTicks - 8;
             confirmationMenu->panel.bounds.unsignedRect.y += 4;
         }
-        uiSpawnObject(D_8010F7C0, abilityId, 0, 1, object);
+        uiSpawnObject(&gItemMenuPeAuxiliaryPanelDescs[ITEM_MENU_PE_AUXILIARY_NEXT_LEVEL], abilityId, 0, 1, object);
         task->state = task->state + 1;
     }
 
@@ -2936,7 +2936,7 @@ void itemMenuPeUpgradeTask(Task* task)
                     purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
                     ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
                     if (player->exp < (purchaseCost & 0xFFFF)) {
-                        uiSpawnObject(&D_8010F788, ITEM_MENU_NOTICE_INSUFFICIENT_EXP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                        uiSpawnObject(&gItemMenuNoticeDesc, ITEM_MENU_NOTICE_INSUFFICIENT_EXP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                         uiStartTreeClosing(childObject, childObject->owner);
                     } else {
                         purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
@@ -3266,7 +3266,7 @@ void itemMenuHotspotCommandTask(Task* task)
     s32       childResult;
 
     object         = task->spawnArg2.pointer;
-    list           = &D_8010F81C;
+    list           = &gItemMenuHotspotCommandList;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         _itemMenuFitHotspotCommandPanel(list, &object->panel);
@@ -3303,7 +3303,7 @@ void itemMenuHotspotMenuTask(Task* task)
     commandObject = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         // Forward the full action-choice word and truncate centred-screen pixels.
-        commandObject           = uiSpawnObject(&D_8010F840, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_OPEN_DELAY_TICKS, NULL);
+        commandObject           = uiSpawnObject(&gItemMenuHotspotCommandPanelDesc, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_OPEN_DELAY_TICKS, NULL);
         task->spawnArg2.pointer = commandObject;
         if (commandObject != NULL) {
             commandObject->panel.bounds.rect.x = D_80114E8C;
@@ -3624,7 +3624,7 @@ s32 shopOpenSession(s32 stockSelector)
 UiObject* itemMenuSpawnNotice(UiObject* parent, s32 noticeId, s32 unused, s32 returnConfirmation)
 {
     returnConfirmation <<= 16;
-    return uiSpawnObject(&D_8010F788, returnConfirmation | noticeId, USER_INTERFACE_PANEL_ACTIVE, 1, parent);
+    return uiSpawnObject(&gItemMenuNoticeDesc, returnConfirmation | noticeId, USER_INTERFACE_PANEL_ACTIVE, 1, parent);
 }
 
 s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind)
@@ -3632,7 +3632,7 @@ s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind)
     D_80114E94 = actionKind;
     D_80114E8C = screenX;
     D_80114E90 = screenY;
-    displayQueueModeTask(&D_8010F85C, actionKind, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&gItemMenuHotspotMenuTaskDesc, actionKind, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -3787,7 +3787,7 @@ void itemMenuDrawDiscardRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010F6FC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&gItemMenuDiscardPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

@@ -508,7 +508,7 @@ void menuRootTask(Task* task)
                 rootObject = uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_ATTACHMENTS) {
                 display->keepGraphics = 1;
-                rootObject            = uiSpawnObject(&D_8010F898, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
+                rootObject            = uiSpawnObject(&gItemMenuArmorAttachmentPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else {
                 display->keepGraphics = 1;
                 rootObject            = uiSpawnObject(D_8010EAB4, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_ROOT_INVENTORY_OPEN_DELAY_TICKS, NULL);

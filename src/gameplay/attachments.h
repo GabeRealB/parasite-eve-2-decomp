@@ -149,47 +149,137 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud);
 /// is applied. Resets cast target/life-drain totals and always returns zero.
 s32 attachmentReleaseTargetEffects(void);
 
-/// Pending flags written by `_itemUseAttachedItem` and consumed by `menuApplyPendingItemUseTask`.
-/// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.
-extern s32 Gp_HealPending;
+/// Deferred item-use presentation request values; storage remains a signed word.
+enum {
+    ITEM_MENU_USE_PRESENTATION_NONE    = 0,
+    ITEM_MENU_USE_PRESENTATION_PENDING = 1
+};
 
-/// Attachment slot selected by `itemMenuArmorAttachmentPanelTask` and its child UI descriptor.
-extern s32 D_8010F884;
+/// Requests the player's item-use presentation after the menu restores world resources.
+///
+/// Zero means none; one requests `PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE` for
+/// successful medicine, ward or perfume use. Attachment-panel entry clears it;
+/// menu exit consumes it even when scripted player control rejects presentation.
+extern s32 gItemMenuUsePresentationPending;
 
-extern UiObjectDesc D_8010F8B4;
+/// Retained zero-based selection in the equipped armor's attachment slots.
+///
+/// With a positive slot count, selection wraps within the armor's slots (at most ten).
+/// Opening resets an index beyond that count to zero; closing preserves it.
+/// Inventory rows store the corresponding one-based attachment position.
+extern s32 gItemMenuSelectedAttachmentIndex;
 
-/// Signed pending item id consumed by `equipmentLoadPendingConsumable`. `_itemUseAttachedItem`
-/// stores the id for the primary consumable pair, its negation for the secondary pair.
-/// `menuApplyPendingItemUseTask` also consumes it (with `Gp_RelatedPending`) via `playerActorEnterReload`.
-extern s32 Gp_PendingRelatedId;
+/// Companion weapon-summary panel for attachment use; its content argument is unused.
+extern UiObjectDesc gItemMenuAttachmentUseWeaponPanelDesc;
 
-/// Non-zero when `Gp_PendingRelatedId` should be applied by `menuApplyPendingItemUseTask`.
-extern s32 Gp_RelatedPending;
+/// Deferred weapon-consumable selection, with the load encoded in the sign.
+///
+/// Zero means none; +0xA0..+0xBF selects primary and -0xA0..-0xBF secondary.
+/// Selecting an attached consumable replaces it and requests a menu reload.
+/// Outside battle, menu exit discards it; in battle it survives until the loading
+/// cue, including a rejected scripted reload. Loading consumes the magnitude
+/// and clears the selection before attempting the transfer, even on failure.
+extern s32 gEquipmentPendingConsumableId;
 
-/// Pending id consumed by `menuApplyPendingItemUseTask`; `0x3E` also calls `playerStateSetStatusEffects`.
-extern s32 Gp_UsedItemId;
+/// Menu-exit reload notification values; storage remains a signed word.
+enum {
+    EQUIPMENT_MENU_RELOAD_NONE    = 0,
+    EQUIPMENT_MENU_RELOAD_PENDING = 1
+};
 
-extern UiObjectDesc D_8010F6FC;
+/// Requests menu-exit handling of the signed pending weapon-consumable selection.
+///
+/// Written as zero or one, with any nonzero value treated as pending. With a
+/// nonzero `gEquipmentPendingConsumableId`, menu exit cancels outside battle or
+/// requests the selected reload, then clears this notification independently of
+/// that id. A notification without an id is retained; loading clears only the id.
+extern s32 gEquipmentMenuReloadPending;
 
-extern UiObjectDesc D_8010F718[4];
+/// Most recent non-equipment attachment-use attempt awaiting menu-exit effects.
+///
+/// Zero means none. The item id is recorded before checking whether ordinary
+/// item use succeeds; weapon, consumable and armor ids do not replace it.
+/// Attachment-panel entry clears it. Menu exit applies Berserker for Eau de
+/// Toilette (0x3E), then clears any recorded id independently of presentation.
+extern s32 gItemMenuAttemptedUseItemId;
 
-extern UiObjectDesc D_8010F788;
+/// Discard confirmation/restriction panel for the borrowed selected inventory row.
+///
+/// The content argument starts at zero; a restriction changes it to a notice id.
+/// Initial bounds are replaced with bounds fitted to the prompt or notice text.
+extern UiObjectDesc gItemMenuDiscardPanelDesc;
 
-extern UiObjectDesc D_8010F7A4;
+/// Number of element-panel recipes, in Fire, Wind, Water, Earth order.
+enum { ITEM_MENU_PE_ELEMENT_PANEL_COUNT = 4 };
 
-extern UiObjectDesc D_8010F7C0[2];
+/// Four PE element-list panel recipes in Fire, Wind, Water, Earth order.
+///
+/// Each receives its element index (0..3) as the content argument. Their screen
+/// positions form two columns; each callback fits its own two/three-ability list.
+extern UiObjectDesc gItemMenuPeElementPanelDescs[ITEM_MENU_PE_ELEMENT_PANEL_COUNT];
 
-extern UiObjectDesc D_8010F7F8;
+/// Timed item-menu notice panel, fitted from its initial 1x1 bounds to the text.
+///
+/// Content low 16 bits index `gItemMenuNoticeTexts` (0..32). A nonzero signed
+/// upper half requests CONFIRM on acknowledgement; zero requests DISMISS.
+extern UiObjectDesc gItemMenuNoticeDesc;
 
-extern UiList D_8010F81C;
+/// PE level-purchase panel with a Yes/No child and next-level specifications.
+///
+/// Content is a packed PE menu id: element 0..3, ability 0..2, current level 0..2.
+/// The panel shows the next level's EXP cost/MP bonus and checks funds on Yes.
+extern UiObjectDesc gItemMenuPeUpgradePanelDesc;
 
-extern UiObjectDesc D_8010F840;
+/// Indices of the PE auxiliary panel recipes.
+enum {
+    ITEM_MENU_PE_AUXILIARY_NEXT_LEVEL  = 0,
+    ITEM_MENU_PE_AUXILIARY_HEALING     = 1,
+    ITEM_MENU_PE_AUXILIARY_PANEL_COUNT = 2
+};
 
-extern TaskDesc D_8010F85C;
+/// PE auxiliary recipes: next-level specifications, then a healing result panel.
+///
+/// The upgrade panel spawns entry zero with the current packed PE id (level 0..2).
+/// Entry one delegates its content argument to `itemMenuApplyHealingPanel` and
+/// has no current spawn site.
+extern UiObjectDesc gItemMenuPeAuxiliaryPanelDescs[ITEM_MENU_PE_AUXILIARY_PANEL_COUNT];
 
-extern UiObjectDesc D_8010F868;
+/// Current-level PE specifications panel opened from an element's selected ability.
+///
+/// Content is a packed PE menu id: element 0..3, ability 0..2, level 0..3.
+/// Unlearned level zero displays level one; loaded preview text supplies detail.
+extern UiObjectDesc gItemMenuPeSpecificationsPanelDesc;
 
-extern UiObjectDesc D_8010F898;
+/// Mutable singleton two-row hotspot list: Examine/Push, followed by Item.
+///
+/// Both rows remain visible and navigation wraps. Fitting/input update this
+/// storage in place, so it supports one active hotspot command panel at a time.
+extern UiList gItemMenuHotspotCommandList;
+
+/// Hotspot command-panel recipe; its content word selects Examine or Push.
+///
+/// Exactly one draws Push; all other values draw Examine. The Item row is always
+/// present. The host supplies screen-centered pixels and the callback fits the
+/// panel to the shared list, clipping its lower/right edges inside the screen.
+extern UiObjectDesc gItemMenuHotspotCommandPanelDesc;
+
+/// Bodyless host task for a hotspot command panel and its delayed teardown.
+///
+/// First spawn argument forwards the full Examine/Push choice to the panel;
+/// the second starts at zero and becomes its owned root UI object pointer.
+extern TaskDesc gItemMenuHotspotMenuTaskDesc;
+
+/// Recessed item-preview panel, resized from its initial short placeholder bounds.
+///
+/// Content zero selects a 132x100-pixel interior; nonzero selects 132x131.
+/// The collected-item menu uses zero. A pending CD request hides the picture.
+extern UiObjectDesc gItemMenuPreviewPanelDesc;
+
+/// Equipped-armor attachment-use root panel with a companion weapon summary.
+///
+/// Its unused content argument starts at zero. Opening resets item-use
+/// notifications and bounds the retained attachment selection to the armor.
+extern UiObjectDesc gItemMenuArmorAttachmentPanelDesc;
 
 /// Draws an unequipped carried armor choice and opens equip or information panels.
 ///
