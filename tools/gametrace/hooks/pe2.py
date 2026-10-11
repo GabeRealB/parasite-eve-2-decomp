@@ -51,6 +51,8 @@ def packages_of(what: dict) -> list[str]:
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
     import asset_data
+    if not what:                                     # a load finished that the trace did not see begin
+        return []
     if "file" in what:
         nodes = [f for f in (asset_data.TREE[0].get("files") or {}).values() if f["id"] == what["file"]]
     else:

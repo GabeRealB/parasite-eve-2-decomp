@@ -945,8 +945,15 @@ class Session:
         self.layout = {}                              # a record's first word -> (event, phase, captures)
         self.hooks = []                               # (address, the two words there in the image, the stub)
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
-        self.deferred: list = []                      # handler calls waiting for the game to be stopped
         self.halted = True                            # whether the game is stopped right now
+        self.residents: dict = {}                     # load address -> the image a handler last said is there
+        self.loads: dict[str, int] = {"gameplay": 0x80093800}
+        try:                                          # where each package loads, from the overlay manifest; without it images are told apart by name
+            sys.path.insert(0, str(ROOT / "tools" / "peassets"))
+            import asset_residency
+            self.loads.update(asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())))
+        except Exception:  # noqa: BLE001
+            pass
         for event in self.events:
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
@@ -1061,8 +1068,9 @@ class Session:
             say(f"no command `{word}`\n{self.COMMANDS}")
 
     def symbol(self, address: int) -> str:
-        """The function an address is in, as `name+0xoffset`."""
-        return self.names.at(address)
+        """The function an address is in, as `name+0xoffset`: in the executable, gameplay, or an image a handler has
+        said is in memory."""
+        return self.names.at(address, ("main", "gameplay", *self.residents.values()))
 
     def write(self, text: str) -> None:
         """A line of its own in the log, for a renderer."""
@@ -1079,10 +1087,7 @@ class Session:
         """One captured event into the log: through its renderer, or as it is - registers in hex, memory as hex bytes."""
         act = HANDLERS.get(event.get("handler") or "")
         if act is not None:
-            if self.halted:
-                self.act(act, dict(record))
-            else:                                     # read while the game runs: it stops at the end of this event's hook in a moment
-                self.deferred.append((act, dict(record)))
+            self.act(act, dict(record))
         render = RENDERERS.get(event.get("render") or "")
         if render is not None:
             try:
@@ -1102,7 +1107,7 @@ class Session:
             elif isinstance(value, int) and not isinstance(value, bool) and key not in ("id",):
                 plain[key] = f"{value:#010x}" if key in REGS or key == "ret" else value
                 if key == "ra" and "from" not in record:
-                    plain["from"] = self.names.at(value)
+                    plain["from"] = self.symbol(value)
             else:
                 plain[key] = value
         self.emit(plain)
@@ -1216,11 +1221,13 @@ class Session:
         return placed
 
     def resident(self, image: str) -> None:
-        """An image is in memory, whole: write the hooks of the events in it. For a handler, with the game stopped."""
-        if image not in self.by_image:
-            return                                    # no event is in it
-        placed = self.install(image)
-        print(f"{image}: {placed} of {len(self.by_image[image])} hooks in place", file=sys.stderr)
+        """An image is in memory, whole, from here on: its symbols name addresses in the log, and the hooks of the
+        events in it are written. It takes the place of whatever was at its load address. For a handler, with the
+        game stopped."""
+        self.residents[self.loads.get(image, image)] = image
+        if image in self.by_image:
+            placed = self.install(image)
+            print(f"{image}: {placed} of {len(self.by_image[image])} hooks in place", file=sys.stderr)
 
     def read(self, address: int, length: int) -> bytes:
         """The console's memory, for a handler."""
@@ -1256,6 +1263,12 @@ class Session:
                 self.emit({"note": f"the buffer does not parse at {self.read_at + at:#010x} (first word {word:#010x}); what was read after it is dropped"})
                 break
             event, phase, captures = known
+            if event.get("handler") and not self.halted:
+                # Read while the game runs. A handler acts with the game stopped, and what comes after its event
+                # may depend on what it does; the game stops at the end of this event's hook in a moment, and
+                # the rest is read then.
+                cursor = self.read_at + at
+                break
             record, field = {"id": event["id"], "name": event["name"], "phase": phase}, at + 4
             for c in captures:
                 record[c["text"]] = struct.unpack_from("<I", data, field)[0] if c["kind"] == "reg" else data[field:field + c["length"]]
@@ -1311,10 +1324,8 @@ class Session:
             self.read_at = self.symbols["gt_buffer"]  # the game's next instructions start the buffer again
         elif self.ready and pc in self.drains:
             self.drain(reset=self.shared is None)
-        if self.ready:
-            waiting, self.deferred = self.deferred, []
-            for function, record in waiting:
-                self.act(function, record)
+        elif self.ready and self.shared is not None:
+            self.drain(reset=False)                   # stopped for a command: bring the log up to here
         return pc
 
     def run(self, first_session: str | None = None) -> None:
