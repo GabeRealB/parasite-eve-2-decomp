@@ -87976,7 +87976,7 @@ capStartSequenceSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
 This is the width leak of "An `int` expression stored into a `u16` field
 narrows its own source load", at an argument position rather than an
 assignment, and it is already the matched idiom elsewhere
-(`capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 0)`). Declaring the global
+(`capStartSequenceSlot((s16)_gActor146300HandoverCapSlot, 0, 0)`). Declaring the global
 `s16` instead - which the m2c seed did - makes all three accesses narrow and
 costs 80.227% with `regs=2 insert=4 delete=4`. A mixed-width access to one
 address is a conversion at the narrow use, not a second symbol.

@@ -45,15 +45,6 @@
 
 /// Main-executable halfword the second state waits on before it may advance.
 
-/// Event scripts handed to `evsStartScriptWithSkip`: the one it starts and its skip
-/// target.
-extern EvsCommand D_actor_146300_80137C28[];
-extern EvsCommand D_actor_146300_80138570[];
-
-/// Absolute import: the shared room script descriptor 0x8013788C, spawned by
-/// entry 0 in the handler below.
-extern TaskDesc D_actor_146300_8013788C;
-
 static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank);
 
 static WorldCollisionGrid     _gDryfieldNightWaterTankCollisionGrid;
@@ -854,7 +845,7 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
                 areaApplySavedUpdates(_gDryfieldNightWaterTankBattleAftermathAreaUpdates);
                 gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
-                evsStartScriptWithSkip(D_actor_146300_80137C28, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146300_80138570);
+                evsStartScriptWithSkip(gActor146300WaterTankEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor146300WaterTankEventSkipScript);
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, DRYFIELD_NIGHT_WATER_TANK_FOLLOW_UP_CLEAR);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE);
                 taskKill(task);
@@ -944,7 +935,7 @@ static s32 _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messag
         if ((u32)(roomVariant - DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT_COUNT) {
             if ((roomVariant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
+                taskSpawnFromTable(&gActor146300IceBagHandoverTaskDesc, 0, 0, 0);
             } else {
                 capRunCommandWithTransition(DRYFIELD_NIGHT_WATER_TANK_CAP_BEFORE_HANDOVER);
             }
