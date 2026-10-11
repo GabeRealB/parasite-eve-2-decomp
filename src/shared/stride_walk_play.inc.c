@@ -14,7 +14,7 @@
 static s32 _strideWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg)
 {
     enum {
-        STRIDE_WALK_ANIMATION_ID_LIMIT = 12,
+        STRIDE_WALK_ANIMATION_ID_LIMIT = ARRAY_SIZE(_gStrideWalkAnimBank),
         STRIDE_WALK_PLAY_ACCEPTED      = 0,
         STRIDE_WALK_PLAY_REJECTED      = -1,
     };

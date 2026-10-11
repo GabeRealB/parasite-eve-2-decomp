@@ -78,10 +78,10 @@ static void _strideWalkSpawn(Enemy* enemy, Task* task)
     work->turnMode   = STRIDE_WALK_TURN_RELEASE;
     work->turnWeight = 0;
     _strideWalkInitializeModelLighting(model, work, rootCoord);
-    animationInitContext(&work->rig.anim, (AnimationSet**)gStrideWalkAnimParams, model,
+    animationInitContext(&work->rig.anim, _gStrideWalkAnimBank, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable = gStrideWalkMessages;
+    task->msgTable = _gStrideWalkMessages;
     _strideWalkUpdate(task);
     task->state += 1;
 }

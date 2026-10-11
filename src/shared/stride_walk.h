@@ -64,6 +64,9 @@ typedef struct {
 } StrideWalkWork;
 STATIC_ASSERT_SIZEOF(StrideWalkWork, 0x4FC);
 
+static AnimationSet*    _gStrideWalkAnimBank[12];
+static TaskMessageEntry _gStrideWalkMessages[6];
+
 static void _strideWalkSpawn(Enemy* enemy, Task* task);
 static void _strideWalkUpdate(Task* task);
 static void _strideWalkFrame(Enemy* enemy, Task* task);

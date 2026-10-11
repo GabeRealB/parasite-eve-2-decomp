@@ -85499,11 +85499,11 @@ The target shape is what an explicit `* 4` in the source index produces — a fl
 table whose index already carries the inner multiply:
 
 ```c
-extern s32 D_actor_161500_80134920[8];
+static EvsCommand* _gActor161500TalkAScripts[2 * ACTOR_161500_TALKS_PER_VARIANT];
 ...
 temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
 temp_v0 = gameFlagGetNibble(0x103);
-evsStartScript(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
+evsStartScript(_gActor161500TalkAScripts[temp_v0 + temp_s0], 0);
 ```
 
 That is byte-identical to the target on the first build (100.000%). m2c had

@@ -119,9 +119,6 @@ extern EvsCommand D_actor_460200_80137FE0[];
 extern EvsCommand D_actor_460200_80138028[];
 extern EvsCommand D_actor_460200_80138070[];
 
-extern u8               gStrideWalkAnimParams[];
-extern TaskMessageEntry gStrideWalkMessages[6];
-
 static void _actorRenderDrawSecondFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierBAnim(Task* task);
 static void _pacedWalkResetSoldierBAnim(Task* task);
@@ -1758,7 +1755,12 @@ static AnimationSet _gActor460200Animation162A0 = {
     { NULL, _gActor460200Animation162A0Bank1, NULL, NULL, _gActor460200Animation162A0Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gStrideWalkMessages[6] = {
+/// Soldier B's stride-walk message dispatch table, terminated by a null end entry.
+///
+/// Handles play requests (clip IDs 1..11), draw flags, parent-space
+/// placement, head-turn commands and walk targets. The spawned task borrows
+/// this table and its callbacks through teardown; unsupported IDs return 0.
+static TaskMessageEntry _gStrideWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierB },
@@ -1782,55 +1784,23 @@ TaskDesc gActor460200SoldierBTasks[2] = {
     },
 };
 
-u8 gStrideWalkAnimParams[48] = {
-    0,
-    0,
-    0,
-    0,
-    160,
-    96,
-    20,
-    128,
-    164,
-    104,
-    20,
-    128,
-    20,
-    102,
-    20,
-    128,
-    56,
-    112,
-    20,
-    128,
-    188,
-    117,
-    20,
-    128,
-    112,
-    119,
-    20,
-    128,
-    36,
-    121,
-    20,
-    128,
-    220,
-    123,
-    20,
-    128,
-    208,
-    126,
-    20,
-    128,
-    192,
-    128,
-    20,
-    128,
-    204,
-    114,
-    20,
-    128,
+/// Soldier B's stride-walk animation bank: NULL slot 0 and playable clips 1..11.
+///
+/// The rig borrows this table and its twenty-part animation sets until
+/// task teardown. This package owns its own bank and clip data.
+static AnimationSet* _gStrideWalkAnimBank[12] = {
+    NULL,
+    &_gActor460200Animation14280,
+    &_gActor460200Animation14A84,
+    &_gActor460200Animation147F4,
+    &_gActor460200Animation15218,
+    &_gActor460200Animation1579C,
+    &_gActor460200Animation15950,
+    &_gActor460200Animation15B04,
+    &_gActor460200Animation15DBC,
+    &_gActor460200Animation160B0,
+    &_gActor460200Animation162A0,
+    &_gActor460200Animation154AC,
 };
 
 static TmdBone _gActor460200SoldierCBodySkeleton[20] = {
