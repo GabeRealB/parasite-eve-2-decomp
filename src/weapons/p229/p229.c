@@ -53,6 +53,11 @@ static SVECTOR _gMuzzleOffset = { 0, 0x140, 0x20, 0 };
 
 static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
 
+/// Selects the P229 secondary-fire flash offset in weapon-root coordinates.
+///
+/// Binds a carrier-owned `SVECTOR`: XYZ are signed integer model units, and
+/// `pad` is unused. The task copies each component once during initialization.
+/// Keep this binding scoped to the task-fragment inclusion.
 #define MUZZLE_FLASH_OFFSET _gMuzzleOffset
 #include "../../shared/muzzle_flash_task.inc.c"
 #undef MUZZLE_FLASH_OFFSET

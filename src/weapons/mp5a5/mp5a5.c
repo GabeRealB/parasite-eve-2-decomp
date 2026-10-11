@@ -57,6 +57,11 @@ static SVECTOR _gMp5a5MuzzleFlashOffset = { 0, 576, 64, 0 };
 
 static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
 
+/// Selects the MP5A5 alternate-fire flash offset in weapon-root coordinates.
+///
+/// Binds a carrier-owned `SVECTOR`: XYZ are signed integer model units, and
+/// `pad` is unused. The task copies each component once during initialization.
+/// Keep this binding scoped to the task-fragment inclusion.
 #define MUZZLE_FLASH_OFFSET _gMp5a5MuzzleFlashOffset
 #include "../../shared/muzzle_flash_task.inc.c"
 #undef MUZZLE_FLASH_OFFSET

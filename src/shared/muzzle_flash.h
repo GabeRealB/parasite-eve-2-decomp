@@ -9,10 +9,13 @@
  * data belongs to the carrier, which declares it before the task fragment
  * and retains each initialized definition at its original data position:
  *
- *   MUZZLE_FLASH_OFFSET names a carrier-owned SVECTOR object. Its signed XYZ
- *   components are integer offsets in the borrowed spawning coordinate's frame;
- *   the pad component is unused. MP5A5 and P229 bind it around the task fragment.
- *   The fragment requires the binding and evaluates each component once.
+ *   MUZZLE_FLASH_OFFSET selects a carrier-owned SVECTOR object. Its signed XYZ
+ *   components are integer model-unit offsets local to the borrowed spawning
+ *   coordinate, the equipped weapon root in both carriers; pad is unused.
+ *   MP5A5 and P229 bind it before including the task fragment and undefine it
+ *   afterwards. The binding must be side-effect-free: it expands separately
+ *   for the vx, vy and vz reads on the first visible update. Each signed
+ *   halfword is copied into a 32-bit local translation; no pointer is retained.
  *
  *   static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT] retains one
  *   direction in each quadrant, in 4096 units per turn. All live flashes in
