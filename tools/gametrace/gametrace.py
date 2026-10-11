@@ -865,15 +865,17 @@ class Gdb:
         while self._recv(0.005) is not None:
             pass
 
-    def release(self, running: bool) -> None:
-        """Take every breakpoint out and let the target run: a breakpoint left behind stops it with nobody listening."""
+    def release(self, running: bool, resume: bool = True) -> None:
+        """Take every breakpoint out - one left behind stops the target with nobody listening - and let the target
+        run, or with `resume` false leave it stopped where it is."""
         if running:
             self.sock.sendall(b"\x03")
             while not self._is_stop(self._recv() or ""):
                 pass
         for address in sorted(self.set):
             self.breakpoint(address, False)
-        self._send("c")
+        if resume:
+            self._send("c")
 
 
 # ---- the console's memory, shared by the emulator: read without asking the server and without stopping the game
@@ -1023,7 +1025,7 @@ class Session:
      resident IMAGE   the image is in memory now: write the hooks of its events (a handler normally says so)
   d  drain            read the buffer into the log now
      status           where things stand
-  q  quit             read the buffer, take the hooks out, let the game run, and leave
+  q  quit             read the buffer, take the hooks out and leave; the game runs on, or stays paused if it was
   h  help             this list"""
 
     def command(self, line: str) -> None:
@@ -1307,7 +1309,8 @@ class Session:
         return not inside or pc == self.symbols["gt_full"] or pc in self.drains
 
     def close(self) -> None:
-        """Leave the game as it was found, running: no hook, no breakpoint. What the buffer still holds is read first."""
+        """Leave the game with no hook and no breakpoint, running - or paused, if it was paused when the tracer was
+        told to leave. What the buffer still holds is read first."""
         if self.gdb.sock.fileno() < 0:
             return
         if self.running:
@@ -1323,7 +1326,9 @@ class Session:
                 self.gdb._go("s")
             self.drain(reset=True)
             self.remove()
-        self.gdb.release(False)
+        # A game the user had paused stays paused: the hooks and breakpoints are gone, and it is theirs to resume.
+        self.gdb.release(False, resume=not self.paused)
+        print("the game is left paused" if self.paused else "the game is running", file=sys.stderr)
 
     def stopped(self) -> int:
         """The game has stopped: do what the place it stopped at asks for. Returns that place."""
