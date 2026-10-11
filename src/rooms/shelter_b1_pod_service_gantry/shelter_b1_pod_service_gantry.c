@@ -102,26 +102,54 @@ DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[1] = {
     { { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-AreaResource D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
-    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
-    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
-    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
-    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, gActor560800CutsceneTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_NO9           = 34,
+    SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_KYLE          = 101,
+    SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_EVE           = 131,
+    SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_CHAIN_CARRIER = 59,
+    SHELTER_B1_POD_SERVICE_GANTRY_FILE_CAST              = 608,
+    SHELTER_B1_POD_SERVICE_GANTRY_DISCARD_TASK           = 1,
 };
 
-AreaPlacement D_shelter_b1_pod_service_gantry_8017FB98[6] = {
-    { 34, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
-    { 131, 0, 0, 0, 0, 0, 0, 1, 2, 8, 0 },
-    { 101, 0, 0, 0, 0, 0, 0, 2, 4, 5, 0 },
-    { 59, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0 },
-    { 101, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Cast-loading recipes for the default gantry placement variant (1).
+///
+/// Key 34 loads file 560800; keys 101, 131 and 59 select additional texture
+/// files 660801..660804. No placement requests the base-60 file 660800.
+/// Every entry spawns bodyless discard descriptor 1: the cutscene controller
+/// creates the cast separately, while placements supply texture relocations.
+/// Paired with `_gShelterB1PodServiceGantryDefaultPlacements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1PodServiceGantryDefaultResources[5] = {
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_NO9, .fileNumber = SHELTER_B1_POD_SERVICE_GANTRY_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = SHELTER_B1_POD_SERVICE_GANTRY_DISCARD_TASK, .taskTable = gActor560800CutsceneTaskDescriptors },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_KYLE, .fileNumber = SHELTER_B1_POD_SERVICE_GANTRY_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = SHELTER_B1_POD_SERVICE_GANTRY_DISCARD_TASK, .taskTable = gActor560800CutsceneTaskDescriptors },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_EVE, .fileNumber = SHELTER_B1_POD_SERVICE_GANTRY_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = SHELTER_B1_POD_SERVICE_GANTRY_DISCARD_TASK, .taskTable = gActor560800CutsceneTaskDescriptors },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_CHAIN_CARRIER, .fileNumber = SHELTER_B1_POD_SERVICE_GANTRY_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = SHELTER_B1_POD_SERVICE_GANTRY_DISCARD_TASK, .taskTable = gActor560800CutsceneTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Default gantry layout (variant 1): five cast-loading placeholders.
+///
+/// The base No. 9 file and Eve/Kyle/chain-carrier/Kyle additional files
+/// use low file-ID components 0, 1, 2, 3 and 4. Coordinates and yaw are zero;
+/// the cutscene places its own cast. Signed page offsets and CLUT rows select
+/// each loaded texture location. Descriptor 1 immediately discards the tasks.
+/// Keys match `_gShelterB1PodServiceGantryDefaultResources`; AREA_PLACEMENT_END ends the list.
+/// Texture-page offsets count 64-word VRAM columns and CLUT offsets count rows.
+/// Retain this room storage through loading and cast texture binding.
+static AreaPlacement _gShelterB1PodServiceGantryDefaultPlacements[6] = {
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_NO9, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_EVE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 1, .texturePageOffset = 2, .clutRowOffset = 8, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_KYLE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 2, .texturePageOffset = 4, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_CHAIN_CARRIER, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 3, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_SERVICE_GANTRY_RESOURCE_KYLE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 4, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
     { NULL, NULL },
-    { D_shelter_b1_pod_service_gantry_8017FB98, D_shelter_b1_pod_service_gantry_8017FB5C },
+    { _gShelterB1PodServiceGantryDefaultPlacements, _gShelterB1PodServiceGantryDefaultResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

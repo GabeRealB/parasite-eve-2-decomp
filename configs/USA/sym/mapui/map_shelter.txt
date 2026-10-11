@@ -304,7 +304,7 @@ gShelterB2OperatingRoomViewCameras = 0x80181388; // absolute:True owner=shelter_
 gShelterB2OperatingRoomSpriteViews = 0x80183184; // absolute:True owner=shelter_b2_operating_room shared=rooms
 gShelterB2OperatingRoomRoomLights = 0x80183718; // absolute:True owner=shelter_b2_operating_room
 gShelterB2OperatingRoomViewBoundaryTriggers = 0x80183730; // absolute:True owner=shelter_b2_operating_room
-gShelterB2OperatingRoomOccluders = 0x80183A28; // absolute:True owner=shelter_b2_operating_room shared=rooms
+gShelterB2OperatingRoomOccluders = 0x80183A28; // absolute:True owner=shelter_b2_operating_room
 gShelterB2OperatingRoomActionTriggers = 0x80183ADC; // absolute:True owner=shelter_b2_operating_room
 gShelterB2OperatingRoomRoomAmbient = 0x80184184; // absolute:True owner=shelter_b2_operating_room
 gShelterB2OperatingRoomSurfaceProperties = 0x801841F4; // absolute:True owner=shelter_b2_operating_room

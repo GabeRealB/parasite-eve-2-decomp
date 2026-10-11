@@ -378,10 +378,24 @@ static AreaResource _gNeoArkSavannaZoneVariant5Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_savanna_zone_80180840[3] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    NEO_ARK_SAVANNA_ZONE_RESOURCE_PAWN_GOLEM = 56,
+    NEO_ARK_SAVANNA_ZONE_RESOURCE_ROOK_GOLEM = 57,
+    NEO_ARK_SAVANNA_ZONE_FILE_PAWN_GOLEM     = 56,
+    NEO_ARK_SAVANNA_ZONE_FILE_ROOK_GOLEM     = 57,
+};
+
+/// Pawn and grenade-launcher Rook GOLEM recipes for placement variant 11.
+///
+/// Keys 56 and 57 load files 105600 and 205700 and spawn descriptor zero.
+/// Paired with `D_map_neo_ark_8017BD80`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gNeoArkSavannaZoneVariant11Resources[3] = {
+    { .entryId = NEO_ARK_SAVANNA_ZONE_RESOURCE_PAWN_GOLEM, .fileNumber = NEO_ARK_SAVANNA_ZONE_FILE_PAWN_GOLEM, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor105600PawnGolemTasks },
+    { .entryId = NEO_ARK_SAVANNA_ZONE_RESOURCE_ROOK_GOLEM, .fileNumber = NEO_ARK_SAVANNA_ZONE_FILE_ROOK_GOLEM, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor05700RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_savanna_zone_80180864[13] = {
@@ -396,7 +410,7 @@ AreaVariant D_neo_ark_savanna_zone_80180864[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapNeoArkSavannaZoneVariant11Placements, D_neo_ark_savanna_zone_80180840 },
+    { gMapNeoArkSavannaZoneVariant11Placements, _gNeoArkSavannaZoneVariant11Resources },
     { NULL, NULL },
 };
 

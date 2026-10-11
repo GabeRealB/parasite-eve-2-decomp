@@ -607,7 +607,7 @@ AreaRecord D_8010D0AC[34] = {
     { D_neo_ark_woodland_path_8018471C, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
     { gNeoArkSubmarineGalleryPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
     { D_neo_ark_r31_8017DBB8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
-    { D_neo_ark_pyramid_80181728, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
+    { gNeoArkPyramidPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
     { NULL, NULL },
 };
 /// End marker following the stage 5 room table.

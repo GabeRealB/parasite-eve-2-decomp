@@ -1,12 +1,12 @@
 // Overlay-local symbols for neo_ark_pyramid.
-D_neo_ark_pyramid_8017FBE4 = 0x8017FBE4; // size:0x28 defined:True
-D_neo_ark_pyramid_8017FC0C = 0x8017FC0C; // size:0xC defined:True
-D_neo_ark_pyramid_8017FC28 = 0x8017FC28; // size:0x20 defined:True
+_gNeoArkPyramidRoomMessages = 0x8017FBE4; // size:0x28 defined:True
+_gNeoArkPyramidRotationPuzzleTaskDesc = 0x8017FC0C; // size:0xC defined:True
+gNeoArkPyramidRoomCollisionResources = 0x8017FC28; // size:0x20 defined:True
 gNeoArkPyramidRoomLighting = 0x8017FC48; // size:0x10 defined:True
 _gNeoArkPyramidAltarSolvedViewMap = 0x8017FC58; // size:0x8 defined:True
 gNeoArkPyramidViewMaps = 0x8017FC60; // size:0x8 defined:True
-D_neo_ark_pyramid_8017FC68 = 0x8017FC68; // size:0x4 defined:True
-D_neo_ark_pyramid_8017FC6C = 0x8017FC6C; // size:0x70 defined:True
+gNeoArkPyramidViewCounts = 0x8017FC68; // size:0x4 defined:True
+gNeoArkPyramidWarpEntries = 0x8017FC6C; // size:0x70 defined:True
 _gNeoArkPyramidCollisionGridNormals = 0x8017FCDC; // size:0x68 defined:True
 _gNeoArkPyramidCollisionGridVerts = 0x8017FD44; // size:0x210 defined:True
 _gNeoArkPyramidCollisionGridFaces = 0x8017FF54; // size:0x1B0 defined:True
@@ -29,15 +29,15 @@ _gNeoArkPyramidView8SpriteBatches = 0x80180E08; // size:0x10 defined:True
 gNeoArkPyramidSpriteViews = 0x80180E18; // size:0x60 defined:True
 _gNeoArkPyramidPointLights = 0x80180E78; // size:0x420 defined:True
 _gNeoArkPyramidRoomLights = 0x80181298; // size:0x18 defined:True
-D_neo_ark_pyramid_801812B0 = 0x801812B0; // size:0x1C8 defined:True
-D_neo_ark_pyramid_80181478 = 0x80181478; // size:0x214 defined:True
+_gNeoArkPyramidViewBoundaryTriggers = 0x801812B0; // size:0x1C8 defined:True
+_gNeoArkPyramidActionTriggers = 0x80181478; // size:0x214 defined:True
 _gNeoArkPyramidVariant1Resources = 0x8018168C; // size:0x18 defined:True
 _gNeoArkPyramidVariant2Resources = 0x801816A4; // size:0x18 defined:True
-D_neo_ark_pyramid_801816BC = 0x801816BC; // size:0x24 defined:True
-D_neo_ark_pyramid_801816E0 = 0x801816E0; // size:0x24 defined:True
-D_neo_ark_pyramid_80181704 = 0x80181704; // size:0x24 defined:True
-D_neo_ark_pyramid_80181728 = 0x80181728; // size:0x68 defined:True
-D_neo_ark_pyramid_80181790 = 0x80181790; // size:0xB4 defined:True
+_gNeoArkPyramidVariant3Resources = 0x801816BC; // size:0x24 defined:True
+_gNeoArkPyramidVariant4Resources = 0x801816E0; // size:0x24 defined:True
+_gNeoArkPyramidVariant11Resources = 0x80181704; // size:0x24 defined:True
+gNeoArkPyramidPlacementVariants = 0x80181728; // size:0x68 defined:True
+_gNeoArkPyramidSightOccluders = 0x80181790; // size:0xB4 defined:True
 _gNeoArkPyramidSurface3FootstepSounds = 0x80181844; // size:0xC defined:True
 _gNeoArkPyramidStairFootstepSounds = 0x80181850; // size:0xC defined:True
 _gNeoArkPyramidDefaultSurfaceProperties = 0x8018185C; // size:0x8 defined:True
@@ -46,7 +46,7 @@ _gNeoArkPyramidSurface2Properties = 0x8018186C; // size:0x8 defined:True
 _gNeoArkPyramidSurface3Properties = 0x80181874; // size:0x8 defined:True
 _gNeoArkPyramidSurface4Properties = 0x8018187C; // size:0x8 defined:True
 gNeoArkPyramidSurfaceProperties = 0x80181884; // size:0x20 defined:True
-D_neo_ark_pyramid_801818A4 = 0x801818A4; // size:0x4 defined:True
+_gNeoArkPyramidRotationPuzzleAngle = 0x801818A4; // size:0x4 defined:True
 gActor103800BlackBeetleTaskDesc = 0x80137D74; // absolute:True owner=actor_103800
 gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
@@ -82,3 +82,4 @@ _neoArkPyramidInitializeRoom = 0x8017db18; // type:func
 neoArkPyramidRoomTask = 0x8017db98; // type:func
 _neoArkPyramidRotationPuzzleTask = 0x8017d600; // type:func
 _neoArkPyramidHandleRoomAction = 0x8017da44; // type:func
+_gNeoArkPyramidRoomStateHandlers = 0x8017d5c4;

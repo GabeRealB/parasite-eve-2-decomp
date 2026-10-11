@@ -11,10 +11,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_neo_ark_pyramid_80181728[13];
+/// Placement layouts indexed by GameLocationKey.variant (0..12).
+///
+/// Slots 1..4 and 11 pair borrowed map placements with room-owned resource
+/// recipes; all other slots are absent. Keep this room, the Neo Ark map and
+/// the selected actor packages loaded while loading, spawning or using placements.
+extern AreaVariant gNeoArkPyramidPlacementVariants[13];
 
-// neo_ark_pyramid
-extern WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[];
+/// Collision resources for the pyramid's two rooms, indexed by room - 1.
+///
+/// Both entries share the mutable grid, six view boundaries, seven action
+/// triggers and three sight occluders. The map borrows these descriptors;
+/// keep the room loaded while active and until its collision lists are unlinked.
+extern WorldCollisionRoomResources gNeoArkPyramidRoomCollisionResources[2];
 
 /// Lighting for the pyramid's two room variants, indexed by room - 1.
 ///
@@ -31,9 +40,20 @@ extern WorldCoordRoomLighting gNeoArkPyramidRoomLighting[2];
 /// The map directory and room-owned map require this overlay to remain loaded.
 extern u8* gNeoArkPyramidViewMaps[2];
 
-extern ViewCount D_neo_ark_pyramid_8017FC68[];
+/// Reverse-lookup logical-view counts for rooms 1 and 2, indexed by room - 1.
+///
+/// Both signed-halfword counts limit reverse lookup to eight byte entries
+/// in the selected logical-view map. There is no terminator; the map borrows
+/// this array while the room is loaded.
+extern ViewCount gNeoArkPyramidViewCounts[2];
 
-extern DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[];
+/// Two pyramid warp endpoints, indexed by the 1-based warp ID minus one.
+///
+/// Endpoint 1 meets the woodland path at view 2 and has arrival/departure sounds.
+/// Endpoint 2 is the stair landing at view 4 and starts the player scripted;
+/// its companion has a separate position. Coordinates use game units and yaw
+/// uses 4096 per turn. There is no terminator; keep the room loaded for lookups.
+extern DirectionWarpEntry gNeoArkPyramidWarpEntries[2];
 
 /// Authored cameras for mapped view indices 1..8, stored at index minus one.
 ///

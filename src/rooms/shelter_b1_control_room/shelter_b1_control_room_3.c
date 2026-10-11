@@ -467,71 +467,149 @@ static AreaResource _gShelterB1ControlRoomDefaultResources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_control_room_801838A8[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER   = 21,
+    SHELTER_B1_CONTROL_ROOM_RESOURCE_NO9_GOLEM = 34,
+    SHELTER_B1_CONTROL_ROOM_RESOURCE_AMOEBA    = 24,
+    SHELTER_B1_CONTROL_ROOM_FILE_WATCHER       = 21,
+    SHELTER_B1_CONTROL_ROOM_FILE_NO9_GOLEM     = 504,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0     = 0,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1     = 1,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_2     = 2,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_3     = 3,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 = 0,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3500 = 1,
+    SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 = 4,
 };
 
-AreaResource D_shelter_b1_control_room_801838C0[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Watcher resource recipe for placement variant 2.
+///
+/// Key 21 loads file 102100 and spawns descriptor zero. Variant 3 retains
+/// its own identical recipe storage.
+/// Paired with `_gShelterB1ControlRoomVariant2Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1ControlRoomVariant2Resources[2] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .fileNumber = SHELTER_B1_CONTROL_ROOM_FILE_WATCHER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_control_room_801838D8[2] = {
-    { 34, 504, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor150400No9GolemTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Watcher resource recipe for placement variant 3.
+///
+/// Key 21 loads file 102100 and spawns descriptor zero. Variant 2 retains
+/// its own identical recipe storage.
+/// Paired with `_gShelterB1ControlRoomVariant3Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1ControlRoomVariant3Resources[2] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .fileNumber = SHELTER_B1_CONTROL_ROOM_FILE_WATCHER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_control_room_801838F0[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// No. 9 GOLEM resource recipe for placement variant 11.
+///
+/// Key 34 loads file 150400 and selects body descriptor zero; that body
+/// creates its beam-sword attachment itself.
+/// Paired with `_gShelterB1ControlRoomVariant11Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1ControlRoomVariant11Resources[2] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_NO9_GOLEM, .fileNumber = SHELTER_B1_CONTROL_ROOM_FILE_NO9_GOLEM, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor150400No9GolemTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_control_room_80183908[8] = {
-    { 21, 3, 0, -350, -3000, -3800, 1024, 0, -1, 2, 1 },
-    { 21, 3, 0, -350, -3000, -4800, 1024, 0, -1, 2, 1 },
-    { 21, 1, 0, -350, -2200, -3000, 1024, 0, -1, 2, 1 },
-    { 21, 1, 0, -350, -2200, -5600, 1024, 0, -1, 2, 1 },
-    { 24, 0, 0, 3500, 0, -3400, 2000, 0, 0, 4, 0 },
-    { 24, 0, 0, 3400, 0, -5100, 2450, 0, 0, 4, 0 },
-    { 24, 0, 0, 2800, 0, -4300, 1024, 0, 0, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Watcher resource recipe for placement variant 13.
+///
+/// Key 21 loads file 102100 and spawns descriptor zero.
+/// Paired with `_gShelterB1ControlRoomVariant13Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1ControlRoomVariant13Resources[2] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .fileNumber = SHELTER_B1_CONTROL_ROOM_FILE_WATCHER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_control_room_80183988[4] = {
-    { 21, 0, 0, -600, -2000, -3500, 1024, 0, 0, 2, 0 },
-    { 21, 0, 0, -600, -2000, -5000, 1024, 0, 0, 2, 0 },
-    { 21, 0, 0, 0x2A94, -2300, -4800, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Default layout (variant 1): four beam Watchers and three amoebas.
+///
+/// Watcher weapons are 3, 3, 1, 1 with sight-range row 1 (3500 game units);
+/// their texture-page offset is -1. Amoebas retain row 0.
+/// Keys match `_gShelterB1ControlRoomDefaultResources`; AREA_PLACEMENT_END ends the list.
+/// Positions use game units and yaw uses 4096 per turn. Retain this room
+/// storage while any spawned enemy borrows its placement record.
+static AreaPlacement _gShelterB1ControlRoomDefaultPlacements[8] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_3, .mode = 0, .x = -350, .y = -3000, .z = -3800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3500 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_3, .mode = 0, .x = -350, .y = -3000, .z = -4800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3500 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -3000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3500 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -5600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3500 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 3500, .y = 0, .z = -3400, .yaw = 2000, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 3400, .y = 0, .z = -5100, .yaw = 2450, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_AMOEBA, .variant = 0, .mode = 0, .x = 2800, .y = 0, .z = -4300, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_control_room_801839C8[4] = {
-    { 21, 0, 0, -600, -2000, -3500, 1024, 0, 0, 2, 0 },
-    { 21, 0, 0, -600, -2000, -5000, 1024, 0, 0, 2, 0 },
-    { 21, 0, 0, 0x2A94, -2300, -4800, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 2 layout: three weapon-0 beam Watchers.
+///
+/// Sight-range row 0 selects 3000 game units. Variant 3 keeps a separate
+/// identical layout.
+/// Keys match `_gShelterB1ControlRoomVariant2Resources`; AREA_PLACEMENT_END ends the list.
+/// Positions use game units and yaw uses 4096 per turn. Retain this room
+/// storage while any spawned enemy borrows its placement record.
+static AreaPlacement _gShelterB1ControlRoomVariant2Placements[4] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = -600, .y = -2000, .z = -3500, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = -600, .y = -2000, .z = -5000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = 0x2A94, .y = -2300, .z = -4800, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_control_room_80183A08[2] = {
-    { 34, 0, 0, 4258, 0, 2700, 0, 0, 4, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 3 layout: three weapon-0 beam Watchers.
+///
+/// Sight-range row 0 selects 3000 game units. Variant 2 keeps a separate
+/// identical layout.
+/// Keys match `_gShelterB1ControlRoomVariant3Resources`; AREA_PLACEMENT_END ends the list.
+/// Positions use game units and yaw uses 4096 per turn. Retain this room
+/// storage while any spawned enemy borrows its placement record.
+static AreaPlacement _gShelterB1ControlRoomVariant3Placements[4] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = -600, .y = -2000, .z = -3500, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = -600, .y = -2000, .z = -5000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_0, .mode = 0, .x = 0x2A94, .y = -2300, .z = -4800, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_3000 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_control_room_80183A28[7] = {
-    { 21, 2, 0, -350, -3000, -3800, 1024, 0, 0, 2, 4 },
-    { 21, 2, 0, -350, -3000, -4800, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, -350, -2200, -2900, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, -350, -2200, -5700, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, -350, -2200, -3600, 1024, 0, 0, 2, 4 },
-    { 21, 1, 0, -350, -2200, -5000, 1024, 0, 0, 2, 4 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 11 layout: one No. 9 GOLEM body and its texture relocation.
+///
+/// The body starts at (4258, 0, 2700) facing yaw zero, with texture-page
+/// offset 4 and CLUT-row offset 2.
+/// Keys match `_gShelterB1ControlRoomVariant11Resources`; AREA_PLACEMENT_END ends the list.
+/// Positions use game units and yaw uses 4096 per turn. Retain this room
+/// storage while any spawned enemy borrows its placement record.
+static AreaPlacement _gShelterB1ControlRoomVariant11Placements[2] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_NO9_GOLEM, .variant = 0, .mode = 0, .x = 4258, .y = 0, .z = 2700, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 13 layout: two weapon-2 and four weapon-1 beam Watchers.
+///
+/// Sight-range row 4 selects 5000 game units; all six use texture-page
+/// offset zero and CLUT-row offset 2.
+/// Keys match `_gShelterB1ControlRoomVariant13Resources`; AREA_PLACEMENT_END ends the list.
+/// Positions use game units and yaw uses 4096 per turn. Retain this room
+/// storage while any spawned enemy borrows its placement record.
+static AreaPlacement _gShelterB1ControlRoomVariant13Placements[7] = {
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_2, .mode = 0, .x = -350, .y = -3000, .z = -3800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_2, .mode = 0, .x = -350, .y = -3000, .z = -4800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -2900, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -5700, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -3600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = SHELTER_B1_CONTROL_ROOM_RESOURCE_WATCHER, .variant = SHELTER_B1_CONTROL_ROOM_WATCHER_BEAM_1, .mode = 0, .x = -350, .y = -2200, .z = -5000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = SHELTER_B1_CONTROL_ROOM_WATCHER_SIGHT_5000 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b1_control_room_80183A98[22] = {
     { NULL, NULL },
-    { D_shelter_b1_control_room_80183908, _gShelterB1ControlRoomDefaultResources },
-    { D_shelter_b1_control_room_80183988, D_shelter_b1_control_room_801838A8 },
-    { D_shelter_b1_control_room_801839C8, D_shelter_b1_control_room_801838C0 },
+    { _gShelterB1ControlRoomDefaultPlacements, _gShelterB1ControlRoomDefaultResources },
+    { _gShelterB1ControlRoomVariant2Placements, _gShelterB1ControlRoomVariant2Resources },
+    { _gShelterB1ControlRoomVariant3Placements, _gShelterB1ControlRoomVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -539,9 +617,9 @@ AreaVariant D_shelter_b1_control_room_80183A98[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_control_room_80183A08, D_shelter_b1_control_room_801838D8 },
+    { _gShelterB1ControlRoomVariant11Placements, _gShelterB1ControlRoomVariant11Resources },
     { NULL, NULL },
-    { D_shelter_b1_control_room_80183A28, D_shelter_b1_control_room_801838F0 },
+    { _gShelterB1ControlRoomVariant13Placements, _gShelterB1ControlRoomVariant13Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

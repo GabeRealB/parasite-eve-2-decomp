@@ -132,15 +132,29 @@ WorldCoordRoomLights gNeoArkR31RoomLights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_neo_ark_r31_8017DB94[3] = {
-    { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor461800ScriptedWalkerTasks },
-    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor461800FootstepWalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    NEO_ARK_R31_RESOURCE_KYLE = 101,
+    NEO_ARK_R31_RESOURCE_AYA  = 132,
+    NEO_ARK_R31_FILE_CAST     = 618,
+};
+
+/// Kyle and Aya-model resource recipes for the default placement variant (1).
+///
+/// Keys 101 and 132 select files 461800 and 661800 respectively; both use
+/// descriptor zero in actor_461800. The base-60 file supplies Aya textures.
+/// Paired with `gMapNeoArkR31DefaultPlacements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gNeoArkR31DefaultResources[3] = {
+    { .entryId = NEO_ARK_R31_RESOURCE_KYLE, .fileNumber = NEO_ARK_R31_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = gActor461800ScriptedWalkerTasks },
+    { .entryId = NEO_ARK_R31_RESOURCE_AYA, .fileNumber = NEO_ARK_R31_FILE_CAST, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .taskTable = &gActor461800FootstepWalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_r31_8017DBB8[13] = {
     { NULL, NULL },
-    { gMapNeoArkR31DefaultPlacements, D_neo_ark_r31_8017DB94 },
+    { gMapNeoArkR31DefaultPlacements, _gNeoArkR31DefaultResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

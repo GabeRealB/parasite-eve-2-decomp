@@ -30,6 +30,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -52,21 +53,14 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 
-/// Angle of the room's rotating quad, set by `_neoArkPyramidSetRotationPuzzleAngle`.
-extern s32      D_neo_ark_pyramid_801818A4;
-extern TaskDesc D_neo_ark_pyramid_8017FC0C;
-
-/// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF
-/// and 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
-extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
-
 static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle);
 static void _neoArkPyramidInitializeRoom(Task* task);
 static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask);
 
-/// State handlers of the room's entry task, indexed by its state through
-/// `neoArkPyramidRoomTask`: set-up, per-frame draw, then kill.
-static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
+/// Room-controller states: 0 installs messages, 1 draws the puzzle, 2 releases the task.
+///
+/// Copied by value before dispatch; the live task's state must be in 0..2.
+static const TaskFuncTable3 _gNeoArkPyramidRoomStateHandlers = {
     { _neoArkPyramidInitializeRoom, _neoArkPyramidDrawRotationPuzzleState, taskKill }
 };
 
@@ -80,12 +74,17 @@ static s32  _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId
 enum { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static WorldCollisionGrid     _gNeoArkPyramidCollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_pyramid_80181790[3];
-extern WorldCollisionTrigger  D_neo_ark_pyramid_801812B0[6];
-extern WorldCollisionTrigger  D_neo_ark_pyramid_80181478[7];
+static WorldCollisionOccluder _gNeoArkPyramidSightOccluders[3];
+static WorldCollisionTrigger  _gNeoArkPyramidViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gNeoArkPyramidActionTriggers[7];
 static WorldCoordRoomLights   _gNeoArkPyramidRoomLights;
 
-TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
+/// Synchronous room messages for transitions, key items, the puzzle and CAP commands.
+///
+/// Payloads are respectively two RoomEventMsg pointers, an item ID, a borrowed
+/// DirectionActionRequest and a command ID. TASK_MESSAGE_TABLE_END closes the
+/// read-only table; its storage and callbacks must outlive the room receiver.
+static const TaskMessageEntry _gNeoArkPyramidRoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPyramidResolveRoomVariant },
     { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPyramidHandleRoomAction },
@@ -93,13 +92,24 @@ TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, _neoArkPyramidRotationPuzzleTask, { .value = 0 } };
+enum { NEO_ARK_PYRAMID_ROTATION_TASK_PRIORITY = 32 };
+
+/// Bodyless rotation-puzzle task recipe, started with zero spawn arguments.
+///
+/// The room action holds and hides the player before spawning it. Priority 32
+/// matches the room controller; the callback must remain loaded until the
+/// puzzle restores control and exits.
+static TaskDesc _gNeoArkPyramidRotationPuzzleTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_PYRAMID_ROTATION_TASK_PRIORITY } },
+    .callback = _neoArkPyramidRotationPuzzleTask,
+    .data     = { .value = 0 },
+};
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_pyramid_8017FC28[2] = {
-    { &_gNeoArkPyramidCollisionGrid, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
-    { &_gNeoArkPyramidCollisionGrid, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
+WorldCollisionRoomResources gNeoArkPyramidRoomCollisionResources[2] = {
+    { .grid = &_gNeoArkPyramidCollisionGrid, .viewBoundaryTriggers = _gNeoArkPyramidViewBoundaryTriggers, .actionTriggers = _gNeoArkPyramidActionTriggers, .occluders = _gNeoArkPyramidSightOccluders },
+    { .grid = &_gNeoArkPyramidCollisionGrid, .viewBoundaryTriggers = _gNeoArkPyramidViewBoundaryTriggers, .actionTriggers = _gNeoArkPyramidActionTriggers, .occluders = _gNeoArkPyramidSightOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkPyramidRoomLighting[2] = {
@@ -127,11 +137,17 @@ u8* gNeoArkPyramidViewMaps[2] = {
     _gNeoArkPyramidAltarSolvedViewMap,
 };
 
-ViewCount D_neo_ark_pyramid_8017FC68[2] = { 8, 8 };
+ViewCount gNeoArkPyramidViewCounts[2] = { 8, 8 };
 
-DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[2] = {
-    { { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0x55200002, 0x55200001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 3200, -650, -7490 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4200, -1160, -7500 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Arrival/departure requests in the pyramid sound bank.
+enum {
+    NEO_ARK_PYRAMID_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 2),
+    NEO_ARK_PYRAMID_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 1),
+};
+
+DirectionWarpEntry gNeoArkPyramidWarpEntries[2] = {
+    { .player = { { .word = 2048 }, -2944, 0, -2035 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 2048 }, -2944, 0, -2035 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = NEO_ARK_PYRAMID_WARP_ARRIVAL_SOUND, .departureSound = NEO_ARK_PYRAMID_WARP_DEPARTURE_SOUND, .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player = { { .word = 3072 }, 3200, -650, -7490 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 3072 }, 4200, -1160, -7500 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = DIRECTION_WARP_SOUND_NONE, .departureSound = DIRECTION_WARP_SOUND_NONE, .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 4, .flags = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 /// Room-local collision normals, with ONE representing unit length.
@@ -469,23 +485,45 @@ static WorldCoordRoomLights _gNeoArkPyramidRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_pyramid_801812B0[6] = {
-    { NULL, NULL, NULL, { -2792, -4000, -3605, 0 }, { { 2775, -4752, 1502, 0 }, { -2776, -4752, -1503, 0 }, { 2775, 4752, 1502, 0 }, { -2776, 4752, -1503, 0 } }, { -1953, 0, 3606, 0 }, { 0, 0, 4096, 0 }, 5701, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2914, -4033, -3426, 0 }, { { -2775, -4752, -1502, 0 }, { 2776, -4752, 1503, 0 }, { -2775, 4752, -1502, 0 }, { 2776, 4752, 1503, 0 } }, { 1952, 0, -3608, 0 }, { 0, 0, 4096, 0 }, 5701, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -449, -4064, -7490, 0 }, { { 1127, -4752, 3686, 0 }, { -1148, -4752, -3699, 0 }, { 1127, 4752, 3686, 0 }, { -1148, 4752, -3699, 0 } }, { -3931, 0, 1210, 0 }, { 0, 0, 4096, 0 }, 6122, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -544, -3936, -7296, 0 }, { { -1147, -4752, -3698, 0 }, { 1128, -4752, 3687, 0 }, { -1147, 4752, -3698, 0 }, { 1128, 4752, 3687, 0 } }, { 3930, 0, -1211, 0 }, { 0, 0, 4096, 0 }, 6122, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2766, -3968, -0x2BF1, 0 }, { { 32, -4752, 2884, 0 }, { -31, -4752, -2884, 0 }, { 32, 4752, 2884, 0 }, { -31, 4752, -2884, 0 } }, { -4106, 0, 44, 0 }, { 0, 0, 4096, 0 }, 5538, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2559, -4032, -0x2BC0, 0 }, { { -31, -4752, -2884, 0 }, { 32, -4752, 2884, 0 }, { -31, 4752, -2884, 0 }, { 32, 4752, 2884, 0 } }, { 4105, 0, -46, 0 }, { 0, 0, 4096, 0 }, 5538, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Six directed view boundaries shared by both pyramid rooms.
+///
+/// Paired crossings join views 2/3, 3/4 and 4/5. Positions and radii use
+/// room game units; normals use 4096 per unit. Setup binds the current view,
+/// links and enables every record through LAST, including the final crossing.
+/// Keep this mutable storage loaded until the view-boundary list is unlinked.
+static WorldCollisionTrigger _gNeoArkPyramidViewBoundaryTriggers[6] = {
+    { .origin = { -2792, -4000, -3605, 0 }, .vertices = { { 2775, -4752, 1502, 0 }, { -2776, -4752, -1503, 0 }, { 2775, 4752, 1502, 0 }, { -2776, 4752, -1503, 0 } }, .normal = { -1953, 0, 3606, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5701, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .origin = { -2914, -4033, -3426, 0 }, .vertices = { { -2775, -4752, -1502, 0 }, { 2776, -4752, 1503, 0 }, { -2775, 4752, -1502, 0 }, { 2776, 4752, 1503, 0 } }, .normal = { 1952, 0, -3608, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5701, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .origin = { -449, -4064, -7490, 0 }, .vertices = { { 1127, -4752, 3686, 0 }, { -1148, -4752, -3699, 0 }, { 1127, 4752, 3686, 0 }, { -1148, 4752, -3699, 0 } }, .normal = { -3931, 0, 1210, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 6122, .control = 0, .parameter0 = 3, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .origin = { -544, -3936, -7296, 0 }, .vertices = { { -1147, -4752, -3698, 0 }, { 1128, -4752, 3687, 0 }, { -1147, 4752, -3698, 0 }, { 1128, 4752, 3687, 0 } }, .normal = { 3930, 0, -1211, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 6122, .control = 0, .parameter0 = 4, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .origin = { 2766, -3968, -0x2BF1, 0 }, .vertices = { { 32, -4752, 2884, 0 }, { -31, -4752, -2884, 0 }, { 32, 4752, 2884, 0 }, { -31, 4752, -2884, 0 } }, .normal = { -4106, 0, 44, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5538, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .origin = { 2559, -4032, -0x2BC0, 0 }, .vertices = { { -31, -4752, -2884, 0 }, { 32, -4752, 2884, 0 }, { -31, 4752, -2884, 0 }, { 32, 4752, 2884, 0 } }, .normal = { 4105, 0, -46, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5538, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_pyramid_80181478[7] = {
-    { NULL, NULL, NULL, { 3005, -3872, -7457, 0 }, { { -13, -5344, 1023, 0 }, { 14, -5344, -1022, 0 }, { -13, 5344, 1023, 0 }, { 14, 5344, -1022, 0 } }, { -4109, 0, -55, 0 }, { -4092, -201, -14, 0 }, 5418, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 20, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2272, -64, -7472, 0 }, { { 416, 14, -702, 0 }, { 416, -13, 703, 0 }, { -416, 14, -702, 0 }, { -416, -13, 703, 0 } }, { 0, 4103, 71, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_FACING, 71, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3104, -658, -7488, 0 }, { { 416, -2, -974, 0 }, { 416, 3, 975, 0 }, { -416, -2, -974, 0 }, { -416, 3, 975, 0 } }, { 0, 4099, -21, 0 }, { 4091, 0, -201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 67, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2945, -48, -1888, 0 }, { { 975, -2, 416, 0 }, { -974, 3, 416, 0 }, { 975, -2, -416, 0 }, { -974, 3, -416, 0 } }, { 10, 4099, 0, 0 }, { -201, 0, -4091, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1632, -64, -5985, 0 }, { { 963, -2, -443, 0 }, { -346, 3, 1002, 0 }, { 346, -2, -1001, 0 }, { -963, 3, 443, 0 } }, { 0, 4099, -11, 0 }, { 3405, 0, 2275, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6558, -64, -5760, 0 }, { { 416, 14, -894, 0 }, { 416, -13, 895, 0 }, { -416, 14, -894, 0 }, { -416, -13, 895, 0 } }, { 0, 4106, 56, 0 }, { -4096, 0, 0, 0 }, 985, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6528, -64, -9792, 0 }, { { 416, 14, -1278, 0 }, { 416, -13, 1279, 0 }, { -416, 14, -1278, 0 }, { -416, -13, 1279, 0 } }, { 0, 4119, 39, 0 }, { -4096, 0, 0, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Stair action settings: surface class 4, step counts and yaw in 16-angle-unit steps.
+enum {
+    NEO_ARK_PYRAMID_STAIR_DESCEND               = 0x100,
+    NEO_ARK_PYRAMID_STAIR_ASCENT_SURFACE_STEPS  = (4 << 4) | 7,
+    NEO_ARK_PYRAMID_STAIR_DESCENT_SURFACE_STEPS = (4 << 4) | 3,
+    NEO_ARK_PYRAMID_STAIR_ASCENT_YAW            = 1024 / 16,
+    NEO_ARK_PYRAMID_STAIR_DESCENT_YAW           = 3072 / 16,
+    NEO_ARK_PYRAMID_TRIGGER_ROTATION_PUZZLE     = 1,
+};
+
+/// Seven action quads shared by both pyramid rooms.
+///
+/// Two warps, two stair directions, puzzle action 1 and CAP commands 4/5.
+/// Positions and radii use room game units; normals use 4096 per unit.
+/// Setup binds the current view, links and enables the records through LAST;
+/// action contacts latch until consumed. Keep storage loaded until unlinked.
+static WorldCollisionTrigger _gNeoArkPyramidActionTriggers[7] = {
+    { .origin = { 3005, -3872, -7457, 0 }, .vertices = { { -13, -5344, 1023, 0 }, { 14, -5344, -1022, 0 }, { -13, 5344, 1023, 0 }, { 14, 5344, -1022, 0 } }, .normal = { -4109, 0, -55, 0 }, .facingNormal = { -4092, -201, -14, 0 }, .radius = 5418, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = GAME_AREA_NEO_ARK_ALTAR, .parameter1 = (2 << 4) | 1, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { 2272, -64, -7472, 0 }, .vertices = { { 416, 14, -702, 0 }, { 416, -13, 703, 0 }, { -416, 14, -702, 0 }, { -416, -13, 703, 0 } }, .normal = { 0, 4103, 71, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 814, .control = WORLD_COLLISION_TRIGGER_ACTION_FACING, .parameter0 = NEO_ARK_PYRAMID_STAIR_ASCENT_SURFACE_STEPS, .parameter1 = NEO_ARK_PYRAMID_STAIR_ASCENT_YAW, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { 3104, -658, -7488, 0 }, .vertices = { { 416, -2, -974, 0 }, { 416, 3, 975, 0 }, { -416, -2, -974, 0 }, { -416, 3, 975, 0 } }, .normal = { 0, 4099, -21, 0 }, .facingNormal = { 4091, 0, -201, 0 }, .radius = 1055, .control = WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_PYRAMID_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = NEO_ARK_PYRAMID_STAIR_DESCENT_SURFACE_STEPS, .parameter1 = NEO_ARK_PYRAMID_STAIR_DESCENT_YAW, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { -2945, -48, -1888, 0 }, .vertices = { { 975, -2, 416, 0 }, { -974, 3, 416, 0 }, { 975, -2, -416, 0 }, { -974, 3, -416, 0 } }, .normal = { 10, 4099, 0, 0 }, .facingNormal = { -201, 0, -4091, 0 }, .radius = 1055, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_NEO_ARK_WOODLAND_PATH, .parameter1 = (1 << 4) | 2, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { -1632, -64, -5985, 0 }, .vertices = { { 963, -2, -443, 0 }, { -346, 3, 1002, 0 }, { 346, -2, -1001, 0 }, { -963, 3, 443, 0 } }, .normal = { 0, 4099, -11, 0 }, .facingNormal = { 3405, 0, 2275, 0 }, .radius = 1055, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, .parameter0 = NEO_ARK_PYRAMID_TRIGGER_ROTATION_PUZZLE, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { 6558, -64, -5760, 0 }, .vertices = { { 416, 14, -894, 0 }, { 416, -13, 895, 0 }, { -416, 14, -894, 0 }, { -416, -13, 895, 0 } }, .normal = { 0, 4106, 56, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 985, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 4, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .origin = { 6528, -64, -9792, 0 }, .vertices = { { 416, 14, -1278, 0 }, { 416, -13, 1279, 0 }, { -416, 14, -1278, 0 }, { -416, -13, 1279, 0 } }, .normal = { 0, 4119, 39, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 1342, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 5, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 /// Placement-entry keys and decimal file numbers for this room's resource recipes.
@@ -516,44 +554,71 @@ static AreaResource _gNeoArkPyramidVariant2Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_pyramid_801816BC[3] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    NEO_ARK_PYRAMID_RESOURCE_HORNED_STRANGER       = 13,
+    NEO_ARK_PYRAMID_RESOURCE_PAWN_GOLEM            = 20,
+    NEO_ARK_PYRAMID_RESOURCE_BEAM_SWORD_ROOK       = 23,
+    NEO_ARK_PYRAMID_RESOURCE_GRENADE_LAUNCHER_ROOK = 57,
+    NEO_ARK_PYRAMID_FILE_HORNED_STRANGER           = 13,
+    NEO_ARK_PYRAMID_FILE_PAWN_GOLEM                = 20,
+    NEO_ARK_PYRAMID_FILE_BEAM_SWORD_ROOK           = 23,
+    NEO_ARK_PYRAMID_FILE_GRENADE_LAUNCHER_ROOK     = 57,
 };
 
-AreaResource D_neo_ark_pyramid_801816E0[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor302000PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle and Maggot recipes for placement variant 3.
+///
+/// Keys 38 and 26 load files 103800 and 202600 and spawn descriptor zero.
+/// Paired with `gMapNeoArkPyramidVariant3Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gNeoArkPyramidVariant3Resources[3] = {
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_BLACK_BEETLE, .fileNumber = NEO_ARK_PYRAMID_FILE_BLACK_BEETLE, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_MAGGOT, .fileNumber = NEO_ARK_PYRAMID_FILE_MAGGOT, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor202600MaggotCaterpillarBodyTask },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_pyramid_80181704[3] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Horned Stranger and Pawn GOLEM recipes for placement variant 4.
+///
+/// Keys 13 and 20 load files 401300 and 302000 and spawn descriptor zero.
+/// Paired with `gMapNeoArkPyramidVariant4Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gNeoArkPyramidVariant4Resources[3] = {
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_HORNED_STRANGER, .fileNumber = NEO_ARK_PYRAMID_FILE_HORNED_STRANGER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401300HornedStrangerTaskDesc },
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_PAWN_GOLEM, .fileNumber = NEO_ARK_PYRAMID_FILE_PAWN_GOLEM, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = gActor302000PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_pyramid_80181728[13] = {
-    { NULL, NULL },
-    { gMapNeoArkPyramidVariant1Placements, _gNeoArkPyramidVariant1Resources },
-    { gMapNeoArkPyramidVariant2Placements, _gNeoArkPyramidVariant2Resources },
-    { gMapNeoArkPyramidVariant3Placements, D_neo_ark_pyramid_801816BC },
-    { gMapNeoArkPyramidVariant4Placements, D_neo_ark_pyramid_801816E0 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkPyramidVariant11Placements, D_neo_ark_pyramid_80181704 },
-    { NULL, NULL },
+/// Beam-sword and grenade-launcher Rook GOLEM recipes for variant 11.
+///
+/// Keys 23 and 57 load files 102300 and 205700 and spawn descriptor zero.
+/// Paired with `gMapNeoArkPyramidVariant11Placements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gNeoArkPyramidVariant11Resources[3] = {
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_BEAM_SWORD_ROOK, .fileNumber = NEO_ARK_PYRAMID_FILE_BEAM_SWORD_ROOK, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102300RookGolemTasks },
+    { .entryId = NEO_ARK_PYRAMID_RESOURCE_GRENADE_LAUNCHER_ROOK, .fileNumber = NEO_ARK_PYRAMID_FILE_GRENADE_LAUNCHER_ROOK, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor05700RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionOccluder D_neo_ark_pyramid_80181790[3] = {
-    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
-    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
-    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, 8628, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+AreaVariant gNeoArkPyramidPlacementVariants[13] = {
+    [1]  = { .placements = gMapNeoArkPyramidVariant1Placements, .resources = _gNeoArkPyramidVariant1Resources },
+    [2]  = { .placements = gMapNeoArkPyramidVariant2Placements, .resources = _gNeoArkPyramidVariant2Resources },
+    [3]  = { .placements = gMapNeoArkPyramidVariant3Placements, .resources = _gNeoArkPyramidVariant3Resources },
+    [4]  = { .placements = gMapNeoArkPyramidVariant4Placements, .resources = _gNeoArkPyramidVariant4Resources },
+    [11] = { .placements = gMapNeoArkPyramidVariant11Placements, .resources = _gNeoArkPyramidVariant11Resources },
+};
+
+/// Three room-space line-of-sight quads shared by both pyramid rooms.
+///
+/// Positions use game units and normals use 4096 per unit. Setup links and
+/// enables every record through LAST; the authored low flag value 1 has no
+/// established interpretation. Retain this mutable storage until unlinked.
+static WorldCollisionOccluder _gNeoArkPyramidSightOccluders[3] = {
+    { .origin = { 6416, -1104, -6464, 0 }, .vertices = { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, .normal = { 0, 0, 4097, 0 }, .radius = 4664, .flags = 1, .unknown_3B = 0 },
+    { .origin = { 6400, -1088, -8384, 0 }, .vertices = { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, .normal = { 0, 0, 4097, 0 }, .radius = 4664, .flags = 1, .unknown_3B = 0 },
+    { .origin = { 1536, -1984, -5744, 0 }, .vertices = { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, .normal = { 0, -4110, 0, 0 }, .radius = 8628, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
 /// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
@@ -652,7 +717,11 @@ WorldCollisionSurfaceProperties* gNeoArkPyramidSurfaceProperties[8] = {
     &_gNeoArkPyramidDefaultSurfaceProperties,
 };
 
-s32 D_neo_ark_pyramid_801818A4 = 0;
+/// Signed screen-space rotation of the puzzle quad, in 4096 units per turn.
+///
+/// Unnormalized: completed twelfth-turn steps are relative to step four, with
+/// the active sweep added. Retained between setter calls while the room is loaded.
+static s32 _gNeoArkPyramidRotationPuzzleAngle = 0;
 
 static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle);
 
@@ -877,7 +946,7 @@ static s32 _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId,
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            taskSpawnFromTable(&D_neo_ark_pyramid_8017FC0C, 0, 0, 0);
+            taskSpawnFromTable(&_gNeoArkPyramidRotationPuzzleTaskDesc, 0, 0, 0);
         }
     }
     return 0;
@@ -896,7 +965,7 @@ static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle)
            NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN   = 12 };
 
     // Scale the signed completed-step offset before dividing; add the sweep last.
-    D_neo_ark_pyramid_801818A4 = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - NEO_ARK_PYRAMID_ROTATION_ALIGNED_STEP) << NEO_ARK_PYRAMID_ROTATION_ANGLE_TURN_SHIFT) / NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN) + sweepAngle;
+    _gNeoArkPyramidRotationPuzzleAngle = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - NEO_ARK_PYRAMID_ROTATION_ALIGNED_STEP) << NEO_ARK_PYRAMID_ROTATION_ANGLE_TURN_SHIFT) / NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN) + sweepAngle;
 }
 
 /// Installs the pyramid message receiver and advances to puzzle drawing.
@@ -905,7 +974,7 @@ static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle)
 /// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
 static void _neoArkPyramidInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_pyramid_8017FBE4;
+    task->msgTable = _gNeoArkPyramidRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -920,7 +989,7 @@ static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask)
     enum { NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW = 8 };
 
     if (gGameSession->location.loc.view == NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW) {
-        _neoArkPyramidDrawRotationPuzzleQuad(D_neo_ark_pyramid_801818A4);
+        _neoArkPyramidDrawRotationPuzzleQuad(_gNeoArkPyramidRotationPuzzleAngle);
     }
 }
 
@@ -928,7 +997,7 @@ void neoArkPyramidRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_pyramid_8017D5C4;
+    stateHandlers = _gNeoArkPyramidRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

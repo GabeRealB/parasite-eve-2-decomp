@@ -589,16 +589,32 @@ WorldCollisionTrigger D_shelter_1f_tent_80183CF4[17] = {
     { NULL, NULL, NULL, { -2231, -64, 4062, 0 }, { { -460, 0, -639, 0 }, { 686, 0, -432, 0 }, { -717, 0, 385, 0 }, { 494, 0, 688, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_1f_tent_80184200[4] = {
-    { 113, 602, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor460200SoldierCTaskDesc },
-    { 116, 602, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor460200SoldierBTasks },
-    { 117, 603, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor460200SoldierATaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    SHELTER_1F_TENT_RESOURCE_SOLDIER_C = 113,
+    SHELTER_1F_TENT_RESOURCE_SOLDIER_B = 116,
+    SHELTER_1F_TENT_RESOURCE_SOLDIER_A = 117,
+    SHELTER_1F_TENT_FILE_SOLDIERS_B_C  = 602,
+    SHELTER_1F_TENT_FILE_SOLDIER_A     = 603,
+};
+
+/// Soldier C, B and A resource recipes for the default placement variant (1).
+///
+/// Keys 113, 116 and 117 select files 460200, 660200 and 660300; descriptor
+/// zero comes from actor_460200 in each case. Base-60 files supply textures.
+/// Paired with `gMapNeoArkTentDefaultPlacements`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelter1fTentDefaultResources[4] = {
+    { .entryId = SHELTER_1F_TENT_RESOURCE_SOLDIER_C, .fileNumber = SHELTER_1F_TENT_FILE_SOLDIERS_B_C, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor460200SoldierCTaskDesc },
+    { .entryId = SHELTER_1F_TENT_RESOURCE_SOLDIER_B, .fileNumber = SHELTER_1F_TENT_FILE_SOLDIERS_B_C, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .taskTable = gActor460200SoldierBTasks },
+    { .entryId = SHELTER_1F_TENT_RESOURCE_SOLDIER_A, .fileNumber = SHELTER_1F_TENT_FILE_SOLDIER_A, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .taskTable = &gActor460200SoldierATaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_1f_tent_80184230[13] = {
     { NULL, NULL },
-    { gMapNeoArkTentDefaultPlacements, D_shelter_1f_tent_80184200 },
+    { gMapNeoArkTentDefaultPlacements, _gShelter1fTentDefaultResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

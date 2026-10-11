@@ -1503,7 +1503,7 @@ D_dryfield_night_trailer_coach_8018C15C = 0x8018C15C; // absolute:True owner=dry
 
 D_dryfield_night_underpass_801802DC = 0x801802DC; // absolute:True owner=dryfield_night_underpass
 
-D_dryfield_night_warehouse_8017FB98 = 0x8017FB98; // absolute:True owner=dryfield_night_warehouse shared=rooms
+D_dryfield_night_warehouse_8017FB98 = 0x8017FB98; // absolute:True owner=dryfield_night_warehouse
 
 D_dryfield_night_water_hole_80183418 = 0x80183418; // absolute:True owner=dryfield_night_water_hole
 
@@ -1573,7 +1573,7 @@ D_neo_ark_power_plant_1_80181AF8 = 0x80181AF8; // absolute:True owner=neo_ark_po
 
 D_neo_ark_power_plant_2_80182DE0 = 0x80182DE0; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 
-D_neo_ark_pyramid_80181728 = 0x80181728; // absolute:True owner=neo_ark_pyramid shared=rooms
+gNeoArkPyramidPlacementVariants = 0x80181728; // absolute:True owner=neo_ark_pyramid shared=rooms
 
 gNeoArkR26AreaVariants = 0x8017E994; // absolute:True owner=neo_ark_r26
 

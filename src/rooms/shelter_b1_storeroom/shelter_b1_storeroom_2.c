@@ -547,26 +547,66 @@ WorldCollisionTrigger D_shelter_b1_storeroom_80186670[15] = {
     { NULL, NULL, NULL, { 6304, -64, -1584, 0 }, { { -432, 0, -736, 0 }, { 432, 0, -736, 0 }, { -432, 0, 736, 0 }, { 432, 0, 736, 0 } }, { 0, 4113, 0, 0 }, { -4076, 0, 401, 0 }, 851, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_storeroom_80186AE4[3] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys, decimal file numbers and table selectors for these layouts.
+enum {
+    SHELTER_B1_STOREROOM_RESOURCE_ODD_STRANGER   = 18,
+    SHELTER_B1_STOREROOM_RESOURCE_RAT            = 7,
+    SHELTER_B1_STOREROOM_RESOURCE_AMOEBA         = 24,
+    SHELTER_B1_STOREROOM_RESOURCE_STINGER        = 3,
+    SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM     = 20,
+    SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM_ALT = 56,
+    SHELTER_B1_STOREROOM_FILE_ODD_STRANGER       = 18,
+    SHELTER_B1_STOREROOM_FILE_RAT                = 7,
+    SHELTER_B1_STOREROOM_FILE_AMOEBA             = 24,
+    SHELTER_B1_STOREROOM_FILE_STINGER            = 3,
+    SHELTER_B1_STOREROOM_FILE_PAWN_GOLEM         = 20,
+    SHELTER_B1_STOREROOM_FILE_PAWN_GOLEM_ALT     = 56,
 };
 
-AreaResource D_shelter_b1_storeroom_80186B08[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Odd Stranger and Rat recipes for placement variant 1.
+///
+/// Keys 18 and 7 load files 401800 and 300700 and spawn descriptor zero.
+/// Paired with `D_shelter_b1_storeroom_80186B5C`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1StoreroomVariant1Resources[3] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_ODD_STRANGER, .fileNumber = SHELTER_B1_STOREROOM_FILE_ODD_STRANGER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401800OddStrangerTaskDesc },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_RAT, .fileNumber = SHELTER_B1_STOREROOM_FILE_RAT, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor300700RatTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_storeroom_80186B20[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Amoeba resource recipe for placement variant 2.
+///
+/// Key 24 loads file 102400 and spawns body descriptor zero.
+/// Paired with `D_shelter_b1_storeroom_80186BBC`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1StoreroomVariant2Resources[2] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .fileNumber = SHELTER_B1_STOREROOM_FILE_AMOEBA, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_storeroom_80186B38[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Stinger resource recipe for placement variant 3.
+///
+/// Key 3 loads file 100300 and spawns body descriptor zero.
+/// Paired with `D_shelter_b1_storeroom_80186C3C`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1StoreroomVariant3Resources[2] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_STINGER, .fileNumber = SHELTER_B1_STOREROOM_FILE_STINGER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor100300Tasks },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Two Pawn GOLEM recipes for placement variant 11.
+///
+/// Keys 20 and 56 load files 102000 and 205600 and spawn descriptor zero.
+/// Paired with `D_shelter_b1_storeroom_80186C6C`; AREA_PLACEMENT_END ends the list.
+/// Retain room recipes, placements and actor descriptors through loading,
+/// spawning and model-flag updates.
+static AreaResource _gShelterB1StoreroomVariant11Resources[3] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM, .fileNumber = SHELTER_B1_STOREROOM_FILE_PAWN_GOLEM, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM_ALT, .fileNumber = SHELTER_B1_STOREROOM_FILE_PAWN_GOLEM_ALT, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor205600PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaPlacement D_shelter_b1_storeroom_80186B5C[6] = {
@@ -603,9 +643,9 @@ AreaPlacement D_shelter_b1_storeroom_80186C6C[3] = {
 
 AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
-    { D_shelter_b1_storeroom_80186B5C, D_shelter_b1_storeroom_80186AE4 },
-    { D_shelter_b1_storeroom_80186BBC, D_shelter_b1_storeroom_80186B08 },
-    { D_shelter_b1_storeroom_80186C3C, D_shelter_b1_storeroom_80186B20 },
+    { D_shelter_b1_storeroom_80186B5C, _gShelterB1StoreroomVariant1Resources },
+    { D_shelter_b1_storeroom_80186BBC, _gShelterB1StoreroomVariant2Resources },
+    { D_shelter_b1_storeroom_80186C3C, _gShelterB1StoreroomVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -613,7 +653,7 @@ AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_storeroom_80186C6C, D_shelter_b1_storeroom_80186B38 },
+    { D_shelter_b1_storeroom_80186C6C, _gShelterB1StoreroomVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
