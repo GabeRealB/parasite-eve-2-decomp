@@ -88,10 +88,6 @@ enum {
     CAP_TEXT_BOX_BOTTOM_Y       = CAP_TEXT_BOTTOM_BASELINE_Y - CAP_TEXT_SCREEN_CENTER_Y + 1,
 };
 
-/// Inclusive grey-pulse levels; the upper level also normalizes vertex colours.
-enum { CAP_MARKER_PULSE_MIN = 8,
-       CAP_MARKER_PULSE_MAX = 15 };
-
 static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revealAll, u16 titleAndFlags);
 
 static void _capDrawChoiceMarker(void);
@@ -121,9 +117,6 @@ void func_80724714(void);
 /// it must be falling. Each call changes the level by one before reversing.
 static inline void _capStepMarkerPulse(s32* greyLevel, s32* falling)
 {
-    enum { CAP_MARKER_PULSE_RISING  = 0,
-           CAP_MARKER_PULSE_FALLING = 1 };
-
     if (*falling == CAP_MARKER_PULSE_RISING) {
         (*greyLevel)++;
         if (*greyLevel >= CAP_MARKER_PULSE_MAX) {
@@ -268,7 +261,7 @@ void capUpdatePlaybackTask(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_PLAYBACK_ROOM_EFFECT_MESSAGE, 0, 0);
         stageRequestFrameCapture();
-        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &D_801155A0);
+        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
     }
     recordIndex = capFindVariantRecord((s32)(s16)D_801155AE);
     D_801155AE  = (u16)recordIndex;
@@ -338,7 +331,7 @@ void capUpdatePlaybackTask(Task* task)
             recordViewIndex = gCapSelectedSequence[(s16)D_801155AE].control.scene.view;
         }
         if (recordFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
-            taskSpawnFromTable(D_8010FB4C, CAP_TEXTURE_MESSAGE_TASK_SLOT, gCapSelectedSequence[(s16)D_801155AE].control.scene.messageValue | (gCapSelectedSequence[(s16)D_801155AE].control.scene.messageDelayFrames << CAP_TEXTURE_MESSAGE_DELAY_SHIFT) | (gCapSelectedSequence[(s16)D_801155AE].trigger.messageRecipient << CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT), 0);
+            taskSpawnFromTable(gCapPlaybackTaskDescriptors, CAP_TEXTURE_MESSAGE_TASK_SLOT, gCapSelectedSequence[(s16)D_801155AE].control.scene.messageValue | (gCapSelectedSequence[(s16)D_801155AE].control.scene.messageDelayFrames << CAP_TEXTURE_MESSAGE_DELAY_SHIFT) | (gCapSelectedSequence[(s16)D_801155AE].trigger.messageRecipient << CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT), 0);
         }
         _capAdvanceRecord();
         nextViewText = gCapSelectedSequence[(s16)D_801155AE].textRef;
@@ -391,48 +384,48 @@ void capUpdatePlaybackTask(Task* task)
         // Keep the singleton request live until its prompt or scene child finishes.
         if (gCapSelectedSequence[(s16)D_801155AE].actionId != 0) {
             if (D_801155AC == CAP_RECORD_BEGIN) {
-                D_801155A0.actionId = gCapSelectedSequence[(s16)D_801155AE].actionId;
-                if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
-                    if (areaGetCurrentObjectState(D_801155A0.actionId) == CAP_PLACED_ACTION_ALREADY_COMPLETE) {
-                        D_801155AC          = CAP_RECORD_WAIT;
-                        D_801155A0.done     = 1;
-                        D_801155A0.accepted = 1;
+                gCapActionRequest.actionId = gCapSelectedSequence[(s16)D_801155AE].actionId;
+                if (gCapActionRequest.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
+                    if (areaGetCurrentObjectState(gCapActionRequest.actionId) == CAP_PLACED_ACTION_ALREADY_COMPLETE) {
+                        D_801155AC                 = CAP_RECORD_WAIT;
+                        gCapActionRequest.done     = 1;
+                        gCapActionRequest.accepted = 1;
                         return;
                     }
                 }
-                if (D_801155A0.actionId >= (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
+                if (gCapActionRequest.actionId >= (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
                     sceneTask  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     actionTask = sceneTask;
-                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(sceneTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.actionId - CAP_SEQUENCE_CHILD_ACTION_BASE, &actionTask);
+                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(sceneTask, SCENE_MESSAGE_FIND_OTHER_CHILD, gCapActionRequest.actionId - CAP_SEQUENCE_CHILD_ACTION_BASE, &actionTask);
                     if (actionTask != NULL) {
-                        D_801155A0.done     = 0;
-                        D_801155A0.accepted = 1;
-                        TASK_MESSAGE_DISPATCH_POINTER(actionTask, CAP_ACTION_MESSAGE_REQUEST, &D_801155A0, 0);
+                        gCapActionRequest.done     = 0;
+                        gCapActionRequest.accepted = 1;
+                        TASK_MESSAGE_DISPATCH_POINTER(actionTask, CAP_ACTION_MESSAGE_REQUEST, &gCapActionRequest, 0);
                     } else {
-                        D_801155A0.done     = 1;
-                        D_801155A0.accepted = 1;
+                        gCapActionRequest.done     = 1;
+                        gCapActionRequest.accepted = 1;
                     }
                 } else {
-                    D_801155A0.done = 0;
+                    gCapActionRequest.done = 0;
                     if (D_80115666 == CAP_PLAYBACK_DISPLAY_TRANSITION) {
                         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
-                        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &D_801155A0);
+                        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
                     } else if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
                         D_801155BA = CAP_ACTION_CAPTURE_DELAY_FRAMES;
                     } else {
-                        displayQueueModeTask(taskGetDesc(CAP_ACTION_PROMPT_EXIT_TASK_BANK, CAP_ACTION_PROMPT_EXIT_TASK_TYPE), 0, &D_801155A0, STAGE_ENTRY_RELOAD);
+                        displayQueueModeTask(taskGetDesc(CAP_ACTION_PROMPT_EXIT_TASK_BANK, CAP_ACTION_PROMPT_EXIT_TASK_TYPE), 0, &gCapActionRequest, STAGE_ENTRY_RELOAD);
                     }
                 }
                 D_801155AC = CAP_RECORD_WAIT;
                 return;
             }
-            if (D_801155A0.done != 0) {
+            if (gCapActionRequest.done != 0) {
                 if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
                 }
                 D_801155AC = CAP_RECORD_BEGIN;
-                if (D_801155A0.accepted == 0) {
+                if (gCapActionRequest.accepted == 0) {
                     if (gCapSelectedSequence[(s16)D_801155AE].control.action.fallbackKey != 0) {
                         Gp_CapEventKey = gCapSelectedSequence[(s16)D_801155AE].control.action.fallbackKey;
                     }
@@ -714,7 +707,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
 
     // Convert cached screen-space metrics to centre-relative pen coordinates.
     text              = textStream;
-    layout            = &D_80097518;
+    layout            = &gCapTextLayout;
     choiceIndex       = 0;
     title             = titleAndFlags;
     choiceOpen        = 0;
@@ -871,7 +864,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                 codeIndex++;
                 continue;
             } else if ((code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CODE_ICON) {
-                icon           = &D_8010FB70[code & CAP_TEXT_CODE_VALUE_MASK];
+                icon           = &gCapInlineIconCells[code & CAP_TEXT_CODE_VALUE_MASK];
                 spriteQuad     = gGpuPrimCursor;
                 gGpuPrimCursor = spriteQuad + 1;
                 setPolyFT4(spriteQuad);
@@ -989,9 +982,9 @@ static void _capDrawChoiceMarker(void)
         y              = choices[choiceIndex].y;
         markerY        = -(gDisplayState.vramYOffset + 2) + y;
         setPolyG3(marker);
-        grey = (D_8010FB80 << 7) / CAP_MARKER_PULSE_MAX;
+        grey = (gCapChoiceMarkerPulseLevel << 7) / CAP_MARKER_PULSE_MAX;
         setRGB0(marker, grey, grey, grey);
-        grey       = (D_8010FB80 * 0xC0) / CAP_MARKER_PULSE_MAX;
+        grey       = (gCapChoiceMarkerPulseLevel * 0xC0) / CAP_MARKER_PULSE_MAX;
         marker->x0 = x;
         marker->y0 = markerY - 5;
         marker->x1 = x - 10;
@@ -1001,7 +994,7 @@ static void _capDrawChoiceMarker(void)
         setRGB1(marker, grey, grey, grey);
         setRGB2(marker, grey, grey, grey);
         addPrim(&gGpuCurrentOt[2], marker);
-        _capStepMarkerPulse(&D_8010FB80, &D_8010FB84);
+        _capStepMarkerPulse(&gCapChoiceMarkerPulseLevel, &gCapChoiceMarkerPulseFalling);
     }
 }
 
@@ -1061,7 +1054,7 @@ static void _capFinishPlayback(Task* task)
     // Three unsigned-halfword decimal fields fit this 32-byte debug filename.
     if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != NULL) {
         sprintf(
-            sceneFilename, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
+            sceneFilename, gCapSceneKeyFilenameFormat, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
             D_801156F4.sceneKey->subId);
         func_807244CC(sceneFilename);
     }
@@ -1092,10 +1085,10 @@ static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
     gGpuPrimCursor = caret + 1;
     setPolyG3(caret);
 
-    grey = (Gp_CapCaretGrey << 7) / CAP_MARKER_PULSE_MAX;
+    grey = (gCapContinueCaretPulseLevel << 7) / CAP_MARKER_PULSE_MAX;
     setRGB0(caret, grey, grey, grey);
 
-    grey = (Gp_CapCaretGrey * 0xC0) / CAP_MARKER_PULSE_MAX;
+    grey = (gCapContinueCaretPulseLevel * 0xC0) / CAP_MARKER_PULSE_MAX;
     setRGB1(caret, grey, grey, grey);
     setRGB2(caret, grey, grey, grey);
 
@@ -1109,7 +1102,7 @@ static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
     caret->y2 = -(gDisplayState.vramYOffset + 7) + y;
     addPrim(&gGpuCurrentOt[2], caret);
 
-    _capStepMarkerPulse(&Gp_CapCaretGrey, &Gp_CapCaretDir);
+    _capStepMarkerPulse(&gCapContinueCaretPulseLevel, &gCapContinueCaretPulseFalling);
 }
 
 /// Returns the screen X of a centred CAP block's left pen, in pixels.

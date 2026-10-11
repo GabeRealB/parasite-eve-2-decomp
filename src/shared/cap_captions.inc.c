@@ -435,7 +435,7 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
             textIndex++;
             continue;
         } else if ((code & CAP_CAPTION_TEXT_FAMILY_MASK) == CAP_CAPTION_TEXT_ICON) {
-            iconCell       = &D_8010FB70[code & CAP_CAPTION_TEXT_BYTE_MASK];
+            iconCell       = &gCapInlineIconCells[code & CAP_CAPTION_TEXT_BYTE_MASK];
             flatQuad       = gGpuPrimCursor;
             gGpuPrimCursor = flatQuad + 1;
             setPolyFT4(flatQuad);

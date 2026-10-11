@@ -94,7 +94,7 @@ bool capRelocateFile(CapFile* file)
     CapSequenceTable*  sequenceTable;
     CapCommandTable*   commandTable;
 
-    if (strncmp(file->magic, Gp_StrCapMagic, CAP_MAGIC_PREFIX_BYTES) != 0) {
+    if (strncmp(file->magic, gCapMagicPrefix, CAP_MAGIC_PREFIX_BYTES) != 0) {
         return false;
     }
 

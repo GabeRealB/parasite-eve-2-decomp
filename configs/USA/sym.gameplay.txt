@@ -1322,8 +1322,8 @@ Gp_PubItemId = 0x80114DEC; // size:0x2 defined:True
 
 // Gameplay naming pass 6 (player/ally, CAP, map, pair ids)
 Gp_ItemPromptTexts          = 0x80093DA0; // size:0x10
-Gp_StrCapMagic              = 0x80097514;
-Gp_StrEvsFmt                = 0x8009751C;
+gCapMagicPrefix              = 0x80097514;
+gCapSceneKeyFilenameFormat                = 0x8009751C;
 Gp_MapNameTables            = 0x8010F0B8; // defined:True
 Gp_MapRecTables             = 0x8010F0F4; // defined:True
 Gp_MapFlagIds               = 0x8010F108; // defined:True
@@ -1341,7 +1341,7 @@ Gp_CapCmds = 0x801156A0; // size:0x4 defined:True
 // Gameplay naming pass 7 (cap measure, player/ally msgs, warp/room)
 Gp_WarpTables = 0x8010CB90; // size:0x14 defined:True
 Gp_RoomParamTables = 0x8010CBB8; // size:0x14 defined:True
-Gp_WeaponMsgRec             = 0x8010FB38; // size:0x14 defined:True
+_gCapScriptedIdleAnimationRequest             = 0x8010FB38; // size:0x14 defined:True
 Gp_WeaponIdBase = 0x80112D68; // size:0x4 defined:True
 Gp_AllyIdBase = 0x80113360; // size:0x8 defined:True
 Gp_WarpLoc                  = 0x80114CE8; // size:0x8 defined:True
@@ -1403,7 +1403,7 @@ Gp_ItemActionFns            = 0x8010D67C; // defined:True
 Gp_ItemActionList = 0x8010D68C; // size:0x24 defined:True
 
 // Gameplay naming pass 12 (UI strings, spend MP, stream/snd CD)
-Gp_EvtSpawnTable            = 0x8010FAEC; // defined:True
+_gCapEventTaskDescriptors            = 0x8010FAEC; // defined:True
 Gp_DirByte                  = 0x80114CD8; // size:0x1 defined:True
 Gp_DirNibble                = 0x80114CD9; // size:0x1 defined:True
 Gp_DirFlags                 = 0x80114CD2; // size:0x2 defined:True
@@ -1600,8 +1600,8 @@ _gPadScriptVariableMotorHalt              = 0x80115702; // size:0x1 defined:True
 Gp_CapCaretX = 0x8011564C; // size:0x2 defined:True
 Gp_CapCaretY = 0x8011564E; // size:0x2 defined:True
 Gp_CapCaretDelay = 0x80115658; // size:0x1 defined:True
-Gp_CapCaretGrey             = 0x8010FB88; // size:0x4 defined:True
-Gp_CapCaretDir              = 0x8010FB8C; // size:0x4 defined:True
+gCapContinueCaretPulseLevel             = 0x8010FB88; // size:0x4 defined:True
+gCapContinueCaretPulseFalling              = 0x8010FB8C; // size:0x4 defined:True
 Gp_State1CTask              = 0x80115748; // size:0x4 defined:True
 gEffectBillboardClutX = 0x80111EA8; // size:0xC defined:True
 gEffectStatusScreenTints = 0x80111EC0; // size:0x10 defined:True
@@ -1680,7 +1680,7 @@ Gp_PlayClockStates          = 0x80093830;
 Gp_LoadWaitFns              = 0x800938B4;
 Gp_StageLoadStates          = 0x80093A1C;
 Gp_MapTaskStates            = 0x800971C0;
-Gp_CapTaskStates            = 0x8009752C;
+gCapControlStates            = 0x8009752C;
 Gp_ScriptTaskStates         = 0x80097538;
 Gp_Script18States           = 0x8009762C;
 Gp_ScriptAStates            = 0x80097638;
@@ -2008,12 +2008,12 @@ gWorldTargetCursorXFixed8 = 0x8010F9EC; // size:0x4 defined:True
 gWorldTargetCursorYFixed8 = 0x8010F9F0; // size:0x4 defined:True
 D_8010F9F4 = 0x8010F9F4; // size:0x18 defined:True
 D_8010FA0C = 0x8010FA0C; // size:0x18 defined:True
-D_8010FB10 = 0x8010FB10; // size:0x14 defined:True
-D_8010FB24 = 0x8010FB24; // size:0x14 defined:True
-D_8010FB4C = 0x8010FB4C; // size:0x24 defined:True
-D_8010FB70 = 0x8010FB70; // size:0x10 defined:True
-D_8010FB80 = 0x8010FB80; // size:0x4 defined:True
-D_8010FB84 = 0x8010FB84; // size:0x4 defined:True
+_gCapWeaponEventEntryAnimationRequest = 0x8010FB10; // size:0x14 defined:True
+_gCapWeaponEventExitAnimationRequest = 0x8010FB24; // size:0x14 defined:True
+gCapPlaybackTaskDescriptors = 0x8010FB4C; // size:0x24 defined:True
+gCapInlineIconCells = 0x8010FB70; // size:0x10 defined:True
+gCapChoiceMarkerPulseLevel = 0x8010FB80; // size:0x4 defined:True
+gCapChoiceMarkerPulseFalling = 0x8010FB84; // size:0x4 defined:True
 D_8010FBE0 = 0x8010FBE0; // size:0x4 defined:True
 D_8010FBE4 = 0x8010FBE4; // size:0x4 defined:True
 D_8010FBE8 = 0x8010FBE8; // size:0x4 defined:True
@@ -2041,7 +2041,7 @@ D_80096E70 = 0x80096E70; // size:0x14 defined:True
 
 D_8010D348 = 0x8010D348; // size:0x1C defined:True
 
-D_801155A0 = 0x801155A0; // size:0x6 defined:True
+gCapActionRequest = 0x801155A0; // size:0x6 defined:True
 
 D_801155D0 = 0x801155D0; // size:0x78 defined:True
 D_80115648 = 0x80115648; // size:0x1 defined:True
@@ -2315,3 +2315,5 @@ _gModelObjectChildTaskStates = 0x80097ab0;
 gItemMenuPeUpgradeExpLabel = 0x8009720c;
 gItemMenuPeUpgradeMpLabel = 0x80097220;
 gItemMenuNoArmorBonusText = 0x8009707c;
+_gObjectTaskRoomStates = 0x800974c8;
+gCapTextLayout = 0x80097518;

@@ -304,7 +304,7 @@ four-byte `TextGlyphCell` entries: unsigned texture U, texture V, width and
 height. CAP quads use the extents as both screen-space and texture-space corner
 deltas; ordinary text advances by `width - 1`, and line height uses `height + 2`.
 Title labels index the same table; inline icons use the separate four-cell
-`D_8010FB70` table. Texture-page and palette selection are outside the cell.
+`gCapInlineIconCells` table. Texture-page and palette selection are outside the cell.
 
 The `+0x14 .. +0xB30` region includes the glyph table and text referenced by
 events. Interpreting that entire region as halfwords yields 1422 `u16` values,

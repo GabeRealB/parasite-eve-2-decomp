@@ -151,7 +151,7 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
         if (D_80115666 != CAP_PLAYBACK_CLEAR_IF_UNSTARTED) {
             return 0;
         }
-        taskSpawnFromTable(D_8010FB4C, CAP_CLEAR_UNSTARTED_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gCapPlaybackTaskDescriptors, CAP_CLEAR_UNSTARTED_TASK_INDEX, 0, 0);
         D_80115666 = CAP_PLAYBACK_DISPLAY_TRANSITION;
     } else {
         Gp_CapTask = taskSpawn(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE, 0, 0);

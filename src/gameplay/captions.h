@@ -11,25 +11,59 @@
 
 // CAP dialogue commands, text state, relocation and task control.
 
-extern CapActionRequest D_801155A0;
+/// Singleton action request owned by CAP playback and borrowed by its receiver.
+///
+/// Playback serializes actions and keeps this writable storage live until done.
+/// The receiver may retain its address after dispatch; accepted selects whether
+/// playback uses the record's fallback key. Prompt receivers also own defaultPrompt.
+extern CapActionRequest gCapActionRequest;
 
-extern TaskDesc D_8010FB4C[3];
+/// Bodyless playback helpers: slot 0 unstarted guard, slot 1 delayed message, slot 2 terminator.
+///
+/// Live entries run at priority 32. The guard ignores both spawn arguments;
+/// the message task consumes the packed mode/delay/recipient in spawnArg1.
+/// Descriptors are read synchronously at spawn; never spawn slot 2.
+extern TaskDesc gCapPlaybackTaskDescriptors[3];
 
-extern s32 D_8010FB80;
+/// Inclusive pulse levels and direction values shared by the two CAP markers.
+///
+/// The maximum normalizes vertex brightness. A draw advances the level by one
+/// and reverses at each endpoint; the initial pair is (minimum, rising).
+enum {
+    CAP_MARKER_PULSE_MIN     = 8,
+    CAP_MARKER_PULSE_MAX     = 15,
+    CAP_MARKER_PULSE_RISING  = 0,
+    CAP_MARKER_PULSE_FALLING = 1
+};
 
-extern s32 D_8010FB84;
+/// Selected-choice marker pulse level in 8..15, advanced once per marker draw.
+extern s32 gCapChoiceMarkerPulseLevel;
 
-extern s32 Gp_CapCaretGrey;
+/// Selected-choice pulse direction (0 rising, 1 falling), reversed at levels 8 and 15.
+extern s32 gCapChoiceMarkerPulseFalling;
 
-extern s32 Gp_CapCaretDir;
+/// Continue-caret pulse level in 8..15, advanced only after its drawing delay expires.
+extern s32 gCapContinueCaretPulseLevel;
 
-extern const char Gp_StrCapMagic[];
+/// Continue-caret pulse direction (0 rising, 1 falling), independent of the choice marker.
+extern s32 gCapContinueCaretPulseFalling;
 
-extern const CapTextLayout D_80097518;
+/// NUL-terminated CAP signature prefix; relocation compares its first three bytes.
+extern const char gCapMagicPrefix[4];
 
-extern const char Gp_StrEvsFmt[];
+/// Read-only writing-direction record selecting horizontal CAP text.
+extern const CapTextLayout gCapTextLayout;
 
-extern const TaskFuncTable3 Gp_CapTaskStates;
+/// Debug filename format evs<group>_<streamId>_<subId>.txt for the selected scene key.
+///
+/// Supply the three unsigned-halfword EvsSceneKey fields promoted to int for %d;
+/// a 25-byte destination holds every resulting name including its terminator.
+extern const char gCapSceneKeyFilenameFormat[16];
+
+/// CAP control states: slot 0 initialize, slot 1 update, slot 2 kill the task.
+///
+/// The dispatcher copies the three callbacks by value and requires state 0..2.
+extern const TaskFuncTable3 gCapControlStates;
 
 /// Weapon-event flags selecting a room command instead of CAP playback.
 enum { CAP_WEAPON_EVENT_ROOM_COMMAND = 0xFF };

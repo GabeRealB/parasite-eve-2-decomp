@@ -48,7 +48,15 @@ enum {
     CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT = 0xFA8,
 };
 
-extern TextGlyphCell D_8010FB70[4];
+/// Number of fixed 16-by-16-texel cells selected by CAP inline-icon codes.
+enum { CAP_INLINE_ICON_COUNT = 4 };
+
+/// Texture cells shared by dialogue and overlay captions for inline icons.
+///
+/// Codes 0x8400..0x8403 select the cell with their low byte; consumers do not
+/// check the index. All cells are 16 by 16 texels on texture page 0x1E with
+/// CLUT 0x3C00. The storage belongs to gameplay and stays live during drawing.
+extern TextGlyphCell gCapInlineIconCells[CAP_INLINE_ICON_COUNT];
 
 /// CAP sequence presentation modes accepted by the command API.
 enum {

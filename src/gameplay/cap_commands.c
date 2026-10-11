@@ -29,15 +29,21 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-CapActionRequest D_801155A0;
+CapActionRequest gCapActionRequest;
 
-extern TaskDesc Gp_EvtSpawnTable[3];
-
-extern AnimationPlayRequest D_8010FB10;
-
-extern AnimationPlayRequest D_8010FB24;
-
-extern AnimationPlayRequest Gp_WeaponMsgRec;
+/// Descriptor priority and indexed animation defaults for CAP helper tasks.
+enum {
+    CAP_HELPER_TASK_PRIORITY            = 32,
+    CAP_ANIMATION_BANK_PLACEHOLDER      = 1,
+    CAP_WEAPON_EVENT_ENTRY_ANIMATION_ID = 32,
+    CAP_WEAPON_EVENT_EXIT_ANIMATION_ID  = 33,
+    CAP_WEAPON_EVENT_ENTRY_BLEND_FRAMES = 5,
+    CAP_SCRIPTED_IDLE_ANIMATION_ID      = 1,
+    CAP_SCRIPTED_IDLE_BLEND_FRAMES      = 8,
+    CAP_ANIMATION_RESET_BLEND_FRAMES    = 0,
+    CAP_INLINE_ICON_SIZE_TEXELS         = 16,
+    CAP_TEXT_LAYOUT_HORIZONTAL          = 0
+};
 
 /// Stage nibble position in a packed sound-bank id; zero selects an absolute id.
 enum {
@@ -58,46 +64,70 @@ enum {
         }                                                                              \
     }
 
-static const TaskFuncTable3 D_800974C8;
-
 static void _capWeaponEventTask(Task* task);
 
 static void _objectTaskRoomIdleState(Task* unusedTask);
 
-TaskDesc Gp_EvtSpawnTable[3] = {
-    { { { TASK_BODY_NONE, 32 } }, capEventTask, { NULL } },
-    { { { TASK_BODY_NONE, 32 } }, _capWeaponEventTask, { NULL } },
+/// Bodyless CAP event recipes: slot 0 normal, slot 1 weapon-bracketed, slot 2 terminator.
+///
+/// Both tasks run at priority 32. Normal events take flags/command in the two
+/// spawn arguments; weapon events take command/flags. Never spawn the terminator.
+static TaskDesc _gCapEventTaskDescriptors[3] = {
+    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capEventTask, { NULL } },
+    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, _capWeaponEventTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
-AnimationPlayRequest D_8010FB10 = { { 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Animation request copied at weapon-event entry for active-bank clip 32.
+///
+/// The bank placeholder is replaced with the equipped-weapon bank. The copy
+/// is unused: playback is requested separately with a presentation selector.
+static AnimationPlayRequest _gCapWeaponEventEntryAnimationRequest = {
+    { CAP_ANIMATION_BANK_PLACEHOLDER }, CAP_WEAPON_EVENT_ENTRY_ANIMATION_ID, ANIMATION_BLEND_INTERPOLATE, CAP_WEAPON_EVENT_ENTRY_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_8010FB24 = { { 1 }, 33, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Animation request copied at weapon-event exit for active-bank clip 33.
+///
+/// The bank placeholder is replaced with the equipped-weapon bank. The copy
+/// is unused: playback is requested separately with a presentation selector.
+static AnimationPlayRequest _gCapWeaponEventExitAnimationRequest = {
+    { CAP_ANIMATION_BANK_PLACEHOLDER }, CAP_WEAPON_EVENT_EXIT_ANIMATION_ID, ANIMATION_BLEND_RESET, CAP_ANIMATION_RESET_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Scripted idle request template shared by CAP's player and companion control helpers.
+///
+/// Callers copy it and replace the bank placeholder with the active weapon or
+/// companion bank before synchronous dispatch. Requests clip 1 with an eight-frame
+/// blend and world collision disabled; the selected bank stays loaded during playback.
+static AnimationPlayRequest _gCapScriptedIdleAnimationRequest = {
+    { CAP_ANIMATION_BANK_PLACEHOLDER }, CAP_SCRIPTED_IDLE_ANIMATION_ID, ANIMATION_BLEND_INTERPOLATE, CAP_SCRIPTED_IDLE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-TaskDesc D_8010FB4C[3] = {
-    { { { TASK_BODY_NONE, 32 } }, capClearUnstartedSequenceTask, { NULL } },
-    { { { TASK_BODY_NONE, 32 } }, capDelayedTextureMessageTask, { NULL } },
+TaskDesc gCapPlaybackTaskDescriptors[3] = {
+    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capClearUnstartedSequenceTask, { NULL } },
+    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capDelayedTextureMessageTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
-TextGlyphCell D_8010FB70[4] = {
-    { 16, 96, 16, 16 },
-    { 32, 96, 16, 16 },
-    { 16, 112, 16, 16 },
-    { 32, 112, 16, 16 },
+TextGlyphCell gCapInlineIconCells[CAP_INLINE_ICON_COUNT] = {
+    { 16, 96, CAP_INLINE_ICON_SIZE_TEXELS, CAP_INLINE_ICON_SIZE_TEXELS },
+    { 32, 96, CAP_INLINE_ICON_SIZE_TEXELS, CAP_INLINE_ICON_SIZE_TEXELS },
+    { 16, 112, CAP_INLINE_ICON_SIZE_TEXELS, CAP_INLINE_ICON_SIZE_TEXELS },
+    { 32, 112, CAP_INLINE_ICON_SIZE_TEXELS, CAP_INLINE_ICON_SIZE_TEXELS },
 };
 
-s32 D_8010FB80 = 8;
+s32 gCapChoiceMarkerPulseLevel = CAP_MARKER_PULSE_MIN;
 
-s32 D_8010FB84 = 0;
+s32 gCapChoiceMarkerPulseFalling = CAP_MARKER_PULSE_RISING;
 
-s32 Gp_CapCaretGrey = 8;
+s32 gCapContinueCaretPulseLevel = CAP_MARKER_PULSE_MIN;
 
-s32 Gp_CapCaretDir = 0;
+s32 gCapContinueCaretPulseFalling = CAP_MARKER_PULSE_RISING;
 
-static const TaskFuncTable3 D_800974C8 = { {
+/// Room-selector task states: slot 0 setup, slot 1 idle, slot 2 teardown.
+///
+/// Dispatch copies all three callbacks by value; task state must be in 0..2.
+static const TaskFuncTable3 _gObjectTaskRoomStates = { {
     objectTaskInitializeRoomState,
     _objectTaskRoomIdleState,
     taskKill,
@@ -197,7 +227,7 @@ static inline void _capHoldWeaponEventPlayer(void)
 {
     AnimationPlayRequest idleRequest;
 
-    idleRequest              = Gp_WeaponMsgRec;
+    idleRequest              = _gCapScriptedIdleAnimationRequest;
     idleRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &idleRequest, 0);
 }
@@ -242,7 +272,7 @@ static void _capWeaponEventTask(Task* task)
                 _capHoldWeaponEventPlayer();
             }
             // The request copy is retained; presentation itself receives only a clip selector.
-            unusedPresentationRequest              = D_8010FB10;
+            unusedPresentationRequest              = _gCapWeaponEventEntryAnimationRequest;
             unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_ENTRY_CLIP, 0);
             task->state++;
@@ -291,7 +321,7 @@ static void _capWeaponEventTask(Task* task)
             if (D_80115598 != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_WEAPON_EVENT_COMPLETION_CUE_BASE, 0);
             }
-            unusedPresentationRequest              = D_8010FB24;
+            unusedPresentationRequest              = _gCapWeaponEventExitAnimationRequest;
             unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_EXIT_CLIP, 0);
             task->state++;
@@ -316,11 +346,11 @@ static void _capWeaponEventTask(Task* task)
     }
 }
 
-const char          Gp_StrCapMagic[] = "CAP";
-const CapTextLayout D_80097518       = { 0 };
-const char          Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
+const char          gCapMagicPrefix[]            = "CAP";
+const CapTextLayout gCapTextLayout               = { CAP_TEXT_LAYOUT_HORIZONTAL };
+const char          gCapSceneKeyFilenameFormat[] = "evs%d_%d_%d.txt";
 
-const TaskFuncTable3 Gp_CapTaskStates = { {
+const TaskFuncTable3 gCapControlStates = { {
     capInitializeControlTask,
     capUpdateControlTask,
     taskKill,
@@ -348,7 +378,7 @@ void playerActorSetScriptedControl(s32 resume)
     AnimationPlayRequest request;
 
     if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
-        request              = Gp_WeaponMsgRec;
+        request              = _gCapScriptedIdleAnimationRequest;
         request.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
     } else {
@@ -397,7 +427,7 @@ void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags)
     enum { CAP_EVENT_TASK_NORMAL = 0 };
 
     if (capIsBusy() == 0) {
-        taskSpawnFromTable(Gp_EvtSpawnTable, CAP_EVENT_TASK_NORMAL, eventFlags, commandIndex);
+        taskSpawnFromTable(_gCapEventTaskDescriptors, CAP_EVENT_TASK_NORMAL, eventFlags, commandIndex);
     }
 }
 
@@ -439,7 +469,7 @@ void companionSetScriptedControl(s32 resume)
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (companionTask != NULL) {
         if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
-            request              = Gp_WeaponMsgRec;
+            request              = _gCapScriptedIdleAnimationRequest;
             request.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
             TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &request, 0);
         } else {
@@ -480,7 +510,7 @@ void objectTaskRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_800974C8;
+    stateHandlers = _gObjectTaskRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -497,5 +527,5 @@ void capSpawnWeaponEvent(s32 commandIndex, s32 eventFlags)
 {
     enum { CAP_EVENT_TASK_WEAPON = 1 };
 
-    taskSpawnFromTable(Gp_EvtSpawnTable, CAP_EVENT_TASK_WEAPON, commandIndex, eventFlags);
+    taskSpawnFromTable(_gCapEventTaskDescriptors, CAP_EVENT_TASK_WEAPON, commandIndex, eventFlags);
 }

@@ -281,6 +281,6 @@ void capControlTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Gp_CapTaskStates;
+    states = gCapControlStates;
     states.funcs[task->state](task);
 }
