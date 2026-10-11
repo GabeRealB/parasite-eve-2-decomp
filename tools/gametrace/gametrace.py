@@ -5,6 +5,7 @@
                        [--host HOST] [--port PORT]      (these override the config's [gdb] section)
                        [--now]                          (attach to a game already running: no install_at wait)
     gametrace.py check [--config ...]     resolve the events, build the blob, show both; no connection
+    gametrace.py refilter LOG --out FILE  put a log already written through the config's filters
     gametrace.py blob  [--config ...]     write the assembled blob and its listing in the log directory
 
 It needs nothing but Python: the blob is assembled by the small assembler in this file. Where the system has MIPS
@@ -1555,9 +1556,46 @@ class Session:
             self.out.flush()
 
 
+def refilter(cfg: dict, log: Path, out: Path) -> tuple[int, int]:
+    """Put a log already written through the config's filters, as if they had been there when it was recorded.
+    A line belongs to the event whose name its `event` (or `name`) is; session and dropped markers end what the
+    filters hold, as they do in a run."""
+    events = {event["name"]: event for event in cfg.get("event", [])}
+    filters = [FILTERS[name]() for name in cfg.get("log", {}).get("filters", [])]
+    read = written = 0
+
+    def through(lines: list, event: dict, start: int = 0) -> list:
+        for step in filters[start:]:
+            lines = [o for line in lines for o in (step.line(line, event, None) or [])]
+        return lines
+
+    def settle() -> list:
+        return [o for n, step in enumerate(filters) for o in through(step.end(None) or [], {}, n + 1)]
+
+    with log.open(encoding="utf-8", errors="replace") as source, out.open("w", encoding="utf-8") as target:
+        for text in source:
+            read += 1
+            try:
+                line = json.loads(text)
+            except ValueError:
+                line = None
+            if not isinstance(line, dict) or "event" not in line and "name" not in line:      # a marker, or a line a renderer wrote itself
+                lines = settle()
+                target.write("".join(json.dumps(o) + "\n" for o in lines) + text)
+                written += len(lines) + 1
+                continue
+            lines = through([line], events.get(line.get("event") or line.get("name"), {}))
+            target.write("".join(json.dumps(o) + "\n" for o in lines))
+            written += len(lines)
+        lines = settle()
+        target.write("".join(json.dumps(o) + "\n" for o in lines))
+    return read, written + len(lines)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["run", "check", "blob"])
+    ap.add_argument("command", choices=["run", "check", "blob", "refilter"])
+    ap.add_argument("log", nargs="?", type=Path, help="refilter: the log to put through the config's filters; the result goes to --out")
     ap.add_argument("--config", type=Path, default=Path(__file__).with_name("events.toml"))
     ap.add_argument("--out", type=Path, help="the log; by default a new file per run, trace-<date>-<time>.jsonl in the config's log directory")
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
@@ -1575,6 +1613,11 @@ def main() -> int:
     if args.now:
         cfg["install_at"] = []
     cfg["resident"] = args.resident or []
+    if args.command == "refilter":
+        if args.log is None or args.out is None:
+            raise SystemExit("refilter LOG --out FILE")
+        print("{} lines in, {} out".format(*refilter(cfg, args.log, args.out)))
+        return 0
     if args.command in ("check", "blob"):
         for address in cfg["install_at"]:
             print(f"set up at {address:#010x}  {name_at(address, started())}")
