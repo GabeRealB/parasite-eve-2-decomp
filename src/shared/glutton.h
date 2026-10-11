@@ -66,13 +66,18 @@
 #error "GLUTTON_ROOM must be GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR"
 #endif
 
-/* Extent of the 0x6009C effect a group-0 hit spawns; the Incinerator's is
- * half the Dumping Hole's. */
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#define GLUTTON_GROUP0_HIT_FX_Y 0x320
+/// Part-3-local Y displacement of the dumping-hole group-0 hit flash, in game units.
+///
+/// Added through the effect's parent transform; positive Y points down.
+/// The carrier selects this encounter with GLUTTON_ROOM before this header.
+enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Y = 0x320 };
 #define GLUTTON_GROUP0_HIT_FX_Z 0x3E8
 #else
-#define GLUTTON_GROUP0_HIT_FX_Y 0x190
+/// Part-3-local Y displacement of the incinerator group-0 hit flash, in game units.
+///
+/// Half the dumping-hole offset, selected at compilation by GLUTTON_ROOM.
+enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Y = 0x190 };
 #define GLUTTON_GROUP0_HIT_FX_Z 0x1F4
 #endif
 

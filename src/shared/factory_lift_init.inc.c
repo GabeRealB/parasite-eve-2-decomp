@@ -33,9 +33,9 @@ static void _factoryLiftInit(Task* task)
     work->yStep       = FACTORY_LIFT_SETUP_REST;
     liftModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     if (work->position & FACTORY_LIFT_POSITION_TURNED) {
-        work->yaw.word = FACTORY_LIFT_YAW_TURNED;
+        work->yaw.word = FACTORY_LIFT_YAW_TURNED_Q16;
         // The SDK masks this full 16.16 word to zero; retain the setup frame.
-        RotMatrixY(FACTORY_LIFT_YAW_TURNED, &coord->coord);
+        RotMatrixY(FACTORY_LIFT_YAW_TURNED_Q16, &coord->coord);
     }
     if (work->position & FACTORY_LIFT_POSITION_RAISED) {
         work->y.word = FACTORY_LIFT_Y_RAISED;

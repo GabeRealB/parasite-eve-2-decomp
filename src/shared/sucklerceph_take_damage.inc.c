@@ -2,14 +2,19 @@
 
 /// Requests a positioned character script with its placement instance tag.
 ///
-/// Two statements for a braced branch. Supply a live Enemy pointer in enemyArg,
-/// a composed root and a modifiable s32 idLocal. enemyArg/baseSoundId evaluate
-/// once; rootCoord twice, so use a stable pointer. Pan/depth narrow to s8 and
-/// failure is ignored. Requires the sound-bank constants from the earlier awake
-/// fragment; shared with the later death fragment and undefined there.
-#define SUCKLERCEPH_REQUEST_POSITIONED_SOUND(enemyArg, rootCoord, baseSoundId, idLocal)             \
-    (idLocal) = ((((Enemy*)(enemyArg))->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (baseSoundId); \
-    sndEvtRequestScriptStart((idLocal), (s8)worldCoordGetOriginAudioPan((rootCoord)), (s8)worldCoordGetOriginAudioDepth((rootCoord)));
+/// Compound statement for a braced branch. Supply a live Enemy pointer or
+/// generic task slot in enemyArg, a composed root and a modifiable s32 idLocal.
+/// enemyArg/baseSoundId evaluate once; rootCoord twice and idLocal twice, so
+/// use stable expressions without side effects. The read-only Enemy view
+/// extracts the placement nibble into sound ID bits 8..15. Pan/depth narrow
+/// to s8 and request failure is ignored. Include this before the death-state
+/// fragment, which shares the helper and undefines it after its definition.
+#define SUCKLERCEPH_REQUEST_POSITIONED_SOUND(enemyArg, rootCoord, baseSoundId, idLocal)                                                                 \
+    {                                                                                                                                                   \
+        enum { SUCKLERCEPH_POSITIONED_SOUND_INSTANCE_SHIFT = 8 };                                                                                       \
+        (idLocal) = ((((const Enemy*)(enemyArg))->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_POSITIONED_SOUND_INSTANCE_SHIFT) | (baseSoundId); \
+        sndEvtRequestScriptStart((idLocal), (s8)worldCoordGetOriginAudioPan((rootCoord)), (s8)worldCoordGetOriginAudioDepth((rootCoord)));              \
+    }
 
 /// Subtracts HP and adds its readout, starting death only when HP becomes negative.
 ///

@@ -3,7 +3,7 @@
  * The flicker form: the frame's low bit alternates two looks of the flame
  * strip (tpage 0x29, v 0xC8-0xFF) - SPRITE_QUAD_ODD_LOOK(prim) and
  * SPRITE_QUAD_EVEN_LOOK(prim), statements the including unit defines from
- * SPRITE_QUAD_CORE_CELL / SPRITE_QUAD_RIM_CELL plus its own tint and blend
+ * SPRITE_QUAD_SET_FLICKER_ODD_CELL / SPRITE_QUAD_SET_FLICKER_EVEN_CELL plus its own tint and blend
  * flags. */
 
 #ifndef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK

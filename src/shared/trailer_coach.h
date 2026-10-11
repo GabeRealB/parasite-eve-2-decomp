@@ -14,12 +14,16 @@
 
 #include "dryfield_time.h"
 
-/// The one view drawn with the 1x depth shift: view 8 in the day room, view 5
-/// at night.
 #if DRYFIELD_TIME == DRYFIELD_DAY
-#define TRAILER_COACH_FINE_DEPTH_VIEW 8
+/// Saved view ID that selects 1x ordering-table depth in the daytime coach.
+///
+/// Selected at compilation by DRYFIELD_TIME; other views use 8x depth.
+enum { TRAILER_COACH_FINE_DEPTH_VIEW = 8 };
 #else
-#define TRAILER_COACH_FINE_DEPTH_VIEW 5
+/// Saved view ID that selects 1x ordering-table depth in the nighttime coach.
+///
+/// Selected at compilation by DRYFIELD_TIME; other views use 8x depth.
+enum { TRAILER_COACH_FINE_DEPTH_VIEW = 5 };
 #endif
 
 #endif /* SRC_SHARED_TRAILER_COACH_H */

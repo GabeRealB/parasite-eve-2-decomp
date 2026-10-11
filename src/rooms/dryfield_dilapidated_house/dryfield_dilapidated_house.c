@@ -5339,13 +5339,13 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 #define SPRITE_QUAD_SCALE 55
 /// Reserves a flicker packet even when the GTE rejects the quad's projection.
 #define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 1
-#define SPRITE_QUAD_ODD_LOOK(p)   \
-    setRGB0(p, 0xC0, 0x60, 0x40); \
-    SPRITE_QUAD_CORE_CELL(p);     \
+#define SPRITE_QUAD_ODD_LOOK(p)          \
+    setRGB0(p, 0xC0, 0x60, 0x40);        \
+    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \
     setSemiTrans(p, 1)
-#define SPRITE_QUAD_EVEN_LOOK(p) \
-    SPRITE_QUAD_RIM_CELL(p);     \
-    setSemiTrans(p, 1);          \
+#define SPRITE_QUAD_EVEN_LOOK(p)          \
+    SPRITE_QUAD_SET_FLICKER_EVEN_CELL(p); \
+    setSemiTrans(p, 1);                   \
     setShadeTex(p, 1)
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 

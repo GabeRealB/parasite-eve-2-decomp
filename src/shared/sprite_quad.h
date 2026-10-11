@@ -113,7 +113,12 @@
 #ifndef SRC_SHARED_SPRITE_QUAD_H
 #define SRC_SHARED_SPRITE_QUAD_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+
 #include "common.h"
+
+#include "main/display_types.h"
 
 #include "gameplay/effects.h"
 
@@ -201,16 +206,44 @@
 /// point unless `SPRITE_QUAD_OTZ_BIAS` is 0.
 static void spriteQuadDraw(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
 
-/* The flicker form (sprite_quad_draw_flicker.inc.c) alternates two looks of
- * the flame strip; these are its two cells. */
-#define SPRITE_QUAD_CORE_CELL(p) \
-    (p)->tpage = 0x29;           \
-    (p)->clut  = 0x428B;         \
-    setUV4(p, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF)
-#define SPRITE_QUAD_RIM_CELL(p) \
-    (p)->tpage = 0x29;          \
-    (p)->clut  = 0x428C;        \
-    setUV4(p, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF)
+/// Selects the fixed 56-by-56 texture cell used on odd flicker frames.
+///
+/// `quad` is a writable POLY_FT4 pointer evaluated repeatedly; supply a stable
+/// expression without side effects. Writes only tpage, clut and UV bytes, with
+/// inclusive texel endpoints. The page uses four-bit pixels and additive blend
+/// at VRAM (576,0), with palette (176,266). Callers set tint and packet flags.
+/// Captures no locals; remains defined for the carrier's look-binding macros.
+#define SPRITE_QUAD_SET_FLICKER_ODD_CELL(quad)                                                                                     \
+    {                                                                                                                              \
+        enum { SPRITE_QUAD_FLICKER_LEFT_U  = 0x70,                                                                                 \
+               SPRITE_QUAD_FLICKER_TOP_V   = 0xC8,                                                                                 \
+               SPRITE_QUAD_FLICKER_UV_SPAN = 56 - 1 };                                                                             \
+        (quad)->tpage = getTPage(0, GPU_BLEND_ADD, 576, 0);                                                                        \
+        (quad)->clut  = getClut(176, 266);                                                                                         \
+        setUV4((quad), SPRITE_QUAD_FLICKER_LEFT_U, SPRITE_QUAD_FLICKER_TOP_V,                                                      \
+               SPRITE_QUAD_FLICKER_LEFT_U + SPRITE_QUAD_FLICKER_UV_SPAN, SPRITE_QUAD_FLICKER_TOP_V,                                \
+               SPRITE_QUAD_FLICKER_LEFT_U, SPRITE_QUAD_FLICKER_TOP_V + SPRITE_QUAD_FLICKER_UV_SPAN,                                \
+               SPRITE_QUAD_FLICKER_LEFT_U + SPRITE_QUAD_FLICKER_UV_SPAN, SPRITE_QUAD_FLICKER_TOP_V + SPRITE_QUAD_FLICKER_UV_SPAN); \
+    }
+
+/// Selects the fixed 56-by-56 texture cell used on even flicker frames.
+///
+/// `quad` is a writable POLY_FT4 pointer evaluated repeatedly without side
+/// effects. Writes only tpage, clut and inclusive UV endpoints. The four-bit
+/// additive page at VRAM (576,0) uses palette (192,266); tint and packet flags
+/// remain caller-selected. Captures no locals and persists for look bindings.
+#define SPRITE_QUAD_SET_FLICKER_EVEN_CELL(quad)                                                                                    \
+    {                                                                                                                              \
+        enum { SPRITE_QUAD_FLICKER_LEFT_U  = 0xA8,                                                                                 \
+               SPRITE_QUAD_FLICKER_TOP_V   = 0xC8,                                                                                 \
+               SPRITE_QUAD_FLICKER_UV_SPAN = 56 - 1 };                                                                             \
+        (quad)->tpage = getTPage(0, GPU_BLEND_ADD, 576, 0);                                                                        \
+        (quad)->clut  = getClut(192, 266);                                                                                         \
+        setUV4((quad), SPRITE_QUAD_FLICKER_LEFT_U, SPRITE_QUAD_FLICKER_TOP_V,                                                      \
+               SPRITE_QUAD_FLICKER_LEFT_U + SPRITE_QUAD_FLICKER_UV_SPAN, SPRITE_QUAD_FLICKER_TOP_V,                                \
+               SPRITE_QUAD_FLICKER_LEFT_U, SPRITE_QUAD_FLICKER_TOP_V + SPRITE_QUAD_FLICKER_UV_SPAN,                                \
+               SPRITE_QUAD_FLICKER_LEFT_U + SPRITE_QUAD_FLICKER_UV_SPAN, SPRITE_QUAD_FLICKER_TOP_V + SPRITE_QUAD_FLICKER_UV_SPAN); \
+    }
 
 static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 spinAngle);
 

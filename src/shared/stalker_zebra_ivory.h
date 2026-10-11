@@ -60,7 +60,11 @@
  *   TIMER_BASE          the type of the random timer's base
  *   TIMER_ZERO_STOPS    a zero base stops the timer instead of seeding it */
 #if STALKER_ZEBRA_IVORY_KIND == STALKER_ZEBRA
-#define STALKER_ZEBRA_IVORY_STEP_SOUNDS        0x40060000
+#define STALKER_ZEBRA_IVORY_STEP_SOUNDS 0x40060000
+/// Enables pinning model part 14's world X/Z to the existing righting anchor.
+///
+/// Boolean preprocessor switch: Zebra is 1, Ivory is 0. The kind binding must
+/// precede this header; the righting fragment tests this before clip completion.
 #define STALKER_ZEBRA_IVORY_RIGHTING_PINS_PART 1
 #define STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP  0
 #define STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT   1
@@ -68,6 +72,9 @@
 #define STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS   0
 #else
 #define STALKER_ZEBRA_IVORY_STEP_SOUNDS        0x40050000
+/// Omits the Zebra's part-14 X/Z pin during Ivory's righting animation.
+///
+/// Boolean preprocessor switch selected by STALKER_ZEBRA_IVORY_KIND.
 #define STALKER_ZEBRA_IVORY_RIGHTING_PINS_PART 0
 #define STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP  1
 #define STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT   0

@@ -18,7 +18,7 @@ enum {
 /// A lowered lift turns one thirty-second of a revolution before rebounding.
 enum {
     FACTORY_LIFT_JAM_YAW_OUT  = 0x80 * 0x10000,
-    FACTORY_LIFT_JAM_YAW_BACK = FACTORY_LIFT_YAW_TURNED - FACTORY_LIFT_JAM_YAW_OUT
+    FACTORY_LIFT_JAM_YAW_BACK = FACTORY_LIFT_YAW_TURNED_Q16 - FACTORY_LIFT_JAM_YAW_OUT
 };
 
 /// Notifies the operator panel that a turn ended and queues the turn stop cue.

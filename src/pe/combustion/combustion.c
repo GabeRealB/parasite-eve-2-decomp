@@ -564,13 +564,13 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
 }
 
 #define SPRITE_QUAD_SCALE 55
-#define SPRITE_QUAD_ODD_LOOK(p)   \
-    setRGB0(p, 0xC0, 0x70, 0x40); \
-    SPRITE_QUAD_CORE_CELL(p);     \
+#define SPRITE_QUAD_ODD_LOOK(p)          \
+    setRGB0(p, 0xC0, 0x70, 0x40);        \
+    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \
     setSemiTrans(p, 1)
 #define SPRITE_QUAD_EVEN_LOOK(p) \
     setcode(p, 0x2F);            \
-    SPRITE_QUAD_RIM_CELL(p)
+    SPRITE_QUAD_SET_FLICKER_EVEN_CELL(p)
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 /// Draws an additive square billboard from Combustion's twelve-cell large-flame sheet.

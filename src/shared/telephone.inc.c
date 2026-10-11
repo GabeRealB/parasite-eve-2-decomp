@@ -63,10 +63,12 @@ enum {
     TELEPHONE_MENU_WAIT_NOTICE_AND_CLOSE = 3
 };
 
-/// Rows a usage panel has room for. The weapon list can fill every one, since
-/// the save keeps this many weapon use counters; the Parasite Energy list has
-/// at most twelve.
-#define TELEPHONE_USAGE_ROW_CAPACITY 0x20
+/// Row capacity of both usage lists, one slot per saved weapon counter.
+///
+/// The weapon builder visits that complete array; the PE builder visits only
+/// ATTACHMENT_SPELL_COUNT abilities. This is storage capacity, not the current
+/// list length, and counts entries rather than bytes.
+enum { TELEPHONE_USAGE_ROW_CAPACITY = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts) };
 
 /// Work block of the usage-panel task: the rows of the "Weapon Data" or
 /// "PE Data" list, most used first.

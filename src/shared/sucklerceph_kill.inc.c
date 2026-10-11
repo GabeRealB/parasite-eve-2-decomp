@@ -2,19 +2,33 @@
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Burst resources supplied by the carrier of this fragment.
+#ifndef SUCKLERCEPH_BURST_PARTICLE_OFFSET
+/// Binds the burst particle's model-root-local displacement in game units.
 ///
-/// The offset binding is a live SVECTOR object; the script and segment bindings
-/// name PadScriptCmd and PadScriptVibrationSegment arrays that outlive the
-/// spawned vibration task. actor_04600 and actor_07000 each supply private
-/// objects under the default names. All three bindings are undefined afterwards.
-#ifndef SUCKLERCEPH_BURST_FX_OFFSET
-#define SUCKLERCEPH_BURST_FX_OFFSET _gSucklercephBurstParticleOffset
+/// Supply a live word-aligned SVECTOR lvalue before including this fragment;
+/// its address is passed once to effectSpawn, which copies it during placement.
+/// Both carriers default to their private (0,-10,0) vector. It need only survive
+/// the spawn call. This binding is undefined after the fragment.
+#define SUCKLERCEPH_BURST_PARTICLE_OFFSET _gSucklercephBurstParticleOffset
 #endif
 #ifndef SUCKLERCEPH_BURST_PAD_SCRIPT
+/// Binds the burst's two-lane PadScriptCmd command array.
+///
+/// Supply the array or a pointer to its first command before this inclusion.
+/// Both lanes must eventually STOP and every reachable PLAY operand must index
+/// SUCKLERCEPH_BURST_VIBRATION_SEGMENTS. Both carriers default to a private
+/// three-command array. The task borrows it, unmodified, until teardown.
+/// Evaluated once at spawn and undefined after the fragment.
 #define SUCKLERCEPH_BURST_PAD_SCRIPT _gSucklercephBurstPadScript
 #endif
 #ifndef SUCKLERCEPH_BURST_VIBRATION_SEGMENTS
+/// Binds the PadScriptVibrationSegment table used by the burst commands.
+///
+/// Supply a readable array or first-entry pointer covering every PLAY index in
+/// SUCKLERCEPH_BURST_PAD_SCRIPT. Each record supplies byte intensities and a
+/// duration in script ticks; both carriers default to three records for hold,
+/// full intensity and fade. The task borrows this table unmodified until
+/// teardown. Evaluated once at spawn and undefined after the fragment.
 #define SUCKLERCEPH_BURST_VIBRATION_SEGMENTS _gSucklercephBurstVibrationSegments
 #endif
 
@@ -32,17 +46,20 @@ static void _sucklercephKill(Task* task, u8 forceBurst)
            SUCKLERCEPH_BURST_ROLL_BIT             = 2,
            SUCKLERCEPH_BURST_FLASH_STYLE          = 1,
            SUCKLERCEPH_BURST_PARTICLE_SIZE        = 768 };
-    /// Plays a placement-scoped cue from a live enemy argument and root.
+    /// Queues a placement-scoped death cue from a live enemy argument and root.
     ///
     /// enemyArg and baseId are evaluated once, rootCoord twice and idLocal
-    /// twice. Expands two statements: use only in a braced branch.
+    /// twice. Expands a compound statement; use within a braced branch.
     /// Supply stable pointers and a modifiable s32 local without side
-    /// effects. Pan/depth retain their signed-byte conversion; the argument
-    /// view reloads the task's generic spawn slot at the sound site. Uses the
+    /// effects. Pan/depth retain their signed-byte conversion. The read-only
+    /// Enemy view reloads the generic spawn slot at the sound site.
+    /// The placement nibble occupies the sound ID's instance byte. Uses the
     /// containing function's SUCKLERCEPH_DEATH_SOUND_INSTANCE_SHIFT constant.
-#define SUCKLERCEPH_PLAY_DEATH_SOUND(enemyArg, rootCoord, baseId, idLocal)                                                          \
-    (idLocal) = ((((Enemy*)(enemyArg))->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_DEATH_SOUND_INSTANCE_SHIFT) | (baseId); \
-    sndEvtRequestScriptStart((idLocal), (s8)worldCoordGetOriginAudioPan((rootCoord)), (s8)worldCoordGetOriginAudioDepth((rootCoord)));
+#define SUCKLERCEPH_REQUEST_DEATH_SOUND(enemyArg, rootCoord, baseId, idLocal)                                                                 \
+    {                                                                                                                                         \
+        (idLocal) = ((((const Enemy*)(enemyArg))->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_DEATH_SOUND_INSTANCE_SHIFT) | (baseId); \
+        sndEvtRequestScriptStart((idLocal), (s8)worldCoordGetOriginAudioPan((rootCoord)), (s8)worldCoordGetOriginAudioDepth((rootCoord)));    \
+    }
     SucklercephWork* work;
     Enemy*           enemy;
     TmdObject*       model;
@@ -58,27 +75,27 @@ static void _sucklercephKill(Task* task, u8 forceBurst)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if (((gRandomLcgState >> 16) & SUCKLERCEPH_BURST_ROLL_BIT) || forceBurst) {
         if (work->variant != 0) {
-            SUCKLERCEPH_PLAY_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 0x0B), soundId);
+            SUCKLERCEPH_REQUEST_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 0x0B), soundId);
         } else {
-            SUCKLERCEPH_PLAY_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_DEFAULT_SOUND_BANK, 3), soundId);
+            SUCKLERCEPH_REQUEST_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_DEFAULT_SOUND_BANK, 3), soundId);
         }
         work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->blastBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, SUCKLERCEPH_BURST_FLASH_STYLE, NULL);
-        effectSpawn(EFFECT_030, task->extra.tmd->coords, SUCKLERCEPH_BURST_PARTICLE_SIZE, &SUCKLERCEPH_BURST_FX_OFFSET);
+        effectSpawn(EFFECT_030, task->extra.tmd->coords, SUCKLERCEPH_BURST_PARTICLE_SIZE, &SUCKLERCEPH_BURST_PARTICLE_OFFSET);
         padScriptSpawn(SUCKLERCEPH_BURST_PAD_SCRIPT, SUCKLERCEPH_BURST_VIBRATION_SEGMENTS);
         work->hasBurst = 1;
     } else {
         if (work->variant != 0) {
-            SUCKLERCEPH_PLAY_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 0x0C), soundId);
+            SUCKLERCEPH_REQUEST_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 0x0C), soundId);
         } else {
-            SUCKLERCEPH_PLAY_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_DEFAULT_SOUND_BANK, 4), soundId);
+            SUCKLERCEPH_REQUEST_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_DEFAULT_SOUND_BANK, 4), soundId);
         }
         work->state = SUCKLERCEPH_STATE_SLUMP_DEATH;
     }
-#undef SUCKLERCEPH_PLAY_DEATH_SOUND
+#undef SUCKLERCEPH_REQUEST_DEATH_SOUND
 }
 
-#undef SUCKLERCEPH_BURST_FX_OFFSET
+#undef SUCKLERCEPH_BURST_PARTICLE_OFFSET
 #undef SUCKLERCEPH_BURST_PAD_SCRIPT
 #undef SUCKLERCEPH_BURST_VIBRATION_SEGMENTS

@@ -116,12 +116,21 @@ enum {
 /// Rest positions of the lift's two movements, as words of
 /// `FactoryLiftWork::y` and `FactoryLiftWork::yaw`. The other end of each
 /// movement is 0. Y grows downwards, so the raised position is negative.
-#define FACTORY_LIFT_Y_RAISED   (-570 * 0x10000)
-#define FACTORY_LIFT_YAW_TURNED (0x400 * 0x10000)
+#define FACTORY_LIFT_Y_RAISED (-570 * 0x10000)
+/// Turned endpoint as a signed 16.16 yaw word, one quarter of a revolution.
+///
+/// The integer angle is 1024 in 4096 units per turn. Compare/store the full
+/// word in FactoryLiftWork::yaw; frame updates pass only its signed integer
+/// half to the SDK. Setup deliberately passes this full word to RotMatrixY,
+/// where it masks to zero, retaining the binary's initial unturned frame.
+enum { FACTORY_LIFT_YAW_TURNED_Q16 = 0x400 * 0x10000 };
 
-/// Value of `FactoryLiftWork::moveFrames` from which a button press ends the
-/// running movement at once.
-#define FACTORY_LIFT_SKIP_FRAMES 11
+/// Inclusive elapsed-movement-frame threshold for the lift's START skip.
+///
+/// Port 0 must report a pressed START while the movement is in its sound,
+/// outbound or settling phase. This gates both yaw and vertical handlers;
+/// it is neither a remaining-time count nor the duration of the skip.
+enum { FACTORY_LIFT_SKIP_FRAMES = 11 };
 
 /// Work block of the lift task: where the lift model stands, how fast it is
 /// moving, and the progress of the two movements that take it to the position
@@ -134,7 +143,7 @@ enum {
 /// Every frame the task compares the nibble with `position`. A changed bit
 /// restarts that bit's movement from step 0 and restarts `moveFrames`. The
 /// vertical movement then runs towards `FACTORY_LIFT_Y_RAISED` or 0 and the
-/// turn towards `FACTORY_LIFT_YAW_TURNED` or 0, each by the same steps:
+/// turn towards `FACTORY_LIFT_YAW_TURNED_Q16` or 0, each by the same steps:
 ///
 /// - 0 brings the velocity to rest;
 /// - 1 starts the movement's sound;
@@ -156,7 +165,7 @@ typedef struct {
     s32     yVelocity;   // Vertical speed, 16.16 world units per frame; negative rises
     s32     yawVelocity; // Turn rate, 16.16 angle units (0x1000 a turn) per frame
     Fixed16 y;           // Model Y translation, 16.16 world units; 0 lowered, `FACTORY_LIFT_Y_RAISED` raised
-    Fixed16 yaw;         // Rotation about Y, 16.16 angle units; 0 home, `FACTORY_LIFT_YAW_TURNED` turned
+    Fixed16 yaw;         // Rotation about Y, 16.16 angle units; 0 home, `FACTORY_LIFT_YAW_TURNED_Q16` turned
     s16     moveFrames;  // Frames since a movement was last requested; gates the button skip
     s8      yawStep;     // Step of the turn (-1 at rest since set-up, 0-3 moving, 4 at rest)
     s8      yStep;       // Step of the vertical movement, as `yawStep`
@@ -165,9 +174,12 @@ typedef struct {
 } FactoryLiftWork;
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 
-/// Value `FactoryPanelWork::scanDelay` is armed with: the frames the operator
-/// panel keeps its cursor hidden after a choice has been dealt with.
-#define FACTORY_PANEL_SCAN_DELAY_FRAMES 10
+/// Idle-task ticks of hotspot scanning delay after an operator-panel choice.
+///
+/// Armed after confirmation/cancellation and again after a lift move settles.
+/// The idle state decrements before testing it, even while CAP is busy; CAP
+/// playback independently keeps the cursor hidden when this count reaches zero.
+enum { FACTORY_PANEL_SCAN_DELAY_FRAMES = 10 };
 
 /// Dispatch slots of the operator panel task, selected by `Task::state`.
 enum {

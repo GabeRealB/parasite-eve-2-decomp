@@ -204,8 +204,12 @@ static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
     /// Captures `quad`, `depth`, `drawMode`, the instance's byte cursor and the
     /// current display table. Takes no arguments and is undefined before
     /// leaving this function. Prepending the draw mode last makes the GPU
-    /// consume it before the quad. This statement list must be invoked inside
-    /// a braced block, never as an unbraced branch.
+    /// consume it before the quad. Requires a completed POLY_G4 and a
+    /// word-aligned cursor with sizeof(DR_MODE) free bytes. The mixed-format
+    /// arena casts advance past the full mode object, while only code[0] is
+    /// initialized and sent. Depth is SZ3 / 4, shifted/masked as an unsigned
+    /// OT byte offset; neither arena nor table bounds are checked. Both packets
+    /// must survive GPU consumption. Invoke this statement list in a braced block.
 #define WATER_WAVE_STRIPS_QUEUE_QUAD()                                                                                                                \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad); \
     drawMode                        = (DR_MODE*)WATER_WAVE_STRIPS_PACKET_CURSOR;                                                                      \

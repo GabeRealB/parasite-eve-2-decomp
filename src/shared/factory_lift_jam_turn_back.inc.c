@@ -50,11 +50,11 @@ static s32 _factoryLiftJamTurnBack(Task* task)
                 work->yawVelocity = 0x20000;
             }
             work->yaw.word += work->yawVelocity;
-            if (work->yaw.word >= FACTORY_LIFT_YAW_TURNED) {
+            if (work->yaw.word >= FACTORY_LIFT_YAW_TURNED_Q16) {
                 // Undo the blocked request in both copies so the next update stays at rest.
                 work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_TURNED;
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
-                work->yaw.word = FACTORY_LIFT_YAW_TURNED;
+                work->yaw.word = FACTORY_LIFT_YAW_TURNED_Q16;
                 _factoryLiftFinishTurn(task, coord);
                 work->yawStep++;
             }
@@ -69,7 +69,7 @@ static s32 _factoryLiftJamTurnBack(Task* task)
         // Undo the blocked request in both copies so the next update stays at rest.
         work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_TURNED;
         gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
-        work->yaw.word = FACTORY_LIFT_YAW_TURNED;
+        work->yaw.word = FACTORY_LIFT_YAW_TURNED_Q16;
         _factoryLiftFinishTurn(task, coord);
         work->yawStep    = FACTORY_LIFT_STEP_REST;
         movementComplete = 1;

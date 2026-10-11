@@ -77,7 +77,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             }
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;
             (sceneAcquireBattleRef)(0);
-            work->actorId = GOLEM_KNIGHT_BISHOP_ID;
+            work->actorId = GOLEM_KNIGHT_BISHOP_ACTOR_ID;
             areaSoundSets = _gGolemKnightBishopStageSoundSets[gGameSession->location.loc.stage];
             if (areaSoundSets != NULL) {
                 work->soundSet = areaSoundSets[gGameSession->location.loc.area];
@@ -100,7 +100,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             work->hurtBody.pos.vx           = 0;
             work->hurtBody.pos.vy           = 0;
             work->hurtBody.pos.vz           = 0;
-            work->hurtBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_KNIGHT_BISHOP_ID;
+            work->hurtBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_KNIGHT_BISHOP_ACTOR_ID;
             work->hurtBody.radius           = GOLEM_KNIGHT_BISHOP_HURT_RADIUS;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
@@ -112,7 +112,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             work->groundBody.pos.vx           = 0;
             work->groundBody.pos.vy           = -0x1F4;
             work->groundBody.pos.vz           = 0;
-            work->groundBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_KNIGHT_BISHOP_ID;
+            work->groundBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_KNIGHT_BISHOP_ACTOR_ID;
             work->groundBody.radius           = 0x1F4;
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);

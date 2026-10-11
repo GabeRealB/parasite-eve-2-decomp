@@ -38,8 +38,13 @@ static void _waterHoleDrawSurfaces(Task* task)
     /// Queues the completed quad and its subtractive mode in the same depth bucket.
     ///
     /// Captures quad, depth, drawMode, the byte cursor and current display table.
-    /// Takes no arguments; requires a braced call site and arena room for a full
-    /// DR_MODE. Prepending the mode last makes it execute before the quad.
+    /// Takes no arguments; requires a braced call site, a completed POLY_G4 and
+    /// a word-aligned byte cursor with sizeof(DR_MODE) bytes free. Advances past
+    /// the whole mode object but sends only code[0]; its remaining word is
+    /// untouched. The pointer casts select packets in a mixed-format arena.
+    /// Depth is SZ3 / 4; its unsigned shift/mask computes an OT byte offset.
+    /// Prepending the mode last makes it execute before the quad; both remain
+    /// live until GPU completion. No capacity or ordering-table check is made.
 #define WATER_HOLE_QUEUE_QUAD()                                                                                                                \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             quad);                                                                                                                             \

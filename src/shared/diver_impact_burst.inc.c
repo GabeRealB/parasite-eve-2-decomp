@@ -44,27 +44,33 @@ static void _diverImpactBurst(GfxCoord* coord, u16 phase, u16 kind, u32 sizeAndS
     u16     spraySizeBias;
     u16     size;
 
-/// Chooses a random flash offset of approximately 64 strike-local units.
+/// Chooses a random strike-local flash offset at the requested integer radius.
 ///
 /// `vector` is a writable SVECTOR lvalue and `vectorPtr` a writable SVECTOR*
 /// local; both must be side-effect-free and occur repeatedly. Assigns XYZ
 /// directly before taking the address, leaves pad untouched, advances the
-/// shared LCG three times and normalizes/scales on the GTE. A zero direction
-/// is passed to the SDK without a guard. Captures the enclosing radius constant.
-/// Expands to statements; invoke only within a braced block.
-#define DIVER_RANDOMIZE_FLASH_OFFSET(vector, vectorPtr)                               \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-    (vector).vx     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);                        \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-    (vector).vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);                        \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-    (vector).vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);                        \
-    (vectorPtr)     = &(vector);                                                      \
-    VectorNormalSS((vectorPtr), (vectorPtr));                                         \
-    gte_lddp(DIVER_FLASH_OFFSET_RADIUS);                                              \
-    gte_ldsv(vectorPtr);                                                              \
-    gte_gpf12();                                                                      \
-    gte_stsv(vectorPtr);
+/// shared LCG three times and normalizes/scales on the GTE. `radius` is an
+/// integer strike-local distance, evaluated once. A zero direction is passed
+/// to the SDK without a guard. Clobbers GTE state and leaves vectorPtr at vector.
+/// Expands to a compound statement; invoke within a braced control-flow body.
+#define DIVER_RANDOMIZE_FLASH_OFFSET(vector, vectorPtr, radius)                                                                            \
+    {                                                                                                                                      \
+        enum { DIVER_FLASH_RANDOM_CENTER     = 0x80,                                                                                       \
+               DIVER_FLASH_RANDOM_BYTE_MASK  = 0xFF,                                                                                       \
+               DIVER_FLASH_RANDOM_BYTE_SHIFT = 16 };                                                                                       \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (vector).vx     = DIVER_FLASH_RANDOM_CENTER - ((gRandomLcgState >> DIVER_FLASH_RANDOM_BYTE_SHIFT) & DIVER_FLASH_RANDOM_BYTE_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (vector).vy     = DIVER_FLASH_RANDOM_CENTER - ((gRandomLcgState >> DIVER_FLASH_RANDOM_BYTE_SHIFT) & DIVER_FLASH_RANDOM_BYTE_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (vector).vz     = DIVER_FLASH_RANDOM_CENTER - ((gRandomLcgState >> DIVER_FLASH_RANDOM_BYTE_SHIFT) & DIVER_FLASH_RANDOM_BYTE_MASK); \
+        (vectorPtr)     = &(vector);                                                                                                       \
+        VectorNormalSS((vectorPtr), (vectorPtr));                                                                                          \
+        gte_lddp(radius);                                                                                                                  \
+        gte_ldsv(vectorPtr);                                                                                                               \
+        gte_gpf12();                                                                                                                       \
+        gte_stsv(vectorPtr);                                                                                                               \
+    }
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         _diverDrawSpark(coord, ((u32)phase >> DIVER_BURST_PHASES_PER_CELL_SHIFT) % DIVER_SPARK_FRAME_COUNT, DIVER_BURST_FALLBACK_SPARK_SIZE, 0);
@@ -90,7 +96,7 @@ static void _diverImpactBurst(GfxCoord* coord, u16 phase, u16 kind, u32 sizeAndS
             if (!(phase & DIVER_BURST_TRAIL_FLASH_PHASE_MASK)) {
                 SVECTOR* offsetPtr;
 
-                DIVER_RANDOMIZE_FLASH_OFFSET(flashOffset, offsetPtr);
+                DIVER_RANDOMIZE_FLASH_OFFSET(flashOffset, offsetPtr, DIVER_FLASH_OFFSET_RADIUS);
                 effectSpawn(EFFECT_FLASH_BURST, coord, (s32)size, offsetPtr);
             }
             break;
@@ -102,7 +108,7 @@ static void _diverImpactBurst(GfxCoord* coord, u16 phase, u16 kind, u32 sizeAndS
                 SVECTOR* offsetPtr;
 
                 effectSpawn(gRoomEffectWaterSprayId, coord, DIVER_BURST_IMPACT_SPRAY_PARTICLE + size + spraySizeBias, NULL);
-                DIVER_RANDOMIZE_FLASH_OFFSET(flashOffset, offsetPtr);
+                DIVER_RANDOMIZE_FLASH_OFFSET(flashOffset, offsetPtr, DIVER_FLASH_OFFSET_RADIUS);
                 effectSpawn(EFFECT_FLASH_BURST, coord, (s32)size, offsetPtr);
             }
             break;

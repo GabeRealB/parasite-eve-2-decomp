@@ -589,10 +589,10 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 #define SPRITE_QUAD_ODD_LOOK(p) \
     setSemiTrans(p, 1);         \
     setShadeTex(p, 1);          \
-    SPRITE_QUAD_CORE_CELL(p)
-#define SPRITE_QUAD_EVEN_LOOK(p)  \
-    setRGB0(p, 0x40, 0xC0, 0x60); \
-    SPRITE_QUAD_RIM_CELL(p);      \
+    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p)
+#define SPRITE_QUAD_EVEN_LOOK(p)          \
+    setRGB0(p, 0x40, 0xC0, 0x60);         \
+    SPRITE_QUAD_SET_FLICKER_EVEN_CELL(p); \
     setSemiTrans(p, 1)
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 

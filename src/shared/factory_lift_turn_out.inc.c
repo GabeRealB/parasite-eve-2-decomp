@@ -33,7 +33,7 @@ static s32 _factoryLiftTurnOut(Task* task)
                 work->yawVelocity = 0x40000;
             }
             work->yaw.word += work->yawVelocity;
-            if (work->yaw.word > FACTORY_LIFT_YAW_TURNED) {
+            if (work->yaw.word > FACTORY_LIFT_YAW_TURNED_Q16) {
                 work->yawStep++;
             }
             break;
@@ -43,9 +43,9 @@ static s32 _factoryLiftTurnOut(Task* task)
                 work->yawVelocity = -0x20000;
             }
             work->yaw.word += work->yawVelocity;
-            if (work->yaw.word <= FACTORY_LIFT_YAW_TURNED) {
+            if (work->yaw.word <= FACTORY_LIFT_YAW_TURNED_Q16) {
                 _factoryLiftFinishTurn(task, coord);
-                work->yaw.word = FACTORY_LIFT_YAW_TURNED;
+                work->yaw.word = FACTORY_LIFT_YAW_TURNED_Q16;
                 work->yawStep++;
             }
             break;
@@ -58,7 +58,7 @@ static s32 _factoryLiftTurnOut(Task* task)
     if ((u8)(work->yawStep - FACTORY_LIFT_STEP_START_SOUND) < FACTORY_LIFT_STEP_REST - FACTORY_LIFT_STEP_START_SOUND && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
         _factoryLiftFinishTurn(task, coord);
         movementComplete = 1;
-        work->yaw.word   = FACTORY_LIFT_YAW_TURNED;
+        work->yaw.word   = FACTORY_LIFT_YAW_TURNED_Q16;
         work->yawStep    = FACTORY_LIFT_STEP_REST;
     }
     _factoryLiftRebuildYaw(work, coord);
