@@ -40,6 +40,8 @@
 #include "gameplay/animation.h"
 #include "gameplay/world_coords.h"
 
+static s16 _gTonfaBatonTrailTint;
+
 /// Divisor that turns the model's forward axis into the distance a baton
 /// strike carries the actor per frame: 4096 / 84, about 48 coordinate units.
 enum { TONFA_BATON_ATTACK_ADVANCE_DIVISOR = 84 };
@@ -177,7 +179,7 @@ void tonfaBatonSwingTrailTask(Task* task)
                 if (task->spawnArg1.value == 0) {
                     packedTint = TONFA_BATON_TRAIL_TINT_BLUE;
                 }
-                D_tonfa_baton_8012C0EC = packedTint;
+                _gTonfaBatonTrailTint = packedTint;
                 break;
             case TONFA_BATON_TRAIL_RECORD:
                 baseCoord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -203,7 +205,7 @@ void tonfaBatonSwingTrailTask(Task* task)
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
                 }
-                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), D_tonfa_baton_8012C0EC);
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), _gTonfaBatonTrailTint);
                 break;
         }
         if (effectWork->age >= TONFA_BATON_TRAIL_LIFETIME_TICKS) {
@@ -2021,3 +2023,12 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
 
 GfxCoord gBladeTrailBase[8] = { 0 };
 GfxCoord gBladeTrailTip[8]  = { 0 };
+
+/// Packed RGB multipliers retained for the tonfa baton's swing ribbon.
+///
+/// Red occupies bits 8..9, green 4..5 and blue 0..1; all other bits are zero.
+/// Initially zero when the overlay loads. Seeding selects 0x001 (blue:
+/// 0, 0, 1) when `Task::spawnArg1.value` is zero or 0x013 (cyan: 0, 1, 3)
+/// otherwise. The tint persists between dispatches and is shared by
+/// simultaneous trail tasks until another seed replaces it.
+static s16 _gTonfaBatonTrailTint = 0;

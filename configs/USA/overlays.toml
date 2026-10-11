@@ -352,12 +352,13 @@ label = "Tonfa Baton"
 id = 26
 objects = [
   { kind = "packageId" },
-  { unit = "tonfa_baton/tonfa_baton", rodata = "0x4", text = "0x2C", data = "0xF30" },
   { kind = "model", at = "0xF40", in_c = true },
   { kind = "modelSource", at = "0x12A0", in_c = true },
   { kind = "model", at = "0x12C4", in_c = true },
   { kind = "modelSource", at = "0x142C", in_c = true },
   { kind = "animation", at = "0x1450", sets = ["0x15E0", "0x1C84", "0x24E4", "0x2D48", "0x305C", "0x37B8", "0x3F40", "0x4214", "0x45A4", "0x4A2C", "0x4C28", "0x4F00", "0x51A4", "0x53A4", "0x56F8", "0x59AC", "0x5CCC", "0x6490", "0x7728", "0x82A0", "0x89BC", "0x8E3C", "0x9014", "0x9578", "0x976C", "0x9BEC", "0x9D78", "0xA594", "0xAE50", "0xB5C8", "0xBC08", "0xC424", "0xD42C", "0xD6F4", "0xD8BC", "0xE194", "0xE8C8"], in_c = true },
+  # The C tint definition supplies the final halfword after the trail histories.
+  { unit = "tonfa_baton/tonfa_baton", rodata = "0x4", text = "0x2C", data = "0xF30", tail = true },
 ]
 
 [weapons.overlays.unused_85]
