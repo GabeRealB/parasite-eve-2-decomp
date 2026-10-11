@@ -2585,7 +2585,7 @@ void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object)
         itemMenuSetPreviewItem(abilityId, CD_COMMAND_DISPLAY_LOAD_MENU);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             activeMode  = USER_INTERFACE_PANEL_ACTIVE;
-            childObject = uiSpawnObject(&D_8010F670, abilityId, activeMode, activeMode, object);
+            childObject = uiSpawnObject(&gItemMenuPeCommandPanelDesc, abilityId, activeMode, activeMode, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (childObject != NULL) {
                 uiPositionRowDialog(&(childObject)->panel, list, &(object)->panel);
@@ -2628,10 +2628,10 @@ void itemMenuPeElementTask(Task* task)
     object       = task->spawnArg2.pointer;
     captionIndex = task->spawnArg1.value;
     task->status = 0;
-    list         = &D_80114DF8[task->spawnArg1.value];
-    uiDrawPanelLabel(&(object)->panel, (const char*)D_8010F644[captionIndex]);
+    list         = &gItemMenuPeElementLists[task->spawnArg1.value];
+    uiDrawPanelLabel(&(object)->panel, gItemMenuPeElementTitles[captionIndex]);
     if (task->state == ITEM_MENU_STATE_INITIAL) {
-        list->rowCallbacks                        = D_8010F620;
+        list->rowCallbacks                        = gItemMenuPeAbilityRowCallbacks;
         list->itemCount                           = ITEM_MENU_PE_ABILITIES_PER_ELEMENT;
         list->visibleRowCount.unsignedValue       = ITEM_MENU_PE_ABILITIES_PER_ELEMENT;
         list->wrapNavigation                      = 0;
@@ -2664,7 +2664,7 @@ void itemMenuPeElementTask(Task* task)
             UiList*   verticalList;
 
             verticalObject = task->nextSibling->spawnArg2.pointer;
-            verticalList   = &D_80114DF8[task->spawnArg1.value] + 1;
+            verticalList   = &gItemMenuPeElementLists[task->spawnArg1.value] + 1;
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             verticalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             verticalList->selectedItemIndex    = 0;
@@ -2674,7 +2674,7 @@ void itemMenuPeElementTask(Task* task)
             UiList*   verticalList;
 
             verticalObject = task->nextSibling->nextSibling->nextSibling->spawnArg2.pointer;
-            verticalList   = &D_80114DF8[task->spawnArg1.value] - 1;
+            verticalList   = &gItemMenuPeElementLists[task->spawnArg1.value] - 1;
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             verticalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             verticalList->selectedItemIndex    = verticalList->itemCount - 1;
@@ -2686,7 +2686,7 @@ void itemMenuPeElementTask(Task* task)
                     UiList*   horizontalList;
 
                     horizontalObject = task->nextSibling->nextSibling->spawnArg2.pointer;
-                    horizontalList   = &D_80114DF8[task->spawnArg1.value] + 2;
+                    horizontalList   = &gItemMenuPeElementLists[task->spawnArg1.value] + 2;
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     horizontalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
                     lastItemIndex                        = horizontalList->itemCount - 1;
@@ -2701,7 +2701,7 @@ void itemMenuPeElementTask(Task* task)
                 UiList*   horizontalList;
 
                 horizontalObject = task->nextSibling->nextSibling->spawnArg2.pointer;
-                horizontalList   = &D_80114DF8[task->spawnArg1.value] - 2;
+                horizontalList   = &gItemMenuPeElementLists[task->spawnArg1.value] - 2;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 horizontalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
                 lastItemIndex                        = horizontalList->itemCount - 1;
@@ -3897,7 +3897,7 @@ void itemMenuPeSpecificationsTask(Task* task)
     object         = task->spawnArg2.pointer;
     abilityId      = task->spawnArg1.value;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrSpecs2);
+    uiDrawPanelLabel(&(object)->panel, gItemMenuPeSpecificationsTitle);
     if ((abilityId & ATTACHMENT_MENU_LEVEL_MASK) == 0) {
         abilityId += 1;
     }

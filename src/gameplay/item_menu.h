@@ -140,13 +140,25 @@ extern u8 Gp_MapRoomId;
 /// Room-id offset applied by `_menuMapLoadPage` (0, or 1 / 3 for two flagged rooms).
 extern u8 Gp_MapRoomOff;
 
-/// Shared row callback and the fire/wind/water/earth panel captions.
-extern UiListRowCallback D_8010F620[1];
+/// Single shared row callback for every ability in each P.E. element list.
+///
+/// The element lists set `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`, so entry
+/// zero handles all two or three visible abilities. The writable table-pointer
+/// type follows `UiList`; this table's callback is never replaced.
+extern UiListRowCallback gItemMenuPeAbilityRowCallbacks[1];
 
-extern u8* D_8010F644[4];
+/// Read-only P.E. list titles, indexed 0 Fire, 1 Wind, 2 Water, 3 Earth.
+///
+/// The strings and pointer table remain valid for the gameplay image's lifetime.
+extern const char* const gItemMenuPeElementTitles[4];
 
-/// Four P.Energy slot lists; navigation selects adjacent elements of this array.
-extern UiList D_80114DF8[4];
+/// Mutable P.E. ability lists, indexed 0 Fire, 1 Wind, 2 Water, 3 Earth.
+///
+/// Each element panel initializes and borrows its own list. The four sibling
+/// panels occupy a two-by-two grid: vertical navigation changes the index by
+/// one and horizontal navigation by two, within this array. Selection and
+/// scrolling persist in this singleton storage until the next initialization.
+extern UiList gItemMenuPeElementLists[4];
 
 extern u8 D_8010F13D;
 
@@ -206,7 +218,12 @@ extern UiList D_8010F5D0;
 /// list updates retain navigation, selection and drawing state here.
 extern UiList gItemMenuPeCommandList;
 
-extern UiObjectDesc D_8010F670;
+/// Recipe for the P.E. ability's Upgrade/Cancel command popup.
+///
+/// Content is a packed P.E. menu id: element 0..3, ability 0..2, level 0..3.
+/// The caller anchors it to the selected row; its handler fits the shared
+/// two-row command list. Bounds use screen-centered pixels; depth counts tags.
+extern const UiObjectDesc gItemMenuPeCommandPanelDesc;
 
 extern s32 D_80114E88;
 
@@ -248,9 +265,11 @@ extern const u8 gItemMenuPeUpgradeBonusLabel[];
 /// MP-bonus heading in the P.E. level purchase panel.
 extern const u8 gItemMenuPeUpgradeMpLabel[];
 
-/// "Specifications". The byte after the terminator is not zero: the original
-/// toolchain left it in the alignment gap.
-extern const char Gp_StrSpecs2[16];
+/// Title of the current-level P.E. specifications panel.
+///
+/// The sixteen-byte storage retains a quote byte after the title's terminator;
+/// title drawing reads only the terminated string.
+extern const char gItemMenuPeSpecificationsTitle[16];
 
 /// Applies a weapon add-on and shows the previous weapon, result and returned items.
 ///

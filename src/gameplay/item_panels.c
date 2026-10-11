@@ -123,7 +123,7 @@ u8 Gp_MapRoomId;
 
 u8 Gp_MapRoomOff;
 
-UiList D_80114DF8[4];
+UiList gItemMenuPeElementLists[4];
 
 s32 D_80114E88;
 
@@ -135,59 +135,13 @@ s32 D_80114E94;
 
 extern UiObjectDesc D_8010F02C[3];
 
-extern UiObjectDesc D_8010F080;
-
-extern UiObjectDesc D_8010F09C;
-
 static u8 D_8010F194[];
-
-extern u8 Gp_StrReallyDiscard[];
-
-extern u8 Gp_StrSaveDone[];
-
-extern u8 Gp_StrNoUseNow2[];
-
-extern u8 Gp_StrDontKnowUse[];
-
-extern u8 Gp_StrNoOtherWpn[];
-
-extern u8 Gp_StrNoOtherArmor[];
-
-extern u8 Gp_StrNeedMp5[];
-
-extern u8 Gp_StrNeedM4[];
-
-extern u8 Gp_StrNeedAs12[];
-
-extern u8 Gp_StrNeedP08[];
-
-extern u8 Gp_StrNoMoreMods[];
-
-extern u8 Gp_StrNeedEmptySlot[];
-
-extern u8 Gp_StrMaxHpUp[];
-
-extern u8 Gp_StrMaxMpUp[];
-
-extern u8 Gp_StrCannotMoveItem[];
-
-extern u8 Gp_StrCannotSwitchItem[];
-
-extern u8 Gp_StrCannotSwitchWith[];
 
 extern UiListRowCallback D_8010F5C8[2];
 
-extern u8 Gp_StrFire[];
-
-extern u8 Gp_StrWind[];
-
-extern u8 Gp_StrWater[];
-
-extern u8 Gp_StrEarth[];
-
 static const char _gItemMenuHealingStatusTitle[];
 
-extern const char Gp_StrInvoke[];
+static const char _gItemMenuInvokeTitle[];
 
 extern const char Gp_StrPeList[];
 
@@ -195,9 +149,9 @@ extern const u8 D_800971A4;
 
 extern const char Gp_StrTotal2[];
 
-extern const char Gp_StrMessage[];
+static const char _gItemPickupQuestionTitle[];
 
-extern const char Gp_StrWarning[];
+static const char _gItemPickupInventoryFullTitle[];
 
 static void _itemPickupPreviewTask(Task* task);
 
@@ -316,9 +270,38 @@ UiObjectDesc D_8010F02C[3] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, _itemPickupInventoryFullTask, 0 },
 };
 
-UiObjectDesc D_8010F080 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -40, 160, 80 }, 8, 0, TASK_BODY_NONE, 192, _itemPickupObtainedNoticeTask, 0 };
+/// Style and task priority seeds for the pickup's child panels.
+enum {
+    ITEM_PICKUP_PREVIEW_PANEL_STYLE = 0,
+    ITEM_PICKUP_PANEL_TASK_PRIORITY = 192
+};
 
-UiObjectDesc D_8010F09C = { 0, { -144, 0, 90, 70 }, 52, 0, TASK_BODY_NONE, 192, _itemPickupPreviewTask, 0 };
+/// Recipe for the obtained-item notice shown after a pickup is accepted.
+///
+/// Bounds are screen-centered pixels; the handler fits them to two text rows.
+/// Content holds the catalogue id in its low 16 bits; bit 16 allows timeout only.
+static const UiObjectDesc _gItemPickupObtainedNoticeDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -80, -40, 160, 80 },
+    .otIndexSeed     = 8,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = ITEM_PICKUP_PANEL_TASK_PRIORITY,
+    .contentCallback = _itemPickupObtainedNoticeTask,
+};
+
+/// Recipe for the published pickup's equipment-scale model or picture preview.
+///
+/// Content is unused; the handler reads the published pickup id and waits for
+/// menu-preview resources. The title parent places it below its own bounds.
+/// Bounds are screen-centered pixels and the ordering-table seed counts tags.
+static const UiObjectDesc _gItemPickupPreviewDesc __attribute__((section(".data"))) = {
+    .style           = ITEM_PICKUP_PREVIEW_PANEL_STYLE,
+    .bounds          = { -144, 0, 90, 70 },
+    .otIndexSeed     = 52,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = ITEM_PICKUP_PANEL_TASK_PRIORITY,
+    .contentCallback = _itemPickupPreviewTask,
+};
 
 MenuMapAreaName* Gp_MapNameTables[5] = {
     gMapAkropolisAreaNames,
@@ -425,24 +408,41 @@ static const u8 _gItemMenuMaxPeLevelText[] __attribute__((section(".data"))) = "
 /// Notice text reporting insufficient MP.
 static const u8 _gItemMenuInsufficientMpText[] __attribute__((section(".data"))) = "Insufficient MP.";
 /// Notice text for a cancelled save operation.
-static const u8 _gItemMenuSaveCancelledText[] __attribute__((section(".data")))                     = "Save cancelled.";
-u8              Gp_StrReallyDiscard[]                                                               = "Really discard?";
-u8              Gp_StrSaveDone[]                                                                    = "Save complete.";
-u8              Gp_StrNoUseNow2[]                                                                   = "No use for this now.";
-u8              Gp_StrDontKnowUse[]                                                                 = "I don't no how to use this.";
-u8              Gp_StrNoOtherWpn[]                                                                  = "I have no other weapons.";
-u8              Gp_StrNoOtherArmor[]                                                                = "I have no other armor.";
-u8              Gp_StrNeedMp5[]                                                                     = "MP5A5 required.";
-u8              Gp_StrNeedM4[]                                                                      = "M4A1 required.";
-u8              Gp_StrNeedAs12[]                                                                    = "AS12 required.";
-u8              Gp_StrNeedP08[]                                                                     = "P08 required.";
-u8              Gp_StrNoMoreMods[]                                                                  = "No further modifications.";
-u8              Gp_StrNeedEmptySlot[]                                                               = "Empty slot required.";
-u8              Gp_StrMaxHpUp[]                                                                     = "Maximum HP increased.";
-u8              Gp_StrMaxMpUp[]                                                                     = "Maximum MP increased.";
-u8              Gp_StrCannotMoveItem[]                                                              = "Cannot move this item.";
-u8              Gp_StrCannotSwitchItem[]                                                            = "Cannot switch this item.";
-u8              Gp_StrCannotSwitchWith[]                                                            = "Cannot switch with this item.";
+static const u8 _gItemMenuSaveCancelledText[] __attribute__((section(".data"))) = "Save cancelled.";
+/// Confirmation prompt before discarding the selected inventory row.
+static const u8 _gItemMenuConfirmDiscardText[] __attribute__((section(".data"))) = "Really discard?";
+/// Notice text reporting a completed save.
+static const u8 _gItemMenuSaveCompleteText[] __attribute__((section(".data"))) = "Save complete.";
+/// Notice text for an item that cannot currently be used.
+static const u8 _gItemMenuNoUseNowText[] __attribute__((section(".data"))) = "No use for this now.";
+/// Stored notice text saying the item's use is unknown; no producer is known.
+static const u8 _gItemMenuUnknownUseText[] __attribute__((section(".data"))) = "I don't no how to use this.";
+/// Notice text when no other carried weapon is available for exchange.
+static const u8 _gItemMenuNoOtherWeaponText[] __attribute__((section(".data"))) = "I have no other weapons.";
+/// Notice text when no other carried armor is available for exchange.
+static const u8 _gItemMenuNoOtherArmorText[] __attribute__((section(".data"))) = "I have no other armor.";
+/// Notice text for an add-on use requiring a carried MP5A5 variant.
+static const u8 _gItemMenuMp5a5RequiredText[] __attribute__((section(".data"))) = "MP5A5 required.";
+/// Notice text for an add-on use requiring a carried M4A1 variant.
+static const u8 _gItemMenuM4a1RequiredText[] __attribute__((section(".data"))) = "M4A1 required.";
+/// Stored notice text requiring an AS12; no producer is known.
+static const u8 _gItemMenuAs12RequiredText[] __attribute__((section(".data"))) = "AS12 required.";
+/// Notice text for a Snail Magazine use requiring a carried P08.
+static const u8 _gItemMenuP08RequiredText[] __attribute__((section(".data"))) = "P08 required.";
+/// Notice text when the carried weapon already has the requested modification.
+static const u8 _gItemMenuNoFurtherModificationsText[] __attribute__((section(".data"))) = "No further modifications.";
+/// Notice text when replacing a weapon add-on needs a free inventory slot.
+static const u8 _gItemMenuEmptySlotRequiredText[] __attribute__((section(".data"))) = "Empty slot required.";
+/// Notice text after consuming a permanent maximum-HP boost.
+static const u8 _gItemMenuMaxHpIncreasedText[] __attribute__((section(".data"))) = "Maximum HP increased.";
+/// Notice text after consuming a permanent maximum-MP boost.
+static const u8 _gItemMenuMaxMpIncreasedText[] __attribute__((section(".data"))) = "Maximum MP increased.";
+/// Notice text when a transfer restriction blocks moving or swapping an item.
+static const u8 _gItemMenuCannotMoveItemText[] __attribute__((section(".data"))) = "Cannot move this item.";
+/// Stored notice text refusing to swap the source item; no producer is known.
+static const u8 _gItemMenuCannotSwitchItemText[] __attribute__((section(".data"))) = "Cannot switch this item.";
+/// Notice text when a transfer restriction blocks the selected swap partner.
+static const u8 _gItemMenuCannotSwitchWithItemText[] __attribute__((section(".data")))              = "Cannot switch with this item.";
 const u8        gItemMenuPeAreaEffectLabel[] __attribute__((section(".data")))                      = "Area of Effect";
 const u8        gItemMenuPeCastingCostLabel[] __attribute__((section(".data")))                     = "Casting Cost";
 const u8        gItemMenuPeAtpLossLabel[] __attribute__((section(".data")))                         = "ATP Loss";
@@ -463,23 +463,23 @@ const u8* const gItemMenuNoticeTexts[ITEM_MENU_NOTICE_TEXT_COUNT] __attribute__(
     _gItemMenuMaxPeLevelText,
     _gItemMenuInsufficientMpText,
     _gItemMenuSaveCancelledText,
-    Gp_StrReallyDiscard,
-    Gp_StrSaveDone,
-    Gp_StrNoUseNow2,
-    Gp_StrDontKnowUse,
-    Gp_StrNoOtherWpn,
-    Gp_StrNoOtherArmor,
-    Gp_StrNeedMp5,
-    Gp_StrNeedM4,
-    Gp_StrNeedAs12,
-    Gp_StrNeedP08,
-    Gp_StrNoMoreMods,
-    Gp_StrNeedEmptySlot,
-    Gp_StrMaxHpUp,
-    Gp_StrMaxMpUp,
-    Gp_StrCannotMoveItem,
-    Gp_StrCannotSwitchItem,
-    Gp_StrCannotSwitchWith,
+    _gItemMenuConfirmDiscardText,
+    _gItemMenuSaveCompleteText,
+    _gItemMenuNoUseNowText,
+    _gItemMenuUnknownUseText,
+    _gItemMenuNoOtherWeaponText,
+    _gItemMenuNoOtherArmorText,
+    _gItemMenuMp5a5RequiredText,
+    _gItemMenuM4a1RequiredText,
+    _gItemMenuAs12RequiredText,
+    _gItemMenuP08RequiredText,
+    _gItemMenuNoFurtherModificationsText,
+    _gItemMenuEmptySlotRequiredText,
+    _gItemMenuMaxHpIncreasedText,
+    _gItemMenuMaxMpIncreasedText,
+    _gItemMenuCannotMoveItemText,
+    _gItemMenuCannotSwitchItemText,
+    _gItemMenuCannotSwitchWithItemText,
 };
 
 UiListRowCallback D_8010F5C8[2] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow };
@@ -499,23 +499,27 @@ UiList gItemMenuPeCommandList = {
     .rowHeight       = 10,
 };
 
-UiListRowCallback D_8010F620[1] = {
+UiListRowCallback gItemMenuPeAbilityRowCallbacks[1] = {
     itemMenuDrawPeAbilityRow,
 };
 
-u8 Gp_StrFire[] = "Fire";
+/// Title of the Fire P.E. ability list.
+static const char _gItemMenuPeFireTitle[] __attribute__((section(".data"))) = "Fire";
 
-u8 Gp_StrWind[] = "Wind";
+/// Title of the Wind P.E. ability list.
+static const char _gItemMenuPeWindTitle[] __attribute__((section(".data"))) = "Wind";
 
-u8 Gp_StrWater[] = "Water";
+/// Title of the Water P.E. ability list.
+static const char _gItemMenuPeWaterTitle[] __attribute__((section(".data"))) = "Water";
 
-u8 Gp_StrEarth[] = "Earth";
+/// Title of the Earth P.E. ability list.
+static const char _gItemMenuPeEarthTitle[] __attribute__((section(".data"))) = "Earth";
 
-u8* D_8010F644[4] = {
-    Gp_StrFire,
-    Gp_StrWind,
-    Gp_StrWater,
-    Gp_StrEarth,
+const char* const gItemMenuPeElementTitles[4] __attribute__((section(".data"))) = {
+    _gItemMenuPeFireTitle,
+    _gItemMenuPeWindTitle,
+    _gItemMenuPeWaterTitle,
+    _gItemMenuPeEarthTitle,
 };
 
 /// Style selector and execution priority of the Item command panel recipe.
@@ -537,23 +541,49 @@ static UiObjectDesc _gItemMenuItemCommandPanelDesc = {
     .contentCallback = itemMenuItemCommandTask,
 };
 
-UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, itemMenuPeCommandTask, 0 };
+enum {
+    ITEM_MENU_PE_COMMAND_PANEL_UNTITLED_STYLE = 3,
+    ITEM_MENU_PE_COMMAND_PANEL_TASK_PRIORITY  = 192
+};
 
-const char Gp_StrInvoke[];
+const UiObjectDesc gItemMenuPeCommandPanelDesc __attribute__((section(".data"))) = {
+    .style           = ITEM_MENU_PE_COMMAND_PANEL_UNTITLED_STYLE,
+    .bounds          = { -136, -50, 70, 80 },
+    .otIndexSeed     = 20,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = ITEM_MENU_PE_COMMAND_PANEL_TASK_PRIORITY,
+    .contentCallback = itemMenuPeCommandTask,
+};
+
 const char Gp_StrPeList[];
 const u8   D_800971A4;
 const char Gp_StrTotal2[];
-const char Gp_StrMessage[];
-const char Gp_StrWarning[];
 const char Gp_StrHelp[];
 const char Gp_StrUse2[];
 const char Gp_StrKeyItem2[];
 const char Gp_StrMap[];
 const char Gp_StrAttention2[];
-const char Gp_StrSpecs2[];
 
-const _ItemMenuM4a1VariantTable D_80097184;
-const TaskFuncTable4            Gp_MapTaskStates;
+/// Carried weapon and mounted add-on catalogue ids in the M4A1 scan table.
+enum {
+    ITEM_MENU_M4A1_VARIANT_BASE_ITEM        = 0x8F,
+    ITEM_MENU_M4A1_VARIANT_ONE_HOLDER_ITEM  = 0x93,
+    ITEM_MENU_M4A1_VARIANT_TWO_HOLDERS_ITEM = 0x94,
+    ITEM_MENU_M4A1_VARIANT_HAMMER_ITEM      = 0x98,
+    ITEM_MENU_M4A1_VARIANT_M203_ITEM        = 0x9A,
+    ITEM_MENU_M4A1_VARIANT_M9_ITEM          = 0x99,
+    ITEM_MENU_M4A1_VARIANT_PYKE_ITEM        = 0x9B,
+    ITEM_MENU_M4A1_VARIANT_JAVELIN_ITEM     = 0x9C,
+    ITEM_MENU_M4A1_ADDON_CLIP_HOLDER        = 0x0A,
+    ITEM_MENU_M4A1_ADDON_HAMMER             = 0x42,
+    ITEM_MENU_M4A1_ADDON_M203               = 0x45,
+    ITEM_MENU_M4A1_ADDON_M9                 = 0x46,
+    ITEM_MENU_M4A1_ADDON_PYKE               = 0x43,
+    ITEM_MENU_M4A1_ADDON_JAVELIN            = 0x44
+};
+
+static const _ItemMenuM4a1VariantTable _gItemMenuM4a1VariantTable;
+const TaskFuncTable4                   Gp_MapTaskStates;
 
 void itemMenuCommandTask(Task* task)
 {
@@ -846,7 +876,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
                     clipHolderItemId = ITEM_MENU_WEAPON_ADDON_RIFLE_CLIP_HOLDER;
                     // Copied into the slot the row text reuses once this carriedItems is done.
                     variants             = scratch.variantTable.variants;
-                    scratch.variantTable = D_80097184;
+                    scratch.variantTable = _gItemMenuM4a1VariantTable;
                     task->status         = ITEM_MENU_WEAPON_ADDON_NEEDS_M4A1;
                     // Find the variant being carriedVariantIndex; the add-on it has mounted comes back to the inventory.
                     for (carriedVariantIndex = 0; carriedVariantIndex < ARRAY_SIZE(scratch.variantTable.variants); carriedVariantIndex++) {
@@ -1048,7 +1078,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
         task->state            = task->state + 1;
     }
 
-    uiDrawPanelLabel(&(object)->panel, Gp_StrInvoke);
+    uiDrawPanelLabel(&(object)->panel, _gItemMenuInvokeTitle);
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuInvokedText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_MENU_RESULT_ITEM_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1362,7 +1392,7 @@ void itemPickupPanelTask(Task* task)
         if (task->spawnArg1.value != 0) {
             inventorySetCollectedBit(gItemPickupPublishedKind);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            // The separate obtained recipe immediately follows the three-entry table.
+            // The separate _gItemPickupObtainedNoticeDesc follows the three-entry table in the image.
             noticeObject = uiSpawnObject(pickupPanelDescs + ARRAY_SIZE(D_8010F02C), gItemPickupPublishedKind | ITEM_PICKUP_PANEL_TIMEOUT_ONLY, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
             if (noticeObject != NULL) {
                 noticeObject->resultValue = USER_INTERFACE_LIST_COMMAND_YES;
@@ -1524,7 +1554,7 @@ static void _itemPickupTitleTask(Task* task)
         uiDrawTitle(&(object)->panel, (const char*)gItemMenuKeyItemTitle);
     }
     if (task->state == ITEM_PICKUP_TITLE_STATE_INIT) {
-        previewObject = uiSpawnObject(&D_8010F09C, 0, 0, 1, object);
+        previewObject = uiSpawnObject(&_gItemPickupPreviewDesc, 0, 0, 1, object);
         uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(1) + 1);
         if (previewObject != NULL) {
             previewObject->panel.bounds.unsignedRect.y = object->panel.bounds.unsignedRect.y + object->panel.bounds.unsignedRect.h;
@@ -1595,7 +1625,7 @@ static void _itemPickupAskTask(Task* task)
         _itemMenuSpawnDialog(object, ITEM_MENU_DIALOG_YES_SELECTED);
         task->state = task->state + 1;
     }
-    uiDrawPanelLabelWithChildFocus(&object->panel, Gp_StrMessage);
+    uiDrawPanelLabelWithChildFocus(&object->panel, _gItemPickupQuestionTitle);
     textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
     drawMode     = TEXT_DRAW_OUTLINED;
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemPickupQuestionText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
@@ -1621,7 +1651,7 @@ static void _itemPickupAskTask(Task* task)
                     }
                     object->resultValue = childObject->resultValue;
                     if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
-                        uiSpawnObject(&D_8010F080, (s32)gItemPickupPublishedKind, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                        uiSpawnObject(&_gItemPickupObtainedNoticeDesc, (s32)gItemPickupPublishedKind, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                         uiStartTreeClosing(childObject, childObject->owner);
                         task->state = task->state + 1;
@@ -1650,7 +1680,7 @@ static void _itemPickupInventoryFullTask(Task* task)
     s32       drawMode;
 
     object = task->spawnArg2.pointer;
-    uiDrawPanelLabelWithChildFocus(&object->panel, Gp_StrWarning);
+    uiDrawPanelLabelWithChildFocus(&object->panel, _gItemPickupInventoryFullTitle);
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_PICKUP_FULL_STATE_INIT) {
         _itemMenuSpawnDialog(object, ITEM_MENU_DIALOG_OK);
@@ -2008,23 +2038,31 @@ void itemPickupExitTask(Task* task)
 }
 
 /// Title of the item-use panel showing HP and MP recovery.
-static const char               _gItemMenuHealingStatusTitle[] = "Status";
-const _ItemMenuM4a1VariantTable D_80097184                     = { {
-    { 0x8F, 0x00 },
-    { 0x93, 0x0A },
-    { 0x94, 0x0A },
-    { 0x98, 0x42 },
-    { 0x9A, 0x45 },
-    { 0x99, 0x46 },
-    { 0x9B, 0x43 },
-    { 0x9C, 0x44 },
+static const char _gItemMenuHealingStatusTitle[] = "Status";
+/// M4A1 variants scanned to replace a carried rifle when an add-on is used.
+///
+/// The first carried row supplies the old weapon and returned add-on. The first
+/// other row mounting the used add-on supplies the new weapon. Keeping the
+/// one-holder row before the two-holder row makes clip-holder use add one stage.
+static const _ItemMenuM4a1VariantTable _gItemMenuM4a1VariantTable = { {
+    { ITEM_MENU_M4A1_VARIANT_BASE_ITEM, INVENTORY_ITEM_NONE },
+    { ITEM_MENU_M4A1_VARIANT_ONE_HOLDER_ITEM, ITEM_MENU_M4A1_ADDON_CLIP_HOLDER },
+    { ITEM_MENU_M4A1_VARIANT_TWO_HOLDERS_ITEM, ITEM_MENU_M4A1_ADDON_CLIP_HOLDER },
+    { ITEM_MENU_M4A1_VARIANT_HAMMER_ITEM, ITEM_MENU_M4A1_ADDON_HAMMER },
+    { ITEM_MENU_M4A1_VARIANT_M203_ITEM, ITEM_MENU_M4A1_ADDON_M203 },
+    { ITEM_MENU_M4A1_VARIANT_M9_ITEM, ITEM_MENU_M4A1_ADDON_M9 },
+    { ITEM_MENU_M4A1_VARIANT_PYKE_ITEM, ITEM_MENU_M4A1_ADDON_PYKE },
+    { ITEM_MENU_M4A1_VARIANT_JAVELIN_ITEM, ITEM_MENU_M4A1_ADDON_JAVELIN },
 } };
-const char                      Gp_StrInvoke[]                 = "Invoke";
-const char                      Gp_StrPeList[]                 = "PE LIST";
-const u8                        D_800971A4                     = 0;
-const char                      Gp_StrTotal2[]                 = "TOTAL";
-const char                      Gp_StrMessage[]                = "Message";
-const char                      Gp_StrWarning[]                = "Warning";
+/// Title of the result panel that unlocks or raises an ordinary P.E. item ability.
+static const char _gItemMenuInvokeTitle[] = "Invoke";
+const char        Gp_StrPeList[]          = "PE LIST";
+const u8          D_800971A4              = 0;
+const char        Gp_StrTotal2[]          = "TOTAL";
+/// Title of the pickup question while its Yes/No child holds input.
+static const char _gItemPickupQuestionTitle[] = "Message";
+/// Title of the pickup warning when the carried inventory has no capacity.
+static const char _gItemPickupInventoryFullTitle[] = "Warning";
 
 const TaskFuncTable4 Gp_MapTaskStates = { {
     menuMapOpenTask,
@@ -2035,17 +2073,15 @@ const TaskFuncTable4 Gp_MapTaskStates = { {
 
 /// "Help". The three bytes after the terminator are not zero: the original
 /// toolchain left them in the alignment gap.
-const char Gp_StrHelp[8]                  = "Help\0a~\xC6";
-const char Gp_StrUse2[]                   = "Use";
-const char Gp_StrKeyItem2[]               = "Key Item";
-const char Gp_StrMap[]                    = "Map";
-const char Gp_StrAttention2[]             = "Attention";
-const char gItemMenuNoticeTitle[]         = "Notice";
-const char gItemMenuPeNextLevelTitle[]    = "Next Level";
-const u8   gItemMenuPeUpgradeExpLabel[]   = "EXP";
-const u8   gItemMenuPeUpgradeCostLabel[]  = "COST";
-const u8   gItemMenuPeUpgradeBonusLabel[] = "BONUS";
-const u8   gItemMenuPeUpgradeMpLabel[]    = "MP";
-/// "Specifications". The byte after the terminator is not zero: the original
-/// toolchain left it in the alignment gap.
-const char Gp_StrSpecs2[16] = "Specifications\0\"";
+const char Gp_StrHelp[8]                      = "Help\0a~\xC6";
+const char Gp_StrUse2[]                       = "Use";
+const char Gp_StrKeyItem2[]                   = "Key Item";
+const char Gp_StrMap[]                        = "Map";
+const char Gp_StrAttention2[]                 = "Attention";
+const char gItemMenuNoticeTitle[]             = "Notice";
+const char gItemMenuPeNextLevelTitle[]        = "Next Level";
+const u8   gItemMenuPeUpgradeExpLabel[]       = "EXP";
+const u8   gItemMenuPeUpgradeCostLabel[]      = "COST";
+const u8   gItemMenuPeUpgradeBonusLabel[]     = "BONUS";
+const u8   gItemMenuPeUpgradeMpLabel[]        = "MP";
+const char gItemMenuPeSpecificationsTitle[16] = "Specifications\0\"";
