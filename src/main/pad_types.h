@@ -23,10 +23,13 @@ typedef struct {
 } PadRawPort;
 STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 
-/// Active-low controller button word assembled from the two response bytes.
+/// A controller's two active-low response bytes in Psy-Q button-mask order.
 ///
-/// The receive buffer sends the high byte first. The byte view places it after
-/// the low byte in little-endian memory so `word` uses Psy-Q's button bit order.
+/// The wire response sends the high byte first; `bytes` reverses their memory
+/// order for the target's little-endian halfword load. Every cleared bit is a
+/// held button, and 0xFFFF means all released. Both bytes must be written before
+/// reading `word`; complementing and narrowing to u16 yields the active-high
+/// masks used by the input API. The two views represent the same two bytes.
 typedef union {
     u16 word;    // Active-low button bits in Psy-Q order
     struct {

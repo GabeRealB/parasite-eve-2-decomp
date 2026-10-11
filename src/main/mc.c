@@ -106,21 +106,31 @@ typedef struct {
 } McPromptPair;
 STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 
-/// Serialized PlayStation card-file header, including its mutable Shift-JIS title.
+/// Title and icon geometry of the serialized card-file header.
+enum {
+    MEMORY_CARD_TITLE_GLYPH_CAPACITY = 32,
+    MEMORY_CARD_ICON_PALETTE_COLORS  = 16,
+    MEMORY_CARD_ICON_FRAME_COUNT     = 3,
+    MEMORY_CARD_ICON_WIDTH           = 16,
+    MEMORY_CARD_ICON_HEIGHT          = 16,
+    MEMORY_CARD_ICON_FRAME_BYTES     = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT / 2,
+};
+
+/// Mutable 512-byte card-file header containing the title, palette and three icons.
 ///
-/// Byte arrays retain the on-card encoding: glyph pairs and CLUT entries are
-/// little-endian halfwords, and each icon is 16 by 16 pixels at four bits per pixel.
-/// The title writer uses aligned halfword stores; checksum and SDK calls use
-/// the complete object's byte representation. Bytes between the title and palette
-/// remain uninterpreted.
+/// The title holds complete Shift-JIS byte pairs, written both as encoded
+/// bytes and as aligned halfwords in target memory order. The palette contains
+/// sixteen RGB555 colors; icon bytes pack the left pixel into the low nibble.
+/// Checksums and card transfers cover the whole record. Title appends do not
+/// check the 64-byte region and can reach the following uninterpreted bytes.
 typedef struct {
-    u8 magic[2];           // SC signature
-    u8 iconDisplay;        // 0x13: three animated icon frames
-    u8 blockCount;         // Number of 8 KB card blocks occupied (1)
-    u8 title[64];          // Full-width Shift-JIS glyph pairs, followed by a zero pair
-    u8 retainedBytes[28];  // Bytes between title and palette; role unproven, retained by title rebuilds
-    u8 iconClut[32];       // Sixteen little-endian RGB555 palette entries; index zero is transparent
-    u8 iconPixels[3][128]; // Three 16x16 four-bit frames; low nibble is the left pixel
+    u8  magic[2];                                                               // Signature bytes ('S', 'C')
+    u8  iconDisplay;                                                            // Display selector (0x13: three animated frames)
+    u8  blockCount;                                                             // File size in 8 KB card blocks (1)
+    u8  title[MEMORY_CARD_TITLE_GLYPH_CAPACITY * sizeof(u16)];                  // Full-width Shift-JIS byte pairs, terminated by a zero pair
+    u8  unknown_44[28];                                                         // Role unproven; unchecked title appends can overwrite the beginning
+    u16 iconClut[MEMORY_CARD_ICON_PALETTE_COLORS];                              // Sixteen RGB555 palette entries in target halfword order
+    u8  iconPixels[MEMORY_CARD_ICON_FRAME_COUNT][MEMORY_CARD_ICON_FRAME_BYTES]; // Three 16x16 four-bit icon frames
 } _McCardFileHeader;
 STATIC_ASSERT_SIZEOF(_McCardFileHeader, 0x200);
 STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, title) == 4, mc_card_title_offset);

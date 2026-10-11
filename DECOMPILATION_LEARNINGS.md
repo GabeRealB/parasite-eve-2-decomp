@@ -65866,7 +65866,7 @@ do {
     }
     gFsLzssInputCursor++;
     count++;
-    if (gFsLzssInputCursor >= ((const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector)) || count >= 6U) {
+    if (gFsLzssInputCursor >= gFsSectorBuffers.clutContinuation || count >= 6U) {
         _fsResumeDrawing(ot);
         /* Conditional rewind and return remain inside this loop. */
     }

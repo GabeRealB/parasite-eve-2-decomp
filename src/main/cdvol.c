@@ -8,6 +8,7 @@
 #include "common.h"
 
 #include "cdvol.h"
+#include "cd_types.h"
 #include "cdstream.h"
 #include "fs.h"
 #include "main/sound.h"
@@ -21,12 +22,6 @@ enum {
     CD_VOLUME_REGISTER_SHIFT = 8,
     CD_VOLUME_REGISTER_SCALE = 1 << CD_VOLUME_REGISTER_SHIFT,
 };
-
-/// Twelve-byte disc-sector header consumed before a sound-bank payload.
-typedef struct {
-    CdlLOC location;       // BCD position at the start of the sector header
-    u8     unreadBytes[8]; // Remaining header bytes; not interpreted here
-} _FsSoundBankSectorHeader;
 
 /// Settling polls completed since the resident disc-init job accepted read mode.
 ///
@@ -89,16 +84,16 @@ static inline void _cdVolApplyRegisterVolume(s16 registerVolume)
 
 void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
 {
-    _FsSoundBankSectorHeader sectorHeader;
-    SndLoadState*            loadState;
-    u32*                     payloadWords;
-    s32                      loadPhase;
-    s32                      sectorPosition;
-    u8                       errorCount;
+    CdSectorHeader sectorHeader;
+    SndLoadState*  loadState;
+    u32*           payloadWords;
+    s32            loadPhase;
+    s32            sectorPosition;
+    u8             errorCount;
 
     /// Reads a header and writes its absolute sector without consuming payload.
     ///
-    /// `header` must be a side-effect-free `_FsSoundBankSectorHeader` lvalue;
+    /// `header` must be a side-effect-free `CdSectorHeader` lvalue;
     /// it is evaluated twice, plus once in sizeof. `position` is assigned once
     /// after both synchronous SDK calls. The transfer count is in u32 words.
 #define FILE_SYSTEM_READ_SOUND_BANK_SECTOR_POSITION(header, position) \

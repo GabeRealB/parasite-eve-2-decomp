@@ -6,11 +6,15 @@
 
 #include "common.h"
 
-/// Four-byte file selector assembled from a queued CD file-load request.
+/// Four byte components selecting one file from the mounted CDF tables.
 ///
-/// Stage zero uses `fileGroup * 10000 + fileIdHundreds * 100 + fileIndex`.
-/// Other stages use the currently published folder's file table; the group
-/// and folder suffix select that table before this key reaches `fsLoadFile`.
+/// Stage zero resolves `fileGroup * 10000 + fileIdHundreds * 100 + fileIndex`.
+/// Stages 1..5 use folder `fileGroup * 100 + fileIdHundreds`, then `fileIndex`
+/// in its published file table. The folder must already be selected before
+/// `fsLoadFile` uses the key; stage and direct file-table indices are unchecked.
+/// The key is borrowed for a load call. Enqueue copies bytes 3, 2 and 0 only:
+/// its separate argument block supplies `fileIdHundreds`, allowing byte 1 of
+/// an enqueue-only key to remain uninitialized.
 typedef struct {
     u8 fileIndex;      // Index within the current folder, or low component of a stage-zero file id
     u8 fileIdHundreds; // Stage-zero hundreds component; otherwise the folder suffix
@@ -150,17 +154,18 @@ typedef union {
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
-/// Shared sector storage for filesystem reads and CD audio transfers.
+/// Contiguous two-sector workspace shared by CDF readers and CD audio.
 ///
-/// A two-sector CLUT keeps its opening sector while the next sector is read
-/// into `clutContinuation`; its compressed stream spans both. Strip decoding
-/// uses the same boundary to restart input at the primary sector. CD audio
-/// borrows the whole allocation: its opening SPU transfer reads 2048 bytes
-/// starting 16 bytes into `sector`, including the first 16 continuation bytes.
-/// Those trailing bytes retain earlier contents until a CLUT read replaces them.
+/// A two-sector CLUT retains the opening header and payload in `sector` while
+/// reading the next sector into `clutContinuation`; decoding spans both.
+/// Ordinary payload, directory and drive-header reads reuse only `sector`.
+/// Strip input ends at the continuation's start and restarts at `sector.bytes`.
+/// MTS streaming borrows the entire workspace: a header-sector SPU transfer
+/// reads 2048 bytes beginning 16 bytes into `sector`, including 16 retained
+/// continuation bytes. Finish CD, decoder and SPU consumers before reuse.
 typedef struct {
-    FsSector sector;                                // Primary sector, reused for headers, directories and payloads
-    u8       clutContinuation[FS_SECTOR_BYTE_SIZE]; // Second CLUT sector; retained between reads
+    FsSector sector;                                // Header, directory or payload sector; replaced by the next read
+    u8       clutContinuation[FS_SECTOR_BYTE_SIZE]; // Second CLUT sector; also supplies retained trailing bytes to MTS transfers
 } FsSectorBuffers;
 STATIC_ASSERT_SIZEOF(FsSectorBuffers, 2 * FS_SECTOR_BYTE_SIZE);
 STATIC_ASSERT(OFFSET_OF(FsSectorBuffers, clutContinuation) == FS_SECTOR_BYTE_SIZE, fs_sector_buffers_contiguous);

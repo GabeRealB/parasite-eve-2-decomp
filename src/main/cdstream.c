@@ -9,6 +9,7 @@
 
 #include "common.h"
 
+#include "cd_types.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "sound.h"
@@ -353,19 +354,19 @@ static s32 _gCdStreamReadStepPollCount;
 /// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_800827F0[8];
 
-/// Scratch storage for the CD sector header preceding an audio or scene-image payload.
+/// CD header workspace used while receiving audio and scene-image sectors.
 ///
-/// The first twelve bytes receive the header. The last four allocated bytes
-/// are unaccessed; their role is unproven.
+/// Each transfer overwrites `header` before the payload is read into separate
+/// storage. The following four allocated bytes have no observed access;
+/// their role and the original workspace extent remain unproven.
 typedef struct {
-    CdlLOC location;          // BCD position; conversion consumes minute/second/sector
-    u8     remainingBytes[8]; // Remaining transferred header bytes; contents are not interpreted here
-    u8     unknownBytes[4];   // Unaccessed allocated bytes; role unproven
-} _CdStreamSectorHeader;
-STATIC_ASSERT_SIZEOF(_CdStreamSectorHeader, 16);
+    CdSectorHeader header;          // Complete twelve-byte drive header; position checked against the expected sector
+    u8             unknownBytes[4]; // Unaccessed allocated bytes; role unproven
+} _CdStreamSectorHeaderWorkspace;
+STATIC_ASSERT_SIZEOF(_CdStreamSectorHeaderWorkspace, 16);
 
 /// Scratch header for the current CD-ready callback; overwritten by each header transfer.
-static _CdStreamSectorHeader _gCdStreamSectorHeader;
+static _CdStreamSectorHeaderWorkspace _gCdStreamSectorHeader;
 
 /// Pending stream failure: zero, an SDK disk error, or a `CD_STREAM_ERROR_*` code.
 ///
@@ -2212,7 +2213,7 @@ static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
     enum {
         CD_STREAM_SECTOR_BYTES              = 2048,
         CD_STREAM_HEADER_SECTOR_AUDIO_BYTES = CD_STREAM_SECTOR_BYTES - (s32)sizeof(_MtsHeader),
-        CD_STREAM_SECTOR_HEADER_WORDS       = (sizeof(_gCdStreamSectorHeader.location) + sizeof(_gCdStreamSectorHeader.remainingBytes)) / sizeof(u32),
+        CD_STREAM_SECTOR_HEADER_WORDS       = sizeof(_gCdStreamSectorHeader.header) / sizeof(u32),
         CD_STREAM_GAP_INDEX_MASK            = 0xFF,
         CD_STREAM_GAP_CHUNK_MASK            = 0xFFFF00,
         CD_STREAM_GAP_CHUNK_SHIFT           = 8,
@@ -2275,7 +2276,7 @@ static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
             }
         } else {
         read_header:
-            if (CdGetSector(&_gCdStreamSectorHeader, CD_STREAM_SECTOR_HEADER_WORDS) == 0) {
+            if (CdGetSector(&_gCdStreamSectorHeader.header, CD_STREAM_SECTOR_HEADER_WORDS) == 0) {
                 _gCdStreamSectorTransferErrorCount = (u8)(_gCdStreamSectorTransferErrorCount + 1);
                 if (_gCdStreamErrorCode == 0) {
                     _gCdStreamErrorCode = CD_STREAM_ERROR_SECTOR_TRANSFER;
@@ -2283,7 +2284,7 @@ static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
                 _gCdStreamLastErrorCode = _gCdStreamErrorCode;
                 goto check_status;
             }
-            sectorPosition = CdPosToInt(&_gCdStreamSectorHeader.location);
+            sectorPosition = CdPosToInt(&_gCdStreamSectorHeader.header.location);
             if (sectorPosition != _gCdStreamRuntime.state.expectedSector) {
                 if (sectorPosition >= _gCdStreamRuntime.state.expectedSector || _gCdStreamRuntime.state.expectedSector >= (sectorPosition + CD_STREAM_ACCEPTED_SECTOR_LAG + 1)) {
                     _gCdStreamSectorPositionErrorCount += 1;

@@ -68,16 +68,25 @@ enum { CD_AUDIO_DEFAULT_STREAM_SPU_BASE_BYTES = 0x51010 };
 /// SPU byte address selected by a nonzero waveform destination selector.
 enum { CD_AUDIO_WAVE_OVERRIDE_SPU_ADDRESS_BYTES = 0x63810 };
 
-/// Serialized lead skipped before the first sector's wave samples.
+/// Destination selectors in a serialized waveform lead.
+enum {
+    CD_AUDIO_WAVE_DESTINATION_REQUESTED = 0,
+    CD_AUDIO_WAVE_DESTINATION_OVERRIDE  = 1,
+};
+
+/// Sixty-four-byte lead of the waveform upload that follows a scene/audio stream.
 ///
-/// Only the sector count, sample length and destination selector are interpreted.
-/// The remaining bytes' widths and roles are unproven. Samples begin after
-/// `SOUND_LOAD_WAVE_LEAD_BYTES`, and later sectors contain only sample bytes.
+/// The sector count includes this lead's sector, with 1984 sample bytes after
+/// the lead and 2048 in each later sector, capped by `sampleBytes`. Destination
+/// zero preserves the caller's SPU byte address; one selects 0x63810 through
+/// the destination table. The reader does not validate the selector or lengths.
+/// The unaccessed bytes are zero in the extracted leads; their roles and widths
+/// remain unproven. A pointer borrows the shared sector until its next read.
 typedef struct {
-    u8  transferSectors;                                         // Copied to the sound loader's failed-load drain threshold, in sectors
+    u8  transferSectors;                                         // Waveform length in CD sectors, including the lead; also the loader's failure-drain threshold
     u8  unknown_1[3];                                            // Unread bytes; widths and roles unproven
-    u32 sampleBytes;                                             // Total sample bytes to upload, stored in the loader's signed remaining-byte count
-    u32 spuAddressIndex;                                         // 0 keeps the requested SPU address; nonzero indexes the two-entry destination table unchecked
+    u32 sampleBytes;                                             // Total SPU-ADPCM sample bytes, excluding the lead; must fit the loader's signed byte count
+    u32 spuAddressIndex;                                         // Destination (0 caller's address, 1 fixed override); unchecked table index when nonzero
     u8  unknown_C[SOUND_LOAD_WAVE_LEAD_BYTES - 3 * sizeof(u32)]; // Unread remainder of the lead; widths and roles unproven
 } _CdAudioWaveLead;
 STATIC_ASSERT_SIZEOF(_CdAudioWaveLead, SOUND_LOAD_WAVE_LEAD_BYTES);
@@ -1131,7 +1140,7 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
         loadState = &gSndLoadState;
         _cdAudioPrepareWaveUpload(loadState, waveLead);
         spuAddressIndex = waveLead->spuAddressIndex;
-        if (spuAddressIndex != 0) {
+        if (spuAddressIndex != CD_AUDIO_WAVE_DESTINATION_REQUESTED) {
             SpuSetTransferStartAddr(_gCdAudioWaveSpuAddresses[spuAddressIndex]);
         }
         if (sndLoadProcessSector(&sector->words[SOUND_LOAD_WAVE_LEAD_BYTES / sizeof(u32)]) == SOUND_LOAD_PHASE_ERROR) {

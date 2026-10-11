@@ -9,6 +9,7 @@
 
 #include "common.h"
 
+#include "cd_types.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs_types.h"
@@ -712,12 +713,9 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
 /// load state before publishing the idle marker.
 static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
 {
-    struct {
-        CdlLOC location;       // BCD minute, second and sector
-        u32    unreadWords[2]; // Remaining header bytes; not interpreted here
-    } sectorHeader;
-    s32 sectorPosition;
-    u8  loadComplete;
+    CdSectorHeader sectorHeader;
+    s32            sectorPosition;
+    u8             loadComplete;
 
     if (interruptStatus != CdlDiskError) {
         gFsCdProgressVBlank = VSync(-1);
@@ -1048,7 +1046,7 @@ static u8 _fsReadChunkPayloadSector(void)
         case FILE_SYSTEM_PAYLOAD_CLUT:
             CdGetSector(gFsSectorBuffers.clutContinuation, FS_SECTOR_WORD_SIZE);
             // The image header is the start of the previous sector's payload, contiguous with this continuation sector.
-            payloadStatus = fsUploadImageChunk((const FsImageChunk*)((const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector) - sizeof(gFsSectorBuffers.sector.chunk.data.bytes)), 0);
+            payloadStatus = fsUploadImageChunk((const FsImageChunk*)gFsSectorBuffers.sector.chunk.data.bytes, 0);
             if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED) {
                 gFsNextReadSector--;
                 _fsHandleCdError(FS_ERROR_HARD);
@@ -1307,10 +1305,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
         FILE_SYSTEM_HED_FILE_INDEX_SCALE     = 100,
         FILE_SYSTEM_HED_FULL_FILE_ID_MIN     = 100000,
     };
-    struct {
-        CdlLOC location;                        // BCD position at the start of the sector header
-        u8     remainingBytes[2 * sizeof(u32)]; // Uninterpreted remainder of the 12-byte header
-    } sectorHeader;
+    CdSectorHeader         sectorHeader;
     s32                    absoluteSector;
     u32                    recordWordOffset;
     u32                    sectorStreamIndex;
@@ -1931,10 +1926,10 @@ u8 fsUploadImageStrips(s32 inputMode)
             }
             gFsLzssInputCursor++;
             zeroByteCount++;
-            if (gFsLzssInputCursor >= (const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector) || zeroByteCount >= (u32)FILE_SYSTEM_STRIP_MAX_ZERO_SCAN) {
+            if (gFsLzssInputCursor >= gFsSectorBuffers.clutContinuation || zeroByteCount >= (u32)FILE_SYSTEM_STRIP_MAX_ZERO_SCAN) {
                 _fsResumeDrawing(drawResumeAddress);
                 if ((u8)inputMode == 0) {
-                    gFsLzssInputCursor = (const u8*)&gFsSectorBuffers;
+                    gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
                     if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_STRIP_GPU_TIME_LIMIT_TICKS) {
                         return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
                     }

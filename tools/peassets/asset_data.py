@@ -7638,7 +7638,7 @@ EMBEDDED_ASSETS = {
     'slouch_poison': {"source": 'actor_107000.pe2pkg', "vram": 0x8013D1B0, "size": 0x3A0, "ext": '.tmd', "type": 'model'},
     'stranger_body': {"source": 'actor_110600.pe2pkg', "vram": 0x8013A5B4, "size": 0x3EE8, "ext": '.tmd', "type": 'model'},
     'caption_glyphs': {"source": 'main.exe', "vram": 0x800627E0, "size": 0x118, "ext": '.fontglyph', "type": 'fontglyph', "include": 'u8'},
-    'mc_save_header': {"source": 'main.exe', "vram": 0x80060EFC, "size": 0x200, "ext": '.mcsave', "type": 'mcsave', "include": 'u8'},
+    'mc_save_header': {"source": 'main.exe', "vram": 0x80060EFC, "size": 0x200, "ext": '.mcsave', "type": 'mcsave', "include": 'layout', "layout": '4B 64B 28B 16H 384B'},
     'scavenger_body': {"source": 'actor_101600.pe2pkg', "vram": 0x801398E8, "size": 0x14AC, "ext": '.tmd', "type": 'model'},
     'soldier_a_body': {"source": 'actor_160600.pe2pkg', "vram": 0x80137D94, "size": 0x3D08, "ext": '.tmd', "type": 'model'},
     'soldier_b_body': {"source": 'actor_161500.pe2pkg', "vram": 0x8013A1A0, "size": 0x3D20, "ext": '.tmd', "type": 'model'},
