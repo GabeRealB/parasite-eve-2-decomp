@@ -1797,7 +1797,7 @@ static void _actor136300SetSceneEvent(s8 sceneEvent)
 /// The spawn result is ignored and no task handle is retained.
 static void _actor136300StartGarageMovie(s32 alternateMovie)
 {
-    taskSpawnFromTable(D_dryfield_night_garage_80183380, 0, alternateMovie, 0);
+    taskSpawnFromTable(gDryfieldNightGarageMovieTasks, 0, alternateMovie, 0);
 }
 
 /// Prepares mask-bit image decoding, starts a screen wave, or changes its ramp phase.

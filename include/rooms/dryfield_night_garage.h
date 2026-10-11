@@ -11,11 +11,24 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_garage_80183380[2];
+/// Garage movie launcher (0) and display-playback (1) task descriptors.
+///
+/// Both are bodyless, priority 192. Spawn argument 1 selects the primary movie
+/// for zero or alternate for nonzero; argument 2 is unused. The launcher hands
+/// presentation to playback, which supports skipping and restores game graphics.
+/// Keep the garage overlay loaded through playback and restoration.
+extern TaskDesc gDryfieldNightGarageMovieTasks[2];
 
 extern TaskDesc D_dryfield_night_garage_80181C2C;
 
-extern AreaVariant D_dryfield_night_garage_801874BC[12];
+/// Placement/resource directory for the night garage, indexed by saved area variant.
+///
+/// Requires an index in 0..11. Slots 1..4 select Scavengers, Gary Douglas/Flint,
+/// an empty companion layout and Zebra Stalkers; slots 0 and 5..11 are absent.
+/// Gameplay pairs this directory with the garage's shared Dryfield save slot.
+/// Placements belong to the loaded Dryfield map and recipes to this room overlay;
+/// keep both owners and their selected actor resources live during loading/spawn.
+extern AreaVariant gDryfieldNightGarageAreaVariants[12];
 
 /// Lighting for night-garage rooms 1 and 2, indexed by room ID minus one.
 ///

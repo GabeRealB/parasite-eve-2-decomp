@@ -58,9 +58,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-extern AreaApplyRec D_dryfield_night_garage_801875D8[];
-extern AreaApplyRec D_dryfield_night_garage_80187620[];
-
 static WorldCollisionGrid         _gDryfieldNightGarageLateRoomCollisionGrid;
 static WorldCollisionTrigger      _gDryfieldNightGarageEarlyRoomViewBoundaries[14];
 static WorldCollisionTrigger      _gDryfieldNightGarageLateRoomViewBoundaries[12];
@@ -81,9 +78,38 @@ static void _dryfieldNightGarageStartMovieTask(Task* task);
 static void _dryfieldNightGarageDialogueTask(Task* task);
 static void _dryfieldNightGarageCommitRefuelingProgress(void);
 
-TaskDesc D_dryfield_night_garage_80182C98[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageDialogueTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, dryfieldNightGarageShopDialogueTask, { .value = 0 } },
+/// Priority shared by the garage's bodyless dialogue, movie and blackout tasks.
+enum { DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY = 192 };
+
+/// Gary Douglas's garage command namespace, interpreted by his actor task.
+enum {
+    DRYFIELD_NIGHT_GARAGE_GARY_SHOW_CARRIED      = 0,
+    DRYFIELD_NIGHT_GARAGE_GARY_HIDE_CARRIED      = 1,
+    DRYFIELD_NIGHT_GARAGE_GARY_TURN_TO_PLAYER    = 2,
+    DRYFIELD_NIGHT_GARAGE_GARY_RELEASE_HEAD_TURN = 3,
+    DRYFIELD_NIGHT_GARAGE_GARY_DETACH_CARRIED    = 4,
+    DRYFIELD_NIGHT_GARAGE_GARY_SET_DOWN_CARRIED  = 5,
+};
+
+/// Selectors and policies used by the refueling event's records.
+enum {
+    DRYFIELD_NIGHT_GARAGE_REFUELING_CAP_SLOT    = 9,
+    DRYFIELD_NIGHT_GARAGE_REFUELED_VIEW         = 3,
+    DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX  = 0,
+    DRYFIELD_NIGHT_GARAGE_FLINT_PLACEMENT_INDEX = 1,
+    DRYFIELD_NIGHT_GARAGE_MODEL_HIDE            = 0,
+    DRYFIELD_NIGHT_GARAGE_MODEL_SHOW            = 1,
+    DRYFIELD_NIGHT_GARAGE_WEAPONS_PLAYER        = 0,
+    DRYFIELD_NIGHT_GARAGE_COLLISION_BOX_FAR     = 1,
+    DRYFIELD_NIGHT_GARAGE_REFUELING_FADE_FRAMES = 30,
+    DRYFIELD_NIGHT_GARAGE_CARRIED_DETACH_FRAMES = 78,
+    DRYFIELD_NIGHT_GARAGE_SKIP_SETTLE_FRAMES    = 8,
+    DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET          = 1,
+};
+
+TaskDesc gDryfieldNightGarageDialogueTasks[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, dryfieldNightGarageShopDialogueTask, { .value = 0 } },
 };
 
 /// The five words installed in the player's animation bank for the refueling scene.
@@ -107,15 +133,28 @@ static const AnimationBankCopyRequest _gDryfieldNightGarageRefuelingAnimationBan
     .wordCount = ARRAY_SIZE(_gDryfieldNightGarageRefuelingAnimationSets),
 };
 
-AnimationPlayRequest D_dryfield_night_garage_80182CCC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-1 clip-1 reset request; no playback consumer is established.
+static AnimationPlayRequest _gDryfieldNightGarageBank1Clip1ResetRequest = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182CE0 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Aya's opening refueling clip, blended over 20 frames with grid participation off.
+///
+/// The event resolves the bank against her equipped weapon before dispatch.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingPlayerClip48Request = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182CF4 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for refueling extension clip 49; no playback consumer is established.
+///
+/// Requests a 20-frame blend and disables player/companion grid participation.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingPlayerClip49Request = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D08 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Aya's refueling clip after the opening fade, blended over 20 frames with grid participation off.
+///
+/// The event resolves the bank against her equipped weapon before dispatch.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingPlayerClip50Request = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D1C = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for refueling extension clip 51; no playback consumer is established.
+///
+/// Requests a 20-frame blend and disables player/companion grid participation.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingPlayerClip51Request = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Aya's placement during refueling and when that scene is skipped.
 ///
@@ -126,18 +165,33 @@ static ActorTransform _gDryfieldNightGarageRefuelingPlayerPlacement = {
     .rot = { 0, -(ACTOR_TRANSFORM_ANGLE_TURN / 4), 0, 0 },
 };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D48[2] = {
+/// Retained bank-0 reset requests for clips 0 and 1, indexed by clip ID.
+///
+/// No playback consumer is established; both carry grid participation off.
+static AnimationPlayRequest _gDryfieldNightGarageBank0ResetRequests[2] = {
     { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D70 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary Douglas's opening refueling pose, reset to bank-0 clip 2.
+///
+/// Borrowed through synchronous actor dispatch; his receiver ignores collision choice.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingGaryClip2ResetRequest = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D84 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary Douglas's bank-0 clip 3 before detaching the carried model.
+///
+/// Requests a 10-frame blend; borrowed synchronously, with collision choice ignored.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingGaryClip3Request = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182D98 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary Douglas's final refueling pose, blended to bank-0 clip 4 over 10 frames.
+///
+/// Borrowed through synchronous actor dispatch; his receiver ignores collision choice.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingGaryClip4Request = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_garage_80182DAC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary Douglas's final refueling pose installed immediately when the event is skipped.
+///
+/// Resets bank-0 clip 4; borrowed synchronously, with collision choice ignored.
+static AnimationPlayRequest _gDryfieldNightGarageRefuelingGaryClip4ResetRequest = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Gary Douglas's placement during refueling and when that scene is skipped.
 ///
@@ -148,91 +202,104 @@ static ActorTransform _gDryfieldNightGarageRefuelingGaryDouglasPlacement = {
     .rot = { 0, -(ACTOR_TRANSFORM_ANGLE_TURN / 4), 0, 0 },
 };
 
-ActorCommand D_dryfield_night_garage_80182DD8 = { { .loc = { 3, 24 } }, 0 };
+/// Shows Gary Douglas's carried model at the start of refueling.
+static ActorCommand _gDryfieldNightGarageGaryShowCarriedCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_SHOW_CARRIED };
 
-ActorCommand D_dryfield_night_garage_80182DDC = { { .loc = { 3, 24 } }, 1 };
+/// Retained command hiding Gary Douglas's carried model; no sender is established.
+static ActorCommand _gDryfieldNightGarageGaryHideCarriedCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_HIDE_CARRIED };
 
-s32 D_dryfield_night_garage_80182DE0 = 0x21803;
+ActorCommand gDryfieldNightGarageGaryHeadTurnStartCommand __attribute__((aligned(4))) = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_TURN_TO_PLAYER };
 
-s32 D_dryfield_night_garage_80182DE4 = 0x31803;
+ActorCommand gDryfieldNightGarageGaryHeadTurnReleaseCommand __attribute__((aligned(4))) = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_RELEASE_HEAD_TURN };
 
-ActorCommand D_dryfield_night_garage_80182DE8 = { { .loc = { 3, 24 } }, 4 };
+/// Detaches Gary Douglas's carried model at its current transform during refueling.
+static ActorCommand _gDryfieldNightGarageGaryDetachCarriedCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_DETACH_CARRIED };
 
-ActorCommand D_dryfield_night_garage_80182DEC = { { .loc = { 3, 24 } }, 5 };
+/// Shows and sets down Gary Douglas's carried model when refueling is skipped.
+///
+/// Placement is applied by the carried task's next update.
+static ActorCommand _gDryfieldNightGarageGarySetDownCarriedCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE } }, DRYFIELD_NIGHT_GARAGE_GARY_SET_DOWN_CARRIED };
 
-EvsSceneKey D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
+/// Scene/audio stream key borrowed throughout the normal refueling event.
+///
+/// Selects group 3, stream 55, first qualifier 11 and implicit second qualifier 0.
+static EvsSceneKey _gDryfieldNightGarageRefuelingSceneKey = { 3, 55, 11 };
 
-EvsCommand D_dryfield_night_garage_80182DF8[40] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_garage_80182DF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gDryfieldNightGarageRefuelingScript[40] = {
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gDryfieldNightGarageRefuelingSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightGarageStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightGarageRefuelingAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80182CE0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGarageRefuelingPlayerClip48Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_GARAGE_REFUELING_CAP_SLOT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = DRYFIELD_NIGHT_GARAGE_REFUELING_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80182D08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = DRYFIELD_NIGHT_GARAGE_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightGarageRefuelingPlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingGaryDouglasPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_garage_80182D70 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DD8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_GARAGE_MODEL_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingGaryDouglasPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightGarageRefuelingGaryClip2ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightGarageGaryShowCarriedCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_FLINT_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_GARAGE_MODEL_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightGarageEnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_garage_80182D84 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightGarageRefuelingGaryClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_GARAGE_CARRIED_DETACH_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightGarageGaryDetachCarriedCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = DRYFIELD_NIGHT_GARAGE_REFUELING_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_GARAGE_REFUELING_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_garage_80182D98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightGarageRefuelingGaryClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = DRYFIELD_NIGHT_GARAGE_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightGarageFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_GARAGE_REFUELED_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = DRYFIELD_NIGHT_GARAGE_COLLISION_BOX_FAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGarageCommitRefuelingProgress }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_garage_801831B8[19] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gDryfieldNightGarageSkipRefuelingScript[19] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_GARAGE_SKIP_SETTLE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingGaryDouglasPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_garage_80182DAC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_garage_80182DEC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightGarageRefuelingGaryDouglasPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightGarageRefuelingGaryClip4ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_GARY_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightGarageGarySetDownCarriedCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_GARAGE_FLINT_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_GARAGE_MODEL_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = DRYFIELD_NIGHT_GARAGE_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightGarageCancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = DRYFIELD_NIGHT_GARAGE_REFUELED_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = DRYFIELD_NIGHT_GARAGE_COLLISION_BOX_FAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGarageCommitRefuelingProgress }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_GARAGE_SKIP_SETTLE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_night_garage_80183380[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageStartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
+TaskDesc gDryfieldNightGarageMovieTasks[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageStartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_garage_80183398 = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
+/// Bodyless priority-192 task holding the frame black for 64 callback ticks.
+///
+/// Starts with killCountdown zero; uses no work or spawn arguments. No spawn
+/// consumer of this retained descriptor is established.
+static TaskDesc _gDryfieldNightGarageBlackoutTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
 
 /// The first three grey-capsule endpoint pairs, in whole world-coordinate units.
 ///
@@ -255,7 +322,11 @@ static SVECTOR _gDryfieldNightGarageFirstThreeGlowPairs[6] = {
 /// reads cross this scalar into the following storage; its bounds are unresolved.
 static SVECTOR _gDryfieldNightGarageView11FirstGlowStart = { 4034, -3260, 2714, 0 };
 
-SVECTOR D_dryfield_night_garage_801833DC[3] = {
+/// End of the shared fourth glow strip and both endpoints of view 11's fifth strip.
+///
+/// Whole world-coordinate units. The drawer reaches these three endpoints
+/// beyond the preceding endpoint objects; their containing bounds are unresolved.
+static SVECTOR _gDryfieldNightGarageFinalGlowEndpoints[3] = {
     { 4034, -3260, 1662, 0 },
     { 6940, -3260, 2714, 0 },
     { 6940, -3260, 1662, 0 },
@@ -1257,7 +1328,7 @@ static AreaResource _gDryfieldNightGarageZebraStalkerResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_garage_801874BC[12] = {
+AreaVariant gDryfieldNightGarageAreaVariants[12] = {
     { NULL, NULL },
     { gMapDryfieldFullGarageVariant1Placements, _gDryfieldNightGarageScavengerResources },
     { gMapDryfieldFullGarageVariant2Placements, _gDryfieldNightGarageGaryDouglasAndFlintResources },
@@ -1341,30 +1412,40 @@ WorldCollisionSurfaceProperties* gDryfieldNightGarageSurfacePropertiesByClass[8]
     &_gDryfieldNightGarageSilentSurface,
 };
 
-AreaApplyRec D_dryfield_night_garage_801875D8[18] = {
-    { 3, 1, 3, 17 },
-    { 3, 1, 7, 33 },
-    { 3, 2, 3, 0 },
-    { 3, 6, 3, 1 },
-    { 3, 7, 3, 1 },
-    { 3, 15, 2, 17 },
-    { 3, 15, 7, 33 },
-    { 3, 16, 3, 1 },
-    { 3, 18, 1, 0 },
-    { 3, 19, 3, 1 },
-    { 3, 20, 2, 1 },
-    { 3, 22, 3, 1 },
-    { 3, 25, 3, 1 },
-    { 3, 29, 6, 0 },
-    { 3, 31, 3, 1 },
-    { 3, 32, 2, 1 },
-    { 3, 34, 3, 1 },
-    { 255, 0, 0, 0 },
+/// Saved-area layout and map-mark changes committed by either refueling exit.
+///
+/// Seventeen updates plus AREA_APPLY_END. Gas station and parking layouts
+/// depend on save mode; other entries apply in every mode. Accepted entries
+/// reset saved enemy poses. Variant numbers are local to each destination area;
+/// the underlying Dryfield save slots are also used by daytime areas.
+static AreaApplyRec _gDryfieldNightGarageRefuelingAreaUpdates[] = {
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 3, AREA_APPLY_MODE_ALWAYS },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 1, AREA_APPLY_MODE_ALWAYS },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, 6, AREA_APPLY_MODE_ALWAYS },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 2, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_CELLAR, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_dryfield_night_garage_80187620[2] = {
-    { 3, 38, 3, 1 },
-    { 255, 0, 0, 0 },
+/// Additional saved underpass update after refueling if Gray Stalker was defeated.
+///
+/// Sets layout 3 and the map mark in every mode, resetting saved enemy poses;
+/// the second record is AREA_APPLY_END. Borrowed during synchronous application.
+static AreaApplyRec _gDryfieldNightGarageRefuelingUnderpassUpdate[] = {
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 3, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_GARAGE_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 s32 gShopRefillDisplayQuantityFixed;
@@ -1387,13 +1468,13 @@ static void _dryfieldNightGarageDialogueTask(Task* task)
     switch (task->state) {
         case GARAGE_DIALOGUE_START:
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
-            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &gDryfieldNightGarageGaryHeadTurnStartCommand, 0);
             task->state = task->state + 1;
             return;
         case GARAGE_DIALOGUE_WAIT:
             if (capIsBusy() == 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &gDryfieldNightGarageGaryHeadTurnReleaseCommand, 0);
                 break;
             }
             return;
@@ -1424,13 +1505,13 @@ static void _dryfieldNightGarageCommitRefuelingProgress(void)
 {
     enum { DRYFIELD_NIGHT_GARAGE_POST_REFUELING_COMPANION_SCHEDULE = 5 };
 
-    areaApplySavedUpdates(D_dryfield_night_garage_801875D8);
+    areaApplySavedUpdates(_gDryfieldNightGarageRefuelingAreaUpdates);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 0);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 0);
     gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, DRYFIELD_NIGHT_GARAGE_POST_REFUELING_COMPANION_SCHEDULE);
     gameFlagSetNibble(GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED, 1);
     if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-        areaApplySavedUpdates(D_dryfield_night_garage_80187620);
+        areaApplySavedUpdates(_gDryfieldNightGarageRefuelingUnderpassUpdate);
     }
 }
 
@@ -1577,7 +1658,7 @@ static void _dryfieldNightGarageStartMovieTask(Task* task)
 {
     enum { DRYFIELD_NIGHT_GARAGE_MOVIE_PLAYBACK_DESCRIPTOR = 1 };
 
-    displaySpawnTaskFromTable(D_dryfield_night_garage_80183380, DRYFIELD_NIGHT_GARAGE_MOVIE_PLAYBACK_DESCRIPTOR, task->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(gDryfieldNightGarageMovieTasks, DRYFIELD_NIGHT_GARAGE_MOVIE_PLAYBACK_DESCRIPTOR, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);

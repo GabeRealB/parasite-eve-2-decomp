@@ -1465,7 +1465,7 @@ gDryfieldNightFactoryAreaVariants = 0x8018A70C; // absolute:True owner=dryfield_
 
 gDryfieldNightGRKitchenAreaVariants = 0x8017EB88; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 
-D_dryfield_night_garage_801874BC = 0x801874BC; // absolute:True owner=dryfield_night_garage
+gDryfieldNightGarageAreaVariants = 0x801874BC; // absolute:True owner=dryfield_night_garage
 
 gDryfieldNightGeneralStoreAreaVariants = 0x8018572C; // absolute:True owner=dryfield_night_general_store
 

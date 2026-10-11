@@ -373,18 +373,18 @@ static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_NOT_STARTED) {
                 if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_MASTER_KEY, 0);
+                    taskSpawnFromTable(gDryfieldNightGarageDialogueTasks, DIALOGUE_TASK_INDEX, CAP_MISSING_MASTER_KEY, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) == 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_CONTAINER, 0);
+                    taskSpawnFromTable(gDryfieldNightGarageDialogueTasks, DIALOGUE_TASK_INDEX, CAP_MISSING_CONTAINER, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_GASOLINE, 0);
+                    taskSpawnFromTable(gDryfieldNightGarageDialogueTasks, DIALOGUE_TASK_INDEX, CAP_MISSING_GASOLINE, 0);
                 } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_NOT_STARTED) {
                     // Commit the hotspots and saved progress before playback can fail.
                     _dryfieldNightGarageEnableRefueledTriggers();
-                    evsStartScriptWithSkip(D_dryfield_night_garage_80182DF8, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                           D_dryfield_night_garage_801831B8);
+                    evsStartScriptWithSkip(gDryfieldNightGarageRefuelingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                           gDryfieldNightGarageSkipRefuelingScript);
                     gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, REFUELING_STARTED);
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, REFUELED_OBJECTIVE);
                     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);
@@ -393,9 +393,9 @@ static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const
             } else {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_STARTED) {
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, SHOP_DIALOGUE_TASK_INDEX, CAP_FIRST_SHOP_DIALOGUE, 0);
+                    taskSpawnFromTable(gDryfieldNightGarageDialogueTasks, SHOP_DIALOGUE_TASK_INDEX, CAP_FIRST_SHOP_DIALOGUE, 0);
                 } else {
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, SHOP_DIALOGUE_TASK_INDEX, CAP_LATER_SHOP_DIALOGUE, 0);
+                    taskSpawnFromTable(gDryfieldNightGarageDialogueTasks, SHOP_DIALOGUE_TASK_INDEX, CAP_LATER_SHOP_DIALOGUE, 0);
                 }
             }
         }
@@ -565,7 +565,7 @@ void dryfieldNightGarageShopDialogueTask(Task* task)
     switch (task->state) {
         case SHOP_DIALOGUE_START:
             capStartSequenceSlot((s16)task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &gDryfieldNightGarageGaryHeadTurnStartCommand, 0);
             task->state++;
             return;
         case SHOP_DIALOGUE_WAIT_AND_OPEN:
@@ -587,7 +587,7 @@ void dryfieldNightGarageShopDialogueTask(Task* task)
                 break;
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &gDryfieldNightGarageGaryHeadTurnReleaseCommand, 0);
         default:
             taskKill(task);
             break;

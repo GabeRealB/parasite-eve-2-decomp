@@ -18,15 +18,37 @@ extern AnimationSet gDryfieldNightGarageAnimation05344;
 
 extern AnimationSet gDryfieldNightGarageAnimation056B0;
 
-extern TaskDesc D_dryfield_night_garage_80182C98[2];
+/// Bodyless priority-192 descriptors for ordinary dialogue (0) and shop dialogue (1).
+///
+/// Spawn argument 1 selects the CAP command; argument 2 is unused. Start in
+/// state 0 with player control held and keep the room and Gary Douglas loaded.
+extern TaskDesc gDryfieldNightGarageDialogueTasks[2];
 
-extern s32 D_dryfield_night_garage_80182DE0;
+/// Starts Gary Douglas's gradual head turn toward the player during dialogue.
+///
+/// Garage-context command 2, borrowed only through synchronous actor dispatch.
+extern ActorCommand gDryfieldNightGarageGaryHeadTurnStartCommand;
 
-extern s32 D_dryfield_night_garage_80182DE4;
+/// Releases Gary Douglas's head turn when dialogue or shopping finishes.
+///
+/// Garage-context command 3, borrowed only through synchronous actor dispatch.
+extern ActorCommand gDryfieldNightGarageGaryHeadTurnReleaseCommand;
 
-extern EvsCommand D_dryfield_night_garage_80182DF8[40];
+/// Normal refueling event, from scene/audio selection through saved progress commit.
+///
+/// Forty commands including END. Installs Aya's extension clips, starts CAP
+/// slot 9 and streaming, coordinates Gary and Flint, then restores presentation.
+/// Borrow the script, payloads, callbacks and animation data while the event is
+/// active; requires the player, scene manager, Gary/Flint and CAP tasks.
+extern EvsCommand gDryfieldNightGarageRefuelingScript[40];
 
-extern EvsCommand D_dryfield_night_garage_801831B8[19];
+/// Refueling skip path restoring final placements, presentation and saved progress.
+///
+/// Nineteen commands including END. Cancels the selected stream, sets Gary's
+/// final clip and carried-model position, moves the collision box and cleans
+/// up the scene before returning the primary fade. Borrows the same loaded
+/// room/actor resources and callbacks as `gDryfieldNightGarageRefuelingScript`.
+extern EvsCommand gDryfieldNightGarageSkipRefuelingScript[19];
 
 /// Room 1's writable collision mesh and XZ cell index for the night garage.
 ///
