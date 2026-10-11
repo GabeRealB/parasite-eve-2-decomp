@@ -10,61 +10,61 @@
 
 #include "main/text.h"
 
-CapChoice D_801155D0[CAP_CHOICE_CAPACITY];
+CapChoice gCapChoices[CAP_CHOICE_CAPACITY];
 
-u8 D_80115648;
+u8 gCapRecordSoundIssued;
 
-s16 D_8011564A;
+s16 gCapDebugPlaybackFrame;
 
-u16 Gp_CapCaretX;
+u16 gCapContinueCaretX;
 
-u16 Gp_CapCaretY;
+u16 gCapContinueCaretY;
 
-s16 D_80115650;
+s16 gCapTextCursorX;
 
-s16 D_80115652;
+s16 gCapTextCursorY;
 
-s16 D_80115654;
+s16 gCapTexturePageVramX;
 
-s16 D_80115656;
+s16 gCapTexturePageVramY;
 
-u8 Gp_CapCaretDelay;
+u8 gCapContinueCaretDelayCalls;
 
-u8 D_80115659;
+u8 gCapChoiceConfirmFramesRemaining;
 
-u8 D_8011565A;
+u8 gCapPlaybackStarted;
 
-u16 D_8011565C;
+u16 gCapSavedImageMdecMode;
 
-CapTextUpdateCallback D_80115660;
+CapTextUpdateCallback gCapTextUpdateCallback;
 
 s16 D_80115664;
 
-s16 D_80115666;
+s16 gCapPlaybackMode;
 
-s16 Gp_CapEventKey;
+s16 gCapVariantKey;
 
-s16 D_8011566A;
+s16 gCapSceneSyncAdjustmentFrames;
 
-u8 D_8011566C;
+u8 gCapSavedView;
 
-u8 D_8011566D;
+u8 gCapActionReturnView;
 
-u8 D_8011566E;
+u8 gCapSceneSyncPhase;
 
 u8 D_8011566F;
 
-u8 D_80115670;
+u8 gCapRecordSoundAndTextFlags;
 
-Task* Gp_CapTask;
+Task* gCapPlaybackTask;
 
-s16 D_80115678;
+s16 gCapMinDisplayFramesRemaining;
 
-s16 D_8011567A;
+s16 gCapAdvanceDelayFrames;
 
-TextGlyphCell* Gp_CapGlyphs;
+const TextGlyphCell* gCapGlyphCells;
 
-u8 D_80115680;
+u8 gCapChoiceRowStride;
 
 bool capRelocateFile(CapFile* file)
 {
@@ -134,7 +134,7 @@ bool capRelocateFile(CapFile* file)
     }
 
     // Repeated calls republish the tables without rebasing them again.
-    Gp_CapGlyphs       = file->glyphs.cells;
+    gCapGlyphCells     = file->glyphs.cells;
     gCapCommandEntries = file->commands.table->entries;
     return true;
 }

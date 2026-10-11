@@ -109,59 +109,203 @@ void capInitializeControlTask(Task* task);
 /// The task argument is unused; all control state belongs to the CAP singleton.
 void capUpdateControlTask(Task* unusedTask);
 
-extern CapChoice D_801155D0[CAP_CHOICE_CAPACITY];
+/// Per-record room-sound request latch values.
+enum {
+    CAP_RECORD_SOUND_NOT_ISSUED = 0,
+    CAP_RECORD_SOUND_ISSUED     = 1
+};
 
-extern u8 D_80115648;
+/// Whether the selected sequence has reached a playback-task update.
+enum {
+    CAP_PLAYBACK_NOT_STARTED = 0,
+    CAP_PLAYBACK_STARTED     = 1
+};
 
-extern s16 D_8011564A;
+/// Visible-choice frames that must elapse before confirmation is accepted.
+enum { CAP_CHOICE_CONFIRM_DELAY_FRAMES = 15 };
 
-extern u16 Gp_CapCaretX;
+/// Disabled value for the wrapping playback-tick counter used by debug view cues.
+enum { CAP_PLAYBACK_DEBUG_FRAME_DISABLED = -1 };
 
-extern u16 Gp_CapCaretY;
+/// Playback's scene-sync phases; control-task ticks use a separate elapsed counter.
+enum {
+    CAP_SCENE_SYNC_IDLE     = 0,
+    CAP_SCENE_SYNC_DEFERRED = 1,
+    CAP_SCENE_SYNC_DISPATCH = 2,
+    CAP_SCENE_SYNC_WAITING  = 3
+};
 
-extern s16 D_80115650;
+/// Live choices laid out by the current CAP text draw.
+///
+/// Choice control codes write the pen, byte-sized variant key and sound class.
+/// Only the prefix covered by the current choice count is valid; the count
+/// must fit `CAP_CHOICE_CAPACITY`. Every array consumer must select that prefix.
+/// Text is replayed each draw, rebuilding these records in gameplay storage.
+extern CapChoice gCapChoices[CAP_CHOICE_CAPACITY];
 
-extern s16 D_80115652;
+/// Current record's room-sound request latch (0 not issued, 1 issued).
+///
+/// Startup and record advancement clear it. A record with a nonzero sound id
+/// sets it after dispatch; a record without sound leaves it clear.
+extern u8 gCapRecordSoundIssued;
 
-extern s16 D_80115654;
+/// Wrapping playback-update count supplied with debug view-change cues.
+///
+/// -1 disables counting. Debug startup selects -1; the first record-requested
+/// view change enables it at zero. Enabled updates increment the low halfword,
+/// including held exit updates, before presentation gates are checked.
+extern s16 gCapDebugPlaybackFrame;
 
-extern s16 D_80115656;
+/// Continue-caret anchor X in centre-relative pixels, stored modulo 65536.
+///
+/// The latest processed line break records its ending pen X plus four.
+/// Unsigned reads and GPU halfword stores preserve the wrapped coordinate.
+extern u16 gCapContinueCaretX;
 
-extern u8 Gp_CapCaretDelay;
+/// Continue-caret anchor Y in centre-relative pixels, stored modulo 65536.
+///
+/// The latest processed line break records its ending pen Y minus two.
+/// Drawing removes vertical shake before storing GPU halfword coordinates.
+extern u16 gCapContinueCaretY;
 
-extern u8 D_80115659;
+/// Final CAP text pen X from the latest draw, in pixels from the screen centre.
+///
+/// Published for the timed-text update hook; controls and spacers move this pen
+/// as well as glyphs. Storage truncates to a signed halfword.
+extern s16 gCapTextCursorX;
 
-extern u8 D_8011565A;
+/// Final CAP text pen Y from the latest draw, in pixels from the screen centre.
+///
+/// Vertical shake is already removed for the timed-text update hook. Storage
+/// truncates to a signed halfword.
+extern s16 gCapTextCursorY;
 
-extern u16 D_8011565C;
+/// CAP title and text texture-page origin X, in VRAM 16-bit pixels.
+///
+/// Drawing encodes this origin as a 4-bit GPU texture page. Texture data must
+/// already be loaded there; CAP reset selects 384.
+extern s16 gCapTexturePageVramX;
 
-extern CapTextUpdateCallback D_80115660;
+/// CAP title and text texture-page origin Y, in VRAM rows.
+///
+/// Shares the texture-page encoding and loaded-texture lifetime of
+/// `gCapTexturePageVramX`; CAP reset selects zero.
+extern s16 gCapTexturePageVramY;
 
+/// Eligible continue-caret draw calls left before the caret appears.
+///
+/// Record advancement seeds thirty. Each attempted caret draw decrements and
+/// returns while nonzero; updates that do not attempt a draw leave it intact.
+/// Sequence startup does not reset this delay.
+extern u8 gCapContinueCaretDelayCalls;
+
+/// Visible-choice frames left before the current choices can be confirmed.
+///
+/// Startup and record advancement seed `CAP_CHOICE_CONFIRM_DELAY_FRAMES`.
+/// Each marker draw with choices present decrements it before input confirmation.
+extern u8 gCapChoiceConfirmFramesRemaining;
+
+/// Selected playback's started latch (0 queued/unstarted or inactive, 1 dispatched).
+///
+/// Startup, finish and reset clear it; the first playback update sets it.
+/// The queued-sequence guard uses zero to discard a selection that never ran.
+extern u8 gCapPlaybackStarted;
+
+/// Pre-playback one-image MDEC input mode retained for a return-view decode.
+///
+/// The resident decoder consumes 0 for RGB16 or 2 for RGB16 with pixel bit 15
+/// set, then resets its mode. CAP restores this saved value only when queued
+/// playback exits through a change back to the pre-playback view.
+extern u16 gCapSavedImageMdecMode;
+
+/// Optional timed-text update hook, cleared when a playable sequence starts.
+///
+/// Uses `CapTextUpdateCallback`'s cursor/reveal contract. The callback overlay
+/// is borrowed and must remain loaded until the hook is cleared or replaced.
+extern CapTextUpdateCallback gCapTextUpdateCallback;
+
+/// Cleared at sequence startup and several text-processing boundaries; role unproven.
 extern s16 D_80115664;
 
-extern s16 D_80115666;
+/// Selected CAP presentation mode, stored as a signed halfword.
+///
+/// `CAP_PLAYBACK_*` values select in-place, transition or action-capture behavior.
+/// Startup mode 3 becomes mode 1 after queuing the unstarted guard. Other
+/// nonzero values remain unchecked and follow the queued playback path.
+extern s16 gCapPlaybackMode;
 
-extern s16 Gp_CapEventKey;
+/// Active CAP variant key and retained result of the latest choice or declined action.
+///
+/// Startup accepts a signed halfword; only 0..255 can match record byte keys.
+/// Choices and nonzero action fallback keys replace it. Finish and reset retain
+/// the last value; the getter returns it sign-extended.
+extern s16 gCapVariantKey;
 
-extern s16 D_8011566A;
+/// Signed-halfword text-timing adjustment after a scene sync without a view change.
+///
+/// Zero is clear; 1 arms replacement on sync completion with elapsed control
+/// ticks minus thirty. Instant timed text subtracts it from pause frames, or
+/// from display frames when it exceeds the pause, then clears it. Truncation
+/// and signed comparisons are retained, including a computed value of 1.
+extern s16 gCapSceneSyncAdjustmentFrames;
 
-extern u8 D_8011566C;
+/// Pre-playback saved view index used when CAP restores presentation.
+///
+/// Startup copies the live location's byte view. In-place exit restores it
+/// when the event is idle; queued exit requests it only when the view changed.
+extern u8 gCapSavedView;
 
-extern u8 D_8011566D;
+/// View index to restore after a queued placed-object action prompt finishes.
+///
+/// Transition/capture playback saves the live view before switching to the
+/// action view. The request must complete before playback reads this snapshot.
+extern u8 gCapActionReturnView;
 
-extern u8 D_8011566E;
+/// Playback scene-sync phase (0 idle, 1 deferred, 2 dispatch, 3 awaiting completion).
+///
+/// A scene-control record arms the deferred phase. Successive eligible updates
+/// advance to dispatch and wait; consuming control completion returns to idle.
+extern u8 gCapSceneSyncPhase;
 
+/// Cleared only at sequence startup; no reader establishes its role.
 extern u8 D_8011566F;
 
-extern u8 D_80115670;
+/// Current record's effective sound/text flags.
+///
+/// Bit 0 permits instant text; bits 1..7 retain the encoded room sound id.
+/// A nonzero minimum-display interval clears bit 0 in this cached value; sound
+/// dispatch still reads the original record byte.
+extern u8 gCapRecordSoundAndTextFlags;
 
-extern Task* Gp_CapTask;
+/// Last CAP startup's playback-task handle, usable only with a live selected sequence.
+///
+/// In-place spawning publishes its Task pointer or NULL on failure. Queued
+/// playback publishes NULL even when accepted. Finish kills the task without
+/// clearing this handle; reset and terminal selection also leave it retained.
+/// This pointer alone does not establish task liveness.
+extern Task* gCapPlaybackTask;
 
-extern s16 D_80115678;
+/// Eligible playback frames left in the current record's minimum-display interval.
+///
+/// Initialized from the record byte (0..255), decremented while positive after
+/// transition/capture and post-confirmation gates. Confirmation copies the
+/// leftover interval into `gCapAdvanceDelayFrames` before selecting the next record.
+extern s16 gCapMinDisplayFramesRemaining;
 
-extern s16 D_8011567A;
+/// Eligible playback frames to wait after confirmation before processing the next record.
+///
+/// Copies the old record's remaining minimum-display interval (0..255).
+/// While positive, decrements and returns before the new record's minimum
+/// interval or scene sync advances. Startup clears it.
+extern s16 gCapAdvanceDelayFrames;
 
-extern TextGlyphCell* Gp_CapGlyphs;
+/// Borrowed read-only glyph/title cells from the last successfully relocated CAP file.
+///
+/// Text uses low-ten-bit indices (0..1023); a nonzero title byte indexes title
+/// minus one (0..254). The file must cover every referenced cell and remain
+/// loaded through drawing/measurement. No count is cached or checked. Failed
+/// relocation leaves this pointer intact, and selection/reset need not clear it.
+extern const TextGlyphCell* gCapGlyphCells;
 
 /// Relocates a loaded CAP file in place and selects its glyph and command tables.
 ///

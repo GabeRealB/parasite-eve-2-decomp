@@ -124,7 +124,14 @@ enum {
 /// loaded. A handler may release the task; dispatch makes no subsequent access.
 void capControlTask(Task* task);
 
-extern u8 D_80115680;
+/// Choice-entry distance used by Up/Down navigation in the current layout.
+///
+/// Sequence startup selects 1; rooms with five-column choice grids select 5
+/// after starting playback. Left/Right always step one entry. This byte counts
+/// choices, not variant keys or pixels, and must describe the laid-out order.
+/// Navigation combines all directions, then rejects a final index outside
+/// the active choice count.
+extern u8 gCapChoiceRowStride;
 
 /// Bank/type selecting the CAP action prompt's stage-transition wrapper.
 enum {

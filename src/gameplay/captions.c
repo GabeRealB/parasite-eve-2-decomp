@@ -148,13 +148,13 @@ static inline void _capUpdateChoiceSelection(void)
         gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex - 1;
     }
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
-        gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex - D_80115680;
+        gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex - gCapChoiceRowStride;
     }
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
         gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex + 1;
     }
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
-        gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex + D_80115680;
+        gCapSelectedChoiceIndex = (u16)gCapSelectedChoiceIndex + gCapChoiceRowStride;
     }
     if (gCapSelectedChoiceIndex < 0) {
         gCapSelectedChoiceIndex = (s16)previousChoiceIndex;
@@ -173,16 +173,12 @@ void capUpdatePlaybackTask(Task* task)
     enum {
         CAP_RECORD_BEGIN                    = 0,
         CAP_RECORD_WAIT                     = 1,
-        CAP_PLAYBACK_STARTED                = 1,
         CAP_PLAYBACK_EXIT_FIRST_STATE       = 2,
         CAP_PLAYBACK_EXIT_FINAL_STATE       = 5,
-        CAP_PLAYBACK_DEBUG_FRAME_DISABLED   = -1,
         CAP_TEXT_TRANSITION_WAIT            = 2,
         CAP_TEXT_TRANSITION_COMPLETE        = 1,
         CAP_ACTION_CAPTURE_DELAY_FRAMES     = 4,
-        CAP_SCENE_SYNC_IDLE                 = 0,
-        CAP_SCENE_SYNC_DEFERRED             = 1,
-        CAP_SCENE_SYNC_DISPATCH             = 2,
+        CAP_SCENE_SYNC_ADJUSTMENT_PENDING   = 1, // Replace with elapsed control ticks minus thirty at sync completion.
         CAP_VIEW_CHANGE_NONE                = 0,
         CAP_VIEW_CHANGE_PENDING             = 1,
         CAP_EVENT_SCRIPT_WAITING_FOR_CUE    = 0x40,
@@ -227,9 +223,9 @@ void capUpdatePlaybackTask(Task* task)
     s32        nextRecordForReveal;
 
     // Playback exit spans three held callbacks before resources are released.
-    D_8011565A = CAP_PLAYBACK_STARTED;
-    if (D_8011564A != CAP_PLAYBACK_DEBUG_FRAME_DISABLED) {
-        D_8011564A = (u16)D_8011564A + 1;
+    gCapPlaybackStarted = CAP_PLAYBACK_STARTED;
+    if (gCapDebugPlaybackFrame != CAP_PLAYBACK_DEBUG_FRAME_DISABLED) {
+        gCapDebugPlaybackFrame = (u16)gCapDebugPlaybackFrame + 1;
     }
     playbackState = task->state;
     if (playbackState >= CAP_PLAYBACK_EXIT_FIRST_STATE) {
@@ -256,7 +252,7 @@ void capUpdatePlaybackTask(Task* task)
         if (actionCaptureFramesLeft != 0) {
             return;
         }
-        D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+        gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_PLAYBACK_ROOM_EFFECT_MESSAGE, 0, 0);
         stageRequestFrameCapture();
@@ -266,23 +262,23 @@ void capUpdatePlaybackTask(Task* task)
     gCapRecordIndex    = (u16)recordIndex;
     gCapTextBlockLeftX = _capGetTextBlockLeftX(gCapSelectedSequence[recordIndex].textRef.text);
     recordFlags        = gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags;
-    if (D_8011567A > 0) {
-        D_8011567A = (u16)D_8011567A - 1;
+    if (gCapAdvanceDelayFrames > 0) {
+        gCapAdvanceDelayFrames = (u16)gCapAdvanceDelayFrames - 1;
         return;
     }
-    if (D_80115678 > 0) {
-        D_80115678 = (u16)D_80115678 - 1;
+    if (gCapMinDisplayFramesRemaining > 0) {
+        gCapMinDisplayFramesRemaining = (u16)gCapMinDisplayFramesRemaining - 1;
     }
     // Deferred scene synchronization blocks record processing until control replies.
-    storedSceneSyncPhase = D_8011566E;
+    storedSceneSyncPhase = gCapSceneSyncPhase;
     sceneSyncPhase       = storedSceneSyncPhase & CAP_PLAYBACK_BYTE_MASK;
     if (sceneSyncPhase != CAP_SCENE_SYNC_IDLE) {
         if (sceneSyncPhase == CAP_SCENE_SYNC_DEFERRED) {
-            D_8011566E = storedSceneSyncPhase + 1;
+            gCapSceneSyncPhase = storedSceneSyncPhase + 1;
             return;
         }
         if (sceneSyncPhase == CAP_SCENE_SYNC_DISPATCH) {
-            D_8011566E = storedSceneSyncPhase + 1;
+            gCapSceneSyncPhase = storedSceneSyncPhase + 1;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC, (s32)(s8)gCapPendingViewPhase, 0);
             return;
         }
@@ -293,10 +289,11 @@ void capUpdatePlaybackTask(Task* task)
             sndEvtRequestScriptStart(0, 0, 0);
         }
         gCapPendingViewPhase = CAP_VIEW_CHANGE_NONE;
-        D_8011566E           = CAP_SCENE_SYNC_IDLE;
+        gCapSceneSyncPhase   = CAP_SCENE_SYNC_IDLE;
         D_801156A4          &= CAP_PLAYBACK_BYTE_MASK ^ CAP_CONTROL_SCENE_SYNC_COMPLETE;
-        if (D_8011566A == 1) {
-            D_8011566A = (u16)D_801156BC - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
+        // The no-view sync path compensates text timing for control ticks beyond thirty.
+        if (gCapSceneSyncAdjustmentFrames == CAP_SCENE_SYNC_ADJUSTMENT_PENDING) {
+            gCapSceneSyncAdjustmentFrames = (u16)D_801156BC - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
         }
     }
     pendingViewState = gCapPendingViewPhase;
@@ -345,10 +342,10 @@ void capUpdatePlaybackTask(Task* task)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = recordViewIndex;
                     gCapPendingViewPhase                                       = CAP_VIEW_CHANGE_PENDING;
                     if (gDisplayState.debugMode != 0) {
-                        if (D_8011564A == CAP_PLAYBACK_DEBUG_FRAME_DISABLED) {
-                            D_8011564A = 0;
+                        if (gCapDebugPlaybackFrame == CAP_PLAYBACK_DEBUG_FRAME_DISABLED) {
+                            gCapDebugPlaybackFrame = 0;
                         }
-                        func_8072455C(D_8011564A, nextViewId);
+                        func_8072455C(gCapDebugPlaybackFrame, nextViewId);
                     }
                 }
             }
@@ -362,10 +359,10 @@ void capUpdatePlaybackTask(Task* task)
                             cdCmdSceneViewChangeNoOp();
                         }
                     } else if (!(recordFlags & CAP_SEQUENCE_SCENE_PHASE)) {
-                        D_8011566A = 1;
+                        gCapSceneSyncAdjustmentFrames = CAP_SCENE_SYNC_ADJUSTMENT_PENDING;
                     }
                 }
-                D_8011566E = CAP_SCENE_SYNC_DEFERRED;
+                gCapSceneSyncPhase = CAP_SCENE_SYNC_DEFERRED;
                 return;
             }
         } else {
@@ -373,10 +370,10 @@ void capUpdatePlaybackTask(Task* task)
             return;
         }
     } else {
-        if (D_80115648 == 0) {
+        if (gCapRecordSoundIssued == CAP_RECORD_SOUND_NOT_ISSUED) {
             if (gCapSelectedSequence[(s16)gCapRecordIndex].trigger.soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (gCapSelectedSequence[(s16)gCapRecordIndex].trigger.soundAndTextFlags >> 1), 0);
-                D_80115648 = 1;
+                gCapRecordSoundIssued = CAP_RECORD_SOUND_ISSUED;
             }
         }
 
@@ -406,11 +403,11 @@ void capUpdatePlaybackTask(Task* task)
                     }
                 } else {
                     gCapActionRequest.done = 0;
-                    if (D_80115666 == CAP_PLAYBACK_DISPLAY_TRANSITION) {
-                        D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                    if (gCapPlaybackMode == CAP_PLAYBACK_DISPLAY_TRANSITION) {
+                        gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
                         taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
-                    } else if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
+                    } else if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
                         gCapActionCaptureFramesRemaining = CAP_ACTION_CAPTURE_DELAY_FRAMES;
                     } else {
                         displayQueueModeTask(taskGetDesc(CAP_ACTION_PROMPT_EXIT_TASK_BANK, CAP_ACTION_PROMPT_EXIT_TASK_TYPE), 0, &gCapActionRequest, STAGE_ENTRY_RELOAD);
@@ -420,13 +417,13 @@ void capUpdatePlaybackTask(Task* task)
                 return;
             }
             if (gCapActionRequest.done != 0) {
-                if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
+                if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapActionReturnView;
                 }
                 gCapRecordPhase = CAP_RECORD_BEGIN;
                 if (gCapActionRequest.accepted == 0) {
                     if (gCapSelectedSequence[(s16)gCapRecordIndex].control.action.fallbackKey != 0) {
-                        Gp_CapEventKey = gCapSelectedSequence[(s16)gCapRecordIndex].control.action.fallbackKey;
+                        gCapVariantKey = gCapSelectedSequence[(s16)gCapRecordIndex].control.action.fallbackKey;
                     }
                 }
                 _capAdvanceRecord();
@@ -483,10 +480,10 @@ void capUpdatePlaybackTask(Task* task)
                 }
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmButtons) != 0) {
                     if (D_801155BE != 0) {
-                        if (D_80115659 != 0) {
+                        if (gCapChoiceConfirmFramesRemaining != 0) {
                             return;
                         }
-                        confirmSound = D_801155D0[gCapSelectedChoiceIndex].confirmSound;
+                        confirmSound = gCapChoices[gCapSelectedChoiceIndex].confirmSound;
                         if (confirmSound != CAP_CHOICE_SOUND_CONFIRM) {
                             if (confirmSound == CAP_CHOICE_SOUND_CURSOR) {
                                 sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
@@ -497,9 +494,10 @@ void capUpdatePlaybackTask(Task* task)
                     }
                     gCapConfirmedChoiceIndex = gCapSelectedChoiceIndex;
                     if (D_801155BE != 0) {
-                        Gp_CapEventKey = (s16)D_801155D0[gCapSelectedChoiceIndex].eventKey;
+                        gCapVariantKey = gCapChoices[gCapSelectedChoiceIndex].eventKey;
                     }
-                    D_8011567A = (s16)(u16)D_80115678;
+                    // Select the next record now, but hold processing until the old minimum expires.
+                    gCapAdvanceDelayFrames = gCapMinDisplayFramesRemaining;
                     _capAdvanceRecord();
                     nextConfirmedText = gCapSelectedSequence[(s16)gCapRecordIndex].textRef;
                     if (nextConfirmedText.offset == CAP_TEXT_REF_END) {
@@ -514,7 +512,7 @@ void capUpdatePlaybackTask(Task* task)
                     return;
                 }
             }
-        } else if ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+        } else if ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.displayFrames != 0) && !(gCapRecordSoundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
             gCapRecordPhase = _capDrawTextStream(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, gCapSelectedSequence[(s16)gCapRecordIndex].control.text.title | ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
             if ((s8)gCapRevealDelayLimit > D_801155B9) {
                 D_801155B9 = (u8)D_801155B9 + 1;
@@ -522,8 +520,8 @@ void capUpdatePlaybackTask(Task* task)
                 D_801155B9          = 0;
                 gCapRevealCodeIndex = (u16)gCapRevealCodeIndex + 1;
             }
-            if (D_80115660 != 0) {
-                D_80115660(D_80115650, D_80115652, gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, gCapRevealCodeIndex, D_801155B9 == 0);
+            if (gCapTextUpdateCallback != NULL) {
+                gCapTextUpdateCallback(gCapTextCursorX, gCapTextCursorY, gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, gCapRevealCodeIndex, D_801155B9 == 0);
             }
             if (gCapRecordPhase != CAP_RECORD_BEGIN) {
                 gCapPauseFramesRemaining   = gCapSelectedSequence[(s16)gCapRecordIndex].control.text.pauseFrames;
@@ -542,19 +540,19 @@ void capUpdatePlaybackTask(Task* task)
                 recordPauseFrames          = gCapSelectedSequence[(s16)gCapRecordIndex].control.text.pauseFrames;
                 gCapPauseFramesRemaining   = recordPauseFrames;
                 gCapDisplayFramesRemaining = gCapSelectedSequence[(s16)gCapRecordIndex].control.text.displayFrames;
-                if (recordPauseFrames < D_8011566A) {
+                if (recordPauseFrames < gCapSceneSyncAdjustmentFrames) {
                     gCapPauseFramesRemaining    = 0;
-                    gCapDisplayFramesRemaining -= D_8011566A;
+                    gCapDisplayFramesRemaining -= gCapSceneSyncAdjustmentFrames;
                     if (gCapDisplayFramesRemaining < 0) {
                         gCapDisplayFramesRemaining = 0;
                     }
                 } else {
-                    gCapPauseFramesRemaining = recordPauseFrames - (u16)D_8011566A;
+                    gCapPauseFramesRemaining = recordPauseFrames - (u16)gCapSceneSyncAdjustmentFrames;
                 }
-                D_8011566A = 0;
+                gCapSceneSyncAdjustmentFrames = 0;
                 return;
             }
-            if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+            if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (gCapRecordSoundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
                 gCapRecordPhase     = _capDrawTextStream(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)gCapRecordIndex].control.text.title | ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 nextRecordForReveal = capFindVariantRecord((s16)gCapRecordIndex + 1);
                 if (((gCapSelectedSequence[nextRecordForReveal].textRef.offset != CAP_TEXT_REF_END) && (gCapSelectedSequence[nextRecordForReveal].actionId == 0) && ((gCapSelectedSequence[nextRecordForReveal].control.text.displayFrames != 0) || (gCapSelectedSequence[nextRecordForReveal].control.text.pauseFrames == 0))) || (gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
@@ -745,25 +743,25 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
         boxBottomY        = CAP_TEXT_BOX_BOTTOM_Y;
         boxTopY           = boxBottomY - (u16)gCapTextBoxHeight;
         spriteQuad->x0    = (u16)gCapTextBlockLeftX - CAP_TEXT_BOX_LEFT_X_OFFSET;
-        spriteQuad->y0    = (boxTopY - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
-        titleRightXOffset = Gp_CapGlyphs[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        spriteQuad->y0    = (boxTopY - gDisplayState.vramYOffset) - gCapGlyphCells[title].height;
+        titleRightXOffset = gCapGlyphCells[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
         spriteQuad->x1    = (u16)gCapTextBlockLeftX + titleRightXOffset;
-        spriteQuad->y1    = (boxTopY - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
+        spriteQuad->y1    = (boxTopY - gDisplayState.vramYOffset) - gCapGlyphCells[title].height;
         spriteQuad->x2    = (u16)gCapTextBlockLeftX - CAP_TEXT_BOX_LEFT_X_OFFSET;
         spriteQuad->y2    = (boxBottomY - gDisplayState.vramYOffset) - (u16)gCapTextBoxHeight;
-        titleRightXOffset = Gp_CapGlyphs[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        titleRightXOffset = gCapGlyphCells[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
         spriteQuad->x3    = (u16)gCapTextBlockLeftX + titleRightXOffset;
         spriteQuad->y3    = (boxBottomY - gDisplayState.vramYOffset) - (u16)gCapTextBoxHeight;
-        spriteQuad->u0    = Gp_CapGlyphs[title].u;
-        spriteQuad->v0    = Gp_CapGlyphs[title].v;
-        spriteQuad->u1    = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
-        spriteQuad->v1    = Gp_CapGlyphs[title].v;
-        spriteQuad->u2    = Gp_CapGlyphs[title].u;
-        spriteQuad->v2    = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
-        spriteQuad->u3    = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
-        spriteQuad->v3    = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
+        spriteQuad->u0    = gCapGlyphCells[title].u;
+        spriteQuad->v0    = gCapGlyphCells[title].v;
+        spriteQuad->u1    = gCapGlyphCells[title].u + gCapGlyphCells[title].width;
+        spriteQuad->v1    = gCapGlyphCells[title].v;
+        spriteQuad->u2    = gCapGlyphCells[title].u;
+        spriteQuad->v2    = gCapGlyphCells[title].v + gCapGlyphCells[title].height;
+        spriteQuad->u3    = gCapGlyphCells[title].u + gCapGlyphCells[title].width;
+        spriteQuad->v3    = gCapGlyphCells[title].v + gCapGlyphCells[title].height;
         spriteQuad->clut  = CAP_TEXT_TITLE_CLUT;
-        spriteQuad->tpage = getTPage(0, GPU_BLEND_ADD, D_80115654, D_80115656);
+        spriteQuad->tpage = getTPage(0, GPU_BLEND_ADD, gCapTexturePageVramX, gCapTexturePageVramY);
         addPrim(&gGpuCurrentOt[2], spriteQuad);
     }
 
@@ -787,10 +785,10 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
         }
         controlCode = code;
         if (controlCode == CAP_TEXT_CODE_LINE_BREAK) {
-            Gp_CapCaretY  = penY - CAP_TEXT_CARET_Y_OFFSET;
-            Gp_CapCaretX  = penX + CAP_TEXT_CARET_X_OFFSET;
-            nextLineIndex = lineIndex + 1;
-            nextLine      = &codes[codeIndex + 1];
+            gCapContinueCaretY = penY - CAP_TEXT_CARET_Y_OFFSET;
+            gCapContinueCaretX = penX + CAP_TEXT_CARET_X_OFFSET;
+            nextLineIndex      = lineIndex + 1;
+            nextLine           = &codes[codeIndex + 1];
             // Retained scheduling dependencies preserve the spilled line-index update.
             asm("" : "=r"(lineBreakDependency), "+m"(*nextLine) : "r"(lineIndex));
             lineIndex = nextLineIndex;
@@ -825,7 +823,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                     viewIndex = viewFindLogicalIndex(code & CAP_TEXT_CODE_VALUE_MASK);
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != viewIndex) {
-                    if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
+                    if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
                         stageRequestViewTransition(viewIndex, CAP_TEXT_VIEW_TRANSITION_FILTERED_ACTORS);
                         gCapTextViewTransitionState = CAP_TEXT_VIEW_TRANSITION_WAIT;
                     } else {
@@ -851,7 +849,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                 }
                 // Record the pen, variant key and confirm-sound class for this line.
                 choiceOpen           = 1;
-                choices              = D_801155D0;
+                choices              = gCapChoices;
                 choice               = &choices[choiceIndex];
                 choice->confirmSound = (controlCode & CAP_TEXT_CHOICE_SOUND_MASK) >> 8;
                 choice->x            = penX;
@@ -912,34 +910,34 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                 setRGB2(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
                 setRGB3(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
                 setSemiTrans(glyphQuad, 1);
-                glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, D_80115654, D_80115656);
+                glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, gCapTexturePageVramX, gCapTexturePageVramY);
                 glyphQuad->x0    = glyphLeftX;
-                glyphQuad->y0    = glyphBaselineY - Gp_CapGlyphs[(s16)code].height;
-                glyphQuad->x1    = glyphLeftX + Gp_CapGlyphs[(s16)code].width;
-                glyphQuad->y1    = glyphBaselineY - Gp_CapGlyphs[(s16)code].height;
+                glyphQuad->y0    = glyphBaselineY - gCapGlyphCells[(s16)code].height;
+                glyphQuad->x1    = glyphLeftX + gCapGlyphCells[(s16)code].width;
+                glyphQuad->y1    = glyphBaselineY - gCapGlyphCells[(s16)code].height;
                 glyphQuad->x2    = glyphLeftX;
                 glyphQuad->y2    = glyphBaselineY;
-                glyphQuad->x3    = glyphLeftX + Gp_CapGlyphs[(s16)code].width;
+                glyphQuad->x3    = glyphLeftX + gCapGlyphCells[(s16)code].width;
                 glyphQuad->y3    = glyphBaselineY;
-                glyphQuad->u0    = Gp_CapGlyphs[(s16)code].u;
-                glyphQuad->v0    = Gp_CapGlyphs[(s16)code].v;
-                glyphQuad->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
-                glyphQuad->v1    = Gp_CapGlyphs[(s16)code].v;
-                glyphQuad->u2    = Gp_CapGlyphs[(s16)code].u;
-                glyphQuad->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
-                glyphQuad->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
-                glyphQuad->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
+                glyphQuad->u0    = gCapGlyphCells[(s16)code].u;
+                glyphQuad->v0    = gCapGlyphCells[(s16)code].v;
+                glyphQuad->u1    = gCapGlyphCells[(s16)code].u + gCapGlyphCells[(s16)code].width;
+                glyphQuad->v1    = gCapGlyphCells[(s16)code].v;
+                glyphQuad->u2    = gCapGlyphCells[(s16)code].u;
+                glyphQuad->v2    = gCapGlyphCells[(s16)code].v + gCapGlyphCells[(s16)code].height;
+                glyphQuad->u3    = gCapGlyphCells[(s16)code].u + gCapGlyphCells[(s16)code].width;
+                glyphQuad->v3    = gCapGlyphCells[(s16)code].v + gCapGlyphCells[(s16)code].height;
                 addPrim(&gGpuCurrentOt[2], glyphQuad);
                 // The second textured pass subtracts the same glyph.
                 subtractGlyphQuad        = gGpuPrimCursor;
                 gGpuPrimCursor           = subtractGlyphQuad + 1;
                 *subtractGlyphQuad       = *glyphQuad;
-                subtractGlyphQuad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
+                subtractGlyphQuad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, gCapTexturePageVramX, gCapTexturePageVramY);
                 addPrim(&gGpuCurrentOt[2], subtractGlyphQuad);
                 if (layout->vertical == 0) {
-                    penX = Gp_CapGlyphs[(s16)code].width + penX - 1;
+                    penX = gCapGlyphCells[(s16)code].width + penX - 1;
                 } else {
-                    penY = Gp_CapGlyphs[(s16)code].height + penY - 1;
+                    penY = gCapGlyphCells[(s16)code].height + penY - 1;
                 }
             }
         }
@@ -947,9 +945,9 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
     }
 
     // A break closes an open choice, turning its index into the published count.
-    D_80115650 = penX;
-    D_801155BE = choiceIndex;
-    D_80115652 = penY - gDisplayState.vramYOffset;
+    gCapTextCursorX = penX;
+    D_801155BE      = choiceIndex;
+    gCapTextCursorY = penY - gDisplayState.vramYOffset;
     return textComplete;
 }
 
@@ -960,23 +958,23 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
 /// Choice coordinates are centre-relative pixels; drawing removes vertical shake.
 static void _capDrawChoiceMarker(void)
 {
-    POLY_G3*   marker;
-    CapChoice* choices;
-    s32        choiceIndex;
-    s32        x;
-    s32        y;
-    s32        markerY;
-    s32        grey;
+    POLY_G3*         marker;
+    const CapChoice* choices;
+    s32              choiceIndex;
+    s32              x;
+    s32              y;
+    s32              markerY;
+    s32              grey;
 
     if (D_801155BE != 0) {
         // Confirmation stays locked while the initial choice frames elapse.
-        if (D_80115659 != 0) {
-            D_80115659--;
+        if (gCapChoiceConfirmFramesRemaining != 0) {
+            gCapChoiceConfirmFramesRemaining--;
         }
         marker         = gGpuPrimCursor;
         gGpuPrimCursor = marker + 1;
         choiceIndex    = gCapSelectedChoiceIndex;
-        choices        = D_801155D0;
+        choices        = gCapChoices;
         x              = choices[choiceIndex].x;
         y              = choices[choiceIndex].y;
         markerY        = -(gDisplayState.vramYOffset + 2) + y;
@@ -1005,11 +1003,11 @@ static void _capDrawChoiceMarker(void)
 static inline void _capRestoreInPlacePresentation(void)
 {
     gGameSession->hideHud                                      = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapSavedView;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     if (gDisplayState.debugMode != 0) {
-        func_8072455C(D_8011564A, D_8011566C);
+        func_8072455C(gCapDebugPlaybackFrame, gCapSavedView);
     }
 }
 
@@ -1031,15 +1029,15 @@ static void _capFinishPlayback(Task* task)
 
     // Send the action-capture exit message before restoring the display mode.
     cdQueue = &gCdCmdQueue;
-    if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
+    if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_ROOM_EFFECT_MESSAGE_3000, 0, 0);
     }
-    if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == D_8011566C) {
+    if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == gCapSavedView) {
             stageRequestModeTaskExit();
         } else {
-            cdQueue->imageMdecMode = D_8011565C;
-            stageRequestViewTransitionAndModeExit(D_8011566C);
+            cdQueue->imageMdecMode = gCapSavedImageMdecMode;
+            stageRequestViewTransitionAndModeExit(gCapSavedView);
         }
     } else {
         if (gCapPreserveActorControl == CAP_ACTOR_CONTROL_RESTORE_ON_EXIT) {
@@ -1057,14 +1055,14 @@ static void _capFinishPlayback(Task* task)
         func_807244CC(sceneFilename);
     }
     gCapSelectedSequence = NULL;
-    D_8011565A           = CAP_PLAYBACK_INACTIVE;
+    gCapPlaybackStarted  = CAP_PLAYBACK_INACTIVE;
     D_801156A4           = CAP_CONTROL_FLAGS_NONE;
     taskKill(task);
 }
 
 /// Draws the pulsing continue caret at the current CAP text pen.
 ///
-/// Counts down the frame delay before drawing. Coordinates come from the text
+/// Counts down eligible drawing calls before drawing. Coordinates come from the text
 /// pen in centre-relative pixels, with vertical shake removed when emitted.
 /// Both arguments are ignored. The grey pulse runs inclusively from 8 to 15.
 static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
@@ -1074,8 +1072,8 @@ static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
     u16      x;
     u16      y;
 
-    if (Gp_CapCaretDelay != 0) {
-        Gp_CapCaretDelay--;
+    if (gCapContinueCaretDelayCalls != 0) {
+        gCapContinueCaretDelayCalls--;
         return;
     }
 
@@ -1090,8 +1088,8 @@ static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
     setRGB1(caret, grey, grey, grey);
     setRGB2(caret, grey, grey, grey);
 
-    x         = Gp_CapCaretX;
-    y         = Gp_CapCaretY;
+    x         = gCapContinueCaretX;
+    y         = gCapContinueCaretY;
     caret->x0 = x + 3;
     caret->y0 = y - gDisplayState.vramYOffset;
     caret->x1 = x;
@@ -1131,7 +1129,7 @@ static s16 _capGetTextBlockLeftX(const u16* text)
             lineWidth += CAP_TEXT_ICON_WIDTH;
             code       = text[++codeIndex];
         } else if (code >= 0) {
-            lineWidth += Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
+            lineWidth += gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
             code       = text[++codeIndex];
         } else {
             code = text[++codeIndex];
@@ -1174,7 +1172,7 @@ static s16 _capGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
             lineWidth += CAP_TEXT_ICON_WIDTH;
             code       = text[++codeIndex];
         } else if (code >= 0) {
-            lineWidth += Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
+            lineWidth += gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
             code       = text[++codeIndex];
         } else {
             code = text[++codeIndex];
@@ -1199,8 +1197,8 @@ s16 capGetTextBlockHeight(const u16* text)
             lineHeight   = 0;
         } else if (code != CAP_TEXT_CODE_SPACER) {
             if (code >= 0) {
-                if (lineHeight < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
-                    lineHeight = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
+                if (lineHeight < gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                    lineHeight = gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
                 }
             }
         }
@@ -1233,8 +1231,8 @@ s16 capGetTextFirstBaselineY(const u16* codes)
             lineHeight = 0;
         } else if (code != CAP_TEXT_CODE_SPACER) {
             if (code >= 0) {
-                if (lineHeight < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
-                    lineHeight = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
+                if (lineHeight < gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                    lineHeight = gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
                 }
             }
         }
@@ -1264,8 +1262,8 @@ static s32 _capGetTextLineAdvance(const u16* text)
             scanActive  = 0;
             lineAdvance = CAP_TEXT_END_LINE_ADVANCE;
         } else if (code >= 0) {
-            if (lineAdvance < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
-                lineAdvance = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
+            if (lineAdvance < gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                lineAdvance = gCapGlyphCells[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
             }
             code = text[++codeIndex];
         } else {
@@ -1305,8 +1303,8 @@ s32 capAbortPlayback(void)
            CAP_ABORT_UNAVAILABLE = -1 };
 
     if (gCapSelectedSequence != NULL) {
-        if (Gp_CapTask != NULL) {
-            _capFinishPlayback(Gp_CapTask);
+        if (gCapPlaybackTask != NULL) {
+            _capFinishPlayback(gCapPlaybackTask);
             return CAP_ABORT_SUCCESS;
         }
         return CAP_ABORT_UNAVAILABLE;
@@ -1316,13 +1314,13 @@ s32 capAbortPlayback(void)
 
 s32 capGetVariantKey(void)
 {
-    return Gp_CapEventKey;
+    return gCapVariantKey;
 }
 
 void capSetTexturePage(s16 vramX, s16 vramY)
 {
-    D_80115654 = vramX;
-    D_80115656 = vramY;
+    gCapTexturePageVramX = vramX;
+    gCapTexturePageVramY = vramY;
 }
 
 void capSelectLoadedFile(s32 dataResourceOrdinal)
@@ -1357,7 +1355,7 @@ void capReset(void)
     // Release the selection before restoring the bundle's default CAP resource.
     gCapSelectedSequence     = NULL;
     gCapConfirmedChoiceIndex = 0;
-    D_8011565A               = 0;
+    gCapPlaybackStarted      = CAP_PLAYBACK_NOT_STARTED;
     capSetTexturePage(CAP_DEFAULT_TEXTURE_VRAM_X, CAP_DEFAULT_TEXTURE_VRAM_Y);
     gCapFile = NULL;
     capSelectLoadedFile(CAP_DEFAULT_FILE_ORDINAL);
@@ -1366,7 +1364,7 @@ void capReset(void)
 
 void capSetTextUpdateCallback(CapTextUpdateCallback callback)
 {
-    D_80115660 = callback;
+    gCapTextUpdateCallback = callback;
 }
 
 void capApplyRecordPlaybackSettings(void)
@@ -1374,14 +1372,14 @@ void capApplyRecordPlaybackSettings(void)
     CapSequenceRecord* record;
     u8                 soundAndTextFlags;
 
-    record            = _capSequenceRecordAt(gCapSelectedSequence, (s16)gCapRecordIndex);
-    soundAndTextFlags = record->trigger.soundAndTextFlags;
-    D_80115670        = soundAndTextFlags;
+    record                      = _capSequenceRecordAt(gCapSelectedSequence, (s16)gCapRecordIndex);
+    soundAndTextFlags           = record->trigger.soundAndTextFlags;
+    gCapRecordSoundAndTextFlags = soundAndTextFlags;
     // A minimum playback interval disables instant reveal.
     if (record->minDisplayFrames != 0) {
-        D_80115670 = soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK;
+        gCapRecordSoundAndTextFlags = soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK;
     }
-    D_80115678 = record->minDisplayFrames;
+    gCapMinDisplayFramesRemaining = record->minDisplayFrames;
 }
 
 s32 capFindVariantRecord(s32 recordIndex)
@@ -1390,7 +1388,7 @@ s32 capFindVariantRecord(s32 recordIndex)
 
     for (;;) {
         record = _capSequenceRecordAt(gCapSelectedSequence, recordIndex);
-        if (record->textRef.offset != CAP_TEXT_REF_END && record->key != Gp_CapEventKey) {
+        if (record->textRef.offset != CAP_TEXT_REF_END && record->key != gCapVariantKey) {
             recordIndex++;
         } else {
             break;
@@ -1405,7 +1403,7 @@ void capClearUnstartedSequenceTask(Task* task)
 
     // Give queued playback one dispatch to begin before clearing its selection.
     if (task->state > CAP_UNSTARTED_SEQUENCE_GRACE_STATE) {
-        if (gCapSelectedSequence != 0 && D_8011565A == 0) {
+        if (gCapSelectedSequence != 0 && gCapPlaybackStarted == CAP_PLAYBACK_NOT_STARTED) {
             gCapSelectedSequence = 0;
         }
         taskKill(task);
@@ -1491,15 +1489,12 @@ void capDelayedTextureMessageTask(Task* task)
 /// Caret delay counts eligible draw calls; choice lockout counts visible-choice frames.
 static void _capAdvanceRecord(void)
 {
-    enum {
-        CAP_CONTINUE_CARET_DELAY_CALLS  = 30,
-        CAP_CHOICE_CONFIRM_DELAY_FRAMES = 15
-    };
+    enum { CAP_CONTINUE_CARET_DELAY_CALLS = 30 };
 
     gCapRecordIndex++;
-    gCapRecordIndex  = capFindVariantRecord((s16)gCapRecordIndex);
-    D_80115648       = 0;
-    Gp_CapCaretDelay = CAP_CONTINUE_CARET_DELAY_CALLS;
-    D_80115659       = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
+    gCapRecordIndex                  = capFindVariantRecord((s16)gCapRecordIndex);
+    gCapRecordSoundIssued            = CAP_RECORD_SOUND_NOT_ISSUED;
+    gCapContinueCaretDelayCalls      = CAP_CONTINUE_CARET_DELAY_CALLS;
+    gCapChoiceConfirmFramesRemaining = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
     capApplyRecordPlaybackSettings();
 }

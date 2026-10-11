@@ -21,7 +21,7 @@ void capPlaybackTask(Task* task)
         switch (task->state) {
             case CAP_PLAYBACK_INITIAL_STATE:
                 // Notify the room receiver before the first action-capture playback update.
-                if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
+                if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_ACTION_CAPTURE_ROOM_EFFECT_MESSAGE, CAP_ACTION_CAPTURE_ENTER, 0);
                 }
                 task->state++;

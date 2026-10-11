@@ -62,15 +62,12 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
         CAP_TEXT_SCREEN_WIDTH               = 320,
         CAP_TEXT_INITIAL_REVEAL_DELAY_LIMIT = 7, // Advancement after eight eligible updates from a zero counter.
         CAP_DEFAULT_CHOICE_ROW_STRIDE       = 1,
-        CAP_CHOICE_CONFIRM_DELAY_FRAMES     = 15,
-        CAP_SCENE_CONTROL_IDLE              = 0,
         CAP_VIEW_CHANGE_NONE                = 0,
         CAP_TEXT_VIEW_TRANSITION_NONE       = 0,
-        CAP_PLAYBACK_NOT_STARTED            = 0,
     };
 
     // Select the borrowed sequence before its first keyed record is scanned.
-    Gp_CapEventKey       = variantKey;
+    gCapVariantKey       = variantKey;
     gCapSelectedSequence = sequence;
     gCapRecordPhase      = CAP_RECORD_INITIAL_PHASE;
     gCapRecordIndex      = CAP_FIRST_PLAYBACK_RECORD_INDEX;
@@ -85,33 +82,29 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
     D_80115664                       = 0;
     gCapPauseFramesRemaining         = 0;
     gCapDisplayFramesRemaining       = 0;
-    D_8011567A                       = 0;
+    gCapAdvanceDelayFrames           = 0;
     gCapSelectedChoiceIndex          = 0;
     gCapConfirmedChoiceIndex         = 0;
     gCapTextViewTransitionState      = CAP_TEXT_VIEW_TRANSITION_NONE;
-    D_8011566E                       = CAP_SCENE_CONTROL_IDLE;
+    gCapSceneSyncPhase               = CAP_SCENE_SYNC_IDLE;
     D_8011566F                       = 0;
     gCapActionCaptureFramesRemaining = 0;
     gCapPendingViewPhase             = CAP_VIEW_CHANGE_NONE;
-    D_80115648                       = 0;
-    D_8011566A                       = 0;
-    D_8011565A                       = CAP_PLAYBACK_NOT_STARTED;
+    gCapRecordSoundIssued            = CAP_RECORD_SOUND_NOT_ISSUED;
+    gCapSceneSyncAdjustmentFrames    = 0;
+    gCapPlaybackStarted              = CAP_PLAYBACK_NOT_STARTED;
     gCapSuppressViewChanges          = CAP_SEQUENCE_VIEW_CHANGES_ENABLED;
     gCapPreserveActorControl         = CAP_ACTOR_CONTROL_RESTORE_ON_EXIT;
-    D_80115680                       = CAP_DEFAULT_CHOICE_ROW_STRIDE;
-    D_80115659                       = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
+    gCapChoiceRowStride              = CAP_DEFAULT_CHOICE_ROW_STRIDE;
+    gCapChoiceConfirmFramesRemaining = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
 }
 
 s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantKey)
 {
     enum {
-        CAP_PLAYBACK_IN_PLACE            = 0,
-        CAP_PLAYBACK_DISPLAY_TRANSITION  = 1,
-        CAP_PLAYBACK_CLEAR_IF_UNSTARTED  = 3,
-        CAP_PLAYBACK_TASK_BANK           = 2,
-        CAP_PLAYBACK_TASK_TYPE           = 7,
-        CAP_CLEAR_UNSTARTED_TASK_INDEX   = 0,
-        CAP_DEBUG_FRAME_COUNTER_DISABLED = -1
+        CAP_PLAYBACK_TASK_BANK         = 2,
+        CAP_PLAYBACK_TASK_TYPE         = 7,
+        CAP_CLEAR_UNSTARTED_TASK_INDEX = 0
     };
     CdCmdQueue* cdQueue;
     TaskDesc*   playbackDescriptor;
@@ -123,11 +116,11 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
 
     _capInitializeSequencePlayback(sequence, variantKey);
     // Save the view and decode policy that playback exit restores.
-    D_8011566C = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    D_8011565C = cdQueue->imageMdecMode;
+    gCapSavedView          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    gCapSavedImageMdecMode = cdQueue->imageMdecMode;
     if (gDisplayState.debugMode != 0) {
         func_807245B8();
-        D_8011564A = CAP_DEBUG_FRAME_COUNTER_DISABLED;
+        gCapDebugPlaybackFrame = CAP_PLAYBACK_DEBUG_FRAME_DISABLED;
     }
 
     // Slot zero is the command header; find the first record for this key.
@@ -138,21 +131,21 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
     }
 
     capApplyRecordPlaybackSettings();
-    gCapFirstBaselineY = capGetTextFirstBaselineY(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text);
-    gCapTextBoxHeight  = capGetTextBlockHeight(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text);
-    D_80115666         = playbackMode;
-    D_80115660         = NULL;
+    gCapFirstBaselineY     = capGetTextFirstBaselineY(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text);
+    gCapTextBoxHeight      = capGetTextBlockHeight(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text);
+    gCapPlaybackMode       = playbackMode;
+    gCapTextUpdateCallback = NULL;
     // Queued playback borrows the selection before its task begins running.
     if (playbackMode != CAP_PLAYBACK_IN_PLACE) {
         playbackDescriptor = taskGetDesc(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE);
-        Gp_CapTask         = displayQueueModeTask(playbackDescriptor, 0, 0, STAGE_ENTRY_RELOAD);
-        if (D_80115666 != CAP_PLAYBACK_CLEAR_IF_UNSTARTED) {
+        gCapPlaybackTask   = displayQueueModeTask(playbackDescriptor, 0, 0, STAGE_ENTRY_RELOAD);
+        if (gCapPlaybackMode != CAP_PLAYBACK_CLEAR_IF_UNSTARTED) {
             return 0;
         }
         taskSpawnFromTable(gCapPlaybackTaskDescriptors, CAP_CLEAR_UNSTARTED_TASK_INDEX, 0, 0);
-        D_80115666 = CAP_PLAYBACK_DISPLAY_TRANSITION;
+        gCapPlaybackMode = CAP_PLAYBACK_DISPLAY_TRANSITION;
     } else {
-        Gp_CapTask = taskSpawn(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE, 0, 0);
+        gCapPlaybackTask = taskSpawn(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE, 0, 0);
     }
     return 0;
 }

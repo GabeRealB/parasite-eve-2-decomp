@@ -465,8 +465,8 @@ void dryfieldNightMotelLoftCaptionSceneTask(Task* task)
             // Keep actor updates paused while the caption scene owns player control.
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             capRunCommand(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? DRYFIELD_NIGHT_MOTEL_LOFT_CAP_REPEAT_SCENE : DRYFIELD_NIGHT_MOTEL_LOFT_CAP_FIRST_SCENE, CAP_PLAYBACK_IN_PLACE);
-            D_80115680  = DRYFIELD_NIGHT_MOTEL_LOFT_CHOICE_ROW_STEP;
-            task->state = task->state + 1;
+            gCapChoiceRowStride = DRYFIELD_NIGHT_MOTEL_LOFT_CHOICE_ROW_STEP;
+            task->state         = task->state + 1;
             return;
         case DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_WAIT_CAP:
             if (capIsBusy() == 0) {

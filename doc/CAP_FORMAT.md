@@ -84,7 +84,7 @@ and `commands.offset`, then walks both tables:
 Then:
 
 ```c
-Gp_CapGlyphs = file->glyphs.cells;
+gCapGlyphCells = file->glyphs.cells;
 gCapCommandEntries   = file->commands.table->entries;
 ```
 
@@ -100,7 +100,7 @@ values. Playback starts at slot one.
 0x2  u8  control.text.displayFrames  frames displaying completed text
 0x3  u8  control.text.pauseFrames    following frames without text; 255 waits for resume
 0x4  u8  trigger.soundAndTextFlags   bit 0 instant text; bits 1-7 room sound ID
-0x5  u8  key                         variant matched against Gp_CapEventKey
+0x5  u8  key                         variant matched against gCapVariantKey
 0x6  u8  actionId                    0 none; 1-100 flag/item action; >100 non-type-9 scene child ID + 100
 0x7  u8  minDisplayFrames            minimum elapsed frames before advancing after confirmation
 0x8  CapTextRef textRef              file-relative byte offset, then const u16* text; -1 ends the run
@@ -135,7 +135,7 @@ are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
 
 `capFindVariantRecord(start)` scans forward from `start` through `gCapSelectedSequence` and
 stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whose `key` equals
-the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
+the current `gCapVariantKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
 
 ## 4. Command records — `CapCommand` (0xC)
@@ -314,13 +314,13 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
 
 ## 7. What is still open
 
-- **Glyph index -> character.** The values are indices into `Gp_CapGlyphs`;
+- **Glyph index -> character.** The values are indices into `gCapGlyphCells`;
   turning them into readable text needs that table plus the font image. The
   mapping is not alphabetical by inspection (`0x21` as `A` does not produce
   words).
 - **Control codes.** Values `>= 0x8000` are mostly still undecoded. A dialogue
   choice is the exception: a code whose high byte is `0x81`, `0x82` or `0x83`.
-  Its low byte is the variant key copied into `Gp_CapEventKey` on confirm, and
+  Its low byte is the variant key copied into `gCapVariantKey` on confirm, and
   bits 8-11 select the confirm sound (`1` plays `SOUND_SYSTEM_CONFIRM`, `2`
   plays nothing, `3` plays `SOUND_SYSTEM_CURSOR`). Retail text uses `1` and
   `2` only. The renderer records the pen and those fields in a `CapChoice`

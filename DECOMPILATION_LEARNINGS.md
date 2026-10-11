@@ -7870,11 +7870,11 @@ CdCmdQueue* cdQueue;
 
 cdQueue = &gCdCmdQueue;
 ...
-cdQueue->imageMdecMode = D_8011565C;
+cdQueue->imageMdecMode = gCapSavedImageMdecMode;
 ```
 
 `_capFinishPlayback` is the example. The direct
-`gCdCmdQueue.imageMdecMode = D_8011565C` stuck at 93.9% with only that
+`gCdCmdQueue.imageMdecMode = gCapSavedImageMdecMode` stuck at 93.9% with only that
 address and the extra saved register different.
 
 ## Write a two-global fail tail through the globals, not hoisted pointers
@@ -29287,14 +29287,14 @@ _effectSpawnPlayerBodyBlast(spawnRecord, burstCoord, burstSize, effectLevel);
 
 A loop that compares against `-2` / `-3` / `-1` and also reads a global
 table hoists all four. Source assignment order is emit order. Writing
-the table first (`table = Gp_CapGlyphs; do { if (code == -2) ...`) puts
+the table first (`table = gCapGlyphCells; do { if (code == -2) ...`) puts
 `lui/lw` before the `li t5,-2` / `li t4,-3`. Assign the constants first:
 
 ```c
 if (shifted >> 16 != -1) {
     newline = -2;
     skip    = -3;
-    table   = Gp_CapGlyphs;
+    table   = gCapGlyphCells;
     do {
         if (shifted >> 16 == newline) {
             ...
@@ -67124,10 +67124,10 @@ register canonical, so `titleAndFlags = (u16)titleAndFlags` moved off `a3`; a `S
 on the copy breaks the equivalence without changing allocation.
 
 **A constant array address materialised early and added second.**
-`&D_801155D0[choiceIndex]` swaps the constant to the second operand
+`&gCapChoices[choiceIndex]` swaps the constant to the second operand
 (`expand_binop`) and forces the symbol into a register after the index, so the
-`lui` follows the shifts. `ch = D_801155D0; p = &ch[choiceIndex]` with another
-dead `ch = D_801155D0` earlier makes `ch` a multi-set pointer: the address is
+`lui` follows the shifts. `ch = gCapChoices; p = &ch[choiceIndex]` with another
+dead `ch = gCapChoices` earlier makes `ch` a multi-set pointer: the address is
 deferred to the block head, `loop.c` does not hoist it, and cse still knows its
 value so `fold_rtx` swaps the `plus` back to offset-plus-address. The result
 pseudo `p` is separate, which is what gives `sll v1; addu v1,v1,v0`.
@@ -81181,7 +81181,7 @@ writing any C: the twin is often the *whole* function, not a resemblance.
 `func_actor_215100_8014C360` was starred against gameplay's `_capGetTextLineAdvance`
 (`shape` 1.00 + `fields` 1.00 + `cflow` 1.00). The two are the same 0xB8
 instruction stream at the same offsets; only the glyph-table symbol differs
-(`D_actor_215100_8015E654` against `Gp_CapGlyphs`), which is exactly why
+(`D_actor_215100_8015E654` against `gCapGlyphCells`), which is exactly why
 `overlay_dup_index.py find` does **not** group them — equality there is decided
 on disassembly *text*, and a twin that reads different data is not a copy. It
 reported the actor copy plus two room copies
@@ -144845,7 +144845,7 @@ which `true_dependence` lets run ahead of a store to a plain global. Making
 the position an array member and reading it through the decayed pointer,
 `pos = choices[i].pos; x = pos[0]; y = pos[1];`, gives a non-struct `x` load
 (`pos[0]` folds to `*pos`) that keeps the edge to the store. Two tie-breaks
-finished it. `i = gCapSelectedChoiceIndex; choices = D_801155D0;` before `&choices[i]`
+finished it. `i = gCapSelectedChoiceIndex; choices = gCapChoices;` before `&choices[i]`
 emits the base address between the index load and its shift, which is the
 order the target's luis follow. The adjusted y went into its own
 single-set local (`top = -(off + 2) + y`), so the `y` load keeps sched1's
