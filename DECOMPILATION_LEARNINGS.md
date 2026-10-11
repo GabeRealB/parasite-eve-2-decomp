@@ -57522,7 +57522,7 @@ pseudo live across the `lui`, which pushes the address to `$a0`:
 Task* task = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
 s32   next = arg0->state + 1;
 
-D_acropolis_bridge_8019179C = task;
+_gAcropolisBridgeKeypadMovieTask = task;
 arg0->state                 = next;
 ```
 
@@ -57629,7 +57629,7 @@ owned by `acropolis_bridge_6`, an *earlier* text unit. Rodata is emitted in
 object order, so a table belonging to `_7` cannot precede one belonging to
 `_6`: the table is a const global defined back in the first unit, and the
 function only copies it. The local-initializer version scores 99.7% with the
-only diff being `%hi(.rodata)` against `%hi(D_acropolis_bridge_8017D614)` —
+only diff being `%hi(.rodata)` against `%hi(_gAcropolisBridgeKeypadStates)` —
 that lone symbol-name diff is the tell.
 
 Taking the initializer at face value costs a manifest change that then cannot

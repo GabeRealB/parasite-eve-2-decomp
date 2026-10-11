@@ -359,12 +359,8 @@ typedef struct {
 } _AcropolisBridgeMovieFrameStorage;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeMovieFrameStorage, 4);
 
-extern TaskMessageEntry D_acropolis_bridge_80188E4C[];
-extern TaskDesc         D_acropolis_bridge_80188E7C[];
-extern EvsCommand       D_acropolis_bridge_80188EBC[];
-extern EvsCommand       D_acropolis_bridge_8018912C[];
-extern TaskDesc         D_acropolis_bridge_80189234;
-extern TaskDesc         D_acropolis_bridge_80189830;
+extern EvsCommand D_acropolis_bridge_8018912C[];
+extern TaskDesc   D_acropolis_bridge_80189234;
 
 extern TaskMessageEntry D_acropolis_bridge_801898FC[];
 extern SVECTOR          D_acropolis_bridge_8018991C[7];
@@ -386,9 +382,6 @@ extern PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6];
 extern void (*D_acropolis_bridge_8019175C[])(Task*);
 
 extern Task* D_acropolis_bridge_80191794;
-extern Task* D_acropolis_bridge_80191798;
-extern Task* D_acropolis_bridge_8019179C;
-extern s32   D_acropolis_bridge_801917A0;
 
 static void _acropolisBridgeRoomSetup(Task* task);
 static void _acropolisBridgeRoomIdle(Task* task);
@@ -487,8 +480,8 @@ static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7];
 static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7];
 
 static WorldCoordRoomLights      _gAcropolisBridgeRoomLights;
-extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
-extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
+static PadScriptCmd              _gAcropolisBridgeArrivalVibrationCommands[6];
+static PadScriptVibrationSegment _gAcropolisBridgeArrivalVibrationSegments[5];
 static void                      _acropolisBridgePrepareArrivalScene(void);
 static void                      _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
 
@@ -573,7 +566,13 @@ static TmdSource _gAcropolisBridgeTranslucentPlaneModel = {
     .stream              = _gAcropolisBridgeTranslucentPlaneModelStream,
 };
 
-TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
+/// Room-transition, keypad, action, item-use and sound message bindings.
+///
+/// The room task borrows this read-only table while the overlay is loaded.
+/// Transition payloads are a request and writable reply; keypad/item/sound
+/// payloads are integer words and room actions borrow a direction request.
+/// The final end marker makes unsupported messages return zero.
+static const TaskMessageEntry _gAcropolisBridgeRoomMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisBridgeResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, _acropolisBridgeHandleKeypadCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisBridgeIgnoreRoomAction },
@@ -582,42 +581,87 @@ TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_acropolis_bridge_80188E7C[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _acropolisBridgeModelTask, { .model = &_gAcropolisBridgeTranslucentPlaneModel } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
+/// Indices of the two room-owned task recipes and their scheduler priority.
+enum {
+    ACROPOLIS_BRIDGE_ROOM_TASK_MODEL           = 0,
+    ACROPOLIS_BRIDGE_ROOM_TASK_KEYPAD_SEQUENCE = 1,
+    ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY     = 192
+};
+
+/// Bridge-model and keypad-sequence task recipes, followed by the bank end marker.
+///
+/// Model setup borrows the embedded plane source; the sequence has no body.
+/// Keep the overlay loaded while either task or its callbacks are live.
+static TaskDesc _gAcropolisBridgeRoomTaskDescriptors[3] = {
+    { { { TASK_BODY_TMD, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeModelTask, { .model = &_gAcropolisBridgeTranslucentPlaneModel } },
+    { { { TASK_BODY_NONE, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player idle clip selected for the bridge's first fire-escape transition scene.
+///
+/// The interpreter copies the request and replaces its bank selector with the
+/// equipped weapon's bank. Clip 1 resets playback and disables world collision;
+/// the initial bank selector is ignored and the zero blend duration is unused.
+static const AnimationPlayRequest _gAcropolisBridgeArrivalWeaponAnimationRequest SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-EvsSceneKey D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
+/// Scene/audio stream key for the bridge's first fire-escape transition.
+///
+/// Selects group 1, stream 11 and qualifier 11 in the current folder. The
+/// interpreter retains this key until scene completion; keep the room loaded.
+static const EvsSceneKey _gAcropolisBridgeArrivalSceneKey SECTION(".data") = {
+    .group    = 1,
+    .streamId = 11,
+    .subId    = 11,
+};
 
-EvsCommand D_acropolis_bridge_80188EBC[26] = {
+/// Arrival CAP slot, pixel shake amplitude and interpreter-update delays.
+enum {
+    ACROPOLIS_BRIDGE_ARRIVAL_CAP_SLOT                    = 1,
+    ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_AMPLITUDE_PIXELS      = 4,
+    ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_HALF_DURATION_UPDATES = 7,
+    ACROPOLIS_BRIDGE_ARRIVAL_FINISH_DELAY_UPDATES        = 3
+};
+
+/// Presents the bridge's arrival scene on the first fire-escape departure.
+///
+/// Holds the player in weapon idle, hides its model and synchronizes the
+/// arrival sprites, screen shake, vibration and dust with scene/audio CAP cues.
+/// Restores player visibility/control and the saved view before ending the
+/// stream. The interpreter and vibration task borrow the room's loaded data;
+/// the caller supplies a separate skip script.
+static EvsCommand _gAcropolisBridgeArrivalScript[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisBridgePrepareArrivalScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_bridge_80188EA0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_bridge_80188EB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_CAP_SLOT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisBridgeArrivalWeaponAnimationRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisBridgeArrivalSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = 4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_acropolis_bridge_80190BBC }, { .vibrationSegments = D_acropolis_bridge_80190BD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_AMPLITUDE_PIXELS }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_HALF_DURATION_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gAcropolisBridgeArrivalVibrationCommands }, { .vibrationSegments = _gAcropolisBridgeArrivalVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FINISH_DELAY_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -647,7 +691,10 @@ static const SVECTOR _gAcropolisBridgeMovieEnemyHeightPath[190] SECTION(".data")
 #include "assets/acropolis_bridge_path_0BC80.inc"
 };
 
-TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadCursorTask, { .value = 0 } };
+/// Bodyless keypad cursor recipe, borrowed until the keypad closes its cursor.
+static TaskDesc _gAcropolisBridgeKeypadCursorTaskDesc = {
+    { { TASK_BODY_NONE, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeKeypadCursorTask, { .value = 0 }
+};
 
 /// Cursor hit regions for the bridge keypad's ten digit keys and clear key.
 ///
@@ -838,32 +885,9 @@ WorldCoordRoomLighting gAcropolisBridgeRoomLightingTable[2] = {
     { &_gAcropolisBridgeRoomLights, NULL },
 };
 
-// Two 12-byte direction-facing rows used by directionAwaitStairClimb.
-u8 D_acropolis_bridge_80189A9C[24] = {
-    2,
-    2,
-    2,
-    2,
-    4,
-    4,
-    4,
-    4,
-    4,
-    4,
-    4,
-    4,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
+    { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
+    { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
 };
 
 /// Map-marker nibble IDs attached to the bridge's two warp endpoints.
@@ -2182,7 +2206,7 @@ static AreaResource _gAcropolisBridgeVariant3AreaResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_acropolis_bridge_8019004C[12] = {
+AreaVariant gAcropolisBridgePlacementVariants[12] = {
     { NULL, NULL },
     { gMapAkropolisBridgeDefaultPlacements, _gAcropolisBridgeDefaultAreaResources },
     { gMapAkropolisBridgeVariant2Placements, _gAcropolisBridgeVariant2AreaResources },
@@ -2475,16 +2499,38 @@ PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6] = {
     { 50, 45, 60, 1 },
 };
 
-PadScriptCmd D_acropolis_bridge_80190BBC[6] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+/// Segment indices and binary-lane repeat count in the arrival vibration script.
+enum {
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PULSE      = 0,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_RISE       = 1,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PEAK       = 2,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL       = 3,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FINAL_HOLD = 4,
+    ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_REPEATS    = 3
+};
+
+/// Two-motor vibration script for the arrival scene's shake and dust cue.
+///
+/// The binary lane plays segment 0, then repeats it three times before segment
+/// 4 and STOP. The variable lane plays segments 1, 2 and 3 before STOP.
+/// Command 5 and the variable-lane command at slot 4 are not reached. STOP
+/// operands are retained but ignored. The spawned task borrows both arrays.
+static PadScriptCmd _gAcropolisBridgeArrivalVibrationCommands[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PULSE), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_RISE) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_REPEATS), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PEAK) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FINAL_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 14) }
 };
 
-PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5] = {
+/// Five timed vibration segments selected by the arrival vibration script.
+///
+/// Intensity endpoints are bytes (0..255), durations are script frames, and
+/// the fourth byte retains its stored value with no interpreter consumer.
+/// The first and last segments have zero intensity; the middle three raise,
+/// hold and lower the variable motor. Keep this storage live through playback.
+static PadScriptVibrationSegment _gAcropolisBridgeArrivalVibrationSegments[5] = {
     { 0, 0, 1, 0 },
     { 100, 200, 6, 1 },
     { 255, 255, 8, 1 },
@@ -2758,7 +2804,13 @@ static AnimationSet _gAcropolisBridgeAnimation13FE0 = {
     { NULL, _gAcropolisBridgeAnimation13FE0Bank1, NULL, NULL, _gAcropolisBridgeAnimation13FE0Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_acropolis_bridge_801915C8[7] = {
+/// Animation-set bank borrowed by every embedded bridge enemy's rig.
+///
+/// Slots 1..5 are patrol, chase, bob, reaction and collapse; slot 0 and the
+/// retained slot 6 are NULL. The enemy driver plays three tracks from the
+/// selected set. Keep the room's sets and streams loaded while enemy animation
+/// contexts reference them.
+static AnimationSet* _gAcropolisBridgeEnemyAnimationSets[7] = {
     NULL,
     &_gAcropolisBridgeAnimation13CD8,
     &_gAcropolisBridgeAnimation13DD8,
@@ -2782,7 +2834,13 @@ static const s16 _gAcropolisBridgeEnemyAnimationBlendFrames[6][6] SECTION(".data
     { 0, 0, 0, 0, 0, 0 },
 };
 
-BossStrangerNode D_acropolis_bridge_8019162C[20] = {
+/// Twenty world-coordinate waypoints for the bridge's Boss Stranger walkers.
+///
+/// XYZ use signed game-coordinate units. Nearest-node scans examine only
+/// nodes 0..9, while the authored patrol routes select through node 19.
+/// Each record's final two zero bytes remain uninterpreted. Walkers borrow
+/// this room-owned table for their entire lifetime.
+static BossStrangerNode _gAcropolisBridgeEnemyPatrolNodes[20] = {
     { -0x376E, 1000, 600, { 0, 0 } },
     { -0x3962, 1000, -900, { 0, 0 } },
     { -0x376E, 1000, -2900, { 0, 0 } },
@@ -2805,7 +2863,12 @@ BossStrangerNode D_acropolis_bridge_8019162C[20] = {
     { -4243, 1000, -5000, { 0, 0 } },
 };
 
-u8 D_acropolis_bridge_801916CC[12] = {
+/// Node order used when a bridge walker replans toward the player.
+///
+/// The ten live entries visit nodes 1..9 then 0; there is no end marker.
+/// The final two stored zeros are outside orderCount and have no proven role.
+/// This is independent of each placement's end-marked patrol route.
+static u8 _gAcropolisBridgeEnemyNavNodeOrder[12] = {
     1,
     2,
     3,
@@ -2820,7 +2883,16 @@ u8 D_acropolis_bridge_801916CC[12] = {
     0,
 };
 
-u8 D_acropolis_bridge_801916D8[8] = {
+/// Offset at which placement 1 starts in the stream shared with placement 0.
+enum { ACROPOLIS_BRIDGE_ENEMY_ROUTE1_OFFSET = 8 };
+
+/// Shared patrol-index stream for bridge enemy placements 0 and 1.
+///
+/// Placement 0 visits fourteen nodes, including the four consecutive zero
+/// indices, before the end marker. Placement 1 starts at byte 8 and visits
+/// six nodes, sharing that same marker. The byte after the marker is retained
+/// storage with no proven role. Indices refer to the twenty patrol nodes.
+static u8 _gAcropolisBridgeEnemyRoute0And1Nodes[16] = {
     8,
     0,
     1,
@@ -2829,9 +2901,6 @@ u8 D_acropolis_bridge_801916D8[8] = {
     0,
     0,
     0,
-};
-
-u8 D_acropolis_bridge_801916E0[8] = {
     3,
     2,
     5,
@@ -2842,7 +2911,8 @@ u8 D_acropolis_bridge_801916E0[8] = {
     0,
 };
 
-u8 D_acropolis_bridge_801916E8[8] = {
+/// Placement 2's four-node patrol and end marker; trailing zeros are unread.
+static u8 _gAcropolisBridgeEnemyRoute2Nodes[8] = {
     0,
     7,
     10,
@@ -2853,7 +2923,8 @@ u8 D_acropolis_bridge_801916E8[8] = {
     0,
 };
 
-u8 D_acropolis_bridge_801916F0[8] = {
+/// Placement 3's five-node patrol and end marker; trailing zeros are unread.
+static u8 _gAcropolisBridgeEnemyRoute3Nodes[8] = {
     4,
     8,
     9,
@@ -2864,7 +2935,8 @@ u8 D_acropolis_bridge_801916F0[8] = {
     0,
 };
 
-u8 D_acropolis_bridge_801916F8[12] = {
+/// Placement 4's eight-node patrol and end marker; trailing zeros are unread.
+static u8 _gAcropolisBridgeEnemyRoute4Nodes[12] = {
     19,
     15,
     14,
@@ -2879,7 +2951,8 @@ u8 D_acropolis_bridge_801916F8[12] = {
     0,
 };
 
-u8 D_acropolis_bridge_80191704[8] = {
+/// Placement 5's six-node patrol and end marker; the trailing zero is unread.
+static u8 _gAcropolisBridgeEnemyRoute5Nodes[8] = {
     11,
     9,
     13,
@@ -2890,7 +2963,8 @@ u8 D_acropolis_bridge_80191704[8] = {
     0,
 };
 
-u8 D_acropolis_bridge_8019170C[8] = {
+/// Placement 6's five-node patrol; no current spawn selects it. Trailing zeros are unread.
+static u8 _gAcropolisBridgeEnemyRoute6Nodes[8] = {
     7,
     6,
     9,
@@ -2901,14 +2975,16 @@ u8 D_acropolis_bridge_8019170C[8] = {
     0,
 };
 
-u8 D_acropolis_bridge_80191714[4] = {
+/// Placement 7's three-node patrol and end marker; no current spawn selects it.
+static u8 _gAcropolisBridgeEnemyRoute7Nodes[4] = {
     14,
     13,
     6,
     OVERLAY_WALKER_ROUTE_END,
 };
 
-u8 D_acropolis_bridge_80191718[8] = {
+/// Placement 8's six-node patrol; no current spawn selects it. The trailing zero is unread.
+static u8 _gAcropolisBridgeEnemyRoute8Nodes[8] = {
     4,
     8,
     9,
@@ -2919,19 +2995,28 @@ u8 D_acropolis_bridge_80191718[8] = {
     0,
 };
 
-u8* D_acropolis_bridge_80191720[9] = {
-    D_acropolis_bridge_801916D8,
-    D_acropolis_bridge_801916E0,
-    D_acropolis_bridge_801916E8,
-    D_acropolis_bridge_801916F0,
-    D_acropolis_bridge_801916F8,
-    D_acropolis_bridge_80191704,
-    D_acropolis_bridge_8019170C,
-    D_acropolis_bridge_80191714,
-    D_acropolis_bridge_80191718,
+/// Patrol streams indexed by the enemy's placement index, which must be 0..8.
+///
+/// Default placements use 0..5. Every stream ends at OVERLAY_WALKER_ROUTE_END
+/// and names nodes 0..19; placements 0 and 1 share the first stream's suffix.
+/// Walker route records borrow these pointers while the room remains loaded.
+static u8* _gAcropolisBridgeEnemyRoutesByPlacement[9] = {
+    _gAcropolisBridgeEnemyRoute0And1Nodes,
+    &_gAcropolisBridgeEnemyRoute0And1Nodes[ACROPOLIS_BRIDGE_ENEMY_ROUTE1_OFFSET],
+    _gAcropolisBridgeEnemyRoute2Nodes,
+    _gAcropolisBridgeEnemyRoute3Nodes,
+    _gAcropolisBridgeEnemyRoute4Nodes,
+    _gAcropolisBridgeEnemyRoute5Nodes,
+    _gAcropolisBridgeEnemyRoute6Nodes,
+    _gAcropolisBridgeEnemyRoute7Nodes,
+    _gAcropolisBridgeEnemyRoute8Nodes,
 };
 
-TaskMessageEntry D_acropolis_bridge_80191744[3] = {
+/// Bridge-enemy command and model-visibility messages, followed by the end marker.
+///
+/// APPLY borrows an ActorCommand; SET_MODEL_DRAW takes an integer visibility
+/// word. The enemy task borrows this read-only table while the room is loaded.
+static const TaskMessageEntry _gAcropolisBridgeEnemyMessageTable[3] SECTION(".data") = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _acropolisBridgeEnemyApplyCommand },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _acropolisBridgeEnemySetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2965,11 +3050,24 @@ static _AcropolisBridgeEnemyTaskDescStorage _gAcropolisBridgeEnemyTaskDescStorag
 
 Task* D_acropolis_bridge_80191794 = NULL;
 
-Task* D_acropolis_bridge_80191798 = NULL;
+/// Keypad task handle borrowed by the sequence's result-wait state.
+///
+/// Set by keypad spawning and valid until taskPollKill succeeds. That poll
+/// can release the task; the stored pointer is then stale and must not be used.
+static Task* _gAcropolisBridgeKeypadTask = NULL;
 
-Task* D_acropolis_bridge_8019179C = NULL;
+/// Movie task handle borrowed by the accepted-code sequence's completion state.
+///
+/// Set by movie spawning and valid until taskPollKill succeeds. The pointer
+/// is retained after polling but may then address released task storage.
+static Task* _gAcropolisBridgeKeypadMovieTask = NULL;
 
-s32 D_acropolis_bridge_801917A0 = 0;
+/// Collected keypad exit word: 0 cancelled/failed, 1 accepted.
+///
+/// Written only by a successful keypad exit poll, then read by the next
+/// sequence state to restore control or continue to the movie. It is separate
+/// from the keypad's live exit-result accumulator and retained across spawns.
+static s32 _gAcropolisBridgeKeypadResult = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
 
 /// Movie frame published to enemy presentation, with the adjacent stored halfword.
 ///
@@ -2980,14 +3078,6 @@ static _AcropolisBridgeMovieFrameStorage _gAcropolisBridgeMovieFrameStorage = {
     .frame     = 0,
     .unknown_2 = 0xF222,
 };
-
-extern AnimationSet* D_acropolis_bridge_801915C8[7];
-
-extern BossStrangerNode D_acropolis_bridge_8019162C[];
-
-extern u8 D_acropolis_bridge_801916CC[];
-
-extern u8* D_acropolis_bridge_80191720[];
 
 static void            _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
 static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position);
@@ -3049,7 +3139,7 @@ static s32 _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, cons
         if (gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
-                evsStartScriptWithSkip(D_acropolis_bridge_80188EBC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_bridge_8018912C);
+                evsStartScriptWithSkip(_gAcropolisBridgeArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_bridge_8018912C);
                 gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
                 sanctuaryLocation.stage = GAME_STAGE_ACROPOLIS;
                 sanctuaryLocation.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
@@ -3087,7 +3177,7 @@ static s32 _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 co
             return 0;
         }
         _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
-        taskSpawnFromTable(D_acropolis_bridge_80188E7C, 1, 0, 0);
+        taskSpawnFromTable(_gAcropolisBridgeRoomTaskDescriptors, ACROPOLIS_BRIDGE_ROOM_TASK_KEYPAD_SEQUENCE, 0, 0);
     }
     return 0;
 }
@@ -3104,13 +3194,13 @@ static s32 _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 sou
     return 0;
 }
 
-/// State handlers of the room's own task.
-static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
+/// Room task's setup, message-receiving idle and kill states, indexed by state 0..2.
+static const TaskFuncTable3 _gAcropolisBridgeRoomStates = {
     { _acropolisBridgeRoomSetup, _acropolisBridgeRoomIdle, taskKill }
 };
 
-/// State handlers of the bridge model task.
-static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
+/// Bridge-model setup, per-view visibility update and kill states, indexed by state 0..2.
+static const TaskFuncTable3 _gAcropolisBridgeModelStates = {
     { _bridgeModelSetup, _acropolisBridgeUpdateModelVisibility, taskKill }
 };
 
@@ -3123,12 +3213,17 @@ static void _acropolisBridgeModelTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_acropolis_bridge_8017D5D0;
+    states = _gAcropolisBridgeModelStates;
     states.funcs[task->state](task);
 }
 
-/// State handlers of the room's cutscene task.
-static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
+/// Fourteen states of the caption, keypad and accepted-code movie sequence.
+///
+/// Slots 0..1 start/wait for CAP; 2 is a one-update advance; 3..5 spawn,
+/// collect and handle the keypad result. Slots 6..9 advance once each;
+/// 10..12 spawn/wait for the movie and restore presentation, then 13 kills.
+/// The dispatcher copies every callback pointer before selecting the state.
+static const TaskFuncTable14 _gAcropolisBridgeKeypadSequenceStates = {
     { _acropolisBridgeStartKeypadCaption, _acropolisBridgeWaitForKeypadCaption, _acropolisBridgeAdvanceCutsceneState,
       _acropolisBridgeStartKeypad, _acropolisBridgeWaitForKeypadResult, _acropolisBridgeResumeAfterKeypad,
       _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState,
@@ -3136,8 +3231,12 @@ static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
       _acropolisBridgeRestoreAfterKeypadMovie, taskKill }
 };
 
-/// State handlers of the room's prompt script task.
-static const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
+/// Keypad screen handlers indexed by ACROPOLIS_BRIDGE_KEYPAD_STATE_* (0..8).
+///
+/// Runs cursor setup, code entry, the Examine choice, code checking, result
+/// blinks and close. The dispatcher copies all nine pointers before selecting
+/// one; this is a task-state table, not an event-script command stream.
+static const TaskFuncTable9 _gAcropolisBridgeKeypadStates = {
     { _acropolisBridgeKeypadOpen, _acropolisBridgeKeypadArmCursor, _acropolisBridgeKeypadEnterCode,
       _acropolisBridgeKeypadOpenExaminePrompt, _acropolisBridgeKeypadCollectExamineAnswer, _acropolisBridgeKeypadCheckCode,
       _acropolisBridgeKeypadBlinkAcceptedCode, _acropolisBridgeKeypadBlinkError, _acropolisBridgeKeypadClose }
@@ -3152,7 +3251,7 @@ static void _acropolisBridgeKeypadSequenceTask(Task* task)
 {
     TaskFuncTable14 states;
 
-    states = D_acropolis_bridge_8017D5DC;
+    states = _gAcropolisBridgeKeypadSequenceStates;
     states.funcs[task->state](task);
 }
 
@@ -3173,9 +3272,9 @@ static void _acropolisBridgePrepareArrivalScene(void)
 /// handle. Arrival-scene progress is narrowed to its low byte for sprite selection.
 static void _acropolisBridgeRoomSetup(Task* task)
 {
-    task->msgTable = D_acropolis_bridge_80188E4C;
+    task->msgTable = _gAcropolisBridgeRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_acropolis_bridge_80191794 = taskSpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
+    D_acropolis_bridge_80191794 = taskSpawnFromTable(_gAcropolisBridgeRoomTaskDescriptors, ACROPOLIS_BRIDGE_ROOM_TASK_MODEL, 0, 0);
     task->state                 = task->state + 1;
     _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
@@ -3190,7 +3289,7 @@ void acropolisBridgeRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_acropolis_bridge_8017D5C4;
+    states = _gAcropolisBridgeRoomStates;
     states.funcs[task->state](task);
 }
 
@@ -3255,7 +3354,7 @@ static void _acropolisBridgeStartKeypad(Task* task)
 
     keypadTask                  = taskSpawn(ACROPOLIS_BRIDGE_KEYPAD_TASK_BANK, ACROPOLIS_BRIDGE_KEYPAD_TASK_INDEX, 0, 0);
     task->state                 = task->state + 1;
-    D_acropolis_bridge_80191798 = keypadTask;
+    _gAcropolisBridgeKeypadTask = keypadTask;
 }
 
 /// Collects the keypad result and selects the overview or bridge movie view.
@@ -3268,8 +3367,8 @@ static void _acropolisBridgeWaitForKeypadResult(Task* task)
 {
     ActorCommand movieCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE } }, ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
 
-    if (taskPollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
-        if (D_acropolis_bridge_801917A0 == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
+    if (taskPollKill(_gAcropolisBridgeKeypadTask, &_gAcropolisBridgeKeypadResult) != 0) {
+        if (_gAcropolisBridgeKeypadResult == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
             gGameSession->hideHud                                      = 0;
             task->state                                                = task->state + 1;
@@ -3287,7 +3386,7 @@ static void _acropolisBridgeWaitForKeypadResult(Task* task)
 /// shows the model but keeps scripted control held and advances toward the movie.
 static void _acropolisBridgeResumeAfterKeypad(Task* task)
 {
-    if (D_acropolis_bridge_801917A0 == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
+    if (_gAcropolisBridgeKeypadResult == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         taskKill(task);
@@ -3315,8 +3414,8 @@ static void _acropolisBridgeStartKeypadMovie(Task* sequenceTask)
     Task* movieTask = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
     s32   nextState = sequenceTask->state + 1;
 
-    D_acropolis_bridge_8019179C = movieTask;
-    sequenceTask->state         = nextState;
+    _gAcropolisBridgeKeypadMovieTask = movieTask;
+    sequenceTask->state              = nextState;
 }
 
 /// Finishes the keypad movie and selects the following bridge room variant.
@@ -3330,7 +3429,7 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
     s32 stackReservation[2]; // Preserves the target's otherwise unused eight-byte stack storage.
     s32 movieResult;
 
-    if (taskPollKill(D_acropolis_bridge_8019179C, &movieResult) != 0) {
+    if (taskPollKill(_gAcropolisBridgeKeypadMovieTask, &movieResult) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 1, ACTOR_MESSAGE_SET_MODEL_DRAW);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
@@ -3438,7 +3537,7 @@ static void _acropolisBridgeKeypadOpen(Task* task)
         taskRequestKill(task, 0);
         return;
     }
-    task->spawnArg2.pointer = taskSpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&_gAcropolisBridgeKeypadCursorTaskDesc, 0, 1, 0);
     task->work              = work;
     work->field_0           = 0x14;
     work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
@@ -3997,7 +4096,7 @@ void acropolisBridgeKeypadTask(Task* task)
 {
     TaskFuncTable9 states;
 
-    states = D_acropolis_bridge_8017D614;
+    states = _gAcropolisBridgeKeypadStates;
     states.funcs[task->state](task);
 }
 
@@ -5101,8 +5200,11 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 siz
 /// Printed when `bestGap` remains `BOSS_STRANGER_PLAN_GAP_NONE` after the slot search.
 static const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 
-/// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
-static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
+/// Enemy-task setup, frame update and destruction handlers, indexed by Task state 0..2.
+///
+/// Each receives the live Enemy and its Task. Dispatch copies all three
+/// pointers; this table is independent of the enemy work's behavior states.
+static const EnemyTaskFuncTable3 _gAcropolisBridgeEnemyTaskStates = {
     { _acropolisBridgeEnemySetup, _acropolisBridgeEnemyFrame, enemyDestroy }
 };
 
@@ -5384,7 +5486,7 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     enemy->hpMax            = work->hp;
     enemy->hp               = enemy->hpMax;
     // Bind the rig and both collision spheres before enabling the walker.
-    animationInitContext(&work->rig.anim, D_acropolis_bridge_801915C8, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gAcropolisBridgeEnemyAnimationSets, model, work->rig.poses,
                          work->rig.slots);
     work->animRate         = ANIMATION_RATE_ONE;
     body                   = &work->body;
@@ -5422,7 +5524,7 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    task->msgTable                = D_acropolis_bridge_80191744;
+    task->msgTable                = _gAcropolisBridgeEnemyMessageTable;
     work->prevState               = -1;
     work->state                   = ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK;
     work->sinkDepth               = ACROPOLIS_BRIDGE_ENEMY_INITIAL_SINK_DEPTH;
@@ -5430,11 +5532,11 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     rootCoord->coord.t[1]        += work->sinkDepth;
 
     // The embedded navigation and route records borrow the room tables.
-    work->walker.navData.nodes         = D_acropolis_bridge_8019162C;
+    work->walker.navData.nodes         = _gAcropolisBridgeEnemyPatrolNodes;
     work->walker.navData.nodeCount     = ACROPOLIS_BRIDGE_ENEMY_NAV_NODE_COUNT;
-    work->walker.navData.nodeOrder     = D_acropolis_bridge_801916CC;
+    work->walker.navData.nodeOrder     = _gAcropolisBridgeEnemyNavNodeOrder;
     work->walker.navData.orderCount    = ACROPOLIS_BRIDGE_ENEMY_NAV_NODE_COUNT;
-    work->walker.routeData.nodeIndices = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
+    work->walker.routeData.nodeIndices = _gAcropolisBridgeEnemyRoutesByPlacement[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
     work->walker.nav                   = &work->walker.navData;
     work->walker.routeData.cursor      = 0;
     work->walker.route                 = &work->walker.routeData;
@@ -6565,6 +6667,6 @@ static void _acropolisBridgeEnemyTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = D_acropolis_bridge_8017D6E8;
+    states = _gAcropolisBridgeEnemyTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

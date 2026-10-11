@@ -18,9 +18,21 @@ enum {
     ACROPOLIS_BRIDGE_WARP_COUNT = 2
 };
 
-extern u8 D_acropolis_bridge_80189A9C[24];
+/// Per-step surface classes for the bridge's indexed five-step stairs.
+///
+/// Row 0 is ascent and row 1 descent; index by steps taken, including landing
+/// (0..5). Ascent changes from class 2 to 4 at step 4; descent stays class 2.
+/// Each twelve-byte row retains six more entries with no established consumer.
+/// Gameplay borrows these rows while the bridge overlay remains loaded.
+extern u8 gAcropolisBridgeStairSurfaceRows[2][12];
 
-extern AreaVariant D_acropolis_bridge_8019004C[12];
+/// Placement/resource pairs indexed by the bridge's saved placement variant.
+///
+/// Variant 1 has six bridge enemies; variants 2 and 3 have separate empty
+/// placement and resource lists. Slot 0 and slots 4..11 are absent. Indexing
+/// must stay within 0..11; gameplay borrows this directory from the loaded
+/// bridge and its placement lists from the loaded Acropolis map overlay.
+extern AreaVariant gAcropolisBridgePlacementVariants[12];
 
 /// Collision resources for the bridge's two rooms, indexed by room - 1.
 ///

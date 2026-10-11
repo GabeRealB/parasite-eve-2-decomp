@@ -187,7 +187,7 @@ mistParkingRoomTask = 0x80182898; // type:func absolute:True owner=mist_parking
 gMistParkingRoomCollisionResources = 0x8019155C; // absolute:True owner=mist_parking
 gMistParkingViewMaps = 0x801915B0; // absolute:True owner=mist_parking
 gMistParkingViewCounts = 0x801915C0; // absolute:True owner=mist_parking
-gMistParkingRoomLightingTable = 0x801915C8; // absolute:True owner=mist_parking shared=rooms
+gMistParkingRoomLightingTable = 0x801915C8; // absolute:True owner=mist_parking
 gMistParkingWarpEntries = 0x801915E8; // absolute:True owner=mist_parking
 gMistParkingViewCameras = 0x80192228; // absolute:True owner=mist_parking
 gMistParkingSpriteViews = 0x8019399C; // absolute:True owner=mist_parking

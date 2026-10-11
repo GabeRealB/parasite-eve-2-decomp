@@ -72,7 +72,7 @@ u8 D_801149F4[8] = {
 };
 
 _DirectionStairSurfaces D_801149FC[5] = {
-    { D_acropolis_bridge_80189A9C, &D_acropolis_bridge_80189A9C[12] },
+    { gAcropolisBridgeStairSurfaceRows[0], gAcropolisBridgeStairSurfaceRows[1] },
     { D_801149E8, D_801149F4 },
     { gShelterB4WaterSupplyStairSurfaceRows[0], gShelterB4WaterSupplyStairSurfaceRows[1] },
     { gShelterB4WaterSupplyStairSurfaceRows[2], gShelterB4WaterSupplyStairSurfaceRows[3] },
