@@ -842,12 +842,18 @@ class Session:
         self.code, self.symbols, _ = assemble(cfg, self.sites)
         self.layout = {}                              # a record's first word -> (event, phase, captures)
         self.hooks = []                               # (address, the two words there in the image, the stub)
+        self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
+        self.known: dict[str, int] = {}               # image -> how many of its hooks were in place at the last full look
+        self.settled: set[str] = set()                # images that are never loaded again
         for event in self.events:
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
+            image = event.get("image") or ("" if event["address"] < 0x80093800 else "gameplay")
+            self.by_image.setdefault(image, []).append(self.hooks[-1])
             for k, offset in enumerate(event["exits"]):
                 self.layout[header(event, 1, event["_exit"])] = (event, "exit", event["_exit"])
                 self.hooks.append((event["address"] + offset, self.sites[(event["id"], "exit", offset)], self.symbols[f"gt_exit_{event['id']}_{k}"]))
+                self.by_image[image].append(self.hooks[-1])
 
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
@@ -891,16 +897,17 @@ class Session:
         self.out.flush()
         return self.count - self.session_count
 
-    COMMANDS = """commands (the game is stopped while one is carried out):
-  pause            stop the game and keep it stopped
-  resume           let it run again
-  session NAME     read the buffer into the log, then begin a new session called NAME
-  name NAME        rename the current session
-  drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
-                   game until `session NAME` begins the next one; plain `session` begins one of the same name
-  drain            read the buffer into the log now
-  status           where things stand
-  quit             read the buffer, take the hooks out, let the game run, and leave"""
+    COMMANDS = """commands (the game is stopped while one is carried out; the letter alone does the same):
+  p  pause            stop the game and keep it stopped
+  r  resume           let it run again
+  s  session NAME     read the buffer into the log, then begin a new session called NAME
+  n  name NAME        rename the current session
+     drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
+                      game until `session NAME` begins the next one; plain `session` begins one of the same name
+  d  drain            read the buffer into the log now
+     status           where things stand
+  q  quit             read the buffer, take the hooks out, let the game run, and leave
+  h  help             this list"""
 
     def command(self, line: str) -> None:
         word, _, rest = line.strip().partition(" ")
@@ -935,13 +942,15 @@ class Session:
                 self.drain(reset=True)
             say(f"{self.count - before} records read")
         elif word == "status":
-            placed = self.install() if self.ready else 0
+            placed = self.install(everything=True) if self.ready else 0
             say(f"session {self.session_number}: {self.session_name} - {self.count - self.session_count} records in it, {self.count} in all; "
                 f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
         elif word in ("quit", "q", "detach", "exit"):
             raise KeyboardInterrupt
-        elif word:
+        elif word in ("help", "h", "?"):
             say(self.COMMANDS)
+        elif word:
+            say(f"no command `{word}`\n{self.COMMANDS}")
 
     def symbol(self, address: int) -> str:
         """The function an address is in, as `name+0xoffset`."""
@@ -1032,17 +1041,41 @@ class Session:
                 break
             lower -= step
 
-    def install(self) -> int:
+    def install(self, everything: bool = False) -> int:
         """Write each hook whose place holds the image's own instructions (a load may have put them back).
-        Returns how many hooks are in place."""
+        Returns how many hooks are in place.
+
+        A load replaces an image whole, so its hooks go together: one look at the first hook of each image says
+        whether that image's hooks are still there, and only an image that has lost them is gone through. Every
+        look is a round trip to the server, and this runs each time the buffer is read. The executable is never
+        loaded again; its hooks are looked at once."""
         placed = 0
-        for address, original, stub in self.hooks:
+        for image, hooks in self.by_image.items():
+            if not everything and image in self.settled:
+                placed += len(hooks)
+                continue
+            address, original, stub = hooks[0]
             jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
-            now = struct.unpack("<2I", self.gdb.read(address, 8))
-            if now == tuple(original):
-                self.gdb.write(address, struct.pack("<2I", *jump))
-                now = jump
-            placed += now == jump
+            if not everything:
+                first = struct.unpack("<2I", self.gdb.read(address, 8))
+                if first == jump and self.known.get(image):
+                    placed += self.known[image]       # still hooked
+                    continue
+                if first != jump and first != tuple(original):
+                    self.known[image] = 0             # something else is loaded there, or nothing yet
+                    continue
+            count = 0
+            for address, original, stub in hooks:
+                jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
+                now = struct.unpack("<2I", self.gdb.read(address, 8))
+                if now == tuple(original):
+                    self.gdb.write(address, struct.pack("<2I", *jump))
+                    now = jump
+                count += now == jump
+            self.known[image] = count if count == len(hooks) else 0     # an image only partly hooked is gone through again
+            if image == "" and count == len(hooks):
+                self.settled.add(image)
+            placed += count
         return placed
 
     def remove(self) -> None:
