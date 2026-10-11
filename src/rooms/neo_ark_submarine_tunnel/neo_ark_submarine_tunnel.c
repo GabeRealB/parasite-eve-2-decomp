@@ -12,6 +12,8 @@
 
 #include "neo_ark_submarine_tunnel_private.h"
 
+#include "actors/actor_451100.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -52,12 +54,6 @@
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-/// The area-record id the event handler publishes, and the event scripts
-/// `evsStartScriptWithSkip` / `evsStartScript` are handed.
-extern EvsCommand D_actor_451100_80135220[];
-extern EvsCommand D_actor_451100_80135FD0[];
-extern EvsCommand D_actor_451100_80136108[];
 
 static s32 _gScreenWaveAmplitude;
 
@@ -267,7 +263,7 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ADVANCED);
         gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, SCENE_MUSIC_OVERRIDE_ENABLED);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = PROGRESS_SCENE_EVENT;
-        evsStartScriptWithSkip(D_actor_451100_80135220, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_451100_80135FD0);
+        evsStartScriptWithSkip(gActor451100SubmarineTunnelSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor451100SubmarineTunnelSceneSkipScript);
     }
     // Scenes claim the entry latch before the fallback arrival-control release.
     if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
@@ -280,7 +276,7 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
     actionId = request->actionId;
     if ((actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.loc.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ENTERED);
-        evsStartScript(D_actor_451100_80136108, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gActor451100SubmarineTunnelEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gNeoArkSubmarineTunnelEntryActionHandled = ENTRY_HANDLED;
     }
     if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED)) {
