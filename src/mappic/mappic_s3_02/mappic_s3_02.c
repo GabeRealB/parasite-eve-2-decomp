@@ -620,32 +620,37 @@ TmdSource gMappicS302FactoryShape = {
     .stream           = _gMappicS302FactoryShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800C6CSkeleton[1] = {
+/// Identity transform and self-parented root for the Garage shape.
+static TmdBone _gMappicS302GarageShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00C6C_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800C6CPartVerts[1] = {
+/// Vertex count of the Garage shape's sole part (four vertices).
+static u32 _gMappicS302GarageShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00C6C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800C6CVerts[4] = {
+/// Garage's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302GarageShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00C6C_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800C6CStream[9] = {
+/// Packed command stream for the Garage shape's single unlit quad.
+///
+/// Four vertex byte offsets and white colour are followed by two group ends
+/// and the stream end. The map reads only the first group.
+static u32 _gMappicS302GarageShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00C6C_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012FBB4 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800C6CPartVerts,
-    _gMappicS302MappicS202Model00C4800C6CVerts,
-    &_gMappicS302MappicS202Model00C4800C6CVerts[4],
-    _gMappicS302MappicS202Model00C4800C6CSkeleton,
-    _gMappicS302MappicS202Model00C4800C6CStream,
+TmdSource gMappicS302GarageShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302GarageShapeSkeleton),
+    .partVertexCounts = _gMappicS302GarageShapePartVerts,
+    .verts            = _gMappicS302GarageShapeVerts,
+    .normals          = &_gMappicS302GarageShapeVerts[ARRAY_SIZE(_gMappicS302GarageShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302GarageShapeSkeleton,
+    .stream           = _gMappicS302GarageShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00CF800D34Skeleton[1] = {

@@ -12,3 +12,4 @@ gMappicS202GRKitchenShape = 0x8012f924;
 gMappicS202WaterTowerShape = 0x8012f9d0;
 gMappicS202BreezewayShape = 0x8012fa7c;
 gMappicS202FactoryShape = 0x8012fb0c;
+gMappicS202GarageShape = 0x8012fb9c;

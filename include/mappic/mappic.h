@@ -286,7 +286,14 @@ extern TmdSource gMappicS202BreezewayShape;
 /// `mappic_s2_02` package loaded while these are used.
 extern TmdSource gMappicS202FactoryShape;
 
-extern TmdSource D_mappic_s2_02_8012FB9C;
+/// Garage footprint for page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal pool. Its single
+/// quad covers an unvisited area or tints a visited marked area. The record
+/// and its private arrays belong to the page's loaded image; keep the
+/// `mappic_s2_02` package loaded while these are used.
+extern TmdSource gMappicS202GarageShape;
 
 extern TmdSource D_mappic_s2_02_8012FC64;
 
@@ -719,7 +726,14 @@ extern TmdSource gMappicS302BreezewayShape;
 /// `mappic_s3_02` package loaded while these are used.
 extern TmdSource gMappicS302FactoryShape;
 
-extern TmdSource D_mappic_s3_02_8012FBB4;
+/// Garage footprint for page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal pool. Its single
+/// quad covers an unvisited area or tints a visited marked area. The record
+/// and its private arrays belong to the page's loaded image; keep the
+/// `mappic_s3_02` package loaded while these are used.
+extern TmdSource gMappicS302GarageShape;
 
 extern TmdSource D_mappic_s3_02_8012FC7C;
 
