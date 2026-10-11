@@ -46278,7 +46278,7 @@ if (work->playerEquipmentRemoved == 0) { work->playerEquipmentRemoved = 1; playe
 ```
 
 compile to the same object here, because the only global involved
-(`D_actor_341900_80164208`) is *loaded* and then dereferenced rather than being
+(`_gActor341900EventTask`) is *loaded* and then dereferenced rather than being
 the destination of a store. `_actor341900RemovePlayerEquipment 1 attempt, base_1.c
 100.00%`, the seed having already reproduced the target.
 
@@ -79959,7 +79959,7 @@ header, and each callback selects its work type with this cast
 **The `0x1C($a0)` in the overlay's base unit is not necessarily that block.**
 `actor_341900` allocates three: `memMalloc(0x44, 0)`, `memCalloc(0x70, 0)` and
 `memMalloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
-0x70 one is published in `D_actor_341900_80164208`. The base unit's dispatchers
+0x70 one is published in `_gActor341900EventTask`. The base unit's dispatchers
 `_actor341900UpdatePlayerAction` / `_actor341900UpdateStaging` look like ordinary
 `task->work` users, but both are called from the publishing function with `$s2`
 as the argument, so they index the same 0x70 block -- while
@@ -79988,7 +79988,7 @@ exact, and the only work was typing it:
 ```c
 static void _actor341900SetStagingMode(s16 stagingMode)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     work->stagingMode = stagingMode;
     work->stagingStep = 0;

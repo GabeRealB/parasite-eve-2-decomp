@@ -12,21 +12,21 @@ gActor444000GluttonLegRight = 0x8014BE0C; // absolute:True owner=actor_444000
 gActor444000Actor403200Model18BE4 = 0x8014D5FC; // absolute:True owner=actor_444000
 gActor444000Model1DC9C = 0x8014FE00; // absolute:True owner=actor_444000
 gActor444000Model1E14C = 0x80150170; // absolute:True owner=actor_444000
-D_actor_341900_80163A98 = 0x80163A98; // size:0x30 defined:True
-D_actor_341900_80163AC8 = 0x80163AC8; // size:0x18 defined:True
-D_actor_341900_80163AE0 = 0x80163AE0; // size:0x18 defined:True
-D_actor_341900_80163AF8 = 0x80163AF8; // size:0x18 defined:True
-D_actor_341900_80163B10 = 0x80163B10; // size:0x18 defined:True
-D_actor_341900_80163B28 = 0x80163B28; // size:0x18 defined:True
-D_actor_341900_80163B40 = 0x80163B40; // size:0x6 defined:True
-D_actor_341900_80163B48 = 0x80163B48; // size:0x468 defined:True
-D_actor_341900_80163FB0 = 0x80163FB0; // size:0x1E0 defined:True
-D_actor_341900_80164190 = 0x80164190; // size:0x78 defined:True
-D_actor_341900_80164208 = 0x80164208; // size:0x4 defined:True
-D_actor_341900_80163A38 = 0x80163A38; // size:0x10 defined:True
-D_actor_341900_80163A48 = 0x80163A48; // size:0x18 defined:True
-D_actor_341900_80163A60 = 0x80163A60; // size:0x18 defined:True
-D_actor_341900_80163A78 = 0x80163A78; // size:0x20 defined:True
+_gActor341900GluttonPartAttachments = 0x80163A98; // size:0x30 defined:True
+_gActor341900PlayerStartPlacement = 0x80163AC8; // size:0x18 defined:True
+_gActor341900PlayerWalkTarget = 0x80163AE0; // size:0x18 defined:True
+_gActor341900PlayerEventClipPlacement = 0x80163AF8; // size:0x18 defined:True
+_gActor341900PlayerWeaponClip9Placement = 0x80163B10; // size:0x18 defined:True
+_gActor341900PlayerEndPlacement = 0x80163B28; // size:0x18 defined:True
+_gActor341900GluttonEntranceSceneKey = 0x80163B40; // size:0x6 defined:True
+_gActor341900GluttonEntranceScript = 0x80163B48; // size:0x468 defined:True
+_gActor341900GluttonEntranceSkipScript = 0x80163FB0; // size:0x1E0 defined:True
+gActor341900GluttonEntranceTaskDescs = 0x80164190; // size:0x78 defined:True
+_gActor341900EventTask = 0x80164208; // size:0x4 defined:True
+_gActor341900DoorMessages = 0x80163A38; // size:0x10 defined:True
+_gActor341900GluttonAdvancePlacement = 0x80163A48; // size:0x18 defined:True
+_gActor341900GluttonClip2Placement = 0x80163A60; // size:0x18 defined:True
+_gActor341900GluttonMessages = 0x80163A78; // size:0x20 defined:True
 gActor444000Animation20BD4 = 0x801529F4; // absolute:True owner=actor_444000
 gActor444000Animation21014 = 0x80152E34; // absolute:True owner=actor_444000
 gActor444000Animation2C240 = 0x8015E060; // absolute:True owner=actor_444000
@@ -36,11 +36,11 @@ gActor444000Animation2C2CC = 0x8015E0EC; // absolute:True owner=actor_444000
 gActor444000Animation20D2C = 0x80152B4C; // absolute:True owner=actor_444000
 gActor444000Animation215B4 = 0x801533D4; // absolute:True owner=actor_444000
 gActor444000Animation2C358 = 0x8015E178; // absolute:True owner=actor_444000
-D_actor_341900_801639AC = 0x801639AC; // size:0xC defined:True
-D_actor_341900_801639B8 = 0x801639B8; // size:0xC defined:True
-D_actor_341900_801639C4 = 0x801639C4; // size:0xC defined:True
-D_actor_341900_801639D0 = 0x801639D0; // size:0x8 defined:True
-D_actor_341900_801639D8 = 0x801639D8; // size:0x30 defined:True
+_gActor341900GluttonBodyAnimationSets = 0x801639AC; // size:0xC defined:True
+_gActor341900GluttonRightLegAnimationSets = 0x801639B8; // size:0xC defined:True
+_gActor341900GluttonLeftLegAnimationSets = 0x801639C4; // size:0xC defined:True
+_gActor341900GluttonFollowUpClips = 0x801639D0; // size:0x8 defined:True
+_gActor341900DoorShutPlacements = 0x801639D8; // size:0x30 defined:True
 D_actor_341900_80163A08 = 0x80163A08; // size:0x30 defined:True
 gActor444000Animation2E198 = 0x8015FFB8; // absolute:True owner=actor_444000
 _gActor341900Animation01B5CBank1 = 0x801636A0; // size:0x48 defined:True
@@ -48,7 +48,7 @@ _gActor341900Animation01B5CBank4 = 0x801636E8; // size:0xB8 defined:True
 _gActor341900Animation01B5CRecords = 0x801637A0; // size:0x1B4 defined:True
 _gActor341900Animation01B5CIndices = 0x80163954; // size:0x28 defined:True
 _gActor341900Animation01B5C = 0x8016397C; // size:0x28 defined:True
-D_actor_341900_801639A4 = 0x801639A4; // size:0x8 defined:True
+_gActor341900PlayerAnimationSets = 0x801639A4; // size:0x8 defined:True
 actorMsgPlaceYawPitchRoll = 0x801632A0; // type:func
 actorMsgSetDrawMode = 0x80163224; // type:func
 _actor341900PlayGluttonAnimation = 0x80161fd0; // type:func

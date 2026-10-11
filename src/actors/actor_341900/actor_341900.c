@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -11,6 +13,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/captions.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -35,7 +38,6 @@
 #include "main/session_types.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
@@ -103,10 +105,6 @@ typedef struct {
 } _Actor341900EventWork;
 STATIC_ASSERT_SIZEOF(_Actor341900EventWork, 0x70);
 
-/// Controller task of this overlay, published by `_actor341900EventTask`
-/// and read by the sequence helpers that hang their work off its `Task::work`.
-extern Task* D_actor_341900_80164208;
-
 /// Where one task of the Glutton's display model hangs on the body's model:
 /// the body part its root coordinate is made a child of, and its translation
 /// from that part.
@@ -121,8 +119,6 @@ typedef struct {
     s16 parentPart; // Index of the body model's part coordinate the task's root part hangs from
 } _Actor341900GluttonPartAttachment;
 STATIC_ASSERT_SIZEOF(_Actor341900GluttonPartAttachment, 0x8);
-
-extern _Actor341900GluttonPartAttachment D_actor_341900_80163A98[6];
 
 /// Animation id of the clip the Glutton advances in, as the event requests it
 /// of the body. Two cues of this clip each make the body start a pad-vibration
@@ -154,64 +150,25 @@ typedef struct {
 } _Actor341900GluttonModelWork;
 STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 
-/// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
-/// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
-/// alternate set -- 1 means the second block, anything else the `+0x22` one.
-/// Byte the other actor overlays' one-argument setters write; set to 0xC here
-/// beside `gStageCountdownMusicEntry`.
-
-/// Parameter record `_actor341900UpdatePlayerAction` sends with message 0x3F4.
-extern AnimationSet* D_actor_341900_801639A4[2];
-extern AnimationSet* D_actor_341900_801639AC[3];
-extern AnimationSet* D_actor_341900_801639B8[3];
-extern AnimationSet* D_actor_341900_801639C4[3];
-/// Animation id `_actor341900TickGluttonAnimation` hands every slot to
-/// `animationSeekSlotWithBlend`, indexed by `_Actor341900GluttonModelWork::playRequest.animationId`; a
-/// negative entry skips the call.
-extern s16 D_actor_341900_801639D0[];
-/// Shut placements of the two door halves (`_Actor341900EventWork::doors`),
-/// sent to them by `ACTOR_341900_STAGING_DOORS_SHUT`; the first also seeds both
-/// `doorPlacements` when `ACTOR_341900_STAGING_DOORS_OPEN` starts.
-extern ActorTransform D_actor_341900_801639D8[2];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_341900_80163A38[2];
-extern ActorTransform   D_actor_341900_80163A48;
-extern ActorTransform   D_actor_341900_80163A60;
-extern TaskMessageEntry D_actor_341900_80163A78[4];
-/// Slot-3 placements and payloads sent by `_actor341900UpdatePlayerAction`;
-/// `_actor341900FinishSkippedScene` also warps slot 3 to the last one.
-extern ActorTransform D_actor_341900_80163AC8;
-extern ActorTransform D_actor_341900_80163AE0;
-extern ActorTransform D_actor_341900_80163AF8;
-extern ActorTransform D_actor_341900_80163B10;
-extern ActorTransform D_actor_341900_80163B28;
-/// Event scripts in the overlay's `.data`, handed to `evsStartScriptWithSkip` (which
-/// forwards the first to `taskSpawn`).
-extern EvsCommand D_actor_341900_80163B48[];
-extern EvsCommand D_actor_341900_80163FB0[];
-extern TaskDesc   D_actor_341900_80164190[];
-
-extern EvsSceneKey D_actor_341900_80163B40;
-static void        _actor341900DoorHalfTask(Task* task);
-static void        _actor341900GluttonPartTask(Task* task);
-static void        _actor341900GluttonBodyTask(Task* task);
-static void        _actor341900EventTask(Task* task);
-static void        _actor341900FadeInTask(Task* task);
-static void        _actor341900BroadcastActorCommand(s16 commandId);
-static void        _actor341900SetGluttonDrawMode(s32 drawMode);
-static void        _actor341900SetPlayerDrawMode(s32 drawMode);
-static void        _actor341900RemovePlayerEquipment(void);
-static void        _actor341900RestorePlayerEquipment(void);
-static void        _actor341900RemoveGlutton(void);
-static void        _actor341900RemoveDoors(void);
-static void        _actor341900StartFadeIn(void);
-static void        _actor341900RequestPlayerAction(s16 playerAction);
-static void        _actor341900SetStagingMode(s16 stagingMode);
-static void        _actor341900FinishSkippedScene(void);
-static void        _actor341900StageSceneAudioStart(void);
-static void        _actor341900EnqueueScenePlayback(void);
-static void        _actor341900FinishScene(void);
+static void _actor341900DoorHalfTask(Task* task);
+static void _actor341900GluttonPartTask(Task* task);
+static void _actor341900GluttonBodyTask(Task* task);
+static void _actor341900EventTask(Task* task);
+static void _actor341900FadeInTask(Task* task);
+static void _actor341900BroadcastActorCommand(s16 commandId);
+static void _actor341900SetGluttonDrawMode(s32 drawMode);
+static void _actor341900SetPlayerDrawMode(s32 drawMode);
+static void _actor341900RemovePlayerEquipment(void);
+static void _actor341900RestorePlayerEquipment(void);
+static void _actor341900RemoveGlutton(void);
+static void _actor341900RemoveDoors(void);
+static void _actor341900StartFadeIn(void);
+static void _actor341900RequestPlayerAction(s16 playerAction);
+static void _actor341900SetStagingMode(s16 stagingMode);
+static void _actor341900FinishSkippedScene(void);
+static void _actor341900StageSceneAudioStart(void);
+static void _actor341900EnqueueScenePlayback(void);
+static void _actor341900FinishScene(void);
 
 static void _actor341900PlayGluttonAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static void _actor341900IgnoreActorCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
@@ -238,63 +195,125 @@ static AnimationSet _gActor341900Animation01B5C = {
     { NULL, _gActor341900Animation01B5CBank1, NULL, NULL, _gActor341900Animation01B5CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_341900_801639A4[2] = {
+/// The player's two entrance-event clips, installed in place of its weapon bank.
+///
+/// Clip 0 uses this package's set; clip 1 uses the co-loaded Glutton package's
+/// set. Both packages must remain loaded while the player borrows this table;
+/// ending scripted control restores the weapon bank.
+static AnimationSet* _gActor341900PlayerAnimationSets[2] = {
     &_gActor341900Animation01B5C,
     &gActor444000Animation2E198,
 };
 
-AnimationSet* D_actor_341900_801639AC[3] = {
+/// Glutton body clips 0 initial, 1 advance, and 2 second staging clip.
+///
+/// Playback drives model tracks 1..7 and leaves root track 0 alone. The table
+/// and its actor_444000 sets are borrowed for the display body's lifetime.
+static AnimationSet* _gActor341900GluttonBodyAnimationSets[3] = {
     &gActor444000Animation20BD4,
     &gActor444000Animation21014,
     &gActor444000Animation2C240,
 };
 
-AnimationSet* D_actor_341900_801639B8[3] = {
+/// Right-leg counterparts of the Glutton body's three entrance clips.
+///
+/// The body synchronizes clip selection on all four leg tracks (0..3).
+/// The table and its actor_444000 sets must outlive the leg's playback.
+static AnimationSet* _gActor341900GluttonRightLegAnimationSets[3] = {
     &gActor444000Animation20C80,
     &gActor444000Animation212D8,
     &gActor444000Animation2C2CC,
 };
 
-AnimationSet* D_actor_341900_801639C4[3] = {
+/// Left-leg counterparts of the Glutton body's three entrance clips.
+///
+/// The body synchronizes clip selection on all four leg tracks (0..3).
+/// The table and its actor_444000 sets must outlive the leg's playback.
+static AnimationSet* _gActor341900GluttonLeftLegAnimationSets[3] = {
     &gActor444000Animation20D2C,
     &gActor444000Animation215B4,
     &gActor444000Animation2C358,
 };
 
-s16 D_actor_341900_801639D0[4] = {
-    -1,
-    -1,
-    -1,
-    0,
+/// Values stored in the Glutton's signed follow-up clip table.
+enum {
+    ACTOR_341900_GLUTTON_NO_FOLLOW_UP = -1,
+    ACTOR_341900_GLUTTON_INITIAL_CLIP = 0,
 };
 
-ActorTransform D_actor_341900_801639D8[2] = {
+/// Signed successor choices for a settled Glutton clip; -1 disables blending.
+///
+/// Indexed by the retained play-request clip id. Clips 0..2 have no successor.
+/// Entry 3 selects clip 0, but no scene request selects 3 and the playback
+/// tables contain only three sets; this entry does not establish a fourth clip.
+static s16 _gActor341900GluttonFollowUpClips[4] = {
+    ACTOR_341900_GLUTTON_NO_FOLLOW_UP,
+    ACTOR_341900_GLUTTON_NO_FOLLOW_UP,
+    ACTOR_341900_GLUTTON_NO_FOLLOW_UP,
+    ACTOR_341900_GLUTTON_INITIAL_CLIP,
+};
+
+/// Closed placements of the door halves, in their view-parent coordinate frame.
+///
+/// Entries 0/1 address the halves that open toward -Z/+Z. Both start at the
+/// same position; opening copies entry 0 into both moving placements. Position
+/// is in game units and Euler angles are in 4096 units per turn.
+static ActorTransform _gActor341900DoorShutPlacements[2] = {
     { { -60, 150, -2650, 0 }, { 0, 0, 0, 0 } },
     { { -60, 150, -2650, 0 }, { 0, 0, 0, 0 } },
 };
 
-ActorTransform D_actor_341900_80163A08[2] = {
+/// Unreferenced transform pair with Z positions -5300 and 0; its role is unproven.
+static ActorTransform D_actor_341900_80163A08[2] = {
     { { -60, 150, -5300, 0 }, { 0, 0, 0, 0 } },
     { { -60, 150, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-TaskMessageEntry D_actor_341900_80163A38[2] = {
+/// The entrance door halves' placement and model-draw message handlers.
+///
+/// There is no terminator: send only ACTOR_MESSAGE_SET_MODEL_DRAW (integer
+/// ACTOR_MESSAGE_DRAW_* mode) or ACTOR_MESSAGE_PLACE (borrowed ActorTransform).
+/// Both handlers return void, so every sender must ignore the dispatch result.
+/// The installed table and code must remain loaded for each door's lifetime.
+static TaskMessageEntry _gActor341900DoorMessages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
-ActorTransform D_actor_341900_80163A48 = { { -5000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
+/// Starting placement of the Glutton's +X advance, in game units and turn angles.
+///
+/// Copied into event-owned moving storage before each placement dispatch;
+/// the display root is parented to the view. Angles use 4096 units per turn.
+static ActorTransform _gActor341900GluttonAdvancePlacement = { { -5000, 0, -2450, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0, 0 } };
+/// Glutton placement for clip 2 and its delayed effects, in the view-parent frame.
+///
+/// Consumed synchronously as an ActorTransform. Position uses game units;
+/// yaw is a quarter turn, with 4096 angle units per turn.
+static ActorTransform _gActor341900GluttonClip2Placement = { { -3000, 0, -2450, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-TaskMessageEntry D_actor_341900_80163A78[4] = {
+/// Message handlers shared by the entrance Glutton body and its five child parts.
+///
+/// No terminator: send only the four installed IDs. Draw takes an integer
+/// ACTOR_MESSAGE_DRAW_* mode; place borrows an ActorTransform; actor commands
+/// are ignored. Play borrows an AnimationPlayRequest for local clip 0..2 and
+/// requires the body receiver with both legs initialized; attached parts must
+/// not receive play requests. All callbacks return void: ignore every result.
+/// The table and callbacks must remain loaded while any part can receive messages.
+static TaskMessageEntry _gActor341900GluttonMessages[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor341900IgnoreActorCommand },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor341900PlayGluttonAnimation },
 };
 
-_Actor341900GluttonPartAttachment D_actor_341900_80163A98[6] = {
+/// Body-coordinate attachments indexed by the Glutton display task's part id.
+///
+/// Record 0 belongs to the body and is not read; 1/2 attach the right/left leg
+/// to body coordinate 0. Records 3..5 attach the remaining models to coordinates
+/// 4, 3 and 2. XYZ translations use each parent coordinate's local game units.
+/// Child spawn arguments are 1..5; the table is consumed during initialization.
+static _Actor341900GluttonPartAttachment _gActor341900GluttonPartAttachments[6] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
@@ -303,27 +322,60 @@ _Actor341900GluttonPartAttachment D_actor_341900_80163A98[6] = {
     { 0, 1660, 200, 2 },
 };
 
-ActorTransform D_actor_341900_80163AC8 = { { 500, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
+/// Opening player placement before weapon clip 1, in game units and turn angles.
+///
+/// The player's placement handler consumes it synchronously in the root-parent
+/// frame; yaw is a quarter turn, with 4096 angle units per turn.
+static ActorTransform _gActor341900PlayerStartPlacement = { { 500, 0, -1000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_341900_80163AE0 = { { 3000, 0, -1000, 0 }, { 0, 1024, 0, 0 } };
+/// Player walk destination following the entrance's opening placement.
+///
+/// Move-to consumes only XYZ in root-parent game units and copies its target;
+/// the stored rotation has no effect on this request.
+static ActorTransform _gActor341900PlayerWalkTarget = { { 3000, 0, -1000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_341900_80163AF8 = { { 3200, 0, -2500, 0 }, { 0, 1024, 0, 0 } };
+/// Player placement before entrance-event clip 0, in game units and turn angles.
+///
+/// Consumed synchronously in the player's root-parent frame; event clip 1 then
+/// blends at the same placement. Yaw is a quarter turn (4096 units per turn).
+static ActorTransform _gActor341900PlayerEventClipPlacement = { { 3200, 0, -2500, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_341900_80163B10 = { { 1000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
+/// Player placement paired with the return to weapon clip 9 during Glutton clip 2.
+///
+/// Consumed synchronously in root-parent game units. The three-quarter-turn yaw
+/// faces opposite the opening placement (4096 angle units per turn).
+static ActorTransform _gActor341900PlayerWeaponClip9Placement = { { 1000, 0, -1900, 0 }, { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
+/// Final player placement shared by normal entrance completion and scene skipping.
+///
+/// Consumed synchronously in root-parent game units. Yaw is three quarters of
+/// a turn, with 4096 angle units per turn; the skip path also restores weapon clip 9.
+static ActorTransform _gActor341900PlayerEndPlacement = { { 4000, 0, -1900, 0 }, { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-EvsSceneKey D_actor_341900_80163B40 = { 4, 19, 11 };
+/// Scene/audio stream key for the Glutton entrance: group 4, stream 19, qualifier 11.
+///
+/// The event interpreter retains this overlay-owned key through playback;
+/// actor_341900 must remain loaded until normal or skipped script completion.
+static EvsSceneKey _gActor341900GluttonEntranceSceneKey = { 4, 19, 11 };
 
 /// Actor command broadcast by both paths that end this entrance event.
 enum { ACTOR_341900_ACTOR_COMMAND_END_ENTRANCE = 1 };
 
-EvsCommand D_actor_341900_80163B48[47] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
+/// Loaded CAP command slot used to start the entrance's cue sequence.
+enum { ACTOR_341900_ENTRANCE_CAP_COMMAND = 6 };
+
+/// Normal Glutton entrance program, synchronizing actor staging with CAP cues.
+///
+/// Borrows the live published event task and the co-loaded actor_444000 assets.
+/// Installs scene/audio playback, opens the doors, switches player animations,
+/// reveals and advances the display Glutton, then removes it and resumes play.
+/// The interpreter retains this 47-command array through its END opcode.
+static EvsCommand _gActor341900GluttonEntranceScript[47] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_341900_ENTRANCE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900StartFadeIn }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_PLACE_AT_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_DOORS_SHUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_341900_80163B40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor341900GluttonEntranceSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -363,12 +415,18 @@ EvsCommand D_actor_341900_80163B48[47] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_341900_80163FB0[20] = {
+/// Skip program that removes entrance models and restores the final player state.
+///
+/// Replaces the normal command cursor, borrowing the same live event task.
+/// Fades out, clears pending actions, tears down models, restores equipment and
+/// final placement, cancels the scene, changes views, then fades in and resumes
+/// battle control. This 20-command array remains live through its END opcode.
+static EvsCommand _gActor341900GluttonEntranceSkipScript[20] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -387,24 +445,32 @@ EvsCommand D_actor_341900_80163FB0[20] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_341900_80164190[10] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor341900EventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor341900FadeInTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonBodyTask, { .model = &gActor444000Actor403200Model10824 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonPartTask, { .model = &gActor444000GluttonLegRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonPartTask, { .model = &gActor444000GluttonLegLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model12884 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model13774 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model18BE4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1DC9C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1E14C } },
+/// Execution priority of the entrance controller and all its display tasks.
+enum { ACTOR_341900_ENTRANCE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor341900GluttonEntranceTaskDescs[ACTOR_341900_ENTRANCE_TASK_COUNT] = {
+    { { { TASK_BODY_NONE, ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900EventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900FadeInTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonBodyTask, { .model = &gActor444000Actor403200Model10824 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gActor444000GluttonLegRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gActor444000GluttonLegLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model12884 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model13774 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gActor444000Actor403200Model18BE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1DC9C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1E14C } },
 };
 
-Task* D_actor_341900_80164208;
+/// Borrowed entrance controller used by the event script's callbacks.
+///
+/// Published only after work allocation succeeds. Its Task::work is the live
+/// event work; callbacks may use it only while that task remains alive. Teardown
+/// leaves this pointer unchanged, so a retained non-NULL value does not prove life.
+static Task* _gActor341900EventTask;
 
 /// Descriptor indices used to build the entrance scene's task tree.
 enum {
@@ -440,7 +506,7 @@ static void        _actor341900UpdateStaging(Task* eventTask);
 ///
 /// Requires initialized model work and loaded clips. `slotCount` is eight for
 /// body slots 1..7 or four for leg slots 0..3. The cached request must index
-/// `D_actor_341900_801639D0`; the scene requests clips 0..2, whose entries are -1.
+/// `_gActor341900GluttonFollowUpClips`; the scene requests clips 0..2, whose entries are -1.
 /// A nonnegative entry starts a ten-frame blend to that clip at track offset
 /// zero after every driven slot settles. Returns 1 for all settled, even when
 /// that blend starts, and 0 otherwise; it does not update the cached request.
@@ -470,8 +536,8 @@ static s32 _actor341900TickGluttonAnimation(Task* task, u16 slotCount)
     }
 checkSettlement:
     if (allSettled) {
-        if (D_actor_341900_801639D0[work->playRequest.animationId] >= 0) {
-            animationId    = D_actor_341900_801639D0[work->playRequest.animationId];
+        if (_gActor341900GluttonFollowUpClips[work->playRequest.animationId] >= 0) {
+            animationId    = _gActor341900GluttonFollowUpClips[work->playRequest.animationId];
             followUpWork   = task->work;
             firstBlendSlot = slotCount == ACTOR_341900_GLUTTON_BODY_SLOT_COUNT;
             // Keep the unsettled exit between selection and blending.
@@ -586,7 +652,7 @@ static void _actor341900DoorHalfTask(Task* task)
             initialModel->lightMtx          = &lightingWork->light;
             initialModel->colorMtx          = &lightingWork->color;
             initialModel->otOffset          = ACTOR_341900_DOOR_OT_OFFSET;
-            task->msgTable                  = D_actor_341900_80163A38;
+            task->msgTable                  = _gActor341900DoorMessages;
             taskReparent(lightingWork->parent, task);
         }
         task->state++;
@@ -644,7 +710,7 @@ static void _actor341900InitGluttonModel(Task* task)
     initializedWork->parent = task->spawnArg2.pointer;
     model->lightMtx         = &initializedWork->light;
     model->colorMtx         = &initializedWork->color;
-    task->msgTable          = D_actor_341900_80163A78;
+    task->msgTable          = _gActor341900GluttonMessages;
     // The required area entry supplies the scene model's texture relocation.
     texturePlacement = areaGetVariant(&gGameSession->location.loc)->placements;
     for (; texturePlacement->entryId != AREA_PLACEMENT_END; texturePlacement++) {
@@ -656,7 +722,7 @@ static void _actor341900InitGluttonModel(Task* task)
     // Only the body and legs bind playback; other parts only need lighting.
     switch (task->spawnArg1.value) {
         case ACTOR_341900_GLUTTON_PART_BODY:
-            animationInitContext(&initializedWork->rig.anim, D_actor_341900_801639AC, model, initializedWork->rig.poses, initializedWork->rig.slots);
+            animationInitContext(&initializedWork->rig.anim, _gActor341900GluttonBodyAnimationSets, model, initializedWork->rig.poses, initializedWork->rig.slots);
             _actor341900InitGluttonAnimationSlots(task, 1, ACTOR_341900_GLUTTON_BODY_SLOT_COUNT);
             break;
             /* Retained empty loop: removing it changes the right-leg dispatch
@@ -666,13 +732,13 @@ static void _actor341900InitGluttonModel(Task* task)
         case ACTOR_341900_GLUTTON_PART_RIGHT_LEG:
             parentWork           = initializedWork->parent->work;
             parentWork->legRight = task;
-            animationInitContext(&initializedWork->rig.anim, D_actor_341900_801639B8, model, initializedWork->rig.poses, initializedWork->rig.slots);
+            animationInitContext(&initializedWork->rig.anim, _gActor341900GluttonRightLegAnimationSets, model, initializedWork->rig.poses, initializedWork->rig.slots);
             _actor341900InitGluttonAnimationSlots(task, 0, ACTOR_341900_GLUTTON_LEG_SLOT_COUNT);
             break;
         case ACTOR_341900_GLUTTON_PART_LEFT_LEG:
             parentWork          = initializedWork->parent->work;
             parentWork->legLeft = task;
-            animationInitContext(&initializedWork->rig.anim, D_actor_341900_801639C4, model, initializedWork->rig.poses, initializedWork->rig.slots);
+            animationInitContext(&initializedWork->rig.anim, _gActor341900GluttonLeftLegAnimationSets, model, initializedWork->rig.poses, initializedWork->rig.slots);
             _actor341900InitGluttonAnimationSlots(task, 0, ACTOR_341900_GLUTTON_LEG_SLOT_COUNT);
             break;
     }
@@ -700,10 +766,10 @@ static void _actor341900GluttonPartTask(Task* task)
 
         model                   = task->extra.tmd;
         rootCoord               = model->coords;
-        rootCoord->parent       = &work->parent->extra.tmd->coords[D_actor_341900_80163A98[task->spawnArg1.value].parentPart];
-        rootCoord->coord.t[0]   = D_actor_341900_80163A98[task->spawnArg1.value].offsetX;
-        rootCoord->coord.t[1]   = D_actor_341900_80163A98[task->spawnArg1.value].offsetY;
-        rootCoord->coord.t[2]   = D_actor_341900_80163A98[task->spawnArg1.value].offsetZ;
+        rootCoord->parent       = &work->parent->extra.tmd->coords[_gActor341900GluttonPartAttachments[task->spawnArg1.value].parentPart];
+        rootCoord->coord.t[0]   = _gActor341900GluttonPartAttachments[task->spawnArg1.value].offsetX;
+        rootCoord->coord.t[1]   = _gActor341900GluttonPartAttachments[task->spawnArg1.value].offsetY;
+        rootCoord->coord.t[2]   = _gActor341900GluttonPartAttachments[task->spawnArg1.value].offsetZ;
         rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         task->state++;
     }
@@ -828,18 +894,18 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
         case ACTOR_341900_PLAYER_ACTION_NONE:
             break;
         case ACTOR_341900_PLAYER_ACTION_PLACE_AT_START:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163AC8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerStartPlacement, 0);
             ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, ACTOR_341900_OPENING_WEAPON_CLIP);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
             break;
         case ACTOR_341900_PLAYER_ACTION_WALK_TO_MARK:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_TO, &D_actor_341900_80163AE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_TO, &_gActor341900PlayerWalkTarget, 0);
             break;
         case ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_0:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163AF8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerEventClipPlacement, 0);
             actionWork = eventTask->work;
             if (actionWork->player != NULL) {
-                request.source.sets          = D_actor_341900_801639A4;
+                request.source.sets          = _gActor341900PlayerAnimationSets;
                 request.animationId          = ACTOR_341900_EVENT_START_CLIP;
                 request.blend                = ANIMATION_BLEND_RESET;
                 request.blendFrames          = 0;
@@ -850,7 +916,7 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
         case ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_1:
             actionWork = eventTask->work;
             if (actionWork->player != NULL) {
-                request.source.sets          = D_actor_341900_801639A4;
+                request.source.sets          = _gActor341900PlayerAnimationSets;
                 request.animationId          = ACTOR_341900_EVENT_NEXT_CLIP;
                 request.blend                = ANIMATION_BLEND_INTERPOLATE;
                 request.blendFrames          = ACTOR_341900_PLAYER_BLEND_FRAMES;
@@ -861,10 +927,10 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
         case ACTOR_341900_PLAYER_ACTION_WEAPON_CLIP_9:
             ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, ACTOR_341900_END_WEAPON_CLIP);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163B10, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerWeaponClip9Placement, 0);
             break;
         case ACTOR_341900_PLAYER_ACTION_PLACE_AT_END:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163B28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerEndPlacement, 0);
             break;
     }
     work->playerAction = ACTOR_341900_PLAYER_ACTION_NONE;
@@ -927,7 +993,7 @@ static void _actor341900UpdateStaging(Task* eventTask)
                     advanceRequest.source.index = 0;
                     advanceRequest.blendFrames  = ACTOR_341900_STAGING_BLEND_FRAMES;
                     TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLAY_ANIMATION, &advanceRequest, 0);
-                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->gluttonPlacement, D_actor_341900_80163A48);
+                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->gluttonPlacement, _gActor341900GluttonAdvancePlacement);
                     TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLACE, &work->gluttonPlacement, 0);
                     work->stagingTicks = 0;
                     work->stagingStep++;
@@ -951,7 +1017,7 @@ static void _actor341900UpdateStaging(Task* eventTask)
                     effectsRequest.source.index = 0;
                     effectsRequest.blendFrames  = ACTOR_341900_STAGING_BLEND_FRAMES;
                     TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLAY_ANIMATION, &effectsRequest, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLACE, &D_actor_341900_80163A60, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLACE, &_gActor341900GluttonClip2Placement, 0);
                     work->stagingTicks = 0;
                     work->stagingStep++;
                     break;
@@ -980,16 +1046,16 @@ static void _actor341900UpdateStaging(Task* eventTask)
             }
             break;
         case ACTOR_341900_STAGING_DOORS_SHUT:
-            TASK_MESSAGE_DISPATCH_POINTER(work->doors[0], ACTOR_MESSAGE_PLACE, &D_actor_341900_801639D8[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->doors[1], ACTOR_MESSAGE_PLACE, &D_actor_341900_801639D8[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->doors[0], ACTOR_MESSAGE_PLACE, &_gActor341900DoorShutPlacements[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->doors[1], ACTOR_MESSAGE_PLACE, &_gActor341900DoorShutPlacements[1], 0);
             taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             work->stagingMode = ACTOR_341900_STAGING_NONE;
             break;
         case ACTOR_341900_STAGING_DOORS_OPEN:
             switch (work->stagingStep) {
                 case ACTOR_341900_STAGING_STEP_INITIALIZE:
-                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->doorPlacements[0], D_actor_341900_801639D8[0]);
-                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->doorPlacements[1], D_actor_341900_801639D8[0]);
+                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->doorPlacements[0], _gActor341900DoorShutPlacements[0]);
+                    ACTOR_341900_COPY_PLACEMENT_COMPONENTS(work->doorPlacements[1], _gActor341900DoorShutPlacements[0]);
                     work->stagingStep++;
                     /* fallthrough: opening begins on the setup tick */
                 case ACTOR_341900_STAGING_STEP_RUN:
@@ -1026,7 +1092,7 @@ static void _actor341900EventTask(Task* task)
         ACTOR_341900_EVENT_STATE_START_SCRIPT = 1,
         ACTOR_341900_EVENT_STATE_RUN          = 2,
         ACTOR_341900_ACTOR_COMMAND_STOP       = 0,
-        ACTOR_341900_GLUTTON_CHILD_COUNT      = ARRAY_SIZE(D_actor_341900_80163A98) - 1,
+        ACTOR_341900_GLUTTON_CHILD_COUNT      = ARRAY_SIZE(_gActor341900GluttonPartAttachments) - 1,
         ACTOR_341900_SCENE_MUSIC_ENTRY        = 4,
         ACTOR_341900_SCENE_SOUND_EVENT        = 12,
         ACTOR_341900_ENTRANCE_COMPLETE_FLAG   = 2,
@@ -1046,9 +1112,9 @@ static void _actor341900EventTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0U, sizeof(*work));
-                work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_actor_341900_80164208 = task;
-                work->placement0Actor   = sceneFindEnemyByPlaceKey(
+                work->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                _gActor341900EventTask = task;
+                work->placement0Actor  = sceneFindEnemyByPlaceKey(
                                             gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))
                                             ->task;
             }
@@ -1060,20 +1126,20 @@ static void _actor341900EventTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
             // Build the display tasks after the live actors receive their stop command.
             spawnWork          = task->work;
-            spawnWork->glutton = taskSpawnFromTable(D_actor_341900_80164190, ACTOR_341900_TASK_GLUTTON_BODY, ACTOR_341900_GLUTTON_PART_BODY, task);
+            spawnWork->glutton = taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, ACTOR_341900_TASK_GLUTTON_BODY, ACTOR_341900_GLUTTON_PART_BODY, task);
             for (partOffset = 0; (u32)(partOffset & 0xFFFF) < ACTOR_341900_GLUTTON_CHILD_COUNT; partOffset++) {
                 partIndex = partOffset & 0xFFFF;
-                taskSpawnFromTable(D_actor_341900_80164190, partIndex + ACTOR_341900_TASK_GLUTTON_FIRST_CHILD, partIndex + 1, spawnWork->glutton);
+                taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, partIndex + ACTOR_341900_TASK_GLUTTON_FIRST_CHILD, partIndex + 1, spawnWork->glutton);
             }
-            spawnWork->doors[0]      = taskSpawnFromTable(D_actor_341900_80164190, ACTOR_341900_TASK_DOOR_FIRST_HALF, 0, task);
-            spawnWork->doors[1]      = taskSpawnFromTable(D_actor_341900_80164190, ACTOR_341900_TASK_DOOR_SECOND_HALF, 0, task);
+            spawnWork->doors[0]      = taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, ACTOR_341900_TASK_DOOR_FIRST_HALF, 0, task);
+            spawnWork->doors[1]      = taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, ACTOR_341900_TASK_DOOR_SECOND_HALF, 0, task);
             gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             task->state             += 1;
             return;
         case ACTOR_341900_EVENT_STATE_START_SCRIPT:
             gStageCountdownMusicEntry                           = ACTOR_341900_SCENE_MUSIC_ENTRY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_341900_SCENE_SOUND_EVENT;
-            evsStartScriptWithSkip(D_actor_341900_80163B48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341900_80163FB0);
+            evsStartScriptWithSkip(_gActor341900GluttonEntranceScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor341900GluttonEntranceSkipScript);
             task->state += 1;
             return;
         case ACTOR_341900_EVENT_STATE_RUN:
@@ -1167,7 +1233,7 @@ static void _actor341900BroadcastActorCommand(s16 commandId)
 /// Requires the published event work and its Glutton task to remain live.
 static void _actor341900SetGluttonDrawMode(s32 drawMode)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     taskMessageDispatch(work->glutton, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
@@ -1177,7 +1243,7 @@ static void _actor341900SetGluttonDrawMode(s32 drawMode)
 /// Requires the published event work and its player task to remain live.
 static void _actor341900SetPlayerDrawMode(s32 drawMode)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
@@ -1188,7 +1254,7 @@ static void _actor341900SetPlayerDrawMode(s32 drawMode)
 /// set before removing equipment, so repeated script calls do nothing.
 static void _actor341900RemovePlayerEquipment(void)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     if (work->playerEquipmentRemoved == false) {
         work->playerEquipmentRemoved = true;
@@ -1203,7 +1269,7 @@ static void _actor341900RemovePlayerEquipment(void)
 /// setting hold control; repeated calls with a clear latch do nothing.
 static void _actor341900RestorePlayerEquipment(void)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     if (work->playerEquipmentRemoved != false) {
         playerActorRestoreEquipment();
@@ -1217,7 +1283,7 @@ static void _actor341900RestorePlayerEquipment(void)
 /// Requires live published event work. A null Glutton reference does nothing.
 static void _actor341900RemoveGlutton(void)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     if (work->glutton != NULL) {
         taskKill(work->glutton);
@@ -1230,7 +1296,7 @@ static void _actor341900RemoveGlutton(void)
 /// Requires live published event work. Each null door reference is skipped.
 static void _actor341900RemoveDoors(void)
 {
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
 /// Tears down a live door and clears its reference; null entries do nothing.
 ///
@@ -1255,7 +1321,7 @@ static void _actor341900RemoveDoors(void)
 static void _actor341900StartFadeIn(void)
 {
     enum { ACTOR_341900_FADE_IN_UNITS_PER_TICK = 9 };
-    taskSpawnFromTable(D_actor_341900_80164190, ACTOR_341900_TASK_FADE_IN, ACTOR_341900_FADE_IN_UNITS_PER_TICK, NULL);
+    taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, ACTOR_341900_TASK_FADE_IN, ACTOR_341900_FADE_IN_UNITS_PER_TICK, NULL);
 }
 
 /// Posts an `ACTOR_341900_PLAYER_ACTION_*` request and restarts its step counter.
@@ -1266,7 +1332,7 @@ static void _actor341900StartFadeIn(void)
 static void _actor341900RequestPlayerAction(s16 playerAction)
 {
     enum { ACTOR_341900_PLAYER_ACTION_STEP_START = 0 };
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     work->playerAction     = playerAction;
     work->playerActionStep = ACTOR_341900_PLAYER_ACTION_STEP_START;
@@ -1280,7 +1346,7 @@ static void _actor341900RequestPlayerAction(s16 playerAction)
 static void _actor341900SetStagingMode(s16 stagingMode)
 {
     enum { ACTOR_341900_STAGING_STEP_START = 0 };
-    _Actor341900EventWork* work = D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = _gActor341900EventTask->work;
 
     work->stagingMode = stagingMode;
     work->stagingStep = ACTOR_341900_STAGING_STEP_START;
@@ -1324,11 +1390,11 @@ static void _actor341900FinishSkippedScene(void)
         (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                         \
     }
 
-    work = D_actor_341900_80164208->work;
+    work = _gActor341900EventTask->work;
     ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST(request);
 #undef ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST
     TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &request, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163B28, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerEndPlacement, 0);
     cdCmdCancelScene();
 }
 

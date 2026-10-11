@@ -84,8 +84,6 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate);
 static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation);
 
-extern TaskDesc D_actor_341900_80164190[];
-
 /// Two grid-local XZ endpoints encoded as unsigned coordinate halfwords.
 ///
 /// Wall builders narrow coordinates and endpoint differences to signed
@@ -3115,7 +3113,7 @@ static void _shelterB3GarbageIncineratorGluttonEntranceTask(Task* task)
             scratch.animation.blendFrames          = 0;
             scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.animation, 0);
-            task->spawnArg2.pointer = taskSpawnFromTable(D_actor_341900_80164190, 0, 0, 0);
+            task->spawnArg2.pointer = taskSpawnFromTable(gActor341900GluttonEntranceTaskDescs, ACTOR_341900_TASK_EVENT, 0, 0);
             task->state++;
             return;
         case SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_WAIT_SCENE:
