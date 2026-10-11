@@ -425,7 +425,7 @@ gMapDryfieldObjectRooms = 0x8017A564; // absolute:True owner=map_dryfield
 gMapDryfieldFullObjectRooms = 0x8017A46C; // absolute:True owner=map_dryfield_full
 gMapShelterObjectRooms = 0x8017A998; // absolute:True owner=map_shelter
 gMapNeoArkObjectRooms = 0x8017A6EC; // absolute:True owner=map_neo_ark
-D_p08_8012A85C = 0x8012A85C; // absolute:True owner=p08
+gP08PlayerAnimationBank = 0x8012A85C; // absolute:True owner=p08
 D_m93r_8012ADF8 = 0x8012ADF8; // absolute:True owner=m93r
 D_m950_8012BA78 = 0x8012BA78; // absolute:True owner=m950
 D_p229_8012B51C = 0x8012B51C; // absolute:True owner=p229

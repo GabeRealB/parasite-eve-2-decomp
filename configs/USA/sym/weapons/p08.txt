@@ -1,3 +1,4 @@
 // Overlay-local symbols for P08 (file 10304).
 gP08WeaponModel = 0x8011D924; // held P08 pistol model
 p08AttackState = 0x8011d1d8; // type:func
+gP08PlayerAnimationBank = 0x8012a85c;
