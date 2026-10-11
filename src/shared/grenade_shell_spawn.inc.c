@@ -112,9 +112,9 @@ static void _grenadeShellSpawn(Task* task)
     memFillBytes(work, 0, sizeof(*work));
 
     // Place the muzzle offset through its cached pose, then remove the view transform.
-    muzzleOffset->vx          = gGrenadeShellMuzzleOffsets[launcherRow].vx;
-    muzzleOffset->vy          = gGrenadeShellMuzzleOffsets[launcherRow].vy;
-    muzzleOffset->vz          = gGrenadeShellMuzzleOffsets[launcherRow].vz;
+    muzzleOffset->vx          = _gGrenadeShellMuzzleOffsets[launcherRow].vx;
+    muzzleOffset->vy          = _gGrenadeShellMuzzleOffsets[launcherRow].vy;
+    muzzleOffset->vz          = _gGrenadeShellMuzzleOffsets[launcherRow].vz;
     muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(muzzleCoord);
     rootCoord->workm = muzzleCoord->workm;
@@ -132,7 +132,7 @@ static void _grenadeShellSpawn(Task* task)
     gfxReadMatrixZAxis(rootMatrix, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
     // The flight divisor grows each frame, reducing the direction-based step.
-    initialFlightDivisor = gGrenadeShellSpeeds[launcherRow];
+    initialFlightDivisor = _gGrenadeShellInitialFlightDivisors[launcherRow];
     _grenadeShellLinkFlightBodies(task, work, rootCoord, initialFlightDivisor);
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

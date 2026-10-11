@@ -8,8 +8,6 @@
 #include "common.h"
 #include "gte.h"
 
-#include "grenade_pistol_private.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -41,6 +39,10 @@
 
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
+
+static SVECTOR   _gGrenadeShellMuzzleOffsets[2];
+static const u16 _gGrenadeShellBlastRadii[4];
+static u8        _gGrenadeShellInitialFlightDivisors[4];
 
 static void _grenadeShellExit(Task* task);
 static void _grenadeShellSpawn(Task* task);
@@ -2377,17 +2379,36 @@ AnimationBank D_mm1_8012D184 = { { {
 } } };
 #endif
 
-/// The spawn state's tables, between the weapon's animation bank and the shell's model.
-SVECTOR gGrenadeShellMuzzleOffsets[2] = {
-    { 0, 0x1E0, 0x80, 0 },
-    { 0, 0x220, 0x80, 0 },
+/// Grenade Pistol/MM1 muzzle offsets in integer launcher-local coordinates.
+///
+/// Rows 0 and 1 select the Grenade Pistol and MM1 respectively, from bits 16..19
+/// of the shot's spawn argument. Kyle's MM1 uses row 1. Only XYZ is consumed.
+static SVECTOR _gGrenadeShellMuzzleOffsets[2] = {
+    { 0, 480, 128, 0 },
+    { 0, 544, 128, 0 },
 };
 
-/// Impact clip id per attachment, indexed by `ammunitionIndex - GRENADE_ROUND_FIRST`.
-u16 gGrenadeShellBlastRadii[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
+/// Blast-sphere radii in game-coordinate units for the three grenade rounds.
+///
+/// Indexed by the loaded round minus `GRENADE_ROUND_FIRST`: fragmentation 500,
+/// airburst 1200 and riot 2000. The fourth stored halfword is zero; its role is
+/// unproven and no supported round selects it.
+static const u16 _gGrenadeShellBlastRadii[4] __attribute__((section(".data"))) = {
+    [GRENADE_ROUND_FRAGMENTATION - GRENADE_ROUND_FIRST] = 500,
+    [GRENADE_ROUND_AIRBURST -
+        GRENADE_ROUND_FIRST]                            = 1200,
+    [GRENADE_ROUND_RIOT -
+        GRENADE_ROUND_FIRST]                            = 2000,
+    0,
+};
 
-/// Per-ammo launch speed.
-u8 gGrenadeShellSpeeds[4] = { 0x0C, 0x08, 0, 0 };
+/// Initial positive flight divisors for launcher rows 0 Grenade Pistol and 1 MM1.
+///
+/// The byte value is shifted left 16 into the Q16.16 flight clock. Flight divides
+/// the Q12 direction by its integer half, then increases the divisor each tick.
+/// The two trailing stored zero bytes have unproven roles and are never selected
+/// by supported launchers; they are not valid initial divisors.
+static u8 _gGrenadeShellInitialFlightDivisors[4] = { 12, 8, 0, 0 };
 
 /* Each package carries its own shell model. */
 #if GRENADE_VARIANT == 0

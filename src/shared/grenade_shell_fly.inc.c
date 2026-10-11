@@ -118,7 +118,7 @@ static void _grenadeShellFly(Task* task)
         // The round is read back once more after the block's release; nothing
         // reserves scratch in between.
         SCRATCH_STACK_RELEASE_BLOCK(_GrenadeShellFlightScratch);
-        work->sphereBody.radius = gGrenadeShellBlastRadii[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
+        work->sphereBody.radius = _gGrenadeShellBlastRadii[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
         return;
     }
 

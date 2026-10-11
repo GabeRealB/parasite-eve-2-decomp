@@ -11,6 +11,13 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
+ * The spawn/flight carriers declare their own static tuning tables
+ * before those fragments: `_gGrenadeShellMuzzleOffsets` supplies SVECTOR rows
+ * 0 Grenade Pistol and 1 MM1 in launcher-local integer coordinates;
+ * `_gGrenadeShellInitialFlightDivisors` supplies positive u8 divisors for the
+ * same rows; `_gGrenadeShellBlastRadii` supplies u16 coordinate-unit radii for
+ * round indices GRENADE_ROUND_FRAGMENTATION..GRENADE_ROUND_RIOT relative to
+ * GRENADE_ROUND_FIRST. The declarations live in each carrier's source prologue.
  */
 
 #ifndef SRC_SHARED_GRENADE_SHELL_H

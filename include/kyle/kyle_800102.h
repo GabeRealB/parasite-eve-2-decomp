@@ -1,7 +1,18 @@
 #ifndef INCLUDE_KYLE_KYLE_800102_H
 #define INCLUDE_KYLE_KYLE_800102_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Kyle Madigan's native companion animation bank for resource variant 2 (MM1).
+///
+/// Gameplay selects this bank at index 3, for companion family 1 variant 2.
+/// The 47 base entries are clip pointers or NULL. The following 32 words start
+/// NULL and stay writable for extension-copy messages, which can also install
+/// raw payload words. Playback may follow only entries containing clip pointers.
+/// Keep this package and any borrowed extension clips loaded during playback.
+extern AnimationBank gKyle800102CompanionAnimationBank;
 
 /// Advances Kyle's MM1 grenade shell through launch, flight, blast and teardown.
 ///
