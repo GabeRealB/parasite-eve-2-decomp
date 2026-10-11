@@ -10,7 +10,7 @@ the extractor's tables (tools/peassets/asset_data.py).
 """
 import struct
 
-from gametrace import handler, renderer
+from gametrace import handler, image, init, renderer
 
 REPO = __import__("pathlib").Path(__file__).resolve().parents[3]
 _CONSTANTS: dict = {}
@@ -370,3 +370,28 @@ def task_message(record, trace):
     return {"event": "task_message", "message": ident, "names": message_names().get(ident, []), "receiver": f"{record['a0']:#010x}",
             "arg1": f"{record['a2']:#010x}", "arg2": f"{record['a3']:#010x}", "arg1_at": trace.symbol(record["a2"]) if record["a2"] >> 24 == 0x80 else None,
             "from": trace.symbol(record["ra"])}
+
+
+# ---- the project, for the tracer: the images of code this game is made of
+
+
+@init
+def project(cfg):
+    """The executable, gameplay and every package the decomp builds: where each loads (the overlay manifest), its
+    bytes as extracted, and its symbol map. Only the executable is in memory when the tracer sets up."""
+    import struct
+    import sys
+    import tomllib
+    sys.path.insert(0, str(REPO / "tools" / "peassets"))
+    import asset_residency
+    maps = {path.stem.removeprefix("sym."): path for path in sorted((REPO / "configs" / "USA").rglob("*.txt"))
+            if "imports" not in path.name and not path.name.startswith("rel.")}
+    exe = REPO / "assets" / "USA" / "main.exe"
+    if exe.is_file():                                # a PS-X EXE: its load address at 0x18, its code after a 0x800-byte header
+        with exe.open("rb") as handle:
+            load = struct.unpack_from("<I", handle.read(0x20), 0x18)[0]
+        image("main", load, exe, maps.get("main", ()), skip=0x800, start=True)
+    loads = {"gameplay": 0x80093800}
+    loads.update(asset_residency.package_loads(tomllib.loads((REPO / "configs" / "USA" / "overlays.toml").read_text())))
+    for name, load in loads.items():
+        image(name, load, REPO / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg", maps.get(name, ()))

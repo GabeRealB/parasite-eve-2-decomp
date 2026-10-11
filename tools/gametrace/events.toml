@@ -30,19 +30,27 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
-# Python files with the functions events name: renderers (`@renderer("name")`, how an event is written) and
-# handlers (`@handler("name")`, what is done when it happens). Paths are beside this file or from the repository root.
+# Python files with the functions the tracer calls: an init function (`@init`, which declares the project's images
+# of code: where each loads, its bytes and its symbols), renderers (`@renderer("name")`, how an event is written)
+# and handlers (`@handler("name")`, what is done when it happens). Paths are from this file's directory.
 [hooks]
 files = ["hooks/pe2.py"]
 
-# The console's memory as the emulator shares it with other programs, where it does (DuckStation: "Export Shared
-# Memory", a mapping called duckstation_<pid>). "auto" looks for one; a name picks one; false reads everything
-# through the GDB server. It only works when this tool runs on the machine the emulator runs on.
+# The console's memory as the emulator shares it with other programs, where it does: the name of the shared block,
+# in which {pid} stands for the id of the running process whose name begins with `process`. DuckStation's "Export
+# Shared Memory" makes one called duckstation_<pid>. Leave `shared` out, or false, to read everything through the
+# GDB server. It only works when this tool runs on the machine the emulator runs on.
 [memory]
-shared = "auto"
+shared = "duckstation_{pid}"
+process = "duckstation"
+
+# Where logs and the `blob` command's files go, from this file's directory.
+[log]
+dir = "../../local/gametrace"
 
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
+image = "gameplay"
 bytes = 0x100000         # the buffer. The game stops only when it is full, for as long as reading it takes
 # Words every stub writes before it touches the blob's memory. This game calls SetMem(2) at start, which sets the
 # console's memory-size register (0x1F801060) to a 2 MB window and makes any read above it fault; 0xB88 is the
@@ -80,6 +88,7 @@ render = "cd_command"
 id = 4
 name = "variant_set"
 address = 0x800B5B30     # areaSetPlacementVariant(key, variant, resetMode)
+image = "gameplay"
 capture = ["a0:8", "a1", "a2", "ra"]
 render = "variant_set"
 
@@ -87,6 +96,7 @@ render = "variant_set"
 id = 7
 name = "view_load"
 address = 0x800A9010     # loadingBeginViewLoadTask(task): the live location (view, room, area, stage, warp, variant) says which
+image = "gameplay"
 capture = ["0x800714C4:8", "ra"]
 render = "location"
 
@@ -101,6 +111,7 @@ render = "flag"
 id = 9
 name = "flag_byte"
 address = 0x800E3FAC     # gameFlagSetPackedByte(nibbleIndex, packedValue)
+image = "gameplay"
 capture = ["a0", "a1", "ra"]
 render = "flag_byte"
 
@@ -108,6 +119,7 @@ render = "flag_byte"
 id = 10
 name = "companion_select"
 address = 0x800ABA4C     # companionSelectForArea(): v0 is the companion family, 0 for none
+image = "gameplay"
 capture = ["0x800714C4:8", "ra"]
 exits = [0x274]
 render = "companion"
@@ -133,6 +145,7 @@ render = "sound_stop"
 id = 12
 name = "stage_sound_request"
 address = 0x800E3DD8     # sndEvtRequestStageScriptStart(id, pan, attenuation)
+image = "gameplay"
 capture = ["a0", "a1", "a2", "ra"]
 render = "sound"
 
@@ -178,6 +191,7 @@ capture = ["a0", "ra"]
 id = 5
 name = "caption_command"
 address = 0x800E34D8     # capRunCommand(command)
+image = "gameplay"
 capture = ["a0", "ra"]
 render = "caption_command"
 
@@ -185,6 +199,7 @@ render = "caption_command"
 id = 17
 name = "caption_command_transition"
 address = 0x800E3B60     # capRunCommandWithTransition(command)
+image = "gameplay"
 capture = ["a0", "ra"]
 render = "caption_command"
 
@@ -192,6 +207,7 @@ render = "caption_command"
 id = 18
 name = "caption_file"
 address = 0x800E6D60     # capSelectLoadedFile(dataResourceOrdinal)
+image = "gameplay"
 capture = ["a0", "ra"]
 render = "caption_file"
 
@@ -199,6 +215,7 @@ render = "caption_file"
 id = 19
 name = "caption_sequence"
 address = 0x800E6C70     # capStartSequenceSlot(commandIndex, playbackMode, variantKey)
+image = "gameplay"
 capture = ["a0", "a1", "a2", "ra"]
 
 # ---- what goes into video memory
@@ -228,6 +245,7 @@ render = "rect"
 id = 22
 name = "stream_scene"
 address = 0x800AF89C     # streamSelectScene(group, id, subId, subId2)
+image = "gameplay"
 capture = ["a0", "a1", "a2", "a3", "ra"]
 render = "stream_scene"
 
@@ -242,5 +260,6 @@ render = "movie_start"
 id = 24
 name = "task_message"
 address = 0x800AC464     # taskMessageDispatch(receiver, messageId, firstArg, secondArg)
+image = "gameplay"
 capture = ["a0", "a1", "a2", "a3", "ra"]
 render = "task_message"

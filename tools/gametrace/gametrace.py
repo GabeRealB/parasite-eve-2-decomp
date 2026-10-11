@@ -5,7 +5,7 @@
                        [--host HOST] [--port PORT]      (these override the config's [gdb] section)
                        [--now]                          (attach to a game already running: no install_at wait)
     gametrace.py check [--config ...]     resolve the events, build the blob, show both; no connection
-    gametrace.py blob  [--config ...]     write the assembled blob and its listing under local/gametrace/
+    gametrace.py blob  [--config ...]     write the assembled blob and its listing in the log directory
 
 It needs nothing but Python: the blob is assembled by the small assembler in this file. Where the system has MIPS
 binutils, `blob` also assembles the same source with them and says whether the bytes agree.
@@ -38,10 +38,15 @@ cannot land inside another's record.
 
 The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
 first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
-writes the blob and the hooks of the executable's events.
+writes the blob and the hooks of the events in the images that are in memory from the start.
 
-An event in an image that is loaded later (`image = "..."`; by default gameplay for an address above the
-executable) gets its hooks when the tracer is told the image is in memory, and it does not work that out by itself:
+The tracer knows nothing about any one game. What code there is comes as images: a name, where it loads, its bytes
+on disc and its symbols. A hooks file declares them from an `@init` function (see `init`, `image`), or the config
+does in `[[image]]` tables (`name`, `load`, `file`, and optionally `skip`, `symbols`, `start`). An image marked
+`start` is in memory when the tracer sets up. An event without `image = "..."` belongs to the start image holding
+its address. `[log] dir` is where logs go, from the config's directory.
+
+An event in an image that is loaded later (`image = "..."`) gets its hooks when the tracer is told the image is in memory, and it does not work that out by itself:
 an event with `handler = "name"` runs a python function at the end of its hook, with the game stopped, and that
 function calls `trace.resident(image)` (see `handler`). Put it on the game's own "this file has finished loading"
 point. `--resident IMAGE` and the `resident` command say the same by hand. A hook is still only written where
@@ -49,9 +54,10 @@ the instructions it replaces are in memory as the image has them. An event's add
 only a function's first. An instruction a hook displaces must be free to move: `check` refuses a branch
 or a jump there (see `movable`).
 
-Where the emulator publishes the console's memory as a shared mapping and the tool runs on the same machine, the
-buffer is read from that mapping as the game runs: no stop for a drain at all, and the log follows the game within
-a quarter of a second (`[memory] shared`: "auto" looks for one, a name picks one, false turns it off). The mapping
+Where the emulator publishes the console's memory as a shared block and the tool runs on the same machine, the
+buffer is read from that block as the game runs: no stop for a drain at all, and the log follows the game within
+a quarter of a second (`[memory] shared` is the block's name, in which `{pid}` stands for the id of the process `[memory] process`
+names; false, the default, turns it off). The block
 is checked before it is trusted - the blob written through the server must be readable in it. Writes always go
 through the server.
 
@@ -94,8 +100,6 @@ import tomllib
 from bisect import bisect_right
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "local" / "gametrace"
 REGS = ["zero", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",
         "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp", "fp", "ra"]
 PC = 37          # the program counter's place in the `g` packet, after r0..r31, sr, lo, hi, bad, cause
@@ -139,7 +143,9 @@ def load(path: Path) -> dict:
     blob.setdefault("address", 0x80200000)
     blob.setdefault("bytes", 0x100000)
     blob.setdefault("poke", [])
-    cfg.setdefault("memory", {}).setdefault("shared", "auto")
+    cfg.setdefault("memory", {}).setdefault("shared", False)
+    cfg["_dir"] = path.resolve().parent                                   # paths in the config are from the config's own directory
+    cfg["_out"] = (cfg["_dir"] / cfg.get("log", {}).get("dir", ".")).resolve()
     at = cfg.get("install_at", [])
     cfg["install_at"] = [at] if isinstance(at, int) else list(at)
     problems, seen = [], {}
@@ -206,7 +212,7 @@ def handler(name: str):
     event's hook until the handler has returned. It gets the same `record` and `trace` as a renderer, and `trace`
     then also offers
 
-        trace.resident("gameplay")     the image is in memory, whole, from now: write the hooks of its events
+        trace.resident("overlay")      the image is in memory, whole, from now: write the hooks of its events
         trace.read(address, length)    the console's memory as it is at this moment
 
     The tracer does not work out by itself when an image is loaded: a handler on the game's own "this file has
@@ -222,12 +228,27 @@ def load_hooks(cfg: dict, config_path: Path) -> None:
     sys.modules.setdefault("gametrace", sys.modules[__name__])       # so a hooks file can `from gametrace import renderer, handler`
     files = (cfg.get("hooks") or {}).get("files", [])
     for n, name in enumerate([files] if isinstance(files, str) else files):
-        path = next((p for p in (config_path.parent / name, ROOT / name, Path(name)) if p.is_file()), None)
+        path = next((p for p in (config_path.parent / name, Path(name)) if p.is_file()), None)
         if path is None:
-            raise SystemExit(f"hooks file {name} not found (looked beside the config and from the repository root)")
+            raise SystemExit(f"hooks file {name} not found (looked beside the config and from the current directory)")
         spec = importlib.util.spec_from_file_location(f"gametrace_hooks_{n}", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+    for entry in cfg.get("image", []):                                     # images the config declares itself
+        image(entry["name"], entry["load"], config_path.parent / entry["file"], skip=entry.get("skip", 0), start=entry.get("start", False),
+              symbols=[config_path.parent / name for name in ([entry["symbols"]] if isinstance(entry.get("symbols"), str) else entry.get("symbols", []))])
+    for function in INITS:
+        function(cfg)
+    problems = []
+    for event in cfg.get("event", []):                                     # which image each event's address is in
+        if event.get("image") is None:
+            event["image"] = next((i.name for i in IMAGES.values() if i.start and i.words(event["address"], 2)), None)
+            if event["image"] is None:
+                problems.append(f"{event['name']}: {event['address']:#010x} is in no image that is in memory from the start; name its image with `image = \"...\"`")
+        elif event["image"] not in IMAGES:
+            problems.append(f"{event['name']}: no image is called {event['image']!r}; declare it in an init hook or an [[image]] table")
+    if problems:
+        raise SystemExit("\n".join(problems))
     missing = sorted({e["render"] for e in cfg.get("event", []) if e.get("render") and e["render"] not in RENDERERS})
     if missing:
         raise SystemExit(f"no renderer named {', '.join(missing)}; the hooks files register: {', '.join(sorted(RENDERERS)) or 'none'}")
@@ -245,35 +266,103 @@ def header(event: dict, phase: int, captures: list[dict]) -> int:
     return event["id"] | (phase << 16) | (record_size(captures) << 17)
 
 
-# ---- names, from the symbol maps: only to say where a call came from
+# ---- the project: the images of code the game is made of. The tracer knows nothing about any game; a hooks file's
+# init function, or the config's [[image]] tables, say what there is.
 
-class Names:
-    def __init__(self) -> None:
-        line = re.compile(r"^\s*(\w+)\s*=\s*0x([0-9A-Fa-f]{8})\s*;")
-        self.by_image: dict[str, list[tuple[int, str]]] = {}
-        for path in sorted((ROOT / "configs" / "USA").rglob("*.txt")):
-            if "imports" in path.name:
-                continue
-            image = path.stem.removeprefix("sym.")
-            found = sorted((int(m[2], 16), m[1]) for m in map(line.match, path.read_text(errors="replace").splitlines()) if m)
-            if found:
-                self.by_image[image] = found
+class Image:
+    """A block of code as it is on disc: where it loads, its bytes, and the names of the addresses in it.
 
-    def at(self, address: int, images: tuple = ("main", "gameplay")) -> str:
-        """The symbol at or before `address` in the given images; an address in none of them is left as a number.
+    `data` is the bytes, a file holding them, or a function returning them; `skip` is how much of a file comes
+    before the byte that is loaded at `load` (a header). `symbols` is (address, name) pairs, a file of
+    `name = 0xADDRESS;` lines, several such files, or a function returning pairs. Files are read when first needed.
+    `start` says the image is in memory when the tracer sets up; any other is written to only once a handler,
+    `--resident` or the `resident` command has said it is there."""
 
-        An image is a name, or (name, first address, end address): a symbol map also lists what its image only
-        refers to - a stage's map names every room's tables - and those are not places inside it."""
-        best = None
-        for image in images:
-            name, low, high = image if isinstance(image, tuple) else (image, 0, 1 << 32)
-            if not low <= address < high:
-                continue
-            table = self.by_image.get(name) or []
-            i = bisect_right(table, (address, chr(0xFFFF))) - 1
-            if i >= 0 and table[i][0] >= low and address - table[i][0] < 0x4000 and (best is None or table[i][0] > best[0]):
-                best = table[i]
-        return f"{best[1]}+{address - best[0]:#x}" if best else f"{address:#010x}"
+    def __init__(self, name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False) -> None:
+        self.name, self.load, self.skip, self.start = name, load, skip, start
+        self._data, self._symbols, self._bytes, self._table = data, symbols, None, None
+
+    @property
+    def bytes(self) -> bytes:
+        if self._bytes is None:
+            data = self._data() if callable(self._data) else self._data
+            if isinstance(data, (str, Path)):
+                data = Path(data).read_bytes() if Path(data).is_file() else b""
+            self._bytes = bytes(data or b"")[self.skip:]
+        return self._bytes
+
+    @property
+    def end(self) -> int:
+        return self.load + len(self.bytes)
+
+    def words(self, address: int, count: int) -> tuple[int, ...] | None:
+        """`count` instructions at `address`, or None when the image does not hold them all."""
+        if self.load <= address and address + 4 * count <= self.end:
+            return struct.unpack_from(f"<{count}I", self.bytes, address - self.load)
+        return None
+
+    @property
+    def table(self) -> list[tuple[int, str]]:
+        """The image's own symbols in address order. A symbol file also lists what its image only refers to, and
+        those are not places inside it."""
+        if self._table is None:
+            found = self._symbols() if callable(self._symbols) else self._symbols
+            if isinstance(found, (str, Path)):
+                found = [found]
+            pairs: list = []
+            for item in found or ():
+                pairs += symbols_in(item) if isinstance(item, (str, Path)) else [tuple(item)]
+            self._table = sorted((a, n) for a, n in pairs if self.load <= a < self.end)
+        return self._table
+
+
+IMAGES: dict[str, Image] = {}
+INITS: list = []
+
+
+def image(name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False) -> Image:
+    """Declare an image (see `Image`). For an init function; the config's [[image]] tables do the same."""
+    IMAGES[name] = Image(name, load, data, symbols, skip, start)
+    return IMAGES[name]
+
+
+def init(function):
+    """Register a function a hooks file wants called once, with the config, before anything is resolved: the place
+    to declare the project's images.
+
+        from gametrace import image, init
+
+        @init
+        def project(cfg):
+            image("main", 0x80010000, "path/to/program.bin", symbols="path/to/symbols.txt", start=True)"""
+    INITS.append(function)
+    return function
+
+
+def symbols_in(path) -> list[tuple[int, str]]:
+    """The (address, name) pairs of a file of `name = 0xADDRESS;` lines."""
+    line = re.compile(r"^\s*(\w+)\s*=\s*0x([0-9A-Fa-f]{8})\s*;")
+    try:
+        text = Path(path).read_text(errors="replace")
+    except OSError:
+        return []
+    return [(int(m[2], 16), m[1]) for m in map(line.match, text.splitlines()) if m]
+
+
+def name_at(address: int, images) -> str:
+    """The symbol at or before `address` in the images that hold it; an address in none of them is left as a number."""
+    best = None
+    for item in images:
+        if not item.load <= address < item.end:
+            continue
+        i = bisect_right(item.table, (address, chr(0xFFFF))) - 1
+        if i >= 0 and address - item.table[i][0] < 0x4000 and (best is None or item.table[i][0] > best[0]):
+            best = item.table[i]
+    return f"{best[1]}+{address - best[0]:#x}" if best else f"{address:#010x}"
+
+
+def started() -> list[Image]:
+    return [item for item in IMAGES.values() if item.start]
 
 
 # ---- MIPS: which instructions may be moved out of a function's entry
@@ -599,38 +688,19 @@ def binutils_agree(cfg: dict, sites: dict, code: bytes) -> str | None:
 
 # ---- what a hook replaces, read from the image on disc
 
-def image_words(address: int, count: int, image: str | None) -> tuple[int, ...] | None:
-    """`count` instructions at `address` in the executable, gameplay, or the package the event names."""
-    def within(data: bytes, load: int, skip: int = 0) -> tuple[int, ...] | None:
-        if load <= address and address + 4 * count <= load + len(data) - skip:
-            return struct.unpack_from(f"<{count}I", data, skip + address - load)
-        return None
-    if image is None:
-        exe = ROOT / "assets" / "USA" / "main.exe"
-        if exe.is_file():
-            data = exe.read_bytes()
-            found = within(data, struct.unpack_from("<I", data, 0x18)[0], 0x800)
-            if found:
-                return found
-        image, load = "gameplay", 0x80093800
-    else:
-        sys.path.insert(0, str(ROOT / "tools" / "peassets"))
-        import asset_residency
-        load = asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())).get(image)
-        if load is None:
-            raise SystemExit(f"image {image!r} is not a package of configs/USA/overlays.toml")
-    pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
-    return within(pkg.read_bytes(), load) if pkg.is_file() else None
+def image_words(address: int, count: int, image: str) -> tuple[int, ...] | None:
+    """`count` instructions at `address` in the image of that name."""
+    return IMAGES[image].words(address, count) if image in IMAGES else None
 
 
 def sites_of(cfg: dict) -> dict:
     """Every place a hook goes and the two instructions there now: (id, "enter") and (id, "exit", offset)."""
     out, problems = {}, []
     for event in cfg.get("event", []):
-        name, image = event["name"], event.get("image")
+        name, image = event["name"], event["image"]
         words = image_words(event["address"], 2, image)
         if words is None:
-            problems.append(f"{name}: {event['address']:#010x} is in neither the executable nor gameplay; name its package with `image = \"...\"`")
+            problems.append(f"{name}: {event['address']:#010x} is not in the image {image} as it is on disc")
             continue
         for n, word in enumerate(words):
             if movable(word):
@@ -664,10 +734,10 @@ def sites_of(cfg: dict) -> dict:
     return out
 
 
-def returns_in(event: dict, names: "Names") -> list[int]:
+def returns_in(event: dict) -> list[int]:
     """The offsets of the `jr $ra` instructions between the event's address and the next symbol."""
-    image = event.get("image")
-    table = names.by_image.get(image or "main", []) + (names.by_image.get("gameplay", []) if image is None else [])
+    image = event["image"]
+    table = IMAGES[image].table
     later = sorted(a for a, _ in table if a > event["address"])
     span = min((later[0] - event["address"]) if later else 0x400, 0x4000)
     words = image_words(event["address"], span // 4, image) or ()
@@ -881,65 +951,60 @@ class Gdb:
 # ---- the console's memory, shared by the emulator: read without asking the server and without stopping the game
 
 class Shared:
-    """An emulator can publish the console's memory as a shared mapping other programs may open (`duckstation_<pid>`
-    for one that does). Reading it costs nothing and does not stop the game, where a read through the GDB server is
-    a round trip with the game stopped. It is only ever read here: a write would bypass the emulator's own
-    bookkeeping of changed code.
+    """An emulator can publish the console's memory as a named block of shared memory other programs may open.
+    Reading it costs nothing and does not stop the game, where a read through the GDB server is a round trip with
+    the game stopped. It is only ever read here: a write would bypass the emulator's own bookkeeping of changed code.
 
-    The mapping belongs to the machine the emulator runs on. A tool running elsewhere - in a Linux guest beside
+    The block belongs to the machine the emulator runs on. A tool running elsewhere - in a Linux guest beside
     a Windows emulator, say - cannot open it, and goes on through the server."""
 
     def __init__(self, name: str, ram: int = 0x80000000, offset: int = 0) -> None:
+        from multiprocessing import shared_memory
         self.name, self.ram, self.offset = name, ram & 0x1FFFFFFF, offset
-        if sys.platform == "win32":
-            import ctypes
-            from ctypes import wintypes
-            k = ctypes.WinDLL("kernel32", use_last_error=True)
-            k.OpenFileMappingW.restype = wintypes.HANDLE
-            k.OpenFileMappingW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
-            k.MapViewOfFile.restype = ctypes.c_void_p
-            k.MapViewOfFile.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_size_t]
-            k.VirtualQuery.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t]
-            handle = k.OpenFileMappingW(0x0004, False, name)                   # FILE_MAP_READ
-            if not handle:
-                raise OSError(f"no shared mapping named {name}")
-            view = k.MapViewOfFile(handle, 0x0004, 0, 0, 0)
-            if not view:
-                raise OSError(f"the shared mapping {name} could not be mapped")
-            info = (ctypes.c_size_t * 8)()                                    # MEMORY_BASIC_INFORMATION: RegionSize is its fourth pointer-sized field
-            k.VirtualQuery(view, info, ctypes.sizeof(info))
-            self.size = int(info[3])
-            self.view = (ctypes.c_ubyte * self.size).from_address(view)
-            self.peek = lambda at, length: bytes(self.view[at:at + length])
-        else:
-            import mmap
-            path = Path(name) if "/" in name else Path("/dev/shm") / name
-            with path.open("rb") as handle:
-                self.map = mmap.mmap(handle.fileno(), 0, access=mmap.ACCESS_READ)
-            self.size = len(self.map)
-            self.peek = lambda at, length: self.map[at:at + length]
+        try:
+            self.block = shared_memory.SharedMemory(name=name, track=False)     # the block is the emulator's: never ours to remove
+        except TypeError:                                                      # before Python 3.13 there is no `track`
+            self.block = shared_memory.SharedMemory(name=name)
+            if os.name == "posix":                                             # ... and attaching would have the block removed when this tool exits
+                from multiprocessing import resource_tracker
+                resource_tracker.unregister(self.block._name, "shared_memory")
+        self.size = self.block.size
 
     def read(self, address: int, length: int) -> bytes | None:
-        """`length` bytes of the console's memory at `address`, or None when the mapping does not hold them."""
+        """`length` bytes of the console's memory at `address`, or None when the block does not hold them."""
         at = (address & 0x1FFFFFFF) - self.ram + self.offset
-        return self.peek(at, length) if 0 <= at and at + length <= self.size else None
+        return bytes(self.block.buf[at:at + length]) if 0 <= at and at + length <= self.size else None
+
+    def close(self) -> None:
+        self.block.close()
 
     @staticmethod
-    def find(wanted) -> list[str]:
-        """The mappings to try: the name the config gives, or every emulator process found."""
-        if isinstance(wanted, str) and wanted != "auto":
+    def find(wanted: str, process: str = "") -> list[str]:
+        """The blocks to try: the name the config gives, with `{pid}` standing for the id of each running process
+        whose name begins with `memory.process`."""
+        if "{pid}" not in wanted:
             return [wanted]
+        if not process:
+            raise SystemExit("memory.shared has {pid} in it: memory.process has to say which program's")
         if sys.platform == "win32":
             listing = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True).stdout
-            return [f"duckstation_{row.split(',')[1].strip(chr(34))}" for row in listing.splitlines() if row.lower().startswith(chr(34) + "duckstation")]
-        return sorted(p.name for p in Path("/dev/shm").glob("duckstation_*")) if Path("/dev/shm").is_dir() else []
+            pids = [row.split(",")[1].strip('"') for row in listing.splitlines() if row.lower().startswith('"' + process.lower())]
+        else:
+            pids = []
+            for entry in Path("/proc").iterdir() if Path("/proc").is_dir() else ():
+                try:
+                    if entry.name.isdigit() and (entry / "comm").read_text().strip().lower().startswith(process.lower()):
+                        pids.append(entry.name)
+                except OSError:
+                    pass
+        return [wanted.replace("{pid}", pid) for pid in pids]
 
 
 # ---- a session
 
 class Session:
     def __init__(self, cfg: dict, gdb: Gdb, out) -> None:
-        self.cfg, self.gdb, self.out, self.names = cfg, gdb, out, Names()
+        self.cfg, self.gdb, self.out = cfg, gdb, out
         self.events = cfg.get("event", [])
         self.count = 0
         self.ready = self.running = self.paused = False
@@ -952,21 +1017,13 @@ class Session:
         self.code, self.symbols, _ = assemble(cfg, self.sites)
         self.layout = {}                              # a record's first word -> (event, phase, captures)
         self.hooks = []                               # (address, the two words there in the image, the stub)
-        self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
+        self.by_image: dict[str, list] = {}           # the same, by the image the address is in
         self.halted = True                            # whether the game is stopped right now
         self.residents: dict = {}                     # load address -> the image a handler last said is there
-        self.extents: dict[str, tuple] = {}
-        self.loads: dict[str, int] = {"gameplay": 0x80093800}
-        try:                                          # where each package loads, from the overlay manifest; without it images are told apart by name
-            sys.path.insert(0, str(ROOT / "tools" / "peassets"))
-            import asset_residency
-            self.loads.update(asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())))
-        except Exception:  # noqa: BLE001
-            pass
         for event in self.events:
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
-            image = event.get("image") or ("" if event["address"] < 0x80093800 else "gameplay")
+            image = event["image"]
             self.by_image.setdefault(image, []).append(self.hooks[-1])
             for k, offset in enumerate(event["exits"]):
                 self.layout[header(event, 1, event["_exit"])] = (event, "exit", event["_exit"])
@@ -1057,7 +1114,7 @@ class Session:
             say(f"session {self.session_number} ({self.session_name}) marked dropped, {count} records kept; the game is stopped until `session NAME`, or `session` for the same name")
         elif word == "resident" and rest:
             if rest not in self.by_image:
-                say(f"no event is in an image called {rest}; the images are: {', '.join(n or 'the executable' for n in self.by_image)}")
+                say(f"no event is in an image called {rest}; the images are: {', '.join(self.by_image)}")
             elif self.ready:
                 self.resident(rest)
         elif word in ("drain", "d"):
@@ -1077,17 +1134,13 @@ class Session:
             say(f"no command `{word}`\n{self.COMMANDS}")
 
     def symbol(self, address: int) -> str:
-        """The function an address is in, as `name+0xoffset`: in the executable, gameplay, or an image a handler has
-        said is in memory."""
-        return self.names.at(address, (("main", 0x80010000, 0x80093800), self.extent("gameplay"), *(self.extent(image) for image in self.residents.values())))
+        """The function an address is in, as `name+0xoffset`: in an image that is there from the start, or one a
+        handler has said is in memory."""
+        return name_at(address, started() + [IMAGES[name] for name in self.residents.values() if name in IMAGES])
 
     def extent(self, image: str) -> tuple:
-        """(image, where it loads, where it ends), from the manifest and the package's own length."""
-        if image not in self.extents:
-            load = self.loads.get(image)
-            pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
-            self.extents[image] = (image, load, load + pkg.stat().st_size) if load is not None and pkg.is_file() else (image, 0, 1 << 32)
-        return self.extents[image]
+        """(image, where it loads, where it ends)."""
+        return (image, IMAGES[image].load, IMAGES[image].end) if image in IMAGES else (image, 0, 0)
 
     def write(self, text: str) -> None:
         """A line of its own in the log, for a renderer."""
@@ -1138,10 +1191,10 @@ class Session:
         else:
             for address in self.installers:
                 self.gdb.breakpoint(address)
-            print(f"waiting for the game to reach {', '.join(self.names.at(a) for a in sorted(self.installers))}", file=sys.stderr)
+            print(f"waiting for the game to reach {', '.join(name_at(a, started()) for a in sorted(self.installers))}", file=sys.stderr)
 
     def peek(self, address: int, length: int) -> bytes:
-        """Memory for reading only: from the shared mapping where there is one, else through the server (stopped)."""
+        """Memory for reading only: from the shared block where there is one, else through the server (stopped)."""
         if self.shared is not None:
             data = self.shared.read(address, length)
             if data is not None:
@@ -1155,7 +1208,7 @@ class Session:
         if wanted in (False, "", "no", "off"):
             return
         base, reasons = self.cfg["blob"]["address"], []
-        for name in Shared.find(wanted):
+        for name in Shared.find(wanted, self.cfg["memory"].get("process", "")):
             try:
                 shared = Shared(name)
             except OSError as error:
@@ -1163,11 +1216,11 @@ class Session:
                 continue
             if shared.read(base, len(self.code)) == self.code:
                 self.shared = shared
-                print(f"reading memory from the shared mapping {name}: the buffer is read as the game runs, without stopping it", file=sys.stderr)
+                print(f"reading memory from the shared block {name}: the buffer is read as the game runs, without stopping it", file=sys.stderr)
                 return
             reasons.append(f"{name} does not hold this game's memory where expected")
-        if wanted != "auto" or reasons:
-            print("no usable shared memory (" + "; ".join(reasons or ["none found"]) + "): reading through the GDB server", file=sys.stderr)
+            shared.close()
+        print("no usable shared memory (" + "; ".join(reasons or ["none found"]) + "): reading through the GDB server", file=sys.stderr)
 
     def setup(self) -> None:
         base = self.cfg["blob"]["address"]
@@ -1190,10 +1243,11 @@ class Session:
         for address in self.drains:
             self.gdb.breakpoint(address)
         self.ready = True
-        placed = self.install("")
-        for image in self.cfg.get("resident", []):
-            placed += self.install(image)
-        others = sorted(name for name in self.by_image if name and name not in self.cfg.get("resident", []))
+        there = [item.name for item in started()] + [name for name in self.cfg.get("resident", []) if name in IMAGES and not IMAGES[name].start]
+        placed = sum(self.install(name) for name in there)
+        for name in self.cfg.get("resident", []):
+            self.residents[IMAGES[name].load if name in IMAGES else name] = name
+        others = sorted(name for name in self.by_image if name not in there)
         print(f"{placed} of {len(self.hooks)} hooks in place" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""), file=sys.stderr)
         if others and not any(e.get("handler") for e in self.events):
             print("no event has a handler, so nothing will say so: name the images already in memory with --resident, or use the `resident` command", file=sys.stderr)
@@ -1241,7 +1295,7 @@ class Session:
         """An image is in memory, whole, from here on: its symbols name addresses in the log, and the hooks of the
         events in it are written. It takes the place of whatever was at its load address. For a handler, with the
         game stopped."""
-        self.residents[self.loads.get(image, image)] = image
+        self.residents[IMAGES[image].load if image in IMAGES else image] = image
         if image in self.by_image:
             placed = self.install(image)
             print(f"{image}: {placed} of {len(self.by_image[image])} hooks in place", file=sys.stderr)
@@ -1405,11 +1459,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["run", "check", "blob"])
     ap.add_argument("--config", type=Path, default=Path(__file__).with_name("events.toml"))
-    ap.add_argument("--out", type=Path, help="the log; by default a new file per run, local/gametrace/trace-<date>-<time>.jsonl")
+    ap.add_argument("--out", type=Path, help="the log; by default a new file per run, trace-<date>-<time>.jsonl in the config's log directory")
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
-    ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written with the executable's (repeatable); with --now, usually gameplay")
+    ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written at setup (repeatable); with --now, usually gameplay")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
@@ -1421,13 +1475,12 @@ def main() -> int:
     if args.now:
         cfg["install_at"] = []
     cfg["resident"] = args.resident or []
-    names = Names()
     if args.command in ("check", "blob"):
         for address in cfg["install_at"]:
-            print(f"set up at {address:#010x}  {names.at(address)}")
+            print(f"set up at {address:#010x}  {name_at(address, started())}")
         for event in cfg.get("event", []):
-            found = returns_in(event, names)
-            print(f"{event['id']:>5}  {event['name']:<24} {event['address']:#010x}  {names.at(event['address'])}")
+            found = returns_in(event)
+            print(f"{event['id']:>5}  {event['name']:<24} {event['address']:#010x}  {name_at(event['address'], [IMAGES[event['image']]])}")
             print(f"       enter: {', '.join(event['capture'])}  ({record_size(event['_enter'])} bytes)" + (f"   rendered by {event['render']}" if event.get("render") else "") + ("   drains the buffer" if event["drain"] else ""))
             if event["exits"]:
                 print(f"       exit at {', '.join(f'+{o:#x}' for o in event['exits'])}: {', '.join(event['exit_capture'])}  ({record_size(event['_exit'])} bytes)")
@@ -1438,6 +1491,7 @@ def main() -> int:
         print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, buffer of {cfg['blob']['bytes']} bytes at {symbols['gt_buffer']:#010x}; "
               f"the game stops only at {symbols['gt_full']:#010x}, when the buffer is full")
         if args.command == "blob":
+            OUT = cfg["_out"]
             OUT.mkdir(parents=True, exist_ok=True)
             (OUT / "blob.bin").write_bytes(code)
             (OUT / "blob.s").write_text(stub_source(cfg, sites_of(cfg)), encoding="utf-8")
@@ -1449,7 +1503,7 @@ def main() -> int:
         return 0
     if args.out is None:
         import datetime
-        args.out = OUT / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
+        args.out = cfg["_out"] / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
     args.out.parent.mkdir(parents=True, exist_ok=True)
     print(f"writing {args.out}", file=sys.stderr)
     try:
