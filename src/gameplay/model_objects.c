@@ -14,6 +14,7 @@
 #include "gameplay/actor_render.h"
 #include "actor_render.h"
 #include "model_objects.h"
+#include "tmd_stream_types.h"
 #include "gameplay/room_effects.h"
 
 #include "main/display.h"
@@ -21,6 +22,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/tmd_stream_types.h"
 
 // Bank-0 descriptor that refreshes coordinates and draws the active model list.
 enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
@@ -56,33 +58,6 @@ enum {
     TMD_ENV_MAP_REDUCED_NORMAL_SHIFT      = 8,
     TMD_ENV_MAP_REDUCED_CENTER            = 32
 };
-
-/// Four-halfword prefix of an environment-mapped corner element.
-///
-/// Destinations are independent byte offsets from `preXformWrite`, not
-/// indices of complete packets. The stream's word stride determines the
-/// full element extent; this type describes only the fields read here.
-typedef struct {
-    u16 vertexByteRef; // Vertex byte reference; shifted by three to index the depth cache
-    u16 normalByteRef; // Normal byte reference; low three bits masked before loading
-    u16 xyByteOffset;  // Destination of packed screen XY, followed by two texture bytes
-    u16 rgbByteOffset; // Destination of the lit RGB/code word
-} _TmdEnvMapCornerRefs;
-STATIC_ASSERT_SIZEOF(_TmdEnvMapCornerRefs, 2 * sizeof(u32));
-
-/// Four-halfword prefix of a corner shared by two environment-layer packets.
-///
-/// Each destination selects a colour group; screen XY follows four bytes
-/// later and the layer's U/V follow eight bytes later. Geometry references
-/// encode SVECTOR byte offsets. Any words beyond this prefix remain outside
-/// this type; `elemStride` supplies the full stream stride.
-typedef struct {
-    u16 vertexByteRef;        // Vertex reference; shifted by three to index the depth cache
-    u16 normalByteRef;        // Normal reference; low three bits masked before loading
-    u16 layerColorByteOffset; // Layer colour-group byte offset from preXformWrite
-    u16 baseColorByteOffset;  // Base colour-group byte offset from preXformWrite
-} _TmdEnvLayerCornerRefs;
-STATIC_ASSERT_SIZEOF(_TmdEnvLayerCornerRefs, 2 * sizeof(u32));
 
 static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* workspace, u32* elements);
 
@@ -247,11 +222,11 @@ static inline s32 _tmdTexturedQuadSecondTriangleFacing(TmdStreamWorkspace* works
 /// GTE/workspace projection and normal scratch, and retains no borrowed storage.
 static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* workspace, u32* elements)
 {
-    s32                         previousVertexRef;
-    s32                         initialElementCount;
-    u32                         vertexRef;
-    const _TmdEnvMapCornerRefs* cornerRefs;
-    u8*                         packetDestination;
+    s32                     previousVertexRef;
+    s32                     initialElementCount;
+    u32                     vertexRef;
+    const TmdLitCornerRefs* cornerRefs;
+    u8*                     packetDestination;
 
     initialElementCount = workspace->elemCount;
     if (initialElementCount == 0) {
@@ -261,7 +236,7 @@ static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* work
     workspace->elemCount = initialElementCount + previousVertexRef;
     if (initialElementCount > 0) {
         do {
-            cornerRefs = (const _TmdEnvMapCornerRefs*)elements;
+            cornerRefs = (const TmdLitCornerRefs*)elements;
             vertexRef  = cornerRefs->vertexByteRef;
             // Reuse projection only for adjacent identical vertex references.
             if (vertexRef != previousVertexRef) {
@@ -1359,13 +1334,13 @@ const CVECTOR        gModelLightingWhiteColor = { 0xFF, 0xFF, 0xFF, 0 };
 /// No current stream resolver selects this retained private routine.
 static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32                           previousVertexRef;
-    s32                           initialElementCount;
-    u32                           vertexRef;
-    const _TmdEnvLayerCornerRefs* cornerRefs;
-    CVECTOR                       baseMaterial;
-    CVECTOR                       layerMaterial;
-    u8*                           packetDestination;
+    s32                       previousVertexRef;
+    s32                       initialElementCount;
+    u32                       vertexRef;
+    const TmdLayerCornerRefs* cornerRefs;
+    CVECTOR                   baseMaterial;
+    CVECTOR                   layerMaterial;
+    u8*                       packetDestination;
 
     baseMaterial        = gModelLightingNeutralColor;
     layerMaterial       = gModelLightingNeutralColor;
@@ -1377,7 +1352,7 @@ static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspac
     workspace->elemCount = initialElementCount + previousVertexRef;
     if (initialElementCount > 0) {
         do {
-            cornerRefs = (const _TmdEnvLayerCornerRefs*)elements;
+            cornerRefs = (const TmdLayerCornerRefs*)elements;
             vertexRef  = cornerRefs->vertexByteRef;
             // Reuse projection only for adjacent identical vertex references.
             if (vertexRef != previousVertexRef) {
@@ -1492,18 +1467,18 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
     gte_gpl12();                                                                 \
     gte_stcv(cursor)
 
-    s32                         previousVertexRef;
-    s32                         initialElementCount;
-    u32                         vertexRef;
-    const _TmdEnvMapCornerRefs* cornerRefs;
-    CVECTOR                     materialColor;
-    CVECTOR                     referenceColor;
-    u8*                         packetDestination;
-    u8*                         colorDestination;
-    s16*                        screenComponent;
-    SVECTOR*                    rotatedNormal;
-    s32                         secondPage;
-    s32                         textureComponent;
+    s32                     previousVertexRef;
+    s32                     initialElementCount;
+    u32                     vertexRef;
+    const TmdLitCornerRefs* cornerRefs;
+    CVECTOR                 materialColor;
+    CVECTOR                 referenceColor;
+    u8*                     packetDestination;
+    u8*                     colorDestination;
+    s16*                    screenComponent;
+    SVECTOR*                rotatedNormal;
+    s32                     secondPage;
+    s32                     textureComponent;
 
     materialColor  = gModelLightingWhiteColor;
     referenceColor = gModelLightingNeutralColor;
@@ -1516,7 +1491,7 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
     workspace->elemCount = initialElementCount + previousVertexRef;
     if (initialElementCount > 0) {
         do {
-            cornerRefs = (const _TmdEnvMapCornerRefs*)elements;
+            cornerRefs = (const TmdLitCornerRefs*)elements;
             vertexRef  = cornerRefs->vertexByteRef;
             // Reuse projection only for adjacent identical vertex references.
             if (vertexRef != previousVertexRef) {

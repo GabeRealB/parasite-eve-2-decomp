@@ -370,7 +370,7 @@ void areaApplyNewGameMapMarks(void)
 
 void menuMapRebuildMarkedAreaBits(void)
 {
-    enum { MENU_MAP_STAGE_COUNT            = GAME_STAGE_SHELTER_NEO_ARK - GAME_STAGE_ACROPOLIS + 1,
+    enum { MENU_MAP_STAGE_COUNT            = ARRAY_SIZE(gMenuMapStageAreaCounts.markedAreaIdLimits),
            MENU_MAP_AREA_BITS_PER_WORD     = 32,
            MENU_MAP_SECOND_WORD_FIRST_AREA = 33 };
     GameLocationKey        areaKey;
@@ -401,7 +401,7 @@ void menuMapRebuildMarkedAreaBits(void)
     areaKey.stage = stageId;
     // Refresh only this stage's area bits; higher bits retain their prior values.
     if (gGameSession->location.loc.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
-        areaCount = gMenuMapStageAreaCounts.counts[currentLocation->stage - GAME_STAGE_ACROPOLIS];
+        areaCount = gMenuMapStageAreaCounts.markedAreaIdLimits[currentLocation->stage - GAME_STAGE_ACROPOLIS];
         for (areaId = 1; areaId <= areaCount; areaId++) {
             areaKey.area = areaId;
             if (_areaHasMapMark(&areaKey) == 1) {

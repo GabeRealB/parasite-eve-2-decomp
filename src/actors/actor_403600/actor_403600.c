@@ -45,6 +45,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
+#include "main/tmd_stream_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/frame_capture.h"
 
@@ -3502,7 +3503,7 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
     u8*                     savedScratchHead;
     _Actor403600TriScratch* scratch;
     GfxCoord*               planeCoord;
-    const u16*              offsets;
+    const TmdLitCornerRefs* cornerRefs;
     s32                     previousVertexOffset;
 
     if (gActor403600RipplePlaneCoord != NULL) {
@@ -3531,12 +3532,12 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
         scratch->local.t[2] = scratch->offset.vz;
         gte_ldrgb(&color);
         while (workspace->elemCount-- > 0) {
-            offsets = (const u16*)elements;
+            cornerRefs = (const TmdLitCornerRefs*)elements;
             // Consecutive references reuse projection and depth, even on GTE failure.
-            if (offsets[0] != previousVertexOffset) {
+            if (cornerRefs->vertexByteRef != previousVertexOffset) {
                 gte_SetTransMatrix(&scratch->local);
                 gte_SetRotMatrix(&scratch->local);
-                ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], scratch->verts[0]);
+                ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[cornerRefs->vertexByteRef >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], scratch->verts[0]);
                 gte_SetRotMatrix(&gActor403600RipplePlaneCoord->workm);
                 gte_SetTransMatrix(&gActor403600RipplePlaneCoord->workm);
                 gte_ldv0(&scratch->verts[0]);
@@ -3546,14 +3547,14 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
                 if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                     workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                workspace->szTable[offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT] = workspace->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT] = workspace->gteResult;
             }
-            gte_stsxy(workspace->preXformWrite + offsets[2]);
-            gte_ldv0(&workspace->normals[offsets[1] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
+            gte_stsxy(workspace->preXformWrite + cornerRefs->xyByteOffset);
+            gte_ldv0(&workspace->normals[cornerRefs->normalByteRef >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT]);
             gte_nccs();
             elements += workspace->elemStride;
-            gte_strgb(workspace->preXformWrite + offsets[3]);
-            previousVertexOffset = offsets[0];
+            gte_strgb(workspace->preXformWrite + cornerRefs->rgbByteOffset);
+            previousVertexOffset = cornerRefs->vertexByteRef;
         }
         // Restore the part transform without advancing either packet-region cursor.
         gte_SetTransVector(&scratch->trans);

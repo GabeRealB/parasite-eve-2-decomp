@@ -18,6 +18,7 @@
 #include "hud_sprites.h"
 #include "model_lighting.h"
 #include "model_objects.h"
+#include "tmd_stream_types.h"
 #include "pad_input.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -113,23 +114,23 @@ STATIC_ASSERT(OFFSET_OF(POLY_GT4, u1) - OFFSET_OF(POLY_GT4, u0) == TMD_ENV_CORNE
 
 /// Lights the layer/base colour groups of one offset-layer corner and saves its rotated normal.
 ///
-/// Destination halfwords 2/3 are byte offsets into aligned writable CVECTOR
-/// groups in the first packet region; halfword 1 references a complete normal
+/// The `TmdLayerCornerRefs` layer/base offsets select aligned writable CVECTOR
+/// groups in the first packet region; its normal reference selects a complete
 /// SVECTOR after masking its low bits. The caller configures GTE lighting and
 /// supplies the layer/base material RGB/code words. GTE lighting registers and
 /// workspace normal scratch change; packet cursors and counts do not.
 /// Arguments are evaluated repeatedly: supply side-effect-free pointers.
 /// Captures no caller identifiers. Expands to several statements: use only
 /// inside an enclosing compound block, never as an unbraced conditional body.
-#define TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, layerMaterial, baseMaterial)                 \
-    gte_ldv0((const u8*)(workspace)->normals + ((elementHalfwords)[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK)); \
-    gte_ldrgb((layerMaterial));                                                                                 \
-    gte_nccs();                                                                                                 \
-    gte_strgb((workspace)->preXformWrite + (elementHalfwords)[2]);                                              \
-    gte_ldrgb((baseMaterial));                                                                                  \
-    gte_nccs();                                                                                                 \
-    gte_strgb((workspace)->preXformWrite + (elementHalfwords)[3]);                                              \
-    gte_rtv0();                                                                                                 \
+#define TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, layerMaterial, baseMaterial)                             \
+    gte_ldv0((const u8*)(workspace)->normals + ((elementHalfwords)->normalByteRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK)); \
+    gte_ldrgb((layerMaterial));                                                                                             \
+    gte_nccs();                                                                                                             \
+    gte_strgb((workspace)->preXformWrite + (elementHalfwords)->layerColorByteOffset);                                       \
+    gte_ldrgb((baseMaterial));                                                                                              \
+    gte_nccs();                                                                                                             \
+    gte_strgb((workspace)->preXformWrite + (elementHalfwords)->baseColorByteOffset);                                        \
+    gte_rtv0();                                                                                                             \
     gte_stsv(&(workspace)->elemNormal);
 
 /// Work block of the task that runs play.
@@ -939,18 +940,18 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 
 u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    s32        previousVertexRef;
-    s32        elementCount;
-    u32        vertexRef;
-    const u16* elementHalfwords;
-    CVECTOR    referenceColor;
-    u8*        textureCoordinate;
-    u8*        layerColor;
-    s16*       screenComponent;
-    SVECTOR*   rotatedNormal;
-    s32        colorBlend;
-    s32        secondPage;
-    s32        textureComponent;
+    s32                       previousVertexRef;
+    s32                       elementCount;
+    u32                       vertexRef;
+    const TmdLayerCornerRefs* cornerRefs;
+    CVECTOR                   referenceColor;
+    u8*                       textureCoordinate;
+    u8*                       layerColor;
+    s16*                      screenComponent;
+    SVECTOR*                  rotatedNormal;
+    s32                       colorBlend;
+    s32                       secondPage;
+    s32                       textureComponent;
 
     referenceColor = gModelLightingNeutralColor;
     elementCount   = workspace->elemCount;
@@ -961,8 +962,8 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
     workspace->elemCount = elementCount + previousVertexRef;
     if (elementCount > 0) {
         do {
-            elementHalfwords = (const u16*)elements;
-            vertexRef        = elementHalfwords[0];
+            cornerRefs = (const TmdLayerCornerRefs*)elements;
+            vertexRef  = cornerRefs->vertexByteRef;
             // Consecutive identical references reuse the GTE projection and cached depth.
             if (vertexRef != previousVertexRef) {
                 gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
@@ -972,19 +973,19 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
                 if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                     workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            previousVertexRef = elementHalfwords[0];
-            gte_stsxy(workspace->preXformWrite + elementHalfwords[2] + 4);
-            gte_stsxy(workspace->preXformWrite + elementHalfwords[3] + 4);
+            previousVertexRef = cornerRefs->vertexByteRef;
+            gte_stsxy(workspace->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, x0) - OFFSET_OF(POLY_GT3, r0)));
+            gte_stsxy(workspace->preXformWrite + cornerRefs->baseColorByteOffset + (OFFSET_OF(POLY_GT3, x0) - OFFSET_OF(POLY_GT3, r0)));
             gte_stsxy(&workspace->texCoord);
-            gte_ldv0((const u8*)workspace->normals + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_ldv0((const u8*)workspace->normals + (cornerRefs->normalByteRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
             gte_nccs();
-            gte_strgb(workspace->preXformWrite + elementHalfwords[2]);
+            gte_strgb(workspace->preXformWrite + cornerRefs->layerColorByteOffset);
             gte_ldrgb(&_gModelLightingEnvironmentBaseMaterial);
             gte_nccs();
-            gte_strgb(workspace->preXformWrite + elementHalfwords[3]);
+            gte_strgb(workspace->preXformWrite + cornerRefs->baseColorByteOffset);
             gte_rtv0();
             gte_stsv(&workspace->elemNormal);
             elements += workspace->elemStride;
@@ -993,7 +994,7 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
             colorBlend = workspace->obj->shading.colorBlend;
             if (colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
                 gte_lddp(colorBlend);
-                layerColor = workspace->preXformWrite + elementHalfwords[2];
+                layerColor = workspace->preXformWrite + cornerRefs->layerColorByteOffset;
                 gte_ldcv(layerColor);
                 gte_gpf12();
                 gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - colorBlend);
@@ -1003,7 +1004,7 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
             }
             screenComponent   = &workspace->texCoord.vx;
             secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
-            textureCoordinate = workspace->preXformWrite + elementHalfwords[2] + 8;
+            textureCoordinate = workspace->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, r0));
             rotatedNormal     = &workspace->elemNormal;
             TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
             *textureCoordinate                                 = textureComponent;
@@ -1017,15 +1018,15 @@ u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFla
 {
     enum { TMD_OFFSET_LAYER_COLOR_SHIFT = 5 };
     enum { TMD_PREVIOUS_VERTEX_REF_NONE = -1 };
-    s32        previousVertexRef;
-    s32        elementCount;
-    u32        vertexRef;
-    const u16* elementHalfwords;
-    CVECTOR    layerMaterial;
-    CVECTOR    baseMaterial;
-    u8*        screenDestination;
-    s32        layerIntensity;
-    s32        baseIntensity;
+    s32                       previousVertexRef;
+    s32                       elementCount;
+    u32                       vertexRef;
+    const TmdLayerCornerRefs* cornerRefs;
+    CVECTOR                   layerMaterial;
+    CVECTOR                   baseMaterial;
+    u8*                       screenDestination;
+    s32                       layerIntensity;
+    s32                       baseIntensity;
 
     layerMaterial   = gModelLightingWhiteColor;
     baseMaterial    = gModelLightingNeutralColor;
@@ -1045,8 +1046,8 @@ u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFla
     workspace->elemCount = elementCount + previousVertexRef;
     if (elementCount > 0) {
         do {
-            elementHalfwords = (const u16*)elements;
-            vertexRef        = elementHalfwords[0];
+            cornerRefs = (const TmdLayerCornerRefs*)elements;
+            vertexRef  = cornerRefs->vertexByteRef;
             // Reuse screen XY and cached Z only for consecutive identical references.
             if (vertexRef != previousVertexRef) {
                 gte_ldv0((const u8*)workspace->verts + (vertexRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
@@ -1056,15 +1057,15 @@ u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFla
                 if (workspace->gteFlag & TMD_GTE_ERROR_FLAG) {
                     workspace->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
-                workspace->szTable[elementHalfwords[0] >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
+                workspace->szTable[cornerRefs->vertexByteRef >> TMD_STREAM_VERTEX_INDEX_SHIFT] = workspace->gteResult;
             }
-            previousVertexRef = elementHalfwords[0];
-            screenDestination = workspace->preXformWrite + elementHalfwords[2] + sizeof(CVECTOR);
+            previousVertexRef = cornerRefs->vertexByteRef;
+            screenDestination = workspace->preXformWrite + cornerRefs->layerColorByteOffset + sizeof(CVECTOR);
             gte_stsxy(screenDestination);
-            screenDestination = workspace->preXformWrite + elementHalfwords[3] + sizeof(CVECTOR);
+            screenDestination = workspace->preXformWrite + cornerRefs->baseColorByteOffset + sizeof(CVECTOR);
             gte_stsxy(screenDestination);
             gte_stsxy(&workspace->texCoord);
-            TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, &layerMaterial, &baseMaterial);
+            TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, cornerRefs, &layerMaterial, &baseMaterial);
             elements += workspace->elemStride;
         } while (workspace->elemCount-- > 0);
     }

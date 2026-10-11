@@ -94,7 +94,7 @@ enum {
     DIRECTION_WARP_DRIVEWAY_FACING_Z    = 2497
 };
 
-MenuMapAreaCountStorage gMenuMapStageAreaCounts = { { 17, 38, 38, 49, 33 }, { 0xE1, 0xFF, 0x22 } };
+MenuMapMarkedAreaLimitStorage gMenuMapStageAreaCounts = { { 17, 38, 38, 49, 33 }, { 0xE1, 0xFF, 0x22 } };
 
 u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH] = {
     1,

@@ -194,12 +194,18 @@ typedef struct {
 } _ItemMenuAmmoSplitWork;
 STATIC_ASSERT_SIZEOF(_ItemMenuAmmoSplitWork, 0x18);
 
-/// Task-owned lighting storage borrowed by a placed container's model.
+/// Lighting matrices owned by a placed item-container lid task.
+///
+/// One zeroed primary-heap allocation is held in `Task::work`; the model
+/// borrows both matrices while the task runs. Room-light queries refresh three
+/// light rows and colour columns, with ambient RGB in the colour translation.
+/// Default task teardown frees the allocation and stops active model drawing;
+/// the model retains stale matrix pointers until its deferred release.
 typedef struct {
-    MATRIX light; // Room-light directions lent to `TmdObject::lightMtx`.
-    MATRIX color; // Room-light colours and ambient lent to `TmdObject::colorMtx`.
+    MATRIX light; // Q12 light-direction rows borrowed as `TmdObject::lightMtx`; translation unused
+    MATRIX color; // Q12 light-colour columns and ambient RGB in t[], borrowed as `TmdObject::colorMtx`
 } _ItemPickupLidLighting;
-STATIC_ASSERT_SIZEOF(_ItemPickupLidLighting, 0x40);
+STATIC_ASSERT_SIZEOF(_ItemPickupLidLighting, 2 * sizeof(MATRIX));
 
 /// Borrowed work of the single active container/carried-item transfer screen.
 ///

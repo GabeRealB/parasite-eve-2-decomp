@@ -38189,7 +38189,7 @@ block that follows an `if`, and only reads `p->vy` many instructions later:
 ```c
 sxy  = &ws->texCoord;   /* loop.c hoists the address, leaves `move t1, t8` here */
 flag = 0;
-dest = ws->preXformWrite + rec[2] + 8;
+dest = ws->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, r0));
 ```
 
 Two things went wrong with the plain version. The copy has no in-block
@@ -38219,7 +38219,7 @@ part that matters for allocation.
 The vendored `perm_pycparser` grammar has
 `asm_operand : ... LPAREN unary_expression RPAREN`, so any inline-asm operand
 containing a cast or a binary operator — which is most of the `gte_*` macro call
-sites, e.g. `gte_stsxy(ws->preXformWrite + rec[2] + 4)` — makes the permuter bail with
+sites, e.g. `gte_stsxy(ws->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, x0) - OFFSET_OF(POLY_GT3, r0)))` — makes the permuter bail with
 `Syntax error in base.c ... before: +`. Hoisting those operands into temporaries
 to work around it changes codegen (it cost ~5% on `tmdXformStreamVertsEnvLayer`), so for
 GTE-heavy functions treat the permuter as unavailable and iterate on the C by

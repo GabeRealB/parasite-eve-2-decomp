@@ -5,16 +5,20 @@
 
 #include "gameplay/map.h"
 
-/// Stored stage limits for refreshing the map's marked-area cache.
+#include "main/areas.h"
+
+/// Per-stage inclusive area-ID limits for the map's marked-area cache.
 ///
-/// Only the first five bytes have count consumers. The following three bytes
-/// retain the existing image span; their role and the original object's end
-/// are unproven, so they are not additional stage counts.
+/// Index by stage minus `GAME_STAGE_ACROPOLIS` for stages 1..5. Refresh visits
+/// IDs 1 through the selected signed-byte limit; higher cache bits are retained.
+/// These limits do not size the area directory or the map's shape tables.
+/// The trailing bytes retain the image span; their role and the original
+/// object's end are unproven.
 typedef struct {
-    s8   counts[5];     // Signed area limits for stages 1..5: 17, 38, 38, 49, 33
-    byte unknown_05[3]; // Retained nonzero bytes with no known consumer; role unproven
-} MenuMapAreaCountStorage;
-STATIC_ASSERT_SIZEOF(MenuMapAreaCountStorage, 8);
+    s8   markedAreaIdLimits[GAME_STAGE_SHELTER_NEO_ARK - GAME_STAGE_ACROPOLIS + 1]; // Last refreshed area ID per stage: 17, 38, 38, 49, 33
+    byte unknown_05[3];                                                             // Retained nonzero bytes with no known consumer; role unproven
+} MenuMapMarkedAreaLimitStorage;
+STATIC_ASSERT_SIZEOF(MenuMapMarkedAreaLimitStorage, 8);
 
 /// Current-stage areas drawn with the map's marked-area fill.
 ///
@@ -27,9 +31,9 @@ extern u32 gMenuMapMarkedAreaBits[2];
 
 /// Per-stage signed area limits used when refreshing the marked-area cache.
 ///
-/// Index `counts` by stage-1 for stages 1..5. These limits describe the cache's
+/// Index `markedAreaIdLimits` by stage-1 for stages 1..5. These limits describe the cache's
 /// refresh range, not the complete area's directory extent. Tail bytes are opaque.
-extern MenuMapAreaCountStorage gMenuMapStageAreaCounts;
+extern MenuMapMarkedAreaLimitStorage gMenuMapStageAreaCounts;
 
 /// Packed marker-table entry and marker-state values used by the map screen.
 enum {

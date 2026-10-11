@@ -183,12 +183,18 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
 
 static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 nextLevel);
 
-/// Texture treatment for a map area's shape, independent of its visited flags.
+/// Rendering treatments for a map area's overlay shape.
+///
+/// Pattern uses an unmodulated, screen-anchored 32-texel repeating texture at
+/// the panel's OT index. Other modes sample the map picture with RGB modulation
+/// at the next OT index. Callers select the treatment from exploration and
+/// marker state; the renderer does not read those flags. Blue is supported by
+/// the renderer but has no current caller; values other than 0..2 also draw red.
 typedef enum {
-    MENU_MAP_AREA_FILL_PATTERN = 0,
-    MENU_MAP_AREA_FILL_DIM     = 1,
-    MENU_MAP_AREA_FILL_BLUE    = 2,
-    MENU_MAP_AREA_FILL_RED     = 3
+    MENU_MAP_AREA_FILL_PATTERN = 0, // Repeating cover for an unknown, unvisited area
+    MENU_MAP_AREA_FILL_DIM     = 1, // RGB (32,32,32) for a known, unvisited area
+    MENU_MAP_AREA_FILL_BLUE    = 2, // RGB (64,64,255); no current selection
+    MENU_MAP_AREA_FILL_RED     = 3  // RGB (255,64,64) for a visited, marked area
 } _MenuMapAreaShapeFill;
 
 static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12);
