@@ -68,6 +68,13 @@ enum {
     ACTOR_460200_PLAYER_CLIP_48            = ANIMATION_BANK_BASE_SET_COUNT + 1,
     ACTOR_460200_PLAYER_CLIP_49            = ANIMATION_BANK_BASE_SET_COUNT + 2,
     ACTOR_460200_PLAYER_CLIP_50            = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    ACTOR_460200_PLAYER_CLIP_51            = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    ACTOR_460200_PLAYER_CLIP_52            = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    ACTOR_460200_PLAYER_CLIP_53            = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    ACTOR_460200_PLAYER_CLIP_54            = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    ACTOR_460200_PLAYER_CLIP_55            = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    ACTOR_460200_PLAYER_CLIP_56            = ANIMATION_BANK_BASE_SET_COUNT + 9,
+    ACTOR_460200_PLAYER_CLIP_57            = ANIMATION_BANK_BASE_SET_COUNT + 10,
     ACTOR_460200_PLAYER_CLIP_61            = ANIMATION_BANK_BASE_SET_COUNT + 14,
     ACTOR_460200_SOLDIER_A_CLIP_13         = 13,
     ACTOR_460200_SOLDIER_A_CLIP_14         = 14,
@@ -85,7 +92,29 @@ enum {
     ACTOR_460200_SOLDIER_C_CLIP_4          = 4,
     ACTOR_460200_SOLDIER_C_CLIP_5          = 5,
     ACTOR_460200_SOLDIER_C_CLIP_6          = 6,
+    ACTOR_460200_SOLDIER_C_CLIP_7          = 7,
+    ACTOR_460200_SOLDIER_C_CLIP_8          = 8,
+    ACTOR_460200_SOLDIER_C_CLIP_9          = 9,
+    ACTOR_460200_SOLDIER_C_CLIP_10         = 10,
+    ACTOR_460200_SOLDIER_C_CLIP_11         = 11,
+    ACTOR_460200_SOLDIER_C_CLIP_12         = 12,
+    ACTOR_460200_SOLDIER_C_CLIP_13         = 13,
+    ACTOR_460200_SOLDIER_C_CLIP_14         = 14,
+    ACTOR_460200_SOLDIER_C_CLIP_15         = 15,
+    ACTOR_460200_SOLDIER_C_CLIP_16         = 16,
+    ACTOR_460200_SOLDIER_C_CLIP_17         = 17,
+    ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX = 0,
     ACTOR_460200_SOLDIER_A_PLACEMENT_INDEX = 2,
+};
+
+/// CAP command-table slots for the tent conversations.
+enum {
+    ACTOR_460200_CAP_SOLDIER_C_FIRST_TALK  = 7,
+    ACTOR_460200_CAP_SOLDIER_C_SECOND_TALK = 8,
+    ACTOR_460200_CAP_SOLDIER_C_THIRD_TALK  = 9,
+    ACTOR_460200_CAP_SOLDIER_C_REPEAT_TALK = 10,
+    ACTOR_460200_CAP_SOLDIER_A_FIRST_TALK  = 11,
+    ACTOR_460200_CAP_SOLDIER_A_SECOND_TALK = 12,
 };
 
 /// The complete word span installed in the player's animation-bank extension.
@@ -110,12 +139,6 @@ static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, 
 
 static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
 
-extern EvsCommand D_actor_460200_80137AA0[];
-extern EvsCommand D_actor_460200_80137BA8[];
-extern EvsCommand D_actor_460200_80137CB0[];
-extern EvsCommand D_actor_460200_80137DA0[];
-extern EvsCommand D_actor_460200_80137F98[];
-extern EvsCommand D_actor_460200_80137FE0[];
 extern EvsCommand D_actor_460200_80138028[];
 extern EvsCommand D_actor_460200_80138070[];
 
@@ -149,32 +172,10 @@ static void      _actor460200SoldierCTask(Task* task);
 static s32  _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 static void _actor460200SoldierATask(Task* task);
 
-extern AnimationPlayRequest D_actor_460200_80135FC8;
-extern AnimationPlayRequest D_actor_460200_80135FDC;
-extern AnimationPlayRequest D_actor_460200_80135FF0;
-extern AnimationPlayRequest D_actor_460200_80136004;
-extern AnimationPlayRequest D_actor_460200_80136018;
-extern AnimationPlayRequest D_actor_460200_8013602C;
-extern AnimationPlayRequest D_actor_460200_80136040;
-extern AnimationPlayRequest D_actor_460200_801360E0;
-extern AnimationPlayRequest D_actor_460200_801360F4;
-extern AnimationPlayRequest D_actor_460200_80136108;
-extern AnimationPlayRequest D_actor_460200_8013611C;
-extern AnimationPlayRequest D_actor_460200_80136130;
-extern AnimationPlayRequest D_actor_460200_80136144;
-extern AnimationPlayRequest D_actor_460200_80136158;
-extern AnimationPlayRequest D_actor_460200_8013616C;
-extern AnimationPlayRequest D_actor_460200_80136180;
-extern AnimationPlayRequest D_actor_460200_80136194;
-extern AnimationPlayRequest D_actor_460200_801361A8;
-extern ActorTransform       D_actor_460200_801361BC;
-extern ActorTransform       D_actor_460200_801361EC;
-extern ActorTransform       D_actor_460200_80136204;
-extern ActorTransform       D_actor_460200_8013621C;
-static void                 _actor460200ModeExitCountdownTask(Task* task);
-static void                 _actor460200SelectCaptionFile(s32 dataResourceOrdinal);
-static void                 _screenNegativeFilterCutscene(void);
-static void                 _actor460200SetSceneEvent(s8 sceneEvent);
+static void _actor460200ModeExitCountdownTask(Task* task);
+static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal);
+static void _screenNegativeFilterCutscene(void);
+static void _actor460200SetSceneEvent(s8 sceneEvent);
 
 static void _actor460200NegativeCaptureTask(Task* task);
 
@@ -576,19 +577,54 @@ static AnimationPlayRequest _gActor460200PlayerClip49Request = { { .index = 1 },
 /// weapon bank; the request and clip data belong to this loaded package.
 static AnimationPlayRequest _gActor460200PlayerClip50Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80135FC8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 51 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip51Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80135FDC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 52 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip52Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80135FF0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 53 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip53Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136004 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 54 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip54Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136018 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 55 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip55Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_8013602C = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 56 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip56Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136040 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped player's clip 57 without blending, disabling world-grid participation.
+///
+/// Event playback resolves the equipped weapon bank in a copy of this request.
+/// The installed extension clips belong to this package and must remain loaded
+/// through playback.
+static AnimationPlayRequest _gActor460200PlayerClip57Request = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_460200_80136054[2] = {
     { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -625,53 +661,140 @@ static AnimationPlayRequest _gActor460200SoldierCClip5Request = { { .index = 1 }
 /// request is borrowed through synchronous dispatch while this package is loaded.
 static AnimationPlayRequest _gActor460200SoldierCClip6Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_801360E0 = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 7 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip7Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_801360F4 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 8 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip8Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136108 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 9 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip9Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_8013611C = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 10 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip10Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136130 = { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 11 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip11Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136144 = { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 12 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip12Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136158 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 13 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip13Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_8013616C = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 14 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip14Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136180 = { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 15 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip15Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_80136194 = { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 16 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip16Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_460200_801361A8 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Soldier C's clip 17 without blending for the tent cutscene.
+///
+/// The receiver reads the clip and reset choice during dispatch, ignoring the
+/// bank selector, blend duration and collision choice. The clip data must
+/// remain loaded through playback.
+static AnimationPlayRequest _gActor460200SoldierCClip17Request = { { .index = 1 }, ACTOR_460200_SOLDIER_C_CLIP_17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_actor_460200_801361BC = { { -910, 0, 5650, 0 }, { 0, -1592, 0, 0 } };
+/// Player position and orientation at the start of the tent cutscene.
+///
+/// Position uses room-coordinate units; Euler angles use 4096 units per turn.
+/// The placement is borrowed only through synchronous dispatch.
+static ActorTransform _gActor460200PlayerCutsceneStartPlacement = { { -910, 0, 5650, 0 }, { 0, -1592, 0, 0 } };
 
 /// Player placement restored by both normal and skipped tent cutscene endings.
 ///
 /// Position is in room-coordinate units; Euler angles use 4096 units per turn.
 static ActorTransform _gActor460200PlayerPostCutscenePlacement = { { -1050, 0, 5418, 0 }, { 0, -1592, 0, 0 } };
 
-ActorTransform D_actor_460200_801361EC = { { -2100, 0, 4600, 0 }, { 0, 398, 0, 0 } };
+/// Soldier C's initial placement, reused when the tent cutscene restores this staging.
+///
+/// The receiver applies room-coordinate XYZ and yaw in 4096 units per turn,
+/// ignoring pitch and roll. The placement is borrowed only through dispatch.
+static ActorTransform _gActor460200SoldierCCutsceneStartPlacement = { { -2100, 0, 4600, 0 }, { 0, 398, 0, 0 } };
 
-ActorTransform D_actor_460200_80136204 = { { -2100, 0, 4600, 0 }, { 0, 341, 0, 0 } };
+/// Soldier C's alternate cutscene heading at his initial position.
+///
+/// The receiver applies room-coordinate XYZ and yaw in 4096 units per turn,
+/// ignoring pitch and roll. The placement is borrowed only through dispatch.
+static ActorTransform _gActor460200SoldierCCutsceneAlternateFacingPlacement = { { -2100, 0, 4600, 0 }, { 0, 341, 0, 0 } };
 
-ActorTransform D_actor_460200_8013621C = { { -2000, 0, 3800, 0 }, { 0, 1479, 0, 0 } };
+/// Soldier C's repositioned stance during the two-soldier cutscene sequence.
+///
+/// The receiver applies room-coordinate XYZ and yaw in 4096 units per turn,
+/// ignoring pitch and roll. The placement is borrowed only through dispatch.
+static ActorTransform _gActor460200SoldierCCutsceneRepositionPlacement = { { -2000, 0, 3800, 0 }, { 0, 1479, 0, 0 } };
 
 /// Soldier C's tent placement restored on setup and after either cutscene ending.
 ///
 /// Position is in room-coordinate units; yaw is a half turn toward -Z.
 static ActorTransform _gActor460200SoldierCTentPlacement = { { -2000, 0, 4700, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_actor_460200_8013624C = { { 800, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+/// Soldier B's placement before his first cutscene walk.
+///
+/// Position uses room-coordinate units; yaw is a quarter turn toward -X.
+/// The placement is borrowed only through synchronous dispatch.
+static ActorTransform _gActor460200SoldierBCutsceneEntryPlacement = { { 800, 0, 4490, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_460200_80136264 = { { -250, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+/// Soldier B's first horizontal destination in the tent cutscene.
+///
+/// The walk handler reads only room-coordinate X/Z, deriving its heading and
+/// travel count. Height and all angles are unused; no target pointer is retained.
+static ActorTransform _gActor460200SoldierBFirstWalkTarget = { { -250, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
 
-ActorTransform D_actor_460200_8013627C = { { -1000, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
+/// Soldier B's second horizontal destination in the tent cutscene.
+///
+/// The walk handler reads only room-coordinate X/Z, deriving its heading and
+/// travel count. Height and all angles are unused; no target pointer is retained.
+static ActorTransform _gActor460200SoldierBSecondWalkTarget = { { -1000, 0, 4490, 0 }, { 0, -1024, 0, 0 } };
 
-ActorTransform D_actor_460200_80136294 = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
+/// Soldier B's repositioned stance during the two-soldier cutscene sequence.
+///
+/// The receiver applies room-coordinate XYZ and yaw in 4096 units per turn,
+/// ignoring pitch and roll. The placement is borrowed only through dispatch.
+static ActorTransform _gActor460200SoldierBCutsceneRepositionPlacement = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
 
 TaskDesc D_actor_460200_801362AC = { { { TASK_BODY_NONE, 32 } }, _actor460200ModeExitCountdownTask, { .value = 0 } };
 
@@ -686,8 +809,8 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_460200_801361BC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_801361EC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .transform = &_gActor460200PlayerCutsceneStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -698,7 +821,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_80136204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneAlternateFacingPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -715,13 +838,13 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80135FC8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_801360E0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136158 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -746,7 +869,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip49Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_801360F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -754,41 +877,41 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136108 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip9Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C0007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_8013611C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_8013624C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierBCutsceneEntryPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_460200_80136264 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .transform = &_gActor460200SoldierBFirstWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136130 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_460200_8013627C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .transform = &_gActor460200SoldierBSecondWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_801361EC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136144 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_8013621C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_80136294 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneRepositionPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierBCutsceneRepositionPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80135FDC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip9Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip8Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_801360F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip7Request } }, { .value = 0 } },
@@ -798,7 +921,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierBClip8Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_801360F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -819,33 +942,33 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_801361EC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_80136204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .transform = &_gActor460200SoldierCCutsceneAlternateFacingPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_8013616C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80135FF0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80136004 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip54Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip49Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136180 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136194 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip16Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -860,7 +983,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80136018 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -868,8 +991,8 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80135FC8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_801361A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip51Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .animation = &_gActor460200SoldierCClip17Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -885,7 +1008,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_8013602C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -896,7 +1019,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &_gActor460200PlayerPostCutscenePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_460200_80136040 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &_gActor460200SoldierCTentPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -936,57 +1059,81 @@ EvsCommand D_actor_460200_80137890[22] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80137AA0[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
+/// Soldier C's first tent conversation.
+///
+/// Starts CAP dialogue and installs player extension clips, then resets the
+/// player to clip 61 and sequences Soldier C's clips 5 and 6 at CAP cues.
+/// A 19-update countdown precedes clip 2 and player-control release.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierCFirstTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_FIRST_TALK }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80137BA8[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
+/// Soldier C's second tent conversation.
+///
+/// Starts CAP dialogue and installs player extension clips, then resets the
+/// player to clip 61 and sequences Soldier C's clips 5 and 6 at CAP cues.
+/// A 19-update countdown precedes clip 2 and player-control release.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierCSecondTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_SECOND_TALK }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80137CB0[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
+/// Soldier C's third tent conversation.
+///
+/// Starts CAP dialogue and installs player extension clips, then blends the
+/// player into clip 1 while Soldier C plays clips 3 and 4 across a CAP cue.
+/// A 19-update countdown precedes clip 2 and player-control release.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierCThirdTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_THIRD_TALK }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80137DA0[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
+/// Soldier C's repeating fourth tent conversation.
+///
+/// Starts CAP dialogue and installs player extension clips, then blends the
+/// player into clip 1 while Soldier C plays clips 3 and 4 across a CAP cue.
+/// A 19-update countdown precedes clip 2 and player-control release.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierCRepeatTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_REPEAT_TALK }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1010,14 +1157,24 @@ static EvsCommand _gActor460200SoldierATalkScript[11] = {
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-EvsCommand D_actor_460200_80137F98[3] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
+/// Soldier A's first tent conversation.
+///
+/// Starts its CAP dialogue, calls `_gActor460200SoldierATalkScript` for the
+/// shared animation choreography and player-control release, then ends.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierAFirstTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_A_FIRST_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor460200SoldierATalkScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80137FE0[3] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+/// Soldier A's second tent conversation.
+///
+/// Starts its CAP dialogue, calls `_gActor460200SoldierATalkScript` for the
+/// shared animation choreography and player-control release, then ends.
+/// The commands, called scripts and clip data stay loaded through playback.
+static EvsCommand _gActor460200SoldierASecondTalkScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_A_SECOND_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor460200SoldierATalkScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -2350,19 +2507,19 @@ void actor460200TalkToSoldierC(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
         case ACTOR_460200_TALK_FIRST:
-            evsStartScript(D_actor_460200_80137AA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierCFirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_SECOND);
             break;
         case ACTOR_460200_TALK_SECOND:
-            evsStartScript(D_actor_460200_80137BA8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierCSecondTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_THIRD);
             break;
         case ACTOR_460200_TALK_THIRD:
-            evsStartScript(D_actor_460200_80137CB0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierCThirdTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_REPEAT);
             break;
         case ACTOR_460200_TALK_REPEAT:
-            evsStartScript(D_actor_460200_80137DA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierCRepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
@@ -2371,11 +2528,11 @@ void actor460200TalkToSoldierA(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
         case ACTOR_460200_TALK_FIRST:
-            evsStartScript(D_actor_460200_80137F98, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierAFirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_SECOND);
             break;
         case ACTOR_460200_TALK_SECOND:
-            evsStartScript(D_actor_460200_80137FE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierASecondTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_THIRD);
             break;
         case ACTOR_460200_TALK_THIRD:

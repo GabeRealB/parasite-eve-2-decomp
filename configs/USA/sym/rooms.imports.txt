@@ -527,7 +527,7 @@ gActor160600SceneWithCompanionScript = 0x80135D78; // absolute:True owner=actor_
 gActor450900Tasks = 0x80135E78; // absolute:True owner=actor_450900
 D_actor_451100_80135FD0 = 0x80135FD0; // absolute:True owner=actor_451100
 gActor142600IncineratorArrivalScript = 0x801360E4; // absolute:True owner=actor_142600
-D_actor_451100_80136108 = 0x80136108; // absolute:True owner=actor_451100 shared=actors
+D_actor_451100_80136108 = 0x80136108; // absolute:True owner=actor_451100
 gActor450900EntryScript = 0x80136110; // absolute:True owner=actor_450900
 gActor160600SceneSkipScript = 0x80136258; // absolute:True owner=actor_160600
 D_actor_460200_801362B8 = 0x801362B8; // absolute:True owner=actor_460200
