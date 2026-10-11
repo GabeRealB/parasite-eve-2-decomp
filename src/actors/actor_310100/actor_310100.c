@@ -147,9 +147,6 @@ static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, c
 static s32 _actor310100PlaceOfficerModel(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
 static s32 _actor310100StopOfficerController(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-extern TaskDesc D_actor_310100_801798E4;
-extern TaskDesc D_actor_310100_801798F0;
-
 static TmdSource _gActor310100PoliceOfficer1Body;
 static TmdSource _gActor310100PoliceOfficer1CulledBody;
 static TmdSource _gActor310100PoliceOfficer2Body;
@@ -680,11 +677,31 @@ static TaskMessageEntry _gActor310100OfficerMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_310100_801798E4 = { { { TASK_BODY_NONE, 192 } }, _actor310100SwapOfficerBodyModelTask, { .value = 0 } };
-
-TaskDesc D_actor_310100_801798F0 = { { { TASK_BODY_NONE, 192 } }, _actor310100SwapOfficerCulledBodyModelTask, { .value = 0 } };
-
 enum { ACTOR_310100_OFFICER_TASK_PRIORITY = 192 };
+
+/// Bodyless display-task recipe for a delayed police-officer body-model swap.
+///
+/// Entry 0 runs at priority 192. Spawn argument 1 selects officer 2 with 0 or
+/// officer 1 with 1; argument 2 borrows the live controller. After three display
+/// ticks the replacement uses its saved body animation and area placement,
+/// then resumes the game loop. The old model is released before scheduling.
+static TaskDesc _gActor310100OfficerBodySwapTaskDescriptor = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+    .callback = _actor310100SwapOfficerBodyModelTask,
+    .data     = { .value = 0 },
+};
+
+/// Bodyless display-task recipe for a delayed police-officer culled-body swap.
+///
+/// Entry 0 runs at priority 192 and holds display flipping for three ticks.
+/// Spawn argument 1 selects officer 2 with 0 (clip 5) or officer 1 with 1
+/// (clip 7); argument 2 borrows the live controller. Requires its area placement
+/// and loaded model/clip data. Replacement is posed before the game loop resumes.
+static TaskDesc _gActor310100OfficerCulledBodySwapTaskDescriptor = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+    .callback = _actor310100SwapOfficerCulledBodyModelTask,
+    .data     = { .value = 0 },
+};
 
 TaskDesc gActor310100Officer1TaskDescriptors[3] = {
     // 0: controller.
@@ -1282,7 +1299,7 @@ static s32 _actor310100SetOfficerBodyModel(Task* task, s32 messageId, s32 office
         taskKill(controllerWork->modelTask);
     }
     controllerWork->bodyAnimationId = animation->animationId;
-    displaySpawnTaskFromTable(&D_actor_310100_801798E4, 0, officerSelector, task);
+    displaySpawnTaskFromTable(&_gActor310100OfficerBodySwapTaskDescriptor, 0, officerSelector, task);
 }
 
 /// Handles the culled-body message by freezing the model or scheduling its replacement.
@@ -1307,7 +1324,7 @@ static s32 _actor310100SetOfficerCulledBodyModel(Task* task, s32 messageId, s32 
         if (controllerWork->modelTask != NULL) {
             taskKill(controllerWork->modelTask);
         }
-        displaySpawnTaskFromTable(&D_actor_310100_801798F0, 0, mode, task);
+        displaySpawnTaskFromTable(&_gActor310100OfficerCulledBodySwapTaskDescriptor, 0, mode, task);
     }
 }
 

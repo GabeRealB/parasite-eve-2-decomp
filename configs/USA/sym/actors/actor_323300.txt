@@ -1,9 +1,9 @@
 // Overlay-local symbols for actor_323300.
-D_actor_323300_8017259C = 0x8017259C; // size:0x18 defined:True
-D_actor_323300_801725B4 = 0x801725B4; // size:0x14 defined:True
+_gActor323300WomanSpawnPlacement = 0x8017259C; // size:0x18 defined:True
+_gActor323300WomanSpawnAnimationRequest = 0x801725B4; // size:0x14 defined:True
 _gActor323300WomanTurnAnimationRequest = 0x801725C8; // size:0x14 defined:True
 _gActor323300WomanTurnCompleteAnimationRequest = 0x801725DC; // size:0x14 defined:True
-D_actor_323300_80172574 = 0x80172574; // size:0x28 defined:True
+_gActor323300WomanMessageTable = 0x80172574; // size:0x28 defined:True
 gActor323300WomanStrangerTaskDescriptors = 0x8017255C; // size:0x18 defined:True
 _gActor323300Animation11FC4Bank1 = 0x801725F0; // size:0x2B8 defined:True
 _gActor323300Animation11FC4Bank4 = 0x801728A8; // size:0x510 defined:True
@@ -80,3 +80,4 @@ _actor323300WomanSpawn = 0x80161e78; // type:func
 _actor323300WomanApplyCommand = 0x80162360; // type:func
 _actor323300WomanTask = 0x80162630; // type:func
 _gActor323300StrangerStates = 0x80161e6c;
+_gActor323300WomanTaskStates = 0x80161e24;

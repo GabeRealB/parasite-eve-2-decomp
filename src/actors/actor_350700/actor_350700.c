@@ -34,13 +34,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/reversing_walker.h"
 
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_350700_8017090C[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor350700KyleMadiganWalkerInitialize(Task* task);
 static void _actor350700KyleMadiganWalkerUpdate(Task* task);
@@ -98,9 +91,13 @@ static const TaskFuncTable3 _gActor350700KyleMadiganAttachmentStates = { {
     taskKill,
 } };
 
-/// Spawn, tick and exit handlers of the parent actor, dispatched by
-/// `_actor350700KyleMadiganWalkerTask`.
-static const TaskFuncTable3 D_actor_350700_80161E5C = { {
+/// Kyle Madigan body states 0 initialize, 1 update and 2 exit.
+///
+/// `Task::state` indexes the complete three-handler copy without a bounds check
+/// or terminator. Initialization owns walker work and hand/gun child tasks;
+/// update requires the live twenty-part rig, and exit releases the enemy and
+/// task tree. Actor-control holds suspend every slot.
+static const TaskFuncTable3 _gActor350700KyleMadiganWalkerTaskStates = { {
     _actor350700KyleMadiganWalkerInitialize,
     _actor350700KyleMadiganWalkerUpdate,
     _actor350700KyleMadiganWalkerExit,
@@ -583,7 +580,13 @@ TaskDesc gActor350700KyleMadiganTaskDescriptors[4] = {
     },
 };
 
-TaskMessageEntry D_actor_350700_8017090C[6] = {
+/// Kyle Madigan body messages for animation, placement, draw modes and scripted walking.
+///
+/// Installed on the initialized twenty-part body task, whose model and hand/gun
+/// attachments must remain live for draw messages. Requests are borrowed during
+/// synchronous dispatch. Actor commands are deliberately ignored with result
+/// zero. The end marker makes unsupported message IDs return zero.
+static TaskMessageEntry _gActor350700KyleMadiganWalkerMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor350700KyleMadiganWalkerSetDrawModeMsg },
@@ -749,7 +752,7 @@ static void _actor350700KyleMadiganWalkerInitialize(Task* task)
         work->heldItemTask = childTask;
     }
     _actor350700KyleMadiganWalkerBindLighting(task);
-    task->msgTable     = D_actor_350700_8017090C;
+    task->msgTable     = _gActor350700KyleMadiganWalkerMessageTable;
     task->exitCallback = _actor350700KyleMadiganWalkerExit;
     task->state       += 1;
 }
@@ -859,7 +862,7 @@ static void _actor350700KyleMadiganWalkerTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_350700_80161E5C;
+    stateHandlers = _gActor350700KyleMadiganWalkerTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }

@@ -21,8 +21,6 @@
 
 #include "rooms/mist_shooting_gallery.h"
 
-extern s32 D_actor_215100_8014D040;
-
 TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
@@ -43,7 +41,17 @@ static AnimationPlayRequest _gActor215100GalleryLevelPromptPlayerAnimation9Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_actor_215100_8014CF98 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-index-1 reset request for clip 0, with no playback consumer.
+///
+/// Its recipient and intended use are unproven. The collision selector is
+/// disabled and the reset choice ignores the zero blend duration.
+static const AnimationPlayRequest _gActor215100RetainedBank1Clip0ResetRequest SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = 0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     ACTOR_215100_LEVEL_REPLY_FIRST_CLIP  = 24,
@@ -62,11 +70,15 @@ static AnimationPlayRequest _gActor215100GalleryLevelReplyAnimation18Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_actor_215100_8014CFC0[4] = {
-    { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 22, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Four retained bank-index-1 reset requests for clips 19..22 in that order.
+///
+/// No consumer establishes a recipient or an indexing contract. Each complete
+/// five-word request disables collision and ignores its zero blend duration.
+static const AnimationPlayRequest _gActor215100RetainedBank1Clip19To22ResetRequests[4] SECTION(".data") = {
+    { .source = { .index = 1 }, .animationId = 19, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 20, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 21, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 22, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 enum { ACTOR_215100_LEVEL_PROMPT_PIERCE_CLIP = 23 };
@@ -99,7 +111,13 @@ s32 gActor215100GalleryTrainingActive = 0;
 
 s32 gActor215100GalleryExitInputBlocked = 0;
 
-s32 D_actor_215100_8014D040 = 0;
+/// Courses staged since this gallery overlay was loaded.
+///
+/// Incremented when course startup is staged, before its script completes.
+/// Zero selects the first-course offer, acceptance and decline captions;
+/// any nonzero value selects their repeat variants. This remains a signed
+/// word counter, rather than a completion flag or a persistent save tally.
+static s32 _gActor215100GalleryCoursesStagedCount = 0;
 
 s32 gActor215100GalleryExitInputCooldownTicks = 0;
 
@@ -326,7 +344,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
                 evsStartScript(gActor215100GalleryPrepareTrainingMenuScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 captionSlot = ACTOR_215100_MENU_REPEAT_PROMPT_SLOT;
-                if (D_actor_215100_8014D040 == 0) {
+                if (_gActor215100GalleryCoursesStagedCount == 0) {
                     captionSlot = ACTOR_215100_MENU_FIRST_PROMPT_SLOT;
                 }
                 capStartSequenceSlot(captionSlot, 0, 0);
@@ -348,7 +366,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_DECLINE:
             captionSlot = ACTOR_215100_MENU_REPEAT_DECLINE_SLOT;
-            if (D_actor_215100_8014D040 == 0) {
+            if (_gActor215100GalleryCoursesStagedCount == 0) {
                 captionSlot = ACTOR_215100_MENU_FIRST_DECLINE_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
@@ -357,7 +375,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_ACCEPT:
             captionSlot = ACTOR_215100_MENU_REPEAT_ACCEPT_SLOT;
-            if (D_actor_215100_8014D040 == 0) {
+            if (_gActor215100GalleryCoursesStagedCount == 0) {
                 captionSlot = ACTOR_215100_MENU_FIRST_ACCEPT_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
@@ -423,7 +441,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             task->state = ACTOR_215100_MENU_STAGE_TRAINING;
             break;
         case ACTOR_215100_MENU_STAGE_TRAINING:
-            D_actor_215100_8014D040++;
+            _gActor215100GalleryCoursesStagedCount++;
             gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
             if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
                 evsStartScript(gActor215100GalleryStartFixedViewTrainingScript, EVENT_SCRIPT_HUD_KEEP);

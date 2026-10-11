@@ -52,6 +52,22 @@ typedef struct {
 } Actor303600ViewKey;
 STATIC_ASSERT_SIZEOF(Actor303600ViewKey, 0x18);
 
+/// Scene figure yaw/roll samples, one four-byte record per scene update.
+///
+/// Indexed in 0..699 by the Eve scene figure; its cursor starts at zero and
+/// saturates at 699. Unsigned halfword angles use 4096 units per turn and narrow
+/// into the figure's signed Euler vector. Pitch stays fixed at 1024. The Eve
+/// package loads actor_303600 and borrows these samples through scene playback.
+extern const Actor303600RotSample gActor303600SceneFigureRotationSamples[ACTOR_303600_ROT_SAMPLE_COUNT];
+
+/// Compact camera transforms, one 24-byte key per scene update through frame 569.
+///
+/// Later updates hold key 569. Rotation is row-major Q12; translation widens
+/// from signed halfwords as the negated world-space camera origin. Projection
+/// distance is supplied separately. The Eve scene figure borrows this read-only
+/// track while actor_303600 remains loaded alongside it.
+extern const Actor303600ViewKey gActor303600SceneCameraKeys[ACTOR_303600_VIEW_KEY_COUNT];
+
 extern AnimationSet gActor303600Animation075A0;
 
 extern AnimationSet gActor303600Animation077F0;

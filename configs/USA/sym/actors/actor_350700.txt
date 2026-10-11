@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_350700.
 gActor350700KyleMadiganTaskDescriptors = 0x801708DC; // size:0x30 defined:True
-D_actor_350700_8017090C = 0x8017090C; // size:0x30 defined:True
+_gActor350700KyleMadiganWalkerMessageTable = 0x8017090C; // size:0x30 defined:True
 _gActor350700EveBreaMaskedBodySkeleton = 0x80163964; // size:0x2AC defined:True
 _gActor350700EveBreaMaskedBodyPartVerts = 0x80163C10; // size:0x4C defined:True
 _gActor350700EveBreaMaskedBodyVerts = 0x80163C5C; // size:0x9C0 defined:True
@@ -122,3 +122,4 @@ _gActor350700KyleMadiganAttachmentStates = 0x80161e50;
 _gActor350700ReverseWalkTaskStates = 0x80161e24;
 _gActor350700KyleMadiganForwardWalkVelocity = 0x80161e78;
 _gActor350700KyleMadiganWalkSteps = 0x80161e68;
+_gActor350700KyleMadiganWalkerTaskStates = 0x80161e5c;

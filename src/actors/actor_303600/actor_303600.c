@@ -11,6 +11,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -146,16 +147,6 @@ static Task* _gActor303600CutsceneControllerTask;
 /// spawn results are discarded. Conditional task kills retain the original
 /// behavior, although this package never publishes a live handle here.
 static Task* _gActor303600FadeTaskSlot;
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_303600_8016E480[];
-
-/// The cutscene's two script blocks, handed to `evsStartScriptWithSkip` together when the
-/// controller below arms the cutscene.
-extern EvsCommand D_actor_303600_80162AF0[];
-extern EvsCommand D_actor_303600_80162DD8[];
-
 /// Main-executable globals with no module header yet: the attachment wheel being open
 /// (`gAttachmentState.mode`) or a live `gDisplayState.pendingMode` holds the scene, and `gDisplayState.spriteVariant` is the
 /// latch state 2 below sets alongside `gMcSaveData`.
@@ -188,8 +179,18 @@ static void _actor303600CancelCutscenePlayback(void);
 /// Event playback borrows this key while the actor overlay remains loaded.
 static EvsSceneKey _gActor303600CutsceneSceneKey = { .group = 6, .streamId = 12, .subId = 11 };
 
-EvsCommand D_actor_303600_80162AF0[31] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+enum { ACTOR_303600_CUTSCENE_CAP_COMMAND = 1 };
+
+/// Neo Ark shaft-and-figure presentation synchronized to CAP command 1.
+///
+/// The 31 commands include END. Selects scene/audio stream 6/12/11, locks
+/// attachment controls, and posts pose, animation, lighting and cover cues
+/// between CAP waits before broadcasting the final actor command. Frame waits
+/// count interpreter updates; area-music stop uses fade control 150. Start with
+/// `EVENT_SCRIPT_HUD_HIDE_RESTORE` and the paired skip script. The controller,
+/// actor overlays, CAP data and scene resources must remain loaded through END.
+static EvsCommand _gActor303600ShaftFigureCutsceneScript[31] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .message = { .value = ACTOR_303600_CUTSCENE_CAP_COMMAND } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor303600CutsceneSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600StageCutsceneAudio }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -222,7 +223,13 @@ EvsCommand D_actor_303600_80162AF0[31] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_303600_80162DD8[8] = {
+/// Covers and finishes the shaft-and-figure presentation when it is skipped.
+///
+/// The eight commands include END. Under the primary fade, sends the final
+/// actor command at most once, starts black cover and cleans up scene streaming
+/// before returning the fade. Requires the live controller and resources of
+/// `_gActor303600ShaftFigureCutsceneScript`; its event task restores the HUD.
+static EvsCommand _gActor303600ShaftFigureCutsceneSkipScript[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600FinishSkippedCutscene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -388,14 +395,11 @@ static TmdSource _gActor303600Model0814C = {
     _gActor303600Model0814CStream,
 };
 
-/// The scene figure's turn, one sample per frame; `actor_403600` plays it.
-Actor303600RotSample D_actor_303600_8016A408[ACTOR_303600_ROT_SAMPLE_COUNT] = {
+const Actor303600RotSample gActor303600SceneFigureRotationSamples[ACTOR_303600_ROT_SAMPLE_COUNT] SECTION(".data") = {
 #include "assets/actor_303600_motion_085E8.inc"
 };
 
-/// The scene's camera path, one key per frame; `actor_403600` plays it and rests
-/// on the last key.
-Actor303600ViewKey D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT] = {
+const Actor303600ViewKey gActor303600SceneCameraKeys[ACTOR_303600_VIEW_KEY_COUNT] SECTION(".data") = {
 #include "assets/actor_303600_path_090D8.inc"
 };
 
@@ -414,7 +418,12 @@ TaskDesc gActor303600ShaftTaskDescriptors[ACTOR_303600_SHAFT_DESCRIPTOR_COUNT] =
     },
 };
 
-TaskMessageEntry D_actor_303600_8016E480[2] = {
+/// Scrolling-shaft actor-command binding followed by the message-table end marker.
+///
+/// Borrows an `ActorCommand` synchronously: 0 starts forward scroll, 1 reverses
+/// its speed ramp, and every other command invokes teardown. The shaft task
+/// borrows this table for its lifetime; unsupported message IDs return zero.
+static TaskMessageEntry _gActor303600ShaftMessageTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor303600HandleShaftCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -592,7 +601,7 @@ static void _actor303600CutsceneTask(Task* task)
             task->state += 1;
             /* fallthrough */
         case ACTOR_303600_SCENE_START_SCRIPT:
-            evsStartScriptWithSkip(D_actor_303600_80162AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_303600_80162DD8);
+            evsStartScriptWithSkip(_gActor303600ShaftFigureCutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor303600ShaftFigureCutsceneSkipScript);
             task->state += 1;
             break;
         case ACTOR_303600_SCENE_WAIT_SCRIPT:
@@ -863,7 +872,7 @@ static void _actor303600InitShaft(Task* task)
         segmentCoord->coord.t[0]     = 0;
         segmentCoord->coord.t[2]     = 0;
     }
-    task->msgTable     = D_actor_303600_8016E480;
+    task->msgTable     = _gActor303600ShaftMessageTable;
     task->exitCallback = _actor303600KillShaft;
     task->state       += 1;
 }
@@ -945,9 +954,13 @@ static s32 _actor303600HandleShaftCommand(Task* task, s32 messageId, const Actor
     return 0;
 }
 
-/// State table of the scrolling shaft: spawn, per-frame motion and the kill
-/// callback. Dispatched by `_actor303600ShaftTask`.
-static const TaskFuncTable3 D_actor_303600_80161E48 = { {
+/// Scrolling-shaft states 0 initialize, 1 scroll and 2 tear down.
+///
+/// `Task::state` indexes the complete three-handler copy without a terminator
+/// or bounds check. Scrolling requires the root coordinate and initialized
+/// work; teardown releases the shaft and child segments. Actor-control holds
+/// suspend every slot.
+static const TaskFuncTable3 _gActor303600ShaftTaskStates = { {
     _actor303600InitShaft,
     _actor303600ScrollShaft,
     _actor303600KillShaft,
@@ -1045,7 +1058,7 @@ static void _actor303600ShaftTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_303600_80161E48;
+    stateHandlers = _gActor303600ShaftTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }

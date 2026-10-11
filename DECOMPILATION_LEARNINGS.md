@@ -46516,7 +46516,7 @@ work produces.
 Here the handler and the allocator are in different units of the overlay, so the
 `memCalloc` grep plus address order says nothing. What identifies the task is
 the handler's own address: it is a `.word` in the overlay's data, paired with an
-id in a `TaskMessageEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
+id in a `TaskMessageEntry` table (`_gActor303600ShaftMessageTable`, id 0x7DB, in
 `actor_303600_data_2.data.s`). Read the function that stores *that* table into
 `Task::msgTable` (`_actor303600InitShaft`) — that is the handler's task, and
 it is also where its `memCalloc(0x3C, 0)` names the block the handler sees.
@@ -84641,7 +84641,7 @@ hash. `Actor04400_Fn0847C` against `func_actor_342400_8016B5B0` (101
 instructions each, identical but for the three branch labels) is such a pair:
 widening both patterns in memory to also take
 `\b[A-Za-z]\w*_L[0-9A-F]{4,8}\b` collapses their canonical texts to a
-**one-line** diff - the `alabel` above, `D_8016A408`. So `find` needs both
+**one-line** diff - the `alabel` above, `gActor303600SceneFigureRotationSamples`. So `find` needs both
 fixes before it groups them, and until it has them the diff-the-two-`.s` rule
 is what recovers the match: the twin here is in a *matched* overlay, and
 copying its C body across with this overlay's work block retyped scored
@@ -84700,8 +84700,8 @@ strip it before concluding the bodies differ, and check the imports file before
 believing a `j` somewhere targets it.
 
 The borrowed symbol is not always a `func_`: `func_actor_341700_8016A2CC`
-(0x8016A2CC, 101 instructions) carries `alabel D_8016A408`, the imports file's
-line 470 `D_8016A408 = 0x8016A408`. Its instruction stream is byte-identical to
+(0x8016A2CC, 101 instructions) carries `alabel gActor303600SceneFigureRotationSamples`, the imports file's
+line 470 `gActor303600SceneFigureRotationSamples = 0x8016A408`. Its instruction stream is byte-identical to
 both `Actor04400_Fn0847C` and `func_actor_342400_8016B5B0`, and `find` reported
 no copies for it for exactly the reasons above - the `alabel` line in the hash,
 plus the sibling's undotted `Actor04400_L…` labels. Retyping

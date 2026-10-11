@@ -120,15 +120,6 @@ typedef struct {
 } _Actor323300StrangerWork;
 STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
-extern TaskMessageEntry D_actor_323300_80172574[];
-
-/// Placement `_actor323300WomanSpawn` hands `actorMsgPlaceEuler`.
-extern ActorTransform D_actor_323300_8017259C;
-
-/// Animation presets the spawn handler, the 0x7DB handler and the two states
-/// hand `_actorMotionPlayAnim19`.
-extern AnimationPlayRequest D_actor_323300_801725B4;
-
 /// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
 enum {
     ACTOR_323300_WOMAN_VIEW2_ATTENUATION          = 40, // Signed sound-script attenuation; pan stays zero
@@ -155,9 +146,13 @@ static void _actor323300StrangerTurnBody(Task* task, s16 turnAngle);
 static s32  _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32  _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
-/// State table `_actor323300WomanTask` copies onto the stack and indexes
-/// by `Task::state`: spawn, per-frame runner and exit of the woman.
-static const TaskFuncTable3 D_actor_323300_80161E24 = { {
+/// Toilet-event woman states 0 spawn, 1 update and 2 exit.
+///
+/// `Task::state` indexes a complete three-handler copy without a bounds check
+/// or terminator. Update requires the initialized nineteen-part rig and work;
+/// exit unlinks collision before releasing the enemy and task. Actor-control
+/// holds suspend all three slots, including spawn and exit.
+static const TaskFuncTable3 _gActor323300WomanTaskStates = { {
     _actor323300WomanSpawn,
     _actor323300WomanUpdate,
     _actor323300WomanExit,
@@ -341,7 +336,13 @@ TaskDesc gActor323300WomanStrangerTaskDescriptors[2] = {
     },
 };
 
-TaskMessageEntry D_actor_323300_80172574[5] = {
+/// Toilet-event woman's animation, placement, visibility and scene-command messages.
+///
+/// Installed on the nineteen-part model task after work and collision setup.
+/// Requests are borrowed synchronously. Scene commands show the woman, control
+/// her Lesser Stranger child, turn in place or emit spray. The final end marker
+/// makes unsupported IDs return zero; keep the table live until task teardown.
+static TaskMessageEntry _gActor323300WomanMessageTable[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor323300WomanSetModelDraw },
@@ -349,9 +350,30 @@ TaskMessageEntry D_actor_323300_80172574[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorTransform D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
+/// Initial toilet-event woman placement in the model root's parent frame.
+///
+/// XYZ is (-1664, 0, -1222) in integer coordinate units; Euler yaw is -1024,
+/// a negative quarter turn, with zero pitch/roll. Borrowed during spawn only.
+static const ActorTransform _gActor323300WomanSpawnPlacement SECTION(".data") = {
+    .pos = { -1664, 0, -1222, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-AnimationPlayRequest D_actor_323300_801725B4 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_323300_WOMAN_SPAWN_ANIMATION = 1 };
+
+/// Resets the toilet-event woman's bank-0 clip 1 during hidden spawn setup.
+///
+/// The nineteen-part animation handler reads the source index, not a set-table
+/// pointer. Reset ignores the zero blend duration; this receiver does not read
+/// the collision selector. The request is borrowed synchronously and its loaded
+/// clip data stays live through playback.
+static const AnimationPlayRequest _gActor323300WomanSpawnAnimationRequest SECTION(".data") = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_323300_WOMAN_SPAWN_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum { ACTOR_323300_WOMAN_TURN_ANIMATION    = 2,
        ACTOR_323300_WOMAN_TURN_BLEND_FRAMES = 10 };
@@ -574,11 +596,11 @@ static void _actor323300WomanSpawn(Task* task)
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, 1, 0);
     // Install message handling, the initial pose and its looping sound.
-    task->msgTable = D_actor_323300_80172574;
+    task->msgTable = _gActor323300WomanMessageTable;
     _actor323300WomanSetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
     // The original direct placement call uses the animation tag; the callback ignores it.
-    actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
-    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
+    actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300WomanSpawnPlacement, 0);
+    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300WomanSpawnAnimationRequest, 0);
     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
     task->exitCallback = _actor323300WomanExit;
     task->state       += 1;
@@ -840,7 +862,7 @@ static void _actor323300WomanTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_323300_80161E24;
+    stateHandlers = _gActor323300WomanTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }

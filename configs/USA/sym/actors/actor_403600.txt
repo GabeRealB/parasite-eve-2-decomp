@@ -2,8 +2,8 @@
 
 // Referenced in another actor load slot, resident beside this one.
 gActor303600CutsceneFadeTaskDescriptors = 0x80162E98; // absolute:True owner=actor_303600
-D_actor_303600_8016A408 = 0x8016A408; // absolute:True size:0xAF0 owner=actor_303600
-D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True size:0x3570 owner=actor_303600
+gActor303600SceneFigureRotationSamples = 0x8016A408; // absolute:True size:0xAF0 owner=actor_303600
+gActor303600SceneCameraKeys = 0x8016AEF8; // absolute:True size:0x3570 owner=actor_303600
 gActor303600ShaftTaskDescriptors = 0x8016E468; // absolute:True owner=actor_303600
 gActor303600Model02DD0 = 0x801690A4; // absolute:True owner=actor_303600
 _gActor403600ProjectileTrailColors = 0x80142120; // size:0x80 defined:True

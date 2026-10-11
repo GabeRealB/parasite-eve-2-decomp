@@ -151,8 +151,6 @@ STATIC_ASSERT_SIZEOF(_Actor403600TransformStorage, 32);
 /// trailing bytes' object boundary is established.
 static _Actor403600TransformStorage _gActor403600PlayerPlacement;
 
-extern Actor303600RotSample D_actor_303600_8016A408[ACTOR_303600_ROT_SAMPLE_COUNT];
-extern Actor303600ViewKey   D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT];
 /// Persistent camera driven by the scene figure's imported view keys.
 ///
 /// Rotation is Q12, translation is the negated world-space camera origin,
@@ -4687,15 +4685,15 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
         effectSpawn(EFFECT_EVE_LIGHT_BEAM, &viewSpace, (beamSpeed), &offset);                                        \
     }
 
-    SVECTOR             offset;
-    GfxCoord            viewSpace;
-    ActorCommand        forwardCommand;
-    ActorCommand        reverseCommand;
-    Actor303600ViewKey* key;
-    s32                 coefficientIndex;
-    s32                 ambientLevel;
-    TmdObject*          model;
-    Actor403600Work*    work;
+    SVECTOR                   offset;
+    GfxCoord                  viewSpace;
+    ActorCommand              forwardCommand;
+    ActorCommand              reverseCommand;
+    const Actor303600ViewKey* key;
+    s32                       coefficientIndex;
+    s32                       ambientLevel;
+    TmdObject*                model;
+    Actor403600Work*          work;
 
     work             = task->work;
     model            = task->extra.tmd;
@@ -4705,14 +4703,14 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
     viewSpace.coord.t[1] = 0;
     viewSpace.coord.t[2] = 0;
     // The rotation track holds its last sample; the shorter camera track clamps separately.
-    _gActor403600SceneFigureRotation.vz = D_actor_303600_8016A408[work->sceneFrame].z;
-    _gActor403600SceneFigureRotation.vy = D_actor_303600_8016A408[work->sceneFrame].y;
+    _gActor403600SceneFigureRotation.vz = gActor303600SceneFigureRotationSamples[work->sceneFrame].z;
+    _gActor403600SceneFigureRotation.vy = gActor303600SceneFigureRotationSamples[work->sceneFrame].y;
     RotMatrix(&_gActor403600SceneFigureRotation, &work->worldCoord.coord);
     model->otOffset = ACTOR_403600_SCENE_MODEL_OT_OFFSET;
     if (work->sceneFrame >= ACTOR_303600_VIEW_KEY_COUNT - 1) {
-        key = &D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT - 1];
+        key = &gActor303600SceneCameraKeys[ACTOR_303600_VIEW_KEY_COUNT - 1];
     } else {
-        key = &D_actor_303600_8016AEF8[work->sceneFrame];
+        key = &gActor303600SceneCameraKeys[work->sceneFrame];
     }
     // The compact key stores all nine rotation coefficients in row-major order.
     for (coefficientIndex = 0; coefficientIndex < (s32)ARRAY_SIZE(key->rotation); coefficientIndex++) {

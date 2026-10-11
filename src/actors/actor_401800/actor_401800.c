@@ -2197,14 +2197,19 @@ static s32 _actor401800IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 {
 }
 
-/// The enemy task's three handlers, indexed by `Task::state`: the first
-/// initialises the actor, the second runs it every frame, and the third tears
-/// the enemy down.
-static const EnemyTaskFuncTable3 D_actor_401800_80132064 = { {
-    _actor401800Initialize,
-    _oddStrangerTick,
-    enemyDestroy,
-} };
+/// Odd Stranger task states 0 initialize, 1 tick behaviour and 2 destroy.
+///
+/// `Task::state` indexes a complete three-handler copy without a terminator or
+/// bounds check. Every callback receives the associated live Enemy first and
+/// its task second. Initialization owns cleared work and collision state;
+/// ticking requires that setup, and destruction releases the enemy and task.
+static const EnemyTaskFuncTable3 _gActor401800OddStrangerTaskStates = {
+    .funcs = {
+        _actor401800Initialize,
+        _oddStrangerTick,
+        enemyDestroy,
+    },
+};
 
 #include "../../shared/odd_stranger_play_message.inc.c"
 
@@ -2293,6 +2298,6 @@ static void _actor401800Task(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_401800_80132064;
+    handlers = _gActor401800OddStrangerTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

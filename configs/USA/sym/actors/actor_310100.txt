@@ -2,8 +2,8 @@
 _gActor310100Officer1StepSoundScripts = 0x801798A8; // size:0xC defined:True
 _gActor310100FollowUpAnimationTables = 0x8017989C; // size:0xC defined:True
 _gActor310100OfficerMessageTable = 0x801798B4; // size:0x30 defined:True
-D_actor_310100_801798E4 = 0x801798E4; // size:0xC defined:True
-D_actor_310100_801798F0 = 0x801798F0; // size:0xC defined:True
+_gActor310100OfficerBodySwapTaskDescriptor = 0x801798E4; // size:0xC defined:True
+_gActor310100OfficerCulledBodySwapTaskDescriptor = 0x801798F0; // size:0xC defined:True
 gActor310100Officer1TaskDescriptors = 0x801798FC; // size:0x24 defined:True
 gActor310100Officer2TaskDescriptors = 0x80179920; // size:0x24 defined:True
 gAcropolisPlazaAnimation181CC = 0x8019578C; // absolute:True

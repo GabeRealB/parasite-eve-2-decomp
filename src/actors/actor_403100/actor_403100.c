@@ -4077,10 +4077,13 @@ static const TaskFuncTable3 _gActor403100SceneDepartureSteps = {
     },
 };
 
-/// The actor's six top-level states, by `Task::state`; run by
-/// `_actor403100Task`.
-static const TaskFuncTable6 D_actor_403100_80131F1C = {
-    {
+/// Burner task states 0 setup, 1 scene, 2 fight, 3 defeat, 4 timeout event and 5 destroy.
+///
+/// `Task::state` indexes the complete six-handler copy without a bounds check
+/// or terminator. Setup publishes the singleton work and enemy; subsequent
+/// states require them live. The final slot releases the actor's resources.
+static const TaskFuncTable6 _gActor403100TaskStates = {
+    .funcs = {
         _actor403100Initialize,
         _actor403100StepScene,
         _actor403100StepFight,
@@ -4090,10 +4093,15 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
     },
 };
 
-/// Behaviour modes of the actor's main state, indexed by `state`. Each
-/// mode steps through its own table by `subState`.
-static const TaskFuncTable11 D_actor_403100_80131F34 = {
-    {
+/// Burner combat behaviours indexed by `Actor403100Work::state` in 0..10.
+///
+/// Slots are initialization, approach, arm combo, aimed flame, jump slam,
+/// grab/squeeze, side flame, grab/drag, stagger, low-health scene and buildup
+/// stun, in that order. Copies all eleven callbacks before unchecked dispatch.
+/// Each behaviour owns its `subState` range and requires the live singleton
+/// work, enemy and task/model; player-hold behaviours also require the player.
+static const TaskFuncTable11 _gActor403100FightStates = {
+    .funcs = {
         _actor403100StepFightInitialization,
         _actor403100StepAttackApproach,
         _actor403100StepArmSwingCombo,
@@ -4235,7 +4243,7 @@ static void _actor403100StepFight(Task* task)
 
     model         = task->extra.tmd;
     playerTask    = *gPlayerActorTasks;
-    stateHandlers = D_actor_403100_80131F34;
+    stateHandlers = _gActor403100FightStates;
     // Engagement is independent of the scene actor pause/hide gate.
     engageFramesLeft = _gActor403100Work->engageDelay;
     if (engageFramesLeft != 0) {
@@ -6513,9 +6521,13 @@ static void _actor403100AimHead(Task* task, s16 aimMode)
     middleTrunkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     headCoord->composeStamp        = GRAPHICS_COORD_DIRTY;
 }
-/// Steps of the behaviour mode `_actor403100StepArmSwingCombo`, indexed by `subState`.
-static const TaskFuncTable6 D_actor_403100_80131F84 = {
-    {
+/// Burner arm-combo steps: begin, first swing, repeated swing, finish, impact and recovery.
+///
+/// `Actor403100Work::subState` must be 0..5. The dispatcher copies all six
+/// callbacks and skips dispatch and arm-shadow drawing when hit reaction takes
+/// over. Step callbacks require live singleton work and the Burner task/model.
+static const TaskFuncTable6 _gActor403100ArmSwingComboSteps = {
+    .funcs = {
         _actor403100BeginArmSwingCombo,
         _actor403100StepFirstArmSwing,
         _actor403100StepRepeatedArmSwing,
@@ -6525,9 +6537,13 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
     },
 };
 
-/// Steps of the behaviour mode `_actor403100StepAimedFlameAttack`, indexed by `subState`.
-static const TaskFuncTable5 D_actor_403100_80131F9C = {
-    {
+/// Burner aimed-flame steps: begin, breathe, wait, begin contact recovery and recover.
+///
+/// `Actor403100Work::subState` must be 0..4. The dispatcher copies all five
+/// callbacks and lets a hit reaction suppress the selected step. Callbacks
+/// require live singleton work and the Burner task/model; no terminator exists.
+static const TaskFuncTable5 _gActor403100AimedFlameAttackSteps = {
+    .funcs = {
         _actor403100BeginAimedFlameAttack,
         _actor403100StepAimedFlameBreath,
         _actor403100WaitAfterAimedFlameAttack,
@@ -6536,9 +6552,14 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
     },
 };
 
-/// Steps of the behaviour mode `_actor403100StepJumpSlam`, indexed by `subState`.
-static const TaskFuncTable9 D_actor_403100_80131FB0 = {
-    {
+/// Burner jump-slam steps from preparation through flight, impact, recovery and wait.
+///
+/// `Actor403100Work::subState` must be 0..8. The dispatcher copies all nine
+/// callbacks, selects without a bounds check and draws the long-arm shadow
+/// after every step. Hit gates belong to individual steps. Requires the live
+/// singleton work and Burner task/model; there is no terminator.
+static const TaskFuncTable9 _gActor403100JumpSlamSteps = {
+    .funcs = {
         _actor403100PrepareJumpSlam,
         _actor403100BeginJumpSlam,
         _actor403100CrouchForJumpSlam,
@@ -6551,9 +6572,14 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     },
 };
 
-/// Steps of the behaviour mode `_actor403100StepGrabAndSqueeze`, indexed by `subState`.
-static const TaskFuncTable11 D_actor_403100_80131FD4 = {
-    {
+/// Burner grab/squeeze steps through reach, lift, squeeze, flame breath, throw and rewind.
+///
+/// `Actor403100Work::subState` must be 0..10. The dispatcher copies all eleven
+/// callbacks and calls the selected step without a hit gate or bounds check.
+/// Steps own player control and their individual hit gates. Requires the live
+/// singleton work, Burner task/model and player; there is no terminator.
+static const TaskFuncTable11 _gActor403100GrabAndSqueezeSteps = {
+    .funcs = {
         _actor403100BeginGrabAndSqueeze,
         _actor403100StepGrabAndSqueezeReach,
         _actor403100BeginHeldPlayerLift,
@@ -7761,7 +7787,7 @@ static void _actor403100StepArmSwingCombo(Task* task)
 {
     TaskFuncTable6 handlers;
 
-    handlers = D_actor_403100_80131F84;
+    handlers = _gActor403100ArmSwingComboSteps;
     if (_actor403100HandleHitReaction() == 0) {
         handlers.funcs[(s16)_gActor403100Work->subState](task);
         _actor403100DrawLongArmShadow(task);
@@ -7776,7 +7802,7 @@ static void _actor403100StepAimedFlameAttack(Task* task)
 {
     TaskFuncTable5 handlers;
 
-    handlers = D_actor_403100_80131F9C;
+    handlers = _gActor403100AimedFlameAttackSteps;
     if (_actor403100HandleHitReaction() == 0) {
         handlers.funcs[(s16)_gActor403100Work->subState](task);
     }
@@ -7791,7 +7817,7 @@ static void _actor403100StepJumpSlam(Task* task)
 {
     TaskFuncTable9 handlers;
 
-    handlers = D_actor_403100_80131FB0;
+    handlers = _gActor403100JumpSlamSteps;
     handlers.funcs[(s16)_gActor403100Work->subState](task);
     _actor403100DrawLongArmShadow(task);
 }
@@ -7804,7 +7830,7 @@ static void _actor403100StepGrabAndSqueeze(Task* task)
 {
     TaskFuncTable11 handlers;
 
-    handlers = D_actor_403100_80131FD4;
+    handlers = _gActor403100GrabAndSqueezeSteps;
     handlers.funcs[(s16)_gActor403100Work->subState](task);
 }
 /// Dispatches the side flame sweep or its contact recovery unless a hit interrupts.
@@ -7915,7 +7941,7 @@ static void _actor403100Task(Task* task)
 {
     TaskFuncTable6 states;
 
-    states = D_actor_403100_80131F1C;
+    states = _gActor403100TaskStates;
     states.funcs[task->state](task);
 }
 

@@ -316,8 +316,11 @@ static AnimationPlayRequest _gActor215100PierceClip23Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained reset request for Pierce body clip 24, with no playback consumer.
-static AnimationPlayRequest _gActor215100PierceClip24Request = {
+/// Retained reset preset for Pierce's loaded body clip 24.
+///
+/// This separate image record has no playback consumer. Reset ignores the
+/// zero blend duration; the body receiver ignores bank and collision selectors.
+static const AnimationPlayRequest _gActor215100PierceClip24Request SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = 24,
     .blend                = ANIMATION_BLEND_RESET,
@@ -325,13 +328,15 @@ static AnimationPlayRequest _gActor215100PierceClip24Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained reset request for gallery player clip 47, with no playback consumer.
+/// Retained reset preset for the first gallery player extension clip.
 ///
-/// Clip 47 is the first gallery player extension entry; the live request uses
-/// a six-frame blend instead. This is a distinct record, not a Pierce clip.
-static AnimationPlayRequest _gActor215100GalleryPlayerClip47ResetRequest = {
+/// Clip 47 follows the native bank's clips and selects gallery extension entry
+/// zero. This separate image record has no playback consumer; the live gallery
+/// request for the same clip uses a six-frame blend. Reset ignores the zero
+/// blend duration, and the stored collision choice disables grid participation.
+static const AnimationPlayRequest _gActor215100GalleryPlayerClip47ResetRequest SECTION(".data") = {
     .source               = { .index = 1 },
-    .animationId          = 47,
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,

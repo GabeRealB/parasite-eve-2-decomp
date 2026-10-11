@@ -1,10 +1,9 @@
 // Overlay-local symbols for actor_342100.
 _gActor342100BlazeClipSuccessors = 0x80164910; // size:0x6 defined:True
-D_actor_342100_80164918 = 0x80164918; // size:0x18 defined:True
-D_actor_342100_80164930 = 0x80164930; // size:0x18 defined:True
-D_actor_342100_80164948 = 0x80164948; // size:0x18 defined:True
-D_actor_342100_80164960 = 0x80164960; // size:0x20 defined:True
-D_actor_342100_80164980 = 0x80164980; // size:0x20 defined:True
+_gActor342100BlazeFirePlacementsView30 = 0x80164918; // size:0x18 defined:True
+_gActor342100BlazeFirePlacementsView29 = 0x80164930; // size:0x18 defined:True
+_gActor342100BlazeFirePlacementsView31 = 0x80164948; // size:0x38 defined:True
+_gActor342100BlazeFirePlacementsView36 = 0x80164980; // size:0x20 defined:True
 _gBlazePlayerFireArg = 0x801649A0; // size:0x8 defined:True
 _gBlazePlayerFireParts = 0x801649A8; // size:0x20 defined:True
 _gActor342100BlazeScript = 0x801649C8; // size:0x1B0 defined:True

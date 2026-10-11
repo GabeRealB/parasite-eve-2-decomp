@@ -128,18 +128,6 @@ static void _actor342100TriggerBlazeDeath(void);
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-/// Placement tables the overlay's spawn task picks between by
-/// `gGameSession->location.loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
-/// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
-/// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
-/// list of two to three placements -- the terminator is an all-zero entry -- and
-/// `_actor342100SpawnBlazeFireEmitters` drops one effect task on every live entry.
-extern SVECTOR D_actor_342100_80164918[];
-extern SVECTOR D_actor_342100_80164930[];
-extern SVECTOR D_actor_342100_80164948[];
-extern SVECTOR D_actor_342100_80164960[];
-extern SVECTOR D_actor_342100_80164980[];
-
 static s32 _gScreenWaveAmplitude;
 
 static ScreenWaveCtx* _gScreenWaveContext;
@@ -273,32 +261,49 @@ static s16 _gActor342100BlazeClipSuccessors[3] = {
     ACTOR_342100_BLAZE_NO_SUCCESSOR,
 };
 
-SVECTOR D_actor_342100_80164918[3] = {
+/// Two blaze fire-emitter positions for view 30 followed by a zero-X sentinel.
+///
+/// Signed-halfword XYZ uses integer units in the view-parent coordinate frame;
+/// the fourth halfword is unused. Each live record spawns one delayed emitter.
+static const SVECTOR _gActor342100BlazeFirePlacementsView30[3] SECTION(".data") = {
     { 0x4650, -100, -2500, 0 },
     { 0x4650, -700, -8700, 0 },
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_342100_80164930[3] = {
+/// Two blaze fire-emitter positions for view 29 followed by a zero-X sentinel.
+///
+/// Signed-halfword XYZ uses integer units in the view-parent coordinate frame;
+/// the fourth halfword is unused. Each live record spawns one delayed emitter.
+static const SVECTOR _gActor342100BlazeFirePlacementsView29[3] SECTION(".data") = {
     { 0x4268, -600, -1500, 0 },
     { 0x4268, -100, -0x2710, 0 },
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_342100_80164948[3] = {
+enum { ACTOR_342100_BLAZE_VIEW35_PLACEMENT_START = 3 };
+
+/// Six blaze fire-emitter positions for view 31, sharing their last three with view 35.
+///
+/// View 31 starts at entry 0; view 35 starts at entry 3. Both walks stop at the
+/// zero-X entry 6. Signed-halfword XYZ uses integer units in the view-parent
+/// coordinate frame; the fourth halfword is unused. The seven records are one
+/// complete span so either sentinel walk stays inside the declared object.
+static const SVECTOR _gActor342100BlazeFirePlacementsView31[7] SECTION(".data") = {
     { 9000, -100, -2500, 0 },
     { 5000, -100, -2500, 0 },
     { 0x2710, 0, -0x2710, 0 },
-};
-
-SVECTOR D_actor_342100_80164960[4] = {
     { 0x2710, -200, -9000, 0 },
     { 0x2710, -200, -2000, 0 },
     { 6000, -200, -3000, 0 },
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_342100_80164980[4] = {
+/// Three blaze fire-emitter positions for view 36 followed by a zero-X sentinel.
+///
+/// Signed-halfword XYZ uses integer units in the view-parent coordinate frame;
+/// the fourth halfword is unused. Each live record spawns one delayed emitter.
+static const SVECTOR _gActor342100BlazeFirePlacementsView36[4] SECTION(".data") = {
     { 3000, -200, -5000, 0 },
     { 5000, -200, -7500, 0 },
     { 3000, -200, -8000, 0 },
@@ -560,32 +565,32 @@ static inline void _actor342100PlaceBlazeFireEmitter(GfxCoord* coord, const SVEC
 /// 36, the corresponding placement data and successful coordinate-body spawns.
 /// Walks until X is zero, consuming one shared LCG draw per placement for a
 /// 0..31-update delay. Coordinates use the view-parent frame's integer units.
-/// Unsupported views retain an uninitialized placement pointer. View 31's
-/// sentinel lies beyond its declared array; the complete list extent is unproven.
+/// Unsupported views retain an uninitialized placement pointer. View 31 reads
+/// six positions; view 35 starts at the fourth entry of that same list.
 static void _actor342100SpawnBlazeFireEmitters(void)
 {
     enum { ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR = 4,
            ACTOR_342100_BLAZE_FIRE_DELAY_MASK         = 31 };
-    GfxCoord* coord;
-    SVECTOR*  placement;
-    Task*     emitter;
-    u32       delayRoll;
+    GfxCoord*      coord;
+    const SVECTOR* placement;
+    Task*          emitter;
+    u32            delayRoll;
 
     switch (gGameSession->location.loc.view) {
         case 29:
-            placement = D_actor_342100_80164930;
+            placement = _gActor342100BlazeFirePlacementsView29;
             break;
         case 30:
-            placement = D_actor_342100_80164918;
+            placement = _gActor342100BlazeFirePlacementsView30;
             break;
         case 31:
-            placement = D_actor_342100_80164948;
+            placement = _gActor342100BlazeFirePlacementsView31;
             break;
         case 35:
-            placement = D_actor_342100_80164960;
+            placement = &_gActor342100BlazeFirePlacementsView31[ACTOR_342100_BLAZE_VIEW35_PLACEMENT_START];
             break;
         case 36:
-            placement = D_actor_342100_80164980;
+            placement = _gActor342100BlazeFirePlacementsView36;
             break;
     }
     while (placement->vx != 0) {
