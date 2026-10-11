@@ -246,6 +246,197 @@ class Supply:
         return None
 
 
+VIEW_PALETTE_AT = (0, 255)       # where a caption bundle's view palette is stored for (cap_bundle.py)
+
+
+def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracted: Path, findings: dict | None = None):
+    """(image, (bpp, palette, row, palette index, column), user) for each column a room view's sprites read, and the
+    count of what was looked at.
+
+    Read from the package bytes (room_scene.py `Scene.sprites`): each view file has a `SpriteView`, whose sources
+    name a texture page and a CLUT id. The image is whatever lands on the page's texels the sources read - the
+    view file's own image, else something the room itself loads there. The palette is whatever is at the CLUT's
+    place while that view is shown:
+
+    - slot (view file - 1) of the room's caption bundle, which gameplay uploads on every change of view when the
+      slot is an image resource (`_loadingUploadCurrentViewImage`, src/gameplay/view_image.c:45-60). It is uploaded
+      once the CD queue is idle, so after the view's file, which is queued just before
+      (`loadingBeginViewLoadTask`, src/gameplay/view_load.c:86-90; view_image.c:70-72): where the file carries a
+      palette for the same place, the slot's lands over it;
+    - else a palette the view's own file carries for that place;
+    - else, when no view of the room uploads anything there, the one palette the room's own loads leave there.
+
+    A view with neither of the first two, in a room where other views upload to that place, is drawn with what
+    the last view left: nothing settles it, so it is left out and listed.
+    """
+    import cap_bundle
+    import room_scene
+    project = room_scene.Project()
+    prints = defaultdict(list)
+    for r in db.execute("SELECT * FROM footprint"):
+        prints[r["file"]].append(tuple(r)[1:])
+    loads = defaultdict(list)                   # room -> (condition, file, page, row, mode) of what it loads besides its views
+    for m in db.execute("SELECT g.loader, g.kind, g.condition, g.evidence, m.file, m.page, m.row, m.mode FROM member m JOIN grp g ON g.id = m.grp "
+                        "WHERE g.evidence NOT IN ('viewmap', 'folder')"):
+        loads[m["loader"]].append((m["condition"] or ("the room's base file" if m["kind"] == "carrier" else ""), m["file"], m["page"], m["row"], m["mode"] or ""))
+    packages = {k for k, r in assets.items() if r["type"] == "pe2pkg"}
+    out, found_by = [], findings if findings is not None else defaultdict(list)
+    seen = defaultdict(int)
+
+    def miss(room, text):
+        if text not in found_by[room]:           # one view after another can say the same thing
+            found_by[room].append(text)
+
+    def landed(path, at):
+        """(asset, kind, x, y, w, h, column, bpp) of each rectangle of a file, where it lands; an image by column."""
+        found = []
+        for rect in prints.get(path, ()):
+            asset, kind, part, _x, _y, w, h, bpp = rect
+            if kind == "clut" or path.startswith("code:"):
+                found.append((asset, kind, *residency.moved(rect, *at), w, h, 0, bpp))
+                continue
+            for n, (x, y, depth) in enumerate(asset_schema.image_columns(assets[asset])):
+                name = f"column {n}" if n else "column 0"
+                x, y = residency.moved((asset, kind, name, x, y, w, h, depth), *at)
+                found.append((asset, kind, x, y, asset_schema.IMAGE_COLUMN_WIDTH, h, n, depth))
+        return list(dict.fromkeys(found))       # a file can carry one chunk twice
+
+    for stage, body in tree.items():
+        for folder, fnode in (body.get("folders") or {}).items():
+            chunks = [c for n in fnode["files"].values() for c in (n.get("chunks") or {}).values()]
+            room = next((c for c in chunks if c in packages), None)
+            if room is None or room not in project.place_of:
+                continue
+            slots = {}
+            for key in chunks:
+                raw = extracted / "raw" / "pe2cap2" / f"{key}.pe2cap2"
+                if assets.get(key, {}).get("type") == "pe2cap2" and raw.is_file():
+                    for slot in cap_bundle.slots(raw.read_bytes()):
+                        if slot["what"] == "palette":
+                            slots[slot["slot"]] = (f"{key}_slot_{slot['slot']:02d}", "clut", slot["x"], slot["y"], slot["w"], slot["h"], 0, None)
+            by_id = {int(n["id"]): f"{stage}/{folder}/{k}" for k, n in fnode["files"].items()}
+            views = room_scene.Scene(project, room).sprites()["views"]
+            around = [(condition, r) for condition, path, page, row, mode in loads.get(room, ()) for r in landed(path, (page, row, mode))]
+            has = lambda r, x, y, w=1: r[2] <= x and x + w <= r[2] + r[4] and r[3] <= y < r[3] + r[5]  # noqa: E731
+            # The places some view of the room uploads a palette to: there, a view that uploads none shows the last one's.
+            uploaded = [r for v in views for r in [slots.get(v["file"] - 1)] + [q for q in landed(by_id.get(v["file"], ""), (0, 0, "")) if q[1] == "clut"] if r]
+            for view in views:
+                if not view["pages"]:
+                    continue
+                seen["views"] += 1
+                own = landed(by_id.get(view["file"], ""), (0, 0, ""))
+                where = f"{room} view file {view['file']}"
+                user = f"{room}: view file {view['file']} sprites"
+                texels = defaultdict(dict)          # (tpage, clut) -> the video-memory columns its drawn rectangles read, and their rows
+                drawn = {n for b in view["batchList"] for n in range(b["firstSprite"], b["firstSprite"] + b["spriteCount"])}
+                for n, row in enumerate(view["rows"]):
+                    if n in drawn:
+                        tpage, clut, w, h, _x0, _y0, _depth, u, v = row[:9]
+                        per = 16 // room_scene.TPAGE_DEPTH[(tpage >> 7) & 3]         # texels in a video-memory word
+                        for x in range(u // per // 64, (u + max(w, 1) - 1) // per // 64 + 1):
+                            lo, hi = texels[tpage, clut].get(x, (255, 0))
+                            texels[tpage, clut][x] = (min(lo, v), max(hi, v + max(h, 1) - 1))
+                for page in view["pages"]:
+                    seen["pages"] += 1
+                    bpp, cx, cy = page["bpp"], page["clutX"], page["clutY"]
+                    spot = f"page ({page['pageX']}, {page['pageY']}) {bpp}-bit, CLUT 0x{page['clut']:04X} at ({cx}, {cy})"
+                    colours = 256 if bpp == 8 else 16
+                    palette = None
+                    if bpp != 16:
+                        slot = slots.get(view["file"] - 1)
+                        slot = slot if slot and has(slot, cx, cy, colours) else None
+                        mine = [r for r in own if r[1] == "clut" and has(r, cx, cy, colours)]
+                        rest = {r[0]: (condition, r) for condition, r in around if r[1] == "clut" and has(r, cx, cy, colours)}
+                        if slot or mine:
+                            palette, source = (slot or mine[0]), ("its bundle slot" if slot else "the view's file")
+                        elif any(has(r, cx, cy, colours) for r in uploaded):
+                            miss(room, f"{where}: {spot} is uploaded by neither its bundle slot nor its file; other views of the room upload there, so it shows what the last one left")
+                        elif len(rest) == 1:
+                            (condition, palette), = rest.values()
+                            source = f"the room's load ({condition})"
+                        elif rest:
+                            miss(room, f"{where}: {spot} is where {len(rest)} of the room's loads put a palette ({', '.join(sorted(rest))})")
+                        else:
+                            miss(room, f"{where}: {spot} is uploaded by nothing of the room: not its bundle slot, its file, or a load of the room")
+                        if palette is None:
+                            seen["pages without a palette"] += 1
+                            continue
+                    for column, (top, bottom) in sorted(texels[page["tpage"], page["clut"]].items()):
+                        x, y = page["pageX"] + column * 64, page["pageY"] + top
+                        images = [r for r in own if r[1] == "image" and has(r, x, y) and has(r, x, page["pageY"] + bottom)]
+                        via = "its file"
+                        if not images:
+                            found = {(r[0], r[6]): (condition, r) for condition, r in around if r[1] == "image" and has(r, x, y)}
+                            if len(found) == 1:
+                                (condition, image), = found.values()
+                                images, via = [image], f"the room's load ({condition})"
+                            elif found:
+                                miss(room, f"{where}: {spot}: column ({x}, {page['pageY']}) is where {len(found)} of the room's loads put an image ({', '.join(sorted(k[0] for k in found))})")
+                        if len(images) != 1:
+                            if not images:
+                                miss(room, f"{where}: {spot}: no image of the view's file or of the room's loads is at column ({x}, {page['pageY']}), row {top}")
+                            else:
+                                miss(room, f"{where}: {spot}: {len(images)} images of the view's file are at column ({x}, {page['pageY']})")
+                            seen["columns without an image"] += 1
+                            continue
+                        image = images[0]
+                        if image[7] and image[7] != bpp:
+                            miss(room, f"{image[0]} column {image[6]} is catalogued as {image[7]}-bit, and the sprites of view file {view['file']} read it {bpp}-bit")
+                        if bpp == 16:
+                            key = (16, "", 0, 0, image[6])
+                        else:
+                            key = (bpp, palette[0], cy - palette[3], (cx - palette[2]) // 16, image[6])
+                        note = "the room's sprite table (SpriteSource page and CLUT, package bytes)" + ("" if via == "its file" else f"; image from {via}") + ("" if bpp == 16 else f"; palette from {source}")
+                        out.append((image[0], key, user, note))
+                        seen["columns paired"] += 1
+    return out, dict(seen)
+
+
+STATED = Path(__file__).with_name("image_palettes.tsv")
+
+
+def stated_pairs(assets: dict, embedded: dict, path: Path = STATED):
+    """((image, (bpp, palette, row, palette index, column), user, how known), problems) from image_palettes.tsv.
+
+    The file records what was read out of draw code: image, column, depth, palette asset (empty for direct
+    colour), row, palette index, user, evidence. Nothing is taken on trust: the image and the palette must be
+    catalogued, the column must be one the image has, and the row and index must lie inside the palette.
+    """
+    out, problems = [], []
+    if not path.is_file():
+        return out, problems
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        cells = [c.strip() for c in line.split("\t")]
+        if not line.strip() or line.startswith("#"):
+            continue
+        if len(cells) < 8:
+            problems.append(f"line {n}: {len(cells)} fields, 8 expected")
+            continue
+        image, column, depth, palette, row, index, user, evidence = cells[:8]
+        rec = assets.get(image) or embedded.get(image)
+        try:
+            column, depth, row, index = int(column), int(depth), int(row or 0), int(index or 0)
+        except ValueError:
+            problems.append(f"line {n}: column, depth, row and palette index are numbers")
+            continue
+        if rec is None or rec.get("type") not in ("pe2img", "image"):
+            problems.append(f"line {n}: {image} is not a catalogued image")
+        elif rec.get("type") == "pe2img" and not 0 <= column < len(asset_schema.image_columns(rec)):
+            problems.append(f"line {n}: {image} has no column {column}")
+        elif depth not in (4, 8, 16) or (depth == 16) != (not palette):
+            problems.append(f"line {n}: a palette goes with 4 or 8 bits, none with 16")
+        elif palette and (assets.get(palette) or embedded.get(palette) or {}).get("type") not in ("pe2clut", "clut"):
+            problems.append(f"line {n}: {palette} is not a catalogued palette")
+        elif palette and not (0 <= row < (assets.get(palette) or embedded[palette])["h"]
+                              and 0 <= index * 16 + (256 if depth == 8 else 16) <= (assets.get(palette) or embedded[palette])["w"]):
+            problems.append(f"line {n}: row {row}, palette {index} is outside {palette}")
+        elif not evidence:
+            problems.append(f"line {n}: no evidence")
+        else:
+            out.append((image, (depth, palette, row, index, column), user, ("direct colour, " if not palette else "") + f"draw code: {evidence}"))
+    return out, problems
+
+
 RAW_DIR = {"motion_curve": ("motion", ".motion"), "sprite_schedule": ("motion", ".motion"), "camera_path": ("path", ".path"),
            "movie_path": ("path", ".path"), "morph_deltas": ("morph", ".morph"), "morph_normals": ("morph", ".morph"),
            "fontglyph": ("fontglyph", ".fontglyph")}
@@ -506,6 +697,8 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     # Texture requests, each with who supplies it, and the pairings that follow for images.
     requests = defaultdict(list)
     pairs: dict[str, dict[tuple, set]] = defaultdict(lambda: defaultdict(set))
+    # How each pairing is known: a model's faces, constants named alike, a view's sprite table, a draw call.
+    known: dict[str, dict[tuple, set]] = defaultdict(lambda: defaultdict(set))
     findings = defaultdict(list)
     for key, rec in sorted(embedded.items()):
         package = rec.get("source", "").removesuffix(".pe2pkg")
@@ -527,10 +720,9 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                                              "and no resource entry spawning this model says which it is drawn with")
                 for _path, image, palette in found[1][: 1 if found[2] else 0]:      # only an established file says how the image is read
                     column = max(0, (tx - image[1]) // 64)
-                    if palette:
-                        pairs[image[5]][bpp, palette[5], cy - palette[2], (cx - palette[1]) // 16, column].add(key)
-                    else:
-                        pairs[image[5]][bpp, "", 0, 0, column].add(key)
+                    at = (bpp, palette[5], cy - palette[2], (cx - palette[1]) // 16, column) if palette else (bpp, "", 0, 0, column)
+                    pairs[image[5]][at].add(key)
+                    known[image[5]][at].add("a model's faces name this page and palette")
             else:
                 how = [found[0], found[1], [[index[path], p, r, int("RELOCATE" in m)] if path else None for path, p, r, m in found[2][:6]]]
             requests[package].append([key, page, clut, box, how])
@@ -577,11 +769,28 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                             holder, path, at, (image, palette) = via
                             how = ["own" if holder == package else "ancestor", holder, [index[path], at[0], at[1], int("RELOCATE" in at[2])]]
                             column = max(0, (tx - image[1]) // 64)
-                            pairs[image[5]][bpp, palette[5] if palette else "", (cy - palette[2]) if palette else 0,
-                                            ((cx - palette[1]) // 16) if palette else 0, column].add(f"{page_name} + {clut_name}")
+                            at = (bpp, palette[5] if palette else "", (cy - palette[2]) if palette else 0, ((cx - palette[1]) // 16) if palette else 0, column)
+                            pairs[image[5]][at].add(f"{page_name} + {clut_name}")
+                            known[image[5]][at].add("a page constant and a palette constant of one scope in the source")
                         constants[package].append([label, page, clut, how])
     else:
         print(f"no journal at {journal}: constants are left out", file=sys.stderr)
+
+    # What a room view's sprites read, from the rooms' sprite tables.
+    sprite_pairs, sprite_counts = view_sprite_pairs(db, assets, tree, EXTRACTED, findings)
+    for image, at, user, how in sprite_pairs:
+        pairs[image][at].add(user)
+        known[image][at].add(how)
+    # What a draw call reads, as read out of the code (tools/peassets/image_palettes.tsv).
+    stated, stated_problems = stated_pairs(assets, embedded)
+    for image, at, user, how in stated:
+        pairs[image][at].add(user)
+        known[image][at].add(how)
+    for line in stated_problems:
+        print(f"image_palettes.tsv: {line}", file=sys.stderr)
+    paired = {k for k in pairs if assets.get(k, {}).get("type") == "pe2img"}
+    print(f"images shown as used: {len(paired)} of {sum(1 for r in assets.values() if r['type'] == 'pe2img')} "
+          f"({sprite_counts.get('columns paired', 0)} columns from {sprite_counts.get('views', 0)} views' sprite tables, {len(stated)} lines from image_palettes.tsv)", file=sys.stderr)
 
     # Region violations, per loader.
     table = residency.region_table()
@@ -781,7 +990,8 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds, "sampleIds": sample_ids, "sampleHomes": sample_homes,
-        "pairs": {image: [[bpp, clut, row, pal, column, sorted(users)[:8]] for (bpp, clut, row, pal, column), users in sorted(found.items(), key=str)] for image, found in pairs.items()},
+        "pairs": {image: [[bpp, clut, row, pal, column, sorted(users)[:8], sorted(known[image][bpp, clut, row, pal, column])]
+                          for (bpp, clut, row, pal, column), users in sorted(found.items(), key=str)] for image, found in pairs.items()},
         "regions": [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"], r["note"]] for r in table], "layers": residency.LAYERS,
         "stagemap": {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")},
         "pictures": os.path.relpath(extracted.resolve(), out.parent.resolve()) if (extracted / "pe2img").is_dir() or dirs else "", "pixels": pixels,

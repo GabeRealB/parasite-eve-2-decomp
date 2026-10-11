@@ -17,6 +17,7 @@ below:
     WorldCollisionRoomResources[room index]  grid, view boundaries, action triggers, occluders
     u8* [room index] + ViewCount[]           logical view -> view file
     ViewCamera[view file]                    world-to-camera matrix, negated origin, projection distance
+    SpriteView[view file]                    SpriteBatch ranges, SpriteSource rectangles (page, CLUT), draw areas
     DirectionWarpEntry[warp slot]            arrival endpoints
     AreaVariant[variant]                     AreaPlacement + AreaResource tables
     AreaObjectRoom[area]                     placed objects (AreaObjectPlace) and how they spawn
@@ -342,6 +343,17 @@ OBJECT_SPAWN = rec(("kind", "u16"), ("taskDesc", TASK_DESC))
 OBJECT_ROOM = rec(("places", "pint"), ("spawns", "ptr"))
 SURFACE = rec(("field_0", "u8"), ("probePassThrough", "u8"), ("weaponImpactEnabled", "u8"), ("suppressPushback", "u8"), ("footstepSounds", "ptr"))
 FOOTSTEPS = rec(("walk", "s32"), ("run", "s32"), ("scriptedJump", "s32"))
+# include/gameplay/sprites.h. A source's rectangle is (w, h) pixels at (x0, y0) from the drawing origin, read from
+# texel (u0, v0) of its page; the last four bytes are the modulation colour and the GPU code bits.
+SPRITE_VIEW = rec(("sources", "ptr"), ("batches", "ptr"), ("drawAreas", "ptr"))
+SPRITE_BATCH = rec(("firstSprite", "u16"), ("spriteCount", "u16"), ("hidden", "u8"), ("skipCachedPackets", "u8"), ("field_6", arr("u8", 2)))
+SPRITE_SOURCE = rec(("tpage", "u16"), ("clut", "u16"), ("w", "s16"), ("h", "s16"), ("x0", "s16"), ("y0", "s16"), ("depth", "u16"),
+                    ("u0", "u8"), ("v0", "u8"), ("r0", "u8"), ("g0", "u8"), ("b0", "u8"), ("codeFlags", "u8"))
+SPRITE_DRAW_AREA = rec(("x", "s16"), ("y", "s16"), ("w", "s16"), ("h", "s16"), ("restoreDepth", "u16"))
+SPRITE_BATCH_END = 0xFFFF        # SpriteBatch.firstSprite of the terminal record
+SPRITE_DRAW_AREA_END = 0xFFFF    # SpriteDrawArea.restoreDepth of the terminal record
+SPRITE_ROW = ("tpage", "clut", "w", "h", "x0", "y0", "depth", "u0", "v0", "r0", "g0", "b0", "codeFlags")
+TPAGE_DEPTH = (4, 8, 16, 16)     # bits 7-8 of a texture page word (libgpu getTPage)
 GRID_FACE = rec(("v", arr("u16", 4)), ("normalIndex", "u16"), ("surfaceClass", "s16"))
 
 
@@ -787,6 +799,7 @@ class Scene:
         scene["views"] = self.views(rooms, scene["boundaries"], scene["warps"])
         scene["placements"] = self.placements()
         scene["objects"] = self.objects()
+        scene["sprites"] = self.sprites()
         scene["sources"] = dict(self.sources)
         scene["checks"] = self.checks(scene)
         scene["notes"] = self.notes
@@ -1153,6 +1166,85 @@ class Scene:
             out.append(block)
         return out
 
+    def sprites(self) -> dict:
+        """The area's `SpriteView` array, one record per view file (the mapped view index, 1-based, less one).
+
+        The array has no count or terminator: its length is its symbol's size. A view's batch list ends at
+        `firstSprite == SPRITE_BATCH_END`; its source array has no sentinel, so its length is the highest
+        `firstSprite + spriteCount` of the nonterminal batches, held against the array's own extent. A draw-area
+        list ends at `restoreDepth == SPRITE_DRAW_AREA_END`. A view whose source slot is NULL or repeats its
+        batch-list address has no sources (`SpriteView.sources.empty`).
+
+        Its records are counted here (`recordsRead`, `tableLengthsBy`) and not in the scene's `verification`.
+        """
+        before, lengths = self.records_read, Counter(self.lengths)
+        out: dict = {"table": None, "source": None, "fields": list(SPRITE_ROW), "views": []}
+        entry, _ = self.directory("sprites")
+        if entry:
+            if self.owner_of(entry) != self.room:
+                self.miss("sprites", self.ref(entry), f"the stage directory's entry for area {self.area} is not an address in {self.room}'s package")
+            rows, info = self.table("sprites", entry, SPRITE_VIEW)
+            if info:
+                out["table"], out["source"] = info["table"], info["where"]
+            for i, row in enumerate(rows or []):
+                what = f"{out['table']}[{i}]"
+                view = {"file": i + 1, "sources": None, "batches": self.ref(row["batches"], sizeof(SPRITE_BATCH)),
+                        "drawAreas": self.ref(row["drawAreas"], sizeof(SPRITE_DRAW_AREA)), "background": None, "batchList": [],
+                        "drawAreaList": [], "sourceCount": 0, "pages": [], "rows": []}
+                batches = None
+                if row["batches"]:
+                    batches, _i = self.table("sprites", row["batches"], SPRITE_BATCH, stop=lambda b: b["firstSprite"] == SPRITE_BATCH_END)
+                if batches:
+                    # The first record's count selects the background, terminal or not (sprites.h).
+                    view["background"] = "decoded strips" if batches[0]["spriteCount"] == 0 else "suppressed"
+                    view["batchList"] = [{"firstSprite": b["firstSprite"], "spriteCount": b["spriteCount"], "hidden": b["hidden"],
+                                          "skipCachedPackets": b["skipCachedPackets"], "field_6": b["field_6"]}
+                                         for b in batches if b["firstSprite"] != SPRITE_BATCH_END]
+                elif row["batches"]:
+                    self.miss("sprites", what, "its batch list could not be read")
+                else:
+                    self.miss("sprites", what, "its batch list is NULL")
+                if row["drawAreas"]:
+                    areas, _i = self.table("sprites", row["drawAreas"], SPRITE_DRAW_AREA, stop=lambda a: a["restoreDepth"] == SPRITE_DRAW_AREA_END)
+                    view["drawAreaList"] = [[a["x"], a["y"], a["w"], a["h"], a["restoreDepth"]] for a in areas or [] if a["restoreDepth"] != SPRITE_DRAW_AREA_END]
+                count = max([b["firstSprite"] + b["spriteCount"] for b in view["batchList"]] or [0])
+                has_sources = bool(row["sources"]) and row["sources"] != row["batches"]
+                if count and not has_sources:
+                    self.miss("sprites", what, f"its batches reach source {count} and its source slot is " + ("its batch list" if row["sources"] else "NULL"))
+                elif count:
+                    view["sources"] = self.ref(row["sources"], sizeof(SPRITE_SOURCE))
+                    owner = self.owner_of(row["sources"])
+                    span, how = self.p.extent(owner, row["sources"]) if owner and owner != "main" else (None, None)
+                    if how == "symbol size" and count * sizeof(SPRITE_SOURCE) > span:
+                        self.miss("sprites", what, f"its batches reach source {count}, past the {span // sizeof(SPRITE_SOURCE)} sources of {view['sources']}")
+                        count = span // sizeof(SPRITE_SOURCE)
+                    sources, _i = self.table("sprites", row["sources"], SPRITE_SOURCE, count=count)
+                    drawn = set()
+                    for b in view["batchList"]:
+                        drawn.update(range(b["firstSprite"], b["firstSprite"] + b["spriteCount"]))
+                    pages: dict[tuple[int, int], dict] = {}
+                    for n, src in enumerate(sources or []):
+                        view["rows"].append([src[k] for k in SPRITE_ROW])
+                        if n not in drawn:
+                            continue                # between two batches: in the array, drawn by no range
+                        depth = TPAGE_DEPTH[(src["tpage"] >> 7) & 3]
+                        page = pages.setdefault((src["tpage"], src["clut"]), {
+                            "tpage": src["tpage"], "clut": src["clut"], "bpp": depth, "pageX": (src["tpage"] & 15) * 64,
+                            "pageY": 256 if src["tpage"] & 16 else 0, "blend": (src["tpage"] >> 5) & 3, "clutX": (src["clut"] & 63) * 16,
+                            "clutY": src["clut"] >> 6, "count": 0, "codeFlags": [], "texels": [255, 255, 0, 0]})
+                        page["count"] += 1
+                        if src["codeFlags"] not in page["codeFlags"]:
+                            page["codeFlags"] = sorted(page["codeFlags"] + [src["codeFlags"]])
+                        t = page["texels"]          # the texels the page's rectangles span: u, v of the first and the last
+                        page["texels"] = [min(t[0], src["u0"]), min(t[1], src["v0"]), max(t[2], src["u0"] + src["w"] - 1), max(t[3], src["v0"] + src["h"] - 1)]
+                    view["sourceCount"] = len(view["rows"])
+                    view["pages"] = [pages[k] for k in sorted(pages)]
+                out["views"].append(view)
+        out["recordsRead"] = self.records_read - before
+        out["tableLengthsBy"] = dict(Counter(self.lengths) - lengths)
+        self.records_read, self.lengths = before, lengths
+        return out
+
     @staticmethod
     def camera(row: dict, index: int) -> dict:
         m, t = row["transform"]["m"], row["transform"]["t"]
@@ -1490,7 +1582,15 @@ def report(scenes: dict[str, dict], errors: dict[str, str]) -> tuple[dict, str]:
     verify = Counter()
     lengths = Counter()
     mismatches = []
+    sprite, sprite_lengths = Counter(), Counter()
     for room, s in scenes.items():
+        sprite["rooms"] += bool(s["sprites"]["views"])
+        sprite["views"] += len(s["sprites"]["views"])
+        sprite["withSources"] += sum(1 for v in s["sprites"]["views"] if v["sourceCount"])
+        sprite["sources"] += sum(v["sourceCount"] for v in s["sprites"]["views"])
+        sprite["pages"] += sum(len(v["pages"]) for v in s["sprites"]["views"])
+        sprite["read"] += s["sprites"]["recordsRead"]
+        sprite_lengths.update(s["sprites"]["tableLengthsBy"])
         cams["views"] += s["checks"]["camerasResolved"]["views"]
         cams["withCamera"] += s["checks"]["camerasResolved"]["withCamera"]
         yaw["compared"] += s["checks"]["warpYawAgreesWithTrigger"]["compared"]
@@ -1509,12 +1609,15 @@ def report(scenes: dict[str, dict], errors: dict[str, str]) -> tuple[dict, str]:
               f"  cameras        {cams['withCamera']} of {cams['views']} mapped views have a camera record",
               f"  warp yaw       {yaw['agree']} of {yaw['compared']} warp triggers agree with forward(yaw) = (sin, 0, cos) of their departure endpoint",
               f"  grid quads     {quads['convex']} of {quads['quads']} are convex in strip order (loop 1, 0, 2, 3)",
+              f"  sprites        {sprite['views']} view records in {sprite['rooms']} rooms, {sprite['withSources']} with sources, {sprite['sources']} sources "
+              f"on {sprite['pages']} (page, CLUT) pairs; {sprite['read']} records read; table lengths by {dict(sprite_lengths)}",
               f"  package bytes  {verify['read']} records read; table lengths by {dict(lengths)}; {len(mismatches)} pinned roots disagree with gameplay"]
     lines += [f"      {m}" for m in mismatches[:40]]
     summary = {"rooms": len(scenes), "errors": errors, "coverage": {b: dict(table[b]) for b in BLOCKS},
                "failures": [{"room": r, "block": b, "unresolved": u} for r, b, u in failures], "checks": checks,
                "viewFilesMissing": missing, "cameras": dict(cams), "warpYaw": dict(yaw), "gridQuads": dict(quads),
-               "verification": {**dict(verify), "tableLengthsBy": dict(lengths)}, "mismatches": mismatches}
+               "verification": {**dict(verify), "tableLengthsBy": dict(lengths)}, "mismatches": mismatches,
+               "sprites": {**dict(sprite), "tableLengthsBy": dict(sprite_lengths)}}
     return summary, "\n".join(lines) + "\n"
 
 
