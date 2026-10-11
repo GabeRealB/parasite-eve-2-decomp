@@ -91,8 +91,9 @@ extern u8 D_80400000[];
 
 /// Fixed byte address of actor work buffer 2 (actor-overlay slot 3).
 ///
-/// Initializes the published buffer base. Actor loads, movie workspaces,
-/// demo state and GPU packets share this RAM, so users must coordinate reuse.
+/// Initializes `gFsActorBuffer2Base`. Actor loads, scene/movie workspaces,
+/// serialized demo state and GPU packets share this RAM; prior users must finish
+/// before reuse. The address specifies no object layout, capacity or reservation.
 #define FILE_SYSTEM_ACTOR_BUFFER_2_BASE ((u8*)0x80161E20)
 
 static const char _gBootBuildStamp[sizeof("2000/05/01 19:24 ver2.49")];
@@ -122,9 +123,14 @@ u8*        gFsActorBuffer2Base       = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
 /// No reader or allocation-end role is established.
 static u8* _gMemUnusedDevKitAddress = D_80400000;
 
-/// Start of the auxiliary region while no area map is selected: the address the
-/// map overlays load at, since without one their memory is free as well.
-#define MEM_AUX_REGION_DEFAULT_BASE ((u8*)0x80179950)
+/// Fixed byte base of the default shared image-memory region.
+///
+/// Normal video mode or stage zero selects this base for the complete saved
+/// region and GPU primitives. The active auxiliary heap begins 0x10000 bytes
+/// later. This address is also the map-overlay load base: occupants and pending
+/// CPU/GPU/decoder users must finish before the region is reclaimed. The macro
+/// specifies an address only, with neither an object layout nor an allocation.
+#define MEMORY_DEFAULT_IMAGE_REGION_BASE ((u8*)0x80179950)
 
 /// Map-owned image-memory rows indexed directly by stage ID 0..5.
 ///
@@ -243,10 +249,10 @@ void memConfigureImageMemory(s32 stageId, s32 areaId)
     areaSlots = _gGfxImageSlotTablesByStage[stageId];
     // Initially keep the active heap below the resident image workspace.
     if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (stageId == GAME_STAGE_NONE)) {
-        gMemSavedImageRegion      = MEM_AUX_REGION_DEFAULT_BASE;
+        gMemSavedImageRegion      = MEMORY_DEFAULT_IMAGE_REGION_BASE;
         gMemSavedImageRegionBytes = MEMORY_IMAGE_DEFAULT_REGION_BYTES;
-        gGpuPrimitiveBufferBase   = MEM_AUX_REGION_DEFAULT_BASE;
-        gMemActiveAuxHeap         = MEM_AUX_REGION_DEFAULT_BASE + MEMORY_PRIMITIVE_HEAP_BYTES;
+        gGpuPrimitiveBufferBase   = MEMORY_DEFAULT_IMAGE_REGION_BASE;
+        gMemActiveAuxHeap         = MEMORY_DEFAULT_IMAGE_REGION_BASE + MEMORY_PRIMITIVE_HEAP_BYTES;
         gMemActiveAuxHeapBytes    = MEMORY_IMAGE_DEFAULT_REGION_BYTES - MEMORY_IMAGE_REGION_EXTENSION_BYTES - MEMORY_PRIMITIVE_HEAP_BYTES;
     } else {
         gMemSavedImageRegion      = areaSlots[areaId].regionBase;

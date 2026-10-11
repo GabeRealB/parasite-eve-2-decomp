@@ -5,6 +5,11 @@
 enum { DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES = 0x6000 };
 
 /// Tags in each resident frame buffer, including the reserved foreground range.
+///
+/// Counts four-byte DMA tags, not bytes or a `GsOT` depth exponent. All 1088 tags
+/// are cleared together: 32 precede the 1024 depth slots and 32 follow them.
+/// Game submission begins at the final tag; task presentation can use the first
+/// 1024 tags without the game's 32-tag bias.
 #define GPU_ORDERING_TABLE_BUFFER_ENTRIES 0x440
 
 /// Tags before the depth-sorted base; foreground drawing uses negative indices.

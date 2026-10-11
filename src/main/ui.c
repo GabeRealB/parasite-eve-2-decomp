@@ -86,21 +86,23 @@ enum {
 /// Stores retain sixteen bits. caretValue is used repeatedly and must be a
 /// stable pointer without side effects; directionValue is evaluated once.
 /// baseYValue is a writable u16 lvalue without side effects, used repeatedly.
-/// Captures no caller locals; use as a standalone statement in a compound block,
-/// never as an unbraced conditional or loop body.
+/// Captures no caller locals; expands to a compound statement. Invoke standalone
+/// in a braced body, so a trailing semicolon cannot separate an if from its else.
 #define USER_INTERFACE_SET_CARET_BASE(caretValue, directionValue, baseYValue) \
-    if ((directionValue) == USER_INTERFACE_CARET_UP) {                        \
-        (caretValue)->x1 -= 4;                                                \
-        (baseYValue)      = (caretValue)->y0 + 5;                             \
-        (caretValue)->x2 += 5;                                                \
-        (caretValue)->y2  = (baseYValue);                                     \
-        (caretValue)->y1  = (baseYValue);                                     \
-    } else {                                                                  \
-        (caretValue)->x1 -= 3;                                                \
-        (baseYValue)      = (caretValue)->y0 - 4;                             \
-        (caretValue)->x2 += 4;                                                \
-        (caretValue)->y2  = (baseYValue);                                     \
-        (caretValue)->y1  = (baseYValue);                                     \
+    {                                                                         \
+        if ((directionValue) == USER_INTERFACE_CARET_UP) {                    \
+            (caretValue)->x1 -= 4;                                            \
+            (baseYValue)      = (caretValue)->y0 + 5;                         \
+            (caretValue)->x2 += 5;                                            \
+            (caretValue)->y2  = (baseYValue);                                 \
+            (caretValue)->y1  = (baseYValue);                                 \
+        } else {                                                              \
+            (caretValue)->x1 -= 3;                                            \
+            (baseYValue)      = (caretValue)->y0 - 4;                         \
+            (caretValue)->x2 += 4;                                            \
+            (caretValue)->y2  = (baseYValue);                                 \
+            (caretValue)->y1  = (baseYValue);                                 \
+        }                                                                     \
     }
 
 /// Focus colors for the animated underlined panel labels, red in the low byte.
@@ -246,29 +248,34 @@ enum {
 /// GNU expression result is a u32 RGB word. `baseShadeValue` and `pulseValue`
 /// are evaluated once; `shadeValue` must be a side-effect-free s32 lvalue,
 /// distinct from the inputs. It is overwritten and evaluated repeatedly.
-/// Captures no identifiers; the caller retains the shade's lifetime.
+/// The subtraction must fit s32; values at or below zero become one. There is
+/// no upper clamp: `_uiGrey` repeats the low byte in RGB and clears the command
+/// byte. Requires that helper's declaration; captures no caller locals.
 #define USER_INTERFACE_PULSING_BACKGROUND_COLOR(baseShadeValue, pulseValue, shadeValue) \
     ({                                                                                  \
         (shadeValue) = (baseShadeValue) - (pulseValue);                                 \
         if ((shadeValue) <= 0) {                                                        \
             (shadeValue) = 1;                                                           \
         }                                                                               \
-        _uiGrey(shadeValue);                                                            \
+        _uiGrey((shadeValue));                                                          \
     })
 
 /// Saves input control, suspends opening input, then draws and runs content.
 ///
 /// Standalone statement within a compound block. Panel/task arguments must be
-/// stable pointers without side effects; savedControlValue is a writable s32
+/// stable pointers without side effects; savedControlValue is a writable u32
 /// lvalue without side effects. Panel and saved-control arguments are used
 /// repeatedly; taskValue is used once. Captures no locals; the caller owns the
-/// saved value through the counter/restore phase.
-#define USER_INTERFACE_RUN_OPENING_PANEL_CONTENT(panelValue, taskValue, savedControlValue)        \
-    do {                                                                                          \
-        (savedControlValue)        = (panelValue)->control.word;                                  \
-        (panelValue)->control.word = (savedControlValue) << USER_INTERFACE_OPENING_CONTROL_SHIFT; \
-        _uiLayoutOpeningPanel(panelValue);                                                        \
-        (panelValue)->contentCallback(taskValue);                                                 \
+/// saved value through the counter/restore phase. Shifts its low 16 bits into
+/// the high halfword without signed overflow. Layout and the required content
+/// callback must keep the panel/task live. This operation leaves control
+/// suspended; the caller restores it only if content kept the suspended word.
+#define USER_INTERFACE_RUN_OPENING_PANEL_CONTENT(panelValue, taskValue, savedControlValue)             \
+    do {                                                                                               \
+        (savedControlValue)        = (panelValue)->control.word;                                       \
+        (panelValue)->control.word = (u32)(savedControlValue) << USER_INTERFACE_OPENING_CONTROL_SHIFT; \
+        _uiLayoutOpeningPanel(panelValue);                                                             \
+        (panelValue)->contentCallback(taskValue);                                                      \
     } while (0)
 
 static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 fullScreen);
@@ -294,6 +301,12 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
 /// control mode is copied as s32 and animation ticks narrow to s16. Returns
 /// NULL when either allocation fails, releasing the task if necessary.
 ///
+/// The descriptor is read synchronously and must provide a live content callback;
+/// it is not retained. Copies one recipe, not adjacent descriptor-table entries.
+/// The spawned task owns the cleared, primary-heap UiObject in spawnArg2 and
+/// releases it through `uiObjectTaskExit`. A live optional parent's task adopts
+/// the child for teardown. The returned pointer stays borrowed until task exit.
+///
 /// Arguments are evaluated once, left to right. They must not refer to the
 /// macro's `_uiSpawn...` locals. The GNU statement expression keeps allocation
 /// inline while accepting a complete union value with GCC 2.8.1.
@@ -307,14 +320,14 @@ static void _uiDrawUnderlinedLabel(const UiPanel* panel, s32 x, s32 y, const cha
         TaskDesc            _uiSpawnTaskDesc;                                                                                       \
         Task*               _uiSpawnTask;                                                                                           \
         UiObject*           _uiSpawnResult;                                                                                         \
-        s32                 _uiSpawnDescriptorArg;                                                                                  \
+        s32                 _uiSpawnTaskDataValue;                                                                                  \
                                                                                                                                     \
         _uiSpawnResult                          = NULL;                                                                             \
         _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->taskFlags;                                                    \
         _uiSpawnTaskDesc.header.fields.priority = _uiSpawnDescriptor->taskPriority;                                                 \
-        _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->taskDataValue;                                                \
+        _uiSpawnTaskDataValue                   = _uiSpawnDescriptor->taskDataValue;                                                \
         _uiSpawnTaskDesc.callback               = _uiDispatchPanelLifecycle;                                                        \
-        _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                            \
+        _uiSpawnTaskDesc.data.value             = _uiSpawnTaskDataValue;                                                            \
         _uiSpawnTask                            = taskSpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);        \
         if (_uiSpawnTask != NULL) {                                                                                                 \
             _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                                 \
@@ -352,55 +365,46 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
 /// Applies content padding and publishes centered edges from a frame-inset rectangle.
 ///
 /// Requires a stable UiPanel pointer and a writable RECT lvalue; arguments are
-/// used repeatedly and must have no side effects. Ordered unsigned halfword
-/// stores retain the original coordinate truncation and translation.
+/// used repeatedly and must have no side effects. The rectangle must be separate
+/// from the panel's bounds and retain its caller-owned lifetime. `edgeView` is
+/// the literal member token `signedValue` or `unsignedValue`, selecting the
+/// halfword promotion of all four content edges; origins use `unsignedValue`.
+/// Title padding is 9 pixels above and 2 below; other padding is 2 on every side.
+/// All rectangle and panel stores retain sixteen bits, without extent clamping.
+/// The centered edges are content-relative pixels and the origins translate them
+/// to screen-centered pixels. Captures no caller identifiers.
 /// Expands to several statements: invoke only as a standalone statement within
 /// a compound block, never as an unbraced conditional or loop body. Keeping the
 /// assignments in the caller's block allows packet setup to interleave with them.
-#define USER_INTERFACE_CENTER_PANEL_CONTENT(panelValue, contentRectValue)                                        \
-    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {           \
-        (contentRectValue).y += 9;                                                                               \
-        (contentRectValue).h -= 0xB;                                                                             \
-        (contentRectValue).x += 2;                                                                               \
-        (contentRectValue).w -= 4;                                                                               \
-    } else {                                                                                                     \
-        (contentRectValue).y += 2;                                                                               \
-        (contentRectValue).h -= 4;                                                                               \
-        (contentRectValue).x += 2;                                                                               \
-        (contentRectValue).w -= 4;                                                                               \
-    }                                                                                                            \
-    (panelValue)->contentLeft.unsignedValue    = -((contentRectValue).w >> 1);                                   \
-    (panelValue)->contentRight.unsignedValue   = (panelValue)->contentLeft.unsignedValue + (contentRectValue).w; \
-    (panelValue)->contentTop.unsignedValue     = -((contentRectValue).h >> 1);                                   \
-    (panelValue)->contentBottom.unsignedValue  = (panelValue)->contentTop.unsignedValue + (contentRectValue).h;  \
-    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.unsignedValue; \
-    (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
+#define USER_INTERFACE_CENTER_PANEL_CONTENT(panelValue, contentRectValue, edgeView)                         \
+    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {      \
+        (contentRectValue).y += 9;                                                                          \
+        (contentRectValue).h -= 0xB;                                                                        \
+        (contentRectValue).x += 2;                                                                          \
+        (contentRectValue).w -= 4;                                                                          \
+    } else {                                                                                                \
+        (contentRectValue).y += 2;                                                                          \
+        (contentRectValue).h -= 4;                                                                          \
+        (contentRectValue).x += 2;                                                                          \
+        (contentRectValue).w -= 4;                                                                          \
+    }                                                                                                       \
+    (panelValue)->contentLeft.edgeView         = -((contentRectValue).w >> 1);                              \
+    (panelValue)->contentRight.edgeView        = (panelValue)->contentLeft.edgeView + (contentRectValue).w; \
+    (panelValue)->contentTop.edgeView          = -((contentRectValue).h >> 1);                              \
+    (panelValue)->contentBottom.edgeView       = (panelValue)->contentTop.edgeView + (contentRectValue).h;  \
+    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.edgeView; \
+    (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.edgeView;
 
 /// Applies list padding and centers signed content edges from a frame-inset rectangle.
 ///
 /// Arguments must be a stable UiPanel pointer and writable RECT lvalue without
 /// side effects; both are used repeatedly. Captures no caller identifiers.
 /// Stores narrow to halfwords; signed edge reads preserve the translation.
-/// Use as a standalone statement; the caller retains the rectangle's lifetime.
-#define USER_INTERFACE_CENTER_LIST_PANEL_CONTENT(panelValue, contentRectValue)                                     \
-    do {                                                                                                           \
-        if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {         \
-            (contentRectValue).y += 9;                                                                             \
-            (contentRectValue).h -= 0xB;                                                                           \
-            (contentRectValue).x += 2;                                                                             \
-            (contentRectValue).w -= 4;                                                                             \
-        } else {                                                                                                   \
-            (contentRectValue).y += 2;                                                                             \
-            (contentRectValue).h -= 4;                                                                             \
-            (contentRectValue).x += 2;                                                                             \
-            (contentRectValue).w -= 4;                                                                             \
-        }                                                                                                          \
-        (panelValue)->contentLeft.signedValue      = -((contentRectValue).w >> 1);                                 \
-        (panelValue)->contentRight.signedValue     = (panelValue)->contentLeft.signedValue + (contentRectValue).w; \
-        (panelValue)->contentTop.signedValue       = -((contentRectValue).h >> 1);                                 \
-        (panelValue)->contentBottom.signedValue    = (panelValue)->contentTop.signedValue + (contentRectValue).h;  \
-        (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.signedValue; \
-        (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.signedValue;  \
+/// Uses `USER_INTERFACE_CENTER_PANEL_CONTENT` with `signedValue` in one statement;
+/// the caller retains the rectangle's lifetime and the full layout contract.
+#define USER_INTERFACE_CENTER_LIST_PANEL_CONTENT(panelValue, contentRectValue)            \
+    do {                                                                                  \
+        USER_INTERFACE_CENTER_PANEL_CONTENT((panelValue), contentRectValue, signedValue); \
     } while (0)
 
 /// Publishes one row's index/baseline and invokes its required drawing/input callback.
@@ -411,8 +415,15 @@ static void _uiComputeAnimatedPanelRect(const UiPanel* panel, RECT* rect);
 /// lvalues overwritten here; the inset remains live for the caller to restore
 /// callback-adjusted rowTextY after inspecting actionResult. All arguments must
 /// be side-effect-free and are used repeatedly; captures no caller identifiers.
-/// The callback table obeys UiList's bounds. Use only as a standalone statement
-/// within a compound block, never as an unbraced conditional or loop body.
+/// Requires itemIndexValue in [0, itemCount), fitting the signed current-item
+/// byte (0..127), and a non-NULL callback for the selected table entry. Row
+/// heights count signed pixels: the baseline inset is 3 at height 10, 2 below
+/// 10, zero for 11..15, and height - 15 for heights at least 16. `PARENT_OF`
+/// recovers the established embedded panel's `UiObject`; it does not extend its
+/// lifetime. Content must keep the list, panel and callback table live through
+/// the caller's post-dispatch accesses. The callback table obeys `UiList`'s bounds.
+/// Invoke standalone within a compound block, never as an unbraced conditional
+/// or loop body.
 #define USER_INTERFACE_DISPATCH_LIST_ROW(listValue, panelValue, itemIndexValue, rowBottomValue, textInsetValue, rowHeightValue) \
     (textInsetValue)              = 0;                                                                                          \
     (rowHeightValue)              = (listValue)->rowHeight;                                                                     \
@@ -1144,7 +1155,7 @@ static void _uiLayoutHiddenPanel(UiPanel* panel)
     DR_AREA* areaCommand;
 
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
-    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect, unsignedValue);
 
     areaCommand    = gGpuPrimCursor;
     gGpuPrimCursor = areaCommand + 1;
@@ -1250,7 +1261,7 @@ static inline void _uiLayoutDrawnPanelContent(UiPanel* panel, const RECT* outerR
     RECT contentRect;
 
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
-    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect, unsignedValue);
     if (outerRect != NULL) {
         _uiComputePanelInnerRect(panel, outerRect, innerRect);
     }
@@ -1524,7 +1535,7 @@ void uiSetPanelContentSize(UiPanel* panel, s32 contentWidth, s32 contentHeight)
         panel->bounds.rect.h = (panel->bounds.rect.h - (panel->contentBottom.unsignedValue - panel->contentTop.unsignedValue)) + contentHeight;
     }
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
-    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect, unsignedValue);
 }
 
 void uiFitPanelToList(UiList* list, UiPanel* panel)
@@ -2461,7 +2472,7 @@ void uiSizePanelForText(UiPanel* panel, const u8* text, s32 extraWidthPixels, s3
     layout.measured.packedSize = textMeasureUiTextSize(text);
     // Establish the old content span so resizing preserves frame and style padding.
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &layout.contentRect);
-    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, layout.contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, layout.contentRect, unsignedValue);
     widthMarginPixels  = extraWidthPixels + USER_INTERFACE_TEXT_PANEL_WIDTH_MARGIN_PIXELS;
     heightMarginPixels = extraHeightPixels + USER_INTERFACE_TEXT_PANEL_HEIGHT_MARGIN_PIXELS;
     uiSetPanelContentSize(panel, layout.measured.pixels.widthPixels + widthMarginPixels, layout.measured.pixels.heightPixels + heightMarginPixels);
@@ -2891,7 +2902,7 @@ void uiUpdatePanelContentLayout(UiPanel* panel, const RECT* outerRect, RECT* inn
 
     // Center content within the full panel and retain its screen translation.
     _uiComputePanelInnerRect(panel, &panel->bounds.rect, &contentRect);
-    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect);
+    USER_INTERFACE_CENTER_PANEL_CONTENT(panel, contentRect, unsignedValue);
     if (outerRect != NULL) {
         _uiComputePanelInnerRect(panel, outerRect, innerRect);
     }
@@ -2968,7 +2979,7 @@ static void _uiPanelInitial(UiPanel* panel, Task* owningTask)
 /// content left the suspended word unchanged. Requires opening drawing resources.
 static void _uiPanelOpening(UiPanel* panel, Task* owningTask)
 {
-    s32 savedControl;
+    u32 savedControl;
 
     // Suspend input during opening, preserving control changes from the callback.
     USER_INTERFACE_RUN_OPENING_PANEL_CONTENT(panel, owningTask, savedControl);

@@ -37,7 +37,10 @@ enum { GRAPHICS_FLAT_LIGHT_COLOR_SHIFT = 4 };
 /// Evaluates the index six times and every other argument three times.
 /// Arguments must be stable expressions without side effects; inputs must
 /// remain readable through the stores. Captures no caller identifiers.
-/// Expands to a compound statement; invoke without a trailing semicolon.
+/// Requires `MATRIX`, `GsF_LIGHT` and `SVECTOR` fields and the colour-shift constant.
+/// Owns no storage, uses no GTE state and retains no pointer. Both matrices
+/// must remain live, and inputs must not overlap the six written halfwords.
+/// Expands to a compound statement; invoke standalone in a braced body.
 #define GRAPHICS_STORE_FLAT_LIGHT_MATRICES(lightIndex, light, normalizedDirection, directionMatrix, colorMatrix) \
     {                                                                                                            \
         (directionMatrix)->m[(lightIndex)][0] = -(normalizedDirection).vx;                                       \
@@ -59,7 +62,7 @@ static __inline__ void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGH
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxFlatLightScratch);
     gfxNormalizeLightDirection(light, &scratch->direction);
 
-    GRAPHICS_STORE_FLAT_LIGHT_MATRICES(lightIndex, light, scratch->direction, directionMatrix, colorMatrix)
+    GRAPHICS_STORE_FLAT_LIGHT_MATRICES(lightIndex, light, scratch->direction, directionMatrix, colorMatrix);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxFlatLightScratch);
 }
@@ -111,7 +114,7 @@ void gfxSetFlatLight(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMa
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxFlatLightScratch);
     gfxNormalizeLightDirection(light, &scratch->direction);
 
-    GRAPHICS_STORE_FLAT_LIGHT_MATRICES(lightIndex, light, scratch->direction, directionMatrix, colorMatrix)
+    GRAPHICS_STORE_FLAT_LIGHT_MATRICES(lightIndex, light, scratch->direction, directionMatrix, colorMatrix);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxFlatLightScratch);
 }

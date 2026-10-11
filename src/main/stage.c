@@ -981,7 +981,7 @@ Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spa
         return NULL;
     }
 
-    MEM_CLEAR(_gStageTransitionState, sizeof(*_gStageTransitionState));
+    _memClearByteSpan(_gStageTransitionState, sizeof(*_gStageTransitionState));
 
     stage            = _gStageTransitionState;
     stage->taskDesc  = descriptor;

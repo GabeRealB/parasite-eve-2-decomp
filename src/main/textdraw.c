@@ -964,8 +964,12 @@ static inline u8* _textItoaUnsigned(u8* buffer, u32 value)
     /// Writes one unsigned decimal digit, advancing its place and remainder.
     ///
     /// Arguments must be distinct simple lvalues with no side effects: they
-    /// are evaluated repeatedly. The nonzero place must give a quotient 0..9.
-    /// The byte store narrows the quotient before unsigned remainder math.
+    /// are evaluated repeatedly. destination is a writable u8* cursor, and
+    /// decimalPlace/value are u32. The positive place is a decimal power with
+    /// quotient 0..9. Stores one ASCII digit and advances the cursor one byte,
+    /// subtracts that digit's value, and divides the place by ten; it adds no
+    /// terminator. The byte store narrows before unsigned remainder math.
+    /// Captures no caller identifiers and retains no storage.
 #define TEXT_STEP_UNSIGNED_DECIMAL_DIGIT(destination, decimalPlace, value) \
     do {                                                                   \
         *(destination)      = (value) / (decimalPlace);                    \
@@ -1011,7 +1015,13 @@ static inline u8* _textItoaSigned(u8* buffer, s32 value)
     /// Writes one decimal digit, advances its place and consumes its value.
     ///
     /// Arguments must be distinct simple lvalues, with no side effects: they
-    /// are evaluated repeatedly. The nonzero place must give a quotient 0..9.
+    /// are evaluated repeatedly. destination is a writable u8* cursor, and
+    /// decimalPlace/value are nonnegative s32 values. The positive place is a
+    /// decimal power with quotient 0..9; the caller handles any minus sign.
+    /// Stores one ASCII digit, advances the cursor one byte, subtracts the
+    /// byte-narrowed digit's place value and divides the place by ten. It adds
+    /// no terminator. Arguments cannot refer to quotient, digitValue or
+    /// consumedValue, the macro's local s32 temporaries; it captures no locals.
 #define TEXT_STEP_SIGNED_DECIMAL_DIGIT(destination, decimalPlace, value) \
     do {                                                                 \
         s32 quotient;                                                    \

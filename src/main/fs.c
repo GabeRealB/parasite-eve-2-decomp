@@ -768,7 +768,7 @@ static u8 _fsReadChunkHeaderSector(void)
     s32                     payloadStatus;
 
     // Set the exclusive sector end and the per-sector compressed-input boundary.
-    CdGetSector(&gFsSectorBuffers.sector, FS_SECTOR_WORD_SIZE);
+    CdGetSector(&gFsSectorBuffers.sector, FILE_SYSTEM_SECTOR_WORDS);
     gFsLzssInputEnd       = gFsSectorBuffers.sector.bytes;
     chunkHeader           = &gFsSectorBuffers.sector.chunk.header;
     gFsPayloadWriteCursor = chunkHeader->loadAddr;
@@ -975,8 +975,8 @@ static u8 _fsReadChunkPayloadSector(void)
 
     switch (_gFsPayloadPhase) {
         case FILE_SYSTEM_PAYLOAD_RAW:
-            CdGetSector(gFsPayloadWriteCursor, FS_SECTOR_WORD_SIZE);
-            gFsPayloadWriteCursor += FS_SECTOR_BYTE_SIZE;
+            CdGetSector(gFsPayloadWriteCursor, FILE_SYSTEM_SECTOR_WORDS);
+            gFsPayloadWriteCursor += FILE_SYSTEM_SECTOR_BYTES;
             if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -987,7 +987,7 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_PACKAGE:
-            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.sector.bytes, FILE_SYSTEM_SECTOR_WORDS);
             gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
             fsDecompressStream();
             if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
@@ -1027,7 +1027,7 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_IMAGE:
-            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.sector.bytes, FILE_SYSTEM_SECTOR_WORDS);
             payloadStatus = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT);
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED) {
                 gFsNextReadSector--;
@@ -1044,7 +1044,7 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_CLUT:
-            CdGetSector(gFsSectorBuffers.clutContinuation, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.clutContinuation, FILE_SYSTEM_SECTOR_WORDS);
             // The image header is the start of the previous sector's payload, contiguous with this continuation sector.
             payloadStatus = fsUploadImageChunk((const FsImageChunk*)gFsSectorBuffers.sector.chunk.data.bytes, 0);
             if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED) {
@@ -1062,8 +1062,8 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_BUNDLE:
-            CdGetSector(gFsPayloadWriteCursor, FS_SECTOR_WORD_SIZE);
-            gFsPayloadWriteCursor += FS_SECTOR_BYTE_SIZE;
+            CdGetSector(gFsPayloadWriteCursor, FILE_SYSTEM_SECTOR_WORDS);
+            gFsPayloadWriteCursor += FILE_SYSTEM_SECTOR_BYTES;
             if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -1081,8 +1081,8 @@ static u8 _fsReadChunkPayloadSector(void)
             break;
         case FILE_SYSTEM_PAYLOAD_BACKGROUND:
             if (gFsChunkLoadPolicy != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
-                CdGetSector((u8*)gFsImageWorkspacePtr->strips + _gFsBackgroundWriteOffset, FS_SECTOR_WORD_SIZE);
-                _gFsBackgroundWriteOffset += FS_SECTOR_BYTE_SIZE;
+                CdGetSector((u8*)gFsImageWorkspacePtr->strips + _gFsBackgroundWriteOffset, FILE_SYSTEM_SECTOR_WORDS);
+                _gFsBackgroundWriteOffset += FILE_SYSTEM_SECTOR_BYTES;
             }
             if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 if (gFsChunkLoadPolicy != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
@@ -1097,7 +1097,7 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_MUSIC:
-            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.sector.bytes, FILE_SYSTEM_SECTOR_WORDS);
             payloadStatus = sndLoadFeedChunkSector(gFsSectorBuffers.sector.bytes);
             if (payloadStatus == SOUND_LOAD_PHASE_DONE) {
                 endMarker = _gFsChunkEndMarker;
@@ -1334,7 +1334,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
         }
 
         gFsNextReadSector += 1;
-        CdGetSector(gFsSectorBuffers.sector.words, FS_SECTOR_WORD_SIZE);
+        CdGetSector(gFsSectorBuffers.sector.words, FILE_SYSTEM_SECTOR_WORDS);
 
         recordWordOffset = 0;
 
@@ -1345,7 +1345,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
             category5Sectors  = _gFsStage0Category5Sectors;
             category90Sectors = _gFsStage0Category90Sectors;
 
-            if ((u16)recordWordOffset >= FS_SECTOR_WORD_SIZE) {
+            if ((u16)recordWordOffset >= FILE_SYSTEM_SECTOR_WORDS) {
                 return;
             }
 
@@ -1653,7 +1653,7 @@ restart:
             gFsLzssDecodeStatus       = FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT;
             gFsLzssRingWriteIndex     = FILE_SYSTEM_LZSS_INITIAL_WRITE_INDEX;
             gFsLzssInputEnd           = gFsSectorBuffers.sector.bytes;
-            gFsLzssInputEnd          += FS_SECTOR_BYTE_SIZE;
+            gFsLzssInputEnd          += FILE_SYSTEM_SECTOR_BYTES;
             mdecRequestImageVlcRebuild();
 
             _fsStartPayloadRead(startupImageSector, startupImageSector + startupImageSectorCount, NULL, FILE_SYSTEM_PAYLOAD_BACKGROUND);

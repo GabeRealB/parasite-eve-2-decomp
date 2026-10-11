@@ -35,10 +35,14 @@ enum {
 
 static s32 _textParseLine(const u8** cursor, u8* line);
 
-/// Initializes large UI metrics, packed RGB and byte-narrowed line selectors.
-/// `request` is a TextDrawReq lvalue, evaluated repeatedly; all arguments must
-/// be free of side effects. Coordinates and the OT index are left unchanged.
-/// Expands to four statements and must be used within a braced statement block.
+/// Sets a line's large glyph metrics, packed RGB, alignment and drawing mode.
+///
+/// `request` is a live, writable `TextDrawReq` lvalue, evaluated four times.
+/// RGB, alignment and mode expressions are each evaluated once in store order;
+/// all arguments must have no expression side effects. Selectors narrow to
+/// signed bytes. Placement, OT index and `vBias` stay unchanged; drawing supplies
+/// the bias. Requires `TEXT_GLYPH_TABLE_LARGE`, captures no caller locals and
+/// retains no pointer. Invoke the four statements standalone in a braced block.
 #define TEXT_SET_UI_LINE_STYLE(request, rgbValue, modeValue, alignmentValue) \
     (request).colorRgb   = (rgbValue);                                       \
     (request).glyphTable = TEXT_GLYPH_TABLE_LARGE;                           \
@@ -290,21 +294,19 @@ u32 textMeasureUiTextSize(const u8* text)
     /// Initializes a zero-anchor, large-face request for width measurement.
     ///
     /// `requestValue` is a TextDrawReq lvalue; `requestAddress` points at that
-    /// same object. `byteSelector` and `glyphSelector` are distinct s8 and s32
-    /// staging lvalues. Arguments are evaluated repeatedly and must have no
-    /// side effects. Expands to statements requiring a braced caller block,
-    /// with no captured locals. Sets all fields except the unused vBias.
-    /// Byte-to-word staging in the caller's scope preserves store scheduling.
-#define TEXT_INIT_UI_MEASURE_REQUEST(requestValue, requestAddress, byteSelector, glyphSelector) \
-    (byteSelector)               = TEXT_GLYPH_TABLE_LARGE;                                      \
-    (requestValue).x             = 0;                                                           \
-    (requestValue).y             = 0;                                                           \
-    (requestValue).otIndex       = 0;                                                           \
-    (requestValue).colorRgb      = 0;                                                           \
-    (glyphSelector)              = (byteSelector);                                              \
-    (requestAddress)->glyphTable = (glyphSelector);                                             \
-    (byteSelector)               = TEXT_ALIGNMENT_RIGHT;                                        \
-    (requestAddress)->alignment  = (byteSelector);                                              \
+    /// same live, writable object. Both are stable expressions without side
+    /// effects, evaluated repeatedly. Sets x/y, OT index and RGB to zero, large
+    /// glyph metrics, right alignment and fill-only drawing. Alignment measures
+    /// width by subtracting it from the zero signed-halfword X anchor. `vBias` is
+    /// unused by measurement and stays unchanged. Captures no caller locals;
+    /// requires the text selectors and a standalone use in a braced block.
+#define TEXT_INIT_UI_MEASURE_REQUEST(requestValue, requestAddress) \
+    (requestValue).x             = 0;                              \
+    (requestValue).y             = 0;                              \
+    (requestValue).otIndex       = 0;                              \
+    (requestValue).colorRgb      = 0;                              \
+    (requestAddress)->glyphTable = TEXT_GLYPH_TABLE_LARGE;         \
+    (requestAddress)->alignment  = TEXT_ALIGNMENT_RIGHT;           \
     (requestValue).drawMode      = TEXT_DRAW_FILL_ONLY
 
     u8           lineBuffer[TEXT_UI_LINE_BUFFER_BYTES];
@@ -315,8 +317,6 @@ u32 textMeasureUiTextSize(const u8* text)
     const u8*    lineText;
     const u8*    cursor;
     s32          lineEnd;
-    s32          glyphTableValue;
-    s8           selectorByte;
 
     maxWidthPixels = 0;
     heightPixels   = maxWidthPixels;
@@ -327,7 +327,7 @@ u32 textMeasureUiTextSize(const u8* text)
     do {
         lineEnd = _textParseLine(&cursor, lineBuffer);
 
-        TEXT_INIT_UI_MEASURE_REQUEST(request, measureRequest, selectorByte, glyphTableValue);
+        TEXT_INIT_UI_MEASURE_REQUEST(request, measureRequest);
 #undef TEXT_INIT_UI_MEASURE_REQUEST
         textAlignLine(measureRequest, lineText);
 

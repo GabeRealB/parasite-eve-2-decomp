@@ -2007,9 +2007,12 @@ static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
 {
     /// Invalidate both filename suffixes and enter the save-failure state.
     ///
-    /// The cursor arguments must be distinct, simple writable u8* local lvalues
-    /// pointing at buffers of at least 21 bytes. They are evaluated repeatedly and
-    /// advanced to byte 20, which is terminated; later backing bytes are retained.
+    /// The cursor arguments must be distinct, simple writable char* local lvalues
+    /// initially pointing at buffers of at least 21 bytes. Leaves the first 12
+    /// product-prefix bytes intact, fills bytes 12..19 with '_', and writes NUL
+    /// at byte 20. Advances both cursors to that terminator; later backing bytes
+    /// are retained. The buffers must not overlap and are evaluated repeatedly.
+    /// Arguments cannot name filenameByteIndex or suffixPlaceholder.
     /// `dialogTask` is evaluated once and must point at the live save dialog task.
 #define MEMORY_CARD_FAIL_FILE_HEADER_WRITE(dialogTask, filenameCursor, savedFilenameCursor) \
     do {                                                                                    \
@@ -2018,11 +2021,11 @@ static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
             MEMORY_CARD_FILENAME_BYTES        = 20                                          \
         };                                                                                  \
         s32 filenameByteIndex = 0;                                                          \
-        s32 unusedChar        = '_';                                                        \
+        s32 suffixPlaceholder = '_';                                                        \
         do {                                                                                \
             if (filenameByteIndex >= MEMORY_CARD_FILENAME_PREFIX_BYTES) {                   \
-                *(savedFilenameCursor) = unusedChar;                                        \
-                *(filenameCursor)      = unusedChar;                                        \
+                *(savedFilenameCursor) = suffixPlaceholder;                                 \
+                *(filenameCursor)      = suffixPlaceholder;                                 \
             }                                                                               \
             (filenameCursor)++;                                                             \
             filenameByteIndex++;                                                            \
@@ -2783,8 +2786,10 @@ static void _mcDrawLoadFileRow(UiList* list, UiObject* object)
 /// `lineRequest` must be a side-effect-free request lvalue: it is evaluated seven
 /// times. Other arguments are evaluated once, in field-store order; coordinates
 /// narrow to signed halfwords and selectors to signed bytes. The renderer
-/// initializes vertical bias. Expands to a compound statement; use as a
-/// standalone statement in a braced body. Defined only around `mcDrawFilePreview`.
+/// initializes vertical bias, so the unused vBias byte remains untouched here.
+/// Requires TextDrawReq fields and selector constants; retains no pointer and
+/// captures no caller locals. Expands to a compound statement; invoke standalone
+/// in a braced body. Defined only around `mcDrawFilePreview`.
 #define MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(lineRequest, penX, penY, lineOtIndex, textColorRgb, face, alignmentMode, textDrawMode) \
     {                                                                                                                                \
         (lineRequest).x          = (penX);                                                                                           \

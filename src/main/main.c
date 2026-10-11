@@ -14,7 +14,7 @@
 static u32 _gBootStackAddress = 0x801fff00;
 
 // Keep the heap-base word in main's fixed .data subsegment.
-void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
+void* gMemPrimaryHeapBase = MEMORY_PRIMARY_HEAP_BASE;
 
 // BSS symbols (gMemSavedAuxHeap … gCdCmdQueue … gMemSavedImageRegionBytes) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.

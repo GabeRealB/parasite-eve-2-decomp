@@ -357,19 +357,23 @@ void midiApplyMusicVolume(u16 volumeOverride)
         MIDI_MUSIC_ALL_SEQUENCES    = 0
     };
     _SndMusicVolumeTable volumeTable;
-    u8                   savedVolume;
 
     /// Applies the saved music level, changing the mute gate before queuing that gain.
     ///
     /// `table` must be a side-effect-free `_SndMusicVolumeTable` expression
     /// for saved options 0..3. It is evaluated again after the gate change
     /// when no room song is selected.
-    /// Uses the live save, room song and music-level cache, the local selectors
-    /// and the local `savedVolume` temporary. Expands to a compound statement.
+    /// Updates the live music-level cache from gains 100/64/32/0, then queues
+    /// the selected room song's gain, or sequence zero for all songs. Sound
+    /// request allocation can fail; the cache and mute gate still change.
+    /// Uses the live save, room song, cache, local enum selectors and sound APIs;
+    /// captures no caller temporaries. Arguments cannot name `_midiSavedVolume`.
+    /// Expands to a compound statement, defined only around this saved-volume path.
 #define MIDI_APPLY_SAVED_MUSIC_VOLUME(table)                                                                                              \
     {                                                                                                                                     \
-        savedVolume      = (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];                                     \
-        gMidiMusicVolume = savedVolume;                                                                                                   \
+        u8 _midiSavedVolume;                                                                                                              \
+        _midiSavedVolume = (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];                                     \
+        gMidiMusicVolume = _midiSavedVolume;                                                                                              \
         /* Change the gate before the selected gain; unmuting queues the cached gain. */                                                  \
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == MIDI_MUSIC_SAVED_VOLUME_OFF) {                                        \
             midiMuteMusic();                                                                                                              \

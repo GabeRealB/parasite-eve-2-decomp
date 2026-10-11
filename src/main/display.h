@@ -12,7 +12,11 @@
 #include "main/task_types.h"
 #include "display_types.h"
 
-#define GPU_OT_END_PRIM 0xFFFFFF
+/// Packed GPU DMA tag with no payload and the end-of-chain address sentinel.
+///
+/// Written as a complete u_long tag at the start of reverse ordering tables.
+/// Bits 0..23 terminate the link; the zero high byte transfers no command words.
+#define GPU_DMA_CHAIN_END 0xFFFFFF
 
 /// Two resident frame ordering tables of packed four-byte DMA tag words.
 ///
@@ -208,7 +212,7 @@ static inline void _gpuBeginOt(s32 bufferIndex)
     gGpuCurrentOt = gGpuFrameOtTags[bufferIndex];
     ClearOTagR(gGpuCurrentOt, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     firstTag      = gGpuCurrentOt;
-    *firstTag     = GPU_OT_END_PRIM;
+    *firstTag     = GPU_DMA_CHAIN_END;
     gGpuCurrentOt = firstTag + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
 }
 

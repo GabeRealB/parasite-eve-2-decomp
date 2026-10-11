@@ -37,11 +37,18 @@ typedef struct {
 } FsCdfFolderListEntry;
 STATIC_ASSERT_SIZEOF(FsCdfFolderListEntry, 0x8);
 
-/// Number of bytes in a CD sector.
-#define FS_SECTOR_BYTE_SIZE 0x800
+/// Bytes in one filesystem CD user-data sector.
+///
+/// Excludes the separately consumed drive header and raw-sector framing.
+/// Used for complete payload-buffer extents and byte-cursor advances.
+#define FILE_SYSTEM_SECTOR_BYTES 0x800
 
-/// How many folder records fit in one CD sector.
-#define FILE_SYSTEM_CDF_FOLDER_LIST_CAPACITY (FS_SECTOR_BYTE_SIZE / sizeof(FsCdfFolderListEntry))
+/// Serialized folder-record slots filling the opening sector of a stage CDF.
+///
+/// Includes the zero-`sectorCount` terminator slot: usable lists must terminate
+/// within these 256 records. This is the disc-sector extent, independent of the
+/// smaller runtime folder table. The sizeof expression has size_t type.
+#define FILE_SYSTEM_CDF_FOLDER_LIST_CAPACITY (FILE_SYSTEM_SECTOR_BYTES / sizeof(FsCdfFolderListEntry))
 
 /// Folder table that fills the first sector of a stage CDF (stages 1-5).
 ///
@@ -51,7 +58,7 @@ STATIC_ASSERT_SIZEOF(FsCdfFolderListEntry, 0x8);
 typedef struct {
     FsCdfFolderListEntry entries[FILE_SYSTEM_CDF_FOLDER_LIST_CAPACITY]; // On-disc order; a zero sectorCount ends the table
 } FsCdfFolderList;
-STATIC_ASSERT_SIZEOF(FsCdfFolderList, FS_SECTOR_BYTE_SIZE);
+STATIC_ASSERT_SIZEOF(FsCdfFolderList, FILE_SYSTEM_SECTOR_BYTES);
 
 /// One file as a CDF directory lists it: its id and where it starts.
 ///
@@ -71,8 +78,9 @@ STATIC_ASSERT_SIZEOF(FsCdfFile, 0x8);
 /// How many file records a folder's file list has room for.
 ///
 /// The list opens the folder's first sector and its stream table follows at
-/// byte 0x514, so this many whole records fit ahead of it. The list is read up
-/// to its first zero `sectorOffset`, which has to be one of these.
+/// byte 0x514. The 162 eight-byte records occupy [0, 0x510), followed by one
+/// zero word before that stream table. The loader stops on a zero `sectorOffset`
+/// within these slots, so the count includes a required terminator record.
 #define FILE_SYSTEM_CDF_FILE_LIST_CAPACITY 0xA2
 
 /// Opcodes stored in `FsCdfChunkHeader.type`.
@@ -109,8 +117,13 @@ typedef struct {
 } FsCdfChunkHeader;
 STATIC_ASSERT_SIZEOF(FsCdfChunkHeader, 0x10);
 
-/// Number of words in a CD sector.
-#define FS_SECTOR_WORD_SIZE 0x200
+/// Number of 32-bit transfer words in one filesystem CD user-data sector.
+///
+/// `CdGetSector` takes this element count, while byte cursors advance by
+/// `FILE_SYSTEM_SECTOR_BYTES`. The stage-zero directory cursor also counts u32
+/// words. Keep the signed integer constant used by the SDK's int size argument.
+#define FILE_SYSTEM_SECTOR_WORDS 0x200
+STATIC_ASSERT(FILE_SYSTEM_SECTOR_WORDS * sizeof(u32) == FILE_SYSTEM_SECTOR_BYTES, fs_sector_transfer_extent);
 
 /// Opening CD sector of one chunk in a CDF file.
 ///
@@ -123,11 +136,11 @@ STATIC_ASSERT_SIZEOF(FsCdfChunkHeader, 0x10);
 typedef struct {
     FsCdfChunkHeader header; // Opcode, end flag, valid-byte end and load address
     union {
-        u8  bytes[FS_SECTOR_BYTE_SIZE - sizeof(FsCdfChunkHeader)];
-        u32 words[FS_SECTOR_WORD_SIZE - (sizeof(FsCdfChunkHeader) / 4)];
+        u8  bytes[FILE_SYSTEM_SECTOR_BYTES - sizeof(FsCdfChunkHeader)];
+        u32 words[FILE_SYSTEM_SECTOR_WORDS - (sizeof(FsCdfChunkHeader) / 4)];
     } data; // Remainder of this sector, including pad past header.sectorLen
 } FsCdfChunk;
-STATIC_ASSERT_SIZEOF(FsCdfChunk, FS_SECTOR_BYTE_SIZE);
+STATIC_ASSERT_SIZEOF(FsCdfChunk, FILE_SYSTEM_SECTOR_BYTES);
 STATIC_ASSERT(sizeof(((FsCdfChunk*)0)->data.bytes) == sizeof(((FsCdfChunk*)0)->data.words), fs_cdf_chunk_data_widths);
 
 /// One 2048-byte CD sector.
@@ -145,14 +158,14 @@ STATIC_ASSERT(sizeof(((FsCdfChunk*)0)->data.bytes) == sizeof(((FsCdfChunk*)0)->d
 /// The stage-zero header is walked through `words`, and ISO directory records
 /// through `bytes`.
 typedef union {
-    u8              bytes[FS_SECTOR_BYTE_SIZE];                   // Whole sector as bytes
-    u32             words[FS_SECTOR_WORD_SIZE];                   // Whole sector as 32-bit words
+    u8              bytes[FILE_SYSTEM_SECTOR_BYTES];              // Whole sector as bytes
+    u32             words[FILE_SYSTEM_SECTOR_WORDS];              // Whole sector as 32-bit words
     FsCdfFolderList folderList;                                   // Folder table from a stage CDF's first sector
     FsCdfFile       fileList[FILE_SYSTEM_CDF_FILE_LIST_CAPACITY]; // File list opening a folder's first sector
     FsCdfChunk      chunk;                                        // Opening sector of a CDF chunk
     CdlLOC          location;                                     // BCD disc position from the 12-byte header
 } FsSector;
-STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
+STATIC_ASSERT_SIZEOF(FsSector, FILE_SYSTEM_SECTOR_BYTES);
 
 /// Contiguous two-sector workspace shared by CDF readers and CD audio.
 ///
@@ -164,11 +177,11 @@ STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 /// reads 2048 bytes beginning 16 bytes into `sector`, including 16 retained
 /// continuation bytes. Finish CD, decoder and SPU consumers before reuse.
 typedef struct {
-    FsSector sector;                                // Header, directory or payload sector; replaced by the next read
-    u8       clutContinuation[FS_SECTOR_BYTE_SIZE]; // Second CLUT sector; also supplies retained trailing bytes to MTS transfers
+    FsSector sector;                                     // Header, directory or payload sector; replaced by the next read
+    u8       clutContinuation[FILE_SYSTEM_SECTOR_BYTES]; // Second CLUT sector; also supplies retained trailing bytes to MTS transfers
 } FsSectorBuffers;
-STATIC_ASSERT_SIZEOF(FsSectorBuffers, 2 * FS_SECTOR_BYTE_SIZE);
-STATIC_ASSERT(OFFSET_OF(FsSectorBuffers, clutContinuation) == FS_SECTOR_BYTE_SIZE, fs_sector_buffers_contiguous);
+STATIC_ASSERT_SIZEOF(FsSectorBuffers, 2 * FILE_SYSTEM_SECTOR_BYTES);
+STATIC_ASSERT(OFFSET_OF(FsSectorBuffers, clutContinuation) == FILE_SYSTEM_SECTOR_BYTES, fs_sector_buffers_contiguous);
 
 /// One VRAM column of a strip-coded image.
 ///

@@ -203,25 +203,31 @@ static void _tmdResolveSourceDrawHandlers(TmdSource* source)
 
     _TmdStreamWord*        stream;
     u32                    opcode;
-    u32                    dimensions;
-    u32                    elementStrideWords;
-    u32                    elementCount;
     _TmdModelStreamHandler handler;
     s32                    useOffsetLayer;
     u32                    stageAreaDifference;
 
     /// Advances past packed dimensions and their count-times-word-stride payload.
     ///
-    /// Captures dimensions, elementStrideWords and elementCount in this walk.
-    /// Evaluates cursor three times; require a side-effect-free _TmdStreamWord*
-    /// lvalue at complete dimensions/payload words. Leaves the next word unconsumed.
-#define TMD_RESOLVE_SKIP_PAYLOAD(cursor)                        \
-    do {                                                        \
-        dimensions = (cursor)->dataWord;                        \
-        (cursor)++;                                             \
-        elementStrideWords = dimensions & 0xFFFF;               \
-        elementCount       = dimensions >> 16;                  \
-        (cursor)          += elementCount * elementStrideWords; \
+    /// The dimensions word has a high-half element count and a low-half stride
+    /// in four-byte stream words. `cursor` is a writable `_TmdStreamWord*` lvalue
+    /// evaluated three times, without expression side effects. It must address
+    /// complete dimensions followed by count * stride readable words, with the
+    /// next command or terminator still within the borrowed stream. There is no
+    /// length check. Captures no caller locals; inputs cannot name its locals.
+    /// Advances only the cursor, retaining the next word and all stream bytes.
+#define TMD_RESOLVE_SKIP_PAYLOAD(cursor)                                   \
+    do {                                                                   \
+        enum { TMD_STREAM_ELEMENT_STRIDE_MASK = 0xFFFF,                    \
+               TMD_STREAM_ELEMENT_COUNT_SHIFT = 16 };                      \
+        u32 dimensions;                                                    \
+        u32 elementStrideWords;                                            \
+        u32 elementCount;                                                  \
+        dimensions = (cursor)->dataWord;                                   \
+        (cursor)++;                                                        \
+        elementStrideWords = dimensions & TMD_STREAM_ELEMENT_STRIDE_MASK;  \
+        elementCount       = dimensions >> TMD_STREAM_ELEMENT_COUNT_SHIFT; \
+        (cursor)          += elementCount * elementStrideWords;            \
     } while (0)
 
     stream = (_TmdStreamWord*)source->stream;

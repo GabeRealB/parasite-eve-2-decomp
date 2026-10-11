@@ -309,7 +309,7 @@ typedef struct {
 } _CdReadyQueue;
 STATIC_ASSERT_SIZEOF(_CdReadyQueue, 0x58);
 
-/// Clears `count` words at `dst`, in place like `MEM_CLEAR`.
+/// Clears `count` words at `dst`, in place like `_memClearByteSpan`.
 #define MEM_CLEAR_WORDS(dst, count)                       \
     {                                                     \
         s32* _clearPtr = (s32*)(dst);                     \

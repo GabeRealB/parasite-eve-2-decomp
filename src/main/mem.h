@@ -10,20 +10,28 @@ enum {
     MEMORY_PRIMITIVE_HEAP_BYTES = 0x10000,
 };
 
-/// Clears `size` bytes at `dst` one byte at a time, in place rather than
-/// through `memFillBytes`.
-#define MEM_CLEAR(dst, size)                             \
-    {                                                    \
-        u8* _clearPtr = (u8*)(dst);                      \
-        u32 _clearI;                                     \
-        for (_clearI = 0; _clearI < (size); _clearI++) { \
-            *_clearPtr++ = 0;                            \
-        }                                                \
-    }
+/// Clears a caller-owned byte span without requiring alignment.
+///
+/// `destination` must provide `byteCount` writable bytes, in [0, UINT32_MAX].
+/// A zero count performs no access and permits NULL. Borrows storage only during
+/// this call and retains no pointer; the local byte cursor views the complete
+/// requested object representation, including any bytes between its fields.
+/// Each including translation unit has a private inline instance.
+static inline void _memClearByteSpan(void* destination, u32 byteCount)
+{
+    u8* clearCursor = destination;
+    u32 byteIndex;
 
-/// Address of the primary heap: the fixed RAM between the resident executable
-/// and the gameplay overlay.
-#define MEM_PRIMARY_HEAP_ADDRESS ((void*)0x80083800)
+    for (byteIndex = 0; byteIndex < byteCount; byteIndex++) {
+        *clearCursor++ = 0;
+    }
+}
+
+/// Fixed byte address of the resident primary heap's allocator storage.
+///
+/// Initializes the published heap base; it neither reserves nor initializes RAM.
+/// Heap3 setup supplies the separate 0xFF80-byte extent and allocator metadata.
+#define MEMORY_PRIMARY_HEAP_BASE ((void*)0x80083800)
 
 /// Base of the fixed primary heap used by the resident allocation wrappers.
 ///

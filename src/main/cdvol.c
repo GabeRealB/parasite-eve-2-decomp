@@ -118,7 +118,7 @@ void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
         gFsCdProgressVBlank = VSync(-1);
         payloadWords        = loadState->sectorBuffer;
         gFsNextReadSector  += 1;
-        CdGetSector(payloadWords, FS_SECTOR_WORD_SIZE);
+        CdGetSector(payloadWords, FILE_SYSTEM_SECTOR_WORDS);
         loadPhase = sndLoadFeedSector(payloadWords);
         if (loadPhase != SOUND_LOAD_RESULT_ERROR) {
             if (loadPhase != SOUND_LOAD_PHASE_DONE) {
@@ -271,7 +271,9 @@ void sndOutputSetStereo(s32 enabled)
     ///
     /// `mix` must be a side-effect-free `CdlATV` lvalue: it is evaluated five
     /// times. `stereo` is evaluated once; zero selects mono. Uses the gain
-    /// constants above and the SDK's `CdMix` declaration.
+    /// constants above and the SDK's `CdMix` declaration. Mono sets all four
+    /// byte gains to 90; stereo sets val0/val2 to 120 and val1/val3 to zero.
+    /// Applies them synchronously, retaining no pointer to the caller's record.
 #define SOUND_OUTPUT_APPLY_CD_MIX(mix, stereo)         \
     do {                                               \
         if ((stereo) == SOUND_OUTPUT_MONO) {           \

@@ -235,7 +235,7 @@ void gameFlowLaunchSessionTask(Task* task)
                 gDisplayState.spriteVariant = GAME_FLOW_DEFAULT_SPRITE_VARIANT;
             }
             titleRestoreAttractDemoState();
-            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
+            _memClearByteSpan(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 0;
             gGameSession->applySaveVariant               = 1;
@@ -250,7 +250,7 @@ void gameFlowLaunchSessionTask(Task* task)
         // A new save keeps the user's vibration preference; other selectors keep the save.
         if (task->spawnArg1.value == GAME_FLOW_LAUNCH_NEW_GAME) {
             savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
-            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
+            _memClearByteSpan(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 1;
             queue->releasePauseBlockAfterFade            = 1;
@@ -260,7 +260,7 @@ void gameFlowLaunchSessionTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
             task->state                                        = task->state + 1;
         } else {
-            MEM_CLEAR(gGameSession, sizeof(*gGameSession));
+            _memClearByteSpan(gGameSession, sizeof(*gGameSession));
             gDisplayState.gameRunning                    = 1;
             gDisplayState.control.flags.pendingPlayerPos = 0;
             queue->releasePauseBlockAfterFade            = 1;
@@ -327,7 +327,7 @@ void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
 
 void gameClearSession(void)
 {
-    MEM_CLEAR(gGameSession, sizeof(*gGameSession));
+    _memClearByteSpan(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
 }
 
@@ -355,7 +355,7 @@ static void _gameFlowResetNewSession(Task* task)
 
     cdQueue        = &gCdCmdQueue;
     savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
-    MEM_CLEAR(gGameSession, sizeof(*gGameSession));
+    _memClearByteSpan(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                    = 1;
     cdQueue->releasePauseBlockAfterFade          = 1;

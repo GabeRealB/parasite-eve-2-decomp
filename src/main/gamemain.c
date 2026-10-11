@@ -625,14 +625,19 @@ void gfxResetView(void)
     /// `parentCoord` and `offsetZ` are evaluated once; the parent is borrowed and
     /// the signed Z offset counts game-coordinate units. X and Y become zero.
     /// Uses `gfxSetRotIdentity` and `GRAPHICS_COORD_DIRTY`; captures no locals.
-    /// Expands to several statements; use only at these standalone call sites.
+    /// The node remains caller-owned; its parent's lifetime must cover later
+    /// composition. The cached composed matrix is retained until rebuilt.
+    /// Expands to a compound statement; use standalone in a braced body.
+    /// Defined only around this three-node reset.
 #define GRAPHICS_RESET_VIEW_COORD(node, parentCoord, offsetZ) \
-    gfxSetRotIdentity(&(node).coord);                         \
-    (node).parent       = (parentCoord);                      \
-    (node).coord.t[0]   = 0;                                  \
-    (node).coord.t[1]   = 0;                                  \
-    (node).coord.t[2]   = (offsetZ);                          \
-    (node).composeStamp = GRAPHICS_COORD_DIRTY
+    {                                                         \
+        gfxSetRotIdentity(&(node).coord);                     \
+        (node).parent       = (parentCoord);                  \
+        (node).coord.t[0]   = 0;                              \
+        (node).coord.t[1]   = 0;                              \
+        (node).coord.t[2]   = (offsetZ);                      \
+        (node).composeStamp = GRAPHICS_COORD_DIRTY;           \
+    }
 
     // World nodes inherit view translation, then view rotation, then the root offset.
     GRAPHICS_RESET_VIEW_COORD(gGfxViewOffsetCoord, NULL, GRAPHICS_DEFAULT_VIEW_OFFSET_Z);
@@ -741,7 +746,7 @@ void gpuClearFrameOrderingTable(s16 bufferIndex)
     u_long* tableStart = gGpuFrameOtTags[bufferIndex];
     ClearOTagR(tableStart, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     // End at the first frame tag instead of following the SDK's trailing packets.
-    *tableStart = GPU_OT_END_PRIM;
+    *tableStart = GPU_DMA_CHAIN_END;
 }
 
 /// Binds both game ordering-table descriptors to their resident DMA tag buffers.

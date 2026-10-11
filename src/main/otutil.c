@@ -116,7 +116,7 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
         GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                              \
         firstTag       = (u_long*)orderingTables[display->frameBuffer].org;                  \
         halfBytes      = _gDisplayTaskPrimitiveArenaBytes;                                   \
-        *firstTag      = GPU_OT_END_PRIM;                                                    \
+        *firstTag      = GPU_DMA_CHAIN_END;                                                  \
         halfBytes     /= 2;                                                                  \
         savedOt        = gGpuCurrentOt;                                                      \
         gGpuCurrentOt  = (u_long*)orderingTables[display->frameBuffer].org;                  \
@@ -423,7 +423,7 @@ void gpuInitTaskOrderingTables(void)
     // Select tag zero as the task depth base, without the game loop's foreground bias.
     GsClearOt(0, 0, &orderingTables[display->frameBuffer]);
     firstTag      = (u_long*)orderingTables[display->frameBuffer].org;
-    *firstTag     = GPU_OT_END_PRIM;
+    *firstTag     = GPU_DMA_CHAIN_END;
     gGpuCurrentOt = firstTag;
 }
 

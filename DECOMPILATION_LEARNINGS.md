@@ -8452,7 +8452,7 @@ the accesses so GCC fills the `lw org` delay with the global load:
 ```c
 org  = ot[i].org;
 size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
-*org = GPU_OT_END_PRIM; /* 0xFFFFFF stays in $a1 */
+*org = GPU_DMA_CHAIN_END; /* 0xFFFFFF stays in $a1 */
 size /= 2;                   /* signed /2 after the store */
 saved          = gGpuCurrentOt;
 gGpuCurrentOt  = ot[i].org;     /* second load of org — do not reuse `org` */
@@ -12380,7 +12380,7 @@ OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
 ```c
 GsClearOt(0, 0, &ot[temp->frameBuffer]);
-*ot[temp->frameBuffer].org = GPU_OT_END_PRIM;
+*ot[temp->frameBuffer].org = GPU_DMA_CHAIN_END;
 gGpuCurrentOt = ot[temp->frameBuffer].org;
 ```
 
@@ -14496,7 +14496,7 @@ Target reuses the loaded register for the advance. Capture into a local first:
 
 ```c
 ot = gGpuCurrentOt;
-*ot = GPU_OT_END_PRIM;
+*ot = GPU_DMA_CHAIN_END;
 gGpuCurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
 ```
 
@@ -22358,7 +22358,7 @@ end-prim write so the `%hi` is only live in that block:
 }
 {
     u_long* p = gGpuCurrentOt;
-    *p = GPU_OT_END_PRIM;
+    *p = GPU_DMA_CHAIN_END;
     gGpuCurrentOt = p + 0x20;
 }
 ```
