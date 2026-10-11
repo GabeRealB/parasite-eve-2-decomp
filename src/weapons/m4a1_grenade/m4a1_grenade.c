@@ -7,11 +7,8 @@
 #include "common.h"
 #include "gte.h"
 
-#include "m4a1_grenade_private.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/animation.h"
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
@@ -41,6 +38,8 @@
 
 #include "../../shared/grenade_shell.h"
 #include "types.h"
+
+static const u16 _gM4a1GrenadeBlastRadii[4];
 
 /// One frame's M4A1 grenade launch vector and temporary pitched rotation.
 ///
@@ -436,7 +435,7 @@ static void _m4a1GrenadeFlyProjectile(Task* task)
         }
         grenadeWork->flightTimer.word  = blastFramesLeft;
         grenadeWork->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        grenadeWork->sphereBody.radius = D_m4a1_grenade_8012E08C[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
+        grenadeWork->sphereBody.radius = _gM4a1GrenadeBlastRadii[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
         SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
         return;
     }
@@ -2180,180 +2179,263 @@ static AnimationSet _gM4a1GrenadeAimEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation0F33CBank1[10] = {
+/// Translation/rotation poses for `_gM4a1GrenadeAimExitAnimation`.
+///
+/// Tracks 0 and 1 use encoding 1: integer model coordinates and angles in
+/// 1/4096 turns. Each pose occupies three four-byte words, read only by playback.
+static const AnimationPackedPose _gM4a1GrenadeAimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_0F33C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation0F33CBank4[131] = {
+/// Packed rotation poses for `_gM4a1GrenadeAimExitAnimation`.
+///
+/// Tracks 2..18 use encoding 4: signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadeAimExitAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_0F33C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation0F33CRecords[169] = {
+/// Keyframes and end controls for `_gM4a1GrenadeAimExitAnimation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Tracks stop at their final poses. No keyframe carries a cue bit.
+static const AnimationRecord _gM4a1GrenadeAimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_0F33C_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation0F33CIndices[20] = {
+/// Track-start record indices for `_gM4a1GrenadeAimExitAnimation`.
+///
+/// Nineteen model-part tracks followed by one retained zero halfword.
+/// Playback indexes tracks 0..18; the final halfword's role is unproven.
+static const u16 _gM4a1GrenadeAimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_0F33C_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation0F33C = {
-    _gM4a1GrenadeAnimation0F33CRecords,
-    _gM4a1GrenadeAnimation0F33CIndices,
-    { NULL, _gM4a1GrenadeAnimation0F33CBank1, NULL, NULL, _gM4a1GrenadeAnimation0F33CBank4, NULL, NULL, NULL },
+/// Player-rig aim-exit clip in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 8 lowers child tracks 1..18 out of aim over six normal-rate
+/// blend frames. Its tracks stop at their final poses and carry no cue bits.
+/// Supplies 19 model-part tracks. Playback borrows the descriptor and its
+/// read-only, word-aligned pose banks; keep the package loaded while any slot
+/// or cached record pointer refers to the clip.
+static AnimationSet _gM4a1GrenadeAimExitAnimation = {
+    .records           = _gM4a1GrenadeAimExitAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeAimExitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadeAimExitAnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadeAimExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation0FBF4Bank1[18] = {
+/// Translation/rotation poses for `_gM4a1GrenadeWalkAnimation`.
+///
+/// Tracks 0 and 1 use encoding 1: integer model coordinates and angles in
+/// 1/4096 turns. Each pose occupies three four-byte words, read only by playback.
+static const AnimationPackedPose _gM4a1GrenadeWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_0FBF4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation0FBF4Bank4[201] = {
+/// Packed rotation poses for `_gM4a1GrenadeWalkAnimation`.
+///
+/// Tracks 2..18 use encoding 4: signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadeWalkAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_0FBF4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation0FBF4Records[283] = {
+/// Keyframes and end controls for `_gM4a1GrenadeWalkAnimation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Tracks stop at their final poses. Track 1 carries one cue of each footstep kind.
+static const AnimationRecord _gM4a1GrenadeWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_0FBF4_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation0FBF4Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadeWalkAnimation`.
+///
+/// Nineteen model-part tracks followed by one retained zero halfword.
+/// Playback indexes tracks 0..18; the final halfword's role is unproven.
+static const u16 _gM4a1GrenadeWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_0FBF4_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation0FBF4 = {
-    _gM4a1GrenadeAnimation0FBF4Records,
-    _gM4a1GrenadeAnimation0FBF4Indices,
-    { NULL, _gM4a1GrenadeAnimation0FBF4Bank1, NULL, NULL, _gM4a1GrenadeAnimation0FBF4Bank4, NULL, NULL, NULL },
+/// Player-rig forward-walk clip in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 2 supplies forward walking while the held weapon model is present.
+/// Track 1 carries paired footstep cues; the tracks stop at their final poses.
+/// Supplies 19 model-part tracks. Playback borrows the descriptor and its
+/// read-only, word-aligned pose banks; keep the package loaded while any slot
+/// or cached record pointer refers to the clip.
+static AnimationSet _gM4a1GrenadeWalkAnimation = {
+    .records           = _gM4a1GrenadeWalkAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadeWalkAnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadeWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation10394Bank1[16] = {
+/// Translation/rotation poses for `_gM4a1GrenadeBackwardAnimation`.
+///
+/// Tracks 0 and 1 use encoding 1: integer model coordinates and angles in
+/// 1/4096 turns. Each pose occupies three four-byte words, read only by playback.
+static const AnimationPackedPose _gM4a1GrenadeBackwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_10394_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation10394Bank4[157] = {
+/// Packed rotation poses for `_gM4a1GrenadeBackwardAnimation`.
+///
+/// Tracks 2..18 use encoding 4: signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadeBackwardAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_10394_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation10394Records[263] = {
+/// Keyframes and end controls for `_gM4a1GrenadeBackwardAnimation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Tracks stop at their final poses. Track 1 carries one cue of each footstep kind.
+static const AnimationRecord _gM4a1GrenadeBackwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_10394_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation10394Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadeBackwardAnimation`.
+///
+/// Nineteen model-part tracks followed by one retained zero halfword.
+/// Playback indexes tracks 0..18; the final halfword's role is unproven.
+static const u16 _gM4a1GrenadeBackwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_10394_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation10394 = {
-    _gM4a1GrenadeAnimation10394Records,
-    _gM4a1GrenadeAnimation10394Indices,
-    { NULL, _gM4a1GrenadeAnimation10394Bank1, NULL, NULL, _gM4a1GrenadeAnimation10394Bank4, NULL, NULL, NULL },
+/// Player-rig backward-movement clip in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 3 supplies backward movement outside aim. Track 1 carries paired
+/// footstep cues; the tracks stop at their final poses.
+/// Supplies 19 model-part tracks. Playback borrows the descriptor and its
+/// read-only, word-aligned pose banks; keep the package loaded while any slot
+/// or cached record pointer refers to the clip.
+static AnimationSet _gM4a1GrenadeBackwardAnimation = {
+    .records           = _gM4a1GrenadeBackwardAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeBackwardAnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadeBackwardAnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadeBackwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation10D68Bank1[25] = {
+/// Translation/rotation poses for `_gM4a1GrenadeRunAnimation`.
+///
+/// Tracks 0 and 1 use encoding 1: integer model coordinates and angles in
+/// 1/4096 turns. Each pose occupies three four-byte words, read only by playback.
+static const AnimationPackedPose _gM4a1GrenadeRunAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_10D68_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation10D68Bank4[223] = {
+/// Packed rotation poses for `_gM4a1GrenadeRunAnimation`.
+///
+/// Tracks 2..18 use encoding 4: signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadeRunAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_grenade_animation_10D68_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation10D68Records[311] = {
+/// Keyframes and end controls for `_gM4a1GrenadeRunAnimation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Tracks stop at their final poses. Track 1 carries one cue of each footstep kind.
+static const AnimationRecord _gM4a1GrenadeRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_10D68_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation10D68Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadeRunAnimation`.
+///
+/// Nineteen model-part tracks followed by one retained zero halfword.
+/// Playback indexes tracks 0..18; the final halfword's role is unproven.
+static const u16 _gM4a1GrenadeRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_10D68_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation10D68 = {
-    _gM4a1GrenadeAnimation10D68Records,
-    _gM4a1GrenadeAnimation10D68Indices,
-    { NULL, _gM4a1GrenadeAnimation10D68Bank1, NULL, NULL, _gM4a1GrenadeAnimation10D68Bank4, NULL, NULL, NULL },
+/// Player-rig run clip in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 4 supplies forward running and the default scripted run-to clip.
+/// Track 1 carries paired footstep cues; the tracks stop at their final poses.
+/// Supplies 19 model-part tracks. Playback borrows the descriptor and its
+/// read-only, word-aligned pose banks; keep the package loaded while any slot
+/// or cached record pointer refers to the clip.
+static AnimationSet _gM4a1GrenadeRunAnimation = {
+    .records           = _gM4a1GrenadeRunAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadeRunAnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadeRunAnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadeRunAnimationBank4,
+    },
 };
 
-AnimationBank D_m4a1_grenade_8012DF50 = { { {
-    NULL,
-    &_gM4a1GrenadeIdleAnimation,
-    &_gM4a1GrenadeAnimation0FBF4,
-    &_gM4a1GrenadeAnimation10394,
-    &_gM4a1GrenadeAnimation10D68,
-    &_gM4a1GrenadeNegativeTurnAnimation,
-    &_gM4a1GrenadePositiveTurnAnimation,
-    &_gM4a1GrenadeAimEntryAnimation,
-    &_gM4a1GrenadeAnimation0F33C,
-    &_gM4a1GrenadeAimHoldAnimation,
-    &_gM4a1GrenadeRifleFireAnimation,
-    &_gM4a1GrenadeLaunchAnimation,
-    &_gM4a1GrenadeAimForwardAnimation,
-    &_gM4a1GrenadeAimBackwardOrTurnAnimation,
-    &_gM4a1GrenadeRifleReloadAnimation,
-    &_gM4a1GrenadeLauncherReloadAnimation,
-    &_gM4a1GrenadePart4HitAnimation,
-    &_gM4a1GrenadeOtherBodyHitAnimation,
-    &_gM4a1GrenadeDeathPoseAnimation,
-    &_gM4a1GrenadeUnarmedWalkAnimation,
-    &_gM4a1GrenadeRifleReloadAnimation,
-    &_gM4a1GrenadeIdleAnimation,
-    &_gM4a1GrenadeIdleAnimation,
-    &_gM4a1GrenadeHighHealthIdleAnimation,
-    &_gM4a1GrenadeMidHealthIdleAnimation,
-    &_gM4a1GrenadeLowHealthIdleAnimation,
-    &_gM4a1GrenadePeReleaseFamily0Animation,
-    &_gM4a1GrenadePeChargeFamily0Animation,
-    &_gM4a1GrenadePeCastFamily0Animation,
-    &_gM4a1GrenadePeReleaseFamily1Animation,
-    &_gM4a1GrenadePeChargeFamily1Animation,
-    &_gM4a1GrenadePeCastFamily1Animation,
-    &_gM4a1GrenadeScriptedPresentationEntryAnimation,
-    &_gM4a1GrenadeScriptedPresentationExitAnimation,
-    &_gM4a1GrenadeScriptedPresentationEntryAnimation,
-    &_gM4a1GrenadeScriptedPresentationExitAnimation,
-    &_gM4a1GrenadeStairAscentAnimation,
-    &_gM4a1GrenadeStairDescentAnimation,
-    &_gM4a1GrenadeStairAscentFinishEvenAnimation,
-    &_gM4a1GrenadeStairAscentFinishOddAnimation,
-    &_gM4a1GrenadeItemUseAnimation,
-    &_gM4a1GrenadeIdleAnimation,
-    &_gM4a1GrenadePeReleaseFamily2Animation,
-    &_gM4a1GrenadePeChargeFamily2Animation,
-    &_gM4a1GrenadePeCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gM4a1GrenadePlayerAnimationBank = {
+    .table = {
+        .sets = {
+            [1]  = &_gM4a1GrenadeIdleAnimation,
+            [2]  = &_gM4a1GrenadeWalkAnimation,
+            [3]  = &_gM4a1GrenadeBackwardAnimation,
+            [4]  = &_gM4a1GrenadeRunAnimation,
+            [5]  = &_gM4a1GrenadeNegativeTurnAnimation,
+            [6]  = &_gM4a1GrenadePositiveTurnAnimation,
+            [7]  = &_gM4a1GrenadeAimEntryAnimation,
+            [8]  = &_gM4a1GrenadeAimExitAnimation,
+            [9]  = &_gM4a1GrenadeAimHoldAnimation,
+            [10] = &_gM4a1GrenadeRifleFireAnimation,
+            [11] = &_gM4a1GrenadeLaunchAnimation,
+            [12] = &_gM4a1GrenadeAimForwardAnimation,
+            [13] = &_gM4a1GrenadeAimBackwardOrTurnAnimation,
+            [14] = &_gM4a1GrenadeRifleReloadAnimation,
+            [15] = &_gM4a1GrenadeLauncherReloadAnimation,
+            [16] = &_gM4a1GrenadePart4HitAnimation,
+            [17] = &_gM4a1GrenadeOtherBodyHitAnimation,
+            [18] = &_gM4a1GrenadeDeathPoseAnimation,
+            [19] = &_gM4a1GrenadeUnarmedWalkAnimation,
+            [20] = &_gM4a1GrenadeRifleReloadAnimation,
+            [21] = &_gM4a1GrenadeIdleAnimation,
+            [22] = &_gM4a1GrenadeIdleAnimation,
+            [23] = &_gM4a1GrenadeHighHealthIdleAnimation,
+            [24] = &_gM4a1GrenadeMidHealthIdleAnimation,
+            [25] = &_gM4a1GrenadeLowHealthIdleAnimation,
+            [26] = &_gM4a1GrenadePeReleaseFamily0Animation,
+            [27] = &_gM4a1GrenadePeChargeFamily0Animation,
+            [28] = &_gM4a1GrenadePeCastFamily0Animation,
+            [29] = &_gM4a1GrenadePeReleaseFamily1Animation,
+            [30] = &_gM4a1GrenadePeChargeFamily1Animation,
+            [31] = &_gM4a1GrenadePeCastFamily1Animation,
+            [32] = &_gM4a1GrenadeScriptedPresentationEntryAnimation,
+            [33] = &_gM4a1GrenadeScriptedPresentationExitAnimation,
+            [34] = &_gM4a1GrenadeScriptedPresentationEntryAnimation,
+            [35] = &_gM4a1GrenadeScriptedPresentationExitAnimation,
+            [36] = &_gM4a1GrenadeStairAscentAnimation,
+            [37] = &_gM4a1GrenadeStairDescentAnimation,
+            [38] = &_gM4a1GrenadeStairAscentFinishEvenAnimation,
+            [39] = &_gM4a1GrenadeStairAscentFinishOddAnimation,
+            [40] = &_gM4a1GrenadeItemUseAnimation,
+            [41] = &_gM4a1GrenadeIdleAnimation,
+            [42] = &_gM4a1GrenadePeReleaseFamily2Animation,
+            [43] = &_gM4a1GrenadePeChargeFamily2Animation,
+            [44] = &_gM4a1GrenadePeCastFamily2Animation,
+        },
+    },
+};
 
-/// Sits in the middle of this package's trailing data, so it is its own unit:
-/// splat lists an object in the linker script at its first subsegment, and
-/// this has to link between the two runs of split data around it.
-u16 D_m4a1_grenade_8012E08C[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
+/// Blast-sphere radii in game-coordinate units for the three grenade rounds.
+///
+/// Indexed by the secondary load's round at detonation minus `GRENADE_ROUND_FIRST`:
+/// fragmentation 500, airburst 1200 and riot 2000. An empty load uses fragmentation.
+/// The fourth stored halfword is zero; its role is unproven and no supported
+/// round selects it. Keep the stored span in its original trailing-data position.
+static const u16 _gM4a1GrenadeBlastRadii[4] __attribute__((section(".data"))) = {
+    [GRENADE_ROUND_FRAGMENTATION - GRENADE_ROUND_FIRST] = 500,
+    [GRENADE_ROUND_AIRBURST -
+        GRENADE_ROUND_FIRST]                            = 1200,
+    [GRENADE_ROUND_RIOT -
+        GRENADE_ROUND_FIRST]                            = 2000,
+    0,
+};
 
 /// Initial local transform and self-parented root for `gM4a1GrenadeProjectileModel`.
 ///

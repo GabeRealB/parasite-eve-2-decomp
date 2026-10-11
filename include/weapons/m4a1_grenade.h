@@ -1,8 +1,21 @@
 #ifndef INCLUDE_WEAPONS_M4A1_GRENADE_H
 #define INCLUDE_WEAPONS_M4A1_GRENADE_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Native player-rig animation bank for the M4A1 grenade launcher.
+///
+/// Player bank index 28 selects this package for weapon 27. Its 47 native
+/// entries contain 44 clip pointers to 38 distinct nineteen-track sets;
+/// entries 0, 45 and 46 are absent. The 32 extension words start at zero and
+/// remain writable for animation-bank copy requests, which can also copy
+/// non-clip payload words. Follow an extension entry as a clip only when it
+/// contains a loaded set pointer. Playback borrows the bank and its clip data;
+/// keep this package and any copied clip resources loaded while they are used.
+extern AnimationBank gM4a1GrenadePlayerAnimationBank;
 
 /// Held M4A1 rifle with its grenade-launcher attachment.
 ///
