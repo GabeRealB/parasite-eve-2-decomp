@@ -3536,7 +3536,7 @@ static void _actor206100UnlinkForDeath(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    areaApplySavedUpdates(D_neo_ark_submarine_gallery_8018590C);
+    areaApplySavedUpdates(gNeoArkSubmarineGallerySeaDiverDefeatAreaUpdates);
     work->goalY = work->waterLevel;
     // End targeting and combat rewards before removing the two contact bodies.
     worldTargetUnlinkNode(&enemy->node);

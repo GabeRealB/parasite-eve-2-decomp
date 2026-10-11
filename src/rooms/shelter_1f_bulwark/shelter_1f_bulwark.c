@@ -68,8 +68,6 @@
 
 extern s8 D_shelter_1f_bulwark_80180ECC;
 
-extern TaskMessageEntry D_shelter_1f_bulwark_8018032C[];
-extern TaskDesc         D_shelter_1f_bulwark_80180354;
 extern ScreenFade       gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -105,18 +103,30 @@ static TaskDesc _gShelter1fBulwarkStagedEventTaskDesc = {
     { { TASK_BODY_NONE, SHELTER_1F_BULWARK_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 }
 };
 
-/// Room message sent by the inventory's key-item use prompt.
-enum { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+enum { SHELTER_1F_BULWARK_HELIPORT_DEPARTURE_PRIORITY = 32 };
 
-TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
+/// Bulwark handlers for exit events, key-item refusal and ignored actions/commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gShelter1fBulwarkRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fBulwarkResolveRoomEvent },
-    { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM, _shelter1fBulwarkRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fBulwarkRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fBulwarkIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fBulwarkIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, _shelter1fBulwarkHeliportDepartureTask, { .value = 0 } };
+/// Bodyless first-heliport-departure recipe, priority 32 and zero metadata/payloads.
+///
+/// Spawn entry 0 after accepting the chapter-6 departure and holding the player.
+/// One descriptor with no terminator. The callback hands CAP/fade playback to
+/// the movie coordinator; keep the room loaded until the final session reload.
+static TaskDesc _gShelter1fBulwarkHeliportDepartureTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_BULWARK_HELIPORT_DEPARTURE_PRIORITY } },
+    .callback = _shelter1fBulwarkHeliportDepartureTask,
+    .data     = { .value = 0 },
+};
 
 /// Bodyless recipes for the departure coordinator (0) and its display movie task (1).
 ///
@@ -480,7 +490,7 @@ static s32 _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessage
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_HELIPORT_CHAPTER);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
+                taskSpawnFromTable(&_gShelter1fBulwarkHeliportDepartureTaskDesc, 0, 0, 0);
             }
             return ROOM_VARIANT_TRANSITION_REFUSED;
         }
@@ -500,8 +510,11 @@ static s32 _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessage
     return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
-/// The controller task's states: set up, idle, and kill.
-static const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
+/// Bulwark room states: 0 initialize messages, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gShelter1fBulwarkRoomStateHandlers = {
     {
         _shelter1fBulwarkInitializeRoom,
         _shelter1fBulwarkIdle,
@@ -623,7 +636,7 @@ static s32 _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const Di
 /// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
 static void _shelter1fBulwarkInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_1f_bulwark_8018032C;
+    task->msgTable = _gShelter1fBulwarkRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -637,7 +650,7 @@ void shelter1fBulwarkRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_bulwark_8017D5D8;
+    stateHandlers = _gShelter1fBulwarkRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

@@ -110,7 +110,7 @@ gNeoArkSubmarineTunnelRoomCollisionResources = 0x80181E08; // absolute:True owne
 gNeoArkSubmarineTunnelViewMaps = 0x80181E18; // absolute:True owner=neo_ark_submarine_tunnel
 gNeoArkSubmarineTunnelViewCounts = 0x80181E1C; // absolute:True owner=neo_ark_submarine_tunnel
 gNeoArkSubmarineTunnelWarpEntries = 0x80181E20; // absolute:True owner=neo_ark_submarine_tunnel
-gNeoArkSubmarineTunnelViewCameras = 0x80182500; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
+gNeoArkSubmarineTunnelViewCameras = 0x80182500; // absolute:True owner=neo_ark_submarine_tunnel
 gNeoArkSubmarineTunnelSpriteViews = 0x80186B78; // absolute:True owner=neo_ark_submarine_tunnel
 gNeoArkSubmarineTunnelSurfaceProperties = 0x801878EC; // absolute:True owner=neo_ark_submarine_tunnel
 neoArkPavilionRoomTask = 0x8017EBF4; // type:func absolute:True owner=neo_ark_pavilion shared=rooms

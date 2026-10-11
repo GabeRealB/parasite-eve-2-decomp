@@ -56,18 +56,12 @@ enum {
     NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT  = 4,
 };
 
-/// Message table installed at `Task::msgTable` by the room task's state 0.
-extern TaskMessageEntry D_neo_ark_shrine_80181E34[];
-
-extern TaskDesc D_neo_ark_shrine_80181E5C[];
-
-/// Cap event key (`capStartSequence`'s third argument) handed to the slot-7 event
-/// this room starts, so the event's exit can tell which one it was.
-extern s32 D_neo_ark_shrine_80181E74;
-
-/// Per-slot group tables for the shrine's arrangement puzzle: five `s16` order
-/// indices per slot, `0xFF` terminated, into `gNeoArkShrinePuzzleCellTiles`.
-extern s16 D_neo_ark_shrine_801825EC[][5];
+enum {
+    NEO_ARK_SHRINE_PUZZLE_SESSION_PRIORITY = 32,
+    NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY  = 2,
+    NEO_ARK_SHRINE_NEIGHBOUR_END           = 255,
+    NEO_ARK_SHRINE_NEIGHBOUR_LIST_CAPACITY = 5,
+};
 
 static s16  _neoArkShrineCheckPuzzleArrangement(void);
 static void _neoArkShrineRoomIdle(Task* task);
@@ -78,7 +72,11 @@ static s32  _neoArkShrineHandleRoomCommand(Task* unusedTask, s32 unusedMessageId
 static s32  _neoArkShrineHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _neoArkShrinePuzzleSessionTask(Task* task);
 
-TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
+/// Shrine handlers for exits, key-item refusal, puzzle actions and CAP commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gNeoArkShrineRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkShrineResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkShrineRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkShrineHandleRoomAction },
@@ -86,12 +84,22 @@ TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_shrine_80181E5C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _neoArkShrinePuzzleSessionTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+/// Bodyless puzzle-session recipe at entry 0, followed by `TASK_DESC_END`.
+///
+/// Priority 32 and zero metadata/payloads. The session holds the player and
+/// owns the puzzle-controller handle until completion. Spawning reads the
+/// recipe synchronously; callback code must remain loaded for the session.
+static TaskDesc _gNeoArkShrinePuzzleSessionTaskDescs[2] = {
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SHRINE_PUZZLE_SESSION_PRIORITY } }, .callback = _neoArkShrinePuzzleSessionTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_DESC_END } } },
 };
 
-s32 D_neo_ark_shrine_80181E74 = 2;
+/// Variant key for first/repeat playback of the ready shrine object's event.
+///
+/// Starts at 2 and becomes 1 after the first object-7 state-1 dispatch.
+/// Other object states play key 0 without changing it. Retained for this
+/// overlay load; word comparisons/stores precede signed-halfword CAP transport.
+static s32 _gNeoArkShrineObjectEventVariantKey = NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY;
 
 static TmdBone _gNeoArkShrineModel049E8Skeleton[1] = {
 #include "assets/neo_ark_shrine_model_049E8_skeleton.inc"
@@ -272,23 +280,28 @@ static NeoArkShrineTileOrigin _gNeoArkShrinePuzzleTileTextureOrigins[16] = {
     { 64, 96 },
 };
 
-s16 D_neo_ark_shrine_801825EC[16][5] = {
-    { 1, 4, 255, 255, 255 },
-    { 0, 2, 5, 255, 255 },
-    { 1, 3, 6, 255, 255 },
-    { 2, 7, 255, 255, 255 },
-    { 0, 5, 8, 255, 255 },
-    { 1, 4, 6, 9, 255 },
-    { 2, 5, 7, 10, 255 },
-    { 3, 6, 11, 255, 255 },
-    { 4, 9, 12, 255, 255 },
-    { 5, 8, 10, 13, 255 },
-    { 6, 9, 11, 14, 255 },
-    { 7, 10, 15, 255, 255 },
-    { 8, 13, 255, 255, 255 },
-    { 9, 12, 14, 255, 255 },
-    { 10, 13, 15, 255, 255 },
-    { 11, 14, 255, 255, 255 },
+/// Orthogonal neighbours of each row-major cell of the 4x4 sliding-tile board.
+///
+/// Cell indices are 0..15; each signed-halfword row holds up to four neighbours
+/// followed by `NEO_ARK_SHRINE_NEIGHBOUR_END` (255). Remaining entries also hold
+/// END. Selection must be a board cell, excluding the off-board hotspot.
+static const s16 _gNeoArkShrinePuzzleCellNeighbours[NEO_ARK_SHRINE_PUZZLE_CELL_COUNT][NEO_ARK_SHRINE_NEIGHBOUR_LIST_CAPACITY] SECTION(".data") = {
+    { 1, 4, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 0, 2, 5, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 1, 3, 6, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 2, 7, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 0, 5, 8, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 1, 4, 6, 9, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 2, 5, 7, 10, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 3, 6, 11, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 4, 9, 12, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 5, 8, 10, 13, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 6, 9, 11, 14, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 7, 10, 15, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 8, 13, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 9, 12, 14, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 10, 13, 15, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
+    { 11, 14, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END, NEO_ARK_SHRINE_NEIGHBOUR_END },
 };
 
 static void _neoArkShrineInitializeRoom(Task* task);
@@ -344,7 +357,6 @@ static s32 _neoArkShrineHandleRoomCommand(Task* unusedTask, s32 unusedMessageId,
            NEO_ARK_SHRINE_EVENT_OBJECT                    = 7,
            NEO_ARK_SHRINE_EVENT_OBJECT_READY              = 1,
            NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE           = 7,
-           NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY          = 2,
            NEO_ARK_SHRINE_COMMAND_POWER_PLANT_1           = 5,
            NEO_ARK_SHRINE_POWER_PLANT_1_UNCLEARED_COMMAND = 5,
            NEO_ARK_SHRINE_POWER_PLANT_1_CLEARED_COMMAND   = 12 };
@@ -353,9 +365,9 @@ static s32 _neoArkShrineHandleRoomCommand(Task* unusedTask, s32 unusedMessageId,
     if (commandId == NEO_ARK_SHRINE_COMMAND_OBJECT_EVENT) {
         objectState = areaGetCurrentObjectState(NEO_ARK_SHRINE_EVENT_OBJECT);
         if (objectState == NEO_ARK_SHRINE_EVENT_OBJECT_READY) {
-            capStartSequenceSlot(NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, (s16)D_neo_ark_shrine_80181E74);
-            if (D_neo_ark_shrine_80181E74 == NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY) {
-                D_neo_ark_shrine_80181E74 = objectState;
+            capStartSequenceSlot(NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, (s16)_gNeoArkShrineObjectEventVariantKey);
+            if (_gNeoArkShrineObjectEventVariantKey == NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY) {
+                _gNeoArkShrineObjectEventVariantKey = objectState;
             }
         } else {
             capStartSequenceSlot(NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
@@ -379,7 +391,7 @@ static s32 _neoArkShrineHandleRoomAction(Task* unusedTask, s32 unusedMessageId, 
 
     if (request->actionId == NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-            taskSpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
+            taskSpawnFromTable(_gNeoArkShrinePuzzleSessionTaskDescs, 0, 0, 0);
         } else {
             capRunCommandWithTransition(NEO_ARK_SHRINE_POWER_PLANT_2_CLEARED_COMMAND);
         }
@@ -425,7 +437,7 @@ static void _neoArkShrinePuzzleSessionTask(Task* task)
 /// No work block is allocated.
 static void _neoArkShrineInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_shrine_80181E34;
+    task->msgTable = _gNeoArkShrineRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     neoArkShrineResetPuzzle();
     task->state++;
@@ -436,9 +448,11 @@ static void _neoArkShrineRoomIdle(Task* task)
 {
 }
 
-/// State handlers of the room task `neoArkShrineRoomTask`, indexed by
-/// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-static const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
+/// Shrine room states: 0 initialize messages/board, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gNeoArkShrineRoomStateHandlers = {
     { _neoArkShrineInitializeRoom, _neoArkShrineRoomIdle, taskKill },
 };
 
@@ -446,7 +460,7 @@ void neoArkShrineRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_neo_ark_shrine_8017D5C4;
+    states = _gNeoArkShrineRoomStateHandlers;
     states.funcs[task->state](task);
 }
 
@@ -543,8 +557,7 @@ static inline void _neoArkShrineRecordPuzzleCompletion(void)
 
 void neoArkShrineSlidePuzzleTile(Task* task)
 {
-    enum { NEO_ARK_SHRINE_NEIGHBOUR_END                = 255,
-           NEO_ARK_SHRINE_PUZZLE_STATE_IDLE            = 2,
+    enum { NEO_ARK_SHRINE_PUZZLE_STATE_IDLE            = 2,
            NEO_ARK_SHRINE_PUZZLE_STATE_RELEASE_ENEMIES = 9,
            NEO_ARK_SHRINE_PUZZLE_STATE_ACTIVATE_LAYOUT = 7,
            NEO_ARK_SHRINE_PUZZLE_STATE_RESTORE_LAYOUT  = 14 };
@@ -563,19 +576,19 @@ void neoArkShrineSlidePuzzleTile(Task* task)
     tileSlid = 0;
     neoArkShrineDrawPuzzleFrame();
     // A valid board contains one gap, so at most one neighbour can accept the tile.
-    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_801825EC[0]); neighbourIndex++) {
-        neighbourCell = D_neo_ark_shrine_801825EC[work->selection][neighbourIndex];
+    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(_gNeoArkShrinePuzzleCellNeighbours[0]); neighbourIndex++) {
+        neighbourCell = _gNeoArkShrinePuzzleCellNeighbours[work->selection][neighbourIndex];
         if (neighbourCell == NEO_ARK_SHRINE_NEIGHBOUR_END) {
             break;
         }
         if (gNeoArkShrinePuzzleCellTiles[neighbourCell] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
-            selectedCell                                                                             = work->selection;
-            selectedTile                                                                             = &gNeoArkShrinePuzzleCellTiles[selectedCell];
-            tileNumber                                                                               = *selectedTile;
-            *selectedTile                                                                            = gNeoArkShrinePuzzleCellTiles[D_neo_ark_shrine_801825EC[selectedCell][neighbourIndex]];
-            tileSlid                                                                                 = 1;
-            gNeoArkShrinePuzzleCellTiles[D_neo_ark_shrine_801825EC[work->selection][neighbourIndex]] = tileNumber;
+            selectedCell                                                                                      = work->selection;
+            selectedTile                                                                                      = &gNeoArkShrinePuzzleCellTiles[selectedCell];
+            tileNumber                                                                                        = *selectedTile;
+            *selectedTile                                                                                     = gNeoArkShrinePuzzleCellTiles[_gNeoArkShrinePuzzleCellNeighbours[selectedCell][neighbourIndex]];
+            tileSlid                                                                                          = 1;
+            gNeoArkShrinePuzzleCellTiles[_gNeoArkShrinePuzzleCellNeighbours[work->selection][neighbourIndex]] = tileNumber;
         }
     }
     // Only a successful slide can trigger arrangement-dependent room changes.

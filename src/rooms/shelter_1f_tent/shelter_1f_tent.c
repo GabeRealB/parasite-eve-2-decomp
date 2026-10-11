@@ -63,9 +63,6 @@ extern EvsCommand D_actor_460200_80137890[];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Message table of the room's message task.
-extern TaskMessageEntry D_shelter_1f_tent_80181CDC[];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x0C-"
 #include "../../shared/telephone.h"
 
@@ -88,9 +85,13 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_shelter_1f_tent_80181CDC[5] = {
+/// Tent handlers for exits, key-item refusal, soldier conversations and scene commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gShelter1fTentRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fTentResolveRoomEvent },
-    { 5105, _shelter1fTentRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fTentRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fTentHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fTentHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -129,7 +130,7 @@ static void _shelter1fTentInitializeRoom(Task* task)
         ARRIVAL_FOLLOWUP_DIALOGUE       = 11,
         COMPANION_SCHEDULE_AFTER_BURNER = 8
     };
-    task->msgTable = D_shelter_1f_tent_80181CDC;
+    task->msgTable = _gShelter1fTentRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == SOLDIER_ROOM_VARIANT) {
         actor460200SetupTentSoldiers();
@@ -148,15 +149,15 @@ static void _shelter1fTentInitializeRoom(Task* task)
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, MAP_MARK_SHOWN);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ARRIVAL_OBJECTIVE);
         playerStateRestoreFullHpMp();
-        areaApplySavedUpdates(D_shelter_1f_tent_801842D4);
+        areaApplySavedUpdates(gShelter1fTentFirstArrivalAreaUpdates);
         evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
-            areaApplySavedUpdates(D_shelter_1f_tent_801843B0);
-            areaApplySavedUpdates(D_shelter_1f_tent_801843B8);
+            areaApplySavedUpdates(gShelter1fTentHeliportAfterItemFollowupAreaUpdates);
+            areaApplySavedUpdates(gShelter1fTentGolemFreezer1AfterItemFollowupAreaUpdates);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_FOLLOWUP_DIALOGUE);
         } else {
-            areaApplySavedUpdates(D_shelter_1f_tent_801843A8);
+            areaApplySavedUpdates(gShelter1fTentHeliportBeforeItemFollowupAreaUpdates);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_DIALOGUE);
         }
@@ -274,10 +275,11 @@ static void _shelter1fTentRoomIdleState(Task* task)
     char reservedStack[0x10];
 }
 
-/// States of the room's message task, run by
-/// `shelter1fTentRoomTask`: install the message table and apply the
-/// room's first-visit setup, idle, die.
-static const TaskFuncTable3 D_shelter_1f_tent_8017D6A4 = {
+/// Tent room states: 0 initialize messages/first-arrival setup, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gShelter1fTentRoomStateHandlers = {
     {
         _shelter1fTentInitializeRoom,
         _shelter1fTentRoomIdleState,
@@ -289,6 +291,6 @@ void shelter1fTentRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_tent_8017D6A4;
+    stateHandlers = _gShelter1fTentRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

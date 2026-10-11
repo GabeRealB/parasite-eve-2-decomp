@@ -87968,10 +87968,10 @@ The same address is loaded with `lh` for the call and `lw` for the comparison
 two instructions later, and stored with `sw`:
 
 ```
-lh    a2,%lo(D_neo_ark_shrine_80181E74)(s0)   # capStartSequenceSlot(7, 1, x)
+lh    a2,%lo(_gNeoArkShrineObjectEventVariantKey)(s0)   # capStartSequenceSlot(7, 1, x)
 ...
-lw    v1,%lo(D_neo_ark_shrine_80181E74)(s0)   # if (x == 2)
-sw    s1,%lo(D_neo_ark_shrine_80181E74)(s0)
+lw    v1,%lo(_gNeoArkShrineObjectEventVariantKey)(s0)   # if (x == 2)
+sw    s1,%lo(_gNeoArkShrineObjectEventVariantKey)(s0)
 ```
 
 That reads like one symbol with two types. It is one type plus a conversion at
@@ -87979,8 +87979,8 @@ the argument: declare the object `s32` and cast at the call site, because
 `capStartSequenceSlot` takes `s16`s:
 
 ```c
-extern s32 D_neo_ark_shrine_80181E74;
-capStartSequenceSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
+static s32 _gNeoArkShrineObjectEventVariantKey;
+capStartSequenceSlot(7, 1, (s16)_gNeoArkShrineObjectEventVariantKey);
 ```
 
 This is the width leak of "An `int` expression stored into a `u16` field
@@ -92734,7 +92734,7 @@ is what pushes `index` to `$s1` and the frame to 0x20.
 CdCmdQueue* queue;
 
 queue            = &gCdCmdQueue;      /* before the call: the range spans it */
-task->msgTable   = D_neo_ark_r31_8017D9F4;
+task->msgTable   = _gNeoArkR31RoomMessages;
 gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
 queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 evsStartScriptWithSkip(gActor461800NeoArkSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor461800NeoArkSceneSkipScript);
@@ -118775,8 +118775,8 @@ there is no CFG-based loop discovery in this version). m2c emits every loop as
 Fix: write the walk as a real `for` (or `while`), keeping the same body:
 
 ```c
-    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_801825EC[0]); neighbourIndex++) {
-        neighbourCell = D_neo_ark_shrine_801825EC[work->selection][neighbourIndex];
+    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(_gNeoArkShrinePuzzleCellNeighbours[0]); neighbourIndex++) {
+        neighbourCell = _gNeoArkShrinePuzzleCellNeighbours[work->selection][neighbourIndex];
         if (neighbourCell == NEO_ARK_SHRINE_NEIGHBOUR_END) break;          /* m2c's `if (x != 0xFF) { ... }` */
         ...
     }

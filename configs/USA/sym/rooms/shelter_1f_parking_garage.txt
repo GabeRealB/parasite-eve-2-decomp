@@ -31,7 +31,7 @@ _gShelter1fParkingGarageBlockingSurface = 0x80181944; // size:0x8 defined:True
 _gShelter1fParkingGarageFloorSurface = 0x8018194C; // size:0x8 defined:True
 gShelter1fParkingGarageSurfaceProperties = 0x80181954; // size:0x20 defined:True
 gRoomEventFade = 0x80181974; // size:0x4 defined:True
-D_shelter_1f_parking_garage_80181978 = 0x80181978; // size:0x4 defined:True
+_gShelter1fParkingGarageUndergroundDepartureFade = 0x80181978; // size:0x4 defined:True
 _gRoomEventStagedMsg = 0x8018197C; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gMapNeoArkParkingGarageDefaultPlacements = 0x8017AEC0; // absolute:True owner=map_neo_ark
@@ -42,10 +42,10 @@ D_shelter_1f_parking_garage_80181986 = 0x80181986; // size:0x1 defined:True
 D_shelter_1f_parking_garage_80181987 = 0x80181987; // size:0x1 defined:True
 gRoomDeparture = 0x80181988; // size:0xC defined:True
 gRoomEventLatched = 0x80181998; // size:0xC defined:True
-D_shelter_1f_parking_garage_80180BA0 = 0x80180BA0; // size:0xC defined:True
+_gShelter1fParkingGarageDepartureTaskDesc = 0x80180BA0; // size:0xC defined:True
 _gShelter1fParkingGarageStagedEventTaskDesc = 0x80180BAC; // size:0xC defined:True
-D_shelter_1f_parking_garage_80180BB8 = 0x80180BB8; // size:0x28 defined:True
-D_shelter_1f_parking_garage_80180BE0 = 0x80180BE0; // size:0xC defined:True
+_gShelter1fParkingGarageRoomMessages = 0x80180BB8; // size:0x28 defined:True
+_gShelter1fParkingGarageUndergroundDepartureTaskDesc = 0x80180BE0; // size:0xC defined:True
 
 shelter1fParkingGarageDrawViewGlowsTask = 0x8017DF6C; // type:func
 
@@ -71,3 +71,4 @@ _shelter1fParkingGarageResolveRoomEvent = 0x8017dcf4; // type:func
 _shelter1fParkingGarageHandleRoomAction = 0x8017de4c; // type:func
 _shelter1fParkingGarageInitializeRoom = 0x8017de9c; // type:func
 shelter1fParkingGarageRoomTask = 0x8017df14; // type:func
+_gShelter1fParkingGarageRoomStateHandlers = 0x8017d6a0;

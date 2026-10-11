@@ -61,9 +61,6 @@ static s32 _gShopPreviewRowId;
 /// room's own tasks are spawned from.
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
-/// Message handlers the room's controller task installs in pointer slot 7.
-extern TaskMessageEntry D_shelter_b1_armory_80182500[];
-
 static void _shelterB1ArmoryInitRoomState(Task* task);
 static void _shelterB1ArmoryRoomIdleState(Task* task);
 
@@ -114,7 +111,11 @@ TaskDesc D_shelter_b1_armory_801824E8[2] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterB1ArmoryShopSceneTask, { .value = 0 } },
 };
 
-TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
+/// Armory handlers for exits, cardkey use, shop actions and progress-dependent captions.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gShelterB1ArmoryRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ArmoryResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1ArmoryUseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ArmoryHandleRoomAction },
@@ -132,9 +133,11 @@ TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
 
 #include "../../shared/room_event_task.inc.c"
 
-/// State handlers of the room's controller task: installing its message
-/// table, an idle tick, and the kill.
-static const TaskFuncTable3 D_shelter_b1_armory_8017D714 = {
+/// Armory room states: 0 initialize messages, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gShelterB1ArmoryRoomStateHandlers = {
     {
         _shelterB1ArmoryInitRoomState,
         _shelterB1ArmoryRoomIdleState,
@@ -433,7 +436,7 @@ static s32 _shelterB1ArmoryHandleRoomAction(Task* unusedTask, s32 unusedMessageI
 /// slot borrows this live task while the armory overlay remains loaded.
 static void _shelterB1ArmoryInitRoomState(Task* task)
 {
-    task->msgTable = D_shelter_b1_armory_80182500;
+    task->msgTable = _gShelterB1ArmoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -449,6 +452,6 @@ void shelterB1ArmoryRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b1_armory_8017D714;
+    states = _gShelterB1ArmoryRoomStateHandlers;
     states.funcs[task->state](task);
 }

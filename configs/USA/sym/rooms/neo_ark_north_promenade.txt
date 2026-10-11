@@ -42,7 +42,7 @@ gMapNeoArkNorthPromenadeVariant2Placements = 0x8017B0F0; // absolute:True owner=
 gMapNeoArkNorthPromenadeVariant3Placements = 0x8017B120; // absolute:True owner=map_neo_ark
 gMapNeoArkNorthPromenadeVariant11Placements = 0x8017B160; // absolute:True owner=map_neo_ark
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80181DA4; // size:0x10 defined:True
-D_neo_ark_north_promenade_80181D68 = 0x80181D68; // size:0x28 defined:True
+_gNeoArkNorthPromenadeRoomMessages = 0x80181D68; // size:0x28 defined:True
 _gRoomVisualEffectsHaloShades = 0x80181D90; // size:0x14 defined:True
 
 neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func

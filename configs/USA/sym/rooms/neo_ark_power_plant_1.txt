@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_power_plant_1.
-D_neo_ark_power_plant_1_80181C00 = 0x80181C00; // size:0x8 defined:True
+_gNeoArkPowerPlant1GeneratorClearAreaUpdates = 0x80181C00; // size:0x8 defined:True
 _gNeoArkPowerPlant1DefaultSurfaceProperties = 0x80181BC0; // size:0x8 defined:True
 _gNeoArkPowerPlant1Surface3Properties = 0x80181BC8; // size:0x8 defined:True
 _gNeoArkPowerPlant1Surface4Properties = 0x80181BD0; // size:0x8 defined:True
@@ -95,3 +95,4 @@ _neoArkPowerPlant1InitializeRoom = 0x8017d928; // type:func
 _neoArkPowerPlant1UpdateRoom = 0x8017d5ec; // type:func
 neoArkPowerPlant1RoomTask = 0x8017d9c0; // type:func
 neoArkPowerPlant1HandleCapCommand = 0x8017d7f8; // type:func
+_gNeoArkPowerPlant1RoomStateHandlers = 0x8017d5c4;

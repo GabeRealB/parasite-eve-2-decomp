@@ -48,10 +48,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// 0x1E pair the gallery hands `taskSpawn` for the helper it raises in state 3,
-/// the same shape `D_mine_mesa_80189B38` has.
-extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
-
 /// Staging save location the gallery commits: area / warp / room
 /// hold what `neoArkSubmarineGalleryResolveRoomEvent` copies out of the
 /// resolved destination, and `neoArkSubmarineGalleryDepartToIslandTask` moves
@@ -60,14 +56,21 @@ extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
-AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
-    { 5, 12, 4, 0 },
-    { 5, 14, 4, 0 },
-    { 5, 30, 4, 0 },
-    { 255, 0, 0, 0 },
+enum { NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_DEFEATED_VARIANT = 4 };
+
+const AreaApplyRec gNeoArkSubmarineGallerySeaDiverDefeatAreaUpdates[4] SECTION(".data") = {
+    { .stage = GAME_STAGE_SHELTER_NEO_ARK, .area = GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, .variant = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_DEFEATED_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS },
+    { .stage = GAME_STAGE_SHELTER_NEO_ARK, .area = GAME_AREA_NEO_ARK_ISLAND, .variant = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_DEFEATED_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS },
+    { .stage = GAME_STAGE_SHELTER_NEO_ARK, .area = GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, .variant = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_DEFEATED_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS },
+    { .stage = AREA_APPLY_END },
 };
 
-RoomFadeStorage D_neo_ark_submarine_gallery_8018591C = { 0 };
+/// Mutable blackout control retained through the confirmed island departure.
+///
+/// The fade task borrows the four-byte `fade` member for a 30-frame subtractive
+/// ramp and hold until session reload. The trailing word is unaccessed and its
+/// role remains unproven; retain the full eight-byte storage and loaded room.
+static RoomFadeStorage _gNeoArkSubmarineGalleryIslandDepartureFade = { 0 };
 
 RoomEventMsg D_neo_ark_submarine_gallery_80185924 = { 0 };
 
@@ -91,9 +94,11 @@ enum {
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-/// State handlers of the room's entry task, indexed by its state through
-/// `neoArkSubmarineGalleryMessageTask`: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
+/// Gallery room states: 0 initialize messages/red disc, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gNeoArkSubmarineGalleryRoomStateHandlers = {
     { _neoArkSubmarineGalleryInitializeRoom, _neoArkSubmarineGalleryMessageTaskIdle, taskKill }
 };
 
@@ -157,10 +162,10 @@ void neoArkSubmarineGalleryDepartToIslandTask(Task* task)
             task->state++;
             break;
         case DEPARTURE_START_FADE:
-            D_neo_ark_submarine_gallery_8018591C.fade.blend      = SCREEN_FADE_SUBTRACT;
-            D_neo_ark_submarine_gallery_8018591C.fade.phase      = SCREEN_FADE_RUNNING;
-            D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = FADE_DURATION_FRAMES;
-            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
+            _gNeoArkSubmarineGalleryIslandDepartureFade.fade.blend      = SCREEN_FADE_SUBTRACT;
+            _gNeoArkSubmarineGalleryIslandDepartureFade.fade.phase      = SCREEN_FADE_RUNNING;
+            _gNeoArkSubmarineGalleryIslandDepartureFade.fade.rampFrames = FADE_DURATION_FRAMES;
+            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &_gNeoArkSubmarineGalleryIslandDepartureFade.fade);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
             task->state++;
             break;
@@ -263,7 +268,7 @@ void neoArkSubmarineGalleryMessageTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_submarine_gallery_8017D614;
+    handlers = _gNeoArkSubmarineGalleryRoomStateHandlers;
     handlers.funcs[task->state](task);
 }
 

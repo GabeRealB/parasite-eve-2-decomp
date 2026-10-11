@@ -145,7 +145,7 @@ _gShopPurchaseQuantityDescriptor = 0x801824B4; // size:0x1C defined:True
 gShelterB1ArmoryShopSessionTaskDesc = 0x801824D0; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x801824DC; // size:0xC defined:True
 D_shelter_b1_armory_801824E8 = 0x801824E8; // size:0x18 defined:True
-D_shelter_b1_armory_80182500 = 0x80182500; // size:0x28 defined:True
+_gShelterB1ArmoryRoomMessages = 0x80182500; // size:0x28 defined:True
 
 shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func
 _shopSelectStockList = 0x8017D768; // type:func
@@ -183,3 +183,4 @@ _shelterB1ArmoryHandleRoomCommand = 0x80180698; // type:func
 _shelterB1ArmoryHandleRoomAction = 0x801806f8; // type:func
 _shelterB1ArmoryInitRoomState = 0x80180740; // type:func
 shelterB1ArmoryRoomTask = 0x8018078C; // type:func
+_gShelterB1ArmoryRoomStateHandlers = 0x8017d714;

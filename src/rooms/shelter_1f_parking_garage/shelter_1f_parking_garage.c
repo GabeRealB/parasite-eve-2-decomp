@@ -62,12 +62,7 @@ static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply
 
 extern u8 D_shelter_1f_parking_garage_80181984;
 
-extern TaskDesc         D_shelter_1f_parking_garage_80180BA0;
-extern TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[];
-extern TaskDesc         D_shelter_1f_parking_garage_80180BE0;
-
 extern ScreenFade       gRoomEventFade;
-extern ScreenFade       D_shelter_1f_parking_garage_80181978;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomDeparture    gRoomDeparture;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -87,13 +82,23 @@ static s32  _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageI
 static s32  _shelter1fParkingGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task);
 
-/// The room's key-item request ID and the reply that displays "cannot use now".
+/// The key-item reply that displays "cannot use now".
 enum {
-    SHELTER_1F_PARKING_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE    = 0,
+    SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE = 0,
 };
 
-TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
+enum { SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY = 32 };
+
+/// Bodyless resolved-departure recipe, priority 32 and zero metadata/payloads.
+///
+/// One descriptor with no terminator. Starts after the underground destination
+/// has been stored in `gRoomDeparture`; that singleton and the callback must
+/// remain loaded and unchanged through sound playback and session reload.
+static TaskDesc _gShelter1fParkingGarageDepartureTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY } },
+    .callback = roomEventDepartureTask,
+    .data     = { .value = 0 },
+};
 
 /// Bodyless priority-32 recipe for the latched garage-to-airlock scene.
 ///
@@ -101,15 +106,28 @@ TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, ro
 /// callback code loaded and stable through the staged departure.
 static TaskDesc _gShelter1fParkingGarageStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
+/// Garage handlers for exit events, key-item refusal, travel actions and ignored commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gShelter1fParkingGarageRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fParkingGarageResolveRoomEvent },
-    { SHELTER_1F_PARKING_GARAGE_MESSAGE_USE_KEY_ITEM, _shelter1fParkingGarageRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fParkingGarageRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fParkingGarageHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fParkingGarageIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, _shelter1fParkingGarageUndergroundDepartureTask, { .value = 0 } };
+/// Bodyless underground-travel choice recipe, priority 32 and zero metadata/payloads.
+///
+/// One descriptor with no terminator. Starts after action 10 holds the player
+/// and opens CAP command 2; confirmation fades and stages the underground
+/// destination, while refusal resumes control. Keep this room loaded through reload.
+static TaskDesc _gShelter1fParkingGarageUndergroundDepartureTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY } },
+    .callback = _shelter1fParkingGarageUndergroundDepartureTask,
+    .data     = { .value = 0 },
+};
 
 /// Six ceiling capsule pairs and a red disc centre, in room-world game units.
 typedef struct {
@@ -424,7 +442,11 @@ WorldCollisionSurfaceProperties* gShelter1fParkingGarageSurfaceProperties[8] = {
 
 ScreenFade gRoomEventFade = { 0 };
 
-ScreenFade D_shelter_1f_parking_garage_80181978 = { 0 };
+/// Mutable 30-frame blackout for confirmed travel to the underground parking area.
+///
+/// The fade task borrows this record for its subtractive ramp and hold until
+/// session reload. Keep the room loaded and do not reuse it during departure.
+static ScreenFade _gShelter1fParkingGarageUndergroundDepartureFade = { 0 };
 
 /// Destination snapshot retained from event acceptance through staged scene reload.
 ///
@@ -543,10 +565,10 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
             break;
         case DEPARTURE_CHECK_CHOICE:
             if (capGetVariantKey() == DEPARTURE_CONFIRMED_CHOICE) {
-                D_shelter_1f_parking_garage_80181978.blend      = SCREEN_FADE_SUBTRACT;
-                D_shelter_1f_parking_garage_80181978.phase      = SCREEN_FADE_RUNNING;
-                D_shelter_1f_parking_garage_80181978.rampFrames = DEPARTURE_FADE_FRAMES;
-                taskSpawn(DEPARTURE_FADE_TASK_BANK, DEPARTURE_FADE_TASK_TYPE, 0, &D_shelter_1f_parking_garage_80181978);
+                _gShelter1fParkingGarageUndergroundDepartureFade.blend      = SCREEN_FADE_SUBTRACT;
+                _gShelter1fParkingGarageUndergroundDepartureFade.phase      = SCREEN_FADE_RUNNING;
+                _gShelter1fParkingGarageUndergroundDepartureFade.rampFrames = DEPARTURE_FADE_FRAMES;
+                taskSpawn(DEPARTURE_FADE_TASK_BANK, DEPARTURE_FADE_TASK_TYPE, 0, &_gShelter1fParkingGarageUndergroundDepartureFade);
                 task->killCountdown = DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {
@@ -571,7 +593,7 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
                 // Resolve the destination before publishing the singleton departure.
                 _roomVariantResolveDeparture(&departure, resolveVariant);
                 gRoomDeparture = departure;
-                taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
+                taskSpawnFromTable(&_gShelter1fParkingGarageDepartureTaskDesc, 0, 0, 0);
                 taskKill(task);
             }
             task->killCountdown--;
@@ -638,7 +660,7 @@ static s32 _shelter1fParkingGarageHandleRoomAction(Task* task, s32 messageId, co
     if (request->actionId == ACTION_UNDERGROUND_DEPARTURE) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         capRunCommandWithTransition(CAP_UNDERGROUND_PROMPT);
-        taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);
+        taskSpawnFromTable(&_gShelter1fParkingGarageUndergroundDepartureTaskDesc, 0, 0, 0);
     }
     return 0;
 }
@@ -651,7 +673,7 @@ static void _shelter1fParkingGarageInitializeRoom(Task* task)
 {
     enum { ARRIVAL_CAP_WARP    = 1,
            ARRIVAL_CAP_COMMAND = 5 };
-    task->msgTable = D_shelter_1f_parking_garage_80180BB8;
+    task->msgTable = _gShelter1fParkingGarageRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == ARRIVAL_CAP_WARP) {
         capRunCommandWithTransition(ARRIVAL_CAP_COMMAND);
@@ -659,9 +681,11 @@ static void _shelter1fParkingGarageInitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-/// State table of the room's controller task
-/// `shelter1fParkingGarageRoomTask`: set up the room, then idle.
-static const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
+/// Garage room states: 0 initialize messages/arrival CAP, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gShelter1fParkingGarageRoomStateHandlers = { {
     _shelter1fParkingGarageInitializeRoom,
     _shelter1fParkingGarageIdle,
     taskKill,
@@ -678,7 +702,7 @@ void shelter1fParkingGarageRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_parking_garage_8017D6A0;
+    stateHandlers = _gShelter1fParkingGarageRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

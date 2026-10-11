@@ -25,7 +25,7 @@ _gActor311500BarrierPatchFaces = 0x80169324; // size:0xC defined:True
 _gActor311500StrangerMessages = 0x80169330; // size:0x8 defined:True
 gActor311500StrangerTaskDesc = 0x80169338; // size:0xC defined:True
 
-gAcropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=acropolis_fire_escape shared=rooms
+gAcropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=acropolis_fire_escape
 
 gAcropolisFireEscapeCollisionGridVerts = 0x80181EC4; // absolute:True owner=acropolis_fire_escape
 

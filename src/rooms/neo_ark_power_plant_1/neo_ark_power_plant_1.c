@@ -21,6 +21,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/areas.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -32,16 +33,14 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// Area-record list applied when the power-on script starts.
-extern AreaApplyRec D_neo_ark_power_plant_1_80181C00[];
-
 static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask);
 static void _neoArkPowerPlant1InitializeRoom(Task* task);
 
-/// State table of the room task: `_neoArkPowerPlant1InitializeRoom`
-/// installs the message table, `_neoArkPowerPlant1UpdateRoom` runs the
-/// plant every frame, and the last state kills the task.
-static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
+/// Power-plant room states: 0 initialize, 1 update generator events/sound, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gNeoArkPowerPlant1RoomStateHandlers = {
     { _neoArkPowerPlant1InitializeRoom, _neoArkPowerPlant1UpdateRoom, taskKill },
 };
 
@@ -117,9 +116,18 @@ WorldCollisionSurfaceProperties* gNeoArkPowerPlant1SurfacePropertiesByClass[8] =
     &_gNeoArkPowerPlant1DefaultSurfaceProperties,
 };
 
-AreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
-    { 5, 18, 2, 1 },
-    { 255, 0, 0, 0 },
+enum {
+    NEO_ARK_POWER_PLANT_1_CLEARED_SAVANNA_VARIANT = 2,
+    NEO_ARK_POWER_PLANT_1_SAVANNA_MAP_MARK_SHOW   = 1,
+};
+
+/// Savanna layout and map-mark update applied when the first generator is defeated.
+///
+/// Applies in every save mode, resetting saved enemy poses and selecting
+/// layout 2 with the map mark set. One update followed by `AREA_APPLY_END`.
+static const AreaApplyRec _gNeoArkPowerPlant1GeneratorClearAreaUpdates[2] SECTION(".data") = {
+    { .stage = GAME_STAGE_SHELTER_NEO_ARK, .area = GAME_AREA_NEO_ARK_SAVANNA_ZONE, .variant = NEO_ARK_POWER_PLANT_1_CLEARED_SAVANNA_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_1_SAVANNA_MAP_MARK_SHOW },
+    { .stage = AREA_APPLY_END },
 };
 
 /// Advances generator-clear events and view-dependent sound in the first power plant.
@@ -152,7 +160,7 @@ static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask)
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
                         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
-                        areaApplySavedUpdates(D_neo_ark_power_plant_1_80181C00);
+                        areaApplySavedUpdates(_gNeoArkPowerPlant1GeneratorClearAreaUpdates);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = NEO_ARK_POWER_PLANT_1_CLEAR_SCENE_EVENT;
                         evsStartScriptWithSkip(gNeoArkPowerPlant1GeneratorClearScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gNeoArkPowerPlant1GeneratorClearSkipScript);
                     }
@@ -294,6 +302,6 @@ void neoArkPowerPlant1RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_power_plant_1_8017D5C4;
+    stateHandlers = _gNeoArkPowerPlant1RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

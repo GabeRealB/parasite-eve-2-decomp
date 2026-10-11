@@ -75,7 +75,7 @@ _gRoamerParams = 0x80184948; // size:0x10 defined:True
 D_neo_ark_woodland_path_80184958 = 0x80184958; // size:0x18 defined:True
 _gNeoArkWoodlandPathRoamerAttacks = 0x80184930; // size:0x18 defined:True
 D_neo_ark_woodland_path_80184A3C = 0x80184A3C; // size:0x8 defined:True
-D_neo_ark_woodland_path_80184A44 = 0x80184A44; // size:0x18 defined:True
+gNeoArkWoodlandPathRoamerControllerTaskDescs = 0x80184A44; // size:0x18 defined:True
 gRoamerCommand = 0x80184A5C; // size:0x4 defined:True
 gRoamerReserveHp = 0x80184A60; // size:0xA defined:True
 
@@ -115,3 +115,5 @@ _neoArkWoodlandPathRoamerPoolATask = 0x801814e8; // type:func
 _neoArkWoodlandPathRoamerPoolBTask = 0x801815d4; // type:func
 _neoArkWoodlandPathInitRoomTask = 0x8017e944; // type:func
 _gNeoArkWoodlandPathRoomTaskStates = 0x8017d614;
+_gNeoArkWoodlandPathRoamerPoolAStateHandlers = 0x8017d638;
+_gNeoArkWoodlandPathRoamerPoolBStateHandlers = 0x8017d684;

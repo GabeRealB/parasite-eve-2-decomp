@@ -985,7 +985,7 @@ static void _neoArkWoodlandPathInitRoomTask(Task* task)
 
     task->msgTable = _gNeoArkWoodlandPathRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    _gNeoArkWoodlandPathRoamerPoolATask = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK, 0, 0);
+    _gNeoArkWoodlandPathRoamerPoolATask = taskSpawnFromTable(gNeoArkWoodlandPathRoamerControllerTaskDescs, NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK, 0, 0);
     task->state                         = task->state + 1;
 }
 

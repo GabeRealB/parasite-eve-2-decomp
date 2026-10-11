@@ -55,8 +55,6 @@
 
 #include "../../shared/room_visual_effects.h"
 
-extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
-
 static void _neoArkNorthPromenadeInitializeRoom(Task* task);
 static void _neoArkNorthPromenadeRoomIdleState(Task* task);
 
@@ -77,11 +75,13 @@ static s32 _neoArkNorthPromenadeResolveRoomTransition(Task* unusedTask, s32 unus
 static s32 _neoArkNorthPromenadeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
-TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
+/// Promenade handlers for exit resolution, key-item refusal and ignored actions/commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gNeoArkNorthPromenadeRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkNorthPromenadeResolveRoomTransition },
-    { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkNorthPromenadeRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkNorthPromenadeRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkNorthPromenadeIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkNorthPromenadeIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -595,7 +595,7 @@ static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, cons
 /// The session's room slot borrows the live task; teardown does not clear it.
 static void _neoArkNorthPromenadeInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_north_promenade_80181D68;
+    task->msgTable = _gNeoArkNorthPromenadeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }

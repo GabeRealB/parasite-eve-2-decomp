@@ -59,7 +59,12 @@ extern s16 gNeoArkSubmarineGallerySeaDiverAwaitingArrival;
 /// zero payload words; its callback and this room must remain loaded while live.
 extern TaskDesc gNeoArkSubmarineGalleryRedDiscTaskDesc;
 
-extern AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4];
+/// Saved layouts applied when the Sea Diver is defeated, followed by `AREA_APPLY_END`.
+///
+/// Submarine Tunnel, Island and Submarine Gallery switch to layout 4 in every
+/// save mode, discard saved enemy poses and clear their map marks. The actor
+/// borrows this read-only list during death; keep the gallery overlay loaded.
+extern const AreaApplyRec gNeoArkSubmarineGallerySeaDiverDefeatAreaUpdates[4];
 
 /// Bodyless water-refraction and band-distortion recipes, in slots 0 and 1.
 ///

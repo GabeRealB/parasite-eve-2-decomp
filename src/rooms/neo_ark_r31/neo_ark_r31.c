@@ -30,9 +30,6 @@
 
 #include "../../shared/room_variants.h"
 
-/// Room message handler table installed into `Task::msgTable`.
-extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
-
 static s32  _neoArkR31RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _neoArkR31ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _neoArkR31IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -47,7 +44,11 @@ TaskDesc gNeoArkR31FramebufferShiftTaskDesc = {
     .data     = { .value = 0 },
 };
 
-TaskMessageEntry D_neo_ark_r31_8017D9F4[5] = {
+/// R31 handlers for exit resolution, key-item refusal and ignored actions/commands.
+///
+/// Four handlers and a `TASK_MESSAGE_TABLE_END` record; the room task borrows
+/// this read-only table and its callbacks while the overlay remains loaded.
+static const TaskMessageEntry _gNeoArkR31RoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkR31ResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkR31RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR31IgnoreRoomAction },
@@ -369,7 +370,7 @@ static void _neoArkR31InitializeRoom(Task* task)
     CdCmdQueue* queue;
 
     queue          = &gCdCmdQueue;
-    task->msgTable = D_neo_ark_r31_8017D9F4;
+    task->msgTable = _gNeoArkR31RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     evsStartScriptWithSkip(gActor461800NeoArkSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor461800NeoArkSceneSkipScript);
@@ -385,10 +386,11 @@ static void _neoArkR31SetImageMaskMode(Task* unusedTask)
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
-/// State handlers of the room task `neoArkR31RoomTask`, indexed by
-/// `Task::state`: the set-up tick, the tick that stores 2 into `gCdCmdQueue.imageMdecMode`,
-/// and `taskKill`.
-static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
+/// R31 room states: 0 initialize, 1 re-arm RGB16 image mask decoding, 2 release.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check; keep the room loaded through dispatch.
+static const TaskFuncTable3 _gNeoArkR31RoomStateHandlers = {
     {
         _neoArkR31InitializeRoom,
         _neoArkR31SetImageMaskMode,
@@ -400,6 +402,6 @@ void neoArkR31RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_r31_8017D5C4;
+    stateHandlers = _gNeoArkR31RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

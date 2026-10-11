@@ -1,7 +1,7 @@
 // Overlay-local symbols for neo_ark_shrine.
 gNeoArkShrinePuzzleLayoutRestorePending = 0x8018686A; // type:s16 size:0x2
 _gNeoArkShrinePuzzleTileTextureOrigins = 0x801825AC; // size:0x40 defined:True
-D_neo_ark_shrine_801825EC = 0x801825EC; // size:0xA0 defined:True
+_gNeoArkShrinePuzzleCellNeighbours = 0x801825EC; // size:0xA0 defined:True
 _gNeoArkShrineFlarePositions = 0x8018268C; // size:0x88 defined:True
 gNeoArkShrineCollisionRooms = 0x80182724; // size:0x60 defined:True
 gNeoArkShrineRoomLighting = 0x80182784; // size:0x30 defined:True
@@ -102,9 +102,9 @@ gNeoArkShrinePuzzleCellTiles = 0x8018686C; // size:0x20 defined:True
 gNeoArkShrinePuzzleDrawnOrigins = 0x8018688C; // size:0x40 defined:True
 gNeoArkShrinePuzzleTargetOrigins = 0x801868CC; // size:0x40 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182714; // size:0x10 defined:True
-D_neo_ark_shrine_80181E34 = 0x80181E34; // size:0x28 defined:True
-D_neo_ark_shrine_80181E5C = 0x80181E5C; // size:0x18 defined:True
-D_neo_ark_shrine_80181E74 = 0x80181E74; // size:0x4 defined:True
+_gNeoArkShrineRoomMessages = 0x80181E34; // size:0x28 defined:True
+_gNeoArkShrinePuzzleSessionTaskDescs = 0x80181E5C; // size:0x18 defined:True
+_gNeoArkShrineObjectEventVariantKey = 0x80181E74; // size:0x4 defined:True
 _gNeoArkShrineModel049E8Skeleton = 0x80181E78; // size:0x24 defined:True
 _gNeoArkShrineModel049E8PartVerts = 0x80181E9C; // size:0x4 defined:True
 _gNeoArkShrineModel049E8Verts = 0x80181EA0; // size:0x108 defined:True
@@ -178,3 +178,4 @@ _neoArkShrineInitializePuzzle = 0x8017ecc4; // type:func
 _gNeoArkShrinePuzzleStates = 0x8017d5d0;
 _gNeoArkShrineFirstPropStates = 0x8017d610;
 _gNeoArkShrineSecondPropStates = 0x8017d620;
+_gNeoArkShrineRoomStateHandlers = 0x8017d5c4;

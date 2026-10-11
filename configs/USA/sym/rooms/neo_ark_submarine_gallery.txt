@@ -52,8 +52,8 @@ gMapNeoArkSubmarineGalleryVariant2Placements = 0x8017C4D0; // absolute:True owne
 gMapNeoArkSubmarineGalleryVariant3Placements = 0x8017C510; // absolute:True owner=map_neo_ark
 gMapNeoArkSubmarineGalleryVariant11Placements = 0x8017C530; // absolute:True owner=map_neo_ark
 gNeoArkSubmarineGallerySurfacePropertiesByClass = 0x801858EC; // size:0x20 defined:True
-D_neo_ark_submarine_gallery_8018591C = 0x8018591C; // size:0x8 defined:True
-D_neo_ark_submarine_gallery_8018590C = 0x8018590C; // size:0x10 defined:True
+_gNeoArkSubmarineGalleryIslandDepartureFade = 0x8018591C; // size:0x8 defined:True
+gNeoArkSubmarineGallerySeaDiverDefeatAreaUpdates = 0x8018590C; // size:0x10 defined:True
 gNeoArkSubmarineGalleryWaterTaskDescriptors = 0x8018186C; // size:0x18 defined:True
 gNeoArkSubmarineGalleryRoomMessages = 0x80181884; // size:0x28 defined:True
 gNeoArkSubmarineGalleryIslandDepartureTaskDesc = 0x801818AC; // size:0xC defined:True
@@ -87,3 +87,4 @@ neoArkSubmarineGalleryDepartToIslandTask = 0x8017e86c; // type:func
 neoArkSubmarineGalleryResolveRoomEvent = 0x8017ea0c; // type:func
 _neoArkSubmarineGalleryInitializeRoom = 0x8017eb50; // type:func
 _gNeoArkSubmarineGalleryRedDiscTaskStates = 0x8017d63c;
+_gNeoArkSubmarineGalleryRoomStateHandlers = 0x8017d614;

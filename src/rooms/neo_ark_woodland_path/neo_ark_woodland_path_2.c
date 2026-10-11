@@ -249,9 +249,11 @@ s16 D_neo_ark_woodland_path_80184A3C[4] = {
     0x7FFF,
 };
 
-TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _neoArkWoodlandPathRoamerPoolBTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _neoArkWoodlandPathRoamerPoolATask, { .value = 0 } },
+enum { NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY = 32 };
+
+TaskDesc gNeoArkWoodlandPathRoamerControllerTaskDescs[2] = {
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY } }, .callback = _neoArkWoodlandPathRoamerPoolBTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY } }, .callback = _neoArkWoodlandPathRoamerPoolATask, .data = { .value = 0 } },
 };
 
 ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };
@@ -386,9 +388,12 @@ void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 
 #include "../../shared/roaming_enemies_tick_pool_a.inc.c"
 
-/// State handlers of the first arming sequence's entry task
-/// `_neoArkWoodlandPathRoamerPoolATask`: arm, run, advance, then kill.
-static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
+/// Pool-A controller states: 0 arm woodland reserve, 1 update, 2 advance, 3 release.
+///
+/// The dispatcher copies all four callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check. Both pools share the room's reserve
+/// storage; keep the room and callbacks loaded throughout controller lifetime.
+static const TaskFuncTable4 _gNeoArkWoodlandPathRoamerPoolAStateHandlers = {
     { _roamerArmPoolA, _roamerTickPoolA,
       _neoArkWoodlandPathAdvanceRoamerPoolAState, taskKill }
 };
@@ -545,9 +550,12 @@ static void _roamerTickPoolB(Task* task)
 #undef ROAMER_PLACE_POOL_B_ENEMY
 }
 
-/// State handlers of the second arming sequence's entry task
-/// `_neoArkWoodlandPathRoamerPoolBTask`: arm, run, advance, then kill.
-static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
+/// Pool-B controller states: 0 arm forest reserve, 1 update, 2 advance, 3 release.
+///
+/// The dispatcher copies all four callbacks before indexing by `Task::state`.
+/// There is no terminator or bounds check. Both pools share the room's reserve
+/// storage; keep the room and callbacks loaded throughout controller lifetime.
+static const TaskFuncTable4 _gNeoArkWoodlandPathRoamerPoolBStateHandlers = {
     { _roamerArmPoolB, _roamerTickPoolB,
       _neoArkWoodlandPathAdvanceRoamerPoolBState, taskKill }
 };
@@ -589,7 +597,7 @@ static void _neoArkWoodlandPathRoamerPoolATask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_neo_ark_woodland_path_8017D638;
+    handlers = _gNeoArkWoodlandPathRoamerPoolAStateHandlers;
     handlers.funcs[task->state](task);
 }
 
@@ -619,6 +627,6 @@ static void _neoArkWoodlandPathRoamerPoolBTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_neo_ark_woodland_path_8017D684;
+    handlers = _gNeoArkWoodlandPathRoamerPoolBStateHandlers;
     handlers.funcs[task->state](task);
 }
