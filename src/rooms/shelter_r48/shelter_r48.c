@@ -14,6 +14,7 @@
 #include "actors/actor_503500.h"
 
 #include "gameplay/display.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -2399,8 +2400,8 @@ static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 un
             // Card use is accepted only at an active room-event trigger.
             if (_shelterR48HasRoomEventTriggerHit() != 0) {
                 // Hold gameplay before queuing the card-use scene.
-                gGameSession->eventState = SHELTER_R48_EVENT_HOLD;
-                D_80115768               = SHELTER_R48_PLAYER_UPDATE_HOLD;
+                gGameSession->eventState  = SHELTER_R48_EVENT_HOLD;
+                gPlayerActorStateTickHeld = SHELTER_R48_PLAYER_UPDATE_HOLD;
                 taskSpawnFromTableOnDefaultList(&gActor503500StaffCardSceneTaskDesc, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_100, SHELTER_R48_CARD_USE_STARTED);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_CARD_USE_STARTED);

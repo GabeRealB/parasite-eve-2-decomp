@@ -318,7 +318,7 @@ static void _capWeaponEventTask(Task* task)
             break;
         case CAP_WEAPON_EVENT_EXIT_PRESENTATION:
             // This variant routes its completion cue from the flags payload.
-            if (D_80115598 != 0) {
+            if (gCapRoomCompletionSoundsEnabled != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_WEAPON_EVENT_COMPLETION_CUE_BASE, 0);
             }
             unusedPresentationRequest              = _gCapWeaponEventExitAnimationRequest;

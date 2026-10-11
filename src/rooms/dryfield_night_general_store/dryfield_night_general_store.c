@@ -14,7 +14,6 @@
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/display.h"
@@ -142,8 +141,8 @@ static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task)
 {
     task->msgTable = _gDryfieldNightGeneralStoreMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = task->state + 1;
-    D_80115598  = true;
+    task->state                     = task->state + 1;
+    gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the General Store room task alive to receive messages.

@@ -326,26 +326,61 @@ typedef struct {
 } _ActorRenderGroundShadowScratch;
 STATIC_ASSERT_SIZEOF(_ActorRenderGroundShadowScratch, 0x40);
 
-u8* D_80114D10;
+/// Next payload byte in the selected borrowed decode, actor or external buffer.
+///
+/// Actor destinations skip the active VLC/timing prefixes. Both transferred
+/// and reused payloads advance this cursor; the complete sector payload must
+/// fit its selected buffer until the read completes.
+static u8* _gStreamScenePayloadWriteCursor;
 
-u16 D_80114D14[2];
+/// Phases of scene-image sector intake.
+enum { STREAM_SCENE_READ_HEADER  = 0,
+       STREAM_SCENE_READ_PAYLOAD = 1 };
 
-s16 D_80114D18;
+/// Transfer policy for a selected scene payload.
+enum { STREAM_SCENE_PAYLOAD_SKIP = 0,
+       STREAM_SCENE_PAYLOAD_COPY = 1 };
 
-s16 D_80114D1A;
+/// Current serialized image read and its selected destination.
+typedef struct {
+    u16 phase;      // 0 header, 1 payload; selection resets only this halfword
+    u16 bufferKind; // STREAM_SCENE_BUFFER_* (0..4), retained across payload sectors
+} _StreamSceneReadState;
+STATIC_ASSERT_SIZEOF(_StreamSceneReadState, 4);
 
-s16 D_80114D1C;
+/// Scene-sector callback state, reset to the header phase when a scene is selected.
+static _StreamSceneReadState _gStreamSceneReadState;
 
-s32 D_80114D20;
+/// Payload sectors still to consume after the header sector.
+///
+/// Nonempty serialized counts must be 1..32768. Zero completes the payload;
+/// completion stores -1 until the next header replaces it. Halfword decrement
+/// casts preserve the unsigned arithmetic view before signed storage.
+static s16 _gStreamScenePayloadSectorsRemaining;
 
-/// 0-terminated `_CdCmdSceneSoundBankBit` table walked by `_cdCmdSuspendSceneSoundRequests` / `cdCmdResumeSceneSoundRequests`.
-extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
+/// Whether the current payload is copied (1) or only consumed for reuse (0).
+///
+/// Cleared when forceReload is zero and a reusable payload already exists.
+/// Skipping preserves destination selection, cursor advance and completion.
+static s16 _gStreamScenePayloadTransferEnabled;
+
+/// Retained forceReload halfword for the current serialized image.
+///
+/// Zero permits payload reuse; nonzero forces transfer and prevents marking
+/// the completed payload reusable. Only the zero/nonzero distinction is used.
+static s16 _gStreamScenePayloadForceReload;
+
+/// Last nonzero scene error, sign-extended from the caller's low halfword.
+///
+/// Scene selection initializes this to 0xFFFF. Clearing the scene error halt
+/// leaves this retained value intact; no reader establishes a sentinel meaning.
+static s32 _gStreamSceneLastError;
 
 static const char _gEnemyWorkAllocationFailureText[];
 
 static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates;
 
-static const TaskFuncTable3 Gp_StageLoadStates;
+static const TaskFuncTable3 _gLoadingRestartPresentationStates;
 
 static const VECTOR _gAnimationHeadAimLocalOffset;
 
@@ -473,18 +508,33 @@ static void _sceneInitializeManager(Task* sceneTask);
 
 static void _worldTargetDrawOverlayTask(Task* unusedTask);
 
-_CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
-    { 1, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
-    { 4, SOUND_SCRIPT_REQUEST_TYPE_1 },
-    { 8, SOUND_AREA_BANK_ALL },
-    { 2, SOUND_BANK_TYPE_WEAPON_ALL },
-    { 16, SOUND_BANK_TYPE_CHARACTER_ALL },
-    { 32, SOUND_BANK_TYPE_ALL_NON_AMBIENT },
-    { 0, 0 },
+/// Scene sound-bank bits stopped and request-gated during playback.
+enum {
+    CD_COMMAND_SCENE_SOUND_COMMON    = 0x01,
+    CD_COMMAND_SCENE_SOUND_WEAPON    = 0x02,
+    CD_COMMAND_SCENE_SOUND_TYPE_1    = 0x04,
+    CD_COMMAND_SCENE_SOUND_AREA      = 0x08,
+    CD_COMMAND_SCENE_SOUND_CHARACTER = 0x10,
+    CD_COMMAND_SCENE_SOUND_ALL       = 0x20,
+    CD_COMMAND_SCENE_SOUND_END       = 0,
 };
-TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, _loadingRestartPresentationTask, { NULL } };
 
-static const TaskFuncTable3 Gp_StageLoadStates;
+/// Decodes scene sound-bank mask bits to sound stop/request-gate selectors.
+///
+/// The zero-mask row terminates every walk. ALL stops non-ambient banks but
+/// gates every bank type; higher mask bits are ignored. Storage lives with gameplay.
+static _CdCmdSceneSoundBankBit _gCdCmdSceneSoundBankBits[] = {
+    { CD_COMMAND_SCENE_SOUND_COMMON, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
+    { CD_COMMAND_SCENE_SOUND_TYPE_1, SOUND_SCRIPT_REQUEST_TYPE_1 },
+    { CD_COMMAND_SCENE_SOUND_AREA, SOUND_AREA_BANK_ALL },
+    { CD_COMMAND_SCENE_SOUND_WEAPON, SOUND_BANK_TYPE_WEAPON_ALL },
+    { CD_COMMAND_SCENE_SOUND_CHARACTER, SOUND_BANK_TYPE_CHARACTER_ALL },
+    { CD_COMMAND_SCENE_SOUND_ALL, SOUND_BANK_TYPE_ALL_NON_AMBIENT },
+    { CD_COMMAND_SCENE_SOUND_END, 0 },
+};
+enum { LOADING_RESTART_PRESENTATION_PRIORITY = 192 };
+
+TaskDesc gLoadingRestartPresentationTaskDesc = { { { TASK_BODY_NONE, LOADING_RESTART_PRESENTATION_PRIORITY } }, _loadingRestartPresentationTask, { NULL } };
 
 /// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
 ///
@@ -620,92 +670,90 @@ s32 streamReadSceneImageSector(s32 unused0, s32 unused1)
 #define STREAM_SELECT_PAYLOAD_DESTINATION(queue, bufferKind, decodeCapacityBytes)                       \
     switch (bufferKind) {                                                                               \
         case STREAM_SCENE_BUFFER_DECODE:                                                                \
-            D_80114D10                     = (queue)->decodeBuffer;                                     \
-            (queue)->nextDecodeBufferBytes = (decodeCapacityBytes);                                     \
+            _gStreamScenePayloadWriteCursor = (queue)->decodeBuffer;                                    \
+            (queue)->nextDecodeBufferBytes  = (decodeCapacityBytes);                                    \
         default:                                                                                        \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_0:                                                               \
-            D_80114D10 = gFsActorBuffer0Base;                                                           \
+            _gStreamScenePayloadWriteCursor = gFsActorBuffer0Base;                                      \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {          \
-                D_80114D10 = gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES;                              \
+                _gStreamScenePayloadWriteCursor = gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES;         \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) { \
-                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+                _gStreamScenePayloadWriteCursor += (queue)->sceneStream->data.scene.timingBufferBytes;  \
             }                                                                                           \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_1:                                                               \
-            D_80114D10 = gFsActorBuffer1Base;                                                           \
+            _gStreamScenePayloadWriteCursor = gFsActorBuffer1Base;                                      \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {          \
-                D_80114D10 = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;                              \
+                _gStreamScenePayloadWriteCursor = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;         \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) { \
-                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+                _gStreamScenePayloadWriteCursor += (queue)->sceneStream->data.scene.timingBufferBytes;  \
             }                                                                                           \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_2:                                                               \
-            D_80114D10 = gFsActorBuffer2Base;                                                           \
+            _gStreamScenePayloadWriteCursor = gFsActorBuffer2Base;                                      \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {          \
-                D_80114D10 = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;                              \
+                _gStreamScenePayloadWriteCursor = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;         \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) { \
-                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+                _gStreamScenePayloadWriteCursor += (queue)->sceneStream->data.scene.timingBufferBytes;  \
             }                                                                                           \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_EXTERNAL:                                                              \
-            D_80114D10 = (queue)->externalScenePayloadBuffer;                                           \
+            _gStreamScenePayloadWriteCursor = (queue)->externalScenePayloadBuffer;                      \
             break;                                                                                      \
     }
-
-    enum { STREAM_SCENE_READ_HEADER  = 0,
-           STREAM_SCENE_READ_PAYLOAD = 1 };
 
     StreamSceneImageHeader header;
     CdCmdQueue*            queue;
 
     queue = &gCdCmdQueue;
-    switch (D_80114D14[0]) {
+    switch (_gStreamSceneReadState.phase) {
         case STREAM_SCENE_READ_HEADER:
             // Read the serialized header before choosing or reusing its payload buffer.
             CdGetSector(&header, sizeof(header) / sizeof(u_long));
-            D_80114D1A = 1;
-            D_80114D1C = header.forceReload;
-            if ((D_80114D1C == 0) && ((s16)queue->scenePayloadReusable != 0)) {
-                D_80114D1A = 0;
+            _gStreamScenePayloadTransferEnabled = STREAM_SCENE_PAYLOAD_COPY;
+            _gStreamScenePayloadForceReload     = header.forceReload;
+            if ((_gStreamScenePayloadForceReload == 0) && ((s16)queue->scenePayloadReusable != 0)) {
+                _gStreamScenePayloadTransferEnabled = STREAM_SCENE_PAYLOAD_SKIP;
             }
             if ((s16)header.sectorCount != 0) {
-                queue->scenePayloadLoading = 1;
-                (*(D_80114D14 + 1))        = header.bufferKind;
-                if (D_80114D1A != 0) {
-                    memCopyBytes(&header, &queue->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
+                // The member-address form keeps its halfword address folded across the copy.
+                queue->scenePayloadLoading            = 1;
+                *(&_gStreamSceneReadState.bufferKind) = header.bufferKind;
+                if (_gStreamScenePayloadTransferEnabled != 0) {
+                    memCopyBytes(&header, &queue->sceneImageHeaders[*(&_gStreamSceneReadState.bufferKind)], sizeof(header));
                 }
-                STREAM_SELECT_PAYLOAD_DESTINATION(queue, (*(D_80114D14 + 1)), header.nextDecodeBufferBytes);
+                STREAM_SELECT_PAYLOAD_DESTINATION(queue, *(&_gStreamSceneReadState.bufferKind), header.nextDecodeBufferBytes);
 #undef STREAM_SELECT_PAYLOAD_DESTINATION
-                if (D_80114D1A != 0) {
-                    CdGetSector(D_80114D10, SECTOR_SIZE - sizeof(header) / sizeof(u_long));
+                if (_gStreamScenePayloadTransferEnabled != 0) {
+                    CdGetSector(_gStreamScenePayloadWriteCursor, SECTOR_SIZE - sizeof(header) / sizeof(u_long));
                 }
-                D_80114D10   += SECTOR_SIZE * sizeof(u_long) - sizeof(header);
-                D_80114D14[0] = STREAM_SCENE_READ_PAYLOAD;
-                D_80114D18    = header.sectorCount - 1;
+                _gStreamScenePayloadWriteCursor     += SECTOR_SIZE * sizeof(u_long) - sizeof(header);
+                _gStreamSceneReadState.phase         = STREAM_SCENE_READ_PAYLOAD;
+                _gStreamScenePayloadSectorsRemaining = header.sectorCount - 1;
             }
             break;
         case STREAM_SCENE_READ_PAYLOAD:
-            if (D_80114D18 > 0) {
-                if (D_80114D1A != 0) {
-                    CdGetSector(D_80114D10, SECTOR_SIZE);
+            if (_gStreamScenePayloadSectorsRemaining > 0) {
+                if (_gStreamScenePayloadTransferEnabled != 0) {
+                    CdGetSector(_gStreamScenePayloadWriteCursor, SECTOR_SIZE);
                 }
-                D_80114D10 += SECTOR_SIZE * sizeof(u_long);
-                D_80114D18  = (u16)D_80114D18 - 1;
+                _gStreamScenePayloadWriteCursor     += SECTOR_SIZE * sizeof(u_long);
+                _gStreamScenePayloadSectorsRemaining = (u16)_gStreamScenePayloadSectorsRemaining - 1;
             }
-            if (D_80114D18 == 0) {
-                D_80114D18 = (u16)D_80114D18 - 1;
+            if (_gStreamScenePayloadSectorsRemaining == 0) {
+                _gStreamScenePayloadSectorsRemaining = (u16)_gStreamScenePayloadSectorsRemaining - 1;
                 if (gCdCmdQueue.sceneEnded == 0) {
                     gCdCmdQueue.scenePayloadAvailable = 1;
                 }
                 gCdCmdQueue.scenePayloadLoading = 0;
-                if (D_80114D1C == 0) {
+                if (_gStreamScenePayloadForceReload == 0) {
                     gCdCmdQueue.scenePayloadReusable = 1;
                 }
-                D_80114D14[0] = STREAM_SCENE_READ_HEADER;
+                _gStreamSceneReadState.phase = STREAM_SCENE_READ_HEADER;
             }
             break;
     }
@@ -754,19 +802,19 @@ s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2)
     } else {
         queue->decodeBufferBytes = 0;
     }
-    queue->sceneEnded          = 0;
-    queue->vlcTableBuilt       = 0;
-    queue->scenePayloadLoading = 0;
-    queue->imageLayout         = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-    vlcTableMode               = slot->data.scene.vlcTableMode;
-    savedRandomState           = gRandomLcgState;
-    *D_80114D14                = 0;
-    queue->sceneVlcTableMode   = vlcTableMode;
-    queue->savedLcgState       = savedRandomState;
-    queue->savedRandSeed       = rand();
-    gRandomLcgState            = 0;
+    queue->sceneEnded            = 0;
+    queue->vlcTableBuilt         = 0;
+    queue->scenePayloadLoading   = 0;
+    queue->imageLayout           = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+    vlcTableMode                 = slot->data.scene.vlcTableMode;
+    savedRandomState             = gRandomLcgState;
+    _gStreamSceneReadState.phase = STREAM_SCENE_READ_HEADER;
+    queue->sceneVlcTableMode     = vlcTableMode;
+    queue->savedLcgState         = savedRandomState;
+    queue->savedRandSeed         = rand();
+    gRandomLcgState              = 0;
     srand(1);
-    D_80114D20 = 0xFFFF;
+    _gStreamSceneLastError = 0xFFFF;
     return slotIndex;
 }
 
@@ -786,10 +834,10 @@ static inline void _cdCmdSetSceneAudioSoundRequests(u16 soundBankMask, bool requ
     const _CdCmdSceneSoundBankBit* entry;
 
     maskIndex = 0;
-    if (Gp_SndMaskTable[0].mask != 0) {
+    if (_gCdCmdSceneSoundBankBits[0].mask != 0) {
         promotedMask = soundBankMask;
         do {
-            entry = &Gp_SndMaskTable[maskIndex];
+            entry = &_gCdCmdSceneSoundBankBits[maskIndex];
             if (promotedMask & entry->mask) {
                 if (!requestsEnabled) {
                     sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
@@ -797,7 +845,7 @@ static inline void _cdCmdSetSceneAudioSoundRequests(u16 soundBankMask, bool requ
                 sndScriptSetTypeRequestsEnabled(requestsEnabled, entry->bankTypeId);
             }
             maskIndex++;
-        } while (Gp_SndMaskTable[maskIndex].mask != 0);
+        } while (_gCdCmdSceneSoundBankBits[maskIndex].mask != 0);
     }
 }
 
@@ -1029,16 +1077,16 @@ static void _cdCmdSuspendSceneSoundRequests(u16 soundBankMask)
     const _CdCmdSceneSoundBankBit* entry;
 
     maskIndex = 0;
-    if (Gp_SndMaskTable[0].mask != 0) {
+    if (_gCdCmdSceneSoundBankBits[0].mask != 0) {
         promotedMask = soundBankMask;
         do {
-            entry = &Gp_SndMaskTable[maskIndex];
+            entry = &_gCdCmdSceneSoundBankBits[maskIndex];
             if (promotedMask & entry->mask) {
                 sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
                 sndScriptSetTypeRequestsEnabled(false, entry->bankTypeId);
             }
             maskIndex++;
-        } while (Gp_SndMaskTable[maskIndex].mask != 0);
+        } while (_gCdCmdSceneSoundBankBits[maskIndex].mask != 0);
     }
 }
 
@@ -1049,15 +1097,15 @@ void cdCmdResumeSceneSoundRequests(u16 soundBankMask)
     const _CdCmdSceneSoundBankBit* entry;
 
     maskIndex = 0;
-    if (Gp_SndMaskTable[0].mask != 0) {
+    if (_gCdCmdSceneSoundBankBits[0].mask != 0) {
         promotedMask = soundBankMask;
         do {
-            entry = &Gp_SndMaskTable[maskIndex];
+            entry = &_gCdCmdSceneSoundBankBits[maskIndex];
             if (promotedMask & entry->mask) {
                 sndScriptSetTypeRequestsEnabled(true, entry->bankTypeId);
             }
             maskIndex++;
-        } while (Gp_SndMaskTable[maskIndex].mask != 0);
+        } while (_gCdCmdSceneSoundBankBits[maskIndex].mask != 0);
     }
 }
 
@@ -1082,8 +1130,8 @@ s32 streamSetSceneError(s32 errorCode, s32 unusedArgument)
 
     narrowErrorCode = errorCode;
     if (narrowErrorCode != 0) {
-        D_80114D20          = narrowErrorCode;
-        gGameMainHaltFlags |= GAME_MAIN_HALT_SCENE_ERROR;
+        _gStreamSceneLastError = narrowErrorCode;
+        gGameMainHaltFlags    |= GAME_MAIN_HALT_SCENE_ERROR;
     } else {
         gGameMainHaltFlags &= ~GAME_MAIN_HALT_SCENE_ERROR;
     }
@@ -1321,7 +1369,7 @@ static void _loadingRestartPresentationTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Gp_StageLoadStates;
+    states = _gLoadingRestartPresentationStates;
     states.funcs[task->state](task);
 }
 
@@ -4576,7 +4624,11 @@ static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates = { {
     enemyDestroy,
 } };
 
-static const TaskFuncTable3 Gp_StageLoadStates = { {
+/// Restart presentation phases: load resources, launch the UI/bonus, await UI exit.
+///
+/// Task state must be 0..2. The ending path kills the task in state 1; only
+/// normal restarts reach state 2, borrowing the child in spawnArg2.pointer.
+static const TaskFuncTable3 _gLoadingRestartPresentationStates = { {
     _loadingStartRestartResources,
     _loadingAwaitRestartResources,
     _loadingFinishRestart,

@@ -7,6 +7,7 @@
 #include "common.h"
 
 #include "gameplay/area_entry.h"
+#include "damage.h"
 #include "area_entry.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -75,8 +76,7 @@ typedef union {
 } _AttachmentWheelScratch;
 STATIC_ASSERT_SIZEOF(_AttachmentWheelScratch, 0x30);
 
-/// Shared player-control flag, independently addressed by gameplay and overlays.
-u8 D_80115768;
+u8 gPlayerActorStateTickHeld;
 
 extern const char D_8009388C[];
 
@@ -118,7 +118,7 @@ static __inline__ u8 _attachmentPreviewSoundLoadStub(void);
 
 static void _attachmentUpdateAndDrawHud(HudState* hud);
 
-u16 D_80113CFC[8] = {
+u16 gDamageAntibodyComboPercent[8] = {
     100,
     75,
     70,
@@ -257,14 +257,14 @@ AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT
         { .area = { ATTACHMENT_AREA_CYLINDER, 16, 20, 1 } },
     },
 };
-DamageReceivedScaleRow Gp_DmgRows[5] = {
+DamageReceivedScaleRow gDamageReceivedScaleRows[SCENE_COMBAT_DIFFICULTY_REPLAY + 1] = {
     { { 20, 30, 40, 50, 60 }, { 50, 60, 70, 80, 100 } },
     { { 20, 30, 40, 50, 60 }, { 100, 120, 140, 160, 200 } },
     { { 20, 30, 40, 50, 60 }, { 150, 180, 210, 240, 300 } },
     { { 20, 30, 40, 50, 60 }, { 150, 180, 210, 240, 300 } },
     { { 10, 15, 20, 25, 30 }, { 25, 30, 35, 40, 50 } },
 };
-u16 D_80113F54[30] = {
+u16 gDamageReceivedHpBands[30] = {
     0,
     0,
     1,
@@ -736,7 +736,7 @@ static void _attachmentArmCast(s32 abilityIndex)
         attachment->duration = ATTACHMENT_DURATION_MIN;
     }
     attachment->mode               = ATTACHMENT_MODE_ARMED;
-    D_80115768                     = 0;
+    gPlayerActorStateTickHeld      = PLAYER_ACTOR_STATE_TICK_RUNNING;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
     attachment->soundStep          = ATTACHMENT_SOUND_QUEUED;
     attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
@@ -1227,7 +1227,7 @@ static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
         }
     }
     if (eligible != 0) {
-        if (Gp_ItemGrantCooldown > 0) {
+        if (gHudInputDelayUpdates > 0) {
             return 0;
         }
         if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
@@ -1279,7 +1279,7 @@ static __inline__ u8 _attachmentPreviewSoundLoadStub(void)
 static inline void _attachmentResumeActors(void)
 {
     gAttachmentState.mode          = ATTACHMENT_MODE_IDLE;
-    D_80115768                     = 0;
+    gPlayerActorStateTickHeld      = PLAYER_ACTOR_STATE_TICK_RUNNING;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
 }
 
@@ -1384,7 +1384,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
             gAttachmentState.flags        &= ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL;
             wheelMode                      = gAttachmentState.mode ^ ATTACHMENT_MODE_WHEEL;
             gAttachmentState.mode          = wheelMode;
-            D_80115768                     = wheelMode;
+            gPlayerActorStateTickHeld      = wheelMode;
             gSceneCombatState.actorControl = wheelMode;
             if (gAttachmentState.wheelIndex >= ATTACHMENT_SPELL_COUNT) {
                 gAttachmentState.wheelIndex = 0;
@@ -1423,7 +1423,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
                 _attachmentResumeActors();
                 gAttachmentState.menuOpen    = ATTACHMENT_MENU_CLOSED;
                 gAttachmentState.effectPhase = ATTACHMENT_EFFECT_RELEASED;
-                Gp_ItemGrantCooldown         = ATTACHMENT_RELEASE_INPUT_DELAY_FRAMES;
+                gHudInputDelayUpdates        = ATTACHMENT_RELEASE_INPUT_DELAY_FRAMES;
                 cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                 if (player->statusFlags & PLAYER_STATUS_BERSERKER) {
                     player->hp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST) * 2;
@@ -1723,7 +1723,7 @@ void hudUpdateAndDraw(HudState* hud)
         DisplayState* menuDisplay;
 
         menuDisplay = &gDisplayState;
-        if (menuDisplay->holdState >= 0 && (gAttachmentState.mode == ATTACHMENT_MODE_IDLE || menuDisplay->demoScene != DISPLAY_DEMO_NONE) && Gp_ItemGrantCooldown <= 0 && gGameSession->dirActionBusy == 0 &&
+        if (menuDisplay->holdState >= 0 && (gAttachmentState.mode == ATTACHMENT_MODE_IDLE || menuDisplay->demoScene != DISPLAY_DEMO_NONE) && gHudInputDelayUpdates <= 0 && gGameSession->dirActionBusy == 0 &&
             player->interactionPressed == 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0 && menuDisplay->pendingMode == DISPLAY_MODE_NONE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0) {
                 if (hud->inBattle == 0) {
@@ -1918,7 +1918,7 @@ void hudUpdateAndDraw(HudState* hud)
         }
     }
 
-    // PE and the grant cooldown advance only on fully unsuppressed event-free frames.
+    // PE and the HUD input delay advance only on fully unsuppressed event-free frames.
     if (hud->suppression <= HUD_SUPPRESS_NONE) {
         if (gGameSession->eventState == 0) {
             if (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICAL_INSPECTION) != 0) {
@@ -1933,8 +1933,8 @@ void hudUpdateAndDraw(HudState* hud)
             }
             _attachmentUpdateAndDrawHud(hud);
             gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
-            if (Gp_ItemGrantCooldown > 0) {
-                Gp_ItemGrantCooldown = Gp_ItemGrantCooldown - 1;
+            if (gHudInputDelayUpdates > 0) {
+                gHudInputDelayUpdates = gHudInputDelayUpdates - 1;
             }
         }
     }

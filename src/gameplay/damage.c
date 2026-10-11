@@ -371,16 +371,16 @@ s32 damageComputeReceived(s32 attackKey, s32 unused, s32* outReaction, s32 victi
 
     if (victimIsCompanion == 0) {
         hp            = gPlayerStatus.hp;
-        hpBand        = D_80113F54[hp / 10];
-        scale         = Gp_DmgRows[gSceneCombatState.difficulty].playerPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
+        hpBand        = gDamageReceivedHpBands[hp / 10];
+        scale         = gDamageReceivedScaleRows[gSceneCombatState.difficulty].playerPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
         antibodyCombo = gAttachmentState.antibodyCombo;
         if (antibodyCombo != 0) {
-            scale = scale * D_80113CFC[(antibodyCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(antibodyCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))] / 100;
+            scale = scale * gDamageAntibodyComboPercent[(antibodyCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(antibodyCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))] / 100;
         }
     } else {
         hp     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp;
-        hpBand = D_80113F54[hp / 10];
-        scale  = Gp_DmgRows[gSceneCombatState.difficulty].companionPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
+        hpBand = gDamageReceivedHpBands[hp / 10];
+        scale  = gDamageReceivedScaleRows[gSceneCombatState.difficulty].companionPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
     }
 
     // Truncate the Q8 scale before multiplying, but preserve nonzero hit power.

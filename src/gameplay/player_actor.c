@@ -5563,7 +5563,7 @@ void playerActorUpdateMove(void)
     _playerActorCapturePad(playerTask);
     gSceneCombatState.signals.bytes.actionFlags = 0;
     // Holding the state tick leaves input capture and collision preparation active.
-    if (D_80115768 == 0) {
+    if (gPlayerActorStateTickHeld == 0) {
         _playerActorTick(playerTask);
     }
     coord->coord.t[0]            += actor->pendingDisplacement.vx;
@@ -6515,13 +6515,13 @@ Task* playerActorSpawn(const ActorSpawnTransform* spawnTransform, u16 unusedChar
     gameSetTaskSlot(task, GAME_TASK_SLOT_PLAYER);
     task->work = actor;
     memFillBytes(actor, 0, sizeof(*actor));
-    actor->actionArgument = options->initialAnimationId;
-    actor->rotation.vy    = spawnTransform->yaw.angle;
-    coord                 = task->extra.tmd->coords;
-    coord->coord.t[0]     = spawnTransform->x;
-    coord->coord.t[1]     = spawnTransform->y;
-    coord->coord.t[2]     = spawnTransform->z;
-    D_80115768            = 0;
+    actor->actionArgument     = options->initialAnimationId;
+    actor->rotation.vy        = spawnTransform->yaw.angle;
+    coord                     = task->extra.tmd->coords;
+    coord->coord.t[0]         = spawnTransform->x;
+    coord->coord.t[1]         = spawnTransform->y;
+    coord->coord.t[2]         = spawnTransform->z;
+    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
     if (options->startScripted != 0) {
         actor->mode = GAME_ACTOR_MODE_SCRIPTED;
     }

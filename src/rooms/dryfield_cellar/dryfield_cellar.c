@@ -19,7 +19,6 @@
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
@@ -1163,8 +1162,8 @@ static void _dryfieldCellarInitRoomTask(Task* task)
 
     task->msgTable = _gDryfieldCellarMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state += 1;
-    D_80115598   = DRYFIELD_CELLAR_POST_CAP_SOUND_ENABLED;
+    task->state                    += 1;
+    gCapRoomCompletionSoundsEnabled = DRYFIELD_CELLAR_POST_CAP_SOUND_ENABLED;
 }
 
 /// Leaves the initialized room task alive without per-frame updates.

@@ -868,7 +868,7 @@ void menuRootTask(Task* task)
             if (taskSpawnFromTableOnDefaultList(&_gMenuPendingItemUseTaskDesc, 0, 0, 0) != NULL) {
                 displayAcquireMenuHold();
             }
-            Gp_MenuLockDelay = ITEM_MENU_ROOT_INPUT_DELAY_UPDATES;
+            gPadInputMenuUnlockUpdates = ITEM_MENU_ROOT_INPUT_DELAY_UPDATES;
             hudDelayInputAfterMenu();
             taskCallExit(task);
             sndEvtRequestScriptDuckRelease();

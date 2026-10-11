@@ -11,6 +11,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachments.h"
@@ -1438,7 +1439,7 @@ static void _dryfieldNightDrivewaySetEncounterWave(s32 waveStage)
 /// composition and collision processing still run while state updates are held.
 static void _dryfieldNightDrivewaySetPlayerStateHold(u8 hold)
 {
-    D_80115768 = hold;
+    gPlayerActorStateTickHeld = hold;
 }
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"

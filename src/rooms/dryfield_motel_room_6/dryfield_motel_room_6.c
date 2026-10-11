@@ -28,7 +28,6 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
@@ -2324,8 +2323,8 @@ static void _dryfieldMotelRoom6InitRoomTask(Task* task)
 
     task->msgTable = _gDryfieldMotelRoom6MessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state += 1;
-    D_80115598   = DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED;
+    task->state                    += 1;
+    gCapRoomCompletionSoundsEnabled = DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED;
 }
 
 /// Keeps the room task alive to receive messages after initialization.

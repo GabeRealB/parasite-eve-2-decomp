@@ -86,7 +86,7 @@ segments:
       - [0xB4, .rodata, cd_loading] # _gLoadingViewStateHandlers and _gLoadingCharacterFileHundreds, the jtbl from _loadingEnqueueWeaponAmmoResources, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and cdCmdHandleSceneAudio, then its strings and state tables
-      - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2
+      - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then gItemMenuPouchNoticeLabel
       - [0x4CC, .rodata, item_menu] # jtbls: _itemMenuHandleTransferChildResult + strings/tables + _itemMenuHandlePaneChildResult
       - [0x668, .rodata, item_inventory]
       - [0x364C, .rodata, attachment_menu]

@@ -32,7 +32,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -1457,7 +1456,7 @@ static void _dryfieldMainStreetInitialize(Task* task)
 {
     task->msgTable = _gDryfieldMainStreetRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_80115598 = 1;
+    gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
     if (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldMainStreetInitialChaserHideCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }

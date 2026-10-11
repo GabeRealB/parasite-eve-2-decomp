@@ -1,6 +1,6 @@
 #include "gameplay/items.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "attachments.h"
 #include "gameplay/inventory.h"
@@ -75,7 +75,7 @@ static inline bool _itemIsIdentified(s32 itemId);
 
 static inline void _equipmentClearRemovableLoads(s32 weaponItemId);
 
-u8 Gp_ItemSortKey0[72] = {
+const u8 gInventoryOrdinarySortKeys[72] SECTION(".data") = {
     0,
     1,
     2,
@@ -149,7 +149,7 @@ u8 Gp_ItemSortKey0[72] = {
     46,
     255
 };
-u8 Gp_ItemSortKey60[15] = {
+const u8 gInventoryArmorSortKeys[15] SECTION(".data") = {
     61,
     72,
     67,
@@ -166,7 +166,7 @@ u8 Gp_ItemSortKey60[15] = {
     74,
     255
 };
-u8 Gp_ItemSortKey80[33] = {
+const u8 gInventoryWeaponSortKeys[33] SECTION(".data") = {
     15,
     13,
     18,
@@ -291,15 +291,15 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
         if ((id) == INVENTORY_ITEM_NONE) {                                  \
             (key) = INVENTORY_SORT_EMPTY_KEY;                               \
         } else if ((u32)((id) - 1) < INVENTORY_SORT_ARMOR_ITEM_FIRST - 1) { \
-            (key) = Gp_ItemSortKey0[(id)];                                  \
+            (key) = gInventoryOrdinarySortKeys[(id)];                       \
         } else {                                                            \
             classIndex = (id) - INVENTORY_SORT_ARMOR_ITEM_FIRST;            \
             if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {          \
-                (key) = Gp_ItemSortKey60[classIndex];                       \
+                (key) = gInventoryArmorSortKeys[classIndex];                \
             } else {                                                        \
                 classIndex = (id) - EQUIPMENT_WEAPON_ITEM_FIRST;            \
                 if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {      \
-                    (key) = Gp_ItemSortKey80[classIndex];                   \
+                    (key) = gInventoryWeaponSortKeys[classIndex];           \
                 } else {                                                    \
                     classIndex = (id) - INVENTORY_CONSUMABLE_ITEM_FIRST;    \
                     if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {  \

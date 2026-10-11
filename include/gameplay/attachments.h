@@ -41,9 +41,6 @@ extern u8 gAttachmentTrainingLevels[ATTACHMENT_AREA_ABILITY_COUNT];
 /// Rooms and effects borrow this gameplay storage rather than owning copies.
 extern AttachmentState gAttachmentState;
 
-/// Flag byte cleared by `attachmentCancel` / `playerActorSpawn`.
-extern u8 D_80115768;
-
 /// Target-area and self-effect parameters indexed by ability slot and level minus one.
 ///
 /// Slots 0..17 cover the twelve wheel spells and six item abilities; levels

@@ -107,7 +107,7 @@ STAGE_MAP_ID_BASE = 279
 # gameplay's per-stage tables: kind -> (address, bytes per stage, offset of the pointer in a stage's entry, stage of
 # entry 0, whether the pointer leads to a one-word wrapper in the map overlay holding the directory's address).
 # Established from src/gameplay (load_screen.c, view_image.c, scene_runtime.c, cd_loading.c) at commit 2b2fe57e4a,
-# where they are gViewCameraTables, Gp_ViewCountTables, gViewIndexTables, gSpriteAreaTables, Gp_RoomObjTables,
+# where they are gViewCameraTables, gViewCountTables, gViewIndexTables, gSpriteAreaTables, Gp_RoomObjTables,
 # Gp_WarpTables, gWorldCollisionSurfacePropertiesTables, gAreaObjectStages and gAreaRecordsByStage, and from sym.gameplay.txt for the addresses.
 GAMEPLAY_ROOTS = {
     "cameras":   (0x8010CB2C, 4, 0, 1, True),    # ViewCameraTable* [5]            -> { ViewCamera** }

@@ -124,7 +124,7 @@ static inline u16 _loadingPollAreaResourcePasses(void)
     }
 }
 
-ViewCountTable*               Gp_ViewCountTables[5]            = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
+ViewCountTable*               gViewCountTables[5]              = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
 ViewIndexTable*               gViewIndexTables[5]              = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
 SpriteAreaTable*              gSpriteAreaTables[5]             = { &gMapAkropolisSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
 WorldCollisionStageResources* Gp_RoomObjTables[5]              = { &gMapAkropolisWorldCollisionResources, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };

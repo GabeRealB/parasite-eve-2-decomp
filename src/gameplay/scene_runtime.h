@@ -19,7 +19,12 @@
 /// Dryfield object-state bank. Keep the selected map overlay loaded during lookup.
 extern AreaObjectStage gAreaObjectStages[6];
 
-extern TaskDesc D_8010D1FC;
+/// Bodyless restart-presentation loader started after play-task teardown.
+///
+/// Both spawn arguments start unused. Normal restarts load and borrow the
+/// game-over UI child until it exits; endings launch replay bonus and retire
+/// the loader. Gameplay and the selected display package must remain loaded.
+extern TaskDesc gLoadingRestartPresentationTaskDesc;
 
 /// Starts room-specific presentation tasks or the shooting-gallery carryover menu.
 ///

@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "damage.h"
 #include "hud.h"
 #include "weapon_data.h"
 
@@ -75,16 +74,6 @@ enum { ATTACHMENT_TARGET_PREVIEW = 0,
 /// Healing outside battle uses the row minimum; battle rolls a 1/256 blend.
 void attachmentApplySelfEffect(s32 releaseEffects);
 
-/// Damage-scale rows used by `damageComputeReceived`. Indexed by `gSceneCombatState.difficulty`.
-extern DamageReceivedScaleRow Gp_DmgRows[];
-
-/// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
-extern u16 D_80113F54[];
-
-/// Percent scale table used by `damageComputeReceived` when `gAttachmentState.antibodyCombo`
-/// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
-extern u16 D_80113CFC[];
-
 /// Damage and critical-chance percentages for one Energy Shot combo.
 typedef struct {
     u16 damagePercent;   // Multiplier of weapon HP damage, in whole percent.
@@ -113,7 +102,7 @@ extern const char D_800938AC[8];
 /// until their tasks finish. Battle-end supply reload requires weapon 1..32
 /// and the player-task requirements of the end-action handlers.
 /// Rebuilds suppression before drawing status/radar/target HP and updating PE;
-/// suppressed frames pause the PE update and item-grant cooldown. Demo scenes
+/// suppressed frames pause the PE update and HUD input delay. Demo scenes
 /// also require room for two textured quads in the current GPU packet arena.
 void hudUpdateAndDraw(HudState* hud);
 

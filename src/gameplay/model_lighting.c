@@ -3146,5 +3146,5 @@ void playClockRestartSessionTask(Task* task)
     if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {
         cdCmdReservePlaybackBuffers();
     }
-    taskSpawnFromTable(&D_8010D1FC, 0, 0, 0);
+    taskSpawnFromTable(&gLoadingRestartPresentationTaskDesc, 0, 0, 0);
 }

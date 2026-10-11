@@ -323,7 +323,6 @@ static void _evsExecuteInterpreterTask(Task* task)
 
     enum {
         EVENT_SCRIPT_STATUS_DEMO_SCENE           = 9,
-        EVENT_SCRIPT_WAITING_FOR_CAP_CUE         = 0x40,
         EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL     = 16,
         EVENT_SCRIPT_DEFAULT_FADE_FRAMES         = 7,
         EVENT_SCRIPT_DISPLAY_TASK_BANK           = 1,
@@ -355,7 +354,7 @@ static void _evsExecuteInterpreterTask(Task* task)
         if (gEvsSelectedSceneKey != NULL) {
             cdCmdCancelScene();
         }
-        D_801156A4               = 0;
+        gCapControlFlags         = CAP_CONTROL_FLAGS_NONE;
         skipTarget               = _gEvsSkipTarget;
         work->waitFrames         = 0;
         _gEvsSkipTarget          = NULL;
@@ -380,7 +379,7 @@ static void _evsExecuteInterpreterTask(Task* task)
         return;
     }
 
-    if (D_801156A4 & EVENT_SCRIPT_WAITING_FOR_CAP_CUE) {
+    if (gCapControlFlags & CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == EVENT_SCRIPT_STATUS_DEMO_SCENE) {
             EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, _gEvsDemoPauseLabel);
         }
@@ -463,9 +462,9 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE:
-                D_801156CB    = 1;
-                D_801156A4   |= EVENT_SCRIPT_WAITING_FOR_CAP_CUE;
-                work->command = work->command + 1;
+                D_801156CB        = 1;
+                gCapControlFlags |= CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
+                work->command     = work->command + 1;
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ANIMATION:
@@ -894,7 +893,7 @@ static void _evsInitializeInterpreterTask(Task* task)
     gEvsSelectedSceneKey = NULL;
     displayAcquireMenuHold();
     entryCommand          = task->spawnArg2.pointer;
-    D_801156A4            = 0;
+    gCapControlFlags      = CAP_CONTROL_FLAGS_NONE;
     task->work            = work;
     work->waitFrames      = 0;
     _gEvsAreaMusicStarted = false;

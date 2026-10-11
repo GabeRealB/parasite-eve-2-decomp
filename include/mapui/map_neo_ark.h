@@ -159,7 +159,7 @@ extern u16 gMapNeoArkMarkerFlags[MAP_NEO_ARK_MARKER_COUNT];
 /// for the stage; there is no count header or terminator.
 extern WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33];
 
-/// This stage's entries in `Gp_WarpTables`, `Gp_ViewCountTables` and
+/// This stage's entries in `Gp_WarpTables`, `gViewCountTables` and
 /// `Gp_RoomObjTables`: each leads to
 /// one pointer per room, into that room's package or, for some rooms, at a
 /// record this overlay holds itself.

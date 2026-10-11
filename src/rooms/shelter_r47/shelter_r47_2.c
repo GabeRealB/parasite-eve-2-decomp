@@ -811,7 +811,7 @@ static void _shelterR47ConsoleFadeOutTask(Task* task)
         gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, switchWork->toggles[4]);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        Gp_MenuLockDelay                  = SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES;
+        gPadInputMenuUnlockUpdates        = SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES;
         gDirectionInteractionRearmUpdates = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
         displayReleaseMenuHold();
         gGameSession->eventState   = 0;

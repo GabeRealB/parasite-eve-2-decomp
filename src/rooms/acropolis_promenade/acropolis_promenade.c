@@ -25,7 +25,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
@@ -2032,7 +2031,7 @@ static void _acropolisPromenadeInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _gAcropolisPromenadeTranslucentPlaneTask = taskSpawnFromTable(_gAcropolisPromenadeTranslucentPlaneTaskDescriptors, 0, 0, 0);
     task->state                              = task->state + 1;
-    D_80115598                               = ACROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED;
+    gCapRoomCompletionSoundsEnabled          = ACROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 void acropolisPromenadeRoomTask(Task* task)

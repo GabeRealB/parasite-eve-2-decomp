@@ -369,7 +369,7 @@ static void _mineGorgeOakBoardCutsceneTask(Task* task)
         MINE_GORGE_OAK_BOARD_CUTSCENE_START = 0,
     };
     if (task->state == MINE_GORGE_OAK_BOARD_CUTSCENE_START) {
-        D_80115768 = 1;
+        gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
         SetDispMask(0);
         gGameSession->hideHud = 1;
         evsStartScriptWithSkip(_gMineGorgeOakBoardScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMineGorgeOakBoardSkipScript);
@@ -387,7 +387,7 @@ static void _mineGorgeOakBoardCutsceneTask(Task* task)
 /// run. Stores the byte unchanged; the room's opening script supplies zero.
 static void _mineGorgeSetPlayerStatePaused(u8 paused)
 {
-    D_80115768 = paused;
+    gPlayerActorStateTickHeld = paused;
 }
 
 /// Sets the entrance-wave threshold for the room's actor-03700 enemy group.

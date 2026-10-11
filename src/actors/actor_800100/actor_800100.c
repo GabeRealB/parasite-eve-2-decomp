@@ -1170,7 +1170,7 @@ static void _actor800100UpdateMove(Task* task)
     }
     actor->pendingCollisionUpdates = 0;
 
-    if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gPlayerActorStateTickHeld == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         _actor800100TickBehavior(task);
     }
     _actor800100TickTextureSequences(task);

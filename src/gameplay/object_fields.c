@@ -38,13 +38,11 @@ typedef struct {
 } _HazardEnemyDamage;
 STATIC_ASSERT_SIZEOF(_HazardEnemyDamage, 0x6);
 
-/// 4-byte records selected by `damageGetHazardDamage(..., 0)`.
-extern _HazardPlayerDamage Gp_IdField0[];
-
-/// 6-byte records selected by `damageGetHazardDamage(..., 1)`.
-extern _HazardEnemyDamage Gp_IdField1[];
-
-_HazardPlayerDamage Gp_IdField0[11] = {
+/// Fixed hazard damage to the player, indexed by the contact key's low halfword.
+///
+/// The id must be 0..10. Only ids 2, 3 and 4 have nonzero rows; these rows
+/// live with gameplay. There is no sentinel or bounds check.
+static _HazardPlayerDamage _gDamageHazardPlayerRows[] = {
     { 0, 0 },
     { 0, 0 },
     { 10, 5 },
@@ -57,7 +55,11 @@ _HazardPlayerDamage Gp_IdField0[11] = {
     { 0, 0 },
     { 0, 0 },
 };
-_HazardEnemyDamage Gp_IdField1[11] = {
+/// Fixed hazard damage to the enemy, indexed by the contact key's low halfword.
+///
+/// The id must be 0..10. Only ids 2, 3 and 4 have nonzero rows; these rows
+/// live with gameplay. There is no sentinel or bounds check.
+static _HazardEnemyDamage _gDamageHazardEnemyRows[] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 180, 7, 7 },
@@ -95,10 +97,10 @@ s32 damageGetHazardDamage(s32 hazardKey, s32 victim)
     damage = 0;
     switch (victim) {
         case DAMAGE_HAZARD_VICTIM_PLAYER:
-            damage = Gp_IdField0[(u16)hazardKey].damage;
+            damage = _gDamageHazardPlayerRows[(u16)hazardKey].damage;
             break;
         case DAMAGE_HAZARD_VICTIM_ENEMY:
-            damage = Gp_IdField1[(u16)hazardKey].damage;
+            damage = _gDamageHazardEnemyRows[(u16)hazardKey].damage;
             break;
     }
     return damage;

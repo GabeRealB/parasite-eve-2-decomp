@@ -600,7 +600,7 @@ static u8 _viewGetCurrentRoomCount(void)
     const ViewCountTable* viewCountTable;
 
     session        = gGameSession;
-    viewCountTable = Gp_ViewCountTables[session->location.loc.stage - 1];
+    viewCountTable = gViewCountTables[session->location.loc.stage - 1];
     return (u8)viewCountTable->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
 }
 

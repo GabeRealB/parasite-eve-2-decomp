@@ -2579,8 +2579,8 @@ static void _shelterB1UndergroundParkingStartRoom7SceneTask(Task* task)
     if (task->state == SHELTER_B1_UNDERGROUND_PARKING_SCENE_STATE_START) {
         // Hide the frame before the script releases the player tick for movement.
         SetDispMask(false);
-        D_80115768            = 1;
-        gGameSession->hideHud = 1;
+        gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
+        gGameSession->hideHud     = 1;
         evsStartScriptWithSkip(_gShelterB1UndergroundParkingElectricCarSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB1UndergroundParkingElectricCarSceneSkipScript);
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, SHELTER_B1_UNDERGROUND_PARKING_PROGRESS_ROOM7);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 0);
@@ -2656,7 +2656,7 @@ static void _shelterB1UndergroundParkingSetRoom(u8 roomNumber)
 /// script passes zero after hiding the display so scripted movement can resume.
 static void _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick)
 {
-    D_80115768 = holdPlayerTick;
+    gPlayerActorStateTickHeld = holdPlayerTick;
 }
 
 /// Registers the room message receiver and initializes the selector and ambience.

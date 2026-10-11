@@ -10,8 +10,6 @@ extern u8 Gp_StrItemObtained[];
 
 extern u8 Gp_StrBonusItem[];
 
-extern s32 Gp_ItemGrantCooldown;
-
 /// Five-row staging range of items won in battle, exposed as container selector 0.
 ///
 /// Borrows `gInventoryBattleRewardRows` at rows 0..4. A victorious battle clears

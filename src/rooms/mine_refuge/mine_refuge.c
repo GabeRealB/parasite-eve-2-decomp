@@ -24,7 +24,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
@@ -886,10 +885,10 @@ static void _mineRefugeInitRoomTask(Task* task)
 
     task->msgTable = D_mine_refuge_80181884;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    _gMineRefugeCircuitPanelTask = NULL;
-    gStageCountdownMusicEntry    = MINE_REFUGE_SCENE_MUSIC_ENTRY;
-    task->state                  = task->state + 1;
-    D_80115598                   = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
+    _gMineRefugeCircuitPanelTask    = NULL;
+    gStageCountdownMusicEntry       = MINE_REFUGE_SCENE_MUSIC_ENTRY;
+    task->state                     = task->state + 1;
+    gCapRoomCompletionSoundsEnabled = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the room message task idle while its installed handlers remain available.

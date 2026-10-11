@@ -12,7 +12,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -214,7 +213,7 @@ static void _shelterB2BreedingRoomInitializeRoomTask(Task* task)
     task->msgTable = D_shelter_b2_breeding_room_80180414;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    D_80115598 = SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED;
+    gCapRoomCompletionSoundsEnabled = SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the room task available for messages without per-frame work.

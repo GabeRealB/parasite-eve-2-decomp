@@ -6,7 +6,6 @@
 #include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -160,7 +159,7 @@ static void _shelterB1StoreroomInitializeRoomState(Task* task)
     task->msgTable = _gShelterB1StoreroomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    D_80115598 = CAP_COMPLETION_SOUNDS_ENABLED;
+    gCapRoomCompletionSoundsEnabled = CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Leaves the initialized storeroom receiver waiting for messages in state one.

@@ -2,7 +2,7 @@
 
 #include <psyq/memory.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -11,17 +11,29 @@
 #include "inventory.h"
 #include "item_use.h"
 #include "items.h"
+#include "item_menu.h"
 
 #include "main/mc.h"
 #include "main/wipsys.h"
 
 InventoryItemRow* gInventoryIndirectRows;
 
-extern u8 D_8010D318[8];
-
-extern u8 D_8010D320[2];
-
-extern u8 D_8010D324[3];
+/// Weapon item ids whose configurations share an inventory ownership limit.
+enum {
+    INVENTORY_ITEM_P08_SNAIL_MAGAZINE     = 0x80,
+    INVENTORY_ITEM_P08                    = 0x83,
+    INVENTORY_ITEM_M4A1                   = 0x8F,
+    INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER   = 0x93,
+    INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS  = 0x94,
+    INVENTORY_ITEM_M4A1_HAMMER            = 0x98,
+    INVENTORY_ITEM_M4A1_BAYONET           = 0x99,
+    INVENTORY_ITEM_M4A1_GRENADE           = 0x9A,
+    INVENTORY_ITEM_M4A1_PYKE              = 0x9B,
+    INVENTORY_ITEM_M4A1_JAVELIN           = 0x9C,
+    INVENTORY_ITEM_MP5A5                  = 0x9D,
+    INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER  = 0x9E,
+    INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS = 0x9F,
+};
 
 /// Spends one loaded weapon unit and records its use in the live save.
 ///
@@ -324,20 +336,23 @@ s32 equipmentLoadWeaponConsumable(const InventoryItemRange* range, s32 weaponIte
     return loadedQuantity;
 }
 
-u8 D_8010D318[8] = {
-    143,
-    147,
-    148,
-    152,
-    153,
-    154,
-    155,
-    156,
+/// M4A1 configurations sharing a single-copy ownership limit across saved containers.
+static u8 _gInventoryM4a1LimitFamilyItemIds[] = {
+    INVENTORY_ITEM_M4A1,
+    INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER,
+    INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS,
+    INVENTORY_ITEM_M4A1_HAMMER,
+    INVENTORY_ITEM_M4A1_BAYONET,
+    INVENTORY_ITEM_M4A1_GRENADE,
+    INVENTORY_ITEM_M4A1_PYKE,
+    INVENTORY_ITEM_M4A1_JAVELIN,
 };
 
-u8 D_8010D320[2] = { 0x80, 0x83 };
+/// P08 and P08 snail-magazine configurations sharing a single-copy ownership limit.
+static u8 _gInventoryP08LimitFamilyItemIds[] = { INVENTORY_ITEM_P08_SNAIL_MAGAZINE, INVENTORY_ITEM_P08 };
 
-u8 D_8010D324[3] = { 0x9D, 0x9E, 0x9F };
+/// MP5A5 clip-holder configurations sharing a single-copy ownership limit.
+static u8 _gInventoryMp5a5LimitFamilyItemIds[] = { INVENTORY_ITEM_MP5A5, INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER, INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS };
 
 PlayerModeBaseStats gEquipmentModeBaseStats[4] = {
     { { 100 }, 30 }, // Normal/replay
@@ -352,30 +367,17 @@ PlayerModeBaseStats gEquipmentModeBaseStats[4] = {
 s32 inventoryIsItemLimitReached(s32 itemId)
 {
     enum {
-        INVENTORY_ITEM_SMG_CLIP_HOLDER        = 0x9,
-        INVENTORY_ITEM_RIFLE_CLIP_HOLDER      = 0xA,
-        INVENTORY_ITEM_SNAIL_MAGAZINE         = 0xC,
-        INVENTORY_ITEM_HAMMER                 = 0x42,
-        INVENTORY_ITEM_PYKE                   = 0x43,
-        INVENTORY_ITEM_JAVELIN                = 0x44,
-        INVENTORY_ITEM_M203                   = 0x45,
-        INVENTORY_ITEM_M9                     = 0x46,
-        INVENTORY_ITEM_P08_SNAIL_MAGAZINE     = 0x80,
-        INVENTORY_ITEM_P08                    = 0x83,
-        INVENTORY_ITEM_M4A1                   = 0x8F,
-        INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER   = 0x93,
-        INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS  = 0x94,
-        INVENTORY_ITEM_M4A1_HAMMER            = 0x98,
-        INVENTORY_ITEM_M4A1_BAYONET           = 0x99,
-        INVENTORY_ITEM_M4A1_GRENADE           = 0x9A,
-        INVENTORY_ITEM_M4A1_PYKE              = 0x9B,
-        INVENTORY_ITEM_M4A1_JAVELIN           = 0x9C,
-        INVENTORY_ITEM_MP5A5                  = 0x9D,
-        INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER  = 0x9E,
-        INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS = 0x9F,
-        INVENTORY_SINGLE_COPY_ITEM_FIRST      = 0x60,
-        INVENTORY_SINGLE_COPY_ITEM_COUNT      = 0x40,
-        INVENTORY_CLIP_HOLDER_MAX             = 2
+        INVENTORY_ITEM_SMG_CLIP_HOLDER   = 0x9,
+        INVENTORY_ITEM_RIFLE_CLIP_HOLDER = 0xA,
+        INVENTORY_ITEM_SNAIL_MAGAZINE    = 0xC,
+        INVENTORY_ITEM_HAMMER            = 0x42,
+        INVENTORY_ITEM_PYKE              = 0x43,
+        INVENTORY_ITEM_JAVELIN           = 0x44,
+        INVENTORY_ITEM_M203              = 0x45,
+        INVENTORY_ITEM_M9                = 0x46,
+        INVENTORY_SINGLE_COPY_ITEM_FIRST = 0x60,
+        INVENTORY_SINGLE_COPY_ITEM_COUNT = 0x40,
+        INVENTORY_CLIP_HOLDER_MAX        = 2
     };
     InventoryItemRange allSavedItems;
     s32                variantIndex;
@@ -391,8 +393,8 @@ s32 inventoryIsItemLimitReached(s32 itemId)
         case INVENTORY_ITEM_M4A1_GRENADE:
         case INVENTORY_ITEM_M4A1_PYKE:
         case INVENTORY_ITEM_M4A1_JAVELIN:
-            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D318); variantIndex++) {
-                variantItemId = D_8010D318[variantIndex];
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryM4a1LimitFamilyItemIds); variantIndex++) {
+                variantItemId = _gInventoryM4a1LimitFamilyItemIds[variantIndex];
                 if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
@@ -401,8 +403,8 @@ s32 inventoryIsItemLimitReached(s32 itemId)
 
         case INVENTORY_ITEM_P08_SNAIL_MAGAZINE:
         case INVENTORY_ITEM_P08:
-            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D320); variantIndex++) {
-                variantItemId = D_8010D320[variantIndex];
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryP08LimitFamilyItemIds); variantIndex++) {
+                variantItemId = _gInventoryP08LimitFamilyItemIds[variantIndex];
                 if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
@@ -412,8 +414,8 @@ s32 inventoryIsItemLimitReached(s32 itemId)
         case INVENTORY_ITEM_MP5A5:
         case INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER:
         case INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS:
-            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D324); variantIndex++) {
-                variantItemId = D_8010D324[variantIndex];
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryMp5a5LimitFamilyItemIds); variantIndex++) {
+                variantItemId = _gInventoryMp5a5LimitFamilyItemIds[variantIndex];
                 if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
@@ -616,4 +618,4 @@ void equipmentEquipCarriedArmor(s32 armorItemId)
     gHudDisplayedVitals.mp = status->mp;
 }
 
-const char Gp_StrNotice2[8] = "Notice\0F";
+const char gItemMenuPouchNoticeLabel[8] = "Notice\0F";

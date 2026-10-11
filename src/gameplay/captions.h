@@ -90,9 +90,8 @@ void capSpawnWeaponEvent(s32 commandIndex, s32 eventFlags);
 /// timed text for a delayed reply. The signed-halfword storage is intentional.
 extern s16 gCapSceneSyncElapsedTicks;
 
-/// Scene-sync completion bit and delay measured in active CAP control ticks.
+/// Scene-sync reply delay measured in active CAP control ticks.
 enum {
-    CAP_CONTROL_SCENE_SYNC_COMPLETE     = 0x20,
     CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES = 30
 };
 

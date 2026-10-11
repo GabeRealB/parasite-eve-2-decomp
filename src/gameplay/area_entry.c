@@ -38,7 +38,7 @@ static void _sceneBattleResultTask(Task* task);
 
 u8                 Gp_StrItemObtained[]        = "Item obtained!";
 u8                 Gp_StrBonusItem[]           = "Bonus item!!";
-s32                Gp_ItemGrantCooldown        = 0;
+s32                gHudInputDelayUpdates       = 0;
 InventoryItemRange gInventoryBattleRewardRange = { .firstRow = 0, .rowCount = ARRAY_SIZE(gInventoryBattleRewardRows), .tableId = INVENTORY_ITEM_TABLE_AREA_GRANTS };
 
 /// Unreferenced halfword table following the item-grant scan.

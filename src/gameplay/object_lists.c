@@ -244,20 +244,20 @@ static WorldCollisionOccluder** _gWorldCollisionOccluderListHeads[1] = {
 
 void worldCollisionResetListsAndGrid(void)
 {
-    gWorldCollisionPlayerBodyListHead    = NULL;
-    gWorldCollisionPlayerAttackListHead  = NULL;
-    gWorldCollisionEnemyBodyListHead     = NULL;
-    gWorldCollisionEnemyAttackListHead   = NULL;
-    gWorldCollisionPropListHead          = NULL;
-    _gWorldCollisionBodyList5Head        = NULL;
-    gWorldCollisionBodyList6Head         = NULL;
-    gWorldCollisionGridOnlyListHead      = NULL;
-    gWorldCollisionBlastListHead         = NULL;
-    gWorldCollisionActiveGrid            = NULL;
-    gWorldCollisionActionTriggerListHead = NULL;
-    gWorldCollisionViewBoundaryListHead  = NULL;
-    gWorldCollisionOccluderListHead      = NULL;
-    Gp_PendingObj4CFlag                  = 0;
+    gWorldCollisionPlayerBodyListHead       = NULL;
+    gWorldCollisionPlayerAttackListHead     = NULL;
+    gWorldCollisionEnemyBodyListHead        = NULL;
+    gWorldCollisionEnemyAttackListHead      = NULL;
+    gWorldCollisionPropListHead             = NULL;
+    _gWorldCollisionBodyList5Head           = NULL;
+    gWorldCollisionBodyList6Head            = NULL;
+    gWorldCollisionGridOnlyListHead         = NULL;
+    gWorldCollisionBlastListHead            = NULL;
+    gWorldCollisionActiveGrid               = NULL;
+    gWorldCollisionActionTriggerListHead    = NULL;
+    gWorldCollisionViewBoundaryListHead     = NULL;
+    gWorldCollisionOccluderListHead         = NULL;
+    gWorldCollisionActionHitClearingEnabled = 0;
 }
 
 s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd)
@@ -1190,10 +1190,10 @@ s32 worldCollisionReadActionHit(u16* controlOut, u8* parameter0Out, u8* paramete
 
     for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
         if (trigger->hit != 0) {
-            Gp_PendingObj4CFlag = 1;
-            *controlOut         = trigger->control;
-            *parameter0Out      = trigger->parameter0;
-            *parameter1Out      = trigger->parameter1;
+            gWorldCollisionActionHitClearingEnabled = 1;
+            *controlOut                             = trigger->control;
+            *parameter0Out                          = trigger->parameter0;
+            *parameter1Out                          = trigger->parameter1;
             return 1;
         }
     }

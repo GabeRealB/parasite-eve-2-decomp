@@ -2250,7 +2250,7 @@ static void _actor503500RestorePlayerTransform(void)
 /// rest of player movement/collision upkeep. The script passes 1 to hold it.
 static void _actor503500SetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = holdPlayerUpdate;
+    gPlayerActorStateTickHeld = holdPlayerUpdate;
 }
 
 /// Resets the player's weapon attack before the temporary card-use scene.

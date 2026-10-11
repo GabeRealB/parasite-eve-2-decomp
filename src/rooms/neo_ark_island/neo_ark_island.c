@@ -22,7 +22,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
@@ -788,8 +787,8 @@ static void _neoArkIslandInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
-    task->state = task->state + 1;
-    D_80115598  = NEO_ARK_ISLAND_CAP_COMPLETION_SOUNDS_ENABLED;
+    task->state                     = task->state + 1;
+    gCapRoomCompletionSoundsEnabled = NEO_ARK_ISLAND_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the island room task available for messages after initialization.

@@ -452,7 +452,7 @@ s8 viewFindLogicalIndex(s32 mappedViewIndex)
 
     logicalViewOffset = 0;
     location          = &gGameSession->location.loc;
-    viewCount         = Gp_ViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
+    viewCount         = gViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
     viewMap           = gViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
     // Search logical slots in order: duplicate mapped indices select the first.
     if (viewCount > 0) {

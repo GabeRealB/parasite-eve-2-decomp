@@ -26,8 +26,6 @@ extern EquipmentWeaponLoadOptionsTable gEquipmentWeaponSecondaryLoadOptions;
 /// removable-load clearing preserves them. Row pointers borrow gameplay data.
 extern EquipmentWeaponSupply gEquipmentWeaponSupplies[EQUIPMENT_WEAPON_SUPPLY_COUNT];
 
-extern const char Gp_StrNotice2[8];
-
 /// Loads or checks a consumable in a selected load of a carried weapon.
 ///
 /// Zero selection means primary; every nonzero selection means secondary.
@@ -425,16 +423,24 @@ s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange);
 /// Borrows placement/stack tables without retaining a pointer or changing them.
 s32 itemPickupPublishPlacedObject(s32 flagIndex);
 
-/// Byte remap of an item id used as a sort/order key (`inventoryGetItemSortKey` /
-/// `inventorySortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
-/// 0x60–0x7F → `Gp_ItemSortKey60[id-0x60]`, 0x80–0x9F → `Gp_ItemSortKey80[id-0x80]`,
-/// 0xA0–0xBF → `gInventoryConsumableSortKeys[id-0xA0]`. A 0 entry (or an id outside those
-/// ranges) falls back to `id + 0x100`; id 0 returns 0x1000.
-extern u8 Gp_ItemSortKey0[];
+/// Catalogue-order keys for ordinary item ids 0..0x47, indexed directly by id.
+///
+/// Zero entries use numerical fallback (id + 0x100); the consumers handle id
+/// zero separately as an empty row. Ids 0x48..0x5F pass their category tests
+/// but exceed this table and must not be supplied. The last stored key is 255.
+extern const u8 gInventoryOrdinarySortKeys[72];
 
-extern u8 Gp_ItemSortKey60[];
+/// Catalogue-order keys for armor ids 0x60..0x6E, indexed by id minus 0x60.
+///
+/// Zero uses numerical fallback. Ids 0x6F..0x7F pass the consumers' category
+/// tests but exceed this table and must not be supplied. The last key is 255.
+extern const u8 gInventoryArmorSortKeys[15];
 
-extern u8 Gp_ItemSortKey80[];
+/// Catalogue-order keys for weapon ids 0x80..0x9F, indexed by id minus 0x80.
+///
+/// Zero uses numerical fallback. The final stored byte at index 32 is 255;
+/// it is outside the live weapon index domain and its purpose is unproven.
+extern const u8 gInventoryWeaponSortKeys[33];
 
 /// Catalogue-order keys for consumable ids 0xA0..0xBF, indexed by id minus 0xA0.
 ///

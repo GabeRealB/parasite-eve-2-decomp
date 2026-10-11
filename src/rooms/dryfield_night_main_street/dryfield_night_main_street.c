@@ -27,7 +27,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -1933,8 +1932,8 @@ static void _dryfieldNightMainStreetInitializeRoomTask(Task* task)
     task->msgTable = _gDryfieldNightMainStreetMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _dryfieldNightMainStreetRestoreSectionSpriteVisibility();
-    task->state = task->state + 1;
-    D_80115598  = true;
+    task->state                     = task->state + 1;
+    gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the initialized room entry task alive without changing its state.

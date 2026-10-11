@@ -790,11 +790,11 @@ s32 inventoryGetItemSortKey(s32 itemId)
     if (itemId == INVENTORY_ITEM_NONE) {
         key = INVENTORY_SORT_EMPTY_KEY;
     } else if (itemId > 0 && itemId < INVENTORY_SORT_ARMOR_ITEM_FIRST) {
-        key = Gp_ItemSortKey0[itemId];
+        key = gInventoryOrdinarySortKeys[itemId];
     } else if (itemId >= INVENTORY_SORT_ARMOR_ITEM_FIRST && itemId < EQUIPMENT_WEAPON_ITEM_FIRST) {
-        key = Gp_ItemSortKey60[itemId - INVENTORY_SORT_ARMOR_ITEM_FIRST];
+        key = gInventoryArmorSortKeys[itemId - INVENTORY_SORT_ARMOR_ITEM_FIRST];
     } else if (itemId >= EQUIPMENT_WEAPON_ITEM_FIRST && itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
-        key = Gp_ItemSortKey80[itemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        key = gInventoryWeaponSortKeys[itemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     } else if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST && itemId < (INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
         key = gInventoryConsumableSortKeys[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
     }

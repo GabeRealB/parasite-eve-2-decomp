@@ -1270,7 +1270,7 @@ static void _actor800200UpdateMove(Task* task)
         }
     }
     actor->pendingCollisionUpdates = 0;
-    if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gPlayerActorStateTickHeld == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         _actor800200TickCompanionBehavior(task);
     }
     // Start the next collision pass with fresh contacts and a composed root.

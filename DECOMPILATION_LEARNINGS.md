@@ -7984,11 +7984,11 @@ Write the `|=` first. Its address is allocated later and lands in `$a1`,
 and the simple store takes `$a0`:
 
 ```c
-Gp_PadSuppressMask |= buttonMask; /* lui a1 */
-Gp_MenuLockHold = 1;     /* lui a0 */
+_gPadInputSuppressionMask |= buttonMask; /* lui a1 */
+_gPadInputAutomaticMenuLockHeld = 1;     /* lui a0 */
 ```
 
-`padInputChangeSuppression` case 3 is the example. `Gp_MenuLockHold = 1; Gp_PadSuppressMask |= buttonMask`
+`padInputChangeSuppression` case 3 is the example. `_gPadInputAutomaticMenuLockHeld = 1; _gPadInputSuppressionMask |= buttonMask`
 stuck at 99.3% with only those two addresses swapped.
 
 ## Assign `u16 - K` to an `s32` before the `s16` store
@@ -10339,7 +10339,7 @@ RoomsShared8017d8c8Msgs = 0x80180E8C;  // shared body data, see src/rooms/lib/
 
 The second carrier binds the same two names to *its* addresses (`0x8017D644`,
 `0x8017DAF0`). Name the data for what it is - `Msgs` here, `Table` in
-`RoomsShared80181e70Table`, `RoomsShared8017d730Msgs` for the `D_80115598`
+`RoomsShared80181e70Table`, `RoomsShared8017d730Msgs` for the `gCapRoomCompletionSoundsEnabled`
 variant of the same opener. The alias also satisfies `promote`'s overlay-local
 `refs` check, because the shared name no longer starts with `D_<unit>_`.
 
@@ -25776,13 +25776,13 @@ the table base:
 UiObjectTaskFunc* useHandlerSlot;
 
 itemId = gItemMenuSelectedRow->itemId;
-useHandlerSlot = &D_8010D3A0[itemId];
+useHandlerSlot = &gItemMenuUseHandlers[itemId];
 if (*useHandlerSlot != NULL) {
     ...
 }
 ```
 
-`if (D_8010D3A0[itemId] != NULL)` and `useHandler = D_8010D3A0[itemId]; if (useHandler != NULL)` both
+`if (gItemMenuUseHandlers[itemId] != NULL)` and `useHandler = gItemMenuUseHandlers[itemId]; if (useHandler != NULL)` both
 stuck at ~92% with the table `lui` hoisted and the stack adjust first.
 `_itemMenuOpenUsePanel` is the example.
 
@@ -37451,7 +37451,7 @@ the source is reading the global back, not reusing a local:
 ```c
 /* target: lui a1,%hi(_gPadInputSuppressionSet) sits in the `bnez` delay slot of the block
    above, and the store is `sh a3,%lo(_gPadInputSuppressionSet)(a1)` */
-_gPadInputSuppressionSet = ~_gPadInputPreviousSuppressionMask & Gp_PadSuppressMask;
+_gPadInputSuppressionSet = ~_gPadInputPreviousSuppressionMask & _gPadInputSuppressionMask;
 ...
 if (_gPadInputSuppressionSet & 0x900) { ... }      /* not `if (cached & 0x900)` */
 ```
@@ -41003,7 +41003,7 @@ Moving the coordinates in only one of the two blocks makes it worse, not better
 
 ## Spell out the CFG when GCC if-converts the last term of `a && b && c`
 
-`ok = hit && Gp_ItemGrantCooldown <= 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0;` (and the equivalent
+`ok = hit && gHudInputDelayUpdates <= 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0;` (and the equivalent
 `if/else if/else` chain) compiles the final term with `sltiu v1,v0,1`. The
 target instead branches on it and sets the flag in a delay slot:
 
@@ -41020,7 +41020,7 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
 
 ```c
     if (hit != 0) {
-        if (Gp_ItemGrantCooldown > 0) { ok = 0; goto have; }
+        if (gHudInputDelayUpdates > 0) { ok = 0; goto have; }
         if (gSceneCombatState.signals.bytes.endDelayFrames == 0) { ok = 1; goto have; }
     }
     ok = 0;
@@ -41205,7 +41205,7 @@ comparison, leaving the branch with nothing but a jump to the join:
 
 ```c
     if (flag != 0) {
-        if (Gp_ItemGrantCooldown <= 0) {
+        if (gHudInputDelayUpdates <= 0) {
             ret = 1;
             if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                 goto done;
@@ -49435,7 +49435,7 @@ many things are wrong. Restoring the arity redefines `$a0` at the call site, and
 that earlier definition can be what a *later, unrelated* value was avoiding:
 `_neoArkIslandInitializeRoom` scored 99.14% at `regs=5` with the one-argument
 form, and the five penalties were two separate symptoms — `li a1,7`/`li a0,7` at
-the call, and the `D_80115598` address at the tail landing in `$v1` instead of
+the call, and the `gCapRoomCompletionSoundsEnabled` address at the tail landing in `$v1` instead of
 `$a0` (with the constant `1` pushed from `$v1` to `$v0`). Passing `task` fixed
 both and went straight to 100%. A single call-shape correction clearing an
 allocation difference in a different part of the function is the expected
@@ -50573,7 +50573,7 @@ work->phase = 8;
 work->interrupted = 1;      /* second in source, fourth in the emitted stores */
 work->timer = 3;
 work->captionStep = 0x11;
-D_80115768     = 1;
+gPlayerActorStateTickHeld     = 1;
 ```
 
 Writing the five assignments in emitted-store order leaves `li v1,1` two slots
@@ -66099,13 +66099,13 @@ headers preserved the 100% result.
 ## Constant array subscript vs pointer dereference can change a cross-call address
 
 `streamReadSceneImageSector` (GCC 2.8.1, gameplay) accesses the second halfword of
-`extern u16 D_80114D14[2]` before and after `memCopyBytes`. Writing
-`D_80114D14[1]` made GCC retain the full array base across the call and emit
+`_StreamSceneReadState _gStreamSceneReadState` before and after `memCopyBytes`. Writing
+`_gStreamSceneReadState.bufferKind` made GCC retain the full state base across the call and emit
 `lui a0,hi(array); addiu s0,a0,lo(array); sh v1,2(s0)`.
-Writing `*(D_80114D14 + 1)` instead folded the offset into the symbol and kept
+Writing `*(&_gStreamSceneReadState.bufferKind)` instead folded the offset into the symbol and kept
 only its high half in `s0`: `lui s0,hi(array+2); sh v1,lo(array+2)(s0)`.
-The later `lhu` used the same folded address. Both forms stay within the
-correctly declared two-element array; no split symbol or asm alias is needed.
+The later `lhu` used the same folded address. Both forms access the named
+second halfword; no split symbol or asm alias is needed.
 
 The scratch progression was 98.347% with subscripting (branch/insert/delete
 penalties from the extra address instruction), 99.923% with a separate scalar
@@ -87423,7 +87423,7 @@ calls `SetDispMask(0)`. The m2c baseline is already the match:
 
 ```c
 gGameSession->hideHud = 1;
-D_80115768 = 1;
+gPlayerActorStateTickHeld = 1;
 SetDispMask(0);
 ```
 
@@ -87432,9 +87432,9 @@ lui   v0, %hi(gGameSession)
 lw    v0, %lo(gGameSession)(v0)
 li    v1, 1                       # the shared constant
 sb    v1, 0x68(v0)
-lui   v0, %hi(D_80115768)         # second store's address, hoisted
+lui   v0, %hi(gPlayerActorStateTickHeld)         # second store's address, hoisted
 jal   SetDispMask
- sb   v1, %lo(D_80115768)(v0)     # delay slot, reuses v1
+ sb   v1, %lo(gPlayerActorStateTickHeld)(v0)     # delay slot, reuses v1
 ```
 
 Swapping the two statements (100% -> 92.19%, `regs=10 insert=1 delete=1`) moves
@@ -87442,11 +87442,11 @@ the constant to `$v0`, defers the *gGameSession* store into the delay slot
 instead, and spends a live `$a1` on the `lui` of the store that stayed early:
 
 ```
-lui   a1, %hi(D_80115768)
+lui   a1, %hi(gPlayerActorStateTickHeld)
 lui   v0, %hi(gGameSession)
 lw    v1, %lo(gGameSession)(v0)
 li    v0, 1
-sb    v0, %lo(D_80115768)(a1)
+sb    v0, %lo(gPlayerActorStateTickHeld)(a1)
 jal   SetDispMask
  sb   v0, 0x68(v1)
 ```
@@ -92364,7 +92364,7 @@ target materialises `1` once and stores it twice with a call in between:
 ```
 li    s0,1
 jal   SetDispMask
-sb    s0,%lo(D_80115768)(v0)     # D_80115768 = 1
+sb    s0,%lo(gPlayerActorStateTickHeld)(v0)     # gPlayerActorStateTickHeld = 1
 ...
 jal   evsStartScriptWithSkip
 sb    s0,0x68(v0)                # gGameSession->hideHud = 1
@@ -119643,7 +119643,7 @@ addu    $v0, $a0, $v1      /* then arm */
 ...
 li     $s0, 1              /* a second 1, for the payload */
 sw     $s0, 0x14($sp)
-sb     $s0, %lo(D_80115768)($v1)
+sb     $s0, %lo(gPlayerActorStateTickHeld)($v1)
 addu    $v0, $v0, $s0      /* state += 1 takes the register form */
 ```
 
@@ -148561,12 +148561,12 @@ source.
   the weapon's coordinate; see "A local reused for a second pointer keeps the
   references combine deleted" at the end of this file.*
 - **padInputUpdate**, `pressedButtons` pinned to `$s2`. Three allocnos:
-  `%hi(Gp_PadSuppressMask)` 7 / 102 = 1372, `player` 11 / 243 = 1358,
+  `%hi(_gPadInputSuppressionMask)` 7 / 102 = 1372, `player` 11 / 243 = 1358,
   `%hi(gGameSession)` 7 / 104 = 1346. The target needs `player` last of the
   three: 10 references, or a live length of 246 or more. Both `%hi` lengths
   are doubled (`REG_EQUIV`), so they move in steps of two. The two
   `(use (reg))` insns combine leaves at a label when it merges an `lh` out of
-  an `lhu` that stays live (`Gp_MenuLockDelay`, `_gPadInputWheelBlockUpdates`) are
+  an `lhu` that stays live (`gPadInputMenuUnlockUpdates`, `_gPadInputWheelBlockUpdates`) are
   counted in live lengths; nothing else in the range is absent from the
   output. Publishing the three masks through an inline with a `u32` third
   parameter gives the right three priorities (1400 / 1372 / 1358) but moves
@@ -152065,7 +152065,7 @@ on `_shopPurchaseQuantityTask` is gone.
 
 **Symptom.** Pin-free, the whole diff is `$s2`/`$s3` swapped: `player` in
 `$s2`, the pressed mask and `%hi(gGameSession)` in `$s3`. Global order was
-`%hi(Gp_PadSuppressMask)` 7 refs / 102 = 1372, `player` 11 / 243 = 1358,
+`%hi(_gPadInputSuppressionMask)` 7 refs / 102 = 1372, `player` 11 / 243 = 1358,
 `%hi(gGameSession)` 7 / 104 = 1346; the image needs `player` third. The pin on
 `pressedButtons` did not change the order - it made `$s2` a conflict for
 `player`.

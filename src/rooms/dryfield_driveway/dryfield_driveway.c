@@ -9,6 +9,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachments.h"
@@ -881,7 +882,7 @@ static void _dryfieldDrivewaySetEncounterWave(s32 waveStage)
 /// player tick, nonzero holds it. Movement and collision processing still run.
 static void _dryfieldDrivewaySetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = holdPlayerUpdate;
+    gPlayerActorStateTickHeld = holdPlayerUpdate;
 }
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"

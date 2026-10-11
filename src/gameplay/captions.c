@@ -43,7 +43,7 @@ u8 gCapUseDirectViewIndex;
 
 CapCommandRef* gCapCommandEntries;
 
-u8 D_801156A4;
+u8 gCapControlFlags;
 
 s32 gCapConfirmedChoiceIndex;
 
@@ -181,7 +181,6 @@ void capUpdatePlaybackTask(Task* task)
         CAP_SCENE_SYNC_ADJUSTMENT_PENDING   = 1, // Replace with elapsed control ticks minus thirty at sync completion.
         CAP_VIEW_CHANGE_NONE                = 0,
         CAP_VIEW_CHANGE_PENDING             = 1,
-        CAP_EVENT_SCRIPT_WAITING_FOR_CUE    = 0x40,
         CAP_PLAYBACK_BYTE_MASK              = 0xFF,
         CAP_PLAYBACK_ROOM_EFFECT_MESSAGE    = 3000,
         CAP_TEXTURE_MESSAGE_TASK_SLOT       = 1,
@@ -282,7 +281,7 @@ void capUpdatePlaybackTask(Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC, (s32)(s8)gCapPendingViewPhase, 0);
             return;
         }
-        if (!(D_801156A4 & CAP_CONTROL_SCENE_SYNC_COMPLETE)) {
+        if (!(gCapControlFlags & CAP_CONTROL_SCENE_SYNC_COMPLETE)) {
             return;
         }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_SCENE_SYNC_SOUND_DEMO_SCENE) {
@@ -290,7 +289,7 @@ void capUpdatePlaybackTask(Task* task)
         }
         gCapPendingViewPhase = CAP_VIEW_CHANGE_NONE;
         gCapSceneSyncPhase   = CAP_SCENE_SYNC_IDLE;
-        D_801156A4          &= CAP_PLAYBACK_BYTE_MASK ^ CAP_CONTROL_SCENE_SYNC_COMPLETE;
+        gCapControlFlags    &= CAP_PLAYBACK_BYTE_MASK ^ CAP_CONTROL_SCENE_SYNC_COMPLETE;
         // The no-view sync path compensates text timing for control ticks beyond thirty.
         if (gCapSceneSyncAdjustmentFrames == CAP_SCENE_SYNC_ADJUSTMENT_PENDING) {
             gCapSceneSyncAdjustmentFrames = (u16)gCapSceneSyncElapsedTicks - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
@@ -302,20 +301,20 @@ void capUpdatePlaybackTask(Task* task)
     }
     // View records reinterpret the timing bytes as a delayed message.
     if (recordFlags & CAP_SEQUENCE_VIEW_CONTROL) {
-        controlFlags = D_801156A4;
-        cueGateMask  = controlFlags ^ CAP_EVENT_SCRIPT_WAITING_FOR_CUE;
-        cueGateMask  = cueGateMask & CAP_EVENT_SCRIPT_WAITING_FOR_CUE;
+        controlFlags = gCapControlFlags;
+        cueGateMask  = controlFlags ^ CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
+        cueGateMask  = cueGateMask & CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
         if (recordFlags & cueGateMask) {
             return;
         }
-        cueGateMask        = controlFlags & CAP_EVENT_SCRIPT_WAITING_FOR_CUE;
+        cueGateMask        = controlFlags & CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
         requiredCueBits    = recordFlags & cueGateMask;
         matchingScenePhase = requiredCueBits & CAP_PLAYBACK_BYTE_MASK;
         if (matchingScenePhase != (recordFlags & CAP_SEQUENCE_SCENE_PHASE)) {
             return;
         }
         if (matchingScenePhase != 0) {
-            D_801156A4 = controlFlags & (CAP_PLAYBACK_BYTE_MASK ^ CAP_EVENT_SCRIPT_WAITING_FOR_CUE);
+            gCapControlFlags = controlFlags & (CAP_PLAYBACK_BYTE_MASK ^ CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE);
         }
         if (gCapUseDirectViewIndex == CAP_VIEW_SELECTOR_LOGICAL) {
             recordViewIndex = gCapSelectedSequence[(s16)gCapRecordIndex].control.scene.view;
@@ -1022,8 +1021,7 @@ static inline void _capRestoreInPlacePresentation(void)
 static void _capFinishPlayback(Task* task)
 {
     enum { CAP_ROOM_EFFECT_MESSAGE_3000 = 3000,
-           CAP_PLAYBACK_INACTIVE        = 0,
-           CAP_CONTROL_FLAGS_NONE       = 0 };
+           CAP_PLAYBACK_INACTIVE        = 0 };
     CdCmdQueue* cdQueue;
     char        sceneFilename[0x20];
 
@@ -1056,7 +1054,7 @@ static void _capFinishPlayback(Task* task)
     }
     gCapSelectedSequence = NULL;
     gCapPlaybackStarted  = CAP_PLAYBACK_INACTIVE;
-    D_801156A4           = CAP_CONTROL_FLAGS_NONE;
+    gCapControlFlags     = CAP_CONTROL_FLAGS_NONE;
     taskKill(task);
 }
 

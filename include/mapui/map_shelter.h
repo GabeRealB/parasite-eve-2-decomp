@@ -129,7 +129,7 @@ extern u16 gMapShelterMarkerFlags[MAP_SHELTER_MARKER_COUNT];
 extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 
 /// This stage's entries in `Gp_WarpTables`,
-/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `gViewCameraTables`,
+/// `gViewCountTables`, `Gp_RoomObjTables`, `gViewCameraTables`,
 /// `gViewIndexTables` and `gSpriteAreaTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
 /// object records are this overlay's own.

@@ -18,7 +18,6 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/display.h"
@@ -223,8 +222,8 @@ static void _dryfieldGasStationInitRoomTask(Task* task)
     } else {
         stageMusicRequestAreaStart(AREA_MUSIC_START_TICKS);
     }
-    task->state = task->state + 1;
-    D_80115598  = 1;
+    task->state                     = task->state + 1;
+    gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the initialized gas-station room task idle in state 1.

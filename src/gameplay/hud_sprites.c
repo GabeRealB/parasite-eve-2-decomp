@@ -985,7 +985,7 @@ void hudReset(HudState* hud)
     attachment->bodyWard                  = 0;
     attachment->mode                      = ATTACHMENT_MODE_IDLE;
     gGameSession->battleResetPending      = 0;
-    Gp_ItemGrantCooldown                  = 0;
+    gHudInputDelayUpdates                 = 0;
     gDisplayState.suppressDisconnectPause = 1;
     attachment->flags                    &= ~ATTACHMENT_FLAG_SWAP_LOCK;
 }
@@ -1322,7 +1322,7 @@ void attachmentCancel(void)
     }
     attachment->queuedIndex        = ATTACHMENT_NO_QUEUED_INDEX;
     attachment->mode               = ATTACHMENT_MODE_IDLE;
-    D_80115768                     = 0;
+    gPlayerActorStateTickHeld      = PLAYER_ACTOR_STATE_TICK_RUNNING;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
     attachment->previewSound       = ATTACHMENT_NO_PREVIEW_SOUND;
     attachment->soundStep          = ATTACHMENT_SOUND_IDLE;
@@ -1332,7 +1332,7 @@ void hudDelayInputAfterMenu(void)
 {
     enum { HUD_MENU_EXIT_INPUT_DELAY_UPDATES = 5 };
 
-    Gp_ItemGrantCooldown = HUD_MENU_EXIT_INPUT_DELAY_UPDATES;
+    gHudInputDelayUpdates = HUD_MENU_EXIT_INPUT_DELAY_UPDATES;
 }
 
 /// Tests whether HUD category switching is allowed by the player and attachment gates.
@@ -1371,7 +1371,7 @@ static s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
         }
     }
     if (eligible != 0) {
-        if (Gp_ItemGrantCooldown <= 0) {
+        if (gHudInputDelayUpdates <= 0) {
             if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                 return 1;
             }

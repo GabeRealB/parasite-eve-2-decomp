@@ -8,6 +8,7 @@
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -2060,7 +2061,7 @@ static void _actor161500OpenParkingShop(void)
 static void _actor161500CompleteCompanionRequestTask(Task* task)
 {
     enum { ACTOR_161500_REQUEST_ITEM = 0x124 };
-    D_80115768 = true;
+    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
     itemSetIdentified(ACTOR_161500_REQUEST_ITEM, true);
     gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, ACTOR_161500_REQUEST_COMPLETE);
     evsStartScript(D_actor_161500_80137AB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -2090,7 +2091,7 @@ static void _actor161500PreparePlayerFacingCompanion(void)
 /// handover script passes zero to release the hold; all eight bits are retained.
 static void _actor161500SetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = holdPlayerUpdate;
+    gPlayerActorStateTickHeld = holdPlayerUpdate;
 }
 
 void actor161500StartCompanionRequestReminder(void)

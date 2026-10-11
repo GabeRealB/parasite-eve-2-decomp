@@ -36,7 +36,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -3190,7 +3189,7 @@ static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
     }
     task->state += 1;
     // Route completed CAP room commands back through the room's sound handler.
-    D_80115598 = 1;
+    gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
 }
 
 #include "../../shared/room_variants_gas_station.inc.c"
@@ -3333,8 +3332,8 @@ static void _dryfieldNightGasStationStartJerryCanCutsceneTask(Task* task)
     enum { DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_OBJECTIVE   = 0x16,
            DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_AUDIO_EVENT = 4 };
 
-    gGameSession->hideHud = 1;
-    D_80115768            = 1;
+    gGameSession->hideHud     = 1;
+    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
     SetDispMask(0);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
     evsStartScriptWithSkip(_gDryfieldNightGasStationJerryCanScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightGasStationJerryCanSkipScript);
@@ -3366,7 +3365,7 @@ static void _dryfieldNightGasStationUpdateRoomTask(Task* task)
 /// collision and other work outside the ordinary state dispatcher still run.
 static void _dryfieldNightGasStationSetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = holdPlayerUpdate;
+    gPlayerActorStateTickHeld = holdPlayerUpdate;
 }
 
 /// Room-task state handlers: 0 initialize, 1 update deferred scenes, 2 release.

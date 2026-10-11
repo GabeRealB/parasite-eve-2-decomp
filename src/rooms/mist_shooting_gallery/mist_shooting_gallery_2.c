@@ -3107,9 +3107,9 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
 
     switch (work->phase) {
         case MIST_SHOOTING_GALLERY_COURSE_2_INITIALIZE:
-            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_2_DURATION_FRAMES;
-            work->timer    = MIST_SHOOTING_GALLERY_COURSE_2_READY_DELAY_FRAMES;
-            D_80115768     = 1;
+            work->timeLeft            = MIST_SHOOTING_GALLERY_COURSE_2_DURATION_FRAMES;
+            work->timer               = MIST_SHOOTING_GALLERY_COURSE_2_READY_DELAY_FRAMES;
+            gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
             work->phase++;
         case MIST_SHOOTING_GALLERY_COURSE_2_READY_CAPTIONS:
             if (work->timer <= 0) {
@@ -3117,8 +3117,8 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
                     _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_2_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
                     captionKey = work->captionStep;
                     if (captionKey == MIST_SHOOTING_GALLERY_COURSE_2_READY_LAST_KEY) {
-                        work->timer = MIST_SHOOTING_GALLERY_COURSE_2_STEP_DELAY_FRAMES;
-                        D_80115768  = 0;
+                        work->timer               = MIST_SHOOTING_GALLERY_COURSE_2_STEP_DELAY_FRAMES;
+                        gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
                         work->phase++;
                     } else {
                         work->captionStep = captionKey + 1;
@@ -3298,16 +3298,16 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
 
     switch (work->phase) {
         case MIST_SHOOTING_GALLERY_COURSE_3_INITIALIZE:
-            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_3_DURATION_FRAMES;
-            work->timer    = MIST_SHOOTING_GALLERY_COURSE_3_READY_DELAY_FRAMES;
-            D_80115768     = 1;
+            work->timeLeft            = MIST_SHOOTING_GALLERY_COURSE_3_DURATION_FRAMES;
+            work->timer               = MIST_SHOOTING_GALLERY_COURSE_3_READY_DELAY_FRAMES;
+            gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
             work->phase++;
         case MIST_SHOOTING_GALLERY_COURSE_3_READY_CAPTION:
             if (work->timer <= 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_3_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_3_READY_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
-                    work->timer = MIST_SHOOTING_GALLERY_COURSE_3_STEP_DELAY_FRAMES;
-                    D_80115768  = 0;
+                    work->timer               = MIST_SHOOTING_GALLERY_COURSE_3_STEP_DELAY_FRAMES;
+                    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
                     work->phase++;
                 }
             } else {
@@ -3487,16 +3487,16 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
 
     switch (work->phase) {
         case MIST_SHOOTING_GALLERY_COURSE_4_INITIALIZE:
-            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_4_DURATION_FRAMES;
-            work->timer    = MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY_TICKS;
-            D_80115768     = 1;
+            work->timeLeft            = MIST_SHOOTING_GALLERY_COURSE_4_DURATION_FRAMES;
+            work->timer               = MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY_TICKS;
+            gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
             work->phase++;
         case MIST_SHOOTING_GALLERY_COURSE_4_INTRO_CAPTION:
             if (work->timer <= 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_4_INTRO_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
-                    work->timer = MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS;
-                    D_80115768  = 0;
+                    work->timer               = MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS;
+                    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
                     work->phase++;
                 }
             } else {
@@ -3575,8 +3575,8 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
                 _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
                 captionKey = work->captionStep;
                 if (captionKey == MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_LAST_KEY) {
-                    work->timer = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_RELEASE_DELAY_TICKS;
-                    D_80115768  = 0;
+                    work->timer               = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_RELEASE_DELAY_TICKS;
+                    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
                     work->phase++;
                     actor215100RequestGalleryAbort();
                 } else {
@@ -3597,11 +3597,11 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
 
     // A lethal hit diverts both the tutorial and active waves into shutdown.
     if (work->interrupted == 0 && work->lethalHit != 0) {
-        work->phase       = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_CAPTIONS;
-        work->interrupted = 1;
-        work->timer       = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_CAPTION_DELAY_TICKS;
-        work->captionStep = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_FIRST_KEY;
-        D_80115768        = 1;
+        work->phase               = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_CAPTIONS;
+        work->interrupted         = 1;
+        work->timer               = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_CAPTION_DELAY_TICKS;
+        work->captionStep         = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_FIRST_KEY;
+        gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
     }
 }
 

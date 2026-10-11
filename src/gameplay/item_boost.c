@@ -458,7 +458,7 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
 
     textX      = object->panel.contentLeft.signedValue + 2;
     contentTop = object->panel.contentTop.signedValue;
-    uiDrawPanelLabel(&object->panel, Gp_StrNotice2);
+    uiDrawPanelLabel(&object->panel, gItemMenuPouchNoticeLabel);
     textColorRgb = ITEM_MENU_POUCH_TEXT_COLOR_RGB;
     lineY        = contentTop + ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
     _itemMenuDrawPrefixedItemName(object, textX, lineY, _gItemMenuPouchMoreText, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);

@@ -366,7 +366,7 @@ gCapFile = 0x8011568C; // absolute:True
 gEvsPlaybackPaused = 0x801156F9; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 gPlayerActorTasks = 0x80115760; // absolute:True
-D_80115768 = 0x80115768; // absolute:True
+gPlayerActorStateTickHeld = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (186)
 RotMatrixY = 0x8004BFF8; // type:func absolute:True

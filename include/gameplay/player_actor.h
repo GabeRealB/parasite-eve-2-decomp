@@ -15,6 +15,18 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Values published by gameplay and scripts to the ordinary actor state-tick gate.
+enum { PLAYER_ACTOR_STATE_TICK_RUNNING = 0,
+       PLAYER_ACTOR_STATE_TICK_HELD    = 1 };
+
+/// Holds the ordinary player and companion state callbacks when nonzero.
+///
+/// Attachment-wheel and room scripts share this byte; it is a latch with no
+/// reference counting. Spawn, cast completion and cancellation can clear it.
+/// Input capture, pending displacement, collision preparation and companion
+/// rendering continue. SceneCombatState.actorControl is an independent gate.
+extern u8 gPlayerActorStateTickHeld;
+
 /// Scratch-stack block for the turn a scripted walk makes toward `GameActor.destination`.
 ///
 /// Holds the destination's displacement from the model's root coordinate,

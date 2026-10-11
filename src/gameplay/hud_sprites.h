@@ -7,6 +7,13 @@
 
 #include "main/task_types.h"
 
+/// Eligible HUD updates remaining before menu input and ability-category switching resume.
+///
+/// Zero/negative permits input. Menu exit sets five updates and cast release
+/// sets twenty; decrement occurs only on fully unsuppressed, event-free HUD
+/// updates. Reset clears it. Paused/suppressed presentation can extend the delay.
+extern s32 gHudInputDelayUpdates;
+
 /// Counts down the death/ending delay, starts its screen fade and advances to the wait phase.
 ///
 /// State 2 decrements signed-halfword killCountdown once per task update. At

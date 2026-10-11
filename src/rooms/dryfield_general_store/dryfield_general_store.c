@@ -24,7 +24,6 @@
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
@@ -1941,8 +1940,8 @@ static void _dryfieldGeneralStoreInitRoomTask(Task* task)
     } else if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_CUTSCENE_STARTED) {
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_CUTSCENE_COMPLETE);
     }
-    task->state += 1;
-    D_80115598   = DRYFIELD_GENERAL_STORE_POST_CAP_SOUND_ENABLED;
+    task->state                    += 1;
+    gCapRoomCompletionSoundsEnabled = DRYFIELD_GENERAL_STORE_POST_CAP_SOUND_ENABLED;
 }
 
 /// Keeps the room task idle after initialization, leaving its state unchanged.

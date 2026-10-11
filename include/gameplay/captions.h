@@ -193,7 +193,31 @@ extern s32 D_80115694;
 /// a zero entry names no sequence. Slot-zero commands remain writable counters.
 extern CapCommandRef* gCapCommandEntries;
 
-extern u8 D_801156A4;
+/// Shared CAP playback and event-interpreter synchronization bits.
+enum {
+    CAP_CONTROL_FLAGS_NONE                   = 0,
+    CAP_CONTROL_SCENE_SYNC_COMPLETE          = 0x20,
+    CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE = 0x40,
+};
+
+/// Completion and cue-wait flags shared by CAP, its control task and EVS.
+///
+/// Bit 0x20 replies to scene sync and is consumed by playback. Bit 0x40
+/// pauses EVS until a matching scene-phase record consumes it, or a room
+/// clears it. EVS initialization/skip and CAP completion clear both bits.
+/// Preserve the other bit when updating either one; other bits have no use.
+extern u8 gCapControlFlags;
+
+/// Room opt-in values for CAP completion sound routing.
+enum { CAP_ROOM_COMPLETION_SOUNDS_DISABLED = 0,
+       CAP_ROOM_COMPLETION_SOUNDS_ENABLED  = 1 };
+
+/// Enables optional room sound messages after normal and weapon CAP events.
+///
+/// Zero disables, nonzero enables. Room selection clears the latch before
+/// the selected room opts in. Normal events send command index + 100; weapon
+/// events retain their flags-payload + 100 cue. Playback does not clear it.
+extern u8 gCapRoomCompletionSoundsEnabled;
 
 /// Retained zero-based highlighted index from the last CAP confirmation.
 ///

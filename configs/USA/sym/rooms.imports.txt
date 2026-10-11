@@ -383,10 +383,10 @@ gWorldCollisionActionTriggerListHead = 0x8011556C; // absolute:True
 gCapFile = 0x8011568C; // absolute:True
 gCapCommandEntries = 0x801156A0; // absolute:True
 gEvsPlaybackPaused = 0x801156F9; // absolute:True
-Gp_MenuLockDelay = 0x80115716; // absolute:True
+gPadInputMenuUnlockUpdates = 0x80115716; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 gPlayerActorTasks = 0x80115760; // absolute:True
-D_80115768 = 0x80115768; // absolute:True
+gPlayerActorStateTickHeld = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (235)
 RotMatrixY = 0x8004BFF8; // type:func absolute:True
@@ -465,11 +465,11 @@ D_8011540A = 0x8011540A; // absolute:True
 D_8011540C = 0x8011540C; // absolute:True
 D_8011540E = 0x8011540E; // absolute:True
 D_80115410 = 0x80115410; // absolute:True
-D_80115598 = 0x80115598; // absolute:True
+gCapRoomCompletionSoundsEnabled = 0x80115598; // absolute:True
 gCapChoiceRowStride = 0x80115680; // absolute:True
 gCapPreserveActorControl = 0x80115690; // absolute:True
 D_80115694 = 0x80115694; // size:0x4 absolute:True
-D_801156A4 = 0x801156A4; // absolute:True
+gCapControlFlags = 0x801156A4; // absolute:True
 gCapConfirmedChoiceIndex = 0x801156A8; // absolute:True
 gRoomEffectSparkEmitterId = 0x80115720; // absolute:True
 gRoomEffectMoteId = 0x80115728; // absolute:True

@@ -1013,7 +1013,7 @@ void itemMenuUseItemTask(Task* task)
     UiObjectTaskFunc useHandler;
     UiObject*        object;
 
-    useHandler = D_8010D3A0[task->spawnArg1.value];
+    useHandler = gItemMenuUseHandlers[task->spawnArg1.value];
     object     = task->spawnArg2.pointer;
     if (useHandler != NULL) {
         useHandler(object, object->owner);
@@ -1119,12 +1119,12 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
 static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent)
 {
     enum { ITEM_MENU_USE_PANEL_DESCRIPTOR_INDEX = 35 };
-    s32               itemId;
-    s32               activeMode;
-    UiObjectTaskFunc* useHandlerSlot;
+    s32                     itemId;
+    s32                     activeMode;
+    const UiObjectTaskFunc* useHandlerSlot;
 
     itemId         = gItemMenuSelectedRow->itemId;
-    useHandlerSlot = &D_8010D3A0[itemId];
+    useHandlerSlot = &gItemMenuUseHandlers[itemId];
     if (*useHandlerSlot != NULL) {
         activeMode = USER_INTERFACE_PANEL_ACTIVE;
         if (uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_USE_PANEL_DESCRIPTOR_INDEX], itemId, activeMode, activeMode, parent) != NULL) {

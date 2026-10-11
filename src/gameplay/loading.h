@@ -206,8 +206,13 @@ void loadingEnqueueStageResources(void);
 /// copied synchronously.
 void companionEnqueueResources(u8 companionType, u8 resourceVariant);
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern ViewCountTable* Gp_ViewCountTables[];
+/// Five stage-map directories of per-room logical-view counts.
+///
+/// Stage 1..5 selects stage minus one; area/room are valid one-based indices
+/// in a populated directory. NULL area slots are excluded. Counts are signed
+/// search lengths; the room-transition reader retains only their low byte.
+/// Each map wrapper borrows room counts, so both overlays must stay loaded.
+extern ViewCountTable* gViewCountTables[5];
 
 /// Five stage-map directories of room-local logical-view byte maps.
 ///

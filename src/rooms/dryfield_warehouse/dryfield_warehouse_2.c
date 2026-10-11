@@ -815,8 +815,8 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
-                    D_80115768            = 0;
-                    work->soundLoopFrames = 0;
+                    gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
+                    work->soundLoopFrames     = 0;
                     work->commandStep++;
                     break;
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
@@ -892,7 +892,7 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
                 }
                 DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION();
                 gDryfieldWarehouseFadeOutTask = NULL;
-                D_80115768                    = DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD;
+                gPlayerActorStateTickHeld     = DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD;
                 task->state                   = task->state + 1;
             } else {
                 return;

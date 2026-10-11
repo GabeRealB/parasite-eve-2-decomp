@@ -21,9 +21,12 @@ extern WorldCollisionPairHandler Gp_PairHandlers[5];
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
-/// Set to 1 by `worldCollisionReadActionHit` when a pending `gWorldCollisionActionTriggerListHead` node is found;
-/// `worldCollisionUpdateTask` then calls `worldCollisionClearActionHits` to clear those flags.
-extern s32 Gp_PendingObj4CFlag;
+/// Enables action-hit clearing before every subsequent action-trigger scan.
+///
+/// Zero preserves latched hits until the first successful action read sets 1.
+/// This remains enabled until collision-list reset; it is not a one-shot
+/// acknowledgement. Actor-update pauses defer clearing along with scanning.
+extern s32 gWorldCollisionActionHitClearingEnabled;
 
 /// Appends grid-face overlap contacts for an ordinary sphere's centre cell.
 ///

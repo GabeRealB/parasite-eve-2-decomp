@@ -2719,7 +2719,7 @@ void actor215100CheckGalleryExitInput(void)
                 return;
             }
             if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gActor215100GalleryExitInputBlocked == 0) &&
-                (D_80115768 == 0) && (rootCoord->coord.t[0] < ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X)) {
+                (gPlayerActorStateTickHeld == 0) && (rootCoord->coord.t[0] < ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X)) {
                 rootZ = rootCoord->coord.t[2];
                 if (rootZ < ACTOR_215100_GALLERY_EXIT_ZONE_END_Z) {
                     if ((rootZ >= ACTOR_215100_GALLERY_EXIT_ZONE_MIN_Z) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {

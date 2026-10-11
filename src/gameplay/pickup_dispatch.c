@@ -25,7 +25,7 @@
 /// `itemPickupRestoreFrameTimingTask`, `itemPickupExitTask`. Copied onto the stack by `itemPickupTask`.
 extern const TaskFuncTable5 D_80096E70;
 
-UiObjectTaskFunc D_8010D3A0[96] = {
+UiObjectTaskFunc gItemMenuUseHandlers[96] = {
     NULL,
     itemMenuApplySelectedHealingItem,
     itemMenuApplySelectedHealingItem,

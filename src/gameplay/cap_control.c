@@ -81,9 +81,9 @@ static inline void _capTickSceneSync(void)
 {
     if (capIsBusy() != 0 && _gCapSceneSyncArmed != 0) {
         gCapSceneSyncElapsedTicks++;
-        if ((D_801156A4 & CAP_CONTROL_SCENE_SYNC_COMPLETE) == 0) {
+        if ((gCapControlFlags & CAP_CONTROL_SCENE_SYNC_COMPLETE) == 0) {
             if (gCapSceneSyncElapsedTicks >= CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES) {
-                D_801156A4         |= CAP_CONTROL_SCENE_SYNC_COMPLETE;
+                gCapControlFlags   |= CAP_CONTROL_SCENE_SYNC_COMPLETE;
                 _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
             }
         }

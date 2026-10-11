@@ -868,7 +868,7 @@ static void _actor800300UpdateMove(Task* task)
         }
     }
     actor->pendingCollisionUpdates = 0;
-    if (D_80115768 == 0) {
+    if (gPlayerActorStateTickHeld == 0) {
         _actor800300TickMode(task);
     }
     _actor800300TickTextureSequences(task);

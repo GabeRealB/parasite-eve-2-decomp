@@ -265,7 +265,7 @@ enum {
     (capsuleScratch)->extendedEnd1.vy            = (capsuleScratch)->ends[1].vy - (capsuleScratch)->work.radiusAlongSegment.vy;                      \
     (capsuleScratch)->extendedEnd1.vz            = (capsuleScratch)->ends[1].vz - (capsuleScratch)->work.radiusAlongSegment.vz;
 
-s32 Gp_PendingObj4CFlag;
+s32 gWorldCollisionActionHitClearingEnabled;
 
 static s32 _worldCollisionCollideSpherePair(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex);
 
@@ -386,7 +386,7 @@ void worldCollisionUpdateTask(Task* unusedTask)
         worldCollisionCollideBodyLists(gWorldCollisionEnemyAttackListHead, gWorldCollisionPropListHead);
         worldCollisionCollideBodyLists(gWorldCollisionPropListHead, gWorldCollisionBlastListHead);
         // Retire consumed action hits before collecting fresh action/view crossings.
-        if (Gp_PendingObj4CFlag != 0) {
+        if (gWorldCollisionActionHitClearingEnabled != 0) {
             worldCollisionClearActionHits();
         }
         worldCollisionScanActionTriggers(gWorldCollisionPlayerBodyListHead, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,

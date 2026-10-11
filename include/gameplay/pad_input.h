@@ -5,7 +5,13 @@
 
 #include "main/pad.h"
 
-extern s16 Gp_MenuLockDelay;
+/// Eligible automatic-menu updates remaining before Select/Start unlock.
+///
+/// Positive values keep menus locked and decrement only while automatic
+/// decisions are enabled and player/session input is eligible. Ineligible
+/// input and reset arm eight updates; room/menu flows may rearm the counter.
+/// Reaching zero on a decrement still keeps that update locked.
+extern s16 gPadInputMenuUnlockUpdates;
 
 /// Suppression commands; the alternate values perform the same operations.
 enum {

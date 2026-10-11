@@ -93,7 +93,15 @@ typedef struct {
 } _PadScriptWork;
 STATIC_ASSERT_SIZEOF(_PadScriptWork, 0x18);
 
-u8 Gp_PadScriptHalt;
+/// Requests vibration-interpreter teardown on its next eligible update.
+///
+/// Zero runs; nonzero selects the finish state. Scene control can defer this
+/// check unless padScriptFlags permits updates while actors are frozen.
+/// Clearing it preserves only interpreters not yet torn down.
+static u8 _gPadScriptInterpreterHalt;
+
+enum { PAD_SCRIPT_INTERPRETER_RUNNING = 0,
+       PAD_SCRIPT_INTERPRETER_HALTED  = 1 };
 
 enum { PAD_SCRIPT_MOTOR_RUNNING = 0,
        PAD_SCRIPT_MOTOR_HALTED  = 1 };
@@ -356,7 +364,7 @@ static void _padScriptSpawnDepthScaledVariableMotorRamp(s16 durationFrames, u8 s
 
 void padScriptHalt(void)
 {
-    Gp_PadScriptHalt             = 1;
+    _gPadScriptInterpreterHalt   = PAD_SCRIPT_INTERPRETER_HALTED;
     _gPadScriptBinaryMotorHalt   = PAD_SCRIPT_MOTOR_HALTED;
     _gPadScriptVariableMotorHalt = PAD_SCRIPT_MOTOR_HALTED;
     gGameSession->padScriptFlags = 0;
@@ -414,7 +422,7 @@ static void _padScriptTickLanes(Task* task)
 
 void padScriptClearHalt(void)
 {
-    Gp_PadScriptHalt             = 0;
+    _gPadScriptInterpreterHalt   = PAD_SCRIPT_INTERPRETER_RUNNING;
     _gPadScriptBinaryMotorHalt   = PAD_SCRIPT_MOTOR_RUNNING;
     _gPadScriptVariableMotorHalt = PAD_SCRIPT_MOTOR_RUNNING;
 }
@@ -445,7 +453,7 @@ void padScriptTask(Task* task)
 
     states = Gp_Script18States;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
-        if (Gp_PadScriptHalt != 0) {
+        if (_gPadScriptInterpreterHalt != 0) {
             task->state = PAD_SCRIPT_TASK_STATE_FINISH;
         }
         states.funcs[task->state](task);

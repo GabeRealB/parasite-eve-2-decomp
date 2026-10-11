@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "gameplay/world_state.h"
+
 /// Player attack row selection, and the low-six-bit buildup grade exception.
 enum {
     DAMAGE_PLAYER_ATTACK_ROW_MASK    = 0x7F,
@@ -31,6 +33,27 @@ typedef struct {
     u16 playerPercent[DAMAGE_RECEIVED_HP_BAND_COUNT];    // Applied to a hit on the player, by the player's HP band
 } DamageReceivedScaleRow;
 STATIC_ASSERT_SIZEOF(DamageReceivedScaleRow, 0x14);
+
+/// Received-damage percentages by difficulty 0..4 (Normal, Bounty, Scavenger, Nightmare, replay).
+///
+/// Each victim selects its own current-HP band. These read-only rows live
+/// with gameplay and are independent of outgoing attack-damage modifiers.
+extern DamageReceivedScaleRow gDamageReceivedScaleRows[SCENE_COMBAT_DIFFICULTY_REPLAY + 1];
+
+/// Current-HP bands for received damage, indexed by nonnegative HP divided by ten.
+///
+/// Requires HP 0..299. HP below 20 selects band 0; 20..29 band 1; 30..39 band 2;
+/// 40..59 band 3; 60..299 band 4. Normal live player HP is capped at 250 and
+/// companion maximum HP is 100. Storage lives with gameplay.
+extern u16 gDamageReceivedHpBands[30];
+
+/// Antibody multipliers in whole percent for the player's received damage.
+///
+/// Active combos use level 1..3 and stack 1..2: (level - 1) * 2 + stack
+/// selects rows 1..6 (75, 70, 70, 60, 60, 50 percent). Cleared combos skip
+/// lookup; row 0 is 100 and the final stored halfword is zero with no proven
+/// live use. The packed combo and table remain owned by gameplay.
+extern u16 gDamageAntibodyComboPercent[8];
 
 /// Enemy poison pulse-count percentages, indexed by reaction grade 0..3.
 ///

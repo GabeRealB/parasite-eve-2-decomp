@@ -1713,7 +1713,6 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
         ACROPOLIS_CAFETERIA_BATTLE_DELAY_4                  = 25,
         ACROPOLIS_CAFETERIA_BATTLE_DELAY_5                  = 26,
         ACROPOLIS_CAFETERIA_BATTLE_WAIT_PLAYER_ANIMATION    = 27,
-        ACROPOLIS_CAFETERIA_CAP_CUE_WAIT_BIT                = 0x40,
     };
 
     u8 fileKeyBytes[4];
@@ -1771,8 +1770,8 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
                 areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
                 areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
                 areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-                D_801156A4  &= ~ACROPOLIS_CAFETERIA_CAP_CUE_WAIT_BIT;
-                task->state += 1;
+                gCapControlFlags &= ~CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
+                task->state      += 1;
             }
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_START_BATTLE_CONTROLLER:

@@ -169,13 +169,13 @@ static void _shelterB1ArmoryCardkeyEventTask(Task* task)
     switch (task->state) {
         case SHELTER_B1_ARMORY_CARD_STATE_HOLD_MENU:
             displayAcquireMenuHold();
-            D_80115768 = SHELTER_B1_ARMORY_PLAYER_TICK_HOLD;
+            gPlayerActorStateTickHeld = SHELTER_B1_ARMORY_PLAYER_TICK_HOLD;
             task->state++;
             break;
         case SHELTER_B1_ARMORY_CARD_STATE_PLAY:
             // Hand control from the closing menu to the card-reader caption.
             displayReleaseMenuHold();
-            D_80115768 = SHELTER_B1_ARMORY_PLAYER_TICK_RESUME;
+            gPlayerActorStateTickHeld = SHELTER_B1_ARMORY_PLAYER_TICK_RESUME;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if ((u16)task->spawnArg1.value == SHELTER_B1_ARMORY_CARD_RESULT_REFUSED) {
                 sndEvtRequestScriptStart(SHELTER_B1_ARMORY_SOUND_CARD_REFUSED, 0, 0);

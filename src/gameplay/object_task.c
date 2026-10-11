@@ -8,7 +8,6 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
-#include "gameplay/object_task.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/gameflag.h"
@@ -26,7 +25,7 @@
 
 #include "mapui/map_shelter.h"
 
-u8 D_80115598;
+u8 gCapRoomCompletionSoundsEnabled;
 
 /// Per-stage task descriptor tables searched by `objectTaskInitializeRoomState`.
 extern TaskDesc* D_8010FABC[];
@@ -73,11 +72,11 @@ static inline void _objectTaskResetRoomPresentation(void)
     s32 musicOverride;
 
     // The selected room task can opt into CAP completion sound cues after setup.
-    gGameSession->eventState = OBJECT_TASK_ROOM_EVENT_IDLE;
-    gGameSession->hideHud    = false;
-    D_80115598               = OBJECT_TASK_CAP_COMPLETION_SOUNDS_DISABLED;
-    gGameSession->flowFlags  = 0;
-    musicOverride            = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
+    gGameSession->eventState        = OBJECT_TASK_ROOM_EVENT_IDLE;
+    gGameSession->hideHud           = false;
+    gCapRoomCompletionSoundsEnabled = OBJECT_TASK_CAP_COMPLETION_SOUNDS_DISABLED;
+    gGameSession->flowFlags         = 0;
+    musicOverride                   = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
     switch (musicOverride) {
         case OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
@@ -181,7 +180,7 @@ void capEventTask(Task* task)
             if (eventFlags & CAP_EVENT_HIDE_PLAYER) {
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             }
-            if (D_80115598 != 0) {
+            if (gCapRoomCompletionSoundsEnabled != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_EVENT_COMPLETION_SOUND_OFFSET, 0);
             }
             taskKill(task);

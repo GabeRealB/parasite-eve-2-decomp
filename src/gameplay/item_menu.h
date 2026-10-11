@@ -67,7 +67,19 @@ void itemPickupPublishPlacedObjectTask(Task* task);
 
 extern UiObjectDesc D_8010D348;
 
-extern UiObjectTaskFunc D_8010D3A0[96];
+/// Notice title for the belt-pouch armor attachment-slot confirmation panel.
+///
+/// The first seven bytes are the NUL-terminated label. The final stored byte
+/// is ASCII F, with no observed text access or established purpose.
+extern const char gItemMenuPouchNoticeLabel[8];
+
+/// Item-use panel callbacks indexed by ordinary item id 0..95.
+///
+/// NULL slots have no supported use action. A callback receives the live panel
+/// object and its owner task, whose spawnArg1 retains the item id; consuming
+/// handlers also borrow the stable selected carried row. Gameplay owns these
+/// callbacks for the panel's lifetime. Callers must enforce the index domain.
+extern UiObjectTaskFunc gItemMenuUseHandlers[96];
 
 /// Applies deferred item-use actions after menu resource restoration and exits.
 ///
