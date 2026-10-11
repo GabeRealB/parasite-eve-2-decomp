@@ -14,19 +14,53 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_neo_ark_pavilion_80183A64[4];
+/// Four borrowed eight-point Bog Diver patrol rings, selected by spawn bits 4..5.
+///
+/// Selectors 0 and 3 share the 1500-unit-depth ring; 1 selects 3000 and 2
+/// selects 4500. X/Z are room coordinates; Y is depth added to
+/// `gNeoArkPavilionDiverWaterY`. All values use game units. The rings remain
+/// valid while the pavilion overlay is loaded.
+extern SVECTOR* gNeoArkPavilionDiverPatrolRings[4];
 
-extern SVECTOR D_neo_ark_pavilion_80183A74[8];
+/// Writable emergence spots shared by the pavilion's Bog Divers.
+///
+/// Entries 1..6 supply room-coordinate X/Z; entry 0 is the reserved fallback
+/// claim and is never searched. Searches preserve the Diver's previous Y.
+/// The fourth halfword (`pad`) stores 0 free or 1 claimed; entry 7 has -1
+/// and ends the list. With no eligible spot, the Diver retains its previous
+/// emergence position and switches its claim index to 0. Claims are released
+/// on relocation or despawn. Keep this overlay loaded until all claims end.
+extern SVECTOR gNeoArkPavilionDiverSurfaceSpots[8];
 
-extern s16 D_neo_ark_pavilion_801839A0;
+/// Room-coordinate water-surface Y sampled by each pavilion Bog Diver at spawn.
+///
+/// Positive Y points downward; patrol depths are added to this height. Keep
+/// the pavilion overlay loaded while the Diver configuration is read.
+extern s16 gNeoArkPavilionDiverWaterY;
 
-extern TaskDesc D_neo_ark_pavilion_8018384C;
+/// Bodyless, priority-192 recipe for the pavilion's framebuffer water refraction.
+///
+/// Spawn descriptor index 0 with zero arguments; configured views 2..7 draw
+/// into the reserved actor-buffer-2 packet banks. Keep this room overlay,
+/// camera and packet storage live through task execution and GPU consumption.
+extern TaskDesc gNeoArkPavilionWaterRefractionTaskDesc;
 
-extern AreaVariant D_neo_ark_pavilion_801876C4[13];
+/// Placement/resource pairs indexed by the saved pavilion variant (0..12).
+///
+/// Slots 1..5 and 11 are present; 0, 6..10 and 12 are absent (both pointers
+/// NULL). Variant 1 is the default. Placements borrow the Neo Ark map overlay;
+/// resource lists borrow this room overlay and end with `AREA_PLACEMENT_END`.
+/// Keep both overlays and the selected actor descriptors loaded while loading,
+/// spawning or updating model flags. The directory has no terminator.
+extern AreaVariant gNeoArkPavilionAreaVariants[13];
 
-// neo_ark_pavilion
-extern WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[];
+/// Collision resources for pavilion rooms 1 and 2, indexed by room ID minus one.
+///
+/// Both rooms share the grid, two view boundaries and one sight occluder;
+/// each has four distinct action triggers. Setup mutates and links the
+/// borrowed arrays through their LAST-marked records. Keep the pavilion
+/// overlay loaded until the grid is retired and the lists are unlinked.
+extern WorldCollisionRoomResources gNeoArkPavilionRoomCollisionResources[2];
 
 /// Lighting for pavilion rooms 1 and 2, indexed by room ID minus one.
 ///
@@ -42,9 +76,22 @@ extern WorldCoordRoomLighting gNeoArkPavilionRoomLighting[2];
 /// one. Borrowed room storage remains valid while this overlay is loaded.
 extern u8* gNeoArkPavilionViewMaps[2];
 
-extern ViewCount D_neo_ark_pavilion_801838F4[];
+/// Seven logical views in each pavilion room, indexed by room ID minus one.
+///
+/// Counts bound the logical-view search in `gNeoArkPavilionViewMaps`; the
+/// retained eighth byte of room 2's map is outside its count. Borrowed storage
+/// remains valid while the pavilion overlay is loaded.
+extern ViewCount gNeoArkPavilionViewCounts[2];
 
-extern DirectionWarpEntry D_neo_ark_pavilion_801838F8[];
+/// Three pavilion warp endpoints, indexed by warp ID minus one without a terminator.
+///
+/// Slot 1 connects to the submarine tunnel; slots 2 and 3 are the left bridge
+/// and right island exits. Each gives identical player/companion room-space
+/// placements, with yaw in 4096 units per turn. Arrival views are 2, 3 and 2.
+/// Slot 1 is silent; the bridge/island endpoints request area-bank sounds 4
+/// on arrival and 3 on departure. No entry requests a blocked sound or map
+/// flag. Keep the pavilion overlay loaded during lookup and complete-entry copying.
+extern DirectionWarpEntry gNeoArkPavilionWarpEntries[3];
 
 /// Seven pavilion cameras, indexed by mapped view ID minus one.
 ///

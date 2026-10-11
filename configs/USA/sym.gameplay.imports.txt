@@ -510,7 +510,7 @@ D_neo_ark_island_80181B30 = 0x80181B30; // absolute:True owner=neo_ark_island
 
 gNeoArkObservatoryReflectionTaskDescs = 0x80180DBC; // absolute:True owner=neo_ark_observatory
 
-D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True owner=neo_ark_pavilion
+gNeoArkPavilionWaterRefractionTaskDesc = 0x8018384C; // absolute:True owner=neo_ark_pavilion
 
 D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // absolute:True owner=neo_ark_r31
 
@@ -1567,7 +1567,7 @@ D_neo_ark_north_promenade_8018305C = 0x8018305C; // absolute:True owner=neo_ark_
 
 gNeoArkObservatoryAreaVariants = 0x8018786C; // absolute:True owner=neo_ark_observatory
 
-D_neo_ark_pavilion_801876C4 = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
+gNeoArkPavilionAreaVariants = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
 
 D_neo_ark_power_plant_1_80181AF8 = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1
 

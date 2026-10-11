@@ -2169,7 +2169,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkPavilionWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0, 0):
             // Index one reaches the adjacent water-distortion descriptor.

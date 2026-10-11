@@ -74,17 +74,9 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 
-extern s8 D_neo_ark_pavilion_80187A1C;
-
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-/// The room's event task, spawned when its message handler latches an event.
-extern TaskDesc D_neo_ark_pavilion_80183864;
-
-/// The room's message table.
-extern TaskMessageEntry D_neo_ark_pavilion_80183870[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -93,9 +85,6 @@ extern RoomFadeStorage gRoomEventFade;
 /// room's event task.
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
-
-/// Set by the message handler when its last message latched an event and
-/// spawned the room's event task; every such message clears it first.
 
 /// Room-local key-item-use request; its first payload is an inventory item ID.
 enum { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -106,19 +95,37 @@ static s32 _neoArkPavilionHandleCapCommand(Task* unusedTask, s32 unusedMessageId
 static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedMessageArg);
 
 static WorldCollisionGrid     _gNeoArkPavilionCollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1];
-extern WorldCollisionTrigger  D_neo_ark_pavilion_80187584[2];
-extern WorldCollisionTrigger  D_neo_ark_pavilion_8018772C[4];
-extern WorldCollisionTrigger  D_neo_ark_pavilion_8018785C[4];
+static WorldCollisionOccluder _gNeoArkPavilionOccluders[1];
+static WorldCollisionTrigger  _gNeoArkPavilionViewBoundaryTriggers[2];
+static WorldCollisionTrigger  _gNeoArkPavilionRoom1ActionTriggers[4];
+static WorldCollisionTrigger  _gNeoArkPavilionRoom2ActionTriggers[4];
 static WorldCoordRoomLights   _gNeoArkPavilionRoomLights;
 
-TaskDesc D_neo_ark_pavilion_8018384C = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+/// Scheduler priorities of the bodyless water drawers and staged room controller.
+enum {
+    NEO_ARK_PAVILION_WATER_TASK_PRIORITY = 192,
+    NEO_ARK_PAVILION_EVENT_TASK_PRIORITY = 32
+};
 
-TaskDesc D_neo_ark_pavilion_80183858 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+TaskDesc gNeoArkPavilionWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_pavilion_80183864 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Retained bodyless, priority-192 water-band distortion recipe without a caller.
+///
+/// Its callback draws only submarine-tunnel and submarine-gallery views;
+/// pavilion setup spawns the separate refraction recipe at index 0.
+static TaskDesc _gNeoArkPavilionWaterDistortionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
+/// Bodyless, priority-32 controller for the latched pavilion departure scene.
+///
+/// Spawn index 0 with zero arguments after storing the destination and event.
+/// The snapshots, CAP resources and room overlay remain live through reload.
+static TaskDesc _gNeoArkPavilionStagedEventTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+
+/// Room-message dispatch for transition resolution, key items, actions and CAP commands.
+///
+/// The room task borrows this end-ID/null-terminated table while this overlay
+/// is loaded. Key-item and room-action requests are refused with a zero reply.
+static TaskMessageEntry _gNeoArkPavilionRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPavilionResolveRoomTransition },
     { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPavilionIgnoreRoomAction },
@@ -130,9 +137,9 @@ TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[2] = {
-    { &_gNeoArkPavilionCollisionGrid, D_neo_ark_pavilion_80187584, D_neo_ark_pavilion_8018772C, D_neo_ark_pavilion_8018798C },
-    { &_gNeoArkPavilionCollisionGrid, D_neo_ark_pavilion_80187584, D_neo_ark_pavilion_8018785C, D_neo_ark_pavilion_8018798C },
+WorldCollisionRoomResources gNeoArkPavilionRoomCollisionResources[2] = {
+    { &_gNeoArkPavilionCollisionGrid, _gNeoArkPavilionViewBoundaryTriggers, _gNeoArkPavilionRoom1ActionTriggers, _gNeoArkPavilionOccluders },
+    { &_gNeoArkPavilionCollisionGrid, _gNeoArkPavilionViewBoundaryTriggers, _gNeoArkPavilionRoom2ActionTriggers, _gNeoArkPavilionOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkPavilionRoomLighting[2] = {
@@ -160,19 +167,62 @@ u8* gNeoArkPavilionViewMaps[2] = {
     _gNeoArkPavilionRoom2ViewMap,
 };
 
-ViewCount D_neo_ark_pavilion_801838F4[2] = { 7, 7 };
+/// Logical slots searched in each pavilion room's view map, excluding retained bytes.
+enum { NEO_ARK_PAVILION_LOGICAL_VIEW_COUNT = 7 };
 
-DirectionWarpEntry D_neo_ark_pavilion_801838F8[3] = {
-    { { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 2000, 0, 9504 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2700, 0, 7650 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3000, 0, 7500 }, { 0, 0, 0, 0 }, 0x550D0004, 0x550D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+ViewCount gNeoArkPavilionViewCounts[2] = {
+    NEO_ARK_PAVILION_LOGICAL_VIEW_COUNT,
+    NEO_ARK_PAVILION_LOGICAL_VIEW_COUNT,
 };
 
-// Height override read by the shared waypoint actor.
-s16 D_neo_ark_pavilion_801839A0 = 300;
+/// Pavilion area-bank requests used by the bridge and island warp endpoints.
+enum {
+    NEO_ARK_PAVILION_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 4),
+    NEO_ARK_PAVILION_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 3)
+};
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_pavilion_801839A4[8] = {
+DirectionWarpEntry gNeoArkPavilionWarpEntries[3] = {
+    {
+        .player         = { { .word = 3072 }, 2000, 0, 9504 },
+        .companion      = { { .word = 3072 }, 2000, 0, 9504 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, -2700, 0, 7650 },
+        .companion      = { { .word = 0 }, -2700, 0, 7650 },
+        .arrivalSound   = NEO_ARK_PAVILION_WARP_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_PAVILION_WARP_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, 3000, 0, 7500 },
+        .companion      = { { .word = 0 }, 3000, 0, 7500 },
+        .arrivalSound   = NEO_ARK_PAVILION_WARP_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_PAVILION_WARP_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
+
+s16 gNeoArkPavilionDiverWaterY = 300;
+
+/// Each Bog Diver patrol cursor addresses a ring modulo eight.
+enum { NEO_ARK_PAVILION_DIVER_PATROL_WAYPOINT_COUNT = 8 };
+
+/// Eight-point patrol ring for selectors 0 and 3, 1500 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkPavilionDiverWaterY`.
+static SVECTOR _gNeoArkPavilionDiverPatrolWaypoints0[NEO_ARK_PAVILION_DIVER_PATROL_WAYPOINT_COUNT] = {
     { 3700, 1500, 5900, 0 },
     { -1600, 1500, 6000, 0 },
     { -6400, 1500, 6000, 0 },
@@ -183,8 +233,10 @@ SVECTOR D_neo_ark_pavilion_801839A4[8] = {
     { 8000, 1500, 5800, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_pavilion_801839E4[8] = {
+/// Eight-point patrol ring for selector 1, 3000 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkPavilionDiverWaterY`.
+static SVECTOR _gNeoArkPavilionDiverPatrolWaypoints1[NEO_ARK_PAVILION_DIVER_PATROL_WAYPOINT_COUNT] = {
     { -6400, 3000, 0x35E8, 0 },
     { -6400, 3000, 0x2710, 0 },
     { -8000, 3000, 5000, 0 },
@@ -195,8 +247,10 @@ SVECTOR D_neo_ark_pavilion_801839E4[8] = {
     { 6700, 3000, 0x3DB8, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_pavilion_80183A24[8] = {
+/// Eight-point patrol ring for selector 2, 4500 units below the water surface.
+///
+/// X/Z are room coordinates; Y is added to `gNeoArkPavilionDiverWaterY`.
+static SVECTOR _gNeoArkPavilionDiverPatrolWaypoints2[NEO_ARK_PAVILION_DIVER_PATROL_WAYPOINT_COUNT] = {
     { -7000, 4500, 3300, 0 },
     { -0x2710, 4500, 7100, 0 },
     { -8600, 4500, 0x3520, 0 },
@@ -207,24 +261,28 @@ SVECTOR D_neo_ark_pavilion_80183A24[8] = {
     { -0x2B5C, 4500, 5000, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_neo_ark_pavilion_80183A64[4] = {
-    D_neo_ark_pavilion_801839A4,
-    D_neo_ark_pavilion_801839E4,
-    D_neo_ark_pavilion_80183A24,
-    D_neo_ark_pavilion_801839A4,
+SVECTOR* gNeoArkPavilionDiverPatrolRings[4] = {
+    _gNeoArkPavilionDiverPatrolWaypoints0,
+    _gNeoArkPavilionDiverPatrolWaypoints1,
+    _gNeoArkPavilionDiverPatrolWaypoints2,
+    _gNeoArkPavilionDiverPatrolWaypoints0,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_neo_ark_pavilion_80183A74[8] = {
-    { 0, 0, 0, 0 },
-    { 6600, 0, 4000, 0 },
-    { -6000, 0, 7000, 0 },
-    { -6000, 0, 0x2710, 0 },
-    { -4000, 0, 0x32C8, 0 },
-    { 5800, 0, 0x32C8, 0 },
-    { 6600, 0, 5800, 0 },
-    { 0, 0, 0, -1 },
+/// Initial claim state and list terminator for the writable Diver emergence spots.
+enum {
+    NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE = 0,
+    NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_END  = -1
+};
+
+SVECTOR gNeoArkPavilionDiverSurfaceSpots[8] = {
+    { 0, 0, 0, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { 6600, 0, 4000, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { -6000, 0, 7000, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { -6000, 0, 0x2710, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { -4000, 0, 0x32C8, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { 5800, 0, 0x32C8, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { 6600, 0, 5800, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, 0, NEO_ARK_PAVILION_DIVER_SURFACE_SPOT_END },
 };
 
 /// Room-space normals for the pavilion collision grid, with 4096 per unit.
@@ -1061,9 +1119,13 @@ static WorldCoordRoomLights _gNeoArkPavilionRoomLights = {
     NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_pavilion_80187584[2] = {
-    { NULL, NULL, NULL, { -323, -1568, 9452, 0 }, { { -4, -1904, -3817, 0 }, { 4, -1904, 3818, 0 }, { -4, 1904, -3817, 0 }, { 4, 1904, 3818, 0 } }, { 4096, 0, -5, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -57, -1600, 9531, 0 }, { { -1, -1904, 3908, 0 }, { 1, -1904, -3908, 0 }, { -1, 1904, 3908, 0 }, { 1, 1904, -3908, 0 } }, { -4101, 0, -2, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Opposed view-boundary quads switching logical views 2 to 3 and 3 to 2.
+///
+/// Both pavilion rooms borrow these mutable records through the LAST-marked
+/// second entry. Origins/corners use room units and normals use Q12.
+static WorldCollisionTrigger _gNeoArkPavilionViewBoundaryTriggers[2] = {
+    { NULL, NULL, NULL, { -323, -1568, 9452, 0 }, { { -4, -1904, -3817, 0 }, { 4, -1904, 3818, 0 }, { -4, 1904, -3817, 0 }, { 4, 1904, 3818, 0 } }, { ONE, 0, -5, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -57, -1600, 9531, 0 }, { { -1, -1904, 3908, 0 }, { 1, -1904, -3908, 0 }, { -1, 1904, 3908, 0 }, { 1, 1904, -3908, 0 } }, { -4101, 0, -2, 0 }, { 0, 0, ONE, 0 }, 4344, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Resource key and library file number of variant 1's Bog Diver placements.
@@ -1081,65 +1143,125 @@ static AreaResource _gNeoArkPavilionVariant1Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_pavilion_80187634[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203800BlackBeetleTaskDesc },
+/// Placement keys and library file numbers for the pavilion's additional enemy recipes.
+enum {
+    NEO_ARK_PAVILION_BLACK_BEETLE_ENTRY_ID    = 38,
+    NEO_ARK_PAVILION_BLACK_BEETLE_FILE_NUMBER = 38,
+    NEO_ARK_PAVILION_MOSSBACK_ENTRY_ID        = 49,
+    NEO_ARK_PAVILION_MOSSBACK_FILE_NUMBER     = 49,
+    NEO_ARK_PAVILION_ROOK_ENTRY_ID            = 57,
+    NEO_ARK_PAVILION_ROOK_FILE_NUMBER         = 57,
+    NEO_ARK_PAVILION_ENEMY_BODY_TASK_INDEX    = 0
+};
+
+/// Variant 2 recipes for two Bog Divers and three Black Beetles, then the end marker.
+///
+/// Entry 4 loads actor_100400 in slot 1; entry 38 loads actor_203800 in slot 2.
+/// Both select body descriptor 0. Placements borrow the map overlay; recipes
+/// and actor descriptors must remain loaded during loading/spawning.
+static AreaResource _gNeoArkPavilionVariant2Resources[3] = {
+    { NEO_ARK_PAVILION_BOG_DIVER_ENTRY_ID, NEO_ARK_PAVILION_BOG_DIVER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
+    { NEO_ARK_PAVILION_BLACK_BEETLE_ENTRY_ID, NEO_ARK_PAVILION_BLACK_BEETLE_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_20, NEO_ARK_PAVILION_ENEMY_BODY_TASK_INDEX, { 0, 0 }, &gActor203800BlackBeetleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_pavilion_80187658[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Variant 3's Bog Diver recipe for three water-mode placements, then the end marker.
+///
+/// Entry/file 4 selects actor_100400 body descriptor 0 in slot 1. This room's
+/// recipe and the borrowed map placements/actor descriptors remain live during use.
+static AreaResource _gNeoArkPavilionVariant3Resources[2] = {
+    { NEO_ARK_PAVILION_BOG_DIVER_ENTRY_ID, NEO_ARK_PAVILION_BOG_DIVER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_pavilion_80187670[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
+/// Variant 4 recipes for one Bog Diver and one Brute Mossback, then the end marker.
+///
+/// Entry 4 loads actor_100400 in slot 1; entry 49 loads actor_204900 in slot 2.
+/// Both select body descriptor 0. The Mossback table is borrowed from the
+/// loaded actor_204900 image. Keep this recipe and the map placements live during use.
+static AreaResource _gNeoArkPavilionVariant4Resources[3] = {
+    { NEO_ARK_PAVILION_BOG_DIVER_ENTRY_ID, NEO_ARK_PAVILION_BOG_DIVER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
+    { NEO_ARK_PAVILION_MOSSBACK_ENTRY_ID, NEO_ARK_PAVILION_MOSSBACK_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_20, NEO_ARK_PAVILION_ENEMY_BODY_TASK_INDEX, { 0, 0 }, gActor01100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_pavilion_80187694[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Variant 5's Bog Diver recipe for four wounded placements, then the end marker.
+///
+/// Entry/file 4 selects actor_100400 body descriptor 0 in slot 1; placement
+/// mode selects one grounded and three floating Divers. Keep room, map and actor storage live.
+static AreaResource _gNeoArkPavilionVariant5Resources[2] = {
+    { NEO_ARK_PAVILION_BOG_DIVER_ENTRY_ID, NEO_ARK_PAVILION_BOG_DIVER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_pavilion_801876AC[2] = {
-    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700RookGolemTasks },
+/// Variant 11's grenade-launcher Rook GOLEM recipe, then the resource-list end marker.
+///
+/// Entry/file 57 selects actor_105700 body descriptor 0 in slot 1; the single
+/// map placement selects patrol mode. Keep room, map and actor storage live during use.
+static AreaResource _gNeoArkPavilionVariant11Resources[2] = {
+    { NEO_ARK_PAVILION_ROOK_ENTRY_ID, NEO_ARK_PAVILION_ROOK_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, NEO_ARK_PAVILION_ENEMY_BODY_TASK_INDEX, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_pavilion_801876C4[13] = {
-    { NULL, NULL },
-    { gMapNeoArkPavilionVariant1Placements, _gNeoArkPavilionVariant1Resources },
-    { gMapNeoArkPavilionVariant2Placements, D_neo_ark_pavilion_80187634 },
-    { gMapNeoArkPavilionVariant3Placements, D_neo_ark_pavilion_80187658 },
-    { gMapNeoArkPavilionVariant4Placements, D_neo_ark_pavilion_80187670 },
-    { gMapNeoArkPavilionVariant5Placements, D_neo_ark_pavilion_80187694 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkPavilionVariant11Placements, D_neo_ark_pavilion_801876AC },
-    { NULL, NULL },
+AreaVariant gNeoArkPavilionAreaVariants[13] = {
+    [0]  = { NULL, NULL },
+    [1]  = { gMapNeoArkPavilionVariant1Placements, _gNeoArkPavilionVariant1Resources },
+    [2]  = { gMapNeoArkPavilionVariant2Placements, _gNeoArkPavilionVariant2Resources },
+    [3]  = { gMapNeoArkPavilionVariant3Placements, _gNeoArkPavilionVariant3Resources },
+    [4]  = { gMapNeoArkPavilionVariant4Placements, _gNeoArkPavilionVariant4Resources },
+    [5]  = { gMapNeoArkPavilionVariant5Placements, _gNeoArkPavilionVariant5Resources },
+    [6]  = { NULL, NULL },
+    [7]  = { NULL, NULL },
+    [8]  = { NULL, NULL },
+    [9]  = { NULL, NULL },
+    [10] = { NULL, NULL },
+    [11] = { gMapNeoArkPavilionVariant11Placements, _gNeoArkPavilionVariant11Resources },
+    [12] = { NULL, NULL },
 };
 
-WorldCollisionTrigger D_neo_ark_pavilion_8018772C[4] = {
-    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3488, -48, 7456, 0 }, { { -1088, 0, -288, 0 }, { 1088, 0, -288, 0 }, { -1088, 0, 288, 0 }, { 1088, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2896, -48, 7456, 0 }, { { -1072, 0, -256, 0 }, { 1072, 0, -256, 0 }, { -1072, 0, 256, 0 }, { 1072, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed departure/arrival slots and CAP payloads of the pavilion's action quads.
+enum {
+    NEO_ARK_PAVILION_TUNNEL_WARP_SLOTS      = (1 << 4) | 2,
+    NEO_ARK_PAVILION_BRIDGE_WARP_SLOTS      = (2 << 4) | 1,
+    NEO_ARK_PAVILION_ISLAND_WARP_SLOTS      = (3 << 4) | 1,
+    NEO_ARK_PAVILION_CAP_BRIDGE_INTERACTION = 2,
+    NEO_ARK_PAVILION_CAP_ISLAND_INTERACTION = 3,
+    NEO_ARK_PAVILION_CAP_FLAGS_NONE         = 0,
+    NEO_ARK_PAVILION_CAP_PREPARE_WEAPON     = 1,
+    NEO_ARK_PAVILION_ROOM_COMMAND_PROGRESS  = 1
 };
 
-WorldCollisionTrigger D_neo_ark_pavilion_8018785C[4] = {
-    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3472, -48, 7456, 0 }, { { -1136, 0, -288, 0 }, { 1136, 0, -288, 0 }, { -1136, 0, 288, 0 }, { 1136, 0, 288, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3008, -48, 7456, 0 }, { { -1024, 0, -256, 0 }, { 1024, 0, -256, 0 }, { -1024, 0, 256, 0 }, { 1024, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room 1's facing-gated tunnel/bridge warps, CAP command 3 and progress interaction.
+///
+/// The last quad routes command 1 to the room handler; the island-side quad
+/// runs CAP 3 with weapon preparation and paused actors. Setup links all four
+/// mutable quads through the LAST-marked final entry; coordinates use room units.
+static WorldCollisionTrigger _gNeoArkPavilionRoom1ActionTriggers[4] = {
+    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -ONE, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, NEO_ARK_PAVILION_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3488, -48, 7456, 0 }, { { -1088, 0, -288, 0 }, { 1088, 0, -288, 0 }, { -1088, 0, 288, 0 }, { 1088, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_BRIDGE, NEO_ARK_PAVILION_BRIDGE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2896, -48, 7456, 0 }, { { -1072, 0, -256, 0 }, { 1072, 0, -256, 0 }, { -1072, 0, 256, 0 }, { 1072, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, ONE, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_PAVILION_CAP_ISLAND_INTERACTION, NEO_ARK_PAVILION_CAP_PREPARE_WEAPON, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -ONE, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_PAVILION_ROOM_COMMAND_PROGRESS, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1] = {
-    { NULL, NULL, { 3520, -200, 9440, 0 }, { { -1024, 1224, 0, 0 }, { 1024, 1224, 0, 0 }, { -1024, -1912, 0, 0 }, { 1024, -536, 0, 0 } }, { 0, 0, 4096, 0 }, 2157, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Room 2's facing-gated tunnel/island warps, CAP command 2 and progress interaction.
+///
+/// The bridge-side quad runs CAP 2 without presentation flags; the last quad
+/// routes command 1 to the room handler. Setup links all four mutable quads
+/// through the LAST-marked final entry; coordinates use room units.
+static WorldCollisionTrigger _gNeoArkPavilionRoom2ActionTriggers[4] = {
+    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -ONE, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, NEO_ARK_PAVILION_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3472, -48, 7456, 0 }, { { -1136, 0, -288, 0 }, { 1136, 0, -288, 0 }, { -1136, 0, 288, 0 }, { 1136, 0, 288, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, ONE, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_PAVILION_CAP_BRIDGE_INTERACTION, NEO_ARK_PAVILION_CAP_FLAGS_NONE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3008, -48, 7456, 0 }, { { -1024, 0, -256, 0 }, { 1024, 0, -256, 0 }, { -1024, 0, 256, 0 }, { 1024, 0, 256, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_ISLAND, NEO_ARK_PAVILION_ISLAND_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -ONE, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_PAVILION_ROOM_COMMAND_PROGRESS, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Single line-of-sight blocking quad shared by both pavilion rooms.
+///
+/// Origin/corners use room units and the plane normal uses Q12. Setup links
+/// and enables the LAST-marked record; list links/flags remain mutable.
+/// The stored low flag bit has no established meaning.
+static WorldCollisionOccluder _gNeoArkPavilionOccluders[1] = {
+    { NULL, NULL, { 3520, -200, 9440, 0 }, { { -1024, 1224, 0, 0 }, { 1024, 1224, 0, 0 }, { -1024, -1912, 0, 0 }, { 1024, -536, 0, 0 } }, { 0, 0, ONE, 0 }, 2157, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 /// Cue-2 footstep bases in the current type-1 sound bank.
@@ -1205,14 +1327,22 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_neo_ark_pavilion_80187A1C = 0;
+/// Whether the latest event-start call attempted to spawn the staged controller.
+///
+/// Cleared by every call, including queries and already-seen replies; set
+/// after execute mode latches the snapshots and calls the spawner (0 no,
+/// 1 yes). Spawn success is not checked, and teardown does not reset it.
+/// No reader is established in this image.
+static s8 _gNeoArkPavilionEventStartRequested = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_neo_ark_pavilion_80187A1D = 38;
+/// Retained initialized byte with no established consumer; its role is unproven.
+static u8 D_neo_ark_pavilion_80187A1D = 38;
 
-u8 D_neo_ark_pavilion_80187A1E = 203;
+/// Retained initialized byte with no established consumer; its role is unproven.
+static u8 D_neo_ark_pavilion_80187A1E = 203;
 
-u8 D_neo_ark_pavilion_80187A1F = 37;
+/// Retained initialized byte with no established consumer; its role is unproven.
+static u8 D_neo_ark_pavilion_80187A1F = 37;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -1251,7 +1381,7 @@ static __inline__ s32 _neoArkPavilionStartEvent(const RoomEventMsg* transition, 
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_neo_ark_pavilion_80187A1C = ROOM_EVENT_NOT_STARTED;
+    _gNeoArkPavilionEventStartRequested = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *transition;
@@ -1259,8 +1389,8 @@ static __inline__ s32 _neoArkPavilionStartEvent(const RoomEventMsg* transition, 
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
-            D_neo_ark_pavilion_80187A1C = ROOM_EVENT_STARTED;
+            taskSpawnFromTable(&_gNeoArkPavilionStagedEventTaskDesc, 0, 0, 0);
+            _gNeoArkPavilionEventStartRequested = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }
@@ -1326,7 +1456,7 @@ static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const Dire
 /// teardown does not clear the registration.
 static void _neoArkPavilionInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_pavilion_80183870;
+    task->msgTable = _gNeoArkPavilionRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_PAVILION_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_PAVILION_AMBIENCE_2, 0, 0);
@@ -1338,9 +1468,11 @@ static void _neoArkPavilionRoomIdleState(Task* task)
 {
 }
 
-/// State handlers of the room's entry task, indexed by its state through
-/// `neoArkPavilionRoomTask`: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_pavilion_8017D628 = {
+/// Room-task state handlers: 0 initializes ambience/messages, 1 idles, 2 tears down.
+///
+/// Copied by value before unchecked state dispatch. The callbacks and room
+/// storage must remain loaded; this table stays read-only and has no terminator.
+static const TaskFuncTable3 _gNeoArkPavilionRoomStates = {
     { _neoArkPavilionInitializeRoom, _neoArkPavilionRoomIdleState, taskKill }
 };
 
@@ -1348,7 +1480,7 @@ void neoArkPavilionRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_pavilion_8017D628;
+    handlers = _gNeoArkPavilionRoomStates;
     handlers.funcs[task->state](task);
 }
 
