@@ -11,7 +11,14 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mist_r18_80186BFC[13];
+/// Placement/resource layouts for Acropolis area 18's MIST briefing.
+///
+/// Indexed by saved placement variant in 0..12, without a bounds check or
+/// terminator. Slots 1 and 3 borrow the same Rupert/Baldwin placements from the
+/// Acropolis map and actor recipes from this room; every other slot is absent.
+/// Keep the room, map and selected actor packages loaded while these resources
+/// are used for loading, spawning or model updates.
+extern AreaVariant gMistR18AreaVariants[13];
 
 /// Collision resources for the single briefing room, indexed by room minus one.
 ///

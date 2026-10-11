@@ -428,7 +428,7 @@ AreaRecord  D_8010CBE4[21]   = {
     { D_acropolis_fire_escape_8018294C, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
     { D_acropolis_helicopter_landing_pad_801861E8, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
     { NULL, NULL },
-    { D_mist_r18_80186BFC, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    { gMistR18AreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
     { D_mist_parking_801951B4, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
     { D_mist_shooting_gallery_8018DF74, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
 };

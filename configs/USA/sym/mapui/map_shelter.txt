@@ -148,7 +148,7 @@ gShelterB1MainCorridorRoomViewCounts = 0x801831FC; // absolute:True owner=shelte
 gShelterB1MainCorridorWarpEntries = 0x80183200; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorCollisionGrid = 0x801840F0; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorViewCameras = 0x80184114; // absolute:True owner=shelter_b1_main_corridor
-gShelterB1MainCorridorSpriteViews = 0x80185128; // absolute:True owner=shelter_b1_main_corridor shared=rooms
+gShelterB1MainCorridorSpriteViews = 0x80185128; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorRoomLights = 0x801853E0; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorViewBoundaries = 0x801853F8; // absolute:True owner=shelter_b1_main_corridor
 gShelterB1MainCorridorWarpTriggers = 0x801858B8; // absolute:True owner=shelter_b1_main_corridor shared=rooms

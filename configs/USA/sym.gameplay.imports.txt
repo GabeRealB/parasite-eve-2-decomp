@@ -1549,7 +1549,7 @@ D_mine_tunnel_801801CC = 0x801801CC; // absolute:True owner=mine_tunnel shared=r
 
 gMineTunnelEntranceAreaVariants = 0x8017F32C; // absolute:True owner=mine_tunnel_entrance
 
-D_mist_r18_80186BFC = 0x80186BFC; // absolute:True owner=mist_r18
+gMistR18AreaVariants = 0x80186BFC; // absolute:True owner=mist_r18
 
 D_mist_shooting_gallery_8018DF74 = 0x8018DF74; // absolute:True owner=mist_shooting_gallery
 

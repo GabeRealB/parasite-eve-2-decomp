@@ -75,7 +75,7 @@ _gDryfieldFactoryCollisionGridNormals = 0x80187008; // size:0xE0 defined:True
 _gDryfieldFactoryCollisionGridVerts = 0x801870E8; // size:0x550 defined:True
 _gDryfieldFactoryCollisionGridFaces = 0x80187638; // size:0x360 defined:True
 _gDryfieldFactoryCollisionGridCells = 0x80187998; // size:0x58 defined:True
-gFactoryNightPanelDesc = 0x80186EA0; // absolute:True owner=dryfield_night_factory shared=rooms
+gFactoryNightPanelDesc = 0x80186EA0; // absolute:True owner=dryfield_night_factory
 _gFactoryPanelCursorDesc = 0x80186E88; // size:0xC defined:True
 gFactoryDayPanelDesc = 0x80186E94; // size:0xC defined:True
 _gFactoryPanelMsgTable = 0x80186EA0; // rom:0x98E0 size:0x10 defined:True
