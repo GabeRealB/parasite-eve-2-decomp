@@ -1253,7 +1253,7 @@ static void _actor141000UpdateAyaBreaWalker(Task* task)
     }
     // Hidden bodies still move, animate and blink; only visual work is gated.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &shadowPosition) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &shadowPosition) != 0) {
             effectDrawGroundShadow(&shadowPosition, ACTOR_141000_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

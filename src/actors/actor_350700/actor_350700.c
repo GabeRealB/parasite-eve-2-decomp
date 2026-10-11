@@ -809,7 +809,7 @@ static void _actor350700KyleMadiganWalkerUpdate(Task* task)
         }
     }
     if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, ACTOR_350700_KYLE_MADIGAN_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }

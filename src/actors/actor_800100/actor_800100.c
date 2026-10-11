@@ -842,11 +842,11 @@ void actor800100PykeEmitterTask(Task* task)
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         effectWork->age--;
                         _pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                            GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
                     _pykeFlameDrawNozzle(
-                        MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                        GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                     _actor800100RefreshPykeLight(transientLight, pointLight, lightCoord, nozzleCoord,
                                                  ACTOR_800100_PYKE_IDLE_LIGHT_INNER, ACTOR_800100_PYKE_IDLE_LIGHT_OUTER,
                                                  ACTOR_800100_PYKE_IDLE_RED_MIN);
@@ -1121,10 +1121,10 @@ static void _actor800100UpdateMove(Task* task)
     s32                   bodyIndex;
     s8                    updateRequests;
 
-    cursorSlot                                        = SCRATCH_HEAD_ADDR;
-    blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
-    model                                             = task->extra.tmd;
-    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
+    cursorSlot                                                = SCRATCH_STACK_CURSOR_SLOT;
+    blockEnd                                                  = SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch);
+    model                                                     = task->extra.tmd;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
     // The two model handles retain the entry loads around the scratch reservation.
     coordsModel = model;
     block       = blockEnd - 1;
@@ -1193,7 +1193,7 @@ static void _actor800100UpdateMove(Task* task)
         shadowCoord               = task->extra.tmd->coords + 1;
         shadowCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(shadowCoord);
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&shadowCoord->workm), &block->shadowCentre) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&shadowCoord->workm), &block->shadowCentre) != 0) {
             effectDrawGroundShadow(&block->shadowCentre, ACTOR_800100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
@@ -1245,12 +1245,12 @@ static void _actor800100TickTextureSequences(Task* task)
     u32               sequenceRow;
     GpuImageUpload*   frameUploads;
 
-    scratchCursor                        = SCRATCH_HEAD_ADDR;
-    previousHead                         = SCRATCH_HEAD_AT(scratchCursor, RECT);
-    actor                                = task->work;
-    reservedRect                         = previousHead - 1;
-    SCRATCH_HEAD_AT(scratchCursor, RECT) = reservedRect;
-    textureRect                          = reservedRect;
+    scratchCursor                                = SCRATCH_STACK_CURSOR_SLOT;
+    previousHead                                 = SCRATCH_STACK_CURSOR_AT(scratchCursor, RECT);
+    actor                                        = task->work;
+    reservedRect                                 = previousHead - 1;
+    SCRATCH_STACK_CURSOR_AT(scratchCursor, RECT) = reservedRect;
+    textureRect                                  = reservedRect;
 
     if ((s8)actor->textureSequenceA != ACTOR_800100_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayA--;
@@ -1414,7 +1414,7 @@ static void _actor800100DecideIdleBehavior(Task* task)
                     _actor800100EnterWander(task);
                 }
             } else {
-                yawMagnitude = playerActorGetTurnToPoint(task, MATRIX_TRANS(&playerCoord->coord));
+                yawMagnitude = playerActorGetTurnToPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
                 if (yawMagnitude < 0) {
                     yawMagnitude = -yawMagnitude;
                 }
@@ -1425,7 +1425,7 @@ static void _actor800100DecideIdleBehavior(Task* task)
             }
         }
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
 }
 
 /// Companion mode handlers: 0 native behavior, 1 damage playback, 2 scripted control.
@@ -1642,8 +1642,8 @@ static void _actor800100FollowPlayerState(Task* task)
                 }
             }
     }
-    playerActorTurnBodyTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnBodyTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
 }
 
 /// Turns in place toward the selected lock target, or the player when none is set.
@@ -1709,7 +1709,7 @@ static void _actor800100TurnToTargetState(Task* task)
             }
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
@@ -2283,7 +2283,7 @@ static void _actor800100ObstacleScanState(Task* task)
             }
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
 }
 
 /// Starts obstacle scanning from the random-wander behavior.
@@ -3263,8 +3263,8 @@ static void _actor800100DrawAimBeam(Task* task)
     weaponCoord     = *weaponRoot;
     aimBody->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    scratchCursor = SCRATCH_HEAD_ADDR;
-    beamScratch   = SCRATCH_PUSH_AT(scratchCursor, _Actor800100AimBeamScratch);
+    scratchCursor = SCRATCH_STACK_CURSOR_SLOT;
+    beamScratch   = SCRATCH_STACK_RESERVE_BLOCK_AT(scratchCursor, _Actor800100AimBeamScratch);
 
     worldCollisionFindContactIndex(aimBody->context.capsule->contacts, WORLD_COLLISION_FIND_ANY_KEY);
     // Placement recomposes weaponCoord and overwrites this retained cache-only rotation.
@@ -3282,7 +3282,7 @@ static void _actor800100DrawAimBeam(Task* task)
     actorRenderPlaceCoordOffset(&beamScratch->coord, &beamScratch->coord, &beamScratch->offset);
     _actor800100DrawAimBeamQuad(&beamScratch->coord);
     worldCollisionClearContacts(actor->aimContacts);
-    SCRATCH_POP_AT(scratchCursor, _Actor800100AimBeamScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _Actor800100AimBeamScratch);
 }
 
 /// Draws a pulsing additive red line along the beam coordinate's local Y axis.
@@ -3310,11 +3310,11 @@ static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDi
     s32                             originScreenY;
     s32                             tipScreenY;
 
-    scratchCursor                                                  = SCRATCH_HEAD_ADDR;
-    previousHead                                                   = SCRATCH_HEAD_AT(scratchCursor, _Actor800100AimBeamLineScratch);
-    reservedBlock                                                  = previousHead - 1;
-    projectionScratch                                              = reservedBlock;
-    SCRATCH_HEAD_AT(scratchCursor, _Actor800100AimBeamLineScratch) = reservedBlock;
+    scratchCursor                                                          = SCRATCH_STACK_CURSOR_SLOT;
+    previousHead                                                           = SCRATCH_STACK_CURSOR_AT(scratchCursor, _Actor800100AimBeamLineScratch);
+    reservedBlock                                                          = previousHead - 1;
+    projectionScratch                                                      = reservedBlock;
+    SCRATCH_STACK_CURSOR_AT(scratchCursor, _Actor800100AimBeamLineScratch) = reservedBlock;
 
     beamLength = contactDistance;
     if (contactDistance == 0) {
@@ -3359,7 +3359,7 @@ static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDi
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)reservedBlock->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
         gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, reservedBlock->otz);
     }
-    SCRATCH_POP_AT(scratchCursor, _Actor800100AimBeamLineScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _Actor800100AimBeamLineScratch);
 }
 
 /// Y/Z offsets of the aim beam's fixed-orientation end square in GPU strip order.
@@ -3401,8 +3401,8 @@ static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord)
     s32                             cornerZ;
     s32                             screenY;
 
-    scratchCursor     = SCRATCH_HEAD_ADDR;
-    projectionScratch = SCRATCH_PUSH_AT(scratchCursor, _Actor800100AimBeamQuadScratch);
+    scratchCursor     = SCRATCH_STACK_CURSOR_SLOT;
+    projectionScratch = SCRATCH_STACK_RESERVE_BLOCK_AT(scratchCursor, _Actor800100AimBeamQuadScratch);
 
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(_gActor800100AimBeamQuadCorners); cornerIndex++) {
         cornerY                                         = _gActor800100AimBeamQuadCorners[cornerIndex].vy;

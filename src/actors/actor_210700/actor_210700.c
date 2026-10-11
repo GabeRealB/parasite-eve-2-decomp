@@ -567,11 +567,11 @@ static TaskMessageEntry _gActor210700Messages[5] = {
 /// transform, and a stable writable VECTOR3 lvalue. The task is evaluated once;
 /// the point once on a miss and twice on a hit. Uses the current global room
 /// shadow shade; neither argument's address is retained.
-#define ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint)                                                                     \
-    do {                                                                                                                       \
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&(task)->extra.tmd->coords[1].workm), &(groundPoint)) != 0) {        \
-            effectDrawGroundShadow(&(groundPoint), ACTOR_210700_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade); \
-        }                                                                                                                      \
+#define ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint)                                                                             \
+    do {                                                                                                                               \
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&(task)->extra.tmd->coords[1].workm), &(groundPoint)) != 0) { \
+            effectDrawGroundShadow(&(groundPoint), ACTOR_210700_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);         \
+        }                                                                                                                              \
     } while (0)
 
 /// Ticks the body's non-root animation tracks and applies their poses.

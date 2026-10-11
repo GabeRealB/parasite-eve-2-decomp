@@ -5416,14 +5416,14 @@ static void _playerActorWalkTextGrid(void)
     _PlayerActorTextGridScratch* grid;
     u32                          firstRowColorRgb;
 
-    cursorSlot                                               = SCRATCH_HEAD_ADDR;
-    firstRowColorRgb                                         = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_RGB;
-    previousCursor                                           = SCRATCH_HEAD_AT(cursorSlot, _PlayerActorTextGridScratch);
-    block                                                    = previousCursor - 1;
-    SCRATCH_HEAD_AT(cursorSlot, _PlayerActorTextGridScratch) = block;
-    grid                                                     = block;
-    grid->colorRgb                                           = firstRowColorRgb;
-    grid->penY                                               = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_Y;
+    cursorSlot                                                       = SCRATCH_STACK_CURSOR_SLOT;
+    firstRowColorRgb                                                 = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_RGB;
+    previousCursor                                                   = SCRATCH_STACK_CURSOR_AT(cursorSlot, _PlayerActorTextGridScratch);
+    block                                                            = previousCursor - 1;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, _PlayerActorTextGridScratch) = block;
+    grid                                                             = block;
+    grid->colorRgb                                                   = firstRowColorRgb;
+    grid->penY                                                       = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_Y;
     for (grid->row = 0; grid->row < PLAYER_ACTOR_TEXT_GRID_ROW_COUNT; grid->row++) {
         grid->column = 0;
         grid->penX   = -PLAYER_ACTOR_TEXT_GRID_COLUMN_PITCH;
@@ -6783,11 +6783,11 @@ s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPo
 
 s16 playerActorShortestTurn(s16 currentAngle, s16 targetAngle)
 {
-    void**                           scratchHeadAddress = SCRATCH_HEAD_ADDR;
+    void**                           scratchHeadAddress = SCRATCH_STACK_CURSOR_SLOT;
     _PlayerActorShortestTurnScratch* candidates;
 
-    SCRATCH_PUSH_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
-    candidates            = SCRATCH_HEAD_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
+    SCRATCH_STACK_RESERVE_BLOCK_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
+    candidates            = SCRATCH_STACK_CURSOR_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
     candidates->direct    = targetAngle - currentAngle;
     candidates->plusTurn  = candidates->direct + ACTOR_TRANSFORM_ANGLE_TURN;
     candidates->minusTurn = candidates->direct - ACTOR_TRANSFORM_ANGLE_TURN;

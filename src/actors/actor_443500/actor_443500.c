@@ -3584,7 +3584,7 @@ static void _actor443500TickPierce(Task* task)
     }
     // Keep shadow projection before the current coordinate composition.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, ACTOR_443500_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         if (gGameSession->viewReady != 0) {

@@ -1245,7 +1245,7 @@ static void _actor511000TickRupert(Task* task)
         }
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[ACTOR_511000_RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[ACTOR_511000_RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
@@ -1421,7 +1421,7 @@ static void _actor511000InitRupert(Task* task)
     model->flags        = flags;
     // The target retains this shadow branch after setting the hidden flag.
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
     }

@@ -1350,7 +1350,7 @@ static void _actor335800SceneGroundShadowTask(Task* task)
             break;
     }
     // Sample the coordinate refresh list's composed position, including the final tick.
-    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.coordBody->coord->workm), &groundPoint) != 0) {
+    if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.coordBody->coord->workm), &groundPoint) != 0) {
         effectDrawGroundShadow(&groundPoint, ACTOR_335800_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
 }
@@ -1867,7 +1867,7 @@ static void _actor335800GaryDouglasUpdate(Task* task)
             ACTOR_335800_DOUGLAS_DIM_LIGHTING(work, loopIndex, columnIndex);
         }
         if (work->lightState >= ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL) {
-            if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
                 effectDrawGroundShadow(&groundPoint, ACTOR_335800_DOUGLAS_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
         }
@@ -2147,7 +2147,7 @@ static void _actor335800FlintUpdate(Task* task)
     _actor335800FlintTickAnimation(work);
     // Hidden Flint still moves and animates; only shadow and lighting are gated.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, ACTOR_335800_FLINT_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);

@@ -17,7 +17,7 @@ extern TaskDesc gTitleStartupTaskDescriptors[2];
 /// Restores the live save, player image and flag banks for an attract demo.
 ///
 /// Requires the title overlay and a fully loaded demo save prefix in actor
-/// buffer 2, or at `FILE_SYSTEM_FIXED_REPLAY_BASE` for fixed replay. The prefix
+/// buffer 2, or at `GAME_DEBUG_FIXED_REPLAY_BASE` for fixed replay. The prefix
 /// contains, in order, one `McSaveData`, one `PLAYER_STATUS_SAVE_RECORD_BYTES`
 /// player image, the Akropolis, Dryfield day, Dryfield night, mine/Shelter and
 /// Neo Ark banks, and one `GameFlagNibbleBank` (0xD4C bytes total). The source

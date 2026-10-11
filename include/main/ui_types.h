@@ -116,8 +116,15 @@ enum {
 /// marks the lifecycle boundary beyond those eight scale steps.
 enum { USER_INTERFACE_PANEL_ANIMATION_TICKS = 9 };
 
-/// Unsigned sign-bit mask suppressing frame drawing while content still runs.
-#define USER_INTERFACE_PANEL_NO_FRAME 0x80000000
+/// Unsigned bit-31 mask suppressing a panel's generic frame drawing.
+///
+/// Setting it makes the signed `UiPanel::style` word negative. The frame
+/// drawer then skips its border, frame clipping commands and dimmed-interior
+/// quad; panel layout, content callbacks and their own drawing still run.
+/// Clear this bit to restore frame drawing while retaining the other style
+/// bits. The `u32`-width mask supports bitwise updates; casts to `s32` at
+/// signed style initializers deliberately retain its bit pattern.
+#define USER_INTERFACE_PANEL_NO_FRAME 0x80000000U
 
 /// A UI panel's drawing bounds, centered content coordinates and lifecycle.
 ///

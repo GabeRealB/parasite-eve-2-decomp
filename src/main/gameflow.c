@@ -807,10 +807,10 @@ void padUpdatePort0(void)
     u16                 previousButtons;
     void**              scratchHead;
 
-    scratchHead = SCRATCH_HEAD_ADDR;
+    scratchHead = SCRATCH_STACK_CURSOR_SLOT;
     port        = 0;
     display     = &gDisplayState;
-    scratch     = SCRATCH_PUSH_AT(scratchHead, _PadScratch);
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK_AT(scratchHead, _PadScratch);
 
     do {
         pad = &gPadStates[port];

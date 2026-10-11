@@ -106,11 +106,11 @@ void m4a1PykeNozzleTask(Task* task)
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         effectWork->age--;
                         _pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                            GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
                     actorRenderComposeCoord(nozzleCoord);
-                    _pykeFlameDrawNozzle(MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                    _pykeFlameDrawNozzle(GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                     transientLight->framesLeft = M4A1_PYKE_NOZZLE_LIGHT_FRAMES;
                     pointLight->inner          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_INNER;
                     pointLight->outer          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_OUTER;

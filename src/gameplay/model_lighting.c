@@ -2808,7 +2808,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
     // The cursor advances in records, but the buffer limit is a byte offset.
     cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - gFsActorBuffer2Base;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
+        cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - GAME_DEBUG_FIXED_REPLAY_BASE;
     }
     if (cursorOffsetBytes <= GAME_DEBUG_REPLAY_CURSOR_LIMIT_BYTES) {
         if (gGameMainHaltFlags != 0) {
@@ -2876,7 +2876,7 @@ static inline void _gameDebugInitializePlayReplay(DisplayState* display)
     display->vsyncCount      = 0;
     display->loopTicks       = 0;
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(GAME_DEBUG_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
         gGameDebugReplayCursor = (const GameDebugReplayRecord*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }

@@ -2579,14 +2579,14 @@ static void _actor07000SlouchUpdateColor(Task* task)
     enemy          = task->spawnArg2.pointer;
     sampleCoord    = &task->extra.tmd->coords[1];
     cursorSlot     = SCRATCH_STACK_CURSOR_SLOT;
-    samplePosition = SCRATCH_HEAD_AT(cursorSlot, VECTOR) - 1;
+    samplePosition = SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR) - 1;
     // Publish the reservation after sampling, before the nested lighting query.
-    samplePosition->vx                  = sampleCoord->workm.t[0];
-    samplePosition->vy                  = sampleCoord->workm.t[1];
-    samplePosition->vz                  = sampleCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, VECTOR) = samplePosition;
+    samplePosition->vx                          = sampleCoord->workm.t[0];
+    samplePosition->vy                          = sampleCoord->workm.t[1];
+    samplePosition->vz                          = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR) = samplePosition;
     worldCoordUpdateActorColor(enemy, samplePosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*samplePosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*samplePosition));
 }
 
 /// Inserts the Slouch's death-scaling coordinate between root and model part 1.

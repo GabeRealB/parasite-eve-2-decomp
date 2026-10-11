@@ -352,7 +352,7 @@ static inline EffectCentreScratch* _metabolismProjectFanCentre(const GfxCoord* c
     EffectCentreScratch* scratch;
 
     // Project the composed centre once, narrowing its translation to signed halfwords.
-    scratch                = SCRATCH_PUSH_AT(cursorSlot, EffectCentreScratch);
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK_AT(cursorSlot, EffectCentreScratch);
     scratch->worldPoint.vx = coord->workm.t[0];
     scratch->worldPoint.vy = coord->workm.t[1];
     scratch->worldPoint.vz = coord->workm.t[2];
@@ -390,7 +390,7 @@ static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 beari
     s32                  rightRimAngle;
     s32                  leftRimAngle;
 
-    cursorSlot = SCRATCH_HEAD_ADDR;
+    cursorSlot = SCRATCH_STACK_CURSOR_SLOT;
     scratch    = _metabolismProjectFanCentre(coord, cursorSlot);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
@@ -416,5 +416,5 @@ static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 beari
                 triangle);
         gpuSetPrimitiveBlendMode(triangle, GPU_BLEND_ADD, scratch->depth);
     }
-    SCRATCH_POP_AT(cursorSlot, EffectCentreScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, EffectCentreScratch);
 }

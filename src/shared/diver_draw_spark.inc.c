@@ -50,14 +50,14 @@ static void _diverDrawSpark(const GfxCoord* coord, u16 frameIndex, u16 size, s32
     u16                     cellIndex;
     s32                     leftU;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    scratchHead                    = SCRATCH_HEAD_AT(scratch, EffectBillboardScratch);
-    block                          = scratchHead - 1;
-    depthOutput                    = &block->depth;
-    block->worldPoint.vx           = (u16)coord->workm.t[0];
-    block->worldPoint.vy           = (u16)coord->workm.t[1];
-    block->worldPoint.vz           = (u16)coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
+    scratch                                = SCRATCH_STACK_CURSOR_SLOT;
+    scratchHead                            = SCRATCH_STACK_CURSOR_AT(scratch, EffectBillboardScratch);
+    block                                  = scratchHead - 1;
+    depthOutput                            = &block->depth;
+    block->worldPoint.vx                   = (u16)coord->workm.t[0];
+    block->worldPoint.vy                   = (u16)coord->workm.t[1];
+    block->worldPoint.vz                   = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(scratch, void) = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->worldPoint);
@@ -93,5 +93,5 @@ static void _diverDrawSpark(const GfxCoord* coord, u16 frameIndex, u16 size, s32
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratch, sizeof(*block));
 }

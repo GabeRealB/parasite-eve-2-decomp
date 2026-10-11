@@ -11,8 +11,19 @@
 #include "main/coord.h"
 #include "main/gfx_types.h"
 
-/// A matrix's translation as a vector.
-#define MATRIX_TRANS(mat) ((VECTOR3*)(mat)->t)
+/// Borrows a matrix's three translation words as an unpadded XYZ vector.
+///
+/// Evaluates `matrix` once and returns a `VECTOR3*` aliasing `MATRIX::t`;
+/// the pointer expression itself reads no matrix data and makes no copy.
+/// The SDK stores three signed 32-bit longs here, exactly the 12 bytes of
+/// `VECTOR3`. A four-word `VECTOR` view would extend beyond the matrix.
+/// Units and coordinate frame belong to the matrix; no transform is applied.
+///
+/// The matrix must remain live and word-aligned while the view is used.
+/// The cast returns an unqualified pointer: use it only for reads when the
+/// matrix is read-only. Writes change the matrix directly; callers manage
+/// any containing coordinate's composition stamp. Captures no caller locals.
+#define GRAPHICS_MATRIX_TRANSLATION(matrix) ((VECTOR3*)((matrix)->t))
 
 /// Resident world-to-view rotation node above the view-origin translation.
 ///

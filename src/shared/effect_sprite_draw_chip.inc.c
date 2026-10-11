@@ -79,5 +79,5 @@ static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s1
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_AT(scratchSlot, EffectShapeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchSlot, EffectShapeScratch);
 }

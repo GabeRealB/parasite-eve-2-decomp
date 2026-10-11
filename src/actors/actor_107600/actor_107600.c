@@ -1039,16 +1039,16 @@ static void _actor107600InitMount(Task* task)
     VECTOR*                playerOffset;
     _Actor107600MountWork* work;
 
-    model                              = task->extra.tmd;
-    enemy                              = task->spawnArg2.pointer;
-    rootCoord                          = model->coords;
-    playerCoord                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    scratchSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                        = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
-    playerOffset                       = savedCursor - 1;
-    playerOffset->vx                   = playerCoord->coord.t[0] - rootCoord->coord.t[0];
-    SCRATCH_HEAD_AT(scratchSlot, void) = playerOffset;
-    playerOffset->vz                   = playerCoord->coord.t[2] - rootCoord->coord.t[2];
+    model                                      = task->extra.tmd;
+    enemy                                      = task->spawnArg2.pointer;
+    rootCoord                                  = model->coords;
+    playerCoord                                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    scratchSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                                = SCRATCH_STACK_CURSOR_AT(scratchSlot, VECTOR);
+    playerOffset                               = savedCursor - 1;
+    playerOffset->vx                           = playerCoord->coord.t[0] - rootCoord->coord.t[0];
+    SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = playerOffset;
+    playerOffset->vz                           = playerCoord->coord.t[2] - rootCoord->coord.t[2];
     // Reject before acquiring work, child ownership or a battle reference.
     if ((!(task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_FORCE) &&
          playerActorPlanarLength(playerOffset->vx, playerOffset->vz) < ACTOR_107600_MOUNT_PLAYER_EXCLUSION + 1) ||
@@ -1095,7 +1095,7 @@ static void _actor107600InitMount(Task* task)
     _actor107600SpawnTarget(enemy, task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK,
                             work->behaviour | (((u32)task->spawnArg1.value >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT) &
                                                (ACTOR_107600_MOUNT_SPAWN_ATTACKING >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT)));
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*playerOffset));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*playerOffset));
 }
 
 /// Stops a mount path and asks its live child target to leave.
@@ -1380,17 +1380,17 @@ static void _actor107600UpdateMountColor(Task* task)
     VECTOR*   worldPosition;
     Enemy*    enemy;
 
-    enemy                              = task->spawnArg2.pointer;
-    rootCoord                          = task->extra.tmd->coords;
-    scratchSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                        = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
-    worldPosition                      = savedCursor - 1;
-    worldPosition->vx                  = rootCoord->workm.t[0];
-    worldPosition->vy                  = rootCoord->workm.t[1];
-    worldPosition->vz                  = rootCoord->workm.t[2];
-    SCRATCH_HEAD_AT(scratchSlot, void) = worldPosition;
+    enemy                                      = task->spawnArg2.pointer;
+    rootCoord                                  = task->extra.tmd->coords;
+    scratchSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                                = SCRATCH_STACK_CURSOR_AT(scratchSlot, VECTOR);
+    worldPosition                              = savedCursor - 1;
+    worldPosition->vx                          = rootCoord->workm.t[0];
+    worldPosition->vy                          = rootCoord->workm.t[1];
+    worldPosition->vz                          = rootCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = worldPosition;
     worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*worldPosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*worldPosition));
 }
 
 /// Rebuilds a gallery mount's local rotation from its wrapped Euler angles.
@@ -2458,17 +2458,17 @@ static void _actor107600UpdateTargetRootColor(Task* task)
     VECTOR*   worldPosition;
     Enemy*    enemy;
 
-    enemy                             = task->spawnArg2.pointer;
-    rootCoord                         = task->extra.tmd->coords;
-    cursorSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                       = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
-    worldPosition                     = savedCursor - 1;
-    worldPosition->vx                 = rootCoord->workm.t[0];
-    worldPosition->vy                 = rootCoord->workm.t[1];
-    worldPosition->vz                 = rootCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    enemy                                     = task->spawnArg2.pointer;
+    rootCoord                                 = task->extra.tmd->coords;
+    cursorSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                               = SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR);
+    worldPosition                             = savedCursor - 1;
+    worldPosition->vx                         = rootCoord->workm.t[0];
+    worldPosition->vy                         = rootCoord->workm.t[1];
+    worldPosition->vz                         = rootCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = worldPosition;
     _actor107600UpdateTargetColor(enemy, worldPosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Rebuilds a gallery target's local rotation from its wrapped Euler angles.
@@ -2682,14 +2682,14 @@ static void _actor107600MeasureTargetPlayerDistance(Task* task)
     VECTOR*                 offset;
     s32                     distance;
 
-    work                               = task->work;
-    rootCoord                          = task->extra.tmd->coords;
-    scratchSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                        = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
-    offset                             = savedCursor - 1;
-    SCRATCH_HEAD_AT(scratchSlot, void) = offset;
+    work                                       = task->work;
+    rootCoord                                  = task->extra.tmd->coords;
+    scratchSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                                = SCRATCH_STACK_CURSOR_AT(scratchSlot, VECTOR);
+    offset                                     = savedCursor - 1;
+    SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = offset;
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] == NULL) {
-        SCRATCH_HEAD_AT(scratchSlot, void) = savedCursor;
+        SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = savedCursor;
         return;
     }
     // Read local translations directly; the parent hierarchy is not composed here.
@@ -2698,7 +2698,7 @@ static void _actor107600MeasureTargetPlayerDistance(Task* task)
     offset->vy  = playerCoord->coord.t[1] - rootCoord->coord.t[1];
     offset->vz  = playerCoord->coord.t[2] - rootCoord->coord.t[2];
     distance    = playerActorPlanarLength(offset->vx, offset->vz);
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*offset));
     // Keep the call result live until the scratch cursor is restored.
     work->playerDistance = distance;
 }
@@ -2714,18 +2714,18 @@ static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord)
     VECTOR* savedCursor;
     VECTOR* offset;
 
-    scratchSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                        = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
-    offset                             = savedCursor - 1;
-    SCRATCH_HEAD_AT(scratchSlot, void) = offset;
-    offset->vx                         = 0;
-    offset->vy                         = -0x180;
-    offset->vz                         = 0;
+    scratchSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                                = SCRATCH_STACK_CURSOR_AT(scratchSlot, VECTOR);
+    offset                                     = savedCursor - 1;
+    SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = offset;
+    offset->vx                                 = 0;
+    offset->vy                                 = -0x180;
+    offset->vz                                 = 0;
     ApplyMatrixLV(&rootCoord->coord, offset, offset);
     rootCoord->coord.t[0] = offset->vx;
     rootCoord->coord.t[1] = offset->vy;
     // Cursor restoration leaves these bytes intact for the final Z read.
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*offset));
     rootCoord->coord.t[2] = offset->vz;
 }
 

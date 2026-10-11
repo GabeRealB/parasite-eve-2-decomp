@@ -2715,7 +2715,7 @@ static void _actor03800DrawGroundShadow(Task* task)
         effectDrawGroundShadow(&shadowPosition, ACTOR_03800_FLOOR_SHADOW_SIZE, work->shadowShade);
         return;
     }
-    viewYDisplacement = worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), &shadowPosition);
+    viewYDisplacement = worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->workm), &shadowPosition);
     if (viewYDisplacement != 0) {
         effectDrawGroundShadow(&shadowPosition, ACTOR_03800_PERCH_SHADOW_SIZE, effectGetGroundShadowShade(ACTOR_03800_PERCH_SHADOW_SIZE, ACTOR_03800_SHADOW_SHADE, viewYDisplacement));
     }

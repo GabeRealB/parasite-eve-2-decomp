@@ -945,13 +945,13 @@ static void _actor123200Update(Enemy* enemy, Task* task)
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_123200_STATE_HIDDEN) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_123200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_123200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_123200_STATE_HIDDEN) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_123200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_123200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:

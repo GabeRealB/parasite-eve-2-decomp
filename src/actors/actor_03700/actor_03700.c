@@ -1769,16 +1769,16 @@ static s32 _actor03700NoticePlayer(Task* task)
     u32       soundId;
     s32       pan;
 
-    cursorSlot                           = SCRATCH_HEAD_ADDR;
-    scratchTop                           = SCRATCH_HEAD_AT(cursorSlot, SVECTOR);
-    playerOffset                         = scratchTop - 1;
-    coord                                = task->extra.tmd->coords;
-    playerOffset->vx                     = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    offsetZ                              = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = playerOffset;
-    playerOffset->vz                     = offsetZ;
-    offsetX                              = (scratchTop - 1)->vx;
-    noticed                              = 0;
+    cursorSlot                                   = SCRATCH_STACK_CURSOR_SLOT;
+    scratchTop                                   = SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR);
+    playerOffset                                 = scratchTop - 1;
+    coord                                        = task->extra.tmd->coords;
+    playerOffset->vx                             = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    offsetZ                                      = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) = playerOffset;
+    playerOffset->vz                             = offsetZ;
+    offsetX                                      = (scratchTop - 1)->vx;
+    noticed                                      = 0;
     if ((SquareRoot0((offsetX * offsetX) + (offsetZ * offsetZ)) < ACTOR_03700_NOTICE_RADIUS) || (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_MASK)) || (gSceneCombatState.actor03700Flags & SCENE_COMBAT_ACTOR03700_ALERT)) {
         noticed = 1;
         sceneEngageBattle(noticed);

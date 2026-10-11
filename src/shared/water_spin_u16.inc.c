@@ -84,5 +84,5 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_AT(scratchCursor, EffectShapeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectShapeScratch);
 }

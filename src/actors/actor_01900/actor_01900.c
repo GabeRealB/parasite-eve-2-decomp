@@ -3738,11 +3738,11 @@ static inline void _actor01900DrawStateShadow(Task* task, _Actor01900Work* work)
     actorState = work->state;
     if ((actorState != ACTOR_01900_STATE_HIDDEN) && (actorState != ACTOR_01900_STATE_DEATH_BURN) && (actorState != ACTOR_01900_STATE_DEATH_BURST) && (actorState != ACTOR_01900_STATE_DEATH_BURST_WALK)) {
         task->extra.tmd->flags = 0;
-        effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_01900_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_01900_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         actorState = work->state;
     }
     if ((actorState == ACTOR_01900_STATE_DEATH_BURST_WALK) && (work->animId == ACTOR_01900_ANIM_WALK)) {
-        effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_01900_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_01900_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
 }
 

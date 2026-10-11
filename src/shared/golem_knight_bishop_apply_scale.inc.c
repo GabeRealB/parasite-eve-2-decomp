@@ -12,8 +12,8 @@ static void _golemKnightBishopApplyScale(Task* task)
     GfxCoord*              root;
     GolemKnightBishopWork* work;
 
-    cursorSlot  = SCRATCH_HEAD_ADDR;
-    scaleMatrix = SCRATCH_PUSH_AT(cursorSlot, MATRIX);
+    cursorSlot  = SCRATCH_STACK_CURSOR_SLOT;
+    scaleMatrix = SCRATCH_STACK_RESERVE_BLOCK_AT(cursorSlot, MATRIX);
     root        = &task->extra.tmd->coords[0];
     work        = task->work;
 
@@ -21,5 +21,5 @@ static void _golemKnightBishopApplyScale(Task* task)
     gfxSetRotIdentity(scaleMatrix);
     ScaleMatrix(scaleMatrix, &work->scale);
     MulMatrix(&root->coord, scaleMatrix);
-    SCRATCH_POP_AT(cursorSlot, MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, MATRIX);
 }

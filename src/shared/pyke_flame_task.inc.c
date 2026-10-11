@@ -82,7 +82,7 @@ static inline void _pykeFlameTask(Task* task)
 #if PYKE_FLAME_REDRAW_UPDATES_COORD
         actorRenderComposeCoord(coord);
 #endif
-        _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+        _pykeFlameDrawBlob(GRAPHICS_MATRIX_TRANSLATION(&coord->workm),
                            (work->age >> 1) + 1, work->scale, work->angle);
         return;
     }
@@ -132,7 +132,7 @@ static inline void _pykeFlameTask(Task* task)
             flightEnd.vx = coord->workm.t[0];
             flightEnd.vy = coord->workm.t[1];
             flightEnd.vz = coord->workm.t[2];
-            _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+            _pykeFlameDrawBlob(GRAPHICS_MATRIX_TRANSLATION(&coord->workm),
                                (work->age >> 1) + 1, work->scale,
                                work->angle);
             splashRandom    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -140,7 +140,7 @@ static inline void _pykeFlameTask(Task* task)
             if ((u16)((splashRandom >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
                 worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
                 // Only projected XYZ feed the splash; the temporary's rotation stays unspecified.
-                _pykeFlameDrawSplash(MATRIX_TRANS(&groundCoord.workm), (s16)((work->scale * 2) / 3));
+                _pykeFlameDrawSplash(GRAPHICS_MATRIX_TRANSLATION(&groundCoord.workm), (s16)((work->scale * 2) / 3));
             }
             if (worldCollisionCountContactsByKind(flame->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&flame->body);
@@ -168,7 +168,7 @@ static inline void _pykeFlameTask(Task* task)
         case PYKE_FLAME_STATE_DRIFT:
             work->scale = work->scale + PYKE_FLAME_DRIFT_SIZE_STEP;
             _pykeFlameAdvanceCoord(coord, work);
-            _pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
+            _pykeFlameDrawBlob(GRAPHICS_MATRIX_TRANSLATION(&coord->workm),
                                (work->age >> 1) + 1, work->scale,
                                work->angle);
             if (work->age >= PYKE_FLAME_LIFETIME_TICKS) {

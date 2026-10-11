@@ -13,11 +13,11 @@ static void _maggotCaterpillarShrinkNode2(Task* actor)
     ActorScaleScratch* scratch;
     GfxCoord*          coords;
 
-    cursorSlot                                     = SCRATCH_HEAD_ADDR;
-    scratchEnd                                     = SCRATCH_HEAD_AT(cursorSlot, ActorScaleScratch);
-    scratch                                        = scratchEnd - 1;
-    SCRATCH_HEAD_AT(cursorSlot, ActorScaleScratch) = scratch;
-    coords                                         = actor->extra.tmd->coords;
+    cursorSlot                                             = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd                                             = SCRATCH_STACK_CURSOR_AT(cursorSlot, ActorScaleScratch);
+    scratch                                                = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, ActorScaleScratch) = scratch;
+    coords                                                 = actor->extra.tmd->coords;
 
     scratch->scale.vx = ONE / 16;
     scratch->scale.vy = ONE / 16;
@@ -25,5 +25,5 @@ static void _maggotCaterpillarShrinkNode2(Task* actor)
     gfxSetRotIdentity(&scratch->matrix);
     ScaleMatrix(&scratch->matrix, &scratch->scale);
     MulMatrix(&coords[2].coord, &scratch->matrix);
-    SCRATCH_POP_AT(cursorSlot, ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, ActorScaleScratch);
 }

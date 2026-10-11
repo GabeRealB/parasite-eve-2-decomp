@@ -2357,7 +2357,7 @@ static void _actor361100TickAyaBrea(Task* task)
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         // Sample the cached second-part position before recomposing it.
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
             effectDrawGroundShadow(&groundPosition, ACTOR_361100_AYA_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

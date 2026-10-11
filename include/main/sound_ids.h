@@ -18,14 +18,53 @@ enum {
     SOUND_BANK_TYPE_AREA      = 5, // A room's bank: stage in bits 8..11 of the bank, area in 0..7
 };
 
-#define SOUND_ID(type, bank, entry) ((s32)(((u32)(type) << 28) | ((u32)(bank) << 16) | (u32)(entry)))
-/// An entry of a room's bank, given its stage and area.
+/// Packs a sound-script bank and entry into a signed 32-bit request id.
+///
+/// `bankType` is 0..15, `bank` is 0..4095, and `entry` is 0..255.
+/// They occupy bits 31..28, 27..16 and 7..0 respectively; bits 15..8
+/// start at zero for a caller to OR in an instance tag. Each argument is
+/// evaluated once, in unspecified order, and converted to `u32` before
+/// shifting. No masking or range checking occurs. The final `s32` cast
+/// preserves the bit pattern expected by the request APIs, including types
+/// 8..15. Constant arguments produce an integer constant expression.
+///
+/// Packing does not load a bank or validate an entry. Starts require a loaded
+/// bank and a present script entry. For stop/mute selectors, bank and entry
+/// both zero select the whole type; an entry-zero bank base may also be ORed
+/// with a runtime entry before requesting playback.
+#define SOUND_ID(bankType, bank, entry) ((s32)(((u32)(bankType) << 28) | ((u32)(bank) << 16) | (u32)(entry)))
+
+/// Packs a sound-script entry from a stage's area bank.
+///
+/// `stage` is 0..15 and `area` is 0..255, forming the 12-bit bank number
+/// `(stage << 8) | area`. `entry` is a byte index in that bank. Arguments
+/// are evaluated once in unspecified order, without masking or validation;
+/// the result and instance-tag rules are those of `SOUND_ID`. The bank must
+/// already be loaded for playback; this does not resolve the current location.
 #define SOUND_AREA(stage, area, entry) SOUND_ID(SOUND_BANK_TYPE_AREA, ((stage) << 8) | (area), (entry))
-/// An entry of a character's bank.
+
+/// Packs a sound-script entry from a character bank.
+///
+/// `bank` is a 12-bit bank number and `entry` is a byte index. Both are
+/// evaluated once, without masking or validation, following `SOUND_ID`.
+/// The bank identifies the loaded resource, which may serve several actors;
+/// it is independent of an actor's runtime instance tag in bits 15..8.
 #define SOUND_CHARACTER(bank, entry) SOUND_ID(SOUND_BANK_TYPE_CHARACTER, (bank), (entry))
-/// An entry of a weapon's bank.
+
+/// Packs a sound-script entry from a weapon bank.
+///
+/// `bank` is a 12-bit bank number and `entry` is a byte index. Both are
+/// evaluated once, without masking or validation, following `SOUND_ID`.
+/// Zero bank bits can form a base for the caller to OR in the selected weapon
+/// and ammunition variant; zero does not select the current weapon by itself.
 #define SOUND_WEAPON(bank, entry) SOUND_ID(SOUND_BANK_TYPE_WEAPON, (bank), (entry))
-/// An entry of the always-loaded common bank.
+
+/// Packs a sound-script entry from common bank zero, shared by gameplay and UI.
+///
+/// `entry` is a byte index, evaluated once without masking or validation.
+/// The signed result follows `SOUND_ID`, with bank/type and instance bits zero.
+/// Callers may OR in an instance tag; the common bank must be initialized
+/// before playback, and the entry must exist in its loaded script image.
 #define SOUND_COMMON(entry) SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, (entry))
 
 /// Character and weapon banks, by the code that plays them.

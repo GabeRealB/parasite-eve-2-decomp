@@ -141,18 +141,58 @@ static __inline__ void _scratchStackSetCursor(void* cursor)
 /// expression captures no caller variables.
 #define SCRATCH_STACK_RELEASE_BYTES(byteCount) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + (byteCount))
 
-/// The address of the stack pointer, for a function that keeps it in a local
-/// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
-#define SCRATCH_HEAD_ADDR (SCRATCH_STACK_CURSOR_SLOT)
+/// Writable typed view of the scratch-stack cursor through a caller-held slot address.
+///
+/// `cursorSlot` addresses the word holding the absolute cursor, normally a
+/// local initialized from `SCRATCH_STACK_CURSOR_SLOT`; it is not a block
+/// address. Evaluates the slot expression once. `type` supplies only a pointee
+/// type, valid in a `type**` cast (`void` for an untyped cursor). Reading loads
+/// one pointer, assignment replaces it, and a compound update reads/writes it
+/// once. Taking its address returns the slot as `type**` without reading it.
+///
+/// The type view reserves nothing and proves no live object or extent. Use
+/// the initialization, alignment, bounds and lifetime rules of
+/// `SCRATCH_STACK_CURSOR`. Captures no caller identifiers; the slot's stored
+/// pointer is deliberately reinterpreted for element-sized operations.
+#define SCRATCH_STACK_CURSOR_AT(cursorSlot, type) (*(type**)(cursorSlot))
 
-/// `SCRATCH_STACK_CURSOR`, `SCRATCH_STACK_RESERVE_BLOCK` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
-#define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
+/// Reserves one uninitialized block through a caller-held scratch cursor slot.
+///
+/// `cursorSlot` follows `SCRATCH_STACK_CURSOR_AT` and is evaluated once.
+/// `blockType` is a complete fixed-size object type: the cursor moves down
+/// one element, by `sizeof(blockType)` bytes, and the expression returns the
+/// new block address as `blockType*`. No block data is accessed or cleared.
+/// Requires an initialized cursor, enough disjoint scratchpad storage below
+/// it, and alignment for the block; no bounds checks or rounding occur.
+/// Release in reverse order. Captures no caller variables.
+#define SCRATCH_STACK_RESERVE_BLOCK_AT(cursorSlot, blockType) (SCRATCH_STACK_CURSOR_AT(cursorSlot, blockType) -= 1)
 
-#define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)
+/// Releases one block through a caller-held scratch cursor slot.
+///
+/// `cursorSlot` follows `SCRATCH_STACK_CURSOR_AT` and is evaluated once.
+/// `blockType` is a complete fixed-size type matching the released extent;
+/// the initialized cursor advances by `sizeof(blockType)` bytes. Release in
+/// reverse reservation order, without passing the empty cursor position.
+/// Returns the updated cursor as `blockType*`, which may point to a different
+/// enclosing block or to the slot itself, not to a live `blockType` object.
+/// Released bytes are untouched and must no longer be used. No bounds checks,
+/// clearing or caller-variable capture occur.
+#define SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, blockType) (SCRATCH_STACK_CURSOR_AT(cursorSlot, blockType) += 1)
 
-#define SCRATCH_POP_AT(head, type) (*(type**)(head) += 1)
-
-/// `SCRATCH_STACK_RELEASE_BYTES` through such a local.
-#define SCRATCH_POP_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) + (n))
+/// Releases a byte extent through a caller-held scratch cursor slot.
+///
+/// `byteCount` is the reservation's byte length, evaluated once. Advances
+/// the initialized cursor by that length and returns its new address as
+/// `void*`; the result need not address a live block. Release in reverse order
+/// and stay at or below the empty position at the slot. Released storage is
+/// untouched, becomes available for reuse and must no longer be used.
+///
+/// `cursorSlot` follows `SCRATCH_STACK_CURSOR_AT`, but occurs twice here,
+/// once for reading and once for writing: it must have no side effects and
+/// identify the same slot both times. Evaluation order relative to `byteCount`
+/// is unspecified; the count must not modify the slot. No bounds/alignment
+/// checks, clearing or caller-variable capture occur. The byte cast measures
+/// an extent independently of the block's object type.
+#define SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, byteCount) (SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = (u8*)SCRATCH_STACK_CURSOR_AT(cursorSlot, void) + (byteCount))
 
 #endif // MAIN_SCRATCH_H

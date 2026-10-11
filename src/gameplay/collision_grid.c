@@ -455,7 +455,7 @@ void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
                         if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
                             void** scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT;
 
-                            SCRATCH_POP_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch);
+                            SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch);
                             return;
                         }
                         break;

@@ -4092,15 +4092,15 @@ static void _actor01100ScaleMatrixColumns(MATRIX* matrix, VECTOR* scale)
     void**   cursorSlot;
     SVECTOR* column;
 
-    cursorSlot                           = SCRATCH_HEAD_ADDR;
-    column                               = SCRATCH_HEAD_AT(cursorSlot, SVECTOR) - 1;
-    SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = column;
+    cursorSlot                                   = SCRATCH_STACK_CURSOR_SLOT;
+    column                                       = SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) - 1;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) = column;
 
     SCALE_COL(matrix, column, 0, scale->vx);
     SCALE_COL(matrix, column, 1, scale->vy);
     SCALE_COL(matrix, column, 2, scale->vz);
 
-    SCRATCH_POP_AT(cursorSlot, SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, SVECTOR);
 }
 
 /// Returns a player or companion slot's bearing about `self`'s cached axes.
@@ -4145,16 +4145,16 @@ static s32 _actor01100MeasurePlayerDistanceSquared(const GfxCoord* self)
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (playerTask != NULL) {
-        playerCoord                          = playerTask->extra.tmd->coords;
-        cursorSlot                           = SCRATCH_HEAD_ADDR;
-        cursor                               = SCRATCH_HEAD_AT(cursorSlot, SVECTOR);
-        delta                                = cursor - 1;
-        delta->vx                            = (u16)playerCoord->workm.t[0] - (u16)self->workm.t[0];
-        delta->vy                            = (u16)playerCoord->workm.t[1] - (u16)self->workm.t[1];
-        SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = delta;
-        delta->vz                            = (u16)playerCoord->workm.t[2] - (u16)self->workm.t[2];
-        distanceSquared                      = gfxDotProduct(delta, delta);
-        SCRATCH_POP_AT(cursorSlot, SVECTOR);
+        playerCoord                                  = playerTask->extra.tmd->coords;
+        cursorSlot                                   = SCRATCH_STACK_CURSOR_SLOT;
+        cursor                                       = SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR);
+        delta                                        = cursor - 1;
+        delta->vx                                    = (u16)playerCoord->workm.t[0] - (u16)self->workm.t[0];
+        delta->vy                                    = (u16)playerCoord->workm.t[1] - (u16)self->workm.t[1];
+        SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) = delta;
+        delta->vz                                    = (u16)playerCoord->workm.t[2] - (u16)self->workm.t[2];
+        distanceSquared                              = gfxDotProduct(delta, delta);
+        SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, SVECTOR);
     } else {
         distanceSquared = INT_MAX;
     }

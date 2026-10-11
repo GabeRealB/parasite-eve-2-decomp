@@ -22195,7 +22195,7 @@ offsets 2 and 3 in both the normal sample and input-block expiry path:
 buttons = _padSampleRawButtons(scratch, &gPadRawPorts[port]);
 ```
 
-Its scratch reservation is `scratch = SCRATCH_PUSH_AT(scratchHead, _PadScratch)`.
+Its scratch reservation is `scratch = SCRATCH_STACK_RESERVE_BLOCK_AT(scratchHead, _PadScratch)`.
 This also produces `lw v0; addiu v0,-N; move s1,v0; sw s1` without register
 pins or an empty assembly barrier. The earlier two-phase scratch allocation
 and modified-walker assembly were reconstruction scaffolding.
@@ -29320,11 +29320,11 @@ move  a0, v0
 lets the add live in `$v0` while `$a0` is still the arena pointer:
 
 ```c
-scratch                     = SCRATCH_HEAD_ADDR;
+scratch                     = SCRATCH_STACK_CURSOR_SLOT;
 color                       = 0x808008;  /* named local → $a1 */
-head                        = SCRATCH_HEAD_AT(scratch, T);
+head                        = SCRATCH_STACK_CURSOR_AT(scratch, T);
 tmp                         = head - 1;  /* sizeof(T) is the N above */
-SCRATCH_HEAD_AT(scratch, T) = tmp;
+SCRATCH_STACK_CURSOR_AT(scratch, T) = tmp;
 s                           = tmp;       /* move a0, v0 */
 ```
 
@@ -30840,7 +30840,7 @@ pointer in `$a0`:
 ```c
 cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - gFsActorBuffer2Base;
 if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-    cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
+    cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - GAME_DEBUG_FIXED_REPLAY_BASE;
 }
 /* later: gGameDebugReplayCursor->buttons */
 ```
@@ -44784,7 +44784,7 @@ register (`lui/ori v1` shared by the push's load and store, then a fresh
 `lui/ori` for the pop). Inlining the helper there gives the per-access form
 instead (79%), and so does changing the helper. The standalone body matches
 unpinned when the push goes through a local and the pop does not:
-`void** head = SCRATCH_HEAD_ADDR; SCRATCH_PUSH_AT(head, T); d = SCRATCH_HEAD_AT(head, T);`
+`void** head = SCRATCH_STACK_CURSOR_SLOT; SCRATCH_STACK_RESERVE_BLOCK_AT(head, T); d = SCRATCH_STACK_CURSOR_AT(head, T);`
 … `SCRATCH_STACK_RELEASE_BLOCK(T);`. So when an inline helper and a standalone function share
 a body but differ only in how the head address is formed, treat that as the
 inline boundary at work, not as evidence of a different source.
@@ -57239,7 +57239,7 @@ cast in the caller:
 ```c
 static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize);   /* header */
 
-_pykeFlameDrawSplash(MATRIX_TRANS(&groundCoord.workm), (s16)((work->scale * 2) / 3));
+_pykeFlameDrawSplash(GRAPHICS_MATRIX_TRANSLATION(&groundCoord.workm), (s16)((work->scale * 2) / 3));
 ```
 
 The cast is the same conversion the prototype used to perform, so the caller is
@@ -68794,7 +68794,7 @@ by `sizeof(VECTOR)`: `addiu s0,s1,-0x100` where the target has `-0x10`, and
 carve in element units (`temp_s1 - 1`) or against a byte cursor:
 
 ```c
-savedCursor = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
+savedCursor = SCRATCH_STACK_CURSOR_AT(scratchSlot, VECTOR);
 offset = savedCursor - 1;
 ```
 
@@ -76912,7 +76912,7 @@ Example: `_actor107600ApplyTargetScale`.
 
 **Symptom.** `_actor107600MeasureTargetPlayerDistance` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
 calls `playerActorPlanarLength` for an XZ distance, then releases the block with
-`SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));`. It scored 93.57% with `regs=3 insert=2
+`SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*offset));`. It scored 93.57% with `regs=3 insert=2
 delete=1`: the reload came out in `$v0`, which forced it *after* the store of
 the call's result, so the load-delay slot had nothing to fill it and a `nop`
 appeared. The target has the reload in `$v1` with that store sitting in the
@@ -76930,7 +76930,7 @@ assembly is the delay-slot filler, not the source order.
 
 ```c
 distance = playerActorPlanarLength(offset->vx, offset->vz);
-SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));
+SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*offset));
 work->playerDistance = distance;
 ```
 
@@ -102154,7 +102154,7 @@ The seed kept the model pointer in a local `model` and passed `&groundPoint` fro
 ```c
 model = task->extra.tmd;
 ...
-if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&model->coords[1].workm), &groundPoint) != 0) {
+if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&model->coords[1].workm), &groundPoint) != 0) {
 ```
 
 Writing the same access the way the target reads it — a fresh load of
@@ -102162,7 +102162,7 @@ Writing the same access the way the target reads it — a fresh load of
 clobbered memory:
 
 ```c
-if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
 ```
 
 is the whole fix, 93.912% -> 100.000%.
@@ -106934,9 +106934,9 @@ immediate, not a statement.
 source shape alone does not give you:
 
 ```c
-    blockEnd = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
+    blockEnd = SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch);
     model = task->extra.tmd;     /* -> lw $v1,0x2c($s3)  */
-    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1; /* first use: 0x18 bytes below blockEnd */
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1; /* first use: 0x18 bytes below blockEnd */
     coordsModel = model;        /* -> addu $s5,$v1,$zero */
     block = blockEnd - 1;       /* -> addu $s2,$v0,$zero */
 ```
@@ -106989,7 +106989,7 @@ the target's prologue order (`move $s3,$a0` before `lui $a0`) then follows from
 the address living in `$a0`.
 
 **The store's operand order matters too.** With `block = blockEnd - 1;`
-written *before* `SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;`, CSE gives the store `block`'s register
+written *before* `SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;`, CSE gives the store `block`'s register
 and there is no copy; with the store first, CSE has to materialise a temporary
 for the store and the later `block` becomes a copy. Which of the two uses is
 written first is a real codegen decision, not style.
@@ -110564,7 +110564,7 @@ Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122e
 ```
 
 A compound assignment used as a value is that same form, so the typed
-`blk = SCRATCH_PUSH_AT(scratch, T);` (`*(T**)scratch -= 1`) matches as well and
+`blk = SCRATCH_STACK_RESERVE_BLOCK_AT(scratch, T);` (`*(T**)scratch -= 1`) matches as well and
 is how the function is written now.
 
 The quantity the copy changes is the **scratch-address constant**, and the
@@ -146450,7 +146450,7 @@ function-scope `scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT` before the inner 
 moved at all, so it lands *ahead* of the loop-moved giv copy.
 
 **Fix.** Declare the local inside each exit block
-(`void** scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT; SCRATCH_POP_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch); return;`).
+(`void** scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT; SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch); return;`).
 In the inner loop each set and its use share a basic block, which
 `scan_loop` accepts even for a user variable, so both are moved and matched
 into one preheader insn placed after the giv. In the outer loop that insn
@@ -148155,7 +148155,7 @@ intensityWork <<= 16;                      /* (b) sets intensityWork */
 halfIntensity   = intensityWork >> 17;
 ...loops using intensity...
 intensityWork = sizeof(RoomGlowRadiiScratch);                    /* (a) names intensityWork after intensity's last use */
-SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
+SCRATCH_STACK_RELEASE_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
 ```
 
 (a) `cse.c:make_regs_eqv`: at `intensity = intensityWork` the new register replaces the old
@@ -153626,10 +153626,10 @@ with a header comment that the scalar macro orders differently.
 | reservation | result |
 |---|---|
 | `column = SCRATCH_STACK_CURSOR(SVECTOR); work = task->work; column--; SCRATCH_STACK_CURSOR(SVECTOR) = column;` | 7 lines: store sinks below the `swellScale` load, into the first clamp's test |
-| same through a `void** head` local (`SCRATCH_HEAD_AT`) | the same 7 lines |
+| same through a `void** head` local (`SCRATCH_STACK_CURSOR_AT`) | the same 7 lines |
 | `column = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR); work = task->work;` | match |
 | `work = task->work; column = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);` | match |
-| `column = SCRATCH_PUSH_AT(head, SVECTOR);` before or after `work` | match |
+| `column = SCRATCH_STACK_RESERVE_BLOCK_AT(head, SVECTOR);` before or after `work` | match |
 
 **Mechanism.** The fixed-address scalar store has no dependence on the
 `mem/s` field load in either form (`anti_dependence`), so only priority places

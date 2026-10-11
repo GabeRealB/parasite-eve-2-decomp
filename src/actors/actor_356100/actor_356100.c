@@ -1330,8 +1330,8 @@ static __inline__ void _actorContactPushRoot(GfxCoord* coord, const WorldCollisi
     s32                      correctionWord;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != ACTOR_MOVEMENT_FROZEN) {
-        scratchCursor = SCRATCH_HEAD_ADDR;
-        scratchEnd    = SCRATCH_HEAD_AT(scratchCursor, ActorContactPushScratch);
+        scratchCursor = SCRATCH_STACK_CURSOR_SLOT;
+        scratchEnd    = SCRATCH_STACK_CURSOR_AT(scratchCursor, ActorContactPushScratch);
         SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
         push        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
         push->moved = 0;
@@ -1369,8 +1369,8 @@ static __inline__ s32 _actorContactPushRootAlways(GfxCoord* coord, const WorldCo
     ActorContactPushScratch* push;
     s32                      correctionWord;
 
-    scratchCursor = SCRATCH_HEAD_ADDR;
-    scratchEnd    = SCRATCH_HEAD_AT(scratchCursor, ActorContactPushScratch);
+    scratchCursor = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd    = SCRATCH_STACK_CURSOR_AT(scratchCursor, ActorContactPushScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
     push        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
     push->moved = 0;
@@ -2471,11 +2471,11 @@ static void _actor356100BackOff(Task* actor)
         return;
     }
     _actor356100UpdateAnimation(actor);
-    scratchCursor           = SCRATCH_HEAD_ADDR;
+    scratchCursor           = SCRATCH_STACK_CURSOR_SLOT;
     playerOffsetCoord       = actor->extra.tmd->coords;
-    scratchEnd              = SCRATCH_HEAD_AT(scratchCursor, ActorChaseScratch);
+    scratchEnd              = SCRATCH_STACK_CURSOR_AT(scratchCursor, ActorChaseScratch);
     scratchEnd[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - playerOffsetCoord->coord.t[0];
-    backOff                 = (SCRATCH_HEAD_AT(scratchCursor, ActorChaseScratch) = scratchEnd - 1);
+    backOff                 = (SCRATCH_STACK_CURSOR_AT(scratchCursor, ActorChaseScratch) = scratchEnd - 1);
     backOff->delta.vy       = gPlayerStatus.coordMtx->t[1] - playerOffsetCoord->coord.t[1];
     backOff->delta.vz       = gPlayerStatus.coordMtx->t[2] - playerOffsetCoord->coord.t[2];
     backOff->turn           = _actorAngleTurnToOffset(actor->extra.tmd->coords, scratchEnd[-1].delta.vx, backOff->delta.vz);
@@ -2838,13 +2838,13 @@ static void _actor356100Update(Enemy* enemy, Task* task)
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -2863,7 +2863,7 @@ static void _actor356100Update(Enemy* enemy, Task* task)
         scratch->shadowCoord.coord.t[2]   = scratch->viewPos.vz;
         scratch->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&scratch->shadowCoord);
-        effectDrawGroundShadow(MATRIX_TRANS(&scratch->shadowCoord.workm), ACTOR_356100_SCRIPTED_DEATH_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&scratch->shadowCoord.workm), ACTOR_356100_SCRIPTED_DEATH_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
     if (work->prevState != work->state) {
         work->stateEntered = 1;

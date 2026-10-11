@@ -14,14 +14,14 @@ static void _stalkerZebraIvoryUpdateColor(Task* task)
     u8*       scratchTop;
     VECTOR*   samplePosition;
 
-    sampleCoord                          = &task->extra.tmd->coords[1];
-    scratchCursor                        = SCRATCH_HEAD_ADDR;
-    scratchTop                           = SCRATCH_HEAD_AT(scratchCursor, void);
-    samplePosition                       = (VECTOR*)(scratchTop - sizeof(VECTOR));
-    samplePosition->vx                   = sampleCoord->workm.t[0];
-    samplePosition->vy                   = sampleCoord->workm.t[1];
-    samplePosition->vz                   = sampleCoord->workm.t[2];
-    SCRATCH_HEAD_AT(scratchCursor, void) = samplePosition;
+    sampleCoord                                  = &task->extra.tmd->coords[1];
+    scratchCursor                                = SCRATCH_STACK_CURSOR_SLOT;
+    scratchTop                                   = SCRATCH_STACK_CURSOR_AT(scratchCursor, void);
+    samplePosition                               = (VECTOR*)(scratchTop - sizeof(VECTOR));
+    samplePosition->vx                           = sampleCoord->workm.t[0];
+    samplePosition->vy                           = sampleCoord->workm.t[1];
+    samplePosition->vz                           = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(scratchCursor, void) = samplePosition;
     worldCoordUpdateActorColor(task->spawnArg2.pointer, samplePosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratchCursor, sizeof(VECTOR));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchCursor, sizeof(VECTOR));
 }

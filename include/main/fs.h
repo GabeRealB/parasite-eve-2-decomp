@@ -136,11 +136,6 @@ extern u8* gFsActorBuffer1Base;
 /// and complete prior transfers before repurposing it.
 extern u8* gFsActorBuffer2Base;
 
-/// Where a development unit holds the replay that `DISPLAY_DEMO_FIXED_REPLAY`
-/// plays, in memory a retail console does not have: the same save state and
-/// input record a demo otherwise reads from `gFsActorBuffer2Base`.
-#define FILE_SYSTEM_FIXED_REPLAY_BASE ((u8*)0x80600100)
-
 /// Starts STR playback; the first command-argument byte is a stream slot (0..14).
 enum { CD_COMMAND_PLAY_STREAM = 0x61 };
 

@@ -5207,7 +5207,7 @@ static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s1
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*block));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*block));
 }
 
 /// Draws an upright raw-texture debris billboard at a composed coordinate's translation.
@@ -5290,7 +5290,7 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 siz
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratchEnd - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(_AcropolisBridgeBillboardScratch));
+    SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(_AcropolisBridgeBillboardScratch));
 }
 
 /// Diagnostic when the Boss Stranger's node-order plan finds no candidate slot pair.

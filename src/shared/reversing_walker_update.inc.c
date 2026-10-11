@@ -68,7 +68,7 @@ static void _reverseWalkUpdate(Task* task)
     }
     // Use the cached position for the shadow before refreshing the part and lights.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[REVERSE_WALK_PRESENTATION_PART].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[REVERSE_WALK_PRESENTATION_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, REVERSE_WALK_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[REVERSE_WALK_PRESENTATION_PART].composeStamp = GRAPHICS_COORD_DIRTY;

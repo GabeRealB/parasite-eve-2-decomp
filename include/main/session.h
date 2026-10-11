@@ -43,7 +43,13 @@ struct Task;
 /// Warp and placement variant are outside the packed word and do not affect it.
 #define GAME_LOCATION_STAGE_AREA_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0)
 
-/// Selects the area and room-local view bytes of a packed location prefix.
+/// Masks a packed location prefix to compare area and room-local view across stages.
+///
+/// The `u32` integer constant expression 0x00FF00FF retains area in bits
+/// 23..16 and view in bits 7..0, clearing stage and room. Compare a masked
+/// `GAME_LOCATION_WORD(key)` with `GAME_LOCATION_KEY(0, area, 0, view)`.
+/// Equal area/view numbers in different stages or rooms compare equal;
+/// warp and placement variant lie outside the packed word.
 #define GAME_LOCATION_AREA_VIEW_MASK GAME_LOCATION_KEY(0, 0xFF, 0, 0xFF)
 
 /// Resident live world, input and script state shared by main and the overlays.

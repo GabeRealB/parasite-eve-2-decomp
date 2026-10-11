@@ -5549,13 +5549,13 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_403000_STATE_SCRIPTED_DISSOLVE && work->state != ACTOR_403000_STATE_DISSOLVE && work->state != ACTOR_403000_STATE_HIDDEN) {
                 actorTask->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actorTask->extra.tmd->coords->workm), ACTOR_403000_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actorTask->extra.tmd->coords->workm), ACTOR_403000_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_403000_STATE_SCRIPTED_DISSOLVE && work->state != ACTOR_403000_STATE_DISSOLVE && work->state != ACTOR_403000_STATE_HIDDEN) {
                 actorTask->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actorTask->extra.tmd->coords->workm), ACTOR_403000_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actorTask->extra.tmd->coords->workm), ACTOR_403000_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
             }
             _actor403000ClearFrameContacts(work);
             return;

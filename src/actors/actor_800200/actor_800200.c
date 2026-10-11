@@ -1229,12 +1229,12 @@ static void _actor800200UpdateMove(Task* task)
     s8                    updateRequests;
 
     // Reserve the block: the cursor on entry is the address one past its end.
-    cursorSlot                                        = SCRATCH_HEAD_ADDR;
-    blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
-    model                                             = task->extra.tmd;
-    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
-    coordsModel                                       = model;
-    block                                             = blockEnd - 1;
+    cursorSlot                                                = SCRATCH_STACK_CURSOR_SLOT;
+    blockEnd                                                  = SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch);
+    model                                                     = task->extra.tmd;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
+    coordsModel                                               = model;
+    block                                                     = blockEnd - 1;
 
     rootCoord = coordsModel->coords;
     actor     = task->work;
@@ -1283,7 +1283,7 @@ static void _actor800200UpdateMove(Task* task)
     actorRenderComposeCoord(rootCoord);
     _actor800200PublishMotionDirection(actor, rootCoord, block);
     if (!(coordsModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        effectDrawGroundShadow(MATRIX_TRANS(&rootCoord->workm), ACTOR_800200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->workm), ACTOR_800200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
@@ -1412,7 +1412,7 @@ static void _actor800200TickFreeIdle(Task* task)
         if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_IDLE_FOLLOW_DISTANCE) {
             _actor800200EnterPlayerFollow(task);
         } else {
-            playerTurnMagnitude = playerActorGetTurnToPoint(task, MATRIX_TRANS(&playerCoord->coord));
+            playerTurnMagnitude = playerActorGetTurnToPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
             if (playerTurnMagnitude < 0) {
                 playerTurnMagnitude = -playerTurnMagnitude;
             }
@@ -1470,7 +1470,7 @@ static void _actor800200TickArea26Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldJunkYardWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
                 return;
@@ -1478,7 +1478,7 @@ static void _actor800200TickArea26Route(Task* task)
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldJunkYardWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     _actor800200EnterTimedWait(task, 0);
@@ -1544,7 +1544,7 @@ static void _actor800200TickArea23Route1(Task* task)
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule1Waypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
                 return;
@@ -1552,7 +1552,7 @@ static void _actor800200TickArea23Route1(Task* task)
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule1Waypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     _actor800200EnterTimedWait(task, 0);
@@ -1624,7 +1624,7 @@ static void _actor800200TickSchedule3Route(Task* task)
     switch (actor->stateAux) {
         case ACTOR_800200_SCHEDULE3_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200Schedule3Waypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     // Keep the original animation request followed by approach entry.
                     actor->stateAux       = ACTOR_800200_SCHEDULE3_AWAIT_PHASE;
@@ -1701,13 +1701,13 @@ static void _actor800200TickArea23Route7(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule7Waypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule7Waypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1750,13 +1750,13 @@ static void _actor800200TickArea22Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldBreezewayWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldBreezewayWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1818,7 +1818,7 @@ static void _actor800200TickArea20Route7(Task* task)
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldWaterTowerWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
                 return;
@@ -1826,7 +1826,7 @@ static void _actor800200TickArea20Route7(Task* task)
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldWaterTowerWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     _actor800200EnterTimedWait(task, 0);
@@ -1894,7 +1894,7 @@ static void _actor800200TickArea4Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_PLAY_ANIMATION;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fHeliportWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
         case ACTOR_800200_ROUTE_PLAY_ANIMATION:
@@ -1903,7 +1903,7 @@ static void _actor800200TickArea4Route(Task* task)
             return;
         case ACTOR_800200_ROUTE_TRAVEL_AFTER_ANIMATION:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fHeliportWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1968,13 +1968,13 @@ static void _actor800200TickArea2Route(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fVehicularAirlockWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fVehicularAirlockWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2020,13 +2020,13 @@ static void _actor800200TickArea5Route(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fAirlockWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fAirlockWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2066,14 +2066,14 @@ static void _actor800200TickArea1Route(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fParkingGarageWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             _actor800200EnterRouteAnimation(task);
             break;
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fParkingGarageWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2113,14 +2113,14 @@ static void _actor800200TickArea20Route8To10(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200ShelterB1UndergroundParkingWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             _actor800200EnterRouteAnimation(task);
             return;
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200ShelterB1UndergroundParkingWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2161,12 +2161,12 @@ static void _actor800200TickArea19Route(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1AccessTunnelWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1AccessTunnelWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2209,12 +2209,12 @@ static void _actor800200TickArea15Route(Task* task)
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1MainCorridorWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
         case ACTOR_800200_ROUTE_TRAVEL:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1MainCorridorWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -2327,7 +2327,7 @@ static void _actor800200TickPlayerFollow(Task* task)
         default:
             break;
     }
-    playerPosition = MATRIX_TRANS(&playerCoord->coord);
+    playerPosition = GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord);
     playerActorTurnBodyTowardPoint(task, playerPosition);
     playerActorTurnAimTowardPoint(task, playerPosition);
 }
@@ -2403,7 +2403,7 @@ static void _actor800200TickTargetTurn(Task* task)
         default:
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
@@ -2467,7 +2467,7 @@ static void _actor800200TickActionBurst(Task* task)
                 if (turnDelta < 0) {
                     turnDelta = -turnDelta;
                 }
-                if ((turnDelta >= ACTOR_800200_ACTION_TURN_ANGLE) && (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), focusPosition) >= ACTOR_800200_ACTION_TURN_DISTANCE)) {
+                if ((turnDelta >= ACTOR_800200_ACTION_TURN_ANGLE) && (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), focusPosition) >= ACTOR_800200_ACTION_TURN_DISTANCE)) {
                     currentActor = task->work;
                     _actor800200ResetTargetTurn(currentActor);
                 } else {
@@ -2557,7 +2557,7 @@ static void _actor800200TickApproach(Task* task)
             }
             break;
         case ACTOR_800200_DESTINATION_TRAVEL_PHASE:
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_APPROACH_ARRIVAL_LIMIT ||
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_APPROACH_ARRIVAL_LIMIT ||
                 playerActorHasWallContact(task) != 0) {
                 companionEnterIdle(task, 0);
             } else {
@@ -2593,7 +2593,7 @@ static inline void _actor800200InitWaitDelay(Task* task, GameActor* actor, const
         actor->targetNode = targetNode;
         if ((targetNode != NULL) && !(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             worldTargetGetBodyPosition(targetNode, targetPosition);
-            distanceBucket = playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), targetPosition);
+            distanceBucket = playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), targetPosition);
             distanceBucket = distanceBucket / ACTOR_800200_WAIT_BUCKET_UNITS;
             if (distanceBucket >= ACTOR_800200_WAIT_BUCKET_COUNT) {
                 distanceBucket = ACTOR_800200_WAIT_BUCKET_COUNT - 1;
@@ -2666,7 +2666,7 @@ static void _actor800200TickTimedWait(Task* task)
             }
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
@@ -3366,7 +3366,7 @@ static void _actor800200TickArea24Route1(Task* task)
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
         ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200DryfieldGarageWaypoints, companion->waypointIndex);
-        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+        if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterTimedWait(task, 0);
             return;
@@ -3395,7 +3395,7 @@ static void _actor800200TickArea25Route1(Task* task)
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
         ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200DryfieldDrivewayWaypoints, companion->waypointIndex);
-        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+        if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterTimedWait(task, 0);
             return;
@@ -3438,7 +3438,7 @@ static void _actor800200TickArea3Route(Task* task)
     switch (routePhase) {
         case ACTOR_800200_BULWARK_APPROACH:
             ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200Shelter1fBulwarkWaypoints, companion->waypointIndex);
-            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+            if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
                     _actor800200EnterRouteAnimation(task);
@@ -3470,7 +3470,7 @@ static void _actor800200TickArea24Route10(Task* task)
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
         ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1TransferTunnelWaypoints, companion->waypointIndex);
-        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
+        if (playerActorPlanarDistance(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterRouteAnimation(task);
             return;
@@ -3574,7 +3574,7 @@ static void _actor800200TickRest(Task* task)
         case ACTOR_800200_REST_EXIT_PHASE:
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
 }
 
 /// Returns to companion idle when the one-shot route animation completes.

@@ -14,11 +14,11 @@ static inline void _oddStrangerDrawFrameShadow(Task* actor, const OddStrangerWor
 
     if ((state != ODD_STRANGER_STATE_HIDDEN) && (state != ODD_STRANGER_STATE_DEATH_BURN) && (state != ODD_STRANGER_STATE_DEATH_BURST) && (state != ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
         actor->extra.tmd->flags = 0;
-        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         state = work->state;
     }
     if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == ODD_STRANGER_ANIM_WALK)) {
-        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
 }
 

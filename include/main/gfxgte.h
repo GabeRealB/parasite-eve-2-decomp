@@ -68,18 +68,26 @@ static __inline__ void _gfxScaleMatrixColumns(MATRIX* matrix, const VECTOR* scal
 {
     SVECTOR* column;
 
-    /// Gathers, Q12-scales and scatters one basis column using an `SVECTOR`.
+    /// Scales one matrix basis column in place using a borrowed short-vector workspace.
     ///
-    /// `axis` is a constant in 0..2. Pointer arguments are evaluated repeatedly
-    /// and must have no side effects; `factor` is evaluated once after gathering
-    /// the column. Captures no caller identifiers; used only in this function.
+    /// `axis` must be an integer constant in 0..2 for the GTE load/store
+    /// displacements. `factor` supplies a signed low-halfword Q12 multiplier
+    /// (`ONE` is unity), evaluated once after gathering the original column.
+    /// Products shift right by 12 and saturate to signed 16 bits.
+    /// `matrix` is evaluated twice and `column` four times; both must be
+    /// side-effect-free pointers to disjoint halfword-aligned storage. Only
+    /// the three selected coefficients and workspace xyz are read/written;
+    /// translation and the workspace's fourth halfword are untouched.
+    /// Overwrites GTE IR0..3, MAC1..3, RGB0..2 and FLAG plus CPU $12..$14.
+    /// A statement block with no return, allocation or captured identifiers;
+    /// defined and undefined around this function's three calls only.
 #define GRAPHICS_SCALE_MATRIX_COLUMN(matrix, column, axis, factor) \
     {                                                              \
         gte_ReadMatrixColumn((matrix), (axis), (column));          \
-        gte_lddp(factor);                                          \
-        gte_ldsv(column);                                          \
+        gte_lddp((factor));                                        \
+        gte_ldsv((column));                                        \
         gte_gpf12();                                               \
-        gte_stsv(column);                                          \
+        gte_stsv((column));                                        \
         gte_WriteMatrixColumn((column), (matrix), (axis));         \
     }
 

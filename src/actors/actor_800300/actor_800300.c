@@ -828,10 +828,10 @@ static void _actor800300UpdateMove(Task* task)
     s32                   bodyIndex;
     s8                    updateRequests;
 
-    cursorSlot                                        = SCRATCH_HEAD_ADDR;
-    blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
-    model                                             = task->extra.tmd;
-    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
+    cursorSlot                                                = SCRATCH_STACK_CURSOR_SLOT;
+    blockEnd                                                  = SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch);
+    model                                                     = task->extra.tmd;
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
     // Retain the two model locals so the frame prologue keeps its original scheduling.
     coordsModel = model;
     block       = blockEnd - 1;
@@ -881,7 +881,7 @@ static void _actor800300UpdateMove(Task* task)
     actorRenderComposeCoord(rootCoord);
     _actor800300PublishMotionDirection(actor, rootCoord, block);
     if (!(coordsModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), &block->shadowCentre) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->workm), &block->shadowCentre) != 0) {
             effectDrawGroundShadow(&block->shadowCentre, ACTOR_800300_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
@@ -1216,7 +1216,7 @@ static void _actor800300FollowPlayerState(Task* task)
             }
             break;
     }
-    playerPoint = MATRIX_TRANS(&playerCoord->coord);
+    playerPoint = GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord);
     playerActorTurnBodyTowardPoint(task, playerPoint);
     playerActorTurnAimTowardPoint(task, playerPoint);
     playerActorPlayFootstepCue(task);
@@ -1290,7 +1290,7 @@ static void _actor800300TurnToTargetState(Task* task)
             }
             break;
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
     playerActorPlayFootstepCue(task);
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800300_TARGET_POINT_SCRATCH_BYTES);
 }
@@ -1345,7 +1345,7 @@ static void _actor800300IdleDecisionState(Task* task)
         if ((u32)(companionGetPlayerPlanarDistance(rootCoord) - (ACTOR_800300_IDLE_FOLLOW_MIN_DISTANCE + 1)) < (ACTOR_800300_IDLE_FOLLOW_MAX_DISTANCE - ACTOR_800300_IDLE_FOLLOW_MIN_DISTANCE - 1)) {
             _actor800300EnterFollowPlayer(task);
         }
-        yawMagnitude = playerActorGetTurnToPoint(task, MATRIX_TRANS(&playerCoord->coord));
+        yawMagnitude = playerActorGetTurnToPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
         if (yawMagnitude < 0) {
             yawMagnitude = -yawMagnitude;
         }
@@ -1354,7 +1354,7 @@ static void _actor800300IdleDecisionState(Task* task)
             _actor800300EnterTurnToTarget(task);
         }
     }
-    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorTurnAimTowardPoint(task, GRAPHICS_MATRIX_TRANSLATION(&playerCoord->coord));
     playerActorPlayFootstepCue(task);
 }
 

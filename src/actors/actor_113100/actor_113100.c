@@ -1362,7 +1362,7 @@ static void _actor113100UpdatePierceCarradine(Task* task)
     if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
             effectDrawGroundShadow(&groundPosition, ACTOR_113100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }

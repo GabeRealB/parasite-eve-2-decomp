@@ -3463,7 +3463,7 @@ void effectSpriteTask53(Task* task)
         } else if (gRoomEffectState->groundShadowShade >= 0) {
             if (!(playerTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 actorRenderComposeCoord(coord);
-                if ((s16)worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &groundPoint) != 0) {
+                if ((s16)worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&coord->workm), &groundPoint) != 0) {
                     effectDrawGroundShadow(&groundPoint, EFFECT_PLAYER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
                 }
             }

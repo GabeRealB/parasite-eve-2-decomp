@@ -360,7 +360,7 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
     VECTOR3*       viewTranslation;
 
     viewRotation    = (_ViewRotation*)gGfxViewRotCoord.coord.m;
-    viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
+    viewTranslation = GRAPHICS_MATRIX_TRANSLATION(&gGfxViewCoord.coord);
     viewOffset      = &gGfxViewOffsetCoord;
 
     // Copy only coefficients and XYZ into separate nodes; leave matrix alignment bytes intact.
@@ -393,7 +393,7 @@ static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* 
 {
     // Copy the 18-byte coefficient and 12-byte origin views, excluding alignment bytes.
     *(_ViewRotation*)rotation->m = *(const _ViewRotation*)(cursor - 1)->transform.m;
-    *translation                 = *MATRIX_TRANS(&(cursor - 1)->transform);
+    *translation                 = *GRAPHICS_MATRIX_TRANSLATION(&(cursor - 1)->transform);
     cursor--;
     offset->coord.t[0]           = 0;
     offset->coord.t[1]           = 0;
@@ -1034,7 +1034,7 @@ static void _gameDebugStartInputReplay(void)
 
     // The resource prefix is serialized bytes; only the input stream is u16 data.
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        gGameDebugReplayCursor = (const GameDebugReplayRecord*)(GAME_DEBUG_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
         gGameDebugReplayCursor = (const GameDebugReplayRecord*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
@@ -1625,7 +1625,7 @@ void viewApplyCurrentCamera(void)
     cameraIndex = viewGetMappedIndex();
 
     viewRotation    = &gGfxViewRotCoord.coord;
-    viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
+    viewTranslation = GRAPHICS_MATRIX_TRANSLATION(&gGfxViewCoord.coord);
     viewOffset      = &gGfxViewOffsetCoord;
 
     _viewApplyCameraCursor(&cameras[cameraIndex], viewRotation, viewTranslation, viewOffset);

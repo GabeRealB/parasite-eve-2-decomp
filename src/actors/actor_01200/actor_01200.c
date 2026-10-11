@@ -1750,13 +1750,13 @@ static void _actor01200Tick(Enemy* enemy, Task* task)
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_01200_STATE_HIDDEN && work->state != ACTOR_01200_STATE_DEATH_BURST && work->state != ACTOR_01200_STATE_SELF_BURST) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_01200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_01200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_01200_STATE_HIDDEN && work->state != ACTOR_01200_STATE_DEATH_BURST && work->state != ACTOR_01200_STATE_SELF_BURST) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_01200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_01200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             _actor01200ClearTickContacts(work);
             return;

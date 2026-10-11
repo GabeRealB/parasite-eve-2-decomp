@@ -1528,16 +1528,16 @@ static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Tas
     u8*       cursorBytes;
     VECTOR*   worldPosition;
 
-    bodyCoord                         = &task->extra.tmd->coords[1];
-    cursorSlot                        = SCRATCH_HEAD_ADDR;
-    cursorBytes                       = SCRATCH_HEAD_AT(cursorSlot, void);
-    worldPosition                     = (VECTOR*)(cursorBytes - sizeof(*worldPosition));
-    worldPosition->vx                 = bodyCoord->workm.t[0];
-    worldPosition->vy                 = bodyCoord->workm.t[1];
-    worldPosition->vz                 = bodyCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    bodyCoord                                 = &task->extra.tmd->coords[1];
+    cursorSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    cursorBytes                               = SCRATCH_STACK_CURSOR_AT(cursorSlot, void);
+    worldPosition                             = (VECTOR*)(cursorBytes - sizeof(*worldPosition));
+    worldPosition->vx                         = bodyCoord->workm.t[0];
+    worldPosition->vy                         = bodyCoord->workm.t[1];
+    worldPosition->vz                         = bodyCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = worldPosition;
     worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Detaches the dying enemy from targeting and its five collision bodies.
@@ -1950,16 +1950,16 @@ static void _actor207200CreepingStrangerUpdateLiveColor(Enemy* enemy, Task* task
     VECTOR*   savedCursor;
     VECTOR*   worldPosition;
 
-    bodyCoord                         = &task->extra.tmd->coords[1];
-    cursorSlot                        = SCRATCH_HEAD_ADDR;
-    savedCursor                       = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
-    worldPosition                     = savedCursor - 1;
-    worldPosition->vx                 = bodyCoord->workm.t[0];
-    worldPosition->vy                 = bodyCoord->workm.t[1];
-    worldPosition->vz                 = bodyCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    bodyCoord                                 = &task->extra.tmd->coords[1];
+    cursorSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    savedCursor                               = SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR);
+    worldPosition                             = savedCursor - 1;
+    worldPosition->vx                         = bodyCoord->workm.t[0];
+    worldPosition->vy                         = bodyCoord->workm.t[1];
+    worldPosition->vz                         = bodyCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = worldPosition;
     worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Draws the raw-texture ground shadow at the composed model root.

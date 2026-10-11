@@ -39,17 +39,25 @@ typedef struct {
 } StageMusicParams;
 STATIC_ASSERT_SIZEOF(StageMusicParams, 0x4);
 
-/// Sequence id in `StageMusicEntry::sequenceId` that selects no music.
+/// Byte sentinel selecting fade-out without loading or starting a stage sequence.
 ///
-/// It is the MIDI driver's unloaded-sequence marker: nothing is loaded, and a
-/// stage music task that selects it fades the current song out instead.
+/// In area and countdown `StageMusicEntry` tables, 255 ends the request after
+/// stopping the recorded outgoing sequence with the stored fade duration.
+/// `startMode` is ignored. Direct area start/stop helpers skip these entries.
+/// This is also the MIDI driver's unloaded/invalid id; it is not a file id
+/// to load. The macro is an `int` constant expression stored in a `u8` field.
 #define STAGE_MUSIC_NO_SEQUENCE 0xFF
 
-/// Sequence id that, in the first entry of an area's row, keeps the stage
-/// ambient loop (`SOUND_STAGE_AMBIENT`) running in that area.
+/// First-column byte marker allowing the stage ambient script in an area.
 ///
-/// Only the row's first entry is tested for it; whether the value is also ever
-/// selected and loaded as a sequence is unproven.
+/// The area row's column-zero `sequenceId` is compared with 128 independently
+/// of the selected scene column. Matching permits `SOUND_STAGE_AMBIENT` to
+/// start when its mute flag is clear; choosing another area's row stops a
+/// requested ambient loop if the marker is absent. The ordinary MIDI selector
+/// does not exclude 128 when it selects column zero. Whether that happens in
+/// reachable night-stage requests is unproven, so this value must not be
+/// treated as exclusively an ambient sentinel. An `int` constant expression
+/// stored in the table's `u8` field.
 #define STAGE_MUSIC_AMBIENT_AREA 0x80
 
 /// How a stage music task starts the sequence of the `StageMusicEntry` it selects.

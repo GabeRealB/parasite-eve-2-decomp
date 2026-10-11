@@ -1301,11 +1301,11 @@ static void _actor223600DropIn(Enemy* enemy, Task* task)
     }
     _animDriverTick(task);
 
-    reserveCursorSlot                                               = SCRATCH_HEAD_ADDR;
-    scratchTop                                                      = SCRATCH_HEAD_AT(reserveCursorSlot, _Actor223600AxisStepScratch);
-    axisStep                                                        = &scratchTop[-1].step;
-    gteStep                                                         = &scratchTop[-1].step;
-    SCRATCH_HEAD_AT(reserveCursorSlot, _Actor223600AxisStepScratch) = scratchTop - 1;
+    reserveCursorSlot                                                       = SCRATCH_STACK_CURSOR_SLOT;
+    scratchTop                                                              = SCRATCH_STACK_CURSOR_AT(reserveCursorSlot, _Actor223600AxisStepScratch);
+    axisStep                                                                = &scratchTop[-1].step;
+    gteStep                                                                 = &scratchTop[-1].step;
+    SCRATCH_STACK_CURSOR_AT(reserveCursorSlot, _Actor223600AxisStepScratch) = scratchTop - 1;
 
     switch (work->driver.requestedSet) {
         case ACTOR_223600_ANIM_REQUEST_FALL:
@@ -1410,8 +1410,8 @@ static void _actor223600DropIn(Enemy* enemy, Task* task)
     // Both invalidations are retained from the original landing-state tail.
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    releaseCursorSlot                     = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_AT(releaseCursorSlot, _Actor223600AxisStepScratch);
+    releaseCursorSlot                     = SCRATCH_STACK_CURSOR_SLOT;
+    SCRATCH_STACK_RELEASE_BLOCK_AT(releaseCursorSlot, _Actor223600AxisStepScratch);
     work->stateFrame++;
 }
 

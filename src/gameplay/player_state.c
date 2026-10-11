@@ -1692,7 +1692,7 @@ s32 companionGetPlayerPlanarDistance(const GfxCoord* coord)
 
     playerModel = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
     block       = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPointDeltaScratch);
-    playerActorGetPointDelta(coord, MATRIX_TRANS(&playerModel->coords->coord), &block->delta);
+    playerActorGetPointDelta(coord, GRAPHICS_MATRIX_TRANSLATION(&playerModel->coords->coord), &block->delta);
     distance = playerActorPlanarLength(block->delta.vx, block->delta.vz);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPointDeltaScratch);
     return distance;

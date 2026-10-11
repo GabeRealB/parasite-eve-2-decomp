@@ -523,7 +523,7 @@ static void _actor113000Spawn(Task* task)
     model->flags        = modelFlags;
     // Retain the shadow branch even though initialization has just hidden the model.
     if (!(modelFlags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, ACTOR_113000_INITIAL_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
@@ -557,7 +557,7 @@ static void _actor113000Update(Task* task)
         }
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, ACTOR_113000_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }

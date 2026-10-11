@@ -12,14 +12,14 @@ static void _skullStalkerUpdateColor(Enemy* enemy, Task* task)
     VECTOR*   scratchHead;
     VECTOR*   worldPosition;
 
-    sampleCoord                         = &task->extra.tmd->coords[1];
-    cursorSlot                          = SCRATCH_HEAD_ADDR;
-    scratchHead                         = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
-    worldPosition                       = scratchHead - 1;
-    worldPosition->vx                   = sampleCoord->workm.t[0];
-    worldPosition->vy                   = sampleCoord->workm.t[1];
-    worldPosition->vz                   = sampleCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, VECTOR) = worldPosition;
+    sampleCoord                                 = &task->extra.tmd->coords[1];
+    cursorSlot                                  = SCRATCH_STACK_CURSOR_SLOT;
+    scratchHead                                 = SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR);
+    worldPosition                               = scratchHead - 1;
+    worldPosition->vx                           = sampleCoord->workm.t[0];
+    worldPosition->vy                           = sampleCoord->workm.t[1];
+    worldPosition->vz                           = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR) = worldPosition;
     worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }

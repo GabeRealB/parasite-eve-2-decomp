@@ -2368,7 +2368,7 @@ static void _actor01500DrawGroundShadow(Task* actor)
     SCRATCH_STACK_CURSOR(VECTOR) = scratchHead - 1;
     shadowCentre                 = (VECTOR3*)(scratchHead - 1);
     if (work->action != ACTOR_01500_ACTION_GROUNDED) {
-        probeDisplacementY = worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), shadowCentre);
+        probeDisplacementY = worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&rootCoord->workm), shadowCentre);
         if (probeDisplacementY != 0) {
             effectDrawGroundShadow(shadowCentre, ACTOR_01500_SHADOW_HALF_SIDE, effectGetGroundShadowShade(ACTOR_01500_SHADOW_HALF_SIDE, ACTOR_01500_SHADOW_SHADE, probeDisplacementY));
         }

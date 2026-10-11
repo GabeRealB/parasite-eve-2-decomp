@@ -3158,7 +3158,7 @@ static void _actor04000Tick(Enemy* enemy, Task* task)
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_SELF_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_04000_ACTIVE_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_04000_ACTIVE_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             if (work->state == ACTOR_04000_STATE_DROP) {
                 gfxSetRotIdentity(&groundCoord.coord);
@@ -3168,14 +3168,14 @@ static void _actor04000Tick(Enemy* enemy, Task* task)
                 groundCoord.parent       = &gGfxViewCoord;
                 groundCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&groundCoord);
-                effectDrawGroundShadow(MATRIX_TRANS(&groundCoord.workm), ACTOR_04000_DROP_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&groundCoord.workm), ACTOR_04000_DROP_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST && work->state != ACTOR_04000_STATE_SELF_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
                 task->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_04000_PAUSED_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), ACTOR_04000_PAUSED_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             _actor04000ClearTickContacts(work);
             return;

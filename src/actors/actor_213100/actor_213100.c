@@ -445,7 +445,7 @@ static void _actor213100UpdateBody(Task* actorTask)
     }
     // Sample the cached body transform before refreshing it for this view.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm), &groundPosition) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm), &groundPosition) != 0) {
             effectDrawGroundShadow(&groundPosition, ACTOR_213100_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }

@@ -86,7 +86,7 @@ static void _gluttonThrowFly(Enemy* enemy, Task* task)
 
         GLUTTON_UPDATE_THROW_SHADOW(work, task);
 
-        effectDrawGroundShadow(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + GLUTTON_THROW_SHADOW_BASE_SIZE,
+        effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + GLUTTON_THROW_SHADOW_BASE_SIZE,
                                gRoomEffectState->groundShadowShade);
 
         if (work->stateTicks >= GLUTTON_THROW_END_TICK) {
@@ -98,7 +98,7 @@ static void _gluttonThrowFly(Enemy* enemy, Task* task)
         GLUTTON_UPDATE_THROW_SHADOW(work, task);
 
         if (host->phase != GLUTTON_THROW_NO_SHADOW_PHASE) {
-            effectDrawGroundShadow(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + GLUTTON_THROW_SHADOW_BASE_SIZE,
+            effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + GLUTTON_THROW_SHADOW_BASE_SIZE,
                                    gRoomEffectState->groundShadowShade);
         }
     }

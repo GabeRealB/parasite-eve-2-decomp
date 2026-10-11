@@ -510,7 +510,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)*depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);
 }
 
 #include "../../shared/water_tile_u16_corners.inc.c"
@@ -594,7 +594,7 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
-    SCRATCH_POP_AT(scratchCursor, EffectCentreScratch);
+    SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectCentreScratch);
 }
 
 void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumber, s32 radiusScale, s16 packedColor)

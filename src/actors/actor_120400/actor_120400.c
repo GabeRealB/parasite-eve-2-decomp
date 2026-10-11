@@ -1007,7 +1007,7 @@ static void _actor120400UpdateKyleMadiganWalker(Task* task)
     }
     // Use the composed body part for ground projection before refreshing its lighting.
     if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
             effectDrawGroundShadow(&groundPosition, ACTOR_120400_KYLE_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }

@@ -21,7 +21,7 @@ static void _maggotCaterpillarDrawShadow(Task* actor)
     work  = actor->work;
     coord = actor->extra.tmd->coords;
     if (work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH) {
-        probeDisplacement = worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &shadowPosition);
+        probeDisplacement = worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&coord->workm), &shadowPosition);
         if (probeDisplacement != 0) {
             effectDrawGroundShadow(&shadowPosition, MAGGOT_CATERPILLAR_SHADOW_HALF_SIZE, effectGetGroundShadowShade(MAGGOT_CATERPILLAR_SHADOW_HALF_SIZE, MAGGOT_CATERPILLAR_SHADOW_SHADE, probeDisplacement));
         }

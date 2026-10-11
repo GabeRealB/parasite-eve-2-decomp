@@ -3683,7 +3683,7 @@ static void _actor01600DrawGroundShadow(Task* actor)
         SCRATCH_STACK_RELEASE_BLOCK(_Actor01600GroundShadowScratch);
         return;
     }
-    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord[1].workm), &groundPoint) != 0) {
+    if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&rootCoord[1].workm), &groundPoint) != 0) {
         effectDrawGroundShadow(&groundPoint, ACTOR_01600_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
     }
 }
@@ -5068,16 +5068,16 @@ static void _actor01600RefreshBodyColor(Enemy* enemy, Task* actor)
     VECTOR*   scratchCursor;
     VECTOR*   position;
 
-    bodyCoord                         = &actor->extra.tmd->coords[1];
-    cursorSlot                        = SCRATCH_HEAD_ADDR;
-    scratchCursor                     = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
-    position                          = scratchCursor - 1;
-    position->vx                      = bodyCoord->workm.t[0];
-    position->vy                      = bodyCoord->workm.t[1];
-    position->vz                      = bodyCoord->workm.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, void) = position;
+    bodyCoord                                 = &actor->extra.tmd->coords[1];
+    cursorSlot                                = SCRATCH_STACK_CURSOR_SLOT;
+    scratchCursor                             = SCRATCH_STACK_CURSOR_AT(cursorSlot, VECTOR);
+    position                                  = scratchCursor - 1;
+    position->vx                              = bodyCoord->workm.t[0];
+    position->vy                              = bodyCoord->workm.t[1];
+    position->vz                              = bodyCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = position;
     worldCoordUpdateActorColor(enemy, position, 0, 0);
-    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*position));
+    SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*position));
 }
 
 /// Flattens the corpse from its saved death transform without compounding scale.

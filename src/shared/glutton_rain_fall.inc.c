@@ -37,7 +37,7 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
     actorRenderComposeCoord(&shadowCoord);
 
     // Warn of the landing point while the blob waits overhead.
-    effectDrawGroundShadow(MATRIX_TRANS(&shadowCoord.workm), (s16)(work->stateTicks * 8 + 0x80),
+    effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&shadowCoord.workm), (s16)(work->stateTicks * 8 + 0x80),
                            gRoomEffectState->groundShadowShade);
 
     if (work->stateTicks >= GLUTTON_RAIN_SHADOW_LEAD_TICKS) {

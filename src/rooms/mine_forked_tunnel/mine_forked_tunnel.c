@@ -1441,7 +1441,7 @@ static void _mineForkedTunnelTickAreaObject(Task* task)
 
     // The shadow samples the cached world transform before lighting composes it.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords->workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords->workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, MINE_FORKED_TUNNEL_AREA_OBJECT_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(task->extra.tmd->coords);

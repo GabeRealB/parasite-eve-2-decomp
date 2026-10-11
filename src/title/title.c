@@ -13,6 +13,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
+#include "main/game_debug.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
@@ -512,7 +513,7 @@ void titleRestoreAttractDemoState(void)
     savedDemoScene = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
     savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        stateBytes = FILE_SYSTEM_FIXED_REPLAY_BASE;
+        stateBytes = GAME_DEBUG_FIXED_REPLAY_BASE;
     }
     printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 

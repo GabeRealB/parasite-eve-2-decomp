@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include "main/fs_types.h"
+
 /// RAM region one area uses for a captured frame and the auxiliary heap.
 ///
 /// `regionBase` is that region's first byte. The captured frame is one
@@ -26,10 +28,21 @@ typedef struct {
 } GfxImageSlot;
 STATIC_ASSERT_SIZEOF(GfxImageSlot, 0x8);
 
-/// A nonempty slot, by its extent: the area's image memory ends where the fixed
-/// image buffers begin, so its base is that many bytes below them. Needs
-/// `main/fs_types.h` for `gFsImageWorkspace`.
-#define GFX_IMAGE_SLOT(bytes) { (u8*)&gFsImageWorkspace - (bytes), (bytes) }
+/// Initializes an area's image-memory slot from its byte extent below the resident workspace.
+///
+/// `extentBytes` is positive, representable in `s32`, and a multiple of four
+/// so the base remains word-aligned. It counts the bytes from `regionBase`
+/// up to `gFsImageWorkspace`, excluding that workspace. It is not a pixel
+/// count or frame length. The caller must establish the underlying RAM region
+/// and its availability for capture, GPU primitives and auxiliary allocations.
+/// The byte cast expresses fixed RAM address arithmetic, not an element view
+/// of the image workspace. No storage is allocated, cleared or read.
+///
+/// Expands to a braced `GfxImageSlot` initializer, not an expression. The
+/// argument occurs twice and must have no side effects; static tables require
+/// an integer constant expression. Captures the resident workspace symbol.
+/// Zero does not make an empty slot; use a zero initializer for one.
+#define GRAPHICS_IMAGE_SLOT(extentBytes) { .regionBase = (u8*)&gFsImageWorkspace - (extentBytes), .byteExtent = (extentBytes) }
 
 /// Word-access view of a `MATRIX`'s nine fixed-point rotation coefficients.
 ///

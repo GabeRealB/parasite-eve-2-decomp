@@ -177,7 +177,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
     }
 #if GLOW_DRAW_RAY_STAR_HALF_FIRST
     intensityWork = sizeof(RoomGlowRadiiScratch);
-    SCRATCH_POP_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
+    SCRATCH_STACK_RELEASE_BYTES_AT(SCRATCH_STACK_CURSOR_SLOT, intensityWork);
 #else
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
 #endif

@@ -5669,13 +5669,13 @@ static void _actor401300StateCharge(Task* actor)
         work->jointPairStep   = ACTOR_401300_CHARGE_PAIR_STEP;
         return;
     }
-    cursorSlot   = SCRATCH_HEAD_ADDR;
+    cursorSlot   = SCRATCH_STACK_CURSOR_SLOT;
     playerStatus = &gPlayerStatus;
     work->stateTimer++;
     offsetRoot               = actor->extra.tmd->coords;
-    savedCursor              = SCRATCH_HEAD_AT(cursorSlot, _Actor401300ChargeScratch);
+    savedCursor              = SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300ChargeScratch);
     savedCursor[-1].delta.vx = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
-    charge                   = (SCRATCH_HEAD_AT(cursorSlot, _Actor401300ChargeScratch) = savedCursor - 1);
+    charge                   = (SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300ChargeScratch) = savedCursor - 1);
     charge->delta.vy         = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
     charge->delta.vz         = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
     save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -5908,14 +5908,14 @@ static void _actor401300StateLeap(Task* actor)
         work->leapStartPos.vz = actor->extra.tmd->coords->coord.t[2];
         return;
     }
-    cursorSlot = SCRATCH_HEAD_ADDR;
+    cursorSlot = SCRATCH_STACK_CURSOR_SLOT;
     work->stateTimer++;
     offsetRoot               = actor->extra.tmd->coords;
-    savedCursor              = SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapScratch);
+    savedCursor              = SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300LeapScratch);
     savedCursor[-1].delta.vx = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
     playerOffset             = &savedCursor[-1].delta;
     playerOffset->vy         = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
-    leap                     = (SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapScratch) = savedCursor - 1);
+    leap                     = (SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300LeapScratch) = savedCursor - 1);
     playerOffset->vz         = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
     _actor401300UpdateAnimationEffects(actor);
     switch (work->animId) {
@@ -6124,16 +6124,16 @@ static void _actor401300StateLeapIn(Task* actor)
         _actorRenderScaleMatrix(&work->colorMtx, 0);
         return;
     }
-    cursorSlot   = SCRATCH_HEAD_ADDR;
+    cursorSlot   = SCRATCH_STACK_CURSOR_SLOT;
     playerStatus = &gPlayerStatus;
     work->stateTimer++;
-    offsetRoot                                             = actor->extra.tmd->coords;
-    savedCursor                                            = SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapInScratch);
-    savedCursor[-1].playerOffset.vx                        = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
-    playerOffset                                           = &savedCursor[-1].playerOffset;
-    playerOffset->vy                                       = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
-    playerOffset->vz                                       = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
-    SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapInScratch) = savedCursor - 1;
+    offsetRoot                                                     = actor->extra.tmd->coords;
+    savedCursor                                                    = SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300LeapInScratch);
+    savedCursor[-1].playerOffset.vx                                = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
+    playerOffset                                                   = &savedCursor[-1].playerOffset;
+    playerOffset->vy                                               = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
+    playerOffset->vz                                               = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
+    SCRATCH_STACK_CURSOR_AT(cursorSlot, _Actor401300LeapInScratch) = savedCursor - 1;
     // The driver refreshes color before this cumulative-looking scale is applied.
     if (work->stateTimer < ACTOR_401300_LEAP_IN_COLOR_END_TICK) {
         _actorRenderScaleMatrix(&work->colorMtx, (work->stateTimer << ACTOR_401300_LEAP_IN_COLOR_FRACTION_BITS) / ACTOR_401300_LEAP_IN_COLOR_DIVISOR);
@@ -6571,22 +6571,22 @@ static void _actor401300Tick(Enemy* enemy, Task* actor)
             actorState = work->state;
             if ((actorState != ACTOR_401300_STATE_HIDDEN) && (actorState != ACTOR_401300_STATE_DEAD) && (actorState != ACTOR_401300_STATE_DEATH_BURN) && (actorState != ACTOR_401300_STATE_DEATH_BURST) && (actorState != ACTOR_401300_STATE_DEATH_BURST_WALK)) {
                 actor->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
                 actorState = work->state;
             }
             if ((actorState == ACTOR_401300_STATE_DEATH_BURST_WALK) && (work->animId == ACTOR_401300_ANIM_WALK)) {
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             actorState = work->state;
             if ((actorState != ACTOR_401300_STATE_HIDDEN) && (actorState != ACTOR_401300_STATE_DEAD) && (actorState != ACTOR_401300_STATE_DEATH_BURN) && (actorState != ACTOR_401300_STATE_DEATH_BURST) && (actorState != ACTOR_401300_STATE_DEATH_BURST_WALK)) {
                 actor->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
                 actorState = work->state;
             }
             if ((actorState == ACTOR_401300_STATE_DEATH_BURST_WALK) && (work->animId == ACTOR_401300_ANIM_WALK)) {
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(GRAPHICS_MATRIX_TRANSLATION(&actor->extra.tmd->coords->workm), ACTOR_401300_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             worldCollisionClearContacts(work->gridContacts);
             worldCollisionClearContacts(work->hitContacts);
