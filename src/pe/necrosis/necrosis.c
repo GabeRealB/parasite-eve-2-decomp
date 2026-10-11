@@ -80,7 +80,7 @@ STATIC_ASSERT_SIZEOF(_NecrosisWork, 0x58);
 /// Row `level - 1` (0..2) supplies the collision sphere's launch radius and
 /// the trail puff's size base in game-coordinate units, plus the travel limit
 /// in running PE updates. Pausing holds that age; the final trail wait does not.
-static _NecrosisLevelTuning _gNecrosisLevelTuning[ATTACHMENT_AREA_LEVEL_COUNT] = {
+static _NecrosisLevelTuning _gNecrosisLevelTuning[ATTACHMENT_LEVEL_COUNT] = {
     { 0x03C0, 0x000A },
     { 0x0480, 0x000F },
     { 0x0540, 0x0014 },

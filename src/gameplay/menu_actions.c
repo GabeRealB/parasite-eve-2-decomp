@@ -2895,7 +2895,7 @@ void itemMenuPeUpgradeTask(Task* task)
     elementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     energyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     nextLevel    = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
-    displayCost  = gAttachmentLevelTable.rows[(elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + nextLevel].column.expCost;
+    displayCost  = gAttachmentLevelTable.rows[(elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + energyIndex) * ATTACHMENT_LEVEL_COUNT + nextLevel].column.expCost;
     ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(displayCost);
     textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, displayCost & 0xFFFF), ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
@@ -2923,7 +2923,7 @@ void itemMenuPeUpgradeTask(Task* task)
     bonusElementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     bonusEnergyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     bonusLevel        = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
-    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, gAttachmentLevelTable.rows[(bonusElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusLevel].value[bonusColumn]),
+    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, gAttachmentLevelTable.rows[(bonusElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusEnergyIndex) * ATTACHMENT_LEVEL_COUNT + bonusLevel].value[bonusColumn]),
                    ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     // Recheck affordability on Yes, then purchase the level and restore the new MP maximum.
@@ -2938,13 +2938,13 @@ void itemMenuPeUpgradeTask(Task* task)
             if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
                 if (childObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
                     player       = &gPlayerStatus;
-                    purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                    purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ATTACHMENT_LEVEL_COUNT + purchaseLevel].column.expCost;
                     ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
                     if (player->exp < (purchaseCost & 0xFFFF)) {
                         uiSpawnObject(&gItemMenuNoticeDesc, ITEM_MENU_NOTICE_INSUFFICIENT_EXP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                         uiStartTreeClosing(childObject, childObject->owner);
                     } else {
-                        purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                        purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ATTACHMENT_LEVEL_COUNT + purchaseLevel].column.expCost;
                         ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
                         player->exp                                                                                                                                                                                                                                            -= purchaseCost & 0xFFFF;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT) + ((abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT] = (abilityId & ATTACHMENT_MENU_LEVEL_MASK) + 1;
@@ -3033,7 +3033,7 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
         elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
         energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
         level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
-        rawValue     = gAttachmentLevelTable.rows[(((elementIndex * 3) + energyIndex) * 3) + level].value[column];
+        rawValue     = gAttachmentLevelTable.rows[(((elementIndex * 3) + energyIndex) * ATTACHMENT_LEVEL_COUNT) + level].value[column];
     }
     if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -3074,7 +3074,7 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
             previousElementIndex = (previousAbilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
             previousEnergyIndex  = (previousAbilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
             previousLevel        = previousAbilityId & ATTACHMENT_MENU_LEVEL_MASK;
-            rawPreviousValue     = gAttachmentLevelTable.rows[(((previousElementIndex * 3) + previousEnergyIndex) * 3) + previousLevel].value[column];
+            rawPreviousValue     = gAttachmentLevelTable.rows[(((previousElementIndex * 3) + previousEnergyIndex) * ATTACHMENT_LEVEL_COUNT) + previousLevel].value[column];
         }
         if (column == ATTACHMENT_LEVEL_EXP_COST) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -3720,7 +3720,7 @@ s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column)
     elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
-    value        = gAttachmentLevelTable.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
+    value        = gAttachmentLevelTable.rows[(elementIndex * 3 + energyIndex) * ATTACHMENT_LEVEL_COUNT + level].value[column];
     if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
             value = (value * 4) / 5;

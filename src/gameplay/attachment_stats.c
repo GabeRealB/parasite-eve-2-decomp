@@ -40,6 +40,28 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Area-table selector for a projectile corridor preview; release hits belong to the PE task.
+///
+/// The row supplies radius and travel range in hundreds of world units.
+#define ATTACHMENT_AREA_PROJECTILE 1
+
+/// Area-table selector for ellipsoid targeting around the player or one radius ahead.
+///
+/// Radius and vertical semi-axis are in hundreds of world units. The scan adds
+/// its targeting allowance and clips the vertical interval before testing the ellipsoid.
+#define ATTACHMENT_AREA_ELLIPSOID 2
+
+/// Area-table selector for an upright cylinder, centred on the player or one radius ahead.
+///
+/// Radius and height above the player are in hundreds of world units; the scan
+/// adds its targeting allowance to both dimensions.
+#define ATTACHMENT_AREA_CYLINDER 3
+
+/// Area-table selector for every lockable enemy in the target list, without a range test.
+///
+/// Both dimension halfwords are unused and stored as -1.
+#define ATTACHMENT_AREA_ALL 4
+
 /// Marks an `_AttachmentWheelPoint` that is not waiting to be drawn.
 ///
 /// It lies below every cosine, so the search for the nearest remaining point
@@ -164,7 +186,7 @@ enum {
     ATTACHMENT_ALL_DIMENSION_UNUSED    = -1,
 };
 
-AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT] = {
+AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_ABILITY_COUNT][ATTACHMENT_LEVEL_COUNT] = {
     [ATTACHMENT_INDEX_PYROKINESIS] = {
         { .area = { ATTACHMENT_AREA_PROJECTILE, 6, 65, 0 } },
         { .area = { ATTACHMENT_AREA_PROJECTILE, 8, 90, 0 } },
@@ -355,7 +377,7 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
                 (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
             }                                                                                                                                                                         \
             if (player->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                      \
-                if ((level) < ATTACHMENT_AREA_LEVEL_COUNT) {                                                                                                                          \
+                if ((level) < ATTACHMENT_LEVEL_COUNT) {                                                                                                                               \
                     (level)++;                                                                                                                                                        \
                 }                                                                                                                                                                     \
             }                                                                                                                                                                         \
@@ -621,7 +643,7 @@ static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
         if (level == 0) {
             level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
         }
-        if ((player->statusFlags & PLAYER_STATUS_BERSERKER) && level < ATTACHMENT_AREA_LEVEL_COUNT) {
+        if ((player->statusFlags & PLAYER_STATUS_BERSERKER) && level < ATTACHMENT_LEVEL_COUNT) {
             level++;
         }
     }
@@ -650,7 +672,7 @@ static __inline__ s32 _sceneIsBattleActive(void)
 /// level zero reads the preceding row directly. No table pointer is retained.
 static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
+    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_LEVEL_COUNT + level].value[column];
 }
 
 /// Returns one when the selected spell or item attachment cannot be cast.
@@ -1325,7 +1347,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     if (gAttachmentState.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++gAttachmentSoundQueueTicks > 0) {
             activeLevel    = _attachmentGetEffectiveLevel(gAttachmentState.activeIndex);
-            soundFileIndex = gAttachmentState.activeIndex * ATTACHMENT_AREA_LEVEL_COUNT + activeLevel;
+            soundFileIndex = gAttachmentState.activeIndex * ATTACHMENT_LEVEL_COUNT + activeLevel;
             if (_sceneIsBattleActive()) {
                 sndLoadEnqueuePeFile(soundFileIndex);
             }
@@ -1500,7 +1522,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     }
     if (selectionChanged) {
         selectedLevel                 = _attachmentGetEffectiveLevel(gAttachmentState.wheelIndex);
-        gAttachmentState.previewSound = gAttachmentState.wheelIndex * ATTACHMENT_AREA_LEVEL_COUNT + selectedLevel;
+        gAttachmentState.previewSound = gAttachmentState.wheelIndex * ATTACHMENT_LEVEL_COUNT + selectedLevel;
     }
     if (gAttachmentState.previewSound > 0) {
         if (_attachmentPreviewSoundLoadStub() == 0) {

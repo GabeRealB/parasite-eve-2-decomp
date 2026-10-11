@@ -31,7 +31,7 @@ enum {
     ITEM_MENU_EQUIPMENT_ITEM_COUNT              = 0x20,
     ITEM_MENU_CONSUMABLE_POWER_NONE             = INVENTORY_CONSUMABLE_ITEM_FIRST - 1,
     ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST        = 0xF,
-    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT        = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT        = ATTACHMENT_SPELL_COUNT * ATTACHMENT_LEVEL_COUNT,
     ITEM_MENU_WEAPON_COMPARISON_STAT_COUNT      = 3,
     ITEM_MENU_WEAPON_COMPARISON_ROW_HALFWORDS   = 4,
     ITEM_MENU_WEAPON_WEIGHT_STAT                = 2,
@@ -546,7 +546,7 @@ static inline void _itemMenuDrawUnmarkedItemRowAt(UiObject* object, s32 x, s32 y
         textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));
         energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
         }
         itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }
@@ -875,7 +875,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
                 textDrawString(&textScratch.request, itemGetText(consumableItemId, ITEM_TEXT_NAME, 0));
                 energyLevelIndex = consumableItemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
                 if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-                    itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+                    itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
                 }
                 itemMenuDrawItemIcon(object, x, y, consumableItemId, ITEM_MENU_ICON_DEFAULT);
             }

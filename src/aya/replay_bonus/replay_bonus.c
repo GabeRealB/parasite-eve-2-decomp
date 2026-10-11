@@ -198,7 +198,7 @@ u16* replayBonusCreatePictureVlcTable(void)
 /// rounds down separately, using the completed run's mode and clear count.
 static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel)
 {
-    s32 expCost = gAttachmentLevelTable.rows[abilitySlot * ATTACHMENT_AREA_LEVEL_COUNT + previousLevel + 1].column.expCost;
+    s32 expCost = gAttachmentLevelTable.rows[abilitySlot * ATTACHMENT_LEVEL_COUNT + previousLevel + 1].column.expCost;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
         expCost = (expCost * 4) / 5;

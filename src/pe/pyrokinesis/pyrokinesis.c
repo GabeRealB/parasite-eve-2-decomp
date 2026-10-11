@@ -85,7 +85,7 @@ enum {
 /// Each signed word packs a type-14 PE bank id and zero instance tag.
 /// Selection precedes the task's variant normalization, and the sound queue
 /// copies the value without retaining a pointer into this overlay.
-static s32 _gPyrokinesisCastSoundScripts[ATTACHMENT_AREA_LEVEL_COUNT][PYROKINESIS_CAST_VARIANT_COUNT] = {
+static s32 _gPyrokinesisCastSoundScripts[ATTACHMENT_LEVEL_COUNT][PYROKINESIS_CAST_VARIANT_COUNT] = {
     { PYROKINESIS_CAST_SOUND_LEVEL_1, PYROKINESIS_CAST_SOUND_LEVEL_1, PYROKINESIS_CAST_SOUND_LEVEL_1 },
     { PYROKINESIS_CAST_SOUND_LEVEL_2, PYROKINESIS_CAST_SOUND_LEVEL_2, PYROKINESIS_CAST_SOUND_LEVEL_2 },
     { PYROKINESIS_CAST_SOUND_LEVEL_3_FIRST, PYROKINESIS_CAST_SOUND_LEVEL_3_SECOND, PYROKINESIS_CAST_SOUND_LEVEL_3_THIRD },

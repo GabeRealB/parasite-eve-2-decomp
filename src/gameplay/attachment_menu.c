@@ -474,7 +474,7 @@ static inline void _itemMenuDrawArmorChoiceContents(const UiObject* object, s32 
 {
     enum {
         ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST = 15,
-        ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT
+        ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_LEVEL_COUNT
     };
     TextDrawReq nameRequest;
     s32         abilityItemOffset;
@@ -493,7 +493,7 @@ static inline void _itemMenuDrawArmorChoiceContents(const UiObject* object, s32 
         itemMenuDrawEquipmentMarker(object, x, y, itemId, attachmentState);
         abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
         }
         itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }

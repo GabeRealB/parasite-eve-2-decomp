@@ -438,7 +438,7 @@ static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 packedAbilityId)
     if (level == ITEM_MENU_PREVIEW_LEVEL_UNLEARNED) {
         level = ITEM_MENU_PREVIEW_LEVEL_FIRST;
     }
-    return (element * ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT + energyIndex) * ATTACHMENT_AREA_LEVEL_COUNT + level;
+    return (element * ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT + energyIndex) * ATTACHMENT_LEVEL_COUNT + level;
 }
 
 void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile)

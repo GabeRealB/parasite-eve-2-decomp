@@ -165,8 +165,8 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
         }                                                                                                       \
     }
     enum {
-        ATTACHMENT_FLARE_SOUND_FILE_INDEX         = ATTACHMENT_INDEX_FLARE * ATTACHMENT_AREA_LEVEL_COUNT + 1,
-        ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX  = ATTACHMENT_INDEX_COMBAT_LIGHT * ATTACHMENT_AREA_LEVEL_COUNT + 1,
+        ATTACHMENT_FLARE_SOUND_FILE_INDEX         = ATTACHMENT_INDEX_FLARE * ATTACHMENT_LEVEL_COUNT + 1,
+        ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX  = ATTACHMENT_INDEX_COMBAT_LIGHT * ATTACHMENT_LEVEL_COUNT + 1,
         ITEM_USE_REATTACH_SLOT_COUNT              = 3,
         ITEM_USE_NO_ATTACHMENT_SLOT               = -1,
         ITEM_USE_HP_BONUS_LIMIT                   = 250,
@@ -372,7 +372,7 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                         break;
                     case INVENTORY_ITEM_FLARE:
                     case INVENTORY_ITEM_PEPPER_SPRAY:
-                        attachmentSoundLoadStub((u8)((itemId - INVENTORY_ITEM_FLARE) * ATTACHMENT_AREA_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
+                        attachmentSoundLoadStub((u8)((itemId - INVENTORY_ITEM_FLARE) * ATTACHMENT_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
                         attachmentQueueIndex(itemId - (INVENTORY_ITEM_FLARE - ATTACHMENT_INDEX_FLARE));
                         gItemMenuSelectedRow = attachedRow;
                         consumeRow           = 0;

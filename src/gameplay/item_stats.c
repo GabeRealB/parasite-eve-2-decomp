@@ -57,7 +57,7 @@ enum {
     ITEM_MENU_INFO_STATE_LAYOUT_READY      = 3,
     ITEM_MENU_INFO_STATE_DISPLAY           = 4,
     ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST   = 15,
-    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT   = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT   = ATTACHMENT_SPELL_COUNT * ATTACHMENT_LEVEL_COUNT,
     ITEM_MENU_NOTICE_DURATION_TICKS        = 188,
     ITEM_MENU_COMPLETED_COUNTDOWN          = 0x7FFF,
     ITEM_MENU_KEY_ITEM_USE_REFUSED_ID      = -1,
@@ -183,7 +183,7 @@ static inline void _itemMenuDrawUnmarkedItemRowIntoRequest(const UiObject* objec
         textDrawString(request, itemGetText(itemId, ITEM_TEXT_NAME, 0));
         energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
         }
         itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }
@@ -851,22 +851,22 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
     /// lvalues with their declared widths. Hidden panels draw nothing; origin Y
     /// uses signed word arithmetic before request narrowing. Standalone block
     /// statement only; undefined after the callback.
-#define ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS()                                                                                \
-    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {                                                                  \
-        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + rowX;                                     \
-        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;                                               \
-        nameRequest.y          = textBaseY + rowY;                                                                             \
-        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                                        \
-        nameRequest.colorRgb   = colorRgb;                                                                                     \
-        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                      \
-        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                          \
-        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                           \
-        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));                                                  \
-        energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                      \
-        if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                               \
-            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb); \
-        }                                                                                                                      \
-        itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);                                              \
+#define ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS()                                                                           \
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {                                                             \
+        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + rowX;                                \
+        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;                                          \
+        nameRequest.y          = textBaseY + rowY;                                                                        \
+        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                                   \
+        nameRequest.colorRgb   = colorRgb;                                                                                \
+        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                 \
+        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                     \
+        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                      \
+        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));                                             \
+        energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                 \
+        if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                          \
+            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb); \
+        }                                                                                                                 \
+        itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);                                         \
     }
 
     /// Publishes the primary preview and invalidates profiles one and two.

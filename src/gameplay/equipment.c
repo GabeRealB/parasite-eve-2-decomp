@@ -505,7 +505,7 @@ void equipmentRecalculateMaxMp(void)
     for (spellIndex = 0; spellIndex < ATTACHMENT_SPELL_COUNT; spellIndex++) {
         if (*spellLevels > 0) {
             for (levelIndex = 0; levelIndex < *spellLevels; levelIndex++) {
-                maximumMp += gAttachmentLevelTable.rows[spellIndex * ATTACHMENT_AREA_LEVEL_COUNT + levelIndex + 1].column.mpBonus;
+                maximumMp += gAttachmentLevelTable.rows[spellIndex * ATTACHMENT_LEVEL_COUNT + levelIndex + 1].column.mpBonus;
             }
         }
         spellLevels++;

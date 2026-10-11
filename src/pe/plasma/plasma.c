@@ -57,7 +57,7 @@ enum {
 /// This selection is independent of the three concurrent visual bands.
 /// Startup copies the selected value into the sound queue; no table pointer
 /// survives unloading this overlay.
-static s32 _gPlasmaCastSoundScripts[ATTACHMENT_AREA_LEVEL_COUNT] = {
+static s32 _gPlasmaCastSoundScripts[ATTACHMENT_LEVEL_COUNT] = {
     PLASMA_CAST_SOUND_LEVEL_1,
     PLASMA_CAST_SOUND_LEVEL_2,
     PLASMA_CAST_SOUND_LEVEL_3,

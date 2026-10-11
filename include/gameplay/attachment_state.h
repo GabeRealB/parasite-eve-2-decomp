@@ -3,14 +3,39 @@
 
 #include "common.h"
 
-/// Column numbers of `AttachmentLevelRow`, in stored order. Columns 5 to 7
-/// (`outcome`, `effectId` and `hitCooldown`) are read only through their
-/// fields and have no constant.
-#define ATTACHMENT_LEVEL_EXP_COST     0
-#define ATTACHMENT_LEVEL_MP_BONUS     1
-#define ATTACHMENT_LEVEL_CAST_COST    2
-#define ATTACHMENT_LEVEL_ATP_LOSS     3
-#define ATTACHMENT_LEVEL_AMOUNT       4
+/// Wheel spells in slots 0..11, excluding the six item-ability slots.
+#define ATTACHMENT_SPELL_COUNT 0xC
+
+/// Ability slots in the parameter catalogues: twelve wheel spells and six item abilities.
+#define ATTACHMENT_ABILITY_COUNT 18
+
+/// Parameter rows per ability, and the maximum learned spell level.
+///
+/// Learned levels are 0..3, with zero meaning unlearned. Cast levels are 1..3;
+/// the area table indexes level minus one, while level and sound tables use
+/// ability slot times this count plus the cast level.
+#define ATTACHMENT_LEVEL_COUNT 3
+
+/// Column 0 of `AttachmentLevelRow.value`: base EXP cost to learn this level.
+///
+/// Positive game modes pay 4/5; a cleared normal game pays 2/5, rounded down.
+#define ATTACHMENT_LEVEL_EXP_COST 0
+
+/// Column 1 of `AttachmentLevelRow.value`: MP capacity added by learning this level.
+///
+/// Capacity includes each learned level's bonus, rather than only the latest one.
+#define ATTACHMENT_LEVEL_MP_BONUS 1
+
+/// Column 2 of `AttachmentLevelRow.value`: MP spent on release, doubled as HP while berserk.
+#define ATTACHMENT_LEVEL_CAST_COST 2
+
+/// Column 3 of `AttachmentLevelRow.value`: cast duration in HUD updates, labelled ATP loss.
+///
+/// The same count sizes the gauge in pixels; arming narrows it to a signed byte
+/// and clamps nonpositive durations to one update.
+#define ATTACHMENT_LEVEL_ATP_LOSS 3
+
+/// Unsigned halfwords in one level record, including the four hit/healing columns.
 #define ATTACHMENT_LEVEL_COLUMN_COUNT 8
 
 /// Parameters of one attachment ability at one level, one row of
@@ -36,13 +61,13 @@ typedef union {
 } AttachmentLevelRow;
 STATIC_ASSERT_SIZEOF(AttachmentLevelRow, 0x10);
 
-/// Rows in `AttachmentLevelTable`. Row 0 is empty; each of the eighteen
-/// abilities then takes three rows, level 1 then 2 then 3.
-#define ATTACHMENT_LEVEL_ROW_COUNT 55
+/// Level records including the empty row zero and three levels of each ability.
+#define ATTACHMENT_LEVEL_ROW_COUNT (ATTACHMENT_ABILITY_COUNT * ATTACHMENT_LEVEL_COUNT + 1)
 
 /// Parameters of every attachment ability at every level.
 ///
-/// Ability `slot` at level `lvl` (1, 2 or 3) is `rows[slot * 3 + lvl]`.
+/// Ability `slot` at level `lvl` (1, 2 or 3) is
+/// `rows[slot * ATTACHMENT_LEVEL_COUNT + lvl]`.
 /// An attack id with bit 0x8000 set selects that same row by its low 7 bits,
 /// so a spell's level and that spell's hit record are one row.
 ///
@@ -54,32 +79,72 @@ typedef union {
 } AttachmentLevelTable;
 STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 
-/// Bits of `AttachmentState.flags`.
-#define ATTACHMENT_FLAG_EVENT_LOCK  1
-#define ATTACHMENT_FLAG_SWAP_LOCK   2
-#define ATTACHMENT_FLAG_RELEASE     4
+/// Script lock in `AttachmentState.flags`: blocks queued casts and ordinary wheel entry.
+///
+/// An armed or charging cast is cancelled when this bit is observed.
+#define ATTACHMENT_FLAG_EVENT_LOCK 1
+
+/// HUD category-switch lock in `AttachmentState.flags`, used by training scripts.
+///
+/// Category checks may explicitly bypass it; it does not itself cancel a cast.
+#define ATTACHMENT_FLAG_SWAP_LOCK 2
+
+#define ATTACHMENT_FLAG_RELEASE 4
+
+/// PE task request to apply the current ability's target or self effects on the next HUD update.
+///
+/// The HUD dispatches release targeting, then clears this bit. Multiple requests
+/// before that update coalesce; resource spending occurs separately at cast release.
 #define ATTACHMENT_FLAG_APPLY_STATS 8
-#define ATTACHMENT_FLAG_OPEN_WHEEL  0x10
+
+#define ATTACHMENT_FLAG_OPEN_WHEEL 0x10
 
 /// Clears one flag and leaves the rest of the byte. Each value is the mask
 /// the clear sites store.
-#define ATTACHMENT_FLAG_CLEAR_EVENT_LOCK  0xFE
-#define ATTACHMENT_FLAG_CLEAR_SWAP_LOCK   0xFD
+#define ATTACHMENT_FLAG_CLEAR_EVENT_LOCK 0xFE
+
+/// Byte mask for `flags &= mask`: removes only the HUD category-switch lock.
+///
+/// Its positive int value is 0xFD, preserving the other seven stored flag bits.
+#define ATTACHMENT_FLAG_CLEAR_SWAP_LOCK (0xFF ^ ATTACHMENT_FLAG_SWAP_LOCK)
+
 #define ATTACHMENT_FLAG_CLEAR_RELEASE     0xFB
 #define ATTACHMENT_FLAG_CLEAR_APPLY_STATS 0xF7
 #define ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL  0xEF
 
-/// `AttachmentState.mode`.
-#define ATTACHMENT_MODE_IDLE  0
-#define ATTACHMENT_MODE_WHEEL 1
-#define ATTACHMENT_MODE_ARMED 2
-#define ATTACHMENT_MODE_CAST  3
+/// No open wheel or armed/counting cast; a selection may be queued and released PE tasks may run.
+#define ATTACHMENT_MODE_IDLE 0
 
-/// `AttachmentState.effectPhase`.
-#define ATTACHMENT_EFFECT_HELD      -2
-#define ATTACHMENT_EFFECT_CHARGE    -1
-#define ATTACHMENT_EFFECT_IDLE      0
-#define ATTACHMENT_EFFECT_RELEASED  1
+/// Spell-selection wheel mode, holding player-state and scene-actor updates.
+///
+/// Combo timers pause in this mode; cancel or cast selection resumes actors.
+#define ATTACHMENT_MODE_WHEEL 1
+
+/// Selected cast awaiting the player's release request; its duration has not started counting down.
+///
+/// Armed and casting are the consecutive values 2 and 3, also tested as a range.
+#define ATTACHMENT_MODE_ARMED 2
+
+/// Cast countdown mode, entered on the release request and left on expiry or cancellation.
+#define ATTACHMENT_MODE_CAST 3
+
+/// New-cast signal in `AttachmentState.effectPhase`, awaiting player action entry.
+///
+/// PE tasks use it to retire effects superseded by the new cast. The HUD resets
+/// phase signals to idle before the next update; this is independent of cast mode.
+#define ATTACHMENT_EFFECT_HELD (-2)
+
+#define ATTACHMENT_EFFECT_CHARGE -1
+
+/// No phase signal for this update; ongoing PE tasks and cast mode may remain active.
+#define ATTACHMENT_EFFECT_IDLE 0
+
+#define ATTACHMENT_EFFECT_RELEASED 1
+
+/// Cancellation signal for the player's PE action and its charge visuals.
+///
+/// Published when an armed/counting cast is interrupted; the next HUD update
+/// resets the signal to idle. Running release effects also obey room-effect control.
 #define ATTACHMENT_EFFECT_CANCELLED 2
 
 /// `AttachmentState.soundStep`.
@@ -87,26 +152,46 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 #define ATTACHMENT_SOUND_QUEUED 1
 #define ATTACHMENT_SOUND_PLAYED 2
 
-/// `AttachmentState.menuOpen`.
+/// Wheel menu is closed; room event gates may proceed, subject to their other holds.
 #define ATTACHMENT_MENU_CLOSED 0
 #define ATTACHMENT_MENU_OPEN   1
 
-/// Wheel slots. The twelve spells are `0 .. ATTACHMENT_SPELL_COUNT - 1`.
-#define ATTACHMENT_SPELL_COUNT       0xC
+/// Pyrokinesis ability slot: fire group's first spell, decimal cast family 11.
 #define ATTACHMENT_INDEX_PYROKINESIS 0
-#define ATTACHMENT_INDEX_METABOLISM  6
-#define ATTACHMENT_INDEX_HEALING     7
-#define ATTACHMENT_INDEX_ANTIBODY    9
+
+/// Metabolism ability slot: water group's first spell, decimal cast family 31.
+///
+/// Also the exclusive upper bound on the six offensive spells allowed while berserk.
+#define ATTACHMENT_INDEX_METABOLISM 6
+
+/// Healing ability slot: water group's second spell, decimal cast family 32.
+///
+/// The wheel's only spell cast outside combat; its amount restores HP.
+#define ATTACHMENT_INDEX_HEALING 7
+
+#define ATTACHMENT_INDEX_ANTIBODY 9
+
+/// Energy Shot ability slot: earth group's second spell, decimal cast family 42.
 #define ATTACHMENT_INDEX_ENERGY_SHOT 0xA
+
+/// Energy Ball ability slot: earth group's third spell, decimal cast family 43.
+///
+/// Its cast eligibility also checks the live projectile count.
 #define ATTACHMENT_INDEX_ENERGY_BALL 0xB
 
 /// Shortest cast `duration`, in frames.
 #define ATTACHMENT_DURATION_MIN 1
 
 /// Low nibble of a combo byte is the stack; the high nibble is the level.
-#define ATTACHMENT_COMBO_STACK_MASK  0xF
+#define ATTACHMENT_COMBO_STACK_MASK 0xF
+
+/// Bit position of cast level 1..3 in a combo byte; the low nibble retains the stack count.
+///
+/// Refresh replaces the high nibble. Dividing a nonzero byte by `1 << shift`
+/// recovers the level for damage scaling; the stored values fit in signed bytes.
 #define ATTACHMENT_COMBO_LEVEL_SHIFT 4
-#define ATTACHMENT_COMBO_STACK_CAP   2
+
+#define ATTACHMENT_COMBO_STACK_CAP 2
 
 /// Packed attachment ids. The opening six spells are below 300, the twelve
 /// spells end at 600, and item attachments start at 601.
@@ -170,11 +255,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(AttachmentState, 0x18);
 
 /// `AttachmentAreaParam.shape`: how an ability picks its targets.
-#define ATTACHMENT_AREA_SELF       0 // No area; the combo or healing update applies the effect
-#define ATTACHMENT_AREA_PROJECTILE 1 // Projectile; only its path is previewed, its effect overlay finds the hits
-#define ATTACHMENT_AREA_ELLIPSOID  2 // Enemies inside an ellipsoid around the player
-#define ATTACHMENT_AREA_CYLINDER   3 // Enemies inside an upright cylinder around the player
-#define ATTACHMENT_AREA_ALL        4 // Every lockable enemy
+#define ATTACHMENT_AREA_SELF 0 // No area; the combo or healing update applies the effect
 
 /// Area-of-effect view of an `AttachmentAreaRow`: the region an ability at one
 /// level covers, previewed while aiming and used to pick its targets on release.
@@ -203,13 +284,6 @@ typedef struct {
     u16 ticks;     // Frames the combo lasts
 } AttachmentComboParam;
 STATIC_ASSERT_SIZEOF(AttachmentComboParam, 8);
-
-/// Abilities with rows in the area table: the twelve wheel spells, then the
-/// six slots past them that items cast from.
-#define ATTACHMENT_AREA_ABILITY_COUNT 18
-
-/// Levels each ability has a row for in the area table. Level `n` is row `n - 1`.
-#define ATTACHMENT_AREA_LEVEL_COUNT 3
 
 /// How one attachment ability at one level reaches its targets, one row of the
 /// area table.

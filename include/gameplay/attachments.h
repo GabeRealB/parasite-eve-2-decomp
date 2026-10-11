@@ -31,7 +31,7 @@ extern AttachmentLevelTable gAttachmentLevelTable;
 /// The eighteen-byte backing object remains live with gameplay; its final six
 /// bytes are not read or initialized by the known training consumers and have
 /// no established role. Ordinary saved levels are unaffected.
-extern u8 gAttachmentTrainingLevels[ATTACHMENT_AREA_ABILITY_COUNT];
+extern u8 gAttachmentTrainingLevels[ATTACHMENT_ABILITY_COUNT];
 
 /// Gameplay's shared attachment selection, casting and timed protection state.
 ///
@@ -48,6 +48,6 @@ extern AttachmentState gAttachmentState;
 /// row. Region dimensions use hundreds of world units. Metabolism, Antibody
 /// and Energy Shot read the combo view's unsigned frame duration. Gameplay
 /// owns the table; PE overlays borrow it while their effects run.
-extern AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT];
+extern AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_ABILITY_COUNT][ATTACHMENT_LEVEL_COUNT];
 
 #endif // GAMEPLAY_ATTACHMENTS_H

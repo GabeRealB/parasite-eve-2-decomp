@@ -34,7 +34,7 @@ enum {
     ITEM_MENU_ARMOR_ITEM_COUNT             = 0x20,
     ITEM_MENU_WEAPON_ITEM_COUNT            = 0x20,
     ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST   = 0x0F,
-    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT   = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT   = ATTACHMENT_SPELL_COUNT * ATTACHMENT_LEVEL_COUNT,
     ITEM_MENU_PACKED_PARASITE_ENERGY_FIRST = 0x300,
     ITEM_MENU_PACKED_PARASITE_ENERGY_LIMIT = 0x340,
     ITEM_MENU_TONFA_BATON_ITEM             = 0x92,
@@ -313,7 +313,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
         categoryIndex = ITEM_MENU_ICON_CATEGORY_UNIDENTIFIED;
     } else if (itemId < ITEM_MENU_ARMOR_ITEM_FIRST) {
         if ((u32)(itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) < ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            abilityIndex  = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+            abilityIndex  = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
             paletteIndex  = ITEM_MENU_ICON_PALETTE_DIRECT;
             categoryIndex = ITEM_MENU_ICON_CATEGORY_PARASITE_ENERGY;
             textureU      = (abilityIndex % 3) * 16 + 0xB0;
@@ -975,7 +975,7 @@ void itemMenuParasiteEnergySummaryTask(Task* task)
 
     // Draw levels from the third ability upward; the third appears once it can be learned.
     abilityRow      = 0;
-    maxLevel        = ATTACHMENT_AREA_LEVEL_COUNT;
+    maxLevel        = ATTACHMENT_LEVEL_COUNT;
     numberRowOffset = 2;
     bottomY         = object->panel.contentBottom.signedValue;
     for (; abilityRow < ITEM_MENU_ABILITIES_PER_ELEMENT; abilityRow++) {
@@ -1028,7 +1028,7 @@ void itemMenuParasiteEnergySummaryTask(Task* task)
             if (abilityRow == 0) {
                 elementLevels += elementLastAbilityIndex;
                 if ((elementLevels[0] != 0) ||
-                    ((elementLevels[-1] == ATTACHMENT_AREA_LEVEL_COUNT) && (elementLevels[-2] == ATTACHMENT_AREA_LEVEL_COUNT))) {
+                    ((elementLevels[-1] == ATTACHMENT_LEVEL_COUNT) && (elementLevels[-2] == ATTACHMENT_LEVEL_COUNT))) {
                     showThirdAbility = 1;
                 }
             }
@@ -1221,7 +1221,7 @@ static inline void _itemMenuDrawItemLabelAt(const UiObject* object, s32 x, s32 y
         itemMenuDrawEquipmentMarker(object, x, y, itemId, attachmentState);
         abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)abilityItemOffset < ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
         }
         itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }
@@ -1801,7 +1801,7 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
         textDrawString(&request, itemGetText(itemId, ITEM_TEXT_NAME, 0));
         abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, textColorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, textColorRgb);
         }
         itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);
     }
@@ -1914,7 +1914,7 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
                 textDrawString(&textScratch.labelRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));
                 abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
                 if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-                    itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, textColorRgb);
+                    itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, textColorRgb);
                 }
                 itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);
             }
@@ -2258,7 +2258,7 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
                 itemMenuDrawEquipmentMarker(object, rowX, rowY, itemId, textDrawMode);
                 abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
                 if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-                    itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, textColorRgb);
+                    itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, textColorRgb);
                 }
                 itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);
             }
@@ -2554,7 +2554,7 @@ void itemMenuArmorPanelTask(Task* task)
         textDrawString(&scratch.request, itemGetText(armorItemId, ITEM_TEXT_NAME, 0));
         abilityItemOffset = armorItemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, labelX, labelY, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, textColorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, labelX, labelY, abilityItemOffset % ATTACHMENT_LEVEL_COUNT + 1, textColorRgb);
         }
         itemMenuDrawItemIcon(object, labelX, labelY, armorItemId, ITEM_MENU_ICON_DEFAULT);
     }

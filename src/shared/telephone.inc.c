@@ -594,7 +594,7 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
         s32 useCount;
 
         useCount = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[index];
-        itemId   = index * ATTACHMENT_AREA_LEVEL_COUNT + TELEPHONE_PE_ITEM_FIRST;
+        itemId   = index * ATTACHMENT_LEVEL_COUNT + TELEPHONE_PE_ITEM_FIRST;
         if (useCount > 0) {
             s32 abilityPage;
             s32 pageSlot;
@@ -614,10 +614,10 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
     // Stable descending insertion sort keeps catalogue order for equal counts.
     if (rowCount >= 2) {
         for (index = 1; index < rowCount; index++) {
-            abilityIndex  = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+            abilityIndex  = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
             insertionUses = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[abilityIndex];
             for (insertIndex = 0; insertIndex < index; insertIndex++) {
-                abilityIndex = (work->itemIds[insertIndex] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+                abilityIndex = (work->itemIds[insertIndex] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[abilityIndex] < insertionUses) {
                     _telephoneInsertUsageRow(work, index, insertIndex);
                     break;
@@ -629,7 +629,7 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
     // Reduce both denominators with their scales before fixed-point conversion.
     if (rowCount > 0) {
         shareScale   = 2 * TELEPHONE_PERCENT_WHOLE;
-        abilityIndex = (work->itemIds[0] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+        abilityIndex = (work->itemIds[0] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
         topUses      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[abilityIndex];
         gaugeShift   = TELEPHONE_GAUGE_FRACTION_BITS;
         while (topUses > TELEPHONE_MAX_UNSCALED_USE_COUNT) {
@@ -639,9 +639,9 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
             gaugeShift--;
         }
         for (index = 0; index < rowCount; index++) {
-            abilityIndex                = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+            abilityIndex                = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
             work->usageShares[index]    = (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[abilityIndex] * shareScale) / totalUses + 1) >> 1;
-            abilityIndex                = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+            abilityIndex                = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
             work->gaugeFractions[index] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[abilityIndex] << gaugeShift) / topUses;
         }
     }

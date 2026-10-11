@@ -12,7 +12,7 @@
 /* Define BSS before API headers to preserve first-declaration order. */
 HudHpMp gHudDisplayedVitals;
 
-u8 gAttachmentTrainingLevels[ATTACHMENT_AREA_ABILITY_COUNT];
+u8 gAttachmentTrainingLevels[ATTACHMENT_ABILITY_COUNT];
 
 u16 gGameDebugReplayButtons;
 
@@ -99,7 +99,7 @@ u16 attachmentGetActiveLevelValue(s32 column)
 {
     enum {
         ATTACHMENT_ACTIVE_LEVEL_MIN          = 1,
-        ATTACHMENT_ACTIVE_LEVEL_MAX          = 3,
+        ATTACHMENT_ACTIVE_LEVEL_MAX          = ATTACHMENT_LEVEL_COUNT,
         ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4
     };
     const PlayerStatus* playerStatus;

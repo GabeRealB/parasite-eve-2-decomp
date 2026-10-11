@@ -122,7 +122,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
                    ATTACHMENT_HEAL_BLEND_SHIFT = 8 };
 
             levelRows = gAttachmentLevelTable.rows;
-            rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT + 1 + gAttachmentState.attachId % ATTACHMENT_AREA_LEVEL_COUNT;
+            rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_LEVEL_COUNT + 1 + gAttachmentState.attachId % ATTACHMENT_LEVEL_COUNT;
             maximumHp = levelRows[rowIndex].column.outcome.healMax;
             minimumHp = levelRows[rowIndex].column.amount;
             if (minimumHp >= maximumHp || !isStateF0Active_()) {

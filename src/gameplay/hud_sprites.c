@@ -1129,7 +1129,7 @@ static s32 _sceneIsBattleEndDelayClear(void)
 
 void attachmentEnqueueHealingSoundLoad(void)
 {
-    sndLoadEnqueuePeFile(attachmentGetEffectiveLevel(ATTACHMENT_INDEX_HEALING) + ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT);
+    sndLoadEnqueuePeFile(attachmentGetEffectiveLevel(ATTACHMENT_INDEX_HEALING) + ATTACHMENT_INDEX_HEALING * ATTACHMENT_LEVEL_COUNT);
 }
 
 void itemPickupNoticeTask(Task* task)
@@ -1216,7 +1216,7 @@ s32 attachmentGetEffectiveLevel(s32 abilityIndex)
             level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
         }
         if (player->statusFlags & PLAYER_STATUS_BERSERKER) {
-            if (level < ATTACHMENT_AREA_LEVEL_COUNT) {
+            if (level < ATTACHMENT_LEVEL_COUNT) {
                 level++;
             }
         }

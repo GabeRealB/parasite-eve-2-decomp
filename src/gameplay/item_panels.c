@@ -41,6 +41,11 @@
 
 #include "mapui/map_shelter.h"
 
+/// Column 4 of the attachment level row: minimum HP restored by menu Healing.
+///
+/// The same column is hit damage for attacks; battle Healing can roll above it.
+#define ATTACHMENT_LEVEL_AMOUNT 4
+
 /// One variant of a weapon that takes add-ons: the weapon item it is carried
 /// as, and the add-on that item has mounted.
 ///
@@ -83,7 +88,7 @@ enum {
     ITEM_MENU_PANEL_TEXT_COLOR           = 0x606060,
     ITEM_MENU_RECESSED_FILL_COLOR        = 0x102010,
     ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST = 15,
-    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_LEVEL_COUNT,
     ITEM_MENU_DIALOG_OPEN_DELAY_TICKS    = 2,
     ITEM_MENU_COMPLETED_COUNTDOWN        = 0x7FFF,
 };
@@ -102,22 +107,22 @@ enum {
 /// effects because object, coordinates, item and color are evaluated repeatedly.
 /// request is a TextDrawReq lvalue; baseY and levelIndex are s32 scratch lvalues
 /// overwritten by the operation. Uses `itemMenuDrawItemRow`'s resource contract.
-#define ITEM_MENU_DRAW_UNMARKED_ROW_CONTENTS(object, request, rowX, rowY, itemId, rowColorRgb, baseY, levelIndex)                     \
-    {                                                                                                                                 \
-        (request).x          = (object)->panel.contentOriginX.unsignedValue + 0x11 + (rowX);                                          \
-        (baseY)              = (object)->panel.contentOriginY.unsignedValue - 6;                                                      \
-        (request).y          = (baseY) + (rowY);                                                                                      \
-        (request).otIndex    = (object)->panel.otIndex.signedValue + 1;                                                               \
-        (request).colorRgb   = (rowColorRgb);                                                                                         \
-        (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                               \
-        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                   \
-        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                                    \
-        textDrawString(&(request), itemGetText((itemId), ITEM_TEXT_NAME, 0));                                                         \
-        (levelIndex) = (itemId) - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                               \
-        if ((u32)(levelIndex) < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                                          \
-            itemMenuDrawParasiteEnergyLevel((object), (rowX), (rowY), (levelIndex) % ATTACHMENT_AREA_LEVEL_COUNT + 1, (rowColorRgb)); \
-        }                                                                                                                             \
-        itemMenuDrawItemIcon((object), (rowX), (rowY), (itemId), ITEM_MENU_ICON_DEFAULT);                                             \
+#define ITEM_MENU_DRAW_UNMARKED_ROW_CONTENTS(object, request, rowX, rowY, itemId, rowColorRgb, baseY, levelIndex)                \
+    {                                                                                                                            \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + 0x11 + (rowX);                                     \
+        (baseY)              = (object)->panel.contentOriginY.unsignedValue - 6;                                                 \
+        (request).y          = (baseY) + (rowY);                                                                                 \
+        (request).otIndex    = (object)->panel.otIndex.signedValue + 1;                                                          \
+        (request).colorRgb   = (rowColorRgb);                                                                                    \
+        (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                          \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                                                              \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                               \
+        textDrawString(&(request), itemGetText((itemId), ITEM_TEXT_NAME, 0));                                                    \
+        (levelIndex) = (itemId) - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                          \
+        if ((u32)(levelIndex) < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                                     \
+            itemMenuDrawParasiteEnergyLevel((object), (rowX), (rowY), (levelIndex) % ATTACHMENT_LEVEL_COUNT + 1, (rowColorRgb)); \
+        }                                                                                                                        \
+        itemMenuDrawItemIcon((object), (rowX), (rowY), (itemId), ITEM_MENU_ICON_DEFAULT);                                        \
     }
 
 u8 gMenuMapSelectedPage;
@@ -1105,12 +1110,12 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
         inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, gItemMenuSelectedRow, 1);
 
         // Decode the ordinary item into its element, ability slot and one-based level.
-        abilityIndex = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+        abilityIndex = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;
         level        = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         elementIndex = elementAbilityIndex = abilityIndex / ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT;
         elementAbilityIndex                = abilityIndex - elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT;
         save                               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        level                              = level - abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + 1;
+        level                              = level - abilityIndex * ATTACHMENT_LEVEL_COUNT + 1;
         player                             = &gPlayerStatus;
         if (save->state.attachLevels[elementAbilityIndex + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT] < level) {
             save->state.attachLevels[elementAbilityIndex + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT] = level;
@@ -1160,14 +1165,14 @@ void itemMenuInvokeElementBoostPanel(UiObject* object, Task* task)
         if (save->state.attachLevels[abilitySelection + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT] >= ITEM_MENU_INVOKE_MAX_LEVEL) {
             abilitySelection = 2;
             if (save->state.attachLevels[elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT + 2] >= ITEM_MENU_INVOKE_MAX_LEVEL) {
-                abilitySelection = (elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT + 2) * ATTACHMENT_AREA_LEVEL_COUNT + ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST + ITEM_MENU_INVOKE_MAX_LEVEL - 1;
+                abilitySelection = (elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT + 2) * ATTACHMENT_LEVEL_COUNT + ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST + ITEM_MENU_INVOKE_MAX_LEVEL - 1;
                 goto storeInvocation;
             }
         }
         // Reuse the selection value for the ordinary P.E. item id after choosing its group slot.
         levelSave        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         abilityIndex     = abilitySelection + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT;
-        abilitySelection = levelSave->state.attachLevels[abilityIndex] + abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
+        abilitySelection = levelSave->state.attachLevels[abilityIndex] + abilityIndex * ATTACHMENT_LEVEL_COUNT + ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
     storeInvocation:
         task->extraState.value = abilitySelection;
     }
@@ -1851,7 +1856,7 @@ static inline void _itemMenuDrawItemRowContents(const UiObject* object, s32 x, s
         }
         energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
         if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
-            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb);
         }
         itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }

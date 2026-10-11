@@ -2669,7 +2669,7 @@ void effectPeChargeTask(Task* task)
     // This callback leaves state unchanged, so new tasks refresh the sound each tick.
     if (task->state == EFFECT_DRAW_TASK_NEW) {
         task->spawnArg1.value = _gEffectPeChargeSoundIds[((u16)(gAttachmentState.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
-                                                         ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
+                                                         ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * ATTACHMENT_LEVEL_COUNT +
                                                          ((u16)(gAttachmentState.attachId % 10U) - 1U)];
     }
     actorRenderComposeCoord(coord);

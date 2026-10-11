@@ -142670,11 +142670,11 @@ substitutes the constant, too late to join the displacement.
 ```c
 static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
+    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_LEVEL_COUNT + level].value[column];
 }
 ```
 
-The row has to be computed inside the helper too (`abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level`, not a `row`
+The row has to be computed inside the helper too (`abilityIndex * ATTACHMENT_LEVEL_COUNT + level`, not a `row`
 argument): with the row as the argument it is evaluated at the call, before the
 helper's `lui/addiu` of the table, and the base load schedules after the index
 instead of before it. The register pins in the same function were `result` set
