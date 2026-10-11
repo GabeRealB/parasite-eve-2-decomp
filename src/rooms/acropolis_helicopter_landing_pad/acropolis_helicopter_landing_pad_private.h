@@ -104,13 +104,14 @@ extern TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5];
 /// Dispatch copies both vectors synchronously and retains no record pointer.
 extern ActorTransform gAcropolisHelicopterLandingPadLiftPlayerPlacement;
 
-/// Leading movement destination with preserved, uninterpreted trailing storage.
+/// Departure scene-mark XYZ followed by authored storage of unproven meaning.
 ///
-/// Only XYZ is consumed by the scripted player approach. The remaining fifteen
-/// signed words have no established consumer or interpretation; their extent
-/// preserves the authored storage without asserting additional transforms.
+/// The approach command copies only the three signed coordinates, in the
+/// player's parent frame and integer game units. The following fifteen words
+/// have no established consumer; their extent preserves the stored data
+/// without asserting additional placements or rotations.
 typedef struct {
-    VECTOR3 destination;    // Signed XYZ in the player's parent-coordinate frame
+    VECTOR3 destination;    // Scripted approach destination in parent-coordinate game units
     s32     unknown_0C[15]; // Uninterpreted stored words; role unproven
 } AcropolisHelicopterLandingPadSceneMarkStorage;
 STATIC_ASSERT_SIZEOF(AcropolisHelicopterLandingPadSceneMarkStorage, 0x48);

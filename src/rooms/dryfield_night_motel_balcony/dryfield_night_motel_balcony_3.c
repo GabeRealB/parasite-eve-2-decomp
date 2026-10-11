@@ -46,6 +46,8 @@ static inline void _dryfieldNightMotelBalconySetBreakawaySprites(SpriteBatch* ba
 /// a nonempty stream beginning with a view selection and valid indices; every
 /// view selection must be followed by a batch write. Borrows all data for this call.
 /// The initial view is read before the terminator test, so an empty stream is invalid.
+/// Views belong to the area's first sprite variant. Nonzero visibility bytes,
+/// including the authored value 10, are preserved; records after the end are unread.
 static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const SpriteView* areaViews, const SpriteVisibilityCommand* command)
 {
     SpriteBatch* batches;

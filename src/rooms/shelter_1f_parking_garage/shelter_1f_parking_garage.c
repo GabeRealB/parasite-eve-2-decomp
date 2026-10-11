@@ -127,30 +127,28 @@ static TaskDesc _gShelter1fParkingGarageUndergroundDepartureTaskDesc = {
     .data     = { .value = 0 },
 };
 
-/// Six ceiling capsule pairs and a red disc centre, in room-world game units.
+/// World-space endpoints of six ceiling glows and the garage's red point glow.
+///
+/// Each capsule contains two consecutive signed-halfword XYZ positions in
+/// game units. Drawers borrow a pair or the disc centre only for the call;
+/// the fourth halfword of each position has no projection meaning.
 typedef struct {
-    SVECTOR capsuleEndpoints[12]; // Six consecutive pairs along the two ceiling rows
-    SVECTOR discCenter;           // Red disc centre, visible in mapped view 4
+    SVECTOR capsuleEndpoints[6][2]; // Pairs 0..2 at positive Z, pairs 3..5 at negative Z
+    SVECTOR discCenter;             // Red disc centre drawn in mapped view 4
 } _Shelter1fParkingGarageGlowPoints;
 STATIC_ASSERT_SIZEOF(_Shelter1fParkingGarageGlowPoints, 0x68);
 
 /// Fixed garage glow geometry; view 2 draws pairs 1/2/4/5, view 4 draws 0/3 and the disc.
 static _Shelter1fParkingGarageGlowPoints _gShelter1fParkingGarageGlowPoints = {
-    {
-        { 400, -3090, 1790, 0 },
-        { 1600, -3090, 1790, 0 },
-        { 4400, -3090, 1790, 0 },
-        { 5600, -3090, 1790, 0 },
-        { 8400, -3090, 1790, 0 },
-        { 9600, -3090, 1790, 0 },
-        { 400, -3090, -1790, 0 },
-        { 1600, -3090, -1790, 0 },
-        { 4400, -3090, -1790, 0 },
-        { 5600, -3090, -1790, 0 },
-        { 8400, -3090, -1790, 0 },
-        { 9600, -3090, -1790, 0 },
+    .capsuleEndpoints = {
+        { { 400, -3090, 1790, 0 }, { 1600, -3090, 1790, 0 } },
+        { { 4400, -3090, 1790, 0 }, { 5600, -3090, 1790, 0 } },
+        { { 8400, -3090, 1790, 0 }, { 9600, -3090, 1790, 0 } },
+        { { 400, -3090, -1790, 0 }, { 1600, -3090, -1790, 0 } },
+        { { 4400, -3090, -1790, 0 }, { 5600, -3090, -1790, 0 } },
+        { { 8400, -3090, -1790, 0 }, { 9600, -3090, -1790, 0 } },
     },
-    { 2000, -2130, 2230, 0 },
+    .discCenter = { 2000, -2130, 2230, 0 },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
@@ -743,19 +741,19 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2: {
-            const SVECTOR* capsulePoints = &_gShelter1fParkingGarageGlowPoints.capsuleEndpoints[2];
-            _glowDrawAngledCapsule(&capsulePoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
-            _glowDrawAngledCapsule(&capsulePoints[2], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
-            _glowDrawAngledCapsule(&capsulePoints[6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
-            _glowDrawAngledCapsule(&capsulePoints[8], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
+            const SVECTOR(*capsulePoints)[2] = &_gShelter1fParkingGarageGlowPoints.capsuleEndpoints[1];
+            _glowDrawAngledCapsule(capsulePoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(capsulePoints[1], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(capsulePoints[3], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(capsulePoints[4], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
             break;
         }
         case 4: {
             const SVECTOR* discPoint = &_gShelter1fParkingGarageGlowPoints.discCenter;
             _glowDrawFactorDisc(discPoint, GLOWS_DISC_RADIUS_SCALE, GLOWS_DISC_COLOR_FACTORS);
             // Recover the complete glow geometry from its disc centre.
-            _glowDrawAngledCapsule(&PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
-            _glowDrawAngledCapsule(&PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[3], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
             break;
         }
     }

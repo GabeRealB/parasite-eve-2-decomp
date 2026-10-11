@@ -65,15 +65,17 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
 static WorldCoordRoomAmbientEntry _gShelterB1SterilizationRoomAmbientByView[25];
 static WorldCoordRoomLights       _gShelterB1SterilizationRoomLights;
 
-/// Authored glow geometry, puff origins and reusable smoke samples for this room.
+/// Room-effect positions, trap-puff drift directions and writable smoke samples.
 ///
-/// Positions use integer game units; puff and smoke origins are local to the
-/// effect controller's coordinate, while glow centres and endpoints are world
-/// points. Each sixteen-origin puff group uses the corresponding Q12 drift
-/// direction. Smoke samples are overwritten before each spawn, which copies
-/// placement. Keep this storage loaded while the room's effects are live.
+/// Glow points use world coordinates; puff origins and smoke samples use the
+/// controller's local frame. All positions are signed integer game units.
+/// Consecutive groups of sixteen puff origins share one Q12 XY drift direction;
+/// these diagonals are not normalized. Spawning copies placement and retains
+/// the source pointer. Puff tasks use the copied placement; smoke samples are
+/// overwritten before each spawn. Keep source storage loaded through the
+/// effects' lifetimes. The four intervening vectors remain unproven.
 typedef struct {
-    SVECTOR puffOrigins[64];        // Four groups of sixteen trap-puff origins
+    SVECTOR puffOrigins[64];        // Source index 0..63; direction is index / 16
     SVECTOR field_200[4];           // Four retained vectors; purpose unproven
     SVECTOR capsuleEndpoints[4][2]; // Four world-space endpoint pairs for capsule glows
     SVECTOR singleDiscCenter;       // Large disc centre drawn in mapped view 11
@@ -81,7 +83,7 @@ typedef struct {
     SVECTOR bladeGlowCenter;        // Diamond or pulsing blade-glow centre in mapped views 8/19
     SVECTOR smallDiscCenter;        // Small disc centre drawn in mapped views 8/19
     SVECTOR smokePoints[2];         // Mutable local ring samples, copied by particle spawning
-    SVECTOR puffDirections[4];      // Q12 XY drift directions for the four puff-origin groups
+    SVECTOR puffDirections[4];      // Q12 XY drift directions; components are +/-ONE
 } _ShelterB1SterilizationRoomEffectGeometry;
 STATIC_ASSERT_SIZEOF(_ShelterB1SterilizationRoomEffectGeometry, 0x2B8);
 
@@ -1572,7 +1574,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED               = 1,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_VIEW_MASK                  = 0xFF,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT          = ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffOrigins),
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION = 16,
+        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION = ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffOrigins) / ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffDirections),
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP     = 4,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN            = 256,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK           = 511,
@@ -1813,7 +1815,7 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
         SHELTER_B1_STERILIZATION_ROOM_PUFF_INITIALIZE            = 0,
         SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE               = 1,
         SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCE_INDEX_MASK     = 0xFFF,
-        SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION = 16,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION = ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffOrigins) / ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffDirections),
         SHELTER_B1_STERILIZATION_ROOM_PUFF_FRAME_COUNT           = 10,
         SHELTER_B1_STERILIZATION_ROOM_PUFF_BASE_SIZE             = 0x180,
     };

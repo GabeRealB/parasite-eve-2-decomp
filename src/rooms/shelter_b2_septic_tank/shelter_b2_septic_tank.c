@@ -72,10 +72,14 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 
-/// Fixed room-space geometry selected by the septic tank's mapped view.
+/// World-space beam endpoint pairs and indicator positions for the septic tank.
+///
+/// Signed-halfword XYZ positions use integer game units. Each beam draw
+/// borrows both endpoints of one pair; disc draws borrow one centre. View
+/// selection changes the subset drawn, while the positions remain fixed.
 typedef struct {
-    SVECTOR beamEnds[35][2]; // Consecutive endpoint pairs, each borrowed by one beam draw
-    SVECTOR discCenters[3];  // Indicator centres (0 green, 1 upper red, 2 left red)
+    SVECTOR beamEnds[35][2]; // Two consecutive world positions per beam
+    SVECTOR discCenters[3];  // Indicator centres (index 0 green, indices 1 and 2 red)
 } _ShelterB2SepticTankGlowPoints;
 STATIC_ASSERT_SIZEOF(_ShelterB2SepticTankGlowPoints, 0x248);
 

@@ -84,11 +84,12 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate);
 static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation);
 
-/// Two grid-local XZ endpoints encoded as unsigned coordinate halfwords.
+/// Directed horizontal edge extruded into one collision-wall quad.
 ///
-/// Wall builders narrow coordinates and endpoint differences to signed
-/// halfwords. Retain unsigned loads before that narrowing; Y comes from
-/// the selected wall height rather than from this record.
+/// X/Z store signed game-coordinate bits in unsigned halfwords. Builders
+/// narrow endpoints to signed vertex coordinates and the perpendicular
+/// (endZ - startZ, 0, startX - endX) to signed halfwords before normalizing
+/// it to Q12. Y is supplied separately by the chosen wall-height range.
 typedef struct {
     u16 startX; // First endpoint X, signed game-coordinate bits
     u16 startZ; // First endpoint Z, signed game-coordinate bits
