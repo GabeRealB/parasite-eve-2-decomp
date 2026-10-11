@@ -191,9 +191,9 @@ static void _desertChaserPursue(Task* task)
                 scratch->offset.vz  = -scratch->offset.vz;
                 scratch->playerTurn = _actorAngleTurnToOffset(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
                 if (abs(scratch->playerTurn) < DESERT_CHASER_CATCH_FRONT_YAW_LIMIT) {
-                    work->playerAnim.source.sets = gDesertChaserFrontAnim;
+                    work->playerAnim.source.sets = _gDesertChaserFrontCatchPlayerAnimSets;
                 } else {
-                    work->playerAnim.source.sets = gDesertChaserRearAnim;
+                    work->playerAnim.source.sets = _gDesertChaserRearCatchPlayerAnimSets;
                     scratch->catchYaw            = scratch->catchYaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
                 }
                 work->playerPlacement.rot.vx = 0;

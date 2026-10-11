@@ -845,7 +845,7 @@ static __inline__ void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SV
 // unresolved (see the local actors/rooms data review).
 
 /// Event-handler table `_actor356100Initialize` hands the task as
-/// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
+/// `Task::msgTable`. Same shape and role as `_gActor01900Messages`.
 // Message-table callbacks use the argument views required by this TU.
 
 #include "../../shared/actor_contacts.h"

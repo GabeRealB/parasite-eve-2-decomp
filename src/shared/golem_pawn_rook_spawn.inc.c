@@ -75,7 +75,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[GOLEM_PAWN_ROOK_BODY_PART];
     work->hitEffectArg.spawnArgLo = GOLEM_PAWN_ROOK_HIT_EFFECT_SIZE;
     work->hitEffectArg.spawnArgHi = GOLEM_PAWN_ROOK_HIT_EFFECT_KIND;
-    animationInitContext(&work->rig.anim, gGolemPawnRookAnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gGolemPawnRookAnimSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, GOLEM_PAWN_ROOK_IDLE_ANIM);
     }
@@ -95,10 +95,10 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             enemy->bodyPos.vx = 0;
             enemy->bodyPos.vy = 0;
             enemy->bodyPos.vz = 0;
-            enemy->param      = gGolemPawnRookParams;
+            enemy->param      = &_gGolemPawnRookParams;
             enemy->recs       = work->hurtContacts;
             enemy->coord      = &bodyCoords[GOLEM_PAWN_ROOK_BODY_PART];
-            enemy->hp         = gGolemPawnRookParams->hpMax;
+            enemy->hp         = _gGolemPawnRookParams.hpMax;
             sceneAcquireBattleRef(0);
             work->patrols = enemy->place->mode & GOLEM_PAWN_ROOK_PLACEMENT_PATROLS;
             if (work->patrols == 0) {

@@ -53,9 +53,6 @@
 static void _sucklercephDropState(Enemy* enemy, Task* task);
 #include "../../shared/skull_stalker.h"
 
-/// The second enemy's record; `hpMax` seeds its HP.
-extern EnemyParams gSkullStalkerParams;
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -253,7 +250,22 @@ static SVECTOR _gSucklercephPuffOffset = { 0, -300, 0, 0 };
 /// Its handlers do not pack an outgoing attack; this stored row is not a null attack key.
 static DamageAttack _gSkullStalkerAttacks[1] = { { .power = 0, .reaction = GAME_ACTOR_REACTION_ORDINARY } };
 
-EnemyParams gSkullStalkerParams = { _gSkullStalkerAttacks, 1, 2, 32, 1, 100, 20, 100, 99 };
+/// Skull Stalker combat, reaction and release-reward parameters.
+///
+/// Spawn starts each enemy with one HP and borrows this record until release.
+/// The retained zero-power attack row is not selected by its handlers. The
+/// damage-over-time fields store a 100-percent base chance and 99 base pulses.
+static EnemyParams _gSkullStalkerParams = {
+    .attacks              = _gSkullStalkerAttacks,
+    .hpMax                = 1,
+    .exp                  = 2,
+    .bp                   = 32,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 99,
+};
 
 static TmdBone _gActor04600SkullStalkerBodySkeleton[3] = {
 #include "assets/skull_stalker_body_skeleton.inc"

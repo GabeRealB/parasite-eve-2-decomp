@@ -9,8 +9,8 @@
 /// Each binding is an s16 array indexed by the attack key's low seven bits;
 /// the PE table is selected by bit 15. The table spellings are carrier-owned.
 #if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
-#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS gGolemPawnRookWeakPointWeapons
-#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakPointPe
+#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS _gGolemPawnRookShieldWeaponRows
+#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     _gGolemPawnRookShieldPeRows
 #else
 #define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS _gGolemPawnRookShieldWeaponRows
 #define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     _gGolemPawnRookShieldPeRows

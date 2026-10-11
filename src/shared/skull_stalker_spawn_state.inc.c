@@ -45,9 +45,9 @@ static void _skullStalkerSpawnState(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &gSkullStalkerParams;
+    enemy->param                  = &_gSkullStalkerParams;
     enemy->recs                   = work->bodyContacts;
-    enemy->hp                     = gSkullStalkerParams.hpMax;
+    enemy->hp                     = _gSkullStalkerParams.hpMax;
     // Bind animation and start fully hidden before collision can sense the player.
     animationInitContext(&work->anim, _gSkullStalkerAnimSets, model, work->poses, work->slots);
     slotIndex = 1;

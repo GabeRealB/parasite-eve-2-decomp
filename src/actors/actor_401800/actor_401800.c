@@ -65,11 +65,11 @@ extern EnemyParams D_actor_401800_8013E6F0;
 
 /// The three `ActorStrangerVariant` tunings the init body picks from by the
 /// spawn argument's low nibble: `[0]` when it is 2, `[2]` when it is 1, `[1]`
-/// otherwise. Same table shape as `Actor01900_D0AC64`.
+/// otherwise. Same table shape as `_gActor01900StrangerVariants`.
 extern ActorStrangerVariant D_actor_401800_8013E700[];
 
 /// Handler table the actor's task receives in `Task::msgTable`; same role
-/// `Actor01900_D1728C` plays for actor 01900.
+/// `_gActor01900Messages` plays for actor 01900.
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_401800_80155A80[8];

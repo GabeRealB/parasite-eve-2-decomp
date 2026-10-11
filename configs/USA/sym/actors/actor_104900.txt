@@ -4,7 +4,7 @@
 // shared body reaches them.
 
 Actor01100_D00004 = 0x80131E24;
-Actor01100_D00010 = 0x80131E30;
+_gActor01100BruteMossbackScale = 0x80131E30;
 Actor01100_Jt00024 = 0x80131E44;
 Actor01100_Jt0004C = 0x80131E6C;
 Actor01100_D00064 = 0x80131E84;
@@ -54,9 +54,9 @@ _actor01100SpitGlobCountdown = 0x8013918C;
 _actor01100SpitExit = 0x801391C8;
 _actor01100SpitCloudTick = 0x801391FC;
 _gActor01100MossbackAttacks = 0x801392F0; // size:0x18 defined:True
-Actor01100_D074E8 = 0x80139308; // size:0x10 defined:True
+_gActor01100MossbackParams = 0x80139308; // size:0x10 defined:True
 _gActor01100BruteMossbackAttacks = 0x80139318; // size:0x18 defined:True
-Actor01100_D07510 = 0x80139330; // size:0x10 defined:True
+_gActor01100BruteMossbackParams = 0x80139330; // size:0x10 defined:True
 _gActor01100BruteMossbackBodySkeleton = 0x80139340; // size:0x2F4 defined:True
 _gActor01100BruteMossbackBodyPartVerts = 0x80139634; // size:0x54 defined:True
 _gActor01100BruteMossbackBodyVerts = 0x80139688; // size:0x978 defined:True
@@ -192,6 +192,6 @@ _gActor01100Actor101100Animation155B8Records = 0x801471A0; // size:0x20C defined
 _gActor01100Actor101100Animation155B8Indices = 0x801473AC; // size:0x2C defined:True
 _gActor01100Actor101100Animation155B8 = 0x801473D8; // size:0x28 defined:True
 gActor01100Tasks = 0x80147400; // size:0x24 defined:True
-Actor01100_D15604 = 0x80147424; // size:0x5C defined:True
-Actor01100_D15660 = 0x80147480; // size:0x10 defined:True
+_gActor01100AnimSets = 0x80147424; // size:0x5C defined:True
+_gActor01100Messages = 0x80147480; // size:0x10 defined:True
 _gActor01100SpitSoundPlacementIndex = 0x80147490; // size:0x4 defined:True

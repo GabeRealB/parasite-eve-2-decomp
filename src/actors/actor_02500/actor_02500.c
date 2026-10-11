@@ -237,10 +237,6 @@ typedef struct {
     s16 z;
 } _Actor02500DustDirection;
 
-extern EnemyParams              Actor02500_D05B38;
-extern s16                      Actor02500_D05B48[];
-extern s16                      Actor02500_D05B58[];
-extern s16                      Actor02500_D05B68[];
 extern s16                      Actor02500_D05B78[];
 extern AnimationSet*            Actor02500_D05BA0[12];
 extern s16                      Actor02500_D05BD0[];
@@ -601,9 +597,27 @@ static DamageAttack _gActor02500Attacks[2] = {
     { 1, GAME_ACTOR_REACTION_POISON },
 };
 
-EnemyParams Actor02500_D05B38 = { _gActor02500Attacks, 68, 20, 8, 1, 0, 20, 0, 0 };
+/// Scorpion combat, reaction and release-reward parameters.
+///
+/// Spawn copies starting HP and borrows this record and its poison attack rows
+/// for the loaded overlay's lifetime; the critical-chance base is zero.
+static EnemyParams _gActor02500ScorpionParams = {
+    .attacks              = _gActor02500Attacks,
+    .hpMax                = 68,
+    .exp                  = 20,
+    .bp                   = 8,
+    .mp                   = 1,
+    .critChance           = 0,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
-s16 Actor02500_D05B48[8] = {
+/// Wandering yaw limits for the eight Scorpion placement tuning rows.
+///
+/// Indexed by `AreaPlacement::rowIndex`, which must be 0..7; no check runs.
+/// Signed halfword entries are angle units per active tick (4096 per turn).
+static s16 _gActor02500WanderTurnRates[8] = {
     16,
     18,
     20,
@@ -614,7 +628,11 @@ s16 Actor02500_D05B48[8] = {
     22,
 };
 
-s16 Actor02500_D05B58[8] = {
+/// Wandering forward speeds for the eight Scorpion placement tuning rows.
+///
+/// Indexed by `AreaPlacement::rowIndex`, which must be 0..7; no check runs.
+/// Signed halfword entries are game-coordinate units per active tick.
+static s16 _gActor02500WanderSpeeds[8] = {
     24,
     26,
     28,
@@ -625,7 +643,11 @@ s16 Actor02500_D05B58[8] = {
     30,
 };
 
-s16 Actor02500_D05B68[8] = {
+/// Chasing yaw limits for the eight Scorpion placement tuning rows.
+///
+/// Indexed by `AreaPlacement::rowIndex`, which must be 0..7; no check runs.
+/// Signed halfword entries are angle units per active tick (4096 per turn).
+static s16 _gActor02500ChaseTurnRates[8] = {
     18,
     22,
     26,
@@ -811,8 +833,8 @@ static void _actor02500Spawn(Enemy* enemy, Task* actor)
     enemy->node.state.parts.flags = 0;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor02500_D05B38;
-    enemy->hp                     = Actor02500_D05B38.hpMax;
+    enemy->param                  = &_gActor02500ScorpionParams;
+    enemy->hp                     = _gActor02500ScorpionParams.hpMax;
     work->hitEffectArg.spawnArgLo = ACTOR_02500_HIT_EFFECT_ARG_LO;
     work->hitEffectArg.coord      = rootCoord;
     work->hitEffectArg.spawnArgHi = 1;
@@ -1123,7 +1145,7 @@ static void _actor02500Wander(Task* actor)
             }
             break;
         case ACTOR_02500_WANDER_STEP_WALK:
-            work->speed    = Actor02500_D05B58[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+            work->speed    = _gActor02500WanderSpeeds[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
             homeOffset->vx = work->home.vx - rootCoord->coord.t[0];
             homeOffset->vy = 0;
             homeDz         = work->home.vz - rootCoord->coord.t[2];
@@ -1156,7 +1178,7 @@ static void _actor02500Wander(Task* actor)
             work->actionStep  = ACTOR_02500_WANDER_STEP_TURN;
             break;
     }
-    work->turnRate = Actor02500_D05B48[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+    work->turnRate = _gActor02500WanderTurnRates[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
@@ -1270,7 +1292,7 @@ static void _actor02500Chase(Task* actor)
             work->anim       = ACTOR_02500_ANIM_WALK;
             break;
     }
-    work->turnRate = Actor02500_D05B68[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+    work->turnRate = _gActor02500ChaseTurnRates[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 

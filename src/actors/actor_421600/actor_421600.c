@@ -188,26 +188,6 @@ static TmdSource _gActor421600DesertChaserBurstTorso;
 
 static s16 _gActor421600RemainingLives;
 
-/// The Water Tower chaser's two catch tables and its hit offsets, three
-/// objects stored one after another.
-///
-/// A catch table lists the animation sets the caught player is sent, indexed
-/// by `AnimationPlayRequest::animationId`: 1 to 3 are this package's own, and
-/// 4 and 5 are filled in during the catch with the sets of the player's
-/// weapon. The regular build (`actor_00100`) gives each table nine words. This
-/// one stores five, and the catch handler was not changed: its third stage
-/// still writes set 5, ONE PAST THE END of the chosen table, and the player's
-/// animation task then reads it back from there. For the front table that
-/// word is `gDesertChaserRearAnim[0]`, an entry no request names; for the rear
-/// table it is `anchor.x` and `anchor.y` of `_gDesertChaserHitAnchors[0]`.
-///
-/// The out-of-bounds access is the original program's, kept as it is: the
-/// tables have their real five-entry extent, and the handler indexes them the
-/// way the regular build does. Whether a rear catch reaches set 5 in play,
-/// and with it the overwritten hit offset, is not established.
-extern AnimationSet* gDesertChaserFrontAnim[5]; // Sets sent to a player caught facing the chaser
-extern AnimationSet* gDesertChaserRearAnim[5];  // Sets sent to a player caught from behind
-
 static void _actor421600Exit(Task* task);
 static void _actor421600HideState(Task* task);
 static void _actor421600LungeRecoveryState(Task* task);
@@ -1226,9 +1206,29 @@ u8 D_actor_421600_80151028[104] = {
     0,
 };
 
-AnimationSet* gDesertChaserFrontAnim[5] = { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL };
+/// Player animation-set bank for a player facing the Desert Chaser.
+///
+/// Selectors 1/2/3 play the long-catch throw, lying recovery hold and close-catch
+/// knockback clips supplied by this carrier.
+/// Slot 0 is unused; recovery slot 4 borrows player weapon-bank set 7 and
+/// release slot 5 borrows set 9. The player animation context borrows this bank
+/// and its installed sets for the duration of the catch.
+/// This carrier stores five pointers. The retained release write at index 5
+/// overlaps the rear bank's unused slot 0.
+/// Keep the stored extent and adjacency; rear-release reachability is unproven.
+static AnimationSet* _gDesertChaserFrontCatchPlayerAnimSets[5] = { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL };
 
-AnimationSet* gDesertChaserRearAnim[5] = { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL };
+/// Player animation-set bank for a player caught from behind by the Desert Chaser.
+///
+/// Selectors 1/2/3 play the long-catch throw, lying recovery hold and close-catch
+/// knockback clips supplied by this carrier.
+/// Slot 0 is unused; recovery slot 4 borrows player weapon-bank set 7 and
+/// release slot 5 borrows set 9. The player animation context borrows this bank
+/// and its installed sets for the duration of the catch.
+/// This carrier stores five pointers. The retained release write at index 5
+/// overlaps `_gDesertChaserHitAnchors[0].anchor.x/y`.
+/// Keep the stored extent and adjacency; rear-release reachability is unproven.
+static AnimationSet* _gDesertChaserRearCatchPlayerAnimSets[5] = { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL };
 
 /// Part-local hit-effect positions and model coordinate selectors for the Water Tower chaser.
 ///
@@ -3377,9 +3377,9 @@ static void _actor421600EntranceLungeState(Task* task)
             catchYawDifference     = scratch->yawFromPlayer - scratch->playerYaw;
             catchYawDifference     = abs(catchYawDifference);
             if (catchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
-                work->playerAnim.source.sets = gDesertChaserFrontAnim;
+                work->playerAnim.source.sets = _gDesertChaserFrontCatchPlayerAnimSets;
             } else {
-                work->playerAnim.source.sets = gDesertChaserRearAnim;
+                work->playerAnim.source.sets = _gDesertChaserRearCatchPlayerAnimSets;
                 scratch->yawFromPlayer       = (s16)((u16)scratch->yawFromPlayer + ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             }
             work->playerPlacement.rot.vx = 0;
@@ -4235,7 +4235,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                 break;
             case ACTOR421600_CATCH_HOLD:
                 recoverySets = work->playerAnim.source.sets;
-                if (recoverySets == gDesertChaserRearAnim) {
+                if (recoverySets == _gDesertChaserRearCatchPlayerAnimSets) {
                     if ((playerStatus->hp > 0) && (work->lastCommand.fields.catchFrames >= ACTOR421600_REAR_RECOVER_TICKS)) {
                         recoverySets[ACTOR421600_CATCH_RECOVER] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RECOVERY_SET];
                         work->playerAnim.animationId            = ACTOR421600_CATCH_RECOVER;
@@ -4245,7 +4245,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                         work->lastCommand.fields.catchFrames = 0U;
                     }
                 } else if ((playerStatus->hp > 0) && (work->lastCommand.fields.catchFrames >= ACTOR421600_FRONT_RECOVER_TICKS)) {
-                    gDesertChaserFrontAnim[ACTOR421600_CATCH_RECOVER] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RECOVERY_SET];
+                    _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RECOVER] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RECOVERY_SET];
 
                     work->playerAnim.animationId = ACTOR421600_CATCH_RECOVER;
                     work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
@@ -4291,10 +4291,10 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                         work->playerAnim.blendFrames = ACTOR421600_RELEASE_BLEND_FRAMES;
                         work->playerAnim.animationId = ACTOR421600_CATCH_RELEASE;
                         releaseSets                  = work->playerAnim.source.sets;
-                        if (releaseSets == gDesertChaserRearAnim) {
+                        if (releaseSets == _gDesertChaserRearCatchPlayerAnimSets) {
                             releaseSets[ACTOR421600_CATCH_RELEASE] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RELEASE_SET];
                         } else {
-                            gDesertChaserFrontAnim[ACTOR421600_CATCH_RELEASE] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RELEASE_SET];
+                            _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RELEASE] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RELEASE_SET];
                         }
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                         work->lastCommand.fields.catchFrames = 0U;

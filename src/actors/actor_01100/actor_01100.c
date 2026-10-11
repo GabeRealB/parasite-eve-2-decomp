@@ -336,21 +336,14 @@ typedef struct {
    to the offset on every pass, which loop.c produces for a scalar offset but
    strength-reduces away for an array index. */
 
-extern EnemyParams   Actor01100_D074E8;
-extern EnemyParams   Actor01100_D07510;
-extern AnimationSet* Actor01100_D15604[23];
-
 /// Last initialized Mossback's placement index for its spawned spit sounds.
 ///
 /// Shared by every body instance in this overlay. Setup stores a full word;
 /// spit impact and cloud cues encode only its low byte in sound-id bits 8..15.
 static s32 _gActor01100SpitSoundPlacementIndex;
 
-// Typed callback views for the task message dispatcher.
-
-extern TaskMessageEntry Actor01100_D15660[2];
-static TmdSource        _gActor01100BruteMossbackBurstArm;
-static TmdSource        _gActor01100BruteMossbackBurstHead;
+static TmdSource _gActor01100BruteMossbackBurstArm;
+static TmdSource _gActor01100BruteMossbackBurstHead;
 
 /// Scales column `col` of `m` by `fac` through the GTE's GPF, using `sv` as
 /// the working vector.
@@ -403,9 +396,11 @@ static const _Actor01100TaskStateTable Actor01100_D00004 = { {
     _actor01100Tick,
 } };
 
-/// Scale copied onto the stack and passed to `_actor01100ScaleMatrixColumns` when the
-/// placement `entryId` is 0x31: 0x1400 on each axis.
-static const VECTOR Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
+/// Uniform 1.25 scale for Brute Mossback placements, in Q12 units.
+///
+/// Copied as a complete VECTOR before scaling the parent of all animated parts;
+/// the fourth word is unused. Standard placements retain unit scale.
+static const VECTOR _gActor01100BruteMossbackScale = { ONE * 5 / 4, ONE * 5 / 4, ONE * 5 / 4, 0 };
 
 static s32  _actor01100SetModelDraw(Task* task, s32 unusedMessageId, s32 drawEnabled, s32 unusedSecondArg);
 static void _actor01100Task(Task* task);
@@ -429,7 +424,21 @@ static DamageAttack _gActor01100MossbackAttacks[6] = {
     [ACTOR_01100_SPIT_ATTACK_INDEX]  = { 10, GAME_ACTOR_REACTION_POISON },
 };
 
-EnemyParams Actor01100_D074E8 = { _gActor01100MossbackAttacks, 280, 152, 102, 5, 200, 10, 100, 20 };
+/// Standard-placement Mossback combat, reaction and release-reward parameters.
+///
+/// Shared by live standard placements; borrows six attack rows for the overlay's life.
+/// The stored critical-chance base is 200 percent before damage-system scaling.
+static EnemyParams _gActor01100MossbackParams = {
+    .attacks              = _gActor01100MossbackAttacks,
+    .hpMax                = 280,
+    .exp                  = 152,
+    .bp                   = 102,
+    .mp                   = 5,
+    .critChance           = 200,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 20,
+};
 
 /// Brute Mossback attack damage and player reactions.
 ///
@@ -445,7 +454,21 @@ static DamageAttack _gActor01100BruteMossbackAttacks[6] = {
     [ACTOR_01100_SPIT_ATTACK_INDEX]  = { 15, GAME_ACTOR_REACTION_DARKNESS },
 };
 
-EnemyParams Actor01100_D07510 = { _gActor01100BruteMossbackAttacks, 450, 204, 152, 6, 200, 5, 100, 10 };
+/// Brute Mossback combat, reaction and release-reward parameters.
+///
+/// Selected by the large placement entry; borrows the six Brute attack rows.
+/// The enemy and its reaction logic borrow this writable record while loaded.
+static EnemyParams _gActor01100BruteMossbackParams = {
+    .attacks              = _gActor01100BruteMossbackAttacks,
+    .hpMax                = 450,
+    .exp                  = 204,
+    .bp                   = 152,
+    .mp                   = 6,
+    .critChance           = 200,
+    .buildupSteps         = 5,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 10,
+};
 
 static TmdBone _gActor01100BruteMossbackBodySkeleton[21] = {
 #include "assets/brute_mossback_body_skeleton.inc"
@@ -1065,7 +1088,12 @@ TaskDesc gActor01100Tasks[3] = {
     { { { TASK_BODY_COORD, 96 } }, _actor01100SpitCloudTask, { .value = 0 } },
 };
 
-AnimationSet* Actor01100_D15604[23] = {
+/// Mossback clip bank shared by the body rig and directional flinch rig.
+///
+/// Motion selectors are 1..22; slot 0 is NULL. Slots 1..9 cover idle and attacks,
+/// 10..16 fall/flinch/rise, 17..20 death/fall-again, and 21/22 directional stun.
+/// Slot 12 is retained but has no recovered request; its role is unproven.
+static AnimationSet* _gActor01100AnimSets[23] = {
     NULL,
     &_gActor01100Actor101100Animation0E8CC,
     &_gActor01100Actor101100Animation0EE30,
@@ -1091,7 +1119,11 @@ AnimationSet* Actor01100_D15604[23] = {
     &_gActor01100Actor101100Animation155B8,
 };
 
-TaskMessageEntry Actor01100_D15660[2] = {
+/// Mossback message table for model visibility and collision participation.
+///
+/// The draw message takes integer 0/1 and no second payload. The final end
+/// marker makes other IDs return zero; the task borrows the table while loaded.
+static TaskMessageEntry _gActor01100Messages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor01100SetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1202,9 +1234,9 @@ static void _actor01100Init(Enemy* enemy, Task* task, _Actor01100Work* unusedWor
     entryId       = enemy->place->entryId;
     work->entryId = entryId;
     if (entryId == ACTOR_01100_ENTRY_LARGE) {
-        enemy->param = &Actor01100_D07510;
+        enemy->param = &_gActor01100BruteMossbackParams;
     } else {
-        enemy->param = &Actor01100_D074E8;
+        enemy->param = &_gActor01100MossbackParams;
     }
 
     placeIndex                          = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
@@ -1212,15 +1244,15 @@ static void _actor01100Init(Enemy* enemy, Task* task, _Actor01100Work* unusedWor
     _gActor01100SpitSoundPlacementIndex = placeIndex;
     model->lightMtx                     = &work->lightMtx;
     model->colorMtx                     = &work->colorMtx;
-    animationInitContext(&work->rig.anim, Actor01100_D15604, model, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->flinchRig.anim, Actor01100_D15604, model, work->flinchRig.poses, work->flinchRig.slots);
+    animationInitContext(&work->rig.anim, _gActor01100AnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->flinchRig.anim, _gActor01100AnimSets, model, work->flinchRig.poses, work->flinchRig.slots);
     work->startedMotion = ACTOR_01100_MOTION_IDLE;
     work->motion        = ACTOR_01100_MOTION_IDLE;
 
     // Insert the scale coordinate above all animated model parts.
     gfxSetRotIdentity(&work->scaleCoord.coord);
     if (work->entryId == ACTOR_01100_ENTRY_LARGE) {
-        scale = Actor01100_D00010;
+        scale = _gActor01100BruteMossbackScale;
         _actor01100ScaleMatrixColumns(&work->scaleCoord.coord, &scale);
     }
     work->scaleCoord.coord.t[0]   = 0;
@@ -1344,7 +1376,7 @@ static void _actor01100ArmCollisionBodies(Enemy* enemy, Task* task, _Actor01100W
         enemy->recs            = &work->contacts[ACTOR_01100_BODY_CHEST][0];
         task->exitCallback     = _actor01100Exit;
         task->extra.tmd->flags = (u16)(task->extra.tmd->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        task->msgTable         = Actor01100_D15660;
+        task->msgTable         = _gActor01100Messages;
         task->state++;
         enemy->reactionFlags = 0;
     }

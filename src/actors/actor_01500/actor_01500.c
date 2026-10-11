@@ -207,21 +207,11 @@ extern s16 Actor01500_D0A070[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Animation bank handed to `animationInitContext`.
-extern AnimationSet* Actor01500_D0A014[15];
-
 /// The four model streams `_actor01500SpawnBurstParts` spawns effects from.
 static TmdSource _gActor01500MindSucklerBurstHead;
 static TmdSource _gActor01500MindSucklerBurstWing;
 static TmdSource _gActor01500MindSucklerBurstStinger;
 static TmdSource _gActor01500MindSucklerBurstTail;
-
-/// Points `_actor01500ScriptedAction` measures against: the XZ of
-/// `Actor01500_D0A090` is where it heads, its Y (`Actor01500_D0A090.vy`) the
-/// height it settles below, and `gPlayerStatus.coordMtx` passing the X/Z bounds of
-/// `Actor01500_D0A098` ends the state.
-extern SVECTOR Actor01500_D0A090;
-extern SVECTOR Actor01500_D0A098;
 
 static void _actor01500Spawn(Enemy* enemy, Task* task);
 static void _actor01500ProcessContacts(Task* actor);
@@ -790,22 +780,26 @@ static u16 _gActor01500AdvanceDistances[16] = {
 
 TaskDesc gActor01500MindSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor01500Task, { .model = &_gActor01500MindSucklerBody } };
 
-AnimationSet* Actor01500_D0A014[15] = {
+/// Mind Suckler clip bank indexed by `ACTOR_01500_ANIM_*`.
+///
+/// Entries 1..14 are model animations and slot 0 is NULL. The initialized
+/// nineteen-part rig borrows these sets for the lifetime of the loaded overlay.
+static AnimationSet* _gActor01500AnimSets[ACTOR_01500_ANIM_GROUNDED + 1] = {
     NULL,
-    &_gActor01500Actor101500Animation04DE0,
-    &_gActor01500Actor101500Animation05130,
-    &_gActor01500Actor101500Animation06660,
-    &_gActor01500Actor101500Animation07B90,
-    &_gActor01500Actor101500Animation07C7C,
-    &_gActor01500Actor101500Animation07D68,
-    &_gActor01500Actor101500Animation08844,
-    &_gActor01500Actor101500Animation092F4,
-    &_gActor01500Actor101500Animation09650,
-    &_gActor01500Actor101500Animation09708,
-    &_gActor01500Actor101500Animation098C0,
-    &_gActor01500Actor101500Animation09A78,
-    &_gActor01500Actor101500Animation09BC0,
-    &_gActor01500Actor101500Animation09F8C,
+    [ACTOR_01500_ANIM_PERCH_WALL]       = &_gActor01500Actor101500Animation04DE0,
+    [ACTOR_01500_ANIM_PERCH_CEILING]    = &_gActor01500Actor101500Animation05130,
+    [ACTOR_01500_ANIM_ALERT_WALL]       = &_gActor01500Actor101500Animation06660,
+    [ACTOR_01500_ANIM_ALERT_CEILING]    = &_gActor01500Actor101500Animation07B90,
+    [ACTOR_01500_ANIM_HOVER]            = &_gActor01500Actor101500Animation07C7C,
+    [ACTOR_01500_ANIM_ADVANCE]          = &_gActor01500Actor101500Animation07D68,
+    [ACTOR_01500_ANIM_TAKE_OFF_WALL]    = &_gActor01500Actor101500Animation08844,
+    [ACTOR_01500_ANIM_TAKE_OFF_CEILING] = &_gActor01500Actor101500Animation092F4,
+    [ACTOR_01500_ANIM_WALL_REST]        = &_gActor01500Actor101500Animation09650,
+    [ACTOR_01500_ANIM_DIVE]             = &_gActor01500Actor101500Animation09708,
+    [ACTOR_01500_ANIM_FLINCH_WALL]      = &_gActor01500Actor101500Animation098C0,
+    [ACTOR_01500_ANIM_FLINCH_CEILING]   = &_gActor01500Actor101500Animation09A78,
+    [ACTOR_01500_ANIM_FLINCH_AIR]       = &_gActor01500Actor101500Animation09BC0,
+    [ACTOR_01500_ANIM_GROUNDED]         = &_gActor01500Actor101500Animation09F8C,
 };
 
 s16 Actor01500_D0A050[16] = {
@@ -846,9 +840,18 @@ s16 Actor01500_D0A070[16] = {
     0,
 };
 
-SVECTOR Actor01500_D0A090 = { 1110, -0x2EE0, -2500, 0 };
+/// Parent-frame reference point for the scripted Mind Suckler flight.
+///
+/// X/Z define its facing target. Positive Y points downward; settling targets
+/// Y minus (800 plus the 0..511 hover offset), placing it 800..1311 units above
+/// this point. The fourth halfword is unused.
+static SVECTOR _gActor01500ScriptedFlightTarget = { 1110, -0x2EE0, -2500, 0 };
 
-SVECTOR Actor01500_D0A098 = { 1900, -0x2EE0, 1000, 0 };
+/// Strict player-position bounds ending the scripted Mind Suckler flight.
+///
+/// Parent-frame X must exceed 1900 and Z must be below 1000, in game units.
+/// Crossing both starts ordinary chase and engages battle; Y and pad are unused.
+static SVECTOR _gActor01500ChaseTriggerBounds = { 1900, -0x2EE0, 1000, 0 };
 
 /// Initializes and links the actor's hurt sphere and its three contact entries.
 ///
@@ -990,7 +993,7 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
             break;
     }
     sceneAcquireBattleRef(0);
-    animationInitContext(&work->rig.anim, Actor01500_D0A014, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor01500AnimSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, work->anim);
     }
@@ -1936,9 +1939,9 @@ static void _actor01500DeathState(Enemy* enemy, Task* actor)
 
 /// Hovers and advances around a fixed room point until the player enters the trigger region.
 ///
-/// Settling aims 800 plus `hoverOffset` game units above `Actor01500_D0A090`.
-/// The trigger requires player X above `Actor01500_D0A098.vx` and Z below
-/// `Actor01500_D0A098.vz`; Y is ignored. It then engages battle and starts
+/// Settling aims 800 plus `hoverOffset` game units above `_gActor01500ScriptedFlightTarget`.
+/// The trigger requires player X above `_gActor01500ChaseTriggerBounds.vx` and Z below
+/// `_gActor01500ChaseTriggerBounds.vz`; Y is ignored. It then engages battle and starts
 /// ordinary chase settling. Timers count calls and heading uses 4096 units
 /// per turn in the root's parent frame.
 static void _actor01500ScriptedAction(Task* actor)
@@ -1960,16 +1963,16 @@ static void _actor01500ScriptedAction(Task* actor)
     switch (work->actionStep) {
         case ACTOR_01500_CHASE_SETTLE:
             settleHeight    = work->hoverOffset + 800;
-            settleDeltaY    = Actor01500_D0A090.vy - settleHeight - rootCoord->coord.t[1];
+            settleDeltaY    = _gActor01500ScriptedFlightTarget.vy - settleHeight - rootCoord->coord.t[1];
             settleDistanceY = abs(settleDeltaY);
             if (settleDistanceY < 30 || --work->timer <= 0) {
                 work->actionStep = ACTOR_01500_CHASE_HOVER;
             } else {
                 work->verticalSpeed = settleDeltaY > 0 ? 30 : -30;
             }
-            targetOffset->vx      = Actor01500_D0A090.vx - rootCoord->coord.t[0];
+            targetOffset->vx      = _gActor01500ScriptedFlightTarget.vx - rootCoord->coord.t[0];
             targetOffset->vy      = 0;
-            targetOffset->vz      = Actor01500_D0A090.vz - rootCoord->coord.t[2];
+            targetOffset->vz      = _gActor01500ScriptedFlightTarget.vz - rootCoord->coord.t[2];
             work->targetYaw       = ratan2((s16)targetOffset->vx, (s16)targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             work->turnRate        = 100;
             work->roomBody.pos.vy = -300;
@@ -1986,9 +1989,9 @@ static void _actor01500ScriptedAction(Task* actor)
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
                 work->advanceLeft = advanceDistance;
             }
-            targetOffset->vx = Actor01500_D0A090.vx - rootCoord->coord.t[0];
+            targetOffset->vx = _gActor01500ScriptedFlightTarget.vx - rootCoord->coord.t[0];
             targetOffset->vy = 0;
-            targetOffset->vz = Actor01500_D0A090.vz - rootCoord->coord.t[2];
+            targetOffset->vz = _gActor01500ScriptedFlightTarget.vz - rootCoord->coord.t[2];
             work->targetYaw  = ratan2((s16)targetOffset->vx, (s16)targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             work->turnRate   = 100;
             break;
@@ -2007,7 +2010,7 @@ static void _actor01500ScriptedAction(Task* actor)
             break;
     }
     // Crossing both bounds switches from the fixed room point to the player.
-    if (gPlayerStatus.coordMtx->t[0] > Actor01500_D0A098.vx && gPlayerStatus.coordMtx->t[2] < Actor01500_D0A098.vz) {
+    if (gPlayerStatus.coordMtx->t[0] > _gActor01500ChaseTriggerBounds.vx && gPlayerStatus.coordMtx->t[2] < _gActor01500ChaseTriggerBounds.vz) {
         work->action         = ACTOR_01500_ACTION_CHASE;
         settleTicks          = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 60;
         work->anim           = ACTOR_01500_ANIM_HOVER;

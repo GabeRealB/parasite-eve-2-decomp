@@ -8,6 +8,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/hit_effect.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -260,17 +261,8 @@ typedef struct {
 } _Actor01900StateTable;
 STATIC_ASSERT_SIZEOF(_Actor01900StateTable, ACTOR_01900_STATE_COUNT * sizeof(TaskFunc));
 
-extern EnemyParams          Actor01900_D0AC54;
-extern ActorStrangerVariant Actor01900_D0AC64[];
-// Typed callback views for the task message dispatcher.
-
-extern TaskMessageEntry Actor01900_D1728C[8];
-static AnimationSet     _gActor01900Actor101900Animation16960;
-/// Twelve preset hit-reaction directions `_actor01900SpawnHitEffect` copies from;
-/// `pad` carries the index of the coordinate the effect is attached to.
-extern SVECTOR   Actor01900_D1722C[];
-static TmdSource _gActor01900StrangerBurstHand;
-extern s16       Actor01900_D172FC;
+static AnimationSet _gActor01900Actor101900Animation16960;
+static TmdSource    _gActor01900StrangerBurstHand;
 
 #include "../../shared/actor_contacts.h"
 
@@ -306,9 +298,28 @@ static DamageAttack _gActor01900Attacks[2] = {
     { 22, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor01900_D0AC54 = { _gActor01900Attacks, 160, 42, 48, 4, 100, 10, 100, 0 };
+/// Grinning Stranger combat, reaction and release-reward parameters.
+///
+/// Starting HP is copied into each enemy; this record and its two attack rows
+/// remain borrowed by damage/reaction logic until the overlay unloads.
+static EnemyParams _gActor01900GrinningStrangerParams = {
+    .attacks              = _gActor01900Attacks,
+    .hpMax                = 160,
+    .exp                  = 42,
+    .bp                   = 48,
+    .mp                   = 4,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-ActorStrangerVariant Actor01900_D0AC64[3] = {
+/// Three Grinning Stranger movement and notice tunings selected at spawn.
+///
+/// Low-nibble selector 2 takes row 0, 1 takes row 2, and other values take row 1.
+/// Rows supply downed ticks, sidestep angle/delay and notice radius; their four
+/// unread trailing bytes retain zero values and have no established role.
+static ActorStrangerVariant _gActor01900StrangerVariants[3] = {
     { 15, 400, 8, 2000, { 0, 0, 0, 0 } },
     { 0, 300, 12, 2500, { 0, 0, 0, 0 } },
     { 0, 200, 7, 3000, { 0, 0, 0, 0 } },
@@ -739,22 +750,32 @@ static AnimationSet* _gActor01900AnimationSets[46] = {
     [ACTOR_01900_ANIM_DEATH_BURST]       = &_gActor01900Actor101900Animation139DC,
 };
 
-SVECTOR Actor01900_D1722C[12] = {
-    { 60, -12, 30, 2 },
-    { -50, -130, 29, 2 },
-    { 20, -70, 25, 2 },
-    { -30, -65, 25, 2 },
-    { 60, -120, 30, 2 },
-    { 20, -20, -5, 2 },
-    { -15, -50, 0, 2 },
-    { 2, 10, -15, 2 },
-    { 14, 0, 0, 7 },
-    { 25, 0, 0, 2 },
-    { -14, 0, 0, 9 },
-    { -25, 0, 0, 2 },
+/// Part-local Grinning Stranger hit-effect positions and model coordinate selectors.
+///
+/// Relative attack yaw selects front rows 0..4, rear 5..7 or side pairs 8/9
+/// and 10/11. The retained random masks never select rows 4 or 6. Each complete
+/// eight-byte anchor names a live coordinate (2, 7 or 9) and an XYZ offset.
+static ActorHitAnchor _gActor01900HitAnchors[12] = {
+    { .anchor = { 60, -12, 30, 2 } },
+    { .anchor = { -50, -130, 29, 2 } },
+    { .anchor = { 20, -70, 25, 2 } },
+    { .anchor = { -30, -65, 25, 2 } },
+    { .anchor = { 60, -120, 30, 2 } },
+    { .anchor = { 20, -20, -5, 2 } },
+    { .anchor = { -15, -50, 0, 2 } },
+    { .anchor = { 2, 10, -15, 2 } },
+    { .anchor = { 14, 0, 0, 7 } },
+    { .anchor = { 25, 0, 0, 2 } },
+    { .anchor = { -14, 0, 0, 9 } },
+    { .anchor = { -25, 0, 0, 2 } },
 };
 
-TaskMessageEntry Actor01900_D1728C[8] = {
+/// Grinning Stranger message dispatch for animation, placement and actor control.
+///
+/// Contains seven typed-payload callbacks followed by the end marker. Commands
+/// and animation requests are borrowed through synchronous dispatch; visibility,
+/// presence and hold release use integer or unused payload words.
+static TaskMessageEntry _gActor01900Messages[8] = {
     { ACTOR_01900_MESSAGE_IGNORED, _actor01900IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor01900HandleAnimationRequest },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
@@ -776,7 +797,11 @@ static ActorHeightClamp _gActor01900RoomHeightClamps[3] = {
     { GAME_STAGE_NONE, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
-s16 Actor01900_D172FC = 0;
+/// Overlay-wide sum of forward displacement during the current circling phase.
+///
+/// Reset on circle entry, then increased by each signed run step in parent-frame
+/// coordinate units, retaining signed-halfword wrapping. No recovered code reads it.
+static s16 _gActor01900CircleTravel = 0;
 
 enum { ACTOR_01900_TASK_PRIORITY = 96 };
 
@@ -1304,8 +1329,8 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
-    enemy->param                  = &Actor01900_D0AC54;
+    enemy->hp                     = (s16)_gActor01900GrinningStrangerParams.hpMax;
+    enemy->param                  = &_gActor01900GrinningStrangerParams;
     enemy->recs                   = work->hitContacts;
     animationInitContext(&work->rig.anim, _gActor01900AnimationSets, model,
                          work->rig.poses, work->rig.slots);
@@ -1374,7 +1399,7 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
     work->patrolPoints[1].x = task->extra.tmd->coords->coord.t[0] + localOffset.vx;
     work->patrolPoints[1].z = task->extra.tmd->coords->coord.t[2] + localOffset.vz;
 
-    task->msgTable          = Actor01900_D1728C;
+    task->msgTable          = _gActor01900Messages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -1404,23 +1429,23 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
     }
     switch (task->spawnArg1.value & ACTOR_01900_SPAWN_SELECTOR_MASK) {
         case 2:
-            work->downFramesBase = Actor01900_D0AC64[0].downFramesBase;
-            work->sidestepAngle  = Actor01900_D0AC64[0].sidestepAngle;
-            work->sidestepDelay  = Actor01900_D0AC64[0].sidestepDelay;
-            work->noticeRange    = Actor01900_D0AC64[0].noticeRadius;
+            work->downFramesBase = _gActor01900StrangerVariants[0].downFramesBase;
+            work->sidestepAngle  = _gActor01900StrangerVariants[0].sidestepAngle;
+            work->sidestepDelay  = _gActor01900StrangerVariants[0].sidestepDelay;
+            work->noticeRange    = _gActor01900StrangerVariants[0].noticeRadius;
             break;
         case 1:
-            work->downFramesBase = Actor01900_D0AC64[2].downFramesBase;
-            work->sidestepAngle  = Actor01900_D0AC64[2].sidestepAngle;
-            work->sidestepDelay  = Actor01900_D0AC64[2].sidestepDelay;
-            work->noticeRange    = Actor01900_D0AC64[2].noticeRadius;
+            work->downFramesBase = _gActor01900StrangerVariants[2].downFramesBase;
+            work->sidestepAngle  = _gActor01900StrangerVariants[2].sidestepAngle;
+            work->sidestepDelay  = _gActor01900StrangerVariants[2].sidestepDelay;
+            work->noticeRange    = _gActor01900StrangerVariants[2].noticeRadius;
             break;
         case 0:
         default:
-            work->downFramesBase = Actor01900_D0AC64[1].downFramesBase;
-            work->sidestepAngle  = Actor01900_D0AC64[1].sidestepAngle;
-            work->sidestepDelay  = Actor01900_D0AC64[1].sidestepDelay;
-            work->noticeRange    = Actor01900_D0AC64[1].noticeRadius;
+            work->downFramesBase = _gActor01900StrangerVariants[1].downFramesBase;
+            work->sidestepAngle  = _gActor01900StrangerVariants[1].sidestepAngle;
+            work->sidestepDelay  = _gActor01900StrangerVariants[1].sidestepDelay;
+            work->noticeRange    = _gActor01900StrangerVariants[1].noticeRadius;
             break;
     }
 
@@ -1432,72 +1457,72 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
 /// Spawns an incoming attack's hit effect at a bearing-selected model offset.
 ///
 /// `hitYaw` is relative to the actor's facing in 4096 units per turn, normally
-/// -2048..2048. `attackKey` must identify a valid player attack. Preset `pad` values
-/// select model parts 2, 7 or 9. The spawner borrows the scratch offset through the
-/// call and the work-owned argument record; one scratch `SVECTOR` is released on return.
+/// -2048..2048. `attackKey` must identify a valid player attack. Anchor part selectors
+/// name model coordinates 2, 7 or 9. The spawner borrows the scratch offset through the
+/// call and the work-owned argument record; one scratch `ActorHitAnchor` is released on return.
 /// The rear random selector retains its mask of 2 and unreachable case 1.
 static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
-    SVECTOR*         hitOffset;
+    ActorHitAnchor*  hitAnchor;
     s32              yawMagnitude;
     _Actor01900Work* work;
 
-    hitOffset    = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    hitAnchor    = SCRATCH_STACK_RESERVE_BLOCK(ActorHitAnchor);
     yawMagnitude = (hitYaw >= 0) ? hitYaw : -hitYaw;
     work         = task->work;
     if (yawMagnitude < (ACTOR_TRANSFORM_ANGLE_TURN / 8)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *hitOffset = Actor01900_D1722C[0];
+                *hitAnchor = _gActor01900HitAnchors[0];
                 break;
             case 1:
-                *hitOffset = Actor01900_D1722C[1];
+                *hitAnchor = _gActor01900HitAnchors[1];
                 break;
             case 2:
-                *hitOffset = Actor01900_D1722C[2];
+                *hitAnchor = _gActor01900HitAnchors[2];
                 break;
             case 3:
-                *hitOffset = Actor01900_D1722C[3];
+                *hitAnchor = _gActor01900HitAnchors[3];
                 break;
             default:
-                *hitOffset = Actor01900_D1722C[4];
+                *hitAnchor = _gActor01900HitAnchors[4];
                 break;
         }
     } else if (yawMagnitude > (3 * ACTOR_TRANSFORM_ANGLE_TURN / 8)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *hitOffset = Actor01900_D1722C[5];
+                *hitAnchor = _gActor01900HitAnchors[5];
                 break;
             case 1:
-                *hitOffset = Actor01900_D1722C[6];
+                *hitAnchor = _gActor01900HitAnchors[6];
                 break;
             default:
-                *hitOffset = Actor01900_D1722C[7];
+                *hitAnchor = _gActor01900HitAnchors[7];
                 break;
         }
     } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = Actor01900_D1722C[8];
+            *hitAnchor = _gActor01900HitAnchors[8];
         } else {
-            *hitOffset = Actor01900_D1722C[9];
+            *hitAnchor = _gActor01900HitAnchors[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = Actor01900_D1722C[10];
+            *hitAnchor = _gActor01900HitAnchors[10];
         } else {
-            *hitOffset = Actor01900_D1722C[11];
+            *hitAnchor = _gActor01900HitAnchors[11];
         }
     }
-    // The preset carries a local offset and the model-part index in its pad word.
+    // The anchor selects a live model part and its local impact position.
     work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = ACTOR_01900_HIT_EFFECT_ARGUMENT_LOW;
     work->effectArg.spawnArgHi = ACTOR_01900_HIT_EFFECT_REPEAT_COUNT;
-    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitOffset->pad], hitOffset, &work->effectArg);
-    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitAnchor->anchor.partIndex], &hitAnchor->position, &work->effectArg);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitAnchor);
 }
 
 /// Returns the first incoming attack key and copies its contact point.
@@ -2374,10 +2399,10 @@ static void _actor01900StateCircle(Task* task)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         _actor01900UpdateAnimation(task);
-        work->circleRateStep = ACTOR_01900_CIRCLE_ACCELERATION;
-        work->stateTimer     = 0;
-        work->stateCounter   = 0;
-        Actor01900_D172FC    = 0;
+        work->circleRateStep     = ACTOR_01900_CIRCLE_ACCELERATION;
+        work->stateTimer         = 0;
+        work->stateCounter       = 0;
+        _gActor01900CircleTravel = 0;
         work->circleCount++;
         return;
     }
@@ -2433,7 +2458,7 @@ static void _actor01900StateCircle(Task* task)
         work->runStep = 2;
     }
     _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, work->runStep);
-    Actor01900_D172FC += work->runStep;
+    _gActor01900CircleTravel += work->runStep;
     // Accelerate, ease back to the cruising rate, then test whether to slide.
     if (work->circleRateStep == ACTOR_01900_CIRCLE_ACCELERATION && work->animRate >= ACTOR_01900_CIRCLE_PEAK_RATE) {
         work->circleRateStep = ACTOR_01900_CIRCLE_DECELERATION;

@@ -98,19 +98,19 @@ static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, cons
         scratch->vertexY[4] = scratch->vertexY[0] + ((scratch->point.vx * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
         scratch->vertexY[5] = scratch->vertexY[1] + ((scratch->point.vx * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
         scratch->vertexX[5] = scratch->vertexX[1] + ((scratch->point.vy * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
-        for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(gGolemPawnRookBeamRibbonCorners); ribbonIndex++) {
+        for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(_gGolemPawnRookBeamRibbonCorners); ribbonIndex++) {
             ribbon         = gGpuPrimCursor;
             gGpuPrimCursor = ribbon + 1;
             setPolyG4(ribbon);
             setSemiTrans(ribbon, 1);
-            ribbon->x0 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
-            ribbon->y0 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
-            ribbon->x1 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
-            ribbon->y1 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
-            ribbon->x2 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
-            ribbon->y2 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
-            ribbon->x3 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
-            ribbon->y3 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
+            ribbon->x0 = scratch->vertexX[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
+            ribbon->y0 = scratch->vertexY[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
+            ribbon->x1 = scratch->vertexX[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
+            ribbon->y1 = scratch->vertexY[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
+            ribbon->x2 = scratch->vertexX[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
+            ribbon->y2 = scratch->vertexY[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
+            ribbon->x3 = scratch->vertexX[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
+            ribbon->y3 = scratch->vertexY[_gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
             setRGB0(ribbon, 0xFF, 0, 0);
             setRGB1(ribbon, 0xFF, 0, 0);
             setRGB2(ribbon, 0, 0, 0);
