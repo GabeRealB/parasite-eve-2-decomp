@@ -613,7 +613,6 @@ static void _playerActorTickBodyBlastHit(Task* task);
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
 
-
 /// Weapon overlay entry points, at fixed addresses.
 
 void func_p08_snail_8011D1D8(Task* arg0);
