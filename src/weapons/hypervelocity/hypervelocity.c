@@ -2400,137 +2400,226 @@ static AnimationSet _gHypervelocityParasiteEnergyFamily2CastAnimation = {
 };
 STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityParasiteEnergyFamily2CastAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_parasite_energy_family2_cast_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0C914Bank1[2] = {
+/// Aim-hold encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityAimHoldAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0C914_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0C914Bank4[17] = {
+/// Aim-hold encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityAimHoldAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0C914_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0C914Records[76] = {
+/// Aim-hold keyframes, absolute-index loops and retained trailing stop records.
+static const AnimationRecord _gHypervelocityAimHoldAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0C914_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0C914Indices[20] = {
+/// Nineteen aim-hold track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityAimHoldAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0C914_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0C914 = {
-    _gHypervelocityAnimation0C914Records,
-    _gHypervelocityAnimation0C914Indices,
-    { NULL, _gHypervelocityAnimation0C914Bank1, NULL, NULL, _gHypervelocityAnimation0C914Bank4, NULL, NULL, NULL },
+/// Stationary aiming pose of the player in Hypervelocity bank slot 9.
+///
+/// Every track repeats a fixed pose through a two-frame loop. Tracks 0 and 1
+/// carry translation and rotation; tracks 2..18 carry rotation only. Playback
+/// borrows the private arrays, which must stay loaded while any slot or cached
+/// record refers to them. Immutable payloads retain their original data section.
+static AnimationSet _gHypervelocityAimHoldAnimation = {
+    .records           = _gHypervelocityAimHoldAnimationRecords,
+    .trackStartIndices = _gHypervelocityAimHoldAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityAimHoldAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityAimHoldAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityAimHoldAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_aim_hold_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0CDB4Bank1[11] = {
+/// Backward-aim/turn encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0CDB4_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0CDB4Bank4[84] = {
+/// Backward-aim/turn encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0CDB4_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0CDB4Records[159] = {
+/// Backward-aim/turn keyframes, footstep cues, loops and trailing stop records.
+static const AnimationRecord _gHypervelocityAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0CDB4_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0CDB4Indices[20] = {
+/// Nineteen backward-aim/turn track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0CDB4_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0CDB4 = {
-    _gHypervelocityAnimation0CDB4Records,
-    _gHypervelocityAnimation0CDB4Indices,
-    { NULL, _gHypervelocityAnimation0CDB4Bank1, NULL, NULL, _gHypervelocityAnimation0CDB4Bank4, NULL, NULL, NULL },
+/// Player's backward movement and stationary turning while aiming, in Hypervelocity bank slot 13.
+///
+/// Moving tracks repeat a 34-frame cycle after their entry keyframes; tracks
+/// 0 and 12 hold fixed two-frame loops. Track 1 supplies the paired footstep
+/// cues. Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry
+/// rotation only. Playback borrows the private arrays, which must stay loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityAimBackwardOrTurnAnimation = {
+    .records           = _gHypervelocityAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gHypervelocityAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityAimBackwardOrTurnAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityAimBackwardOrTurnAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityAimBackwardOrTurnAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_aim_backward_or_turn_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0D5C8Bank1[15] = {
+/// Forward-aim encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityAimForwardAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0D5C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0D5C8Bank4[195] = {
+/// Forward-aim encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityAimForwardAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0D5C8_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0D5C8Records[257] = {
+/// Forward-aim keyframes, footstep cues, loops and retained trailing stop records.
+static const AnimationRecord _gHypervelocityAimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0D5C8_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0D5C8Indices[20] = {
+/// Nineteen forward-aim track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityAimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0D5C8_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0D5C8 = {
-    _gHypervelocityAnimation0D5C8Records,
-    _gHypervelocityAnimation0D5C8Indices,
-    { NULL, _gHypervelocityAnimation0D5C8Bank1, NULL, NULL, _gHypervelocityAnimation0D5C8Bank4, NULL, NULL, NULL },
+/// Player's forward movement while aiming, in Hypervelocity bank slot 12.
+///
+/// Moving tracks repeat a 19-frame cycle after their entry keyframes; tracks
+/// 0 and 9 hold fixed two-frame loops. Track 1 supplies the paired footstep
+/// cues. Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry
+/// rotation only. Playback borrows the private arrays, which must stay loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityAimForwardAnimation = {
+    .records           = _gHypervelocityAimForwardAnimationRecords,
+    .trackStartIndices = _gHypervelocityAimForwardAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityAimForwardAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityAimForwardAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityAimForwardAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_aim_forward_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0DB10Bank1[11] = {
+/// Battle-end-reload encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityBattleEndReloadAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0DB10_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0DB10Bank4[124] = {
+/// Battle-end-reload encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityBattleEndReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0DB10_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0DB10Records[161] = {
+/// Battle-end-reload keyframes and stop controls, with no ammunition-loading cues.
+static const AnimationRecord _gHypervelocityBattleEndReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0DB10_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0DB10Indices[20] = {
+/// Nineteen battle-end-reload track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityBattleEndReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0DB10_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0DB10 = {
-    _gHypervelocityAnimation0DB10Records,
-    _gHypervelocityAnimation0DB10Indices,
-    { NULL, _gHypervelocityAnimation0DB10Bank1, NULL, NULL, _gHypervelocityAnimation0DB10Bank4, NULL, NULL, NULL },
+/// Player motion selected by battle-end reload in Hypervelocity bank slot 20.
+///
+/// All tracks stop at their final keyframe; the clip supplies no reload cues.
+/// Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry rotation
+/// only. Playback borrows the private arrays, which must stay loaded while any
+/// slot or cached record refers to them.
+static AnimationSet _gHypervelocityBattleEndReloadAnimation = {
+    .records           = _gHypervelocityBattleEndReloadAnimationRecords,
+    .trackStartIndices = _gHypervelocityBattleEndReloadAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityBattleEndReloadAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityBattleEndReloadAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityBattleEndReloadAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_battle_end_reload_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0E2F0Bank1[17] = {
+/// Firing encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityFireAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E2F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0E2F0Bank4[192] = {
+/// Firing encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityFireAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E2F0_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0E2F0Records[241] = {
+/// Firing keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gHypervelocityFireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E2F0_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0E2F0Indices[20] = {
+/// Nineteen firing track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityFireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E2F0_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0E2F0 = {
-    _gHypervelocityAnimation0E2F0Records,
-    _gHypervelocityAnimation0E2F0Indices,
-    { NULL, _gHypervelocityAnimation0E2F0Bank1, NULL, NULL, _gHypervelocityAnimation0E2F0Bank4, NULL, NULL, NULL },
+/// Player firing and recoil motion shared by Hypervelocity bank slots 10 and 11.
+///
+/// The charged shot restarts slot 11 when charging completes. All tracks stop
+/// at their final keyframe; projectile timing is independent of this clip.
+/// Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry rotation
+/// only. Playback borrows the private arrays, which must stay loaded while any
+/// slot or cached record refers to them.
+static AnimationSet _gHypervelocityFireAnimation = {
+    .records           = _gHypervelocityFireAnimationRecords,
+    .trackStartIndices = _gHypervelocityFireAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityFireAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityFireAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityFireAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_fire_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0E838Bank1[12] = {
+/// Charge encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityChargeAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E838_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0E838Bank4[119] = {
+/// Charge encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityChargeAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E838_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0E838Records[163] = {
+/// Charge keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gHypervelocityChargeAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E838_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0E838Indices[20] = {
+/// Nineteen charge track starts and the unused trailing zero halfword.
+static const u16 _gHypervelocityChargeAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_0E838_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0E838 = {
-    _gHypervelocityAnimation0E838Records,
-    _gHypervelocityAnimation0E838Indices,
-    { NULL, _gHypervelocityAnimation0E838Bank1, NULL, NULL, _gHypervelocityAnimation0E838Bank4, NULL, NULL, NULL },
+/// Player's charging pose transition in Hypervelocity bank slot 14.
+///
+/// The attack blends into this clip at charge entry. Every track stops at its
+/// final pose, which is held through the remaining charge time. Generic
+/// primary-reload requests also select this slot, but it supplies no reload
+/// cues. Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry
+/// rotation only. Playback borrows the private arrays, which must stay loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityChargeAnimation = {
+    .records           = _gHypervelocityChargeAnimationRecords,
+    .trackStartIndices = _gHypervelocityChargeAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityChargeAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityChargeAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityChargeAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_charge_animation_track_starts);
 
 static AnimationPackedPose _gHypervelocityAnimation0ED7CBank1[12] = {
 #include "assets/hypervelocity_animation_0ED7C_bank1.inc"
@@ -2676,18 +2765,18 @@ AnimationBank gHypervelocityPlayerAnimationBank = {
             &_gHypervelocityPositiveTurnAnimation,
             &_gHypervelocityAnimation0F964,
             &_gHypervelocityAnimation10198,
-            &_gHypervelocityAnimation0C914,
-            &_gHypervelocityAnimation0E2F0,
-            &_gHypervelocityAnimation0E2F0,
-            &_gHypervelocityAnimation0D5C8,
-            &_gHypervelocityAnimation0CDB4,
-            &_gHypervelocityAnimation0E838,
+            &_gHypervelocityAimHoldAnimation,
+            &_gHypervelocityFireAnimation,
+            &_gHypervelocityFireAnimation,
+            &_gHypervelocityAimForwardAnimation,
+            &_gHypervelocityAimBackwardOrTurnAnimation,
+            &_gHypervelocityChargeAnimation,
             &_gHypervelocityAnimation0ED7C,
             &_gHypervelocityPart4HitAnimation,
             &_gHypervelocityOtherBodyHitAnimation,
             &_gHypervelocityStoppedPoseAnimation,
             &_gHypervelocityUnarmedWalkAnimation,
-            &_gHypervelocityAnimation0DB10,
+            &_gHypervelocityBattleEndReloadAnimation,
             &_gHypervelocityIdleAnimation,
             &_gHypervelocityIdleAnimation,
             &_gHypervelocityHighHealthIdleAnimation,
