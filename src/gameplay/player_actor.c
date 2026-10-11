@@ -74,6 +74,7 @@
 #include "weapons/sp12.h"
 #include "weapons/tonfa_baton.h"
 #include "weapons/unused_85.h"
+#include "weapons/unused_86.h"
 
 #include "main/areas.h"
 #include "main/task_types.h"
@@ -612,7 +613,6 @@ static void _playerActorTickBodyBlastHit(Task* task);
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
 
-extern AnimationBank D_unused_86_8012A0D8;
 
 /// Weapon overlay entry points, at fixed addresses.
 
@@ -902,7 +902,7 @@ u16 Gp_WeaponIdBase[2] = {
     1,
     0,
 };
-AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &gMongoosePlayerAnimationBank, &D_unused_86_8012A0D8, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &D_unused_86_8012A0D8, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &D_unused_86_8012A0D8, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
+AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gMongoosePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
 u16            D_80112DF4[4]           = {
     0,
     64,

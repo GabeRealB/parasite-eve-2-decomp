@@ -430,7 +430,7 @@ gM93rPlayerAnimationBank = 0x8012ADF8; // absolute:True owner=m93r
 gM950PlayerAnimationBank = 0x8012BA78; // absolute:True owner=m950
 gP229PlayerAnimationBank = 0x8012B51C; // absolute:True owner=p229
 gUnused85PlayerAnimationBank = 0x8012A474; // absolute:True owner=unused_85
-D_unused_86_8012A0D8 = 0x8012A0D8; // absolute:True owner=unused_86
+gUnused86PlayerAnimationBank = 0x8012A0D8; // absolute:True owner=unused_86
 gMongoosePlayerAnimationBank = 0x8012A9C0; // absolute:True owner=mongoose
 gGrenadePistolPlayerAnimationBank = 0x8012B2E4; // absolute:True owner=grenade_pistol
 gMm1PlayerAnimationBank = 0x8012D184; // absolute:True owner=mm1
