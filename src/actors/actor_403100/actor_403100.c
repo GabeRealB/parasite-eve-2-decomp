@@ -3605,7 +3605,7 @@ static void _actor403100BeginSceneTurn(Task* task)
     work->stateFrames        = 0;
     work->sceneScale         = ACTOR_403100_SCENE_TURN_SCALE_Q12;
     work->subState          += 1;
-    areaApplySavedUpdates(D_dryfield_night_motel_balcony_8018F2CC);
+    areaApplySavedUpdates(gDryfieldNightMotelBalconyBurnerTurnAreaUpdates);
 }
 /// Eases the scene heading toward a negative quarter-turn and plays its timed cue.
 ///

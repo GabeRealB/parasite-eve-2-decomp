@@ -699,7 +699,7 @@ static void _actor146000WaterHoleSceneTask(Task* task)
         case ACTOR_146000_SCENE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-            areaApplySavedUpdates(D_dryfield_night_water_hole_80183618);
+            areaApplySavedUpdates(gDryfieldNightWaterHoleSceneAreaUpdates);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
             gDisplayState.spriteVariant                                = 1;

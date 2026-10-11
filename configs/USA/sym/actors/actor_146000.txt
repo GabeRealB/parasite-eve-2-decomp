@@ -104,5 +104,5 @@ _gActor146000Animation033B4Indices = 0x801351AC; // size:0x28 defined:True
 _gActor146000Animation033B4 = 0x801351D4; // size:0x28 defined:True
 gActor146000WaterHoleSceneTasks = 0x801351FC; // size:0x18 defined:True
 
-D_dryfield_night_water_hole_80183618 = 0x80183618; // absolute:True owner=dryfield_night_water_hole
+gDryfieldNightWaterHoleSceneAreaUpdates = 0x80183618; // absolute:True owner=dryfield_night_water_hole
 _actor146000WaterHoleSceneTask = 0x80131e24; // type:func

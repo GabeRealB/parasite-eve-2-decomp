@@ -2,7 +2,7 @@
 _gDryfieldNightR08WhiteBeamEndpoints = 0x8018056C; // size:0x40 defined:True
 _gDryfieldNightR08GlowPlacements = 0x801805AC; // size:0xC0 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x8018066C; // size:0x10 defined:True
-D_dryfield_night_r08_80180544 = 0x80180544; // size:0x28 defined:True
+_gDryfieldNightR08RoomMessages = 0x80180544; // size:0x28 defined:True
 gDryfieldNightR08RoomLighting = 0x8018067C; // size:0x8 defined:True
 gDryfieldNightR08RoomCollisionResources = 0x80180684; // size:0x10 defined:True
 gDryfieldNightR08ViewMaps = 0x80180694; // size:0x4 defined:True
@@ -60,3 +60,4 @@ _dryfieldNightR08IgnoreActionMessage = 0x8017d628; // type:func
 _dryfieldNightR08IdleState = 0x8017d6b0; // type:func
 dryfieldNightR08RoomTask = 0x8017d6c0; // type:func
 _dryfieldNightR08InitializeRoom = 0x8017d630; // type:func
+_gDryfieldNightR08RoomStates = 0x8017d5c4;

@@ -778,11 +778,11 @@ const SVECTOR gDryfieldNightMotelBalconyGlowPoints[2] SECTION(".data") = {
 
 SVECTOR gDryfieldNightMotelBalconyLampShaftStart = { -6010, -2870, 3050, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182C78 = { -6010, -2870, 1850, 0 };
+const SVECTOR gDryfieldNightMotelBalconyLampShaftEnd SECTION(".data") = { -6010, -2870, 1850, 0 };
 
 const SVECTOR gDryfieldNightMotelBalconyShaft3Start SECTION(".data") = { -6010, -2870, -2940, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182C88 = { -6010, -2870, -4150, 0 };
+const SVECTOR gDryfieldNightMotelBalconyShaft3End SECTION(".data") = { -6010, -2870, -4150, 0 };
 
 const SVECTOR gDryfieldNightMotelBalconyShaft4Start SECTION(".data") = { -160, -3100, 8360, 0 };
 

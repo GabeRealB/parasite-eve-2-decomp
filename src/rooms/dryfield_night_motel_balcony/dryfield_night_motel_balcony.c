@@ -19,6 +19,7 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -43,12 +44,11 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// The request the event gate latched for the event task.
 extern RoomEventReq gRoomEventReq;
 
-/// Set by the event gate when its last call latched a request and spawned the
-/// event task; every call clears it first.
+enum { DRYFIELD_NIGHT_MOTEL_BALCONY_BURNER_TURN_VARIANT = 4 };
 
-AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
-    { 3, 29, 4, 0 },
-    { 255, 0, 0, 0 },
+const AreaApplyRec gDryfieldNightMotelBalconyBurnerTurnAreaUpdates[2] SECTION(".data") = {
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, DRYFIELD_NIGHT_MOTEL_BALCONY_BURNER_TURN_VARIANT, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Snapshot of the accepted transition for the deferred room event.

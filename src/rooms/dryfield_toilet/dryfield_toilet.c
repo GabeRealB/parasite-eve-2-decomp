@@ -26,10 +26,6 @@
 #include "../../shared/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-/// The room's message table, installed in `Task::msgTable` by the room task's
-/// entry state.
-extern TaskMessageEntry D_dryfield_toilet_801802A4[6];
-
 /// The four-byte payload the room task's entry state broadcasts to the scene's
 /// actors.
 extern s32 D_dryfield_toilet_801802D4;
@@ -41,8 +37,12 @@ extern WorldCollisionGrid D_dryfield_toilet_80180314;
 static void _dryfieldToiletInitRoom(Task* task);
 static void _dryfieldToiletIdleRoom(Task* unusedTask);
 
-/// The room task's three states: entry, idle and `taskKill`.
-static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver and event collision, 1 waits for messages, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldToiletRoomStates = {
     { _dryfieldToiletInitRoom, _dryfieldToiletIdleRoom, taskKill },
 };
 
@@ -57,7 +57,12 @@ enum {
     DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X = 2000, // Whole room-coordinate units toward negative X
 };
 
-TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
+/// Toilet receiver table for transitions, refused key use, the once-only action and sounds.
+///
+/// The room task borrows these ordered ID/handler records. The final
+/// `TASK_MESSAGE_TABLE_END` makes unsupported messages return zero; keep
+/// this overlay and its callback code loaded while the task receives messages.
+static const TaskMessageEntry _gDryfieldToiletRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldToiletRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldToiletHandleRoomAction },
@@ -212,7 +217,7 @@ static s32 _dryfieldToiletHandleRoomAction(Task* unusedTask, s32 unusedMessageId
 /// actor-command broadcast. Advances the task to idle state 1 in either case.
 static void _dryfieldToiletInitRoom(Task* task)
 {
-    task->msgTable = D_dryfield_toilet_801802A4;
+    task->msgTable = _gDryfieldToiletRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_TOILET_EVENT_VARIANT) {
         // Prepare placed actors before installing the event's collision face.
@@ -233,7 +238,7 @@ void dryfieldToiletRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_dryfield_toilet_8017D5C4;
+    states = _gDryfieldToiletRoomStates;
     states.funcs[task->state](task);
 }
 

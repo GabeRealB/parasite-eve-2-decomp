@@ -13,6 +13,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -80,7 +81,7 @@ static AnimationSet _gDryfieldNightParkingLotAnimation0166C = {
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
+const TaskMessageEntry gDryfieldNightParkingLotRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightParkingLotRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightParkingLotStartScavengerEncounterMessage },
@@ -121,17 +122,20 @@ static AnimationPlayRequest _gDryfieldNightParkingLotScavengerEntranceAnimationR
 /// Scavenger activation wave requested as the encounter's entrance begins.
 enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_WAVE = 1 };
 
-EvsCommand D_dryfield_night_parking_lot_8017ECB4[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
+enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_CAP_COMMAND = 7,
+       DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_RELEASE_WAIT_FRAMES  = 3 };
+
+EvsCommand gDryfieldNightParkingLotScavengerEntranceScript[11] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightParkingLotScavengerEntranceBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightParkingLotSetScavengerWave }, { .value = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldNightParkingLotScavengerEntranceAnimationRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightParkingLotScavengerEntranceAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_RELEASE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 

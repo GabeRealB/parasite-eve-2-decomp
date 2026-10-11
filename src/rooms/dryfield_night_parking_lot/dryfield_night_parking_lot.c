@@ -98,7 +98,7 @@ s32 dryfieldNightParkingLotStartScavengerEncounterMessage(Task* unusedTask, s32 
         // Latch before the script starts so another trigger cannot repeat the entrance.
         gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        evsStartScript(D_dryfield_night_parking_lot_8017ECB4, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(gDryfieldNightParkingLotScavengerEntranceScript, EVENT_SCRIPT_HUD_KEEP);
     }
     return 0;
 }
@@ -117,7 +117,7 @@ static void _dryfieldNightParkingLotInitializeRoom(Task* task)
 {
     enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_BATTLE_WAVE = 2 };
 
-    task->msgTable = D_dryfield_night_parking_lot_8017EC60;
+    task->msgTable = gDryfieldNightParkingLotRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
         gSceneCombatState.actor01600Wave = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_BATTLE_WAVE;
@@ -130,8 +130,12 @@ static void _dryfieldNightParkingLotIdleState(Task* unusedTask)
 {
 }
 
-/// The room entry task's states: set up, idle, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver and encounter wave, 1 waits for messages, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldNightParkingLotRoomStates = {
     { _dryfieldNightParkingLotInitializeRoom, _dryfieldNightParkingLotIdleState, taskKill },
 };
 
@@ -139,6 +143,6 @@ void dryfieldNightParkingLotRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_parking_lot_8017D5DC;
+    stateHandlers = _gDryfieldNightParkingLotRoomStates;
     stateHandlers.funcs[task->state](task);
 }

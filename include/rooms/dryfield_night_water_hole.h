@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern AreaApplyRec D_dryfield_night_water_hole_80183618[4];
+/// Saved-area changes committed when the water-hole conversation scene ends.
+///
+/// Selects Shelter B3 elevator-hall variant 1, B4 upper-sewer variant 4 and
+/// night water-tank variant 10 in every save mode. Removes saved enemy poses
+/// and sets each map mark. The fourth record is AREA_APPLY_END; the actor
+/// borrows this room-owned list only during synchronous application.
+extern const AreaApplyRec gDryfieldNightWaterHoleSceneAreaUpdates[4];
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { DRYFIELD_NIGHT_WATER_HOLE_AREA_VARIANT_COUNT = 22 };

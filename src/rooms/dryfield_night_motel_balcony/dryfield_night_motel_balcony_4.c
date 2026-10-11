@@ -51,14 +51,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-extern SVECTOR D_dryfield_night_motel_balcony_80182D00;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D08;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D10;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D18;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D28;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D30;
-extern SVECTOR D_dryfield_night_motel_balcony_80182D38;
-static u32     _gDryfieldNightMotelBalconyGlowViewMasks[2][20];
+static u32 _gDryfieldNightMotelBalconyGlowViewMasks[2][20];
 
 /// A horizontal row of eight square texture frames for the room's tumbling debris.
 ///
@@ -212,7 +205,12 @@ static const WorldCoordRoomAmbientEntry _gDryfieldNightMotelBalconyRoom2AmbientB
 static WorldCoordRoomLights             _gDryfieldNightMotelBalconyRooms1And3Lights;
 static WorldCoordRoomLights             _gDryfieldNightMotelBalconyRoom2Lights;
 
-SVECTOR D_dryfield_night_motel_balcony_80182C98 = { -160, -2800, 8790, 0 };
+/// World-space end of the fourth balcony light shaft, in signed game units.
+///
+/// Drawing reaches this point through `gDryfieldNightMotelBalconyShaft4Start` in
+/// the preceding translation unit. The containing two-point declaration
+/// remains unresolved; only this translation unit draws the endpoint.
+static const SVECTOR _gDryfieldNightMotelBalconyShaft4End SECTION(".data") = { -160, -2800, 8790, 0 };
 
 /// World-space first point of the balcony's fifth light shaft.
 ///
@@ -220,7 +218,12 @@ SVECTOR D_dryfield_night_motel_balcony_80182C98 = { -160, -2800, 8790, 0 };
 /// following storage; the containing glow-table declaration remains unresolved.
 static SVECTOR _gDryfieldNightMotelBalconyShaft5Start = { -300, -3190, -4610, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182CA8[9] = {
+/// Fifth-shaft endpoint followed by the balcony's eight world-space flare centres.
+///
+/// Signed game-coordinate XYZ. Element 0 is the preceding shaft's end;
+/// elements 1..8 correspond to glow-mask slots 10..17. The shaft pair still
+/// crosses separate C objects; flare reads stay within this array.
+static const SVECTOR _gDryfieldNightMotelBalconyShaft5EndAndFlarePoints[9] SECTION(".data") = {
     { -300, -3250, -4100, 0 },
     { -4140, -1700, 0x2AB2, 0 },
     { -6910, -1700, 0x299A, 0 },
@@ -238,15 +241,39 @@ SVECTOR D_dryfield_night_motel_balcony_80182CA8[9] = {
 /// following storage; the containing glow-table declaration remains unresolved.
 static SVECTOR _gDryfieldNightMotelBalconyShaft6Start = { -0x312E, -5670, 490, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182CF8 = { -0x2F3A, -5320, 490, 0 };
+/// World-space end of the sixth balcony light shaft, in signed game units.
+///
+/// The drawer reaches this point through the preceding scalar; their
+/// containing pair is not yet represented by an in-bounds C declaration.
+static const SVECTOR _gDryfieldNightMotelBalconyShaft6End SECTION(".data") = { -0x2F3A, -5320, 490, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D00 = { -6400, -4608, 0x2AA8, 0 };
+/// Scattered-puff and debris origin for the balcony break in logical view 20.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView20BreakOffset = { -6400, -4608, 0x2AA8, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D08 = { -2560, 0, -6144, 0 };
+/// Puff and large-debris origin for the balcony break in logical view 18.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView18BreakOffset = { -2560, 0, -6144, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D10 = { -4608, 0, -2940, 0 };
+/// Puff-only origin for the balcony break in logical view 19.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView19BreakOffset = { -4608, 0, -2940, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D18 = { -5110, -3250, -4100, 0 };
+/// Small-debris burst origin for the balcony scene in logical view 29.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView29DebrisOffset = { -5110, -3250, -4100, 0 };
 
 /// Model-part-local offset for the balcony's intermittent flame emissions.
 ///
@@ -255,11 +282,24 @@ SVECTOR D_dryfield_night_motel_balcony_80182D18 = { -5110, -3250, -4100, 0 };
 /// the overlay is loaded.
 static SVECTOR _gDryfieldNightMotelBalconyPeriodicFlameOffset = { 0, -576, 1600, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D28 = { -6930, -3826, -3150, 0 };
+/// Drifting-puff and paired-debris burst origin in balcony logical view 17.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView17DebrisBurstOffset = { -6930, -3826, -3150, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D30 = { -3840, -1024, 1536, 0 };
+/// Base offset of the expanding flame region in balcony logical view 21.
+///
+/// Random signed-halfword offsets are added to XYZ in game-coordinate units.
+static SVECTOR _gDryfieldNightMotelBalconyExpandingFlameBaseOffset = { -3840, -1024, 1536, 0 };
 
-SVECTOR D_dryfield_night_motel_balcony_80182D38 = { -6930, -4096, -1230, 0 };
+/// Scattered-puff and debris origin for the balcony break in logical view 23.
+///
+/// Signed game-coordinate XYZ relative to the ambient task's coordinate.
+/// Spawning copies XYZ and retains a borrowed vector pointer; keep the overlay
+/// loaded for its effects. Storage follows the spawner's mutable-vector interface.
+static SVECTOR _gDryfieldNightMotelBalconyView23BreakOffset = { -6930, -4096, -1230, 0 };
 
 /// Visibility masks for the balcony's twenty glow-point slots.
 ///
@@ -4345,7 +4385,7 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     }
     for (effectIndex = DRYFIELD_NIGHT_MOTEL_BALCONY_FIRST_FLARE_POINT; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_POINT_END; effectIndex++) {
         if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][effectIndex]) {
-            _glowDrawFlare(&gDryfieldNightMotelBalconyGlowPoints[effectIndex], 1, DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightMotelBalconyShaft5EndAndFlarePoints[effectIndex - (DRYFIELD_NIGHT_MOTEL_BALCONY_FIRST_FLARE_POINT - 1)], 1, DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE);
         }
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][18]) {
@@ -4363,21 +4403,21 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     switch (gGameSession->location.loc.view) {
         case 17:
             if (++work->angle == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_17_BURST_TICK) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &D_dryfield_night_motel_balcony_80182D28);
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &D_dryfield_night_motel_balcony_80182D28);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                 for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_ARGS,
-                                &D_dryfield_night_motel_balcony_80182D28);
+                                &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
-                                &D_dryfield_night_motel_balcony_80182D28);
+                                &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                 }
             }
             break;
         case 18:
             if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_18_BREAK_TICK) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_AND_LARGE_DEBRIS, &D_dryfield_night_motel_balcony_80182D08);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_AND_LARGE_DEBRIS, &_gDryfieldNightMotelBalconyView18BreakOffset);
                 work->angle = 0;
             }
             break;
@@ -4395,9 +4435,9 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     randomOffset.vz = (s32)(gRandomLcgState >> 16) % (expansionFrames * 10);
                     spawnOffset     = randomOffset;
-                    spawnOffset.vx += D_dryfield_night_motel_balcony_80182D30.vx;
-                    spawnOffset.vy += D_dryfield_night_motel_balcony_80182D30.vy;
-                    spawnOffset.vz += D_dryfield_night_motel_balcony_80182D30.vz;
+                    spawnOffset.vx += _gDryfieldNightMotelBalconyExpandingFlameBaseOffset.vx;
+                    spawnOffset.vy += _gDryfieldNightMotelBalconyExpandingFlameBaseOffset.vy;
+                    spawnOffset.vz += _gDryfieldNightMotelBalconyExpandingFlameBaseOffset.vz;
                     effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, expansionFrames * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_STEP + DRYFIELD_NIGHT_MOTEL_BALCONY_EXPANDING_FLAME_ARGS, &spawnOffset);
                 }
                 work->scale = 0;
@@ -4405,17 +4445,17 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
             break;
         case 19:
             if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_19_BREAK_TICK) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_ONLY, &D_dryfield_night_motel_balcony_80182D10);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_ONLY, &_gDryfieldNightMotelBalconyView19BreakOffset);
             }
             break;
         case 20:
             if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_20_23_BREAK_TICK) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &D_dryfield_night_motel_balcony_80182D00);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &_gDryfieldNightMotelBalconyView20BreakOffset);
             }
             break;
         case 23:
             if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_20_23_BREAK_TICK) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &D_dryfield_night_motel_balcony_80182D38);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &_gDryfieldNightMotelBalconyView23BreakOffset);
             }
             break;
         case 29:
@@ -4423,7 +4463,7 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
                 for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
-                                &D_dryfield_night_motel_balcony_80182D18);
+                                &_gDryfieldNightMotelBalconyView29DebrisOffset);
                 }
             }
             break;

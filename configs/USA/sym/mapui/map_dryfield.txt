@@ -163,7 +163,7 @@ gDryfieldGRKitchenViewCameras = 0x8017EEE4; // absolute:True owner=dryfield_g_r_
 gDryfieldGRKitchenSpriteViews = 0x8017F014; // absolute:True owner=dryfield_g_r_kitchen shared=rooms
 gDryfieldGRKitchenSurfacePropertiesByClass = 0x8017F53C; // absolute:True owner=dryfield_g_r_kitchen
 dryfieldWaterTowerRoomTask = 0x8017DDD8; // type:func absolute:True owner=dryfield_water_tower
-gDryfieldWaterTowerRoomCollisionResources = 0x801827CC; // absolute:True owner=dryfield_water_tower shared=rooms
+gDryfieldWaterTowerRoomCollisionResources = 0x801827CC; // absolute:True owner=dryfield_water_tower
 gDryfieldWaterTowerRoomViewMaps = 0x801827DC; // absolute:True owner=dryfield_water_tower shared=rooms
 gDryfieldWaterTowerRoomViewCounts = 0x801827E0; // absolute:True owner=dryfield_water_tower
 gDryfieldWaterTowerRoomLighting = 0x801827E4; // absolute:True owner=dryfield_water_tower shared=rooms
@@ -201,7 +201,7 @@ gDryfieldFactorySurfaceClasses = 0x8018A37C; // absolute:True owner=dryfield_fac
 dryfieldGarageRoomTask = 0x8017DC10; // type:func absolute:True owner=dryfield_garage
 gDryfieldGarageRoomCollisionResources = 0x8017DCDC; // absolute:True owner=dryfield_garage
 gDryfieldGarageRoomViewMaps = 0x8017DCEC; // absolute:True owner=dryfield_garage
-gDryfieldGarageRoomViewCounts = 0x8017DCF0; // absolute:True owner=dryfield_garage shared=rooms
+gDryfieldGarageRoomViewCounts = 0x8017DCF0; // absolute:True owner=dryfield_garage
 gDryfieldGarageRoomLighting = 0x8017DCF4; // absolute:True owner=dryfield_garage
 gDryfieldGarageWarpEntries = 0x8017DCFC; // absolute:True owner=dryfield_garage
 gDryfieldGarageViewCameras = 0x8017E670; // absolute:True owner=dryfield_garage shared=rooms

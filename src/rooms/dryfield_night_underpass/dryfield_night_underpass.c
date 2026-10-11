@@ -46,8 +46,7 @@ static s32  _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switc
 
 static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-extern TaskDesc         gUnderpassSwitchTaskDesc[];
-extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
+extern TaskDesc gUnderpassSwitchTaskDesc[];
 
 enum { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -67,7 +66,12 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
+/// Underpass receiver table for switch-dependent transitions, switch commands and sounds.
+///
+/// The room task borrows these ordered ID/handler records. The final
+/// `TASK_MESSAGE_TABLE_END` makes unsupported messages return zero; keep
+/// this overlay and its callback code loaded while the task receives messages.
+static const TaskMessageEntry _gDryfieldNightUnderpassRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantUnderpassMsg },
     { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldNightUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightUnderpassIgnoreRoomAction },
@@ -984,7 +988,7 @@ static s32 _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 message
 /// borrow the loaded overlay and task for subsequent synchronous dispatch.
 static void _dryfieldNightUnderpassInitializeRoom(Task* task)
 {
-    task->msgTable = D_dryfield_night_underpass_8017DCF0;
+    task->msgTable = _gDryfieldNightUnderpassRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -994,9 +998,12 @@ static void _dryfieldNightUnderpassIdleTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the room task `dryfieldNightUnderpassRoomTask`,
-/// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_underpass_8017D5C4 = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver, 1 waits for messages, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldNightUnderpassRoomStates = {
     { _dryfieldNightUnderpassInitializeRoom, _dryfieldNightUnderpassIdleTask, taskKill },
 };
 
@@ -1004,7 +1011,7 @@ void dryfieldNightUnderpassRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_underpass_8017D5C4;
+    stateHandlers = _gDryfieldNightUnderpassRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 

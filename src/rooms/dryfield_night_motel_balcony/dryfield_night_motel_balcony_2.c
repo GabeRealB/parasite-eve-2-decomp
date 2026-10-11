@@ -47,7 +47,13 @@ TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyBlackoutTask, { .value = 0 } };
+enum { DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_PRIORITY = 192 };
+
+/// Retained bodyless task recipe for a 64-tick full-black display hold.
+///
+/// Priority 192; metadata is unused. The callback requires a zero initial
+/// kill counter and live display packet storage. No current caller uses this recipe.
+static const TaskDesc _gDryfieldNightMotelBalconyBlackoutTaskDesc SECTION(".data") = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_PRIORITY } }, _dryfieldNightMotelBalconyBlackoutTask, { .value = 0 } };
 
 /// Reveals a ready movie and advances the borrowed controller to playback.
 ///

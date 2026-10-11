@@ -83,8 +83,8 @@ gDryfieldNightMotelLobbyCashRegisterHotspots = 0x80182820; // size:0xB4 defined:
 gDryfieldNightMotelLobbyCashRegisterTaskDesc = 0x801828D4; // size:0xC defined:True
 gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 _gRoomCutsceneTaskDescs = 0x801827A8; // size:0x24 defined:True
-D_dryfield_night_motel_lobby_801827CC = 0x801827CC; // size:0x30 defined:True
-D_dryfield_night_motel_lobby_801827FC = 0x801827FC; // size:0x18 defined:True
+_gDryfieldNightMotelLobbyRoomMessages = 0x801827CC; // size:0x30 defined:True
+_gDryfieldNightMotelLobbyCashRegisterOwnerTaskDescs = 0x801827FC; // size:0x18 defined:True
 
 _dryfieldNightMotelLobbyCashRegisterOwnerTask = 0x8017FD10; // type:func
 
@@ -145,3 +145,4 @@ _dryfieldNightMotelLobbyCashRegisterActionMsg = 0x8017fc6c; // type:func
 _dryfieldNightMotelLobbyCashRegisterAnswerPrompt = 0x8018103c; // type:func
 _dryfieldNightMotelLobbyCashRegisterStartCompletionCap = 0x801811e0; // type:func
 _gDryfieldNightMotelLobbyCashRegisterStates = 0x8017d6b0;
+_gDryfieldNightMotelLobbyRoomStates = 0x8017d6a4;

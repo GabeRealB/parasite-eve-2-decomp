@@ -27,9 +27,9 @@ extern const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6];
 /// World-space base points for the balcony's light shafts and flares.
 ///
 /// XYZ uses signed game-coordinate units and is borrowed during drawing.
-/// The declared pair supplies the first shaft. The ambient task also indexes
-/// slots 10..17 through this base, beyond the declared extent; the containing
-/// table across the neighboring point objects remains unresolved.
+/// The declared pair supplies the first shaft. Other shafts occupy neighboring
+/// point objects; their containing table remains unresolved. Flare reads use
+/// the separate fifth-shaft-end/flare array within its declared bounds.
 extern const SVECTOR gDryfieldNightMotelBalconyGlowPoints[2];
 
 /// World-space lamp position and first point of the balcony's second light shaft.
@@ -39,11 +39,23 @@ extern const SVECTOR gDryfieldNightMotelBalconyGlowPoints[2];
 /// a second point from the following storage; its aggregate remains unresolved.
 extern SVECTOR gDryfieldNightMotelBalconyLampShaftStart;
 
+/// World-space end of the balcony's lamp light shaft, in signed game units.
+///
+/// Drawing reaches this point through `gDryfieldNightMotelBalconyLampShaftStart` in the
+/// preceding storage. Their containing two-point declaration remains unresolved.
+extern const SVECTOR gDryfieldNightMotelBalconyLampShaftEnd;
+
 /// World-space start point of balcony light shaft 3, in game-coordinate units.
 ///
 /// Drawing borrows this point and a second vector in the following storage.
 /// The two-vector aggregate boundary remains unproven in the declarations.
 extern const SVECTOR gDryfieldNightMotelBalconyShaft3Start;
+
+/// World-space end of the balcony's third light shaft, in signed game units.
+///
+/// Drawing reaches this point through `gDryfieldNightMotelBalconyShaft3Start` in the
+/// preceding storage. Their containing two-point declaration remains unresolved.
+extern const SVECTOR gDryfieldNightMotelBalconyShaft3End;
 
 /// World-space start point of balcony light shaft 4, in game-coordinate units.
 ///

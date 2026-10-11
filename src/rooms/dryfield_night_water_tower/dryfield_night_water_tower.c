@@ -100,9 +100,12 @@ static void _dryfieldNightWaterTowerIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room entry task's three states: install the room's message table,
-/// idle, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_water_tower_8017D5DC = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver, 1 waits for messages, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldNightWaterTowerRoomStates = {
     { _dryfieldNightWaterTowerInitializeRoomTask, _dryfieldNightWaterTowerIdleRoomTask, taskKill },
 };
 
@@ -110,6 +113,6 @@ void dryfieldNightWaterTowerRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_water_tower_8017D5DC;
+    stateHandlers = _gDryfieldNightWaterTowerRoomStates;
     stateHandlers.funcs[task->state](task);
 }

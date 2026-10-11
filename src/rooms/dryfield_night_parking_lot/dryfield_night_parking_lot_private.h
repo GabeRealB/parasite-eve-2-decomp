@@ -16,9 +16,21 @@
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6];
+/// Parking-lot receiver table for transitions, key use, scavenger actions and CAP/sound cues.
+///
+/// The room task borrows six ordered records, including `TASK_MESSAGE_TABLE_END`.
+/// Keep this table and its callbacks loaded while the room task receives messages.
+extern const TaskMessageEntry gDryfieldNightParkingLotRoomMessages[6];
 
-extern EvsCommand D_dryfield_night_parking_lot_8017ECB4[11];
+/// Stages the scavengers' entrance, then engages battle and releases player control.
+///
+/// Eleven commands, ending with `EVENT_SCRIPT_OPCODE_END`. Starts CAP command 7,
+/// installs the player's entrance clip and selects scavenger wave 1. Two CAP
+/// cues bracket animation playback and battle start. A zero-frame wait yields
+/// before player control is released; a three-frame wait precedes termination.
+/// The event task borrows the commands and animation payloads until it ends;
+/// keep this room, gameplay and the required actors loaded throughout.
+extern EvsCommand gDryfieldNightParkingLotScavengerEntranceScript[11];
 
 // Callbacks referenced by the overlay's shared data tables.
 

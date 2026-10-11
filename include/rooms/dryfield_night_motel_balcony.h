@@ -14,7 +14,12 @@
 
 extern TaskDesc D_dryfield_night_motel_balcony_80182834[2];
 
-extern AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2];
+/// Saved-area change applied when the Burner begins its scripted balcony turn.
+///
+/// Selects night-balcony placement variant 4 in every save mode, removes its
+/// saved enemy poses and clears its map mark. The second record is AREA_APPLY_END.
+/// The actor borrows this room-owned list only during synchronous application.
+extern const AreaApplyRec gDryfieldNightMotelBalconyBurnerTurnAreaUpdates[2];
 
 /// Dryfield night motel balcony placement/resource directory indexed by `GameLocationKey.variant` 0..12.
 ///

@@ -1,8 +1,8 @@
 // Overlay-local symbols for dryfield_night_water_hole.
 _gWaterHoleSurfaces = 0x80180970; // size:0x24 defined:True
-D_dryfield_night_water_hole_80180994 = 0x80180994; // size:0x20 defined:True
-D_dryfield_night_water_hole_801809B4 = 0x801809B4; // size:0x20 defined:True
-D_dryfield_night_water_hole_801809D4 = 0x801809D4; // size:0x20 defined:True
+_gDryfieldNightWaterHoleShaftGroup1Endpoints = 0x80180994; // size:0x20 defined:True
+_gDryfieldNightWaterHoleShaftGroup2Endpoints = 0x801809B4; // size:0x20 defined:True
+_gDryfieldNightWaterHoleShaftGroup3Endpoints = 0x801809D4; // size:0x20 defined:True
 _gDryfieldNightWaterHolePreviousSplashPartPositions = 0x801809F4; // size:0x10 defined:True
 _gDryfieldNightWaterHoleWaterTaskDesc = 0x80180964; // size:0xC defined:True
 gDryfieldNightWaterHoleRoomCollisionResources = 0x80180A04; // size:0x40 defined:True
@@ -82,7 +82,7 @@ _gDryfieldNightWaterHoleClass3Surface = 0x801835B8; // size:0x8 defined:True
 _gDryfieldNightWaterHoleClass6Surface = 0x801835C0; // size:0x8 defined:True
 _gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface = 0x801835C8; // size:0x8 defined:True
 _gDryfieldNightWaterHoleShelterRouteOpenClass2Surface = 0x801835D0; // size:0x8 defined:True
-D_dryfield_night_water_hole_801835D8 = 0x801835D8; // size:0x20 defined:True
+_gDryfieldNightWaterHoleShelterRouteOpenSurfaceOverrides = 0x801835D8; // size:0x20 defined:True
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gMapDryfieldFullWaterHoleVariant1Placements = 0x8017CCE8; // absolute:True owner=map_dryfield_full
@@ -108,7 +108,7 @@ _gDryfieldNightWaterHoleAnimation03004 = 0x801805C4; // size:0x28 defined:True
 _gDryfieldNightWaterHoleShelterDepartureTaskDesc = 0x801805EC; // size:0xC defined:True
 _gDryfieldNightWaterHoleRoomMessages = 0x801805F8; // size:0x28 defined:True
 _gDryfieldNightWaterHoleArrivalAnimationSets = 0x80180620; // size:0x4 defined:True
-D_dryfield_night_water_hole_80183618 = 0x80183618; // size:0x10 defined:True
+gDryfieldNightWaterHoleSceneAreaUpdates = 0x80183618; // size:0x10 defined:True
 _gWaterHolePrimCursor = 0x80183628; // size:0x4 defined:True
 _gWaterHoleWaveScroll = 0x8018362C; // size:0x2 defined:True
 D_dryfield_night_water_hole_8018362E = 0x8018362E; // size:0x2 defined:True

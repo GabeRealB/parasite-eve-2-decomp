@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_underpass.
 _gDryfieldNightUnderpassFlarePositions = 0x8017DD20; // size:0x40 defined:True
 gUnderpassSwitchTaskDesc = 0x8017DCD8; // size:0x18 defined:True
-D_dryfield_night_underpass_8017DCF0 = 0x8017DCF0; // size:0x30 defined:True
+_gDryfieldNightUnderpassRoomMessages = 0x8017DCF0; // size:0x30 defined:True
 _gDryfieldNightUnderpassFlareViewMasks = 0x8017DD60; // size:0x10 defined:True
 D_dryfield_night_underpass_8017DD70 = 0x8017DD70; // size:0x60 defined:True
 gDryfieldNightUnderpassRoomLighting = 0x8017DDD0; // size:0x30 defined:True
@@ -97,3 +97,4 @@ _dryfieldNightUnderpassIgnoreRoomAction = 0x8017d908; // type:func
 _dryfieldNightUnderpassIdleTask = 0x8017d954; // type:func
 _dryfieldNightUnderpassInitializeRoom = 0x8017d910; // type:func
 dryfieldNightUnderpassRoomTask = 0x8017d95c; // type:func
+_gDryfieldNightUnderpassRoomStates = 0x8017d5c4;

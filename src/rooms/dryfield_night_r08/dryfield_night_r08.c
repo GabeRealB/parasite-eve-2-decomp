@@ -17,16 +17,18 @@
 
 extern EvsCommand D_actor_535700_80133898[];
 extern EvsCommand D_actor_535700_801341E0[];
-/// The room's message table, published in `Task::msgTable` for
-/// `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
-extern TaskMessageEntry D_dryfield_night_r08_80180544[];
 
 static s32 _dryfieldNightR08RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightR08ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldNightR08IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldNightR08IgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
+/// Room receiver table for transitions, refused key use and ignored actions/commands.
+///
+/// The room task borrows these ordered ID/handler records. The final
+/// `TASK_MESSAGE_TABLE_END` makes unsupported messages return zero; keep
+/// this overlay and its callback code loaded while the task receives messages.
+static const TaskMessageEntry _gDryfieldNightR08RoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightR08ResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightR08RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightR08IgnoreActionMessage },
@@ -91,7 +93,7 @@ static void _dryfieldNightR08InitializeRoom(Task* task)
         DRYFIELD_NIGHT_R08_DEMO_SCENE                = 9,
     };
 
-    task->msgTable = D_dryfield_night_r08_80180544;
+    task->msgTable = _gDryfieldNightR08RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DRYFIELD_NIGHT_R08_DEMO_SCENE) {
@@ -106,8 +108,12 @@ static void _dryfieldNightR08IdleState(Task* unusedTask)
     char unusedFrame[0x10]; // Retains the original stack reservation; no bytes are accessed.
 }
 
-/// The room task's three states: set up, idle, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver and entry scene, 1 waits for messages, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldNightR08RoomStates = {
     { _dryfieldNightR08InitializeRoom, _dryfieldNightR08IdleState, taskKill },
 };
 
@@ -115,6 +121,6 @@ void dryfieldNightR08RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_r08_8017D5C4;
+    stateHandlers = _gDryfieldNightR08RoomStates;
     stateHandlers.funcs[task->state](task);
 }

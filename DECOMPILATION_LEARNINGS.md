@@ -92781,8 +92781,8 @@ call whose setup writes `$a1` and nothing else:
 
 ```
 addiu  $a1,$zero,0x7
-lui    $v0,%hi(D_dryfield_night_r08_80180544)
-addiu  $v0,$v0,%lo(D_dryfield_night_r08_80180544)
+lui    $v0,%hi(_gDryfieldNightR08RoomMessages)
+addiu  $v0,$v0,%lo(_gDryfieldNightR08RoomMessages)
 sw     $ra,0x14($sp)
 jal    gameSetTaskSlot
  sw    $v0,0x24($s0)          /* delay slot */
@@ -92796,7 +92796,7 @@ parameter of `task` looks like. The fix is to give the call its leading argument
 back:
 
 ```c
-task->msgTable = D_dryfield_night_r08_80180544;
+task->msgTable = _gDryfieldNightR08RoomMessages;
 gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);                        /* addiu $a1,$zero,0x7 */
 streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + 0x20000);
 ```

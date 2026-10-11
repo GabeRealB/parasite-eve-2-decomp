@@ -56,17 +56,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 
-/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
-
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
-/// path does not share the `gMcSaveData` address with case 0.
-
-/// The room's message table, which `_dryfieldNightMotelLobbyInitializeRoomTask`
-/// installs on its task.
-extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
-
-extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0\1\x0E"
 #include "../../shared/telephone.h"
 
@@ -89,7 +78,12 @@ static s32 _dryfieldNightMotelLobbyCommandMsg(Task* unusedTask, s32 unusedMessag
 static s32 _dryfieldNightMotelLobbyCashRegisterActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelLobbySoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
+/// Lobby receiver table for transitions, key use, register actions, commands and sounds.
+///
+/// The room task borrows these ordered ID/handler records. The final
+/// `TASK_MESSAGE_TABLE_END` makes unsupported messages return zero; keep
+/// this overlay and its callback code loaded while the task receives messages.
+static const TaskMessageEntry _gDryfieldNightMotelLobbyRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelLobbyRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelLobbyCashRegisterActionMsg },
@@ -98,8 +92,15 @@ TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldNightMotelLobbyCashRegisterOwnerTask, { .value = 0 } },
+enum { DRYFIELD_NIGHT_MOTEL_LOBBY_REGISTER_OWNER_PRIORITY = 32 };
+
+/// Bodyless cash-register owner recipe at index 0, followed by `TASK_DESC_END`.
+///
+/// Spawning copies the recipe with zero payloads and retains no table pointer.
+/// The owner waits for the register controller's exit before releasing itself;
+/// callback code must stay loaded through the interaction.
+static TaskDesc _gDryfieldNightMotelLobbyCashRegisterOwnerTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOBBY_REGISTER_OWNER_PRIORITY } }, _dryfieldNightMotelLobbyCashRegisterOwnerTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -202,7 +203,7 @@ static s32 _dryfieldNightMotelLobbyCashRegisterActionMsg(Task* unusedTask, s32 u
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            taskSpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
+            taskSpawnFromTable(_gDryfieldNightMotelLobbyCashRegisterOwnerTaskDescs, 0, 0, 0);
         } else {
             capRunCommandWithTransition(COMPLETED_REGISTER_CAP_COMMAND);
         }
@@ -259,7 +260,7 @@ static void _dryfieldNightMotelLobbyInitializeRoomTask(Task* task)
 {
     enum { DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED = 1 };
 
-    task->msgTable = D_dryfield_night_motel_lobby_801827CC;
+    task->msgTable = _gDryfieldNightMotelLobbyRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     gDryfieldNightMotelLobbyPreviousMasterkeyCollected = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
     task->state                                        = task->state + 1;
@@ -282,9 +283,12 @@ static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask)
     gDryfieldNightMotelLobbyPreviousMasterkeyCollected = masterkeyCollected;
 }
 
-/// The three states of the task `dryfieldNightMotelLobbyRoomTask` runs:
-/// set-up, the per-frame check, and the kill.
-static const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4 = {
+/// Room-task handlers indexed by state 0..2.
+///
+/// 0 initializes the receiver, 1 monitors masterkey collection, 2 tears down.
+/// Dispatch copies all three pointers to the stack; there is no bounds check
+/// or terminator. Keep this overlay loaded until the task exits.
+static const TaskFuncTable3 _gDryfieldNightMotelLobbyRoomStates = {
     {
         _dryfieldNightMotelLobbyInitializeRoomTask,
         _dryfieldNightMotelLobbyUpdateMasterkeyObjective,
@@ -296,7 +300,7 @@ void dryfieldNightMotelLobbyRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_motel_lobby_8017D6A4;
+    stateHandlers = _gDryfieldNightMotelLobbyRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 

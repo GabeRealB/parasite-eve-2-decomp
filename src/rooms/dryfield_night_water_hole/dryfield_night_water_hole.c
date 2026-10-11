@@ -42,6 +42,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
@@ -109,13 +110,6 @@ typedef struct {
 } _DryfieldNightWaterHoleSurfaceOverride;
 STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 
-/// Point pairs of the glowing beams the splash task draws, one table per group
-/// of views.
-extern SVECTOR D_dryfield_night_water_hole_80180994[];
-extern SVECTOR D_dryfield_night_water_hole_801809B4[];
-extern SVECTOR D_dryfield_night_water_hole_801809D4[];
-/// Override list applied once nibble 0xB8 is set.
-extern _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[];
 /// The staged event descriptor, read by the room's event task.
 extern RoomDeparture gRoomDeparture;
 
@@ -322,25 +316,49 @@ static WaterHoleSurface _gWaterHoleSurfaces[3] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-SVECTOR D_dryfield_night_water_hole_80180994[4] = {
-    { 9500, -1835, -100, 0 },
-    { 0x2904, -1835, -100, 0 },
-    { 9500, -1750, -75, 0 },
-    { 0x2904, -1750, -75, 0 },
+/// Two world-space light-shaft endpoint pairs for logical views 3/4.
+///
+/// XYZ uses signed game-coordinate units. The splash/light task draws both
+/// pairs while underpass switch 1 is on; each draw borrows exactly two points.
+static const SVECTOR _gDryfieldNightWaterHoleShaftGroup1Endpoints[2][2] SECTION(".data") = {
+    {
+        { 9500, -1835, -100, 0 },
+        { 0x2904, -1835, -100, 0 },
+    },
+    {
+        { 9500, -1750, -75, 0 },
+        { 0x2904, -1750, -75, 0 },
+    },
 };
 
-SVECTOR D_dryfield_night_water_hole_801809B4[4] = {
-    { 0x37DC, -1835, -3900, 0 },
-    { 0x3BC4, -1835, -3900, 0 },
-    { 0x37DC, -1750, -3925, 0 },
-    { 0x3BC4, -1750, -3925, 0 },
+/// Two world-space light-shaft endpoint pairs for logical views 4/6/9/11.
+///
+/// XYZ uses signed game-coordinate units. The splash/light task draws both
+/// pairs while underpass switch 1 is on; each draw borrows exactly two points.
+static const SVECTOR _gDryfieldNightWaterHoleShaftGroup2Endpoints[2][2] SECTION(".data") = {
+    {
+        { 0x37DC, -1835, -3900, 0 },
+        { 0x3BC4, -1835, -3900, 0 },
+    },
+    {
+        { 0x37DC, -1750, -3925, 0 },
+        { 0x3BC4, -1750, -3925, 0 },
+    },
 };
 
-SVECTOR D_dryfield_night_water_hole_801809D4[4] = {
-    { 0x477C, -1835, -2120, 0 },
-    { 0x4B64, -1835, -2120, 0 },
-    { 0x477C, -1750, -2095, 0 },
-    { 0x4B64, -1750, -2095, 0 },
+/// Two world-space light-shaft endpoint pairs for logical view 7.
+///
+/// XYZ uses signed game-coordinate units. The splash/light task draws both
+/// pairs while underpass switch 1 is on; each draw borrows exactly two points.
+static const SVECTOR _gDryfieldNightWaterHoleShaftGroup3Endpoints[2][2] SECTION(".data") = {
+    {
+        { 0x477C, -1835, -2120, 0 },
+        { 0x4B64, -1835, -2120, 0 },
+    },
+    {
+        { 0x477C, -1750, -2095, 0 },
+        { 0x4B64, -1750, -2095, 0 },
+    },
 };
 
 /// Previous composed XYZ samples for player splash coordinates 14 and 17.
@@ -1423,7 +1441,13 @@ static WorldCollisionSurfaceProperties _gDryfieldNightWaterHoleShelterRouteOpenC
     .footstepSounds      = &_gDryfieldNightWaterHoleClass6Footsteps,
 };
 
-_DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[4] = {
+/// Surface replacements installed when the water-hole Shelter route has opened.
+///
+/// Classes 4 and 1 share a replacement; class 2 uses its separate record.
+/// All enable impacts and pushback with footstep bases 61/63/61. The final
+/// NULL properties pointer terminates the list. Applying it also refreshes
+/// the live pushback cache; property records remain borrowed from this overlay.
+static const _DryfieldNightWaterHoleSurfaceOverride _gDryfieldNightWaterHoleShelterRouteOpenSurfaceOverrides[4] SECTION(".data") = {
     { &_gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface, 4 },
     { &_gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface, 1 },
     { &_gDryfieldNightWaterHoleShelterRouteOpenClass2Surface, 2 },
@@ -1441,11 +1465,16 @@ WorldCollisionSurfaceProperties* gDryfieldNightWaterHoleSurfacePropertiesByClass
     &_gDryfieldNightWaterHoleDefaultSurface,
 };
 
-AreaApplyRec D_dryfield_night_water_hole_80183618[4] = {
-    { 4, 42, 1, 1 },
-    { 4, 44, 4, 1 },
-    { 3, 21, 10, 1 },
-    { 255, 0, 0, 0 },
+enum { DRYFIELD_NIGHT_WATER_HOLE_SCENE_ELEVATOR_VARIANT   = 1,
+       DRYFIELD_NIGHT_WATER_HOLE_SCENE_SEWER_VARIANT      = 4,
+       DRYFIELD_NIGHT_WATER_HOLE_SCENE_WATER_TANK_VARIANT = 10,
+       DRYFIELD_NIGHT_WATER_HOLE_SCENE_MAP_MARK           = 1 };
+
+const AreaApplyRec gDryfieldNightWaterHoleSceneAreaUpdates[4] SECTION(".data") = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, DRYFIELD_NIGHT_WATER_HOLE_SCENE_ELEVATOR_VARIANT, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_WATER_HOLE_SCENE_MAP_MARK },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, DRYFIELD_NIGHT_WATER_HOLE_SCENE_SEWER_VARIANT, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_WATER_HOLE_SCENE_MAP_MARK },
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_TANK, DRYFIELD_NIGHT_WATER_HOLE_SCENE_WATER_TANK_VARIANT, AREA_APPLY_MODE_ALWAYS | DRYFIELD_NIGHT_WATER_HOLE_SCENE_MAP_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Byte cursor for interleaved POLY_G4 and DR_MODE packets in the current actor-arena half.
@@ -1499,7 +1528,7 @@ static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
         taskSpawnFromTable(&_gDryfieldNightWaterHoleWaterTaskDesc, 0, 0, 0);
     } else {
-        _dryfieldNightWaterHoleApplySurfaceOverrides(D_dryfield_night_water_hole_801835D8);
+        _dryfieldNightWaterHoleApplySurfaceOverrides(_gDryfieldNightWaterHoleShelterRouteOpenSurfaceOverrides);
     }
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
         if (gGameSession->location.loc.warp == DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL) {
@@ -1761,16 +1790,16 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_1_VIEWS) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup1Endpoints[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup1Endpoints[1], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
                 if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_2_VIEWS) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup2Endpoints[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup2Endpoints[1], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
                 if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_3_VIEWS) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup3Endpoints[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(_gDryfieldNightWaterHoleShaftGroup3Endpoints[1], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
             }
             break;
