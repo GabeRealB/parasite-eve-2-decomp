@@ -71,7 +71,7 @@ static void _generatorLifeSupportHit(Enemy* enemy, Task* task)
                 ((GeneratorWork*)task->parent->work)->lifeSupportDestroyed = 1;
                 effectSpawn(EFFECT_EXPLOSION, coord, GENERATOR_LIFE_SUPPORT_BREAK_EXPLOSION_ARG, NULL);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, GENERATOR_LIFE_SUPPORT_BREAK_SMOKE_ARG, NULL);
-                soundId  = gGeneratorSoundIds[GENERATOR_LIFE_SUPPORT_BREAK_SOUND_INDEX];
+                soundId  = _gGeneratorHitSoundIds[GENERATOR_LIFE_SUPPORT_BREAK_SOUND_INDEX];
                 soundId |= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (damage > 0) {
@@ -86,7 +86,7 @@ static void _generatorLifeSupportHit(Enemy* enemy, Task* task)
                 if (hitCooldownFrames > 0) {
                     part->hitCooldown = hitCooldownFrames;
                 }
-                soundId  = gGeneratorSoundIds[GENERATOR_LIFE_SUPPORT_HIT_SOUND_INDEX];
+                soundId  = _gGeneratorHitSoundIds[GENERATOR_LIFE_SUPPORT_HIT_SOUND_INDEX];
                 soundId |= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }

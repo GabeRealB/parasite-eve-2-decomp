@@ -90,9 +90,9 @@ static void _generatorBodyHit(Task* task)
                 damage /= GENERATOR_PROTECTED_DAMAGE_DIVISOR;
             } else if (damageRollCriticalHit(enemy, work->contacts[contactIndex].key.value, 0) != 0) {
                 damage                  *= 4;
-                scratch->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-                scratch->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-                scratch->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                scratch->effectOffset.vx = _gGeneratorHitEffectOffsets[work->kind].vx;
+                scratch->effectOffset.vy = _gGeneratorHitEffectOffsets[work->kind].vy;
+                scratch->effectOffset.vz = _gGeneratorHitEffectOffsets[work->kind].vz;
                 effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, 0, &scratch->effectOffset);
             }
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
@@ -101,9 +101,9 @@ static void _generatorBodyHit(Task* task)
             if (lastAttackKey != work->contacts[contactIndex].key.value) {
                 lastAttackKey            = work->contacts[contactIndex].key.value;
                 hitParameter             = damageGetPlayerAttackEffectId(lastAttackKey);
-                scratch->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-                scratch->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-                scratch->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                scratch->effectOffset.vx = _gGeneratorHitEffectOffsets[work->kind].vx;
+                scratch->effectOffset.vy = _gGeneratorHitEffectOffsets[work->kind].vy;
+                scratch->effectOffset.vz = _gGeneratorHitEffectOffsets[work->kind].vz;
                 if (hitParameter == EFFECT_HIT_KIND_BLAST) {
                     effectSpawn(EFFECT_HIT_BLAST, rootCoord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scratch->effectOffset);
                 } else {
@@ -114,7 +114,7 @@ static void _generatorBodyHit(Task* task)
             if (hitParameter > 0) {
                 work->hitCooldown = hitParameter;
             }
-            soundId = gGeneratorSoundIds[GENERATOR_BODY_HIT_SOUND_INDEX] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            soundId = _gGeneratorHitSoundIds[GENERATOR_BODY_HIT_SOUND_INDEX] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
     }

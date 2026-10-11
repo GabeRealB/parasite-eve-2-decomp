@@ -140,7 +140,7 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
                     scaleQ12 = work->shrinkScale;
                     break;
                 case GENERATOR_PULSE_HIT:
-                    frame    = &gGeneratorHitPulse[work->pulseTimer];
+                    frame    = &_gGeneratorHitPulse[work->pulseTimer];
                     scaleQ12 = (work->shrinkScale * frame->scale) >> GENERATOR_DEATH_PULSE_FRACTION_BITS;
                     if (frame->last != 0) {
                         work->pulseState = GENERATOR_PULSE_IDLE;
@@ -186,7 +186,7 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
     }
     // Release rewards independently; the body stays live until the shrink ends.
     if (work->battleExitState == GENERATOR_BATTLE_EXIT_DUE) {
-        sceneReleaseBattleRefWithRewards(task, gGeneratorReleaseIds[work->kind]);
+        sceneReleaseBattleRefWithRewards(task, _gGeneratorUnusedBattleReleaseArgs[work->kind]);
         work->battleExitState = GENERATOR_BATTLE_EXIT_DONE;
         areaClearMapMark(&gGameSession->location.loc);
     }

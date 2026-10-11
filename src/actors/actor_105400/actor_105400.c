@@ -72,61 +72,66 @@ static void _generatorUpdateAnimation(Task* task);
 static void _generatorTickState(Enemy* enemy, Task* task);
 static void _generatorUpdateColor(Task* task);
 
-extern EnemyParams             gGeneratorLifeSupportParams;
-extern GeneratorLifeSupportPos gGeneratorLifeSupportPos[2];
-extern GeneratorPulseFrame     gGeneratorIdlePulse[];
-extern GeneratorViewSound      gGeneratorViewSound[];
-extern u32                     gGeneratorPulseSoundId;
-extern s32                     gGeneratorSoundIds[3];
-extern SVECTOR                 gGeneratorHitEffectOffsets[];
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern SVECTOR       gGeneratorSpawnOffsets[2];
-extern EnemyParams   gGeneratorParams;
-extern u32           gGeneratorSpawnSound;
-extern AnimationSet* gGeneratorAnimSets[];
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-
-extern GeneratorPulseFrame gGeneratorHitPulse[];
-extern s16                 gGeneratorPoseStartFrames[];
-extern s16                 gGeneratorReleaseIds[];
 
 static AnimationSet _gActor105400Animation0A7C0;
 static AnimationSet _gActor105400Animation0AC00;
 static AnimationSet _gActor105400Animation0AFE8;
 static TmdSource    _gActor105400ProtoGeneratorBody;
 
-TaskMessageEntry gGeneratorMessages[3] = {
+/// Body message handlers for script release commands and combat presence.
+///
+/// Borrowed by the body task until teardown; the end marker rejects other IDs.
+static TaskMessageEntry _gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _generatorSetReleaseBits },
     { ACTOR_MESSAGE_IS_PRESENT, _generatorIsAlive },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s16 gGeneratorPoseStartFrames[4] = {
-    0,
-    0,
-    4,
-    4,
+/// Blend duration in whole frames for each body animation-set index.
+///
+/// Index 0 is unused; idle seeks without blending, hit and death blend for four frames.
+/// Hit recovery waits another 35 frames beyond this duration.
+static s16 _gGeneratorAnimationBlendFrames[4] = {
+    [0]                    = 0,
+    [GENERATOR_ANIM_IDLE]  = 0,
+    [GENERATOR_ANIM_HIT]   = 4,
+    [GENERATOR_ANIM_DEATH] = 4,
 };
 
-GeneratorLifeSupportPos gGeneratorLifeSupportPos[2] = {
-    { 6140, -6090, -8500 },
-    { 1865, -1095, -4500 },
+/// Life Support target positions in world game units, indexed by generator kind.
+///
+/// The coordinate-only child is placed beneath the view coordinate, independently
+/// of the body model root.
+static GeneratorLifeSupportPos _gGeneratorLifeSupportPositions[2] = {
+    [GENERATOR_BETA]  = { 6140, -6090, -8500 },
+    [GENERATOR_PROTO] = { 1865, -1095, -4500 },
 };
 
-s16 gGeneratorReleaseIds[2] = {
-    53,
-    54,
+/// Preserved per-kind arguments to the battle-reward release call.
+///
+/// The release routine ignores this argument; these values do not select rewards.
+static s16 _gGeneratorUnusedBattleReleaseArgs[2] = {
+    [GENERATOR_BETA]  = 53,
+    [GENERATOR_PROTO] = 54,
 };
 
-SVECTOR gGeneratorSpawnOffsets[2] = { { 0, -500, 1000, 0 }, { 0, -1000, 1500, 0 } };
+/// Body target-sphere centres in root-local game units, indexed by generator kind.
+///
+/// Also used as the enemy damage/lock-on point; the model root itself stays at
+/// its area placement.
+static SVECTOR _gGeneratorTargetOffsets[2] = {
+    [GENERATOR_BETA]  = { 0, -500, 1000, 0 },
+    [GENERATOR_PROTO] = { 0, -1000, 1500, 0 },
+};
 
-SVECTOR gGeneratorHitEffectOffsets[2] = {
-    { 0, -500, 1400, 0 },
-    { 0, -1000, 1600, 0 },
+/// Body hit-effect origins in root-local game units, indexed by generator kind.
+///
+/// Shared by critical-hit feedback and the weapon-selected hit effects.
+static SVECTOR _gGeneratorHitEffectOffsets[2] = {
+    [GENERATOR_BETA]  = { 0, -500, 1400, 0 },
+    [GENERATOR_PROTO] = { 0, -1000, 1600, 0 },
 };
 
 static TmdBone _gActor105400ProtoGeneratorBodySkeleton[10] = {
@@ -227,42 +232,95 @@ static AnimationSet _gActor105400Animation0AFE8 = {
     { NULL, _gActor105400Animation0AFE8Bank1, NULL, NULL, _gActor105400Animation0AFE8Bank4, NULL, NULL, NULL },
 };
 
-EnemyParams gGeneratorParams = { NULL, 250, 200, 100, 100, 100, 0, 0, 0 };
-
-EnemyParams gGeneratorLifeSupportParams = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
-
-s32 gGeneratorSoundIds[3] = {
-    0x55110003,
-    0x55110004,
-    0x55110005,
+/// Body starting HP and battle rewards for the Proto Generator.
+///
+/// Shared by this overlay's body enemies; the starting HP also caps regeneration.
+/// No attacks are emitted by the stationary body.
+static EnemyParams _gGeneratorBodyParams = {
+    .attacks              = NULL,
+    .hpMax                = 250,
+    .exp                  = 200,
+    .bp                   = 100,
+    .mp                   = 100,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
 };
 
-u32 gGeneratorPulseSoundId = 0x55110008;
-
-u32 gGeneratorSpawnSound = 0x55110009;
-
-GeneratorViewSound gGeneratorViewSound[8] = {
-    { 0, 0 },
-    { 0, 0 },
-    { -4, 64 },
-    { -15, 76 },
-    { 15, 76 },
-    { -15, 51 },
-    { 2, 64 },
-    { 12, 32 },
+/// Life Support starting HP and hit-response parameters.
+///
+/// The child starts at 250 HP, has no attack table and grants no battle rewards.
+static EnemyParams _gGeneratorLifeSupportParams = {
+    .attacks              = NULL,
+    .hpMax                = 250,
+    .exp                  = 0,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
 };
 
-GeneratorPulseFrame gGeneratorIdlePulse[3] = {
-    { 0, 4032 },
-    { 0, 4096 },
-    { 1, 4160 },
+/// Room-bank cue bases for Life Support hit, Life Support break and body hit.
+///
+/// Rows 0..2 follow that order; each request adds the enemy placement index in
+/// the instance byte before starting the cue at the struck part.
+static s32 _gGeneratorHitSoundIds[3] = {
+    SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, GENERATOR_SOUND_ENTRY_LIFE_SUPPORT_HIT),
+    SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, GENERATOR_SOUND_ENTRY_LIFE_SUPPORT_BREAK),
+    SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, GENERATOR_SOUND_ENTRY_BODY_HIT),
 };
 
-GeneratorPulseFrame gGeneratorHitPulse[4] = {
-    { 0, 3968 },
-    { 0, 3840 },
-    { 0, 4096 },
-    { 1, 4224 },
+/// Room-bank cue base played on the final frame of an idle scale pulse.
+///
+/// The enemy placement index supplies the instance byte; mixing uses the body
+/// root's current projected audio position.
+static u32 _gGeneratorPulseSoundId = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, GENERATOR_SOUND_ENTRY_IDLE_PULSE);
+
+/// Room-bank cue base for the running sound started with the body.
+///
+/// The placement index supplies the instance byte. The task retains the full ID
+/// for per-view mixing and stops it when Life Support tears down.
+static u32 _gGeneratorRunningSoundId = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, GENERATOR_SOUND_ENTRY_RUNNING);
+
+/// Running-sound pan and attenuation indexed by the one-based logical room view.
+///
+/// Ordinary active-body views are 2..7; rows 0 and 1 are zero. Higher
+/// cinematic views are selected after body death, which does not read this table.
+/// Spawn and active updates require a view in the ordinary range.
+/// Entries are signed halfwords narrowed to signed bytes by the sound API.
+static GeneratorViewSound _gGeneratorViewSound[8] = {
+    { .panOffset = 0, .attenuation = 0 },
+    { .panOffset = 0, .attenuation = 0 },
+    { .panOffset = -4, .attenuation = 64 },
+    { .panOffset = -15, .attenuation = 76 },
+    { .panOffset = 15, .attenuation = 76 },
+    { .panOffset = -15, .attenuation = 51 },
+    { .panOffset = 2, .attenuation = 64 },
+    { .panOffset = 12, .attenuation = 32 },
+};
+
+/// Three-frame uniform idle scale pulse, with twelve fractional bits.
+///
+/// Played one row per active frame after the idle delay; the last row is applied
+/// before restarting the delay and emitting the pulse sound.
+static GeneratorPulseFrame _gGeneratorIdlePulse[3] = {
+    { .last = 0, .scale = ONE - 64 },
+    { .last = 0, .scale = ONE },
+    { .last = 1, .scale = ONE + 64 },
+};
+
+/// Four-frame hit scale pulse, with twelve fractional bits.
+///
+/// Applied uniformly for a surviving hit and multiplied into the Y shrink during
+/// death flicker. Both players apply the last row before leaving the clip.
+static GeneratorPulseFrame _gGeneratorHitPulse[4] = {
+    { .last = 0, .scale = ONE - 128 },
+    { .last = 0, .scale = ONE - 256 },
+    { .last = 0, .scale = ONE },
+    { .last = 1, .scale = ONE + 128 },
 };
 
 TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
@@ -270,11 +328,15 @@ TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
     [GENERATOR_LIFE_SUPPORT_TASK_INDEX] = { { { TASK_BODY_COORD, GENERATOR_TASK_PRIORITY } }, _generatorLifeSupportTask, { .value = 0 } },
 };
 
-AnimationSet* gGeneratorAnimSets[4] = {
-    NULL,
-    &_gActor105400Animation0A7C0,
-    &_gActor105400Animation0AC00,
-    &_gActor105400Animation0AFE8,
+/// Body animation sets indexed by `GENERATOR_ANIM_*`, with an empty entry 0.
+///
+/// Borrowed by the task's animation context; idle, hit and death drive model
+/// slots 1..9 for the lifetime of this overlay.
+static AnimationSet* _gGeneratorAnimSets[4] = {
+    [0]                    = NULL,
+    [GENERATOR_ANIM_IDLE]  = &_gActor105400Animation0A7C0,
+    [GENERATOR_ANIM_HIT]   = &_gActor105400Animation0AC00,
+    [GENERATOR_ANIM_DEATH] = &_gActor105400Animation0AFE8,
 };
 
 #include "../../shared/generator_body_hit.inc.c"
@@ -301,13 +363,14 @@ AnimationSet* gGeneratorAnimSets[4] = {
 
 #include "../../shared/model_placement_scale.inc.c"
 
-/// State handlers of the part task, indexed by `Task::state`: spawn, per-frame
-/// hit reaction and teardown.
-static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
+/// Life Support handlers indexed by `Task::state`: spawn, active hit processing and teardown.
+///
+/// The dispatcher copies all three typed callbacks before selecting one.
+static const EnemyTaskFuncTable3 _gGeneratorLifeSupportStates = {
     {
-        _generatorLifeSupportSpawn,
-        _generatorLifeSupportHit,
-        _generatorLifeSupportTeardown,
+        [GENERATOR_TASK_SPAWN]    = _generatorLifeSupportSpawn,
+        [GENERATOR_TASK_ACTIVE]   = _generatorLifeSupportHit,
+        [GENERATOR_TASK_TEARDOWN] = _generatorLifeSupportTeardown,
     },
 };
 
@@ -319,13 +382,14 @@ static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
 
 #include "../../shared/generator_is_alive.inc.c"
 
-/// State handlers of the main task, indexed by `Task::state`: spawn, per-frame
-/// tick and death.
-static const EnemyTaskFuncTable3 gGeneratorTaskStates = {
+/// Body handlers indexed by `Task::state`: spawn, active update and held death.
+///
+/// The dispatcher copies all three typed callbacks before selecting one.
+static const EnemyTaskFuncTable3 _gGeneratorTaskStates = {
     {
-        _generatorSpawn,
-        _generatorTickState,
-        _generatorDeathState,
+        [GENERATOR_TASK_SPAWN]    = _generatorSpawn,
+        [GENERATOR_TASK_ACTIVE]   = _generatorTickState,
+        [GENERATOR_TASK_TEARDOWN] = _generatorDeathState,
     },
 };
 

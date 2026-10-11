@@ -8,6 +8,6 @@ static void _generatorTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = gGeneratorTaskStates;
+    stateHandlers = _gGeneratorTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

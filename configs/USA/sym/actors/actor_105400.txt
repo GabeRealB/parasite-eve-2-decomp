@@ -1,18 +1,18 @@
 // Overlay-local symbols for actor_105400.
 _generatorIsAlive = 0x80133990; // type:func
-gGeneratorPulseSoundId = 0x8013CE5C; // size:0x4 defined:True
-gGeneratorSpawnSound = 0x8013CE60; // size:0x4 defined:True
-gGeneratorViewSound = 0x8013CE64; // size:0x20 defined:True
-gGeneratorIdlePulse = 0x8013CE84; // size:0xC defined:True
-gGeneratorHitPulse = 0x8013CE90; // size:0x10 defined:True
+_gGeneratorPulseSoundId = 0x8013CE5C; // size:0x4 defined:True
+_gGeneratorRunningSoundId = 0x8013CE60; // size:0x4 defined:True
+_gGeneratorViewSound = 0x8013CE64; // size:0x20 defined:True
+_gGeneratorIdlePulse = 0x8013CE84; // size:0xC defined:True
+_gGeneratorHitPulse = 0x8013CE90; // size:0x10 defined:True
 gActor105400GeneratorTasks = 0x8013CEA0; // size:0x18 defined:True
-gGeneratorAnimSets = 0x8013CEB8; // size:0x10 defined:True
-gGeneratorMessages = 0x80133A00; // size:0x18 defined:True
-gGeneratorPoseStartFrames = 0x80133A18; // size:0x8 defined:True
-gGeneratorLifeSupportPos = 0x80133A20; // size:0xC defined:True
-gGeneratorReleaseIds = 0x80133A2C; // size:0x4 defined:True
-gGeneratorSpawnOffsets = 0x80133A30; // size:0x10 defined:True
-gGeneratorHitEffectOffsets = 0x80133A40; // size:0x10 defined:True
+_gGeneratorAnimSets = 0x8013CEB8; // size:0x10 defined:True
+_gGeneratorMessages = 0x80133A00; // size:0x18 defined:True
+_gGeneratorAnimationBlendFrames = 0x80133A18; // size:0x8 defined:True
+_gGeneratorLifeSupportPositions = 0x80133A20; // size:0xC defined:True
+_gGeneratorUnusedBattleReleaseArgs = 0x80133A2C; // size:0x4 defined:True
+_gGeneratorTargetOffsets = 0x80133A30; // size:0x10 defined:True
+_gGeneratorHitEffectOffsets = 0x80133A40; // size:0x10 defined:True
 _gActor105400ProtoGeneratorBodySkeleton = 0x80133A50; // size:0x168 defined:True
 _gActor105400ProtoGeneratorBodyPartVerts = 0x80133BB8; // size:0x28 defined:True
 _gActor105400ProtoGeneratorBodyVerts = 0x80133BE0; // size:0x12D8 defined:True
@@ -34,9 +34,9 @@ _gActor105400Animation0AFE8Bank4 = 0x8013CAA8; // size:0x154 defined:True
 _gActor105400Animation0AFE8Records = 0x8013CBFC; // size:0x1F8 defined:True
 _gActor105400Animation0AFE8Indices = 0x8013CDF4; // size:0x14 defined:True
 _gActor105400Animation0AFE8 = 0x8013CE08; // size:0x28 defined:True
-gGeneratorParams = 0x8013CE30; // size:0x10 defined:True
-gGeneratorLifeSupportParams = 0x8013CE40; // size:0x10 defined:True
-gGeneratorSoundIds = 0x8013CE50; // size:0xC defined:True
+_gGeneratorBodyParams = 0x8013CE30; // size:0x10 defined:True
+_gGeneratorLifeSupportParams = 0x8013CE40; // size:0x10 defined:True
+_gGeneratorHitSoundIds = 0x8013CE50; // size:0xC defined:True
 
 neoArkPowerPlant1SetLifeSupportSpritesHidden = 0x8017E524; // type:func absolute:True owner=neo_ark_power_plant_1
 

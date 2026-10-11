@@ -47,17 +47,17 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     enemy->field_48         = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord               = rootCoord;
-    enemy->bodyPos.vx          = gGeneratorSpawnOffsets[GENERATOR_KIND].vx;
-    enemy->bodyPos.vy          = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
-    enemy->bodyPos.vz          = gGeneratorSpawnOffsets[GENERATOR_KIND].vz;
-    enemy->param               = &gGeneratorParams;
+    enemy->bodyPos.vx          = _gGeneratorTargetOffsets[GENERATOR_KIND].vx;
+    enemy->bodyPos.vy          = _gGeneratorTargetOffsets[GENERATOR_KIND].vy;
+    enemy->bodyPos.vz          = _gGeneratorTargetOffsets[GENERATOR_KIND].vz;
+    enemy->param               = &_gGeneratorBodyParams;
     enemy->recs                = work->contacts;
-    enemy->hp                  = gGeneratorParams.hpMax;
+    enemy->hp                  = _gGeneratorBodyParams.hpMax;
     work->effectArg.coord      = rootCoord;
     work->effectArg.spawnArgLo = GENERATOR_HIT_EFFECT_MAGNITUDE;
     work->effectArg.spawnArgHi = GENERATOR_BODY_HIT_EFFECT_COUNT;
     // The task owns the context and ten encoded pose buffers for the rig.
-    animationInitContext(&work->anim, gGeneratorAnimSets, bodyModel, work->poses, work->slots);
+    animationInitContext(&work->anim, _gGeneratorAnimSets, bodyModel, work->poses, work->slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
         animationResetSlot(&work->anim, slotIndex, GENERATOR_ANIM_IDLE);
     }
@@ -66,7 +66,7 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     work->shrinkScale = ONE;
     work->unscaledMtx = rootCoord->coord;
     work->alive       = 1;
-    work->hpCeiling   = gGeneratorParams.hpMax;
+    work->hpCeiling   = _gGeneratorBodyParams.hpMax;
     // Both spheres share the two-contact table; the target sphere uses bodyPos.
     work->rootBody.coord            = rootCoord;
     work->rootBody.context.contacts = work->contacts;
@@ -81,9 +81,9 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     work->rootBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->targetBody.coord            = rootCoord;
     work->targetBody.context.contacts = work->contacts;
-    work->targetBody.pos.vx           = gGeneratorSpawnOffsets[GENERATOR_KIND].vx;
-    work->targetBody.pos.vy           = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
-    work->targetBody.pos.vz           = gGeneratorSpawnOffsets[GENERATOR_KIND].vz;
+    work->targetBody.pos.vx           = _gGeneratorTargetOffsets[GENERATOR_KIND].vx;
+    work->targetBody.pos.vy           = _gGeneratorTargetOffsets[GENERATOR_KIND].vy;
+    work->targetBody.pos.vz           = _gGeneratorTargetOffsets[GENERATOR_KIND].vz;
     work->targetBody.key              = GENERATOR_COLLISION_KEY;
     work->targetBody.radius           = GENERATOR_TARGET_RADIUS;
     work->targetBody.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -109,10 +109,10 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(lifeSupportModelView);
         tmdBuildBufferHalf(lifeSupportModelView);
     }
-    soundId              = gGeneratorSpawnSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+    soundId              = _gGeneratorRunningSoundId | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->runningSoundId = soundId;
-    sndEvtRequestScriptStart(soundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
-                             (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
-    task->msgTable = gGeneratorMessages;
+    sndEvtRequestScriptStart(soundId, (s8)_gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
+                             (s8)_gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
+    task->msgTable = _gGeneratorMessages;
     task->state    = GENERATOR_TASK_ACTIVE;
 }

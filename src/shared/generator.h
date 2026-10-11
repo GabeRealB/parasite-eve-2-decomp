@@ -33,8 +33,6 @@
 #endif
 #define GENERATOR_COLLISION_KEY (0x30035 + GENERATOR_KIND)
 
-extern TaskMessageEntry gGeneratorMessages[];
-
 /// Execution-list priority shared by the generator body and Life Support part.
 enum { GENERATOR_TASK_PRIORITY = 96 };
 
@@ -51,6 +49,18 @@ enum {
     GENERATOR_ANIM_IDLE  = 1, // played from the spawn, and again once a hit reaction has run
     GENERATOR_ANIM_HIT   = 2, // reaction to a hit the body survives
     GENERATOR_ANIM_DEATH = 3  // played from the killing hit on
+};
+
+/// Cue entries shared by the two power-plant room banks.
+///
+/// The carrier's sound bases pair these entries with its room bank; the enemy
+/// placement supplies the instance byte when a request is made.
+enum {
+    GENERATOR_SOUND_ENTRY_LIFE_SUPPORT_HIT   = 3,
+    GENERATOR_SOUND_ENTRY_LIFE_SUPPORT_BREAK = 4,
+    GENERATOR_SOUND_ENTRY_BODY_HIT           = 5,
+    GENERATOR_SOUND_ENTRY_IDLE_PULSE         = 8,
+    GENERATOR_SOUND_ENTRY_RUNNING            = 9
 };
 
 /// Values of `GeneratorWork::pulseState`.

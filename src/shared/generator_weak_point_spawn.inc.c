@@ -32,9 +32,9 @@ static void _generatorLifeSupportSpawn(Enemy* enemy, Task* task)
     }
     task->work          = part;
     coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = gGeneratorLifeSupportPos[parentWork->kind].x;
-    coord->coord.t[1]   = gGeneratorLifeSupportPos[parentWork->kind].y;
-    coord->coord.t[2]   = gGeneratorLifeSupportPos[parentWork->kind].z;
+    coord->coord.t[0]   = _gGeneratorLifeSupportPositions[parentWork->kind].x;
+    coord->coord.t[1]   = _gGeneratorLifeSupportPositions[parentWork->kind].y;
+    coord->coord.t[2]   = _gGeneratorLifeSupportPositions[parentWork->kind].z;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     enemy->field_4      = &coord->coord;
     enemy->field_48     = 0;
@@ -44,9 +44,9 @@ static void _generatorLifeSupportSpawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx           = 0;
     enemy->bodyPos.vy           = 0;
     enemy->bodyPos.vz           = 0;
-    enemy->param                = &gGeneratorLifeSupportParams;
+    enemy->param                = &_gGeneratorLifeSupportParams;
     enemy->recs                 = contacts;
-    enemy->hp                   = gGeneratorLifeSupportParams.hpMax;
+    enemy->hp                   = _gGeneratorLifeSupportParams.hpMax;
     part->effectArg.spawnArgLo  = GENERATOR_LIFE_SUPPORT_HIT_EFFECT_MAGNITUDE;
     part->effectArg.coord       = coord;
     part->effectArg.spawnArgHi  = GENERATOR_LIFE_SUPPORT_HIT_EFFECT_COUNT;

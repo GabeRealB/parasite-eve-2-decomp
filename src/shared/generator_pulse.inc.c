@@ -29,12 +29,12 @@ static void _generatorPulse(Task* task)
     switch (work->pulseState) {
         case GENERATOR_PULSE_IDLE:
             if (work->pulseTimer <= 0) {
-                scale = gGeneratorIdlePulse[work->stateFrames].scale;
-                if (gGeneratorIdlePulse[work->stateFrames].last != 0) {
+                scale = _gGeneratorIdlePulse[work->stateFrames].scale;
+                if (_gGeneratorIdlePulse[work->stateFrames].last != 0) {
                     work->stateFrames = 0;
                     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->pulseTimer  = ((gRandomLcgState >> 16) & GENERATOR_PULSE_DELAY_JITTER_MASK) + GENERATOR_PULSE_MIN_DELAY_FRAMES;
-                    soundId           = gGeneratorPulseSoundId |
+                    soundId           = _gGeneratorPulseSoundId |
                               ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     panOffset = (s8)worldCoordGetOriginAudioPan(rootCoord);
                     sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(rootCoord));
@@ -46,8 +46,8 @@ static void _generatorPulse(Task* task)
             }
             break;
         case GENERATOR_PULSE_HIT:
-            scale = gGeneratorHitPulse[work->stateFrames].scale;
-            if (gGeneratorHitPulse[work->stateFrames].last != 0) {
+            scale = _gGeneratorHitPulse[work->stateFrames].scale;
+            if (_gGeneratorHitPulse[work->stateFrames].last != 0) {
                 work->stateFrames = 0;
                 work->pulseState  = GENERATOR_PULSE_HIT_RECOVER;
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -57,7 +57,7 @@ static void _generatorPulse(Task* task)
             }
             break;
         case GENERATOR_PULSE_HIT_RECOVER:
-            if (work->animFrames >= gGeneratorPoseStartFrames[work->animSet] + GENERATOR_HIT_RECOVERY_FRAMES) {
+            if (work->animFrames >= _gGeneratorAnimationBlendFrames[work->animSet] + GENERATOR_HIT_RECOVERY_FRAMES) {
                 work->animSet    = GENERATOR_ANIM_IDLE;
                 work->pulseState = GENERATOR_PULSE_IDLE;
             }
@@ -66,7 +66,7 @@ static void _generatorPulse(Task* task)
     // Always start from the saved matrix so pulse scales do not accumulate.
     _modelPlacementSetScaled(task, &work->unscaledMtx, scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (gGameSession->viewReady == 1) {
-        sndEvtRequestScriptMix(work->runningSoundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
-                               (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
+        sndEvtRequestScriptMix(work->runningSoundId, (s8)_gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
+                               (s8)_gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
     }
 }

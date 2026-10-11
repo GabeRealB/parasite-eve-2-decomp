@@ -17,7 +17,7 @@ static inline void _generatorUpdateAnimationInline(Task* task)
     if (work->animSet != work->appliedAnimSet) {
         work->appliedAnimSet = work->animSet;
         work->animFrames     = 0;
-        blendFrames          = gGeneratorPoseStartFrames[work->animSet];
+        blendFrames          = _gGeneratorAnimationBlendFrames[work->animSet];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->anim, slotIndex, work->animSet, 0, blendFrames);
         }
