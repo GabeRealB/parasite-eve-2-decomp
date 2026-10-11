@@ -56,6 +56,11 @@ out and the game runs on), and after every event marked `drain = true` - at its 
 them, otherwise straight after its entry. A rare event, such as a room load, makes a good one: the log then
 arrives in pieces as the game goes, without a stop for each sound.
 
+While it runs the tool takes commands on its input, each carried out with the game stopped: `pause` and `resume`
+stop and continue the game; `session NAME` reads the buffer and begins a new session, which is a marker line in
+the log saying what the records after it are; `name NAME` renames the current one; `drop` throws the current
+session away, buffer and log lines both; `drain`, `status`, `quit`. `--session NAME` names the first.
+
 A record is one JSON line: id, name, phase ("enter" or "exit"), then each capture under its own text; a captured
 `ra` also gives `from`, the function it returns into. An event with `render = "name"` is written by a renderer
 instead: a python function, registered under that name by one of the files the config's `[renderer]` section
@@ -65,6 +70,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import select
 import signal
@@ -766,6 +772,49 @@ class Gdb:
                     return True
         return self._go("c", timeout)
 
+    def go(self, stopped_at: int | None = None) -> bool:
+        """Let the target run, without waiting for it. False when it is stopped again already: the step past a
+        breakpoint under `stopped_at` landed on another one."""
+        if stopped_at in self.set:
+            self.learn_step_over(stopped_at)
+            if self.step_over and self.registers()[PC] == stopped_at:
+                self.breakpoint(stopped_at, False)
+                self._go("s")
+                self.breakpoint(stopped_at)
+                if self.registers()[PC] in self.set:
+                    return False
+        while self._recv(0) is not None:
+            pass
+        self._send("c")
+        return True
+
+    def wait(self, also: list) -> str:
+        """Block until the running target stops ("stop") or one of the files in `also` has something to read ("input")."""
+        while True:
+            packet = self._recv(0)
+            if packet is not None:
+                if self._is_stop(packet):
+                    while self._recv(0.005) is not None:
+                        pass
+                    return "stop"
+                continue
+            ready = select.select([self.sock, *also], [], [])[0]
+            if self.sock in ready:
+                chunk = self.sock.recv(65536)
+                if not chunk:
+                    raise ConnectionError("the GDB server closed the connection")
+                self.buf += chunk
+            else:
+                return "input"
+
+    def interrupt(self) -> None:
+        """Stop the running target and wait until it has."""
+        self.sock.sendall(b"\x03")
+        while not self._is_stop(self._recv() or ""):
+            pass
+        while self._recv(0.005) is not None:
+            pass
+
     def release(self, running: bool) -> None:
         """Take every breakpoint out and let the target run: a breakpoint left behind stops it with nobody listening."""
         if running:
@@ -784,7 +833,9 @@ class Session:
         self.cfg, self.gdb, self.out, self.names = cfg, gdb, out, Names()
         self.events = cfg.get("event", [])
         self.count = 0
-        self.ready = self.running = False
+        self.ready = self.running = self.paused = False
+        self.session_number = self.session_at = self.session_count = 0
+        self.session_name = ""
         self.drains: set[int] = set()
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
@@ -800,6 +851,91 @@ class Session:
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
         self.count += 1
+
+    # ---- sessions: a marker line in the log that says what the records after it are
+
+    def session(self, name: str | None = None) -> None:
+        """Begin a session: everything logged from here on belongs to it."""
+        self.session_number += 1
+        self.session_name = name or f"session {self.session_number}"
+        self.out.flush()
+        self.session_at = self.out.tell()
+        self.session_count = self.count
+        import datetime
+        self.session_started = datetime.datetime.now().isoformat(timespec="seconds")
+        self.out.write(json.dumps(self.marker()) + "\n")
+        self.out.flush()
+
+    def marker(self) -> dict:
+        return {"session": self.session_name, "number": self.session_number, "started": self.session_started}
+
+    def rename(self, name: str) -> None:
+        """Give the current session another name: its marker line is rewritten in place."""
+        self.out.flush()
+        self.out.seek(self.session_at)
+        _old, _, rest = self.out.read().partition("\n")
+        self.session_name = name
+        self.out.truncate(self.session_at)
+        self.out.seek(self.session_at)
+        self.out.write(json.dumps(self.marker()) + "\n" + rest)
+        self.out.flush()
+
+    def drop(self) -> int:
+        """Throw the current session away: what the buffer holds, and its lines in the log. A new one begins."""
+        if self.ready:
+            self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", self.symbols["gt_buffer"]))
+        dropped = self.count - self.session_count
+        self.out.flush()
+        self.out.truncate(self.session_at)
+        self.out.seek(self.session_at)
+        self.count = self.session_count
+        self.session_number -= 1
+        self.session()
+        return dropped
+
+    COMMANDS = """commands (the game is stopped while one is carried out):
+  pause            stop the game and keep it stopped
+  resume           let it run again
+  session NAME     read the buffer into the log, then begin a new session called NAME
+  name NAME        rename the current session
+  drop             throw the current session away - the buffer and its lines in the log - and begin another
+  drain            read the buffer into the log now
+  status           where things stand
+  quit             read the buffer, take the hooks out, let the game run, and leave"""
+
+    def command(self, line: str) -> None:
+        word, _, rest = line.strip().partition(" ")
+        rest = rest.strip()
+        say = lambda text: print(text, file=sys.stderr)  # noqa: E731
+        if word in ("pause", "p"):
+            self.paused = True
+            say("paused")
+        elif word in ("resume", "r", "continue", "c"):
+            self.paused = False
+            say("running")
+        elif word in ("session", "s"):
+            if self.ready:
+                self.drain(reset=True)
+            self.session(rest or None)
+            say(f"session {self.session_number}: {self.session_name}")
+        elif word in ("name", "n") and rest:
+            self.rename(rest)
+            say(f"session {self.session_number} is now: {self.session_name}")
+        elif word == "drop":
+            say(f"dropped {self.drop()} records; session {self.session_number}: {self.session_name}")
+        elif word in ("drain", "d"):
+            before = self.count
+            if self.ready:
+                self.drain(reset=True)
+            say(f"{self.count - before} records read")
+        elif word == "status":
+            placed = self.install() if self.ready else 0
+            say(f"session {self.session_number}: {self.session_name} - {self.count - self.session_count} records in it, {self.count} in all; "
+                f"{placed} of {len(self.hooks)} hooks in place; {'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
+        elif word in ("quit", "q", "detach", "exit"):
+            raise KeyboardInterrupt
+        elif word:
+            say(self.COMMANDS)
 
     def symbol(self, address: int) -> str:
         """The function an address is in, as `name+0xoffset`."""
@@ -948,25 +1084,58 @@ class Session:
             self.remove()
         self.gdb.release(False)
 
-    def run(self) -> None:
+    def stopped(self) -> int:
+        """The game has stopped: do what the place it stopped at asks for. Returns that place."""
+        pc = self.gdb.registers()[PC]
+        if pc in self.installers:
+            if not self.ready:
+                self.setup()
+            else:
+                self.install()
+        elif self.ready and pc == self.symbols["gt_full"]:
+            self.drain(reset=False)
+            self.install()
+        elif self.ready and pc in self.drains:
+            self.drain(reset=True)
+            self.install()
+        return pc
+
+    def run(self, first_session: str | None = None) -> None:
+        self.session(first_session)
         self.start()
-        pc = None
+        keyboard, typed, pc = [sys.stdin], "", None
+        print("type `help` for the commands; Ctrl-C detaches", file=sys.stderr)
         while True:
-            self.running = True
-            self.gdb.resume(pc)
-            self.running = False
-            pc = self.gdb.registers()[PC]
-            if pc in self.installers:
-                if not self.ready:
-                    self.setup()
-                else:
-                    self.install()
-            elif self.ready and pc == self.symbols["gt_full"]:
-                self.drain(reset=False)
-                self.install()
-            elif self.ready and pc in self.drains:
-                self.drain(reset=True)
-                self.install()
+            if not self.running and not self.paused:
+                self.running = self.gdb.go(pc)
+                if not self.running:
+                    pc = self.stopped()
+                    continue
+            if self.running:
+                if self.gdb.wait(keyboard) == "stop":
+                    self.running = False
+                    pc = self.stopped()
+                    continue
+            elif keyboard:
+                select.select(keyboard, [], [])
+            else:
+                self.paused = False                   # nobody can say `resume` any more
+                continue
+            data = os.read(sys.stdin.fileno(), 4096).decode(errors="replace")
+            if not data:
+                keyboard = []                         # the input is closed; the trace goes on without commands
+                continue
+            typed += data
+            while "\n" in typed:
+                line, typed = typed.split("\n", 1)
+                if not line.strip():
+                    continue
+                if self.running:                      # a command is carried out with the game stopped
+                    self.gdb.interrupt()
+                    self.running = False
+                    pc = self.stopped()               # it may have been about to stop on its own
+                self.command(line)
+                self.out.flush()
 
 
 def main() -> int:
@@ -976,6 +1145,7 @@ def main() -> int:
     ap.add_argument("--out", type=Path, help="the log; by default a new file per run, local/gametrace/trace-<date>-<time>.jsonl")
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
+    ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
@@ -1022,10 +1192,10 @@ def main() -> int:
     except OSError as error:
         raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Start the server, or give its address with --host and --port.")
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))   # detach as Ctrl-C does
-    with args.out.open("a", encoding="utf-8") as out:
+    with args.out.open("a+", encoding="utf-8") as out:
         session = Session(cfg, gdb, out)
         try:
-            session.run()
+            session.run(args.session)
         except KeyboardInterrupt:
             try:
                 session.close()
