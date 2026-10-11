@@ -2120,136 +2120,230 @@ static AnimationSet _gMm1AimBackwardOrTurnAnimation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation0B7A4Bank1[19] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for aim-forward tracks 0 and 1.
+static const AnimationPackedPose _gMm1AimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0B7A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0B7A4Bank4[269] = {
+/// Aim-forward rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1AimForwardAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0B7A4_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0B7A4Records[336] = {
+/// Keyframes, footstep cues, repeat jumps and retained track stops for forward movement while aiming with the MM1.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+/// Track 1 carries `ANIMATION_RECORD_CUE_2` followed by `ANIMATION_RECORD_CUE_1`.
+static const AnimationRecord _gMm1AimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0B7A4_records.inc"
 };
 
-static u16 _gMm1Animation0B7A4Indices[20] = {
+/// Aim-forward track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1AimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0B7A4_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0B7A4 = {
-    _gMm1Animation0B7A4Records,
-    _gMm1Animation0B7A4Indices,
-    { NULL, _gMm1Animation0B7A4Bank1, NULL, NULL, _gMm1Animation0B7A4Bank4, NULL, NULL, NULL },
+/// Player forward movement cycle while aiming, selected by MM1 bank slot 12.
+///
+/// Loops while moving forward in aim locomotion; track 1 carries paired footstep cues.
+/// The player controller applies root displacement and turning separately.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1AimForwardAnimation = {
+    .records           = _gMm1AimForwardAnimationRecords,
+    .trackStartIndices = _gMm1AimForwardAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1AimForwardAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1AimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0CE20Bank1[30] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for reload tracks 0 and 1.
+static const AnimationPackedPose _gMm1ReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0CE20_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0CE20Bank4[497] = {
+/// Reload rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ReloadAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0CE20_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0CE20Records[832] = {
+/// Keyframes, six loading cues and track stops for the MM1 reload.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+/// Track 1 sets both `ANIMATION_RECORD_CUE_MASK` bits on each loading cue.
+static const AnimationRecord _gMm1ReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0CE20_records.inc"
 };
 
-static u16 _gMm1Animation0CE20Indices[20] = {
+/// Reload track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1ReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0CE20_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0CE20 = {
-    _gMm1Animation0CE20Records,
-    _gMm1Animation0CE20Indices,
-    { NULL, _gMm1Animation0CE20Bank1, NULL, NULL, _gMm1Animation0CE20Bank4, NULL, NULL, NULL },
+/// Player MM1 reload animation shared by bank slots 14, 15 and 20.
+///
+/// Normal reloads select slot 14 plus the load selector; battle-end reloads select slot 20.
+/// Plays once with a three-frame entry blend. Six slot-1 cues time ammunition loading and reload sounds.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1ReloadAnimation = {
+    .records           = _gMm1ReloadAnimationRecords,
+    .trackStartIndices = _gMm1ReloadAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ReloadAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0D4BCBank1[11] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for firing tracks 0 and 1.
+static const AnimationPackedPose _gMm1FireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0D4BC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0D4BCBank4[160] = {
+/// Firing rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1FireAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0D4BC_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0D4BCRecords[210] = {
+/// Keyframes and track stops for the MM1 firing animation.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+/// The shot is triggered by the attack state, without a record cue.
+static const AnimationRecord _gMm1FireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0D4BC_records.inc"
 };
 
-static u16 _gMm1Animation0D4BCIndices[20] = {
+/// Firing track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1FireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0D4BC_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0D4BC = {
-    _gMm1Animation0D4BCRecords,
-    _gMm1Animation0D4BCIndices,
-    { NULL, _gMm1Animation0D4BCBank1, NULL, NULL, _gMm1Animation0D4BCBank4, NULL, NULL, NULL },
+/// Player MM1 firing animation selected by bank slot 10, also stored in slot 11.
+///
+/// Starts with a three-frame blend when the attack consumes a round and spawns its projectile.
+/// Plays once; completion lets the attack state resume aiming.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1FireAnimation = {
+    .records           = _gMm1FireAnimationRecords,
+    .trackStartIndices = _gMm1FireAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1FireAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1FireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0DF5CBank1[19] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for aim-entry tracks 0 and 1.
+static const AnimationPackedPose _gMm1AimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0DF5C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0DF5CBank4[277] = {
+/// Aim-entry rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1AimEntryAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0DF5C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0DF5CRecords[326] = {
+/// Keyframes and track stops for the MM1 aim-entry transition.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1AimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0DF5C_records.inc"
 };
 
-static u16 _gMm1Animation0DF5CIndices[20] = {
+/// Aim-entry track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1AimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0DF5C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0DF5C = {
-    _gMm1Animation0DF5CRecords,
-    _gMm1Animation0DF5CIndices,
-    { NULL, _gMm1Animation0DF5CBank1, NULL, NULL, _gMm1Animation0DF5CBank4, NULL, NULL, NULL },
+/// Player transition into MM1 aiming, selected by bank slot 7.
+///
+/// Plays once before the controller blends into the aim hold or aim locomotion.
+/// Also borrowed as the player's recovery clip after a Desert Chaser grab.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1AimEntryAnimation = {
+    .records           = _gMm1AimEntryAnimationRecords,
+    .trackStartIndices = _gMm1AimEntryAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1AimEntryAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1AimEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0E570Bank1[11] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for aim-exit tracks 0 and 1.
+static const AnimationPackedPose _gMm1AimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0E570_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0E570Bank4[151] = {
+/// Aim-exit rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1AimExitAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0E570_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0E570Records[185] = {
+/// Keyframes and track stops for the MM1 aim-exit transition.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1AimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0E570_records.inc"
 };
 
-static u16 _gMm1Animation0E570Indices[20] = {
+/// Aim-exit track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1AimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0E570_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0E570 = {
-    _gMm1Animation0E570Records,
-    _gMm1Animation0E570Indices,
-    { NULL, _gMm1Animation0E570Bank1, NULL, NULL, _gMm1Animation0E570Bank4, NULL, NULL, NULL },
+/// Player transition out of MM1 aiming, selected by bank slot 8.
+///
+/// Starts with a six-frame blend on normal aim exit and on scripted attack completion.
+/// Plays once before returning to ordinary locomotion.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1AimExitAnimation = {
+    .records           = _gMm1AimExitAnimationRecords,
+    .trackStartIndices = _gMm1AimExitAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1AimExitAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1AimExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0EE28Bank1[18] = {
+/// Translations in model units and Euler rotations in 1/4096 turns for walk tracks 0 and 1.
+static const AnimationPackedPose _gMm1WalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0EE28_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0EE28Bank4[201] = {
+/// Walk rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1WalkAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0EE28_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0EE28Records[283] = {
+/// Keyframes, footstep cues, repeat jumps and retained track stops for walking with the MM1.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+/// Track 1 carries `ANIMATION_RECORD_CUE_1` followed by `ANIMATION_RECORD_CUE_2`.
+static const AnimationRecord _gMm1WalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0EE28_records.inc"
 };
 
-static u16 _gMm1Animation0EE28Indices[20] = {
+/// Walk track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1WalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0EE28_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0EE28 = {
-    _gMm1Animation0EE28Records,
-    _gMm1Animation0EE28Indices,
-    { NULL, _gMm1Animation0EE28Bank1, NULL, NULL, _gMm1Animation0EE28Bank4, NULL, NULL, NULL },
+/// Player forward walk with the weapon model present, selected by MM1 bank slot 2.
+///
+/// Loops during ordinary forward walking; track 1 carries paired footstep cues.
+/// The player controller applies root displacement and turning separately.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the MM1 package loaded while slots, borrowed tables or cached records refer to the clip.
+static AnimationSet _gMm1WalkAnimation = {
+    .records           = _gMm1WalkAnimationRecords,
+    .trackStartIndices = _gMm1WalkAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1WalkAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1WalkAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation0F5C8Bank1[16] = {
@@ -2299,25 +2393,25 @@ static AnimationSet _gMm1Animation0FF9C = {
 AnimationBank D_mm1_8012D184 = { { {
     NULL,
     &_gMm1IdleAnimation,
-    &_gMm1Animation0EE28,
+    &_gMm1WalkAnimation,
     &_gMm1Animation0F5C8,
     &_gMm1Animation0FF9C,
     &_gMm1NegativeTurnAnimation,
     &_gMm1PositiveTurnAnimation,
-    &_gMm1Animation0DF5C,
-    &_gMm1Animation0E570,
+    &_gMm1AimEntryAnimation,
+    &_gMm1AimExitAnimation,
     &_gMm1AimHoldAnimation,
-    &_gMm1Animation0D4BC,
-    &_gMm1Animation0D4BC,
-    &_gMm1Animation0B7A4,
+    &_gMm1FireAnimation,
+    &_gMm1FireAnimation,
+    &_gMm1AimForwardAnimation,
     &_gMm1AimBackwardOrTurnAnimation,
-    &_gMm1Animation0CE20,
-    &_gMm1Animation0CE20,
+    &_gMm1ReloadAnimation,
+    &_gMm1ReloadAnimation,
     &_gMm1Part4HitReactionAnimation,
     &_gMm1OtherBodyHitReactionAnimation,
     &_gMm1DeathAnimation,
     &_gMm1UnarmedWalkAnimation,
-    &_gMm1Animation0CE20,
+    &_gMm1ReloadAnimation,
     &_gMm1IdleAnimation,
     &_gMm1IdleAnimation,
     &_gMm1HealthyIdleAnimation,
