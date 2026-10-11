@@ -32,7 +32,7 @@ static void _oddStrangerGrabRelease(Task* task)
         work->animId      = ODD_STRANGER_ANIM_GRAB_RELEASE;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
         _oddStrangerDriveAnimation(task);
-        playerAnimation              = &gOddStrangerPlayerAnim;
+        playerAnimation              = &_gOddStrangerPlayerGrabAnimationRequest;
         playerAnimation->animationId = ODD_STRANGER_PLAYER_ANIM_GRAB_RELEASE;
         if (playerStatus->hp > 0) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, playerAnimation, 0);

@@ -100583,9 +100583,9 @@ each entry is `0x00808080`, the r/g/b triple -- so the walker becomes
 `GsF_LIGHT*` and `var_s1 += 1;`:
 
 ```c
-    GsF_LIGHT *light = D_actor_303600_8016E490;
+    GsF_LIGHT *light = _gActor303600ShaftSegmentLights;
     ...
-    for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
+    for (i = 0, light = _gActor303600ShaftSegmentLights; i < 3; i++, light++) {
         gfxSetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
     }
 ```
@@ -109806,9 +109806,9 @@ each arm. The matched sibling `_actor356100GrabReach` supplies that form:
 
 ```c
 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-    gOddStrangerPlayerAnim.source.sets = &_gActor401000PlayerGrabAnimSets[2];
+    _gOddStrangerPlayerGrabAnimationRequest.source.sets = &_gActor401000PlayerGrabAnimSets[2];
 } else {
-    gOddStrangerPlayerAnim.source.sets = _gActor401000PlayerGrabAnimSets;
+    _gOddStrangerPlayerGrabAnimationRequest.source.sets = _gActor401000PlayerGrabAnimSets;
 }
 ```
 
@@ -113127,7 +113127,7 @@ routes agree and either can be the 100% move.
 Also needed, and each was observable on its own: `_Actor356100Work::stateTimer` is
 `s16` (family convention — `_Actor01900Work` / `_Actor401300Work` both are), not the
 `u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
-and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
+and filling the `_gActor356100ScriptedHitEffectArg` record with `coord` first rather than
 last lets the model coordinate load schedule ahead of the two `sh` stores and the
 store land in the `damageGetPlayerAttackEffectId` delay slot.
 
@@ -147730,7 +147730,10 @@ tables and the store is slot 16 of the second, which nothing is bound to.
 **Fix.** Cut at the table boundary and index the second table:
 
 ```c
-u8            D_actor_356100_801730B8[184] = { ... };   /* 46 words */
+AnimationSet* _gActor356100AnimationSets[46] = {
+    [ACTOR_356100_ANIM_INITIAL] = &_gActor356100Animation0FE9C,
+    [ACTOR_356100_ANIM_WALK] = &_gActor356100Animation10A84,
+};
 AnimationSet* D_actor_356100_80173170[46] = { NULL };
 ...
 D_actor_356100_80173170[16] = NULL;   /* lui %hi(sym+0x40) / sw zero,%lo(sym+0x40) */

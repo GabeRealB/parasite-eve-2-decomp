@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_401800.
-gOddStrangerPlayerAnim = 0x80155A0C; // size:0x14 defined:True
+_gOddStrangerPlayerGrabAnimationRequest = 0x80155A0C; // size:0x14 defined:True
 _gOddStrangerHitOffsets = 0x80155A20; // size:0x60 defined:True
 _gActor401800AlternatePlayerGrabAnimationSets = 0x801559F0; // size:0x8 defined:True
 D_actor_401800_801559F8 = 0x801559F8; // size:0x14 defined:True

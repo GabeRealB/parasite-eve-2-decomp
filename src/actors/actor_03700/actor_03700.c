@@ -119,8 +119,6 @@ typedef struct {
 } _Actor03700Work;
 STATIC_ASSERT_SIZEOF(_Actor03700Work, 0x270);
 
-extern u16 Actor03700_D07F7C[];
-
 /// Halfword tables `_actor03700Retreat` indexes by a 4-bit LCG draw:
 /// the countdowns of `ACTION_RETREAT`, seeded into `retreatTimer` and `timer`.
 extern u16 Actor03700_D07F3C[];
@@ -596,7 +594,11 @@ u16 Actor03700_D07F5C[16] = {
     310,
 };
 
-u16 Actor03700_D07F7C[8] = {
+/// Bat maximum yaw steps by placement row, in 4096ths of a turn per tick.
+///
+/// Placement rowIndex must be in 0..7. Living and scripted-wave actions copy
+/// the selected limit to turnRate before turning toward their target.
+static s16 _gActor03700TurnRates[8] = {
     16,
     20,
     24,
@@ -1241,7 +1243,7 @@ static void _actor03700Wander(Task* task)
         case ACTOR_03700_WANDER_PICK_TARGET:
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->speed        = ((gRandomLcgState >> 16) & 0xF) + 20;
-            work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             waypointYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1437,7 +1439,7 @@ static void _actor03700Chase(Task* task)
                 work->speed    = 0;
                 work->dashDone = 0;
             }
-            work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             _actor03700StepSway(task, 20);
             if (work->yaw == work->targetYaw) {
                 work->actionStep = ACTOR_03700_CHASE_DASH;
@@ -1541,7 +1543,7 @@ static void _actor03700AttackHeldPlayer(Task* task)
         case ACTOR_03700_ATTACK_RETURN:
             _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
             work->speed    = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-            work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (work->touchingPlayer != 0) {
                 work->actionStep = 0;
             }
@@ -1614,7 +1616,7 @@ static void _actor03700Retreat(Task* task)
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
-            work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (--work->retreatTimer > 0) {
                 work->speed = -50;
             } else {
@@ -1632,7 +1634,7 @@ static void _actor03700Retreat(Task* task)
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
-            work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             work->speed        = 5;
             _actor03700StepSway(task, 20);
             if (++work->timer >= 91) {
@@ -2233,7 +2235,7 @@ static void _actor03700EnterScriptedWave(Task* task)
             coord->coord.t[0] += (scratch->direction.vx * ACTOR_03700_SCRIPTED_DIRECTION_SCALE) >> ACTOR_03700_SCRIPTED_DIRECTION_SHIFT;
             coord->coord.t[1] += (scratch->direction.vy * ACTOR_03700_SCRIPTED_DIRECTION_SCALE) >> ACTOR_03700_SCRIPTED_DIRECTION_SHIFT;
             coord->coord.t[2] += (scratch->direction.vz * ACTOR_03700_SCRIPTED_DIRECTION_SCALE) >> ACTOR_03700_SCRIPTED_DIRECTION_SHIFT;
-            work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             _actor03700TurnTowardTarget(task);
 
             _actor03700ApplyBobStep(task, 0, ACTOR_03700_BOB_LONG_PERIOD);
@@ -2247,7 +2249,7 @@ static void _actor03700EnterScriptedWave(Task* task)
             break;
         case ACTOR_03700_SCRIPTED_FACE_PLAYER:
             _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
-            work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             _actor03700TurnTowardTarget(task);
 
             _actor03700ApplyBobStep(task, 0, ACTOR_03700_BOB_LONG_PERIOD);

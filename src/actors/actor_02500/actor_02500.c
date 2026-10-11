@@ -238,7 +238,6 @@ typedef struct {
 } _Actor02500DustDirection;
 
 extern EnemyParams              Actor02500_D05B38;
-extern DamageAttack             Actor02500_D05B30[];
 extern s16                      Actor02500_D05B48[];
 extern s16                      Actor02500_D05B58[];
 extern s16                      Actor02500_D05B68[];
@@ -593,12 +592,16 @@ static AnimationSet _gActor02500Actor102500Animation05B08 = {
     { NULL, _gActor02500Actor102500Animation05B08Bank1, NULL, NULL, _gActor02500Actor102500Animation05B08Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack Actor02500_D05B30[2] = {
-    { 10, 3 },
-    { 1, 3 },
+/// Scorpion sting and corpse-poison damage, both with the poison player reaction.
+///
+/// Slot 0 is the tail sting (power 10); slot 1 is the detached corpse hazard
+/// (power 1). Enemy parameters and both collision bodies borrow these rows.
+static DamageAttack _gActor02500Attacks[2] = {
+    { 10, GAME_ACTOR_REACTION_POISON },
+    { 1, GAME_ACTOR_REACTION_POISON },
 };
 
-EnemyParams Actor02500_D05B38 = { Actor02500_D05B30, 68, 20, 8, 1, 0, 20, 0, 0 };
+EnemyParams Actor02500_D05B38 = { _gActor02500Attacks, 68, 20, 8, 1, 0, 20, 0, 0 };
 
 s16 Actor02500_D05B48[8] = {
     16,
@@ -762,7 +765,7 @@ static __inline__ void _actor02500InitCollisionBodies(const Enemy* enemy, const 
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = ACTOR_02500_STING_Y;
     work->attackBody.pos.vz           = ACTOR_02500_STING_Z;
-    work->attackBody.key              = damagePackAttackKey(Actor02500_D05B30, ACTOR_02500_STING_ATTACK_INDEX);
+    work->attackBody.key              = damagePackAttackKey(_gActor02500Attacks, ACTOR_02500_STING_ATTACK_INDEX);
     work->attackBody.radius           = ACTOR_02500_BODY_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -2146,7 +2149,7 @@ static void _actor02500SpawnCorpsePoison(Enemy* enemy, Task* task)
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = damagePackAttackKey(Actor02500_D05B30, ACTOR_02500_CORPSE_POISON_ATTACK_INDEX);
+    work->body.key              = damagePackAttackKey(_gActor02500Attacks, ACTOR_02500_CORPSE_POISON_ATTACK_INDEX);
     work->body.radius           = ACTOR_02500_CORPSE_POISON_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

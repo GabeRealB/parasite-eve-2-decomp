@@ -183,18 +183,18 @@ _gActor421600Animation1EF6CRecords = 0x8014FDE8; // size:0xF80 defined:True
 _gActor421600Animation1EF6CIndices = 0x80150D68; // size:0x24 defined:True
 _gActor421600Animation1EF6C = 0x80150D8C; // size:0x28 defined:True
 _gActor421600Attacks = 0x8013EF24; // size:0x14 defined:True
-D_actor_421600_8013EF38 = 0x8013EF38; // size:0x10 defined:True
+_gActor421600EnemyParams = 0x8013EF38; // size:0x10 defined:True
 gDesertChaserFrontAnim = 0x80151090; // size:0x14 defined:True
 gDesertChaserRearAnim = 0x801510A4; // size:0x14 defined:True
 gDesertChaserHitOffsets = 0x801510B8; // size:0x60 defined:True
 D_actor_421600_80151118 = 0x80151118; // size:0x40 defined:True
 D_actor_421600_80151158 = 0x80151158; // size:0x68 defined:True
-D_actor_421600_801511C0 = 0x801511C0; // size:0x10 defined:True
+_gActor421600ArenaCellZones = 0x801511C0; // size:0x10 defined:True
 D_actor_421600_801511D0 = 0x801511D0; // size:0x4 defined:True
 D_actor_421600_801511D4 = 0x801511D4; // size:0x80 defined:True
 gActor421600DesertChaserTaskDesc = 0x80151254; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x80151260; // size:0x8 defined:True
-D_actor_421600_80151268 = 0x80151268; // size:0x2 defined:True
+_gActor421600RemainingLives = 0x80151268; // size:0x2 defined:True
 
 D_dryfield_water_tower_801876A8 = 0x801876A8; // absolute:True owner=dryfield_water_tower
 

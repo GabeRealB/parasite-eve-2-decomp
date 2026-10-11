@@ -153,10 +153,6 @@ extern TaskDesc D_actor_303600_8016E468[];
 
 extern TaskMessageEntry D_actor_303600_8016E480[];
 
-/// The overlay's three flat lights, loaded into the model by
-/// `_actor303600InitShaftSegmentLighting`; one `GsF_LIGHT` (0x10 bytes) each.
-extern GsF_LIGHT D_actor_303600_8016E490[3];
-
 /// The cutscene's two script blocks, handed to `evsStartScriptWithSkip` together when the
 /// controller below arms the cutscene.
 extern EvsCommand D_actor_303600_80162AF0[];
@@ -411,10 +407,15 @@ TaskMessageEntry D_actor_303600_8016E480[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GsF_LIGHT D_actor_303600_8016E490[3] = {
-    { 0, 4096, 0, 128, 128, 128 },
-    { 4096, 0, 0, 128, 128, 128 },
-    { 0, 0, 4096, 128, 128, 128 },
+/// Three axis-aligned directional lights for the scrolling shaft segments.
+///
+/// Directions are +Y, +X and +Z, with RGB intensity 128 on each light.
+/// Each segment copies their normalized directions and colours into its own
+/// matrices; the shared light records remain live for the overlay's lifetime.
+static GsF_LIGHT _gActor303600ShaftSegmentLights[3] = {
+    { 0, ONE, 0, 128, 128, 128 },
+    { ONE, 0, 0, 128, 128, 128 },
+    { 0, 0, ONE, 128, 128, 128 },
 };
 
 static void _actor303600DispatchCutsceneCue(Task* task);
@@ -1015,7 +1016,7 @@ static void _actor303600InitShaftSegmentLighting(Task* task)
 
     segmentModel->lightMtx = &lightingWork->lightMtx;
     segmentModel->colorMtx = &lightingWork->colorMtx;
-    for (lightIndex = 0, light = D_actor_303600_8016E490; lightIndex < (s32)ARRAY_SIZE(D_actor_303600_8016E490); lightIndex++, light++) {
+    for (lightIndex = 0, light = _gActor303600ShaftSegmentLights; lightIndex < (s32)ARRAY_SIZE(_gActor303600ShaftSegmentLights); lightIndex++, light++) {
         gfxSetFlatLight(lightIndex, light, &lightingWork->lightMtx, &lightingWork->colorMtx);
     }
 }

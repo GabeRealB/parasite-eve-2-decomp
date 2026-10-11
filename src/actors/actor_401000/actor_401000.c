@@ -57,11 +57,6 @@
 
 static void _oddStrangerTick(Enemy* enemy, Task* actor);
 
-/// Message 0x3FF payload of `_oddStrangerGrabStrike` and
-/// `_oddStrangerGrabRelease`: the animation argument the player task reads
-/// when the actor's live-actor flag goes up.
-extern AnimationPlayRequest gOddStrangerPlayerAnim;
-
 static TmdSource _gActor401000Model123EC;
 
 /// Handlers defined after the state table and the init that name them.
@@ -1026,7 +1021,22 @@ static AnimationSet* _gActor401000PlayerGrabAnimSets[7] = {
     NULL,
 };
 
-AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = _gActor401000PlayerGrabAnimSets }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ODD_STRANGER_PLAYER_GRAB_HOLD_ANIMATION = 1 };
+
+/// Persistent player playback request for the Odd Stranger grab sequence.
+///
+/// Each carrier selects a saved-character bank, then reuses it for hold,
+/// strike and release animations 1/2/3. Replacement resets playback and
+/// disables world collision; blendFrames is ignored. Dispatch consumes the
+/// request synchronously, while the player borrows its selected bank and sets
+/// until playback is replaced. The actor overlay must stay loaded throughout.
+static AnimationPlayRequest _gOddStrangerPlayerGrabAnimationRequest = {
+    .source               = { .sets = _gActor401000PlayerGrabAnimSets },
+    .animationId          = ODD_STRANGER_PLAYER_GRAB_HOLD_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 3,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Part-local hit-effect positions grouped by the hit's relative bearing.
 ///
@@ -1714,10 +1724,10 @@ static __inline__ void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
 
     _gActor401000PlayerHoldRequest.pressCount = ODD_STRANGER_GRAB_HOLD_PRESS_COUNT;
     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor401000PlayerHoldRequest, 0) == ODD_STRANGER_GRAB_HOLD_ACCEPTED) {
-        work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
-        work->playerHeld                   = 1;
-        gOddStrangerPlayerAnim.animationId = ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
+        work->state                                         = ODD_STRANGER_STATE_GRAB_PULL;
+        work->playerHeld                                    = 1;
+        _gOddStrangerPlayerGrabAnimationRequest.animationId = ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gOddStrangerPlayerGrabAnimationRequest, 0);
     }
 }
 
@@ -1802,9 +1812,9 @@ static void _oddStrangerGrabReach(Task* task)
         playerTurn = _actorAngleTurnToMatrixPosition(task, &playerOffset, gPlayerStatus.coordMtx);
         if (abs(playerTurn) < ODD_STRANGER_GRAB_TURN_LIMIT && !_oddStrangerOutOfRange(&playerOffset, ODD_STRANGER_GRAB_REACH)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ODD_STRANGER_GRAB_PRIMARY_CHARACTER) {
-                gOddStrangerPlayerAnim.source.sets = &_gActor401000PlayerGrabAnimSets[ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET];
+                _gOddStrangerPlayerGrabAnimationRequest.source.sets = &_gActor401000PlayerGrabAnimSets[ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET];
             } else {
-                gOddStrangerPlayerAnim.source.sets = _gActor401000PlayerGrabAnimSets;
+                _gOddStrangerPlayerGrabAnimationRequest.source.sets = _gActor401000PlayerGrabAnimSets;
             }
             _oddStrangerTryStartPlayerHold(work);
         }

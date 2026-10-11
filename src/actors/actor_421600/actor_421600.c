@@ -151,7 +151,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor421600RouteRoamScratch, 0x3C);
 
 extern DesertChaserVariant D_actor_421600_8013EF48[];
-extern EnemyParams         D_actor_421600_8013EF38;
 extern u8                  D_actor_421600_80151028[];
 // Message-table callbacks use the argument views required by this TU.
 
@@ -189,15 +188,7 @@ static TmdSource _gActor421600DesertChaserBurstTorso;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// 4x4 zone table `_actor421600DownedWaitState` samples with the X and Z
-/// buckets of the actor's position, cell `x | z * 4`; the sample is compared
-/// against 0xB to pick between the 6 and 0x24 states.
-extern s8 D_actor_421600_801511C0[16];
-
-/// Progress counter the same handler compares against 4 / 5 / 2 / 0 to pick
-/// the arena corner the actor is dropped into. Written by
-/// `_actor421600Spawn` at spawn.
-extern s16 D_actor_421600_80151268;
+static s16 _gActor421600RemainingLives;
 
 /// The Water Tower chaser's two catch tables and its hit offsets, three
 /// objects stored one after another.
@@ -254,7 +245,22 @@ static DamageAttack _gActor421600Attacks[5] = {
     { ACTOR_421600_MAX_STORED_ATTACK_POWER, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_421600_8013EF38 = { _gActor421600Attacks, 200, 75, 50, 4, 100, 10, 100, 0 };
+/// Shared Water Tower Desert Chaser combat and release-reward parameters.
+///
+/// Spawn and room-controlled returns restore HP from the 200-HP maximum.
+/// The record borrows the five attack rows; enemies borrow it until teardown.
+/// Release credits 75 experience, 50 battle points and 4 magic points.
+static EnemyParams _gActor421600EnemyParams = {
+    .attacks              = _gActor421600Attacks,
+    .hpMax                = 200,
+    .exp                  = 75,
+    .bp                   = 50,
+    .mp                   = 4,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 DesertChaserVariant D_actor_421600_8013EF48[4] = {
     { 60, 36, 10, 150 },
@@ -1256,7 +1262,14 @@ SVECTOR D_actor_421600_80151158[13] = {
     { 0, 0, 0, 0 },
 };
 
-s8 D_actor_421600_801511C0[16] = {
+/// Water Tower arena cell-to-zone map for the chasers and player.
+///
+/// Cell index is xBucket | (zBucket * 4), with both buckets in 0..3.
+/// Rows descend from positive to negative Z; columns ascend from negative
+/// to positive X. Values 0..11 run around the perimeter from the +X/+Z corner;
+/// 12..15 label the four inner cells.
+/// Zone IDs are not a bound for the separate waypoint table.
+static s8 _gActor421600ArenaCellZones[16] = {
     3,
     2,
     1,
@@ -1293,7 +1306,17 @@ TaskDesc gActor421600DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKI
 
 SVECTOR ActorContact_ScratchPosition;
 
-s16 D_actor_421600_80151268;
+enum { ACTOR_421600_FIRST_RUN_MIN_LIVES  = 4,
+       ACTOR_421600_SECOND_RUN_MIN_LIVES = 5,
+       ACTOR_421600_PAIR_MIN_LIVES       = 2 };
+
+/// Remaining lives shared by the Water Tower's paired Desert Chasers.
+///
+/// Each spawn resets the pack to eight lives; fatal direct damage and fatal
+/// damage-over-time ticks subtract one. Room commands gate each chaser's return
+/// by the remaining count. With one life, a living partner keeps it; zero ends
+/// the pack. Storage is a signed halfword and is not clamped on decrement.
+static s16 _gActor421600RemainingLives;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -1415,7 +1438,7 @@ static s32 _actor421600ApplyCommand(Task* task, s32 messageId, const ActorComman
 
     switch (request->command) {
         case DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_BATTLE:
-            enemy->hp = D_actor_421600_8013EF38.hpMax;
+            enemy->hp = _gActor421600EnemyParams.hpMax;
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                 work->state = ACTOR421600_STATE_TRACK_ARENA_ROUTE;
             }
@@ -1423,10 +1446,10 @@ static s32 _actor421600ApplyCommand(Task* task, s32 messageId, const ActorComman
 
         case DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN:
             placeIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-            enemy->hp  = D_actor_421600_8013EF38.hpMax;
+            enemy->hp  = _gActor421600EnemyParams.hpMax;
             switch (placeIndex) {
                 case 0:
-                    if (D_actor_421600_80151268 >= 4) {
+                    if (_gActor421600RemainingLives >= ACTOR_421600_FIRST_RUN_MIN_LIVES) {
                         if (work->state != DESERT_CHASER_STATE_HIDDEN) {
                             break;
                         }
@@ -1439,7 +1462,7 @@ static s32 _actor421600ApplyCommand(Task* task, s32 messageId, const ActorComman
                     work->prevState = DESERT_CHASER_PREV_STATE_NONE;
                     break;
                 case 1:
-                    if (D_actor_421600_80151268 >= 5) {
+                    if (_gActor421600RemainingLives >= ACTOR_421600_SECOND_RUN_MIN_LIVES) {
                         if (work->state != DESERT_CHASER_STATE_HIDDEN) {
                             break;
                         }
@@ -1454,33 +1477,33 @@ static s32 _actor421600ApplyCommand(Task* task, s32 messageId, const ActorComman
             }
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
             enemy->reactionFlags = 0;
-            enemy->hp            = D_actor_421600_8013EF38.hpMax;
+            enemy->hp            = _gActor421600EnemyParams.hpMax;
             return 1;
 
         case DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_FINAL_BATTLE:
             switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
                 case 0:
-                    if (D_actor_421600_80151268 <= 0) {
+                    if (_gActor421600RemainingLives <= 0) {
                         break;
                     }
                     _actor421600PlaceRootXZ(task, -0xD40, 0x104F, -0x76C);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
-                    enemy->hp            = D_actor_421600_8013EF38.hpMax;
+                    enemy->hp            = _gActor421600EnemyParams.hpMax;
                     work->state          = ACTOR421600_STATE_MOVE_TO_ZONE5;
                     break;
                 case 1:
-                    if (D_actor_421600_80151268 < 2) {
+                    if (_gActor421600RemainingLives < ACTOR_421600_PAIR_MIN_LIVES) {
                         break;
                     }
                     _actor421600PlaceRootXZ(task, 0x138C, 0x4B2, 0x7BC);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
-                    enemy->hp            = D_actor_421600_8013EF38.hpMax;
+                    enemy->hp            = _gActor421600EnemyParams.hpMax;
                     work->state          = ACTOR421600_STATE_MOVE_TO_ZONE5;
                     break;
             }
-            if (D_actor_421600_80151268 == 0) {
+            if (_gActor421600RemainingLives == 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             }
             return 1;
@@ -2049,8 +2072,8 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)D_actor_421600_8013EF38.hpMax;
-    enemy->param                  = &D_actor_421600_8013EF38;
+    enemy->hp                     = (s16)_gActor421600EnemyParams.hpMax;
+    enemy->param                  = &_gActor421600EnemyParams;
     enemy->recs                   = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     // Both rigs borrow the same clip bank and own separate pose storage.
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_421600_80151028, model, work->rig.poses, work->rig.slots);
@@ -2197,7 +2220,7 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
     }
 
     gSceneCombatState.battleRefs = ACTOR421600_PACK_INITIAL_LIVES;
-    D_actor_421600_80151268      = ACTOR421600_PACK_INITIAL_LIVES;
+    _gActor421600RemainingLives  = ACTOR421600_PACK_INITIAL_LIVES;
     task->state++;
 }
 
@@ -2453,7 +2476,7 @@ static void _desertChaserDamage(Task* task)
             accumulatedDamage  = work->recentDamage + (u16)scratch->damage;
             work->recentDamage = accumulatedDamage;
             if (enemy->hp <= 0) {
-                D_actor_421600_80151268 -= 1;
+                _gActor421600RemainingLives -= 1;
                 if ((damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF) == ACTOR421600_REACTION_BODY_BURST) {
                     work->state = ACTOR421600_STATE_BURST_DEATH;
                 } else {
@@ -2504,8 +2527,8 @@ static void _desertChaserDamage(Task* task)
             if (damageOverTime != 0) {
                 worldTargetAddReadoutAmount(&enemy->node, damageOverTime, 0);
                 if (enemy->hp <= 0) {
-                    D_actor_421600_80151268 -= 1;
-                    fatalTickState           = work->state;
+                    _gActor421600RemainingLives -= 1;
+                    fatalTickState               = work->state;
                     if ((fatalTickState != DESERT_CHASER_STATE_STUNNED) && (fatalTickState != ACTOR421600_STATE_STAGGER) &&
                         (fatalTickState != DESERT_CHASER_STATE_DOWNED)) {
                         work->state = ACTOR421600_STATE_COLLAPSE;
@@ -2624,7 +2647,7 @@ static __inline__ s16 _actor421600GetArenaZone(const GfxCoord* coord)
                 zBucket = 2;
         }
     }
-    return D_actor_421600_801511C0[xBucket | (zBucket * 4)];
+    return _gActor421600ArenaCellZones[xBucket | (zBucket * 4)];
 }
 
 /// Walks the arena perimeter toward the player's zone until close enough to roam.
@@ -2836,7 +2859,7 @@ static inline void _actor421600RestoreFinalBattleChaser(Task* task, DesertChaser
     gfxRotMatrixY(&task->extra.tmd->coords->coord, yaw, GRAPHICS_ROTATION_REPLACE);
     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
     enemy->reactionFlags = 0;
-    enemy->hp            = D_actor_421600_8013EF38.hpMax;
+    enemy->hp            = _gActor421600EnemyParams.hpMax;
     work->state          = ACTOR421600_STATE_MOVE_TO_ZONE5;
 }
 
@@ -2872,7 +2895,7 @@ static void _actor421600WaitToRespawnState(Task* task)
         if (gSceneCombatState.battleRefs >= 2U) {
             sceneReleaseBattleRefWithRewards(task, 1);
         }
-        if (D_actor_421600_80151268 <= 0) {
+        if (_gActor421600RemainingLives <= 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->roomNotified = 1;
             work->state        = DESERT_CHASER_STATE_HIDDEN;
@@ -2905,11 +2928,11 @@ static void _actor421600WaitToRespawnState(Task* task)
     // Keep the last remaining life on the live partner; otherwise replace this chaser.
     if (otherChaser != NULL) {
         if (otherChaser->hp > 0) {
-            if (D_actor_421600_80151268 == 1) {
+            if (_gActor421600RemainingLives == 1) {
                 work->state = DESERT_CHASER_STATE_HIDDEN;
             }
         }
-        if ((D_actor_421600_80151268 >= 2) || ((otherChaser->hp <= 0) && (D_actor_421600_80151268 == 1))) {
+        if ((_gActor421600RemainingLives >= ACTOR_421600_PAIR_MIN_LIVES) || ((otherChaser->hp <= 0) && (_gActor421600RemainingLives == 1))) {
             switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
                 case 0:
                     _actor421600RestoreFinalBattleChaser(task, work, enemy, -0xD40, 0x104F, -0x76C);

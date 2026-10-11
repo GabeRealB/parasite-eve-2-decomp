@@ -346,9 +346,6 @@ extern AnimationSet* Actor01100_D15604[23];
 /// spit impact and cloud cues encode only its low byte in sound-id bits 8..15.
 static s32 _gActor01100SpitSoundPlacementIndex;
 
-/// Pair table the spawn state packs into the collision body's `WorldCollisionBody.key`.
-extern DamageAttack Actor01100_D074F8[6];
-
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor01100_D15660[2];
@@ -411,11 +408,10 @@ static const _Actor01100TaskStateTable Actor01100_D00004 = { {
 /// placement `entryId` is 0x31: 0x1400 on each axis.
 static const VECTOR Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
-extern DamageAttack Actor01100_D074F8[6];
-static s32          _actor01100SetModelDraw(Task* task, s32 unusedMessageId, s32 drawEnabled, s32 unusedSecondArg);
-static void         _actor01100Task(Task* task);
-static void         _actor01100SpitGlobTask(Task* task);
-static void         _actor01100SpitCloudTask(Task* task);
+static s32  _actor01100SetModelDraw(Task* task, s32 unusedMessageId, s32 drawEnabled, s32 unusedSecondArg);
+static void _actor01100Task(Task* task);
+static void _actor01100SpitGlobTask(Task* task);
+static void _actor01100SpitCloudTask(Task* task);
 
 DamageAttack Actor01100_D074D0[6] = {
     { 0, 0 },
@@ -428,9 +424,23 @@ DamageAttack Actor01100_D074D0[6] = {
 
 EnemyParams Actor01100_D074E8 = { Actor01100_D074D0, 280, 152, 102, 5, 200, 10, 100, 20 };
 
-DamageAttack Actor01100_D074F8[6] = { { 0, 0 }, { 10, 0 }, { 10, 0 }, { 30, 7 }, { 30, 7 }, { 15, 1 } };
+enum { ACTOR_01100_PUNCH_PLAYER_REACTION = 7 };
 
-EnemyParams Actor01100_D07510 = { Actor01100_D074F8, 450, 204, 152, 6, 200, 5, 100, 10 };
+/// Brute Mossback attack damage and player reactions.
+///
+/// Slots 1/2 are the left/right idle hand contacts, 3/4 the punches, and 5
+/// the darkness spit cloud. Slot 0 stores zero power with an ordinary reaction.
+/// The large-placement enemy parameters borrow all six rows for the overlay's life.
+static DamageAttack _gActor01100BruteMossbackAttacks[6] = {
+    { 0, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_IDLE_LEFT]   = { 10, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_IDLE_RIGHT]  = { 10, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_PUNCH_LEFT]  = { 30, ACTOR_01100_PUNCH_PLAYER_REACTION },
+    [ACTOR_01100_ATTACK_PUNCH_RIGHT] = { 30, ACTOR_01100_PUNCH_PLAYER_REACTION },
+    [ACTOR_01100_SPIT_ATTACK_INDEX]  = { 15, GAME_ACTOR_REACTION_DARKNESS },
+};
+
+EnemyParams Actor01100_D07510 = { _gActor01100BruteMossbackAttacks, 450, 204, 152, 6, 200, 5, 100, 10 };
 
 static TmdBone _gActor01100BruteMossbackBodySkeleton[21] = {
 #include "assets/brute_mossback_body_skeleton.inc"
@@ -3893,7 +3903,7 @@ static void _actor01100SpitCloudInit(Task* task)
     body->pos.vy           = 0;
     body->pos.vz           = 0;
     body->radius           = ACTOR_01100_SPIT_CLOUD_RADIUS;
-    body->key              = damagePackAttackKey(Actor01100_D074F8, ACTOR_01100_SPIT_ATTACK_INDEX);
+    body->key              = damagePackAttackKey(_gActor01100BruteMossbackAttacks, ACTOR_01100_SPIT_ATTACK_INDEX);
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, body);

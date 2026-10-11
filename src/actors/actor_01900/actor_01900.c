@@ -255,7 +255,6 @@ extern AnimationSet*        Actor01900_D17174[46];
 
 extern TaskMessageEntry Actor01900_D1728C[8];
 static AnimationSet     _gActor01900Actor101900Animation16960;
-extern ActorHeightClamp Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `_actor01900SpawnHitEffect` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
 extern SVECTOR   Actor01900_D1722C[];
@@ -771,10 +770,15 @@ TaskMessageEntry Actor01900_D1728C[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorHeightClamp Actor01900_D172CC[3] = {
+/// Room-specific inclusive limits on the Grinning Stranger root's parent-space Y.
+///
+/// Only the first two rows are searched: Acropolis patio (-300..0) and Neo Ark
+/// woodland path (0..300), in game-coordinate units. The third zero row and
+/// each row's unread suffix are retained; their roles are unproven.
+static ActorHeightClamp _gActor01900RoomHeightClamps[3] = {
     { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_NONE, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
 s16 Actor01900_D172FC = 0;
@@ -2008,7 +2012,7 @@ static void _actor01900ClampRootHeight(const GameLocationKey* location, GfxCoord
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_01900_HEIGHT_CLAMP_COUNT; rowIndex++) {
-        row = &Actor01900_D172CC[rowIndex];
+        row = &_gActor01900RoomHeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             minY  = row->minY;
             rootY = coord->coord.t[1];
@@ -2024,14 +2028,14 @@ static void _actor01900ClampRootHeight(const GameLocationKey* location, GfxCoord
 
 /// Returns 1 when the stage and area have an active height-clamp row, else 0.
 ///
-/// View and game mode do not participate; the terminal zero row is not scanned.
+/// View and game mode do not participate; the third zero row is not scanned.
 static __inline__ s32 _actor01900HasHeightClamp(const GameLocationKey* location)
 {
     const ActorHeightClamp* row;
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_01900_HEIGHT_CLAMP_COUNT; rowIndex++) {
-        row = &Actor01900_D172CC[rowIndex];
+        row = &_gActor01900RoomHeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             return 1;
         }

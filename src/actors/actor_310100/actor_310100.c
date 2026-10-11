@@ -153,8 +153,6 @@ extern TaskDesc D_actor_310100_801798F0;
 extern AnimationSet* D_actor_310100_80179754[16];
 extern AnimationSet* D_actor_310100_80179794[26];
 
-extern s16* D_actor_310100_8017989C[];
-
 static TmdSource _gActor310100PoliceOfficer1Body;
 static TmdSource _gActor310100PoliceOfficer1CulledBody;
 static TmdSource _gActor310100PoliceOfficer2Body;
@@ -638,7 +636,13 @@ static s16 _gActor310100Officer2FollowUpAnimations[26] = {
     0,
 };
 
-s16* D_actor_310100_8017989C[3] = {
+/// Clip-successor tables for the paired player and two police-officer models.
+///
+/// Selectors 0/1/2 choose player/officer 1/officer 2, with animation ID domains
+/// 0..11, 0..15 and 0..25 respectively. A signed -1 entry ends the chain.
+/// Slot-1 boundaries advance officer clips; stopped playback advances the player.
+/// The directory borrows its child tables for the overlay's lifetime.
+static const s16* _gActor310100FollowUpAnimationTables[3] = {
     _gActor310100PlayerFollowUpAnimations,
     _gActor310100Officer1FollowUpAnimations,
     _gActor310100Officer2FollowUpAnimations,
@@ -788,8 +792,8 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
 
     work = (_Actor310100PoliceOfficerWork*)task->work;
     if (_actor310100TickOfficerAnimation(task) & 0xFFFF) {
-        followUpAnimationId = D_actor_310100_8017989C[work->followUpTable][work->animationId];
-        if (D_actor_310100_8017989C[work->followUpTable][work->animationId] >= 0) {
+        followUpAnimationId = _gActor310100FollowUpAnimationTables[work->followUpTable][work->animationId];
+        if (_gActor310100FollowUpAnimationTables[work->followUpTable][work->animationId] >= 0) {
             officerWork = (_Actor310100PoliceOfficerWork*)task->work;
             slotIndex   = 1;
             do {
@@ -807,8 +811,8 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
         playerStopped = 0;
     }
     if (playerStopped) {
-        followUpAnimationId = D_actor_310100_8017989C[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId];
-        if (D_actor_310100_8017989C[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId] >= 0) {
+        followUpAnimationId = _gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId];
+        if (_gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId] >= 0) {
             playerWork = (_Actor310100PoliceOfficerWork*)task->work;
             if (playerWork->playerTask != NULL) {
                 playerRequest.source.sets          = gActor310100PlayerAnimationSets;

@@ -887,32 +887,38 @@ u16 gGolemKnightBishopIdleSteps[16] = {
     2,
 };
 
-extern GolemKnightBishopRegion D_actor_403900_80153CC4[5];
-extern GolemKnightBishopRegion D_actor_403900_80153D14[6];
-extern GolemKnightBishopRegion D_actor_403900_80153D74[3];
-extern GolemKnightBishopRegion D_actor_403900_80153DA4[3];
-extern GolemKnightBishopRegion D_actor_403900_80153DD4[8];
-extern GolemKnightBishopRegion D_actor_403900_80153E54[5];
-extern GolemKnightBishopRegion D_actor_403900_80153EA4[2];
-extern GolemKnightBishopRegion D_actor_403900_80153EC4[4];
+static GolemKnightBishopRegion _gActor403900ShelterB2BreedingRoomRegions[5];
+static GolemKnightBishopRegion _gActor403900NeoArkShrineRegions[6];
+static GolemKnightBishopRegion _gActor403900ShelterB2PodAccessTunnelRegions[3];
+static GolemKnightBishopRegion _gActor403900DryfieldNightParkingLotRegions[3];
+static GolemKnightBishopRegion _gActor403900ShelterB1SleepingQuartersRegions[8];
+static GolemKnightBishopRegion _gActor403900ShelterB1AccessTunnelRegions[5];
+static GolemKnightBishopRegion _gActor403900Shelter1fAirlockRegions[2];
+static GolemKnightBishopRegion _gActor403900NeoArkPowerPlant2Regions[4];
 
 /// Room selection for the GOLEM's activation regions.
 ///
 /// `regionTable` indexes `gGolemKnightBishopRegions`; zero ends the list.
 /// Matching rows supply both circle and box regions, with the last match winning.
 static GolemKnightBishopRoomRegions _gGolemKnightBishopRoomRegions[9] = {
-    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, ARRAY_SIZE(D_actor_403900_80153CC4) },
-    { 2, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, ARRAY_SIZE(D_actor_403900_80153D14) },
-    { 3, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, ARRAY_SIZE(D_actor_403900_80153D74) },
-    { 4, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, ARRAY_SIZE(D_actor_403900_80153DA4) },
-    { 5, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, ARRAY_SIZE(D_actor_403900_80153DD4) },
-    { 6, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, ARRAY_SIZE(D_actor_403900_80153E54) },
-    { 7, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, ARRAY_SIZE(D_actor_403900_80153EA4) },
-    { 8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, ARRAY_SIZE(D_actor_403900_80153EC4) },
+    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, ARRAY_SIZE(_gActor403900ShelterB2BreedingRoomRegions) },
+    { 2, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, ARRAY_SIZE(_gActor403900NeoArkShrineRegions) },
+    { 3, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, ARRAY_SIZE(_gActor403900ShelterB2PodAccessTunnelRegions) },
+    { 4, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, ARRAY_SIZE(_gActor403900DryfieldNightParkingLotRegions) },
+    { 5, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, ARRAY_SIZE(_gActor403900ShelterB1SleepingQuartersRegions) },
+    { 6, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, ARRAY_SIZE(_gActor403900ShelterB1AccessTunnelRegions) },
+    { 7, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, ARRAY_SIZE(_gActor403900Shelter1fAirlockRegions) },
+    { 8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, ARRAY_SIZE(_gActor403900NeoArkPowerPlant2Regions) },
     { GOLEM_KNIGHT_BISHOP_REGION_TABLE_END, GAME_STAGE_NONE, 0, 0 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153CC4[5] = {
+/// Bishop activation regions in the Shelter B2 breeding room.
+///
+/// One circle requests a grab behind the player; four boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900ShelterB2BreedingRoomRegions[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 2500, 4000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 2500, 4300, 10400, 5200, 13000, 3400 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 10500, 5700, 10000, 1500, 11000, 0 },
@@ -920,7 +926,13 @@ GolemKnightBishopRegion D_actor_403900_80153CC4[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 1700, -500, 1000, 5800, 2400, 3200 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153D14[6] = {
+/// Bishop activation regions in the Neo Ark shrine.
+///
+/// Two circles request grabs behind the player; four boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900NeoArkShrineRegions[6] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 7000, -3500, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 7000, 6000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 800, 1000, 0, 6000, 1550, 3000 },
@@ -929,19 +941,37 @@ GolemKnightBishopRegion D_actor_403900_80153D14[6] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, 500, 4500, 6000, 6000, 8000, 4000 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153D74[3] = {
+/// Bishop activation regions in the Shelter B2 pod access tunnel.
+///
+/// Two circles request grabs behind the player; one box selects an attack post.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900ShelterB2PodAccessTunnelRegions[3] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 3000 }, 7000, -1600, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 1600, -7300, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 1600, -1600, 1000, -7000, 2500, -8000 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153DA4[3] = {
+/// Bishop activation regions in the Dryfield night parking lot.
+///
+/// One circle requests a grab behind the player; two boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900DryfieldNightParkingLotRegions[3] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 7000, 3000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1024 }, -1000, 2750, 1500, 3500, 3500, 2000 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 2500, 500, -3500, 1000, -2000, 0 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153DD4[8] = {
+/// Bishop activation regions in the Shelter B1 sleeping quarters.
+///
+/// Two circles request grabs behind the player; six boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900ShelterB1SleepingQuartersRegions[8] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, 1600, -1400, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, 10000, 4200, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 10900, 4200, 1000, 5000, 5000, 3500 },
@@ -952,7 +982,13 @@ GolemKnightBishopRegion D_actor_403900_80153DD4[8] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 1800 }, 1400, 4700, 2400, 1200, 3500, 0 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153E54[5] = {
+/// Bishop activation regions in the Shelter B1 access tunnel.
+///
+/// Three circles request grabs behind the player; two boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900ShelterB1AccessTunnelRegions[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 10000, 5300, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 7500, 8000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 800 }, 4000, 8000, 0, 0, 0, 0 },
@@ -960,12 +996,24 @@ GolemKnightBishopRegion D_actor_403900_80153E54[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 10300, 8000, 4000, 9000, 6000, 7000 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153EA4[2] = {
+/// Bishop activation regions in the Shelter 1F airlock.
+///
+/// One circle requests a grab behind the player; one box selects an attack post.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900Shelter1fAirlockRegions[2] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 600 }, -1900, 4800, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 2000, 4800, -5500, 5500, -1900, 4000 },
 };
 
-GolemKnightBishopRegion D_actor_403900_80153EC4[4] = {
+/// Bishop activation regions in the Neo Ark power plant 2.
+///
+/// One circle requests a grab behind the player; three boxes select attack posts.
+/// Circles and boxes use exclusive world-XZ bounds; headings use 4096 units
+/// per turn. The spawn directory supplies the complete array to the room's
+/// golem work, which borrows it for the overlay's lifetime.
+static GolemKnightBishopRegion _gActor403900NeoArkPowerPlant2Regions[4] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 600 }, 3500, -1800, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 8500, -1800, 0, -1000, 2000, -2000 },
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 0 }, 7750, -7500, 6500, -1000, 9000, -2000 },
@@ -974,14 +1022,14 @@ GolemKnightBishopRegion D_actor_403900_80153EC4[4] = {
 
 GolemKnightBishopRegion* gGolemKnightBishopRegions[9] = {
     NULL,
-    D_actor_403900_80153CC4,
-    D_actor_403900_80153D14,
-    D_actor_403900_80153D74,
-    D_actor_403900_80153DA4,
-    D_actor_403900_80153DD4,
-    D_actor_403900_80153E54,
-    D_actor_403900_80153EA4,
-    D_actor_403900_80153EC4,
+    _gActor403900ShelterB2BreedingRoomRegions,
+    _gActor403900NeoArkShrineRegions,
+    _gActor403900ShelterB2PodAccessTunnelRegions,
+    _gActor403900DryfieldNightParkingLotRegions,
+    _gActor403900ShelterB1SleepingQuartersRegions,
+    _gActor403900ShelterB1AccessTunnelRegions,
+    _gActor403900Shelter1fAirlockRegions,
+    _gActor403900NeoArkPowerPlant2Regions,
 };
 
 s16 D_actor_403900_80153F28[21] = {

@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_310100.
 _gActor310100Officer1StepSoundScripts = 0x801798A8; // size:0xC defined:True
-D_actor_310100_8017989C = 0x8017989C; // size:0xC defined:True
+_gActor310100FollowUpAnimationTables = 0x8017989C; // size:0xC defined:True
 _gActor310100OfficerMessageTable = 0x801798B4; // size:0x30 defined:True
 D_actor_310100_801798E4 = 0x801798E4; // size:0xC defined:True
 D_actor_310100_801798F0 = 0x801798F0; // size:0xC defined:True

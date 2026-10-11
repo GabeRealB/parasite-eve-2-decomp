@@ -252,18 +252,43 @@ static void      _actor356100Task(Task* task);
 
 #include "../../shared/actor_contacts.h"
 
-DamageAttack D_actor_356100_8016A96C[6] = {
-    { 30, 7 },
-    { 30, 7 },
-    { 50, 7 },
-    { 50, 7 },
-    { 40, 0 },
-    { 40, 0 },
+enum { ACTOR_356100_GRAB_PLAYER_REACTION = 7 };
+
+/// Horned Stranger attack damage and player reactions.
+///
+/// The grab strike uses slot 0. Slots 0..3 use reaction 7; slots 4/5 use the
+/// ordinary reaction. No consumer establishes the roles of slots 1..5.
+static DamageAttack _gActor356100Attacks[6] = {
+    { 30, ACTOR_356100_GRAB_PLAYER_REACTION },
+    { 30, ACTOR_356100_GRAB_PLAYER_REACTION },
+    { 50, ACTOR_356100_GRAB_PLAYER_REACTION },
+    { 50, ACTOR_356100_GRAB_PLAYER_REACTION },
+    { 40, GAME_ACTOR_REACTION_ORDINARY },
+    { 40, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_356100_8016A984 = { D_actor_356100_8016A96C, 420, 115, 200, 5, 100, 10, 100, 10 };
+/// Shared combat and release-reward parameters for this Horned Stranger package.
+///
+/// Each initialized enemy borrows the record and starts with 420 HP.
+/// Release credits 115 experience, 200 battle points and 5 magic points.
+static EnemyParams _gActor356100EnemyParams = {
+    .attacks              = _gActor356100Attacks,
+    .hpMax                = 420,
+    .exp                  = 115,
+    .bp                   = 200,
+    .mp                   = 5,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 10,
+};
 
-ActorHornedStrangerVariant D_actor_356100_8016A994[3] = {
+/// Three Horned Stranger spawn tunings for down time and sidestep bearing.
+///
+/// Selector 2 uses row 0; selector 1 uses row 2. Other selectors take row 1's
+/// downFramesBase and row 2's sidestepAngle. Down times are ticks and angles
+/// use 4096 units per turn. The last two halfwords have no reader here.
+static ActorHornedStrangerVariant _gActor356100Variants[3] = {
     { 0, 900, 3, 0 },
     { 0, 800, 5, 0 },
     { 0, 500, 7, 0 },
@@ -397,207 +422,31 @@ static s8 _gActor356100AnimationBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-u8 D_actor_356100_801730B8[184] = {
-    0,
-    0,
-    0,
-    0,
-    188,
-    28,
-    23,
-    128,
-    164,
-    40,
-    23,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Animation-set bank borrowed by both Horned Stranger body rigs.
+///
+/// The 46-entry bank contains the initial/scripted-death set at index 1 and
+/// the walk set at index 2; all other entries are NULL. Only populated entries
+/// may be played. The bank and its sets remain live for the overlay's lifetime.
+static AnimationSet* _gActor356100AnimationSets[46] = {
+    [ACTOR_356100_ANIM_INITIAL] = &_gActor356100Animation0FE9C,
+    [ACTOR_356100_ANIM_WALK]    = &_gActor356100Animation10A84,
 };
 
-/// A second animation-set table, which no animation context is bound to.
+/// Unbound zero-filled animation-set storage; its intended role is unproven.
 ///
-/// Every slot is empty. Entering `ACTOR_356100_STATE_DORMANT_SCRIPTED` clears
-/// slot 16 and nothing else accesses the table, so the write does not reach
-/// playback. The other Stranger packages, at the same point of the same state,
-/// install that state's animation set in slot 16 of the table their rigs are
-/// bound to.
-///
-/// The extent is not established by an access: it is the 46 words between
-/// `D_actor_356100_801730B8` and the next object, the length of the bound
-/// table here and in every other Stranger package.
-AnimationSet* D_actor_356100_80173170[46] = { NULL };
+/// The only access clears slot 16 on scripted-dormant entry. Neither rig
+/// borrows this table, and no recovered room loader fills it. The 46-slot
+/// extent follows the neighboring tables' boundary rather than a full-span
+/// access, so the allocation is retained without assigning a playback role.
+static AnimationSet* D_actor_356100_80173170[46] = { NULL };
 
-AnimationSet* D_actor_356100_80173228[7] = {
+/// Character-selected player animation bank for Horned Stranger grabs.
+///
+/// Saved character 1 selects base + 2; other characters select base + 0.
+/// Hold, strike and release use relative indices 1, 2 and 3. All seven slots
+/// are NULL in this package and have no recovered writer; playback is valid
+/// only if the selected slots have been populated.
+static AnimationSet* _gActor356100PlayerGrabAnimationSets[7] = {
     NULL,
     NULL,
     NULL,
@@ -607,9 +456,28 @@ AnimationSet* D_actor_356100_80173228[7] = {
     NULL,
 };
 
-AnimationPlayRequest D_actor_356100_80173244 = { { .sets = D_actor_356100_80173228 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_356100_PLAYER_GRAB_HOLD_ANIMATION = 1 };
 
-TaskMessageEntry D_actor_356100_80173258[7] = {
+/// Persistent player playback request for the grab's hold, strike and release.
+///
+/// The selected bank is retained while animationId changes through 1/2/3.
+/// Replacement resets playback and disables world collision; blendFrames is
+/// ignored. Dispatch consumes the request synchronously, while the installed
+/// bank and sets remain borrowed by the player until playback is replaced.
+static AnimationPlayRequest _gActor356100PlayerGrabAnimationRequest = {
+    .source               = { .sets = _gActor356100PlayerGrabAnimationSets },
+    .animationId          = ACTOR_356100_PLAYER_GRAB_HOLD_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 3,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Horned Stranger message bindings for animation, visibility, placement and commands.
+///
+/// Animation requests are ignored; visibility, presence, placement and hold
+/// release use the standard actor handlers. The final end marker terminates
+/// lookup. The task borrows this table until teardown.
+static TaskMessageEntry _gActor356100Messages[7] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor356100IgnoreAnimationMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
@@ -619,7 +487,12 @@ TaskMessageEntry D_actor_356100_80173258[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u16 D_actor_356100_80173290 = 0;
+/// Low-16-bit sum of requested forward steps since the latest circle entry.
+///
+/// Shared by all instances: entry clears it and later circle ticks add runStep,
+/// including frozen ticks that do not move. No consumer reads the accumulated
+/// value; its further purpose is unproven.
+static u16 _gActor356100CircleStepTotal = 0;
 
 TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gActor356100HornedStrangerBody } };
 
@@ -637,11 +510,30 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-EffectSpawnArg D_actor_356100_801732A8 = { NULL, 0, 0 };
+enum { ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT = 256,
+       ACTOR_356100_SCRIPTED_EFFECT_REPEATS  = 2 };
 
-_Actor356100TransformStorage D_actor_356100_801732B0;
+/// Reusable effect argument for the scripted dormant state's hit cue.
+///
+/// coord borrows the latest actor's model root, independently of the part-5
+/// hit location passed to the spawner. The low argument is 256 and the high
+/// argument is two repeats; the effect kind determines how those halves apply.
+/// The effect record is consumed during dispatch and does not own the root.
+static EffectSpawnArg _gActor356100ScriptedHitEffectArg = { NULL, 0, 0 };
 
-GameActorButtonPressHold D_actor_356100_801732D0;
+/// Reusable placement payload for the player pulled into a Horned Stranger grab.
+///
+/// placement keeps the player's parent-frame XYZ and turns its yaw toward
+/// the enemy, with zero pitch and roll. The placement receiver consumes it
+/// synchronously. The eight unread trailing bytes have an unproven role.
+static _Actor356100TransformStorage _gActor356100PlayerGrabPlacement;
+
+/// Eight-button-press hold request used when the Horned Stranger's reach connects.
+///
+/// Only pressCount is filled; the player's hold handler ignores animation.
+/// The receiver copies the count during dispatch and returns 0 on acceptance
+/// or 1 while recovering. No pointer to this 24-byte payload is retained.
+static GameActorButtonPressHold _gActor356100PlayerHoldRequest;
 
 static void _actor356100TickBlendedAnimation(Task* actor);
 
@@ -659,44 +551,9 @@ typedef struct {
 } _Actor356100TickScratch;
 STATIC_ASSERT_SIZEOF(_Actor356100TickScratch, 0x68);
 
-extern _Actor356100TransformStorage D_actor_356100_801732B0;
-
-/// Reply buffer for the message-0x3F8 query above; the six words after it are
-/// zero in the image.
-extern GameActorButtonPressHold D_actor_356100_801732D0;
-
-/// Player animation table `_actor356100GrabReach` lends through
-/// `D_actor_356100_80173244.source.sets`: starts at entry 2 for saved character
-/// 1, entry 0 otherwise. Its entries are initially NULL; population is unproven.
-extern AnimationSet* D_actor_356100_80173228[7];
-
-/// Free-running scroll `_actor356100Circle` accumulates `runStep`
-/// into each frame, and zeroes on the live-actor entry. Same role as
-/// `Actor01900_D172FC`.
-extern u16 D_actor_356100_80173290;
-
 /// Whole-unit part of the last movement step `func_actor_356100_80162AEC`
 /// applied, rounded away from zero when the step had a fraction.
 static SVECTOR ActorContact_ScratchPosition;
-
-/// Effect record `_actor356100ScriptedDormantState` fills for `effectSpawnHit`:
-/// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
-/// roles as `_Actor401300Work.effectArg`.
-extern EffectSpawnArg D_actor_356100_801732A8;
-
-/// Animation-set table bound to both work-block contexts by `animationInitContext`.
-/// Same role as `Actor01900_D17174`.
-extern u8 D_actor_356100_801730B8[];
-
-/// Enemy descriptor `_actor356100Initialize` publishes in the enemy's
-/// `field_50` slot and takes `field_40` off. Same role as `Actor01900_D0AC54`.
-extern EnemyParams D_actor_356100_8016A984;
-
-/// The three rows `_actor356100Initialize` picks its re-entry pair from on
-/// the spawn sub-type. Same role as `Actor01900_D0AC64`.
-extern ActorHornedStrangerVariant D_actor_356100_8016A994[];
-
-extern TaskMessageEntry D_actor_356100_80173258[7];
 
 static void _actor356100Initialize(Enemy* enemy, Task* actor);
 
@@ -723,11 +580,6 @@ static void _actor356100PlayRun(Task* actor);
 static void _actor356100PlayDown(Task* actor);
 
 static void _actor356100PlayDownAlternate(Task* actor);
-
-/// Message 0x3FF payload `_actor356100GrabStrike` sends the slot-3 task.
-/// `field_0` points at `D_actor_356100_80173228`; the function overwrites
-/// `field_4` with 2 before the dispatch.
-extern AnimationPlayRequest D_actor_356100_80173244;
 
 static void _actor356100GrabStrike(Task* actor);
 
@@ -1230,12 +1082,12 @@ static void _actor356100Initialize(Enemy* enemy, Task* actor)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)D_actor_356100_8016A984.hpMax;
-    enemy->param                  = &D_actor_356100_8016A984;
+    enemy->hp                     = (s16)_gActor356100EnemyParams.hpMax;
+    enemy->param                  = &_gActor356100EnemyParams;
     // The contact table is published without constructing a collision body.
     enemy->recs = work->hitContacts;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_356100_801730B8, model, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, (AnimationSet**)D_actor_356100_801730B8, model, work->blend.poses, work->blend.slots);
+    animationInitContext(&work->rig.anim, _gActor356100AnimationSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, _gActor356100AnimationSets, model, work->blend.poses, work->blend.slots);
     work->animRequest   = ACTOR_356100_ANIM_REQUEST_RESET;
     work->animId        = ACTOR_356100_ANIM_INITIAL;
     work->blendActive   = 0;
@@ -1258,7 +1110,7 @@ static void _actor356100Initialize(Enemy* enemy, Task* actor)
     gte_stsv(step);
     work->patrolPoints[1].x = actor->extra.tmd->coords->coord.t[0] + patrolStep.vx;
     work->patrolPoints[1].z = actor->extra.tmd->coords->coord.t[2] + patrolStep.vz;
-    actor->msgTable         = D_actor_356100_80173258;
+    actor->msgTable         = _gActor356100Messages;
     root->parent            = &gGfxViewCoord;
     root->composeStamp      = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(root);
@@ -1266,10 +1118,10 @@ static void _actor356100Initialize(Enemy* enemy, Task* actor)
     viewPosition.vy = root->workm.t[1];
     viewPosition.vz = root->workm.t[2];
     worldCoordUpdateActorColor(enemy, &viewPosition, 0, 0);
-    D_actor_356100_801732A8.coord      = actor->extra.tmd->coords;
-    D_actor_356100_801732A8.spawnArgLo = 0x100;
-    D_actor_356100_801732A8.spawnArgHi = 2;
-    spawnMode                          = actor->spawnArg1.value >> 16;
+    _gActor356100ScriptedHitEffectArg.coord      = actor->extra.tmd->coords;
+    _gActor356100ScriptedHitEffectArg.spawnArgLo = ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT;
+    _gActor356100ScriptedHitEffectArg.spawnArgHi = ACTOR_356100_SCRIPTED_EFFECT_REPEATS;
+    spawnMode                                    = actor->spawnArg1.value >> 16;
     switch (spawnMode & ACTOR_356100_SPAWN_SELECTOR_MASK) {
         case ACTOR_356100_SPAWN_HIDDEN:
             work->prevState = -1;
@@ -1287,18 +1139,18 @@ static void _actor356100Initialize(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & ACTOR_356100_SPAWN_SELECTOR_MASK) {
         case ACTOR_356100_TUNING_FIRST:
-            work->downFramesBase = D_actor_356100_8016A994[0].downFramesBase;
-            work->sidestepAngle  = D_actor_356100_8016A994[0].sidestepAngle;
+            work->downFramesBase = _gActor356100Variants[0].downFramesBase;
+            work->sidestepAngle  = _gActor356100Variants[0].sidestepAngle;
             break;
         case ACTOR_356100_TUNING_THIRD:
-            work->downFramesBase = D_actor_356100_8016A994[2].downFramesBase;
-            work->sidestepAngle  = D_actor_356100_8016A994[2].sidestepAngle;
+            work->downFramesBase = _gActor356100Variants[2].downFramesBase;
+            work->sidestepAngle  = _gActor356100Variants[2].sidestepAngle;
             break;
         case ACTOR_356100_TUNING_MIXED:
         default:
             // The second tuning, but with the third's sidestep angle.
-            work->downFramesBase = D_actor_356100_8016A994[1].downFramesBase;
-            work->sidestepAngle  = D_actor_356100_8016A994[2].sidestepAngle;
+            work->downFramesBase = _gActor356100Variants[1].downFramesBase;
+            work->sidestepAngle  = _gActor356100Variants[2].sidestepAngle;
             break;
     }
     _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
@@ -1714,10 +1566,10 @@ static void _actor356100Circle(Task* actor)
         work->blendActive = 0;
         work->animId      = ACTOR_356100_ANIM_RUN;
         _actor356100UpdateAnimation(actor);
-        work->circleRateStep    = RATE_ACCELERATION;
-        work->stateTimer        = 0;
-        work->stateCounter      = 0;
-        D_actor_356100_80173290 = 0;
+        work->circleRateStep         = RATE_ACCELERATION;
+        work->stateTimer             = 0;
+        work->stateCounter           = 0;
+        _gActor356100CircleStepTotal = 0;
         work->circleCount++;
         return;
     }
@@ -1761,7 +1613,7 @@ static void _actor356100Circle(Task* actor)
         work->runStep = PUSHED_STEP;
     }
     _actorMovementTranslateForwardNonzero(actor->extra.tmd->coords, work->runStep);
-    D_actor_356100_80173290 += work->runStep;
+    _gActor356100CircleStepTotal += work->runStep;
     // Accelerate, ease down, then choose grab or slide after five coast ticks.
     if (work->circleRateStep == RATE_ACCELERATION && work->animRate >= PEAK_RATE) {
         work->circleRateStep = RATE_DECELERATION;
@@ -1994,12 +1846,12 @@ static __inline__ void _actor356100TryStartPlayerHold(_Actor356100Work* work)
            ACTOR_356100_GRAB_PLAYER_HOLD_ANIM = 1,
            ACTOR_356100_GRAB_HOLD_ACCEPTED    = 0 };
 
-    D_actor_356100_801732D0.pressCount = ACTOR_356100_GRAB_HOLD_PRESS_COUNT;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == ACTOR_356100_GRAB_HOLD_ACCEPTED) {
-        work->state                         = ACTOR_356100_STATE_GRAB_PULL;
-        work->playerHeld                    = 1;
-        D_actor_356100_80173244.animationId = ACTOR_356100_GRAB_PLAYER_HOLD_ANIM;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
+    _gActor356100PlayerHoldRequest.pressCount = ACTOR_356100_GRAB_HOLD_PRESS_COUNT;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor356100PlayerHoldRequest, 0) == ACTOR_356100_GRAB_HOLD_ACCEPTED) {
+        work->state                                         = ACTOR_356100_STATE_GRAB_PULL;
+        work->playerHeld                                    = 1;
+        _gActor356100PlayerGrabAnimationRequest.animationId = ACTOR_356100_GRAB_PLAYER_HOLD_ANIM;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor356100PlayerGrabAnimationRequest, 0);
     }
 }
 
@@ -2062,9 +1914,9 @@ static void _actor356100GrabReach(Task* task)
         playerTurn = _actorAngleTurnToMatrixPosition(task, &playerOffset, gPlayerStatus.coordMtx);
         if (abs(playerTurn) < ACTOR_356100_GRAB_TURN_LIMIT && !_actorRangeOutsideRadiusXZ(&playerOffset, ACTOR_356100_GRAB_REACH)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_356100_GRAB_PRIMARY_CHARACTER) {
-                D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[ACTOR_356100_GRAB_PRIMARY_BANK_OFFSET];
+                _gActor356100PlayerGrabAnimationRequest.source.sets = &_gActor356100PlayerGrabAnimationSets[ACTOR_356100_GRAB_PRIMARY_BANK_OFFSET];
             } else {
-                D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
+                _gActor356100PlayerGrabAnimationRequest.source.sets = _gActor356100PlayerGrabAnimationSets;
             }
             _actor356100TryStartPlayerHold(work);
         }
@@ -2113,10 +1965,10 @@ static void _actor356100GrabPull(Task* actor)
         work->animId                            = ACTOR_356100_ANIM_GRAB_PULL;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(player->extra.tmd->coords);
-        D_actor_356100_801732B0.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
-        D_actor_356100_801732B0.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
-        D_actor_356100_801732B0.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
-        separationPointer                        = &separation;
+        _gActor356100PlayerGrabPlacement.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
+        _gActor356100PlayerGrabPlacement.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+        _gActor356100PlayerGrabPlacement.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
+        separationPointer                                 = &separation;
         // Form the horizontal separation before placing either task.
         separation.vx = actor->extra.tmd->coords->coord.t[0] - player->extra.tmd->coords->coord.t[0];
         separation.vy = 0;
@@ -2126,13 +1978,13 @@ static void _actor356100GrabPull(Task* actor)
         gte_ldsv(separationPointer);
         gte_gpf12();
         gte_stsv(separationPointer);
-        actor->extra.tmd->coords->coord.t[0]     = player->extra.tmd->coords->coord.t[0] + separation.vx;
-        actor->extra.tmd->coords->coord.t[2]     = player->extra.tmd->coords->coord.t[2] + separation.vz;
-        actor->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
-        D_actor_356100_801732B0.placement.rot.vx = 0;
-        D_actor_356100_801732B0.placement.rot.vy = ratan2(separation.vx, separation.vz);
-        D_actor_356100_801732B0.placement.rot.vz = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_356100_801732B0.placement, 0);
+        actor->extra.tmd->coords->coord.t[0]              = player->extra.tmd->coords->coord.t[0] + separation.vx;
+        actor->extra.tmd->coords->coord.t[2]              = player->extra.tmd->coords->coord.t[2] + separation.vz;
+        actor->extra.tmd->coords->composeStamp            = GRAPHICS_COORD_DIRTY;
+        _gActor356100PlayerGrabPlacement.placement.rot.vx = 0;
+        _gActor356100PlayerGrabPlacement.placement.rot.vy = ratan2(separation.vx, separation.vz);
+        _gActor356100PlayerGrabPlacement.placement.rot.vz = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &_gActor356100PlayerGrabPlacement.placement, 0);
     }
     _actor356100UpdateAnimation(actor);
     if (work->animId == ACTOR_356100_ANIM_GRAB_PULL && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
@@ -2161,9 +2013,9 @@ static void _actor356100GrabRelease(Task* actor)
         work->animId      = ACTOR_356100_ANIM_GRAB_RELEASE;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         _actor356100UpdateAnimation(actor);
-        D_actor_356100_80173244.animationId = PLAYER_RELEASE_ANIMATION;
+        _gActor356100PlayerGrabAnimationRequest.animationId = PLAYER_RELEASE_ANIMATION;
         if (playerStatus->hp > 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor356100PlayerGrabAnimationRequest, 0);
         }
         work->stateTimer = 0;
     } else if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0 &&
@@ -2383,13 +2235,11 @@ static void _actor356100Dormant(Task* actor)
 static void _actor356100ScriptedDormantState(Task* task)
 {
     enum {
-        ACTOR_356100_SCRIPTED_DORMANT_CLIP    = 16,
-        ACTOR_356100_SCRIPTED_HIT_ATTACK_KEY  = 0x1001,
-        ACTOR_356100_SCRIPTED_HIT_CUE         = 4,
-        ACTOR_356100_SCRIPTED_HIT_PART        = 5,
-        ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT = 256,
-        ACTOR_356100_SCRIPTED_EFFECT_REPEATS  = 2,
-        ACTOR_356100_SCRIPTED_WAKE_DISTANCE   = 3000,
+        ACTOR_356100_SCRIPTED_DORMANT_CLIP   = 16,
+        ACTOR_356100_SCRIPTED_HIT_ATTACK_KEY = 0x1001,
+        ACTOR_356100_SCRIPTED_HIT_CUE        = 4,
+        ACTOR_356100_SCRIPTED_HIT_PART       = 5,
+        ACTOR_356100_SCRIPTED_WAKE_DISTANCE  = 3000,
     };
 
     _Actor356100Work* work;
@@ -2424,11 +2274,11 @@ static void _actor356100ScriptedDormantState(Task* task)
     }
     _actor356100UpdateAnimation(task);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_356100_SCRIPTED_HIT_CUE && work->lastCueFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-        D_actor_356100_801732A8.coord      = task->extra.tmd->coords;
-        D_actor_356100_801732A8.spawnArgLo = ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT;
-        D_actor_356100_801732A8.spawnArgHi = ACTOR_356100_SCRIPTED_EFFECT_REPEATS;
+        _gActor356100ScriptedHitEffectArg.coord      = task->extra.tmd->coords;
+        _gActor356100ScriptedHitEffectArg.spawnArgLo = ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT;
+        _gActor356100ScriptedHitEffectArg.spawnArgHi = ACTOR_356100_SCRIPTED_EFFECT_REPEATS;
         effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_356100_SCRIPTED_HIT_ATTACK_KEY), task->extra.tmd->coords + ACTOR_356100_SCRIPTED_HIT_PART, NULL,
-                       &D_actor_356100_801732A8);
+                       &_gActor356100ScriptedHitEffectArg);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     rootCoord          = task->extra.tmd->coords;
@@ -2905,11 +2755,11 @@ static void _actor356100ScriptedDeathState(Task* task)
     }
 }
 
-/// The 31 state handlers `_actor356100Update` dispatches through, in
-/// state order; entry 0x1D has no handler and the `state` values the ticks
-/// park (0, 6, 7, 8, 9, 0xB, 0xC, 0x10, 0x11, 0x13, 0x15, 0x16, 0x18, 0x19,
-/// 0x1E) are its live entries. Same role as `Actor01900_D1728C`.
-static const _Actor356100StateTable D_actor_356100_80161EC4 = {
+/// Horned Stranger behavior callbacks indexed by ACTOR_356100_STATE_*.
+///
+/// The frame dispatcher copies all 31 entries before selecting a handler.
+/// State 29 is unused and has a NULL entry; it must never be dispatched.
+static const _Actor356100StateTable _gActor356100StateHandlers = {
     {
         _actor356100Hide,
         _actor356100PlayWalk,
@@ -2945,9 +2795,11 @@ static const _Actor356100StateTable D_actor_356100_80161EC4 = {
     }
 };
 
-/// The enemy's three task-state handlers, which `_actor356100Task`
-/// runs by `Task::state`: setup, per-frame tick and teardown.
-static const EnemyTaskFuncTable3 D_actor_356100_80161F40 = {
+/// Enemy-task lifecycle callbacks: initialization, frame update and destruction.
+///
+/// Task states 0..2 select these entries after the dispatcher copies the table.
+/// Each callback receives the task's borrowed Enemy followed by the Task.
+static const EnemyTaskFuncTable3 _gActor356100TaskStateHandlers = {
     _actor356100Initialize,
     _actor356100Update,
     enemyDestroy,
@@ -2977,7 +2829,7 @@ static void _actor356100Update(Enemy* enemy, Task* task)
     s16                      nextHistoryIndex;
 
     work                = task->work;
-    stateHandlers       = D_actor_356100_80161EC4;
+    stateHandlers       = _gActor356100StateHandlers;
     lightingPosition.vx = task->extra.tmd->coords[1].workm.t[0];
     lightingPosition.vy = task->extra.tmd->coords[1].workm.t[1];
     lightingPosition.vz = task->extra.tmd->coords[1].workm.t[2];
@@ -3295,7 +3147,7 @@ static void _actor356100GrabStrike(Task* actor)
         work->animRate               = ANIMATION_RATE_ONE;
         work->animId                 = ACTOR_356100_ANIM_GRAB_STRIKE;
         work->animRequest            = ACTOR_356100_ANIM_REQUEST_RESET;
-        playerAnimation              = &D_actor_356100_80173244;
+        playerAnimation              = &_gActor356100PlayerGrabAnimationRequest;
         playerAnimation->animationId = PLAYER_STRIKE_ANIMATION;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, playerAnimation, 0);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -3499,6 +3351,6 @@ static void _actor356100Task(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_356100_80161F40;
+    stateHandlers = _gActor356100TaskStateHandlers;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

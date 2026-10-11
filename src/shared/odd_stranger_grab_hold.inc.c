@@ -47,7 +47,7 @@ static void _oddStrangerGrabStrike(Task* task)
         work->animRate               = ANIMATION_RATE_ONE;
         work->animId                 = ODD_STRANGER_ANIM_GRAB_STRIKE;
         work->animRequest            = ODD_STRANGER_ANIM_REQUEST_RESET;
-        playerAnimation              = &gOddStrangerPlayerAnim;
+        playerAnimation              = &_gOddStrangerPlayerGrabAnimationRequest;
         playerAnimation->animationId = ODD_STRANGER_PLAYER_ANIM_GRAB_STRIKE;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, playerAnimation, 0);
         player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
