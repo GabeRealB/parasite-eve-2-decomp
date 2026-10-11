@@ -32,6 +32,34 @@ enum {
     CD_COMMAND_LOAD_SKIP_SOUND      = 6,
 };
 
+/// File selector copied synchronously into a CD request.
+///
+/// Stage 0 selects global file `fileGroup * 10000 + fileIdHundreds * 100 +
+/// fileIndex`; stages 1..5 select folder `fileGroup * 100 + fileIdHundreds`
+/// and its file index. `fileIdHundreds` belongs to the accompanying
+/// `CdCmdFileLoadArgs`, not this key's ignored byte. The key owns no resources
+/// and its storage may be reused as soon as enqueue returns.
+typedef struct {
+    u8 fileIndex;      // Global file-ID low component, or file index within the selected stage folder
+    u8 ignoredByQueue; // Never read by enqueue; need not be initialized
+    u8 fileGroup;      // Stage-zero category, or stage-folder hundreds component
+    u8 stage;          // CDF selector (0 global library, 1..5 stage folders)
+} CdCmdFileKey;
+STATIC_ASSERT_SIZEOF(CdCmdFileKey, 4);
+
+/// File-ID suffix and image-load options copied with one CD file request.
+///
+/// All four bytes are copied synchronously by enqueue and retained in
+/// `CdCmdEntry.args.file`. The two image displacements are signed byte values;
+/// they relocate image headers without changing the selected file's identity.
+typedef struct {
+    u8 fileIdHundreds;   // Global file-ID hundreds component, or stage-folder suffix
+    s8 loadMode;         // Load policy (0 normal, 1 seek, 2 sound setup, 3 relocate images, 4 skip background, 5 images only, 6 skip sound)
+    s8 imageXPageOffset; // Signed X displacement in 64-word VRAM pages, for strips at y >= 256 or load mode 3
+    s8 imageYOffset;     // Signed Y displacement in VRAM rows, for image headers at y=245..255
+} CdCmdFileLoadArgs;
+STATIC_ASSERT_SIZEOF(CdCmdFileLoadArgs, 4);
+
 /// An eight-byte CD request, used in the ring and its active/replacement slots.
 ///
 /// `args` preserves all four bytes of the enqueue API's second parameter block.
@@ -47,17 +75,12 @@ enum {
 /// storage and must be copied before queue operations can overwrite the slot.
 typedef struct {
     union {
-        u8 bytes[4];             // Exact second parameter block, including bytes unused by an opcode
+        u8                bytes[4]; // Exact second parameter block, including bytes unused by an opcode
+        CdCmdFileLoadArgs file;     // File-ID suffix, load policy and signed image displacements
         struct {
-            u8 fileIdHundreds;   // Stage-zero hundreds component; otherwise the folder-number suffix
-            s8 loadMode;         // Load policy (0 normal, 1 seek, 2 sound setup, 3 relocate images, 4 skip background, 5 images only, 6 skip sound)
-            s8 imageXPageOffset; // Signed strip X shift in 64-word VRAM pages (y >= 256 or load mode 3)
-            s8 imageYOffset;     // Signed vertical image shift in VRAM rows, applied to image headers with y=245..255
-        } file;
-        struct {
-            s8 slotIndex;        // Stream-slot index (0..14); negative values are invalid
-            u8 sectorOffsetHigh; // High byte of the signed sector offset for 0x71/0x72
-            u8 sectorOffsetLow;  // Low byte of that offset; the fourth argument byte is unused by stream handlers
+            s8 slotIndex;           // Stream-slot index (0..14); negative values are invalid
+            u8 sectorOffsetHigh;    // High byte of the signed sector offset for 0x71/0x72
+            u8 sectorOffsetLow;     // Low byte of that offset; the fourth argument byte is unused by stream handlers
         } stream;
     } args;
     u8 cmd;       // Request opcode (0 empty); high nibble identifies the command family

@@ -341,10 +341,15 @@ enum { STREAM_SCENE_READ_HEADER  = 0,
 enum { STREAM_SCENE_PAYLOAD_SKIP = 0,
        STREAM_SCENE_PAYLOAD_COPY = 1 };
 
-/// Current serialized image read and its selected destination.
+/// Header/payload phase and retained destination of the current scene-image read.
+///
+/// Selecting a scene resets only the phase. A nonempty image header replaces
+/// the destination with its bufferKind halfword; it remains valid across the
+/// following payload sectors and selects the matching cached-header slot.
+/// Buffer kinds must be 0..4. Neither field owns the selected storage.
 typedef struct {
-    u16 phase;      // 0 header, 1 payload; selection resets only this halfword
-    u16 bufferKind; // STREAM_SCENE_BUFFER_* (0..4), retained across payload sectors
+    u16 phase;      // Sector intake phase (0 header, 1 payload)
+    u16 bufferKind; // Payload destination (0 decode, 1/2/3 actor buffers 0/1/2, 4 external); retained during payload intake
 } _StreamSceneReadState;
 STATIC_ASSERT_SIZEOF(_StreamSceneReadState, 4);
 

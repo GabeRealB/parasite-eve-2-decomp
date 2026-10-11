@@ -793,9 +793,9 @@ static void _loadingEnqueueWeaponAmmoResources(void)
         }                                                                                                                                          \
     } while (0)
     enum { LOADING_AMMO_FILE_HUNDREDS = 10 };
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs loadArgs;
-    u16              weaponIndex;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadArgs;
+    u16               weaponIndex;
 
     weaponIndex = gPlayerStatus.weapon;
     if (weaponIndex == PLAYER_STATUS_EQUIPMENT_NONE) {
@@ -821,9 +821,9 @@ static void _loadingEnqueueWeaponAmmoResources(void)
 
 void loadingEnqueueViewResourcesTask(Task* task)
 {
-    GameLocationKey* location;
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs loadArgs;
+    GameLocationKey*  location;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadArgs;
 
     location = &gGameSession->location.loc;
     if (cdCmdIsIdle()) {
@@ -1028,11 +1028,11 @@ void loadingRestoreViewGraphicsTask(Task* task)
 
 void loadingRestoreViewImageAndEnqueueResources(u8 skipBackground)
 {
-    u8               mappedViewIndex;
-    u8               resourceSlotIndex;
-    GameSession*     session;
-    _LoadingFileArgs loadArgs;
-    _LoadingFileKey  fileKey;
+    u8                mappedViewIndex;
+    u8                resourceSlotIndex;
+    GameSession*      session;
+    CdCmdFileLoadArgs loadArgs;
+    CdCmdFileKey      fileKey;
 
     // Restore the retained image before the queued file reload can replace resources.
     mappedViewIndex = viewGetMappedIndex();
@@ -1066,8 +1066,8 @@ void loadingEnqueueCharacterResources(s32 imagesOnly)
         LOADING_CHARACTER_FILE_INDEX          = 0,
         LOADING_CHARACTER_IMAGE_X_PAGE_OFFSET = 6,
     };
-    _LoadingFileKey            fileKey;
-    _LoadingFileArgs           loadArgs;
+    CdCmdFileKey               fileKey;
+    CdCmdFileLoadArgs          loadArgs;
     _LoadingConfigFileHundreds fileHundredsByVariant;
 
     fileHundredsByVariant = _gLoadingCharacterFileHundreds;
@@ -1091,9 +1091,9 @@ void loadingEnqueueEquippedWeaponResources(void)
 {
     enum { LOADING_WEAPON_FILE_HUNDREDS      = 3,
            LOADING_UNARMED_WEAPON_FILE_INDEX = 1 };
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs loadArgs;
-    u8               weaponIndex;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadArgs;
+    u8                weaponIndex;
 
     weaponIndex = gPlayerStatus.weapon;
     if (weaponIndex == PLAYER_STATUS_EQUIPMENT_NONE) {
@@ -1115,8 +1115,8 @@ void loadingEnqueueEquippedWeaponResources(void)
 void loadingEnqueueStageResources(void)
 {
     enum { LOADING_STAGE_MAP_FILE_GROUP = 90 };
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs loadArgs;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadArgs;
 
     // Mount the new CDF before loading its stage-specific map and room names.
     cdCmdEnqueue(CD_COMMAND_MOUNT_STAGE, &gGameSession->location.loc, NULL);
@@ -1142,8 +1142,8 @@ void companionEnqueueResources(u8 companionType, u8 resourceVariant)
         COMPANION_RESOURCE_VARIANT_REMAP_SOURCE = 5,
         COMPANION_RESOURCE_VARIANT_REMAP_TARGET = 3,
     };
-    _LoadingFileArgs loadArgs;
-    _LoadingFileKey* fileKey;
+    CdCmdFileLoadArgs loadArgs;
+    CdCmdFileKey*     fileKey;
 
     if (companionType == COMPANION_TYPE_NONE) {
         return;

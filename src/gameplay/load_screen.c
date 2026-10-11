@@ -531,11 +531,11 @@ void loadingEnqueueAreaAndCompanionResourcesTask(Task* task)
     u16           bootLoadActive;
     s32           packetBufferIndex;
     struct {
-        _LoadingFileKey key;
-        u8              field_4; // Written zero beyond the queued key; role unproven
+        CdCmdFileKey key;
+        u8           field_4; // Written zero beyond the queued key; role unproven
     } areaRequest;
-    _LoadingFileArgs loadArgs;
-    u8               companionTypeToLoad;
+    CdCmdFileLoadArgs loadArgs;
+    u8                companionTypeToLoad;
 
     darkness          = LOADING_FADE_WAIT_DARKNESS;
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
@@ -573,16 +573,16 @@ void loadingPrepareAreaStateTask(Task* task)
         LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM = 4,
         LOADING_GAS_STATION_SOUND_FILE_INDEX      = 22,
     };
-    TILE*            fadeTile;
-    DR_TPAGE*        blendCommand;
-    DisplayState*    displayState;
-    s32              darkness;
-    u16              bootLoadActive;
-    s32              packetBufferIndex;
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs loadArgs;
-    GameLocationKey* savedLocation;
-    GameSession*     session;
+    TILE*             fadeTile;
+    DR_TPAGE*         blendCommand;
+    DisplayState*     displayState;
+    s32               darkness;
+    u16               bootLoadActive;
+    s32               packetBufferIndex;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadArgs;
+    GameLocationKey*  savedLocation;
+    GameSession*      session;
 
     darkness          = LOADING_FADE_WAIT_DARKNESS;
     bootLoadActive    = gCdCmdQueue.bootLoadActive;

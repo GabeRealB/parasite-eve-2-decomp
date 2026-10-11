@@ -2290,18 +2290,8 @@ static inline void _gameFlowPrepareLoadScreenDisplay(RECT* clearRect)
 
 void gameFlowStartLoadScreenImage(void)
 {
-    struct {
-        u8 fileIndex; // Low component of the stage-zero file ID
-        u8 unused;    // Byte 1 is not read by cdCmdEnqueue
-        u8 fileGroup; // Stage-zero file category (0)
-        u8 stage;     // CDF selector (0, the global library)
-    } imageKey;
-    struct {
-        u8 fileIdHundreds;   // Hundreds component of the file ID (0)
-        s8 loadMode;         // CD_COMMAND_LOAD_DEFAULT
-        s8 imageXPageOffset; // Horizontal image shift in 64-word VRAM pages (0)
-        s8 imageYOffset;     // Vertical image shift in VRAM rows (0)
-    } loadOptions;
+    CdCmdFileKey      imageKey;
+    CdCmdFileLoadArgs loadOptions;
 
     RECT clearRect;
 

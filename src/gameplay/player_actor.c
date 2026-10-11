@@ -6756,28 +6756,28 @@ s32 playerActorPlanarLength(s32 x, s32 z)
 
 s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPoint)
 {
-    PlayerActorPlanarDistanceScratch* head;
-    PlayerActorPlanarDistanceScratch* block;
-    s32                               zDifference;
-    s32                               zSquared;
-    s32                               xSquared;
-    s32                               distance;
+    PlayerActorPointDeltaScratch* head;
+    PlayerActorPointDeltaScratch* block;
+    s32                           zDifference;
+    s32                           zSquared;
+    s32                           xSquared;
+    s32                           distance;
 
-    head = SCRATCH_STACK_CURSOR(PlayerActorPlanarDistanceScratch);
+    head = SCRATCH_STACK_CURSOR(PlayerActorPointDeltaScratch);
     // Stage XYZ before publishing the reservation to the nested square-root call.
-    head[-1].delta.vx                                      = firstPoint->vx - secondPoint->vx;
-    block                                                  = head - 1;
-    block->delta.vy                                        = firstPoint->vy - secondPoint->vy;
-    zDifference                                            = firstPoint->vz - secondPoint->vz;
-    zSquared                                               = ABS(zDifference);
-    block->delta.vz                                        = zDifference;
-    zSquared                                               = zSquared * zSquared;
-    xSquared                                               = head[-1].delta.vx;
-    xSquared                                               = ABS(xSquared);
-    xSquared                                               = xSquared * xSquared;
-    SCRATCH_STACK_CURSOR(PlayerActorPlanarDistanceScratch) = block;
-    distance                                               = SquareRoot0(xSquared + zSquared);
-    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
+    head[-1].delta.vx                                  = firstPoint->vx - secondPoint->vx;
+    block                                              = head - 1;
+    block->delta.vy                                    = firstPoint->vy - secondPoint->vy;
+    zDifference                                        = firstPoint->vz - secondPoint->vz;
+    zSquared                                           = ABS(zDifference);
+    block->delta.vz                                    = zDifference;
+    zSquared                                           = zSquared * zSquared;
+    xSquared                                           = head[-1].delta.vx;
+    xSquared                                           = ABS(xSquared);
+    xSquared                                           = xSquared * xSquared;
+    SCRATCH_STACK_CURSOR(PlayerActorPointDeltaScratch) = block;
+    distance                                           = SquareRoot0(xSquared + zSquared);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPointDeltaScratch);
     return distance;
 }
 

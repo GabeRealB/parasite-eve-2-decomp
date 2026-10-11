@@ -1686,31 +1686,31 @@ void companionEnterIdle(Task* task, s16 resetAnimation)
 
 s32 companionGetPlayerPlanarDistance(const GfxCoord* coord)
 {
-    PlayerActorPlanarDistanceScratch* block;
-    TmdObject*                        playerModel;
-    s32                               distance;
+    PlayerActorPointDeltaScratch* block;
+    TmdObject*                    playerModel;
+    s32                           distance;
 
     playerModel = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
-    block       = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);
+    block       = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPointDeltaScratch);
     playerActorGetPointDelta(coord, MATRIX_TRANS(&playerModel->coords->coord), &block->delta);
     distance = playerActorPlanarLength(block->delta.vx, block->delta.vz);
-    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPointDeltaScratch);
     return distance;
 }
 
 s32 playerActorGetTurnToPoint(Task* task, const VECTOR3* targetPoint)
 {
-    GfxCoord*                         coords;
-    PlayerActorPlanarDistanceScratch* block;
-    GameActor*                        actor;
-    s16                               turn;
+    GfxCoord*                     coords;
+    PlayerActorPointDeltaScratch* block;
+    GameActor*                    actor;
+    s16                           turn;
 
     coords = task->extra.tmd->coords;
-    block  = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);
+    block  = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPointDeltaScratch);
     actor  = task->work;
     playerActorGetPointDelta(coords, targetPoint, &block->delta);
     turn = playerActorShortestTurn(actor->rotation.vy, ratan2(block->delta.vx, block->delta.vz));
-    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPointDeltaScratch);
     return turn;
 }
 

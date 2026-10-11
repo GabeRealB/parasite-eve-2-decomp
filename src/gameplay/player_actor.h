@@ -13,15 +13,17 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-/// Scratch-stack reservation for the displacement used by a planar-distance query.
+/// Scratch-stack displacement used by player/companion distance and bearing queries.
 ///
-/// The complete 16-byte block is borrowed until the query returns. Only XYZ
-/// are accessed; the final four bytes have no established role.
+/// Reserve and release the complete 16-byte block around the query, including
+/// nested coordinate and math calls. XYZ are signed 32-bit differences in the
+/// points' common coordinate frame; each producer determines their direction.
+/// Only XYZ are accessed. The final four bytes have no established role.
 typedef struct {
-    VECTOR3 delta;      // First point minus second point, in their common coordinate frame
+    VECTOR3 delta;      // Point displacement in game coordinate units; distance and bearing use X/Z
     byte    field_C[4]; // Never accessed; role unproven
-} PlayerActorPlanarDistanceScratch;
-STATIC_ASSERT_SIZEOF(PlayerActorPlanarDistanceScratch, 0x10);
+} PlayerActorPointDeltaScratch;
+STATIC_ASSERT_SIZEOF(PlayerActorPointDeltaScratch, 0x10);
 
 /// Pending world-collision updates for the player's body and held-object nodes.
 enum {

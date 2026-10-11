@@ -18882,12 +18882,7 @@ byte fields or `s8` array elements; `cdCmdEnqueue` reads the raw bytes through
 a `const void*` input. `cdCmdEnqueueDisplayResource` uses named fields:
 
 ```c
-struct {
-    u8 fileIdHundreds;
-    s8 loadMode;
-    s8 imageXPageOffset;
-    s8 imageYOffset;
-} loadArgs;
+CdCmdFileLoadArgs loadArgs;
 loadArgs.imageXPageOffset = -8; /* li v0, -8 */
 loadArgs.imageYOffset = -3;
 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
@@ -146620,7 +146615,7 @@ first. The emitted code is unchanged apart from the registers.
 
 **Fix.** `coords = task->extra.tmd->coords;` as the first statement, then the
 push, then the call with `coords`. The typed spelling keeps the same push:
-`block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);`, with
+`block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPointDeltaScratch);`, with
 `&block->delta` supplying the point-delta output.
 ## A global pointer local one register too high: store the global first, then read the local back from it (_spriteSetViewRawTexture, 2026-09-27)
 

@@ -71,8 +71,8 @@ static const u16 _gLoadingAreaFileGroupBases[AREA_RESOURCE_FILE_GROUP_BASE_2 + 1
 /// key byte 1 is unused. Queue capacity is the caller's responsibility.
 static inline void _loadingQueueCurrentPlacementFile(void)
 {
-    _LoadingFileKey     fileKey;
-    _LoadingFileArgs    fileParams;
+    CdCmdFileKey        fileKey;
+    CdCmdFileLoadArgs   fileParams;
     const AreaResource* resource;
     s32                 fileNumber;
 

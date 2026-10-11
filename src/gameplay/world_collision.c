@@ -17,12 +17,17 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// A body's address in the two readings a contact record needs: the pointer,
-/// and the word whose halves `WorldCollisionContactResponse::bodyAddress` holds.
+/// Word and pointer readings of a body's encoded reciprocal-contact address.
+///
+/// The unsigned word joins the contact's low halfword and masked signed high
+/// halfword into one complete 32-bit PlayStation address. The pointer borrows
+/// the previously contacted body so its reciprocal entry can be released;
+/// that body and its contact table must remain live until replacement.
 typedef union {
-    WorldCollisionBody* object;
-    s32                 address;
+    WorldCollisionBody* object;  // Borrowed contacted body; decoded address must refer to a live body
+    u32                 address; // Complete address bits, including the cached-RAM region bits
 } _WorldCollisionBodyAddress;
+STATIC_ASSERT_SIZEOF(_WorldCollisionBodyAddress, 4);
 
 /// Claims an entry and marks its receiving-body index for a pair-contact writer.
 ///

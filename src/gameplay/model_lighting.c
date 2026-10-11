@@ -74,18 +74,20 @@ enum {
     TMD_GT4_CORNER_COUNT                 = 4
 };
 
-/// Geometry-reference prefix of a directly transformed Gouraud textured quad element.
+/// Four-corner vertex/normal prefix of a directly transformed Gouraud textured quad.
 ///
-/// Four vertex references precede four normal references in corner order.
-/// Each is a byte offset into its respective borrowed SVECTOR array after
-/// masking with `TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK`; low-bit roles and array
-/// extents are unproven. Material and texture words follow this prefix and are
-/// outside this type.
+/// The first eight bytes select vertices and the next eight select normals,
+/// both in corner order. Masking with `TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK`
+/// produces byte offsets into the source's borrowed SVECTOR arrays.
+/// Every offset must select a complete eight-byte entry; the arrays' capacities
+/// are not stored here. The low three bits are ignored by these consumers and
+/// their roles are unproven. Colour/material and texture data follow this
+/// prefix in the element stream and are outside this type's 16-byte extent.
 typedef struct {
     u16 vertexByteRefs[TMD_GT4_CORNER_COUNT]; // Part-local vertex references for corners 0..3
     u16 normalByteRefs[TMD_GT4_CORNER_COUNT]; // Part-local normal references for corners 0..3
 } _ModelLightingGt4GeometryRefs;
-STATIC_ASSERT_SIZEOF(_ModelLightingGt4GeometryRefs, 4 * sizeof(u32));
+STATIC_ASSERT_SIZEOF(_ModelLightingGt4GeometryRefs, 2 * TMD_GT4_CORNER_COUNT * sizeof(u16));
 
 /// Environment mapping uses fixed 320x240 screen centring and overlapping pages.
 /// Normal scaling is GPF12 with colorBlend >> 9; U/V stores truncate to bytes.
@@ -1266,22 +1268,22 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
     enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
            TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
     enum { TMD_OFFSET_LAYER_COLOR_SHIFT = 5 };
-    POLY_GT4*           packetPair;
-    s32*                gteResultDestination;
-    const DisplayState* displayState;
-    u32                 addressMask;
-    u32                 lengthMask;
-    u32                 projectionErrorMask;
-    s32*                gteFlagDestination;
-    const u16*          elementHalfwords;
-    const u8*           vertexBytes;
-    const u8*           normalBytes;
-    CVECTOR             layerMaterial;
-    CVECTOR             baseMaterial;
-    s32                 payloadWordCount;
-    s32                 baseCommand;
-    s32                 layerIntensity;
-    s32                 baseIntensity;
+    POLY_GT4*                            packetPair;
+    s32*                                 gteResultDestination;
+    const DisplayState*                  displayState;
+    u32                                  addressMask;
+    u32                                  lengthMask;
+    u32                                  projectionErrorMask;
+    s32*                                 gteFlagDestination;
+    const _ModelLightingGt4GeometryRefs* geometryRefs;
+    const u8*                            vertexBytes;
+    const u8*                            normalBytes;
+    CVECTOR                              layerMaterial;
+    CVECTOR                              baseMaterial;
+    s32                                  payloadWordCount;
+    s32                                  baseCommand;
+    s32                                  layerIntensity;
+    s32                                  baseIntensity;
 
     packetPair      = (POLY_GT4*)workspace->primWrite;
     layerMaterial   = gModelLightingNeutralColor;
@@ -1299,10 +1301,10 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
         projectionErrorMask  = TMD_GTE_ERROR_FLAG;
         gteResultDestination = &workspace->gteResult;
         do {
-            elementHalfwords = (const u16*)elements;
-            vertexBytes      = (const u8*)workspace->verts;
+            geometryRefs = (const _ModelLightingGt4GeometryRefs*)elements;
+            vertexBytes  = (const u8*)workspace->verts;
             // Projection errors reject the packet; facing is tested separately below.
-            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_ldv3(vertexBytes + (geometryRefs->vertexByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
             gte_stflg(gteFlagDestination);
             if ((workspace->gteFlag & projectionErrorMask) == 0) {
@@ -1310,7 +1312,7 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                 gte_stopz(gteResultDestination);
                 gte_stsxy3_gt4(&packetPair[0]);
                 gte_stsxy3_gt4(&packetPair[1]);
-                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldv0((const u8*)workspace->verts + (geometryRefs->vertexByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
@@ -1320,14 +1322,14 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                         gte_stsxy2(&packetPair[1].x3);
                         gte_avsz4();
                         normalBytes = (const u8*)workspace->normals;
-                        gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                        gte_ldv3(normalBytes + (geometryRefs->normalByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                         gte_ldrgb(&layerMaterial);
                         gte_ncct();
                         gte_strgb3_gt4(&packetPair[0]);
                         gte_ldrgb(&baseMaterial);
                         gte_ncct();
                         gte_strgb3_gt4(&packetPair[1]);
-                        gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                        gte_ldv0((const u8*)workspace->normals + (geometryRefs->normalByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                         gte_ldrgb(&layerMaterial);
                         gte_nccs();
                         gte_strgb(&packetPair[0].r3);
@@ -1360,36 +1362,36 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 {
     enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
            TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
-    POLY_GT4*  packetPair;
-    s32*       gteResultDestination;
-    s32*       gteFlagDestination;
-    const u16* elementHalfwords;
-    const u8*  vertexBytes;
-    const u8*  normalBytes;
-    CVECTOR    referenceColor;
-    SVECTOR*   rotatedNormal;
-    s16*       screenComponent;
-    s16*       corner3ScreenPosition;
-    u8*        corner3LayerColor;
-    u8*        textureCoordinate;
-    u8*        textureU;
-    u8*        layerColor;
-    u8*        pageMarker;
-    s32        secondPage;
-    s32        anySecondPage;
-    s32        textureComponent;
-    s32        cornerIndex;
-    s32        payloadWordCount;
+    POLY_GT4*                            packetPair;
+    s32*                                 gteResultDestination;
+    s32*                                 gteFlagDestination;
+    const _ModelLightingGt4GeometryRefs* geometryRefs;
+    const u8*                            vertexBytes;
+    const u8*                            normalBytes;
+    CVECTOR                              referenceColor;
+    SVECTOR*                             rotatedNormal;
+    s16*                                 screenComponent;
+    s16*                                 corner3ScreenPosition;
+    u8*                                  corner3LayerColor;
+    u8*                                  textureCoordinate;
+    u8*                                  textureU;
+    u8*                                  layerColor;
+    u8*                                  pageMarker;
+    s32                                  secondPage;
+    s32                                  anySecondPage;
+    s32                                  textureComponent;
+    s32                                  cornerIndex;
+    s32                                  payloadWordCount;
 
     packetPair     = (POLY_GT4*)workspace->primWrite;
     referenceColor = gModelLightingNeutralColor;
     for (; workspace->elemCount-- > 0; packetPair += 2, elements += workspace->elemStride) {
         gteFlagDestination   = &workspace->gteFlag;
         gteResultDestination = &workspace->gteResult;
-        elementHalfwords     = (const u16*)elements;
+        geometryRefs         = (const _ModelLightingGt4GeometryRefs*)elements;
         vertexBytes          = (const u8*)workspace->verts;
         // Project packed byte references; packet slots are consumed even on rejection.
-        gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+        gte_ldv3(vertexBytes + (geometryRefs->vertexByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
         gte_rtpt();
         gte_stflg(gteFlagDestination);
         if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
@@ -1397,7 +1399,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
             gte_stopz(gteResultDestination);
             gte_stsxy3_gt4(&packetPair[0]);
             gte_stsxy3_gt4(&packetPair[1]);
-            gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_ldv0((const u8*)workspace->verts + (geometryRefs->vertexByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtps();
             gte_stflg(gteFlagDestination);
             if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
@@ -1421,7 +1423,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 }
                 gte_avsz4();
                 normalBytes = (const u8*)workspace->normals;
-                gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldv3(normalBytes + (geometryRefs->normalByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (geometryRefs->normalByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
                 gte_ncct();
                 gte_strgb3_gt4(&packetPair[0]);
@@ -1464,7 +1466,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 *textureCoordinate    = secondPage;
                 anySecondPage        |= secondPage;
                 corner3ScreenPosition = &packetPair[0].x3;
-                gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldv0((const u8*)workspace->normals + (geometryRefs->normalByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
                 gte_nccs();
                 gte_strgb(&packetPair[0].r3);
@@ -1574,13 +1576,13 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
     enum { TMD_GT4_ELEMENT_COLOR_WORD_INDEX = 4 };
     enum { TMD_GT4_OPAQUE_COMMAND     = 0x3C,
            TMD_GT4_SEMI_TRANS_COMMAND = 0x3E };
-    POLY_GT4*           quad;
-    s32*                gteResultDestination;
-    const DisplayState* displayState;
-    u32                 projectionErrorMask;
-    s32*                gteFlagDestination;
-    const u16*          elementHalfwords;
-    const u8*           vertexBytes;
+    POLY_GT4*                            quad;
+    s32*                                 gteResultDestination;
+    const DisplayState*                  displayState;
+    u32                                  projectionErrorMask;
+    s32*                                 gteFlagDestination;
+    const _ModelLightingGt4GeometryRefs* geometryRefs;
+    const u8*                            vertexBytes;
 
     quad = (POLY_GT4*)workspace->primWrite;
     if (workspace->elemCount-- > 0) {
@@ -1589,10 +1591,10 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
         gteResultDestination = &workspace->gteResult;
         displayState         = &gDisplayState;
         do {
-            elementHalfwords = (const u16*)elements;
-            vertexBytes      = (const u8*)workspace->verts;
+            geometryRefs = (const _ModelLightingGt4GeometryRefs*)elements;
+            vertexBytes  = (const u8*)workspace->verts;
             // Projection errors reject the packet; facing is tested separately below.
-            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_ldv3(vertexBytes + (geometryRefs->vertexByteRefs[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (geometryRefs->vertexByteRefs[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
             gte_rtpt();
             gte_stflg(gteFlagDestination);
             if ((workspace->gteFlag & projectionErrorMask) == 0) {
@@ -1600,7 +1602,7 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_stopz(gteResultDestination);
                 gte_ldrgb(elements + TMD_GT4_ELEMENT_COLOR_WORD_INDEX);
                 gte_stsxy3_gt4(quad);
-                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldv0((const u8*)workspace->verts + (geometryRefs->vertexByteRefs[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
@@ -1608,7 +1610,7 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
                     if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        _modelLightingLightGt4CornerNormals(quad, workspace, (const _ModelLightingGt4GeometryRefs*)elementHalfwords);
+                        _modelLightingLightGt4CornerNormals(quad, workspace, geometryRefs);
                         setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
                         setcode(quad, TMD_GT4_OPAQUE_COMMAND);
                         if (workspace->obj->flags & TMD_OBJECT_SEMI_TRANS) {

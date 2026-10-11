@@ -492,18 +492,8 @@ static void _gameFlowQueueGameplayLoad(Task* sessionStartTask)
         GAME_FLOW_BOOTSTRAP_FILE_INDEX    = 0,
         GAME_FLOW_BOOTSTRAP_FILE_HUNDREDS = 0,
     };
-    struct {
-        u8 fileIndex;      // Low component of the stage-zero file ID (0, gameplay bootstrap)
-        u8 ignoredByQueue; // Byte 1 is never read by enqueue and remains untouched
-        u8 fileGroup;      // Stage-zero file category (0)
-        u8 stage;          // CDF selector (0, global library)
-    } fileKey;
-    struct {
-        u8 fileIdHundreds;   // Hundreds component of the stage-zero file ID (0)
-        s8 loadMode;         // CD_COMMAND_LOAD_DEFAULT
-        s8 imageXPageOffset; // Horizontal image relocation in 64-word VRAM pages (0)
-        s8 imageYOffset;     // Vertical image relocation in VRAM rows (0)
-    } loadOptions;
+    CdCmdFileKey      fileKey;
+    CdCmdFileLoadArgs loadOptions;
 
     if (loadUiPollDiskSwap() == LOAD_UI_DISK_SWAP_COMPLETE) {
         gameFlowBeginLoadScreen(&gGameSession->location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);

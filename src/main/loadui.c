@@ -96,18 +96,8 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
         CD_COMMAND_DISPLAY_MENU_Y_OFFSET        = -3,
         CD_COMMAND_DISPLAY_PREVIEW_Y_OFFSET     = -2
     };
-    struct {
-        u8 fileIdHundreds;   // Hundreds component, or the current room's sprite variant
-        s8 loadMode;         // A CD_COMMAND_LOAD_* policy, independent of the public profile
-        s8 imageXPageOffset; // Signed displacement in 64-word VRAM pages
-        s8 imageYOffset;     // Signed displacement of image headers at rows 245..255
-    } loadArgs;
-    struct {
-        u8 fileIndex;      // Stage-zero low ID component, or the mapped view index
-        u8 ignoredByQueue; // This byte is not read by the enqueue API and remains untouched
-        u8 fileGroup;      // Stage-zero category, or the current area
-        u8 stage;          // CDF selector (0 stage-zero library, 1..5 room resources)
-    }* fileKey;
+    CdCmdFileLoadArgs loadArgs;
+    CdCmdFileKey*     fileKey;
 
     // The queue reads only key bytes 0, 2 and 3 from this eight-byte reservation.
     fileKey = SCRATCH_STACK_RESERVE_BYTES(CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES);

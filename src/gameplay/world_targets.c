@@ -59,8 +59,11 @@ STATIC_ASSERT_SIZEOF(_WorldTargetLockScanScratch, 0x38);
 
 /// Scratch-stack reservation for converting a target's body point to world space.
 ///
-/// The leading eight bytes are reserved but never accessed. The relative matrix
-/// occupies the remaining 32 bytes and is borrowed only during the conversion.
+/// Reserve and release all 40 bytes around coordinate composition and the GTE
+/// transform. The relative matrix maps the target's local body point into world
+/// units by removing the view transform from its composed coordinate. It is
+/// borrowed only during this call; the leading eight bytes are never accessed
+/// and have no established role.
 typedef struct {
     byte   unused[8];   // Reserved but never accessed; role unproven
     MATRIX bodyToWorld; // Target-coordinate to world-coordinate transform

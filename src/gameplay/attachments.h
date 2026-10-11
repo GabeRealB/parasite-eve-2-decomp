@@ -74,10 +74,15 @@ enum { ATTACHMENT_TARGET_PREVIEW = 0,
 /// Healing outside battle uses the row minimum; battle rolls a 1/256 blend.
 void attachmentApplySelfEffect(s32 releaseEffects);
 
-/// Damage and critical-chance percentages for one Energy Shot combo.
+/// Weapon-damage and critical-chance multipliers for one Energy Shot combo.
+///
+/// Both are unsigned whole percentages: multiply the incoming damage or chance,
+/// then divide by 100 with the consumer's integer truncation. A value of 100
+/// preserves that input. The fields scale independent calculations; neither
+/// is an additive bonus or an absolute critical probability.
 typedef struct {
-    u16 damagePercent;   // Multiplier of weapon HP damage, in whole percent.
-    u16 criticalPercent; // Multiplier of critical chance, in whole percent.
+    u16 damagePercent;   // Weapon HP-damage multiplier, in whole percent
+    u16 criticalPercent; // Critical-chance multiplier, in whole percent
 } AttachmentEnergyShotComboScale;
 STATIC_ASSERT_SIZEOF(AttachmentEnergyShotComboScale, 4);
 

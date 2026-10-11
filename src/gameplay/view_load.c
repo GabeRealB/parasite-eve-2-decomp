@@ -23,7 +23,7 @@ s16 gLoadingViewMovieSlot;
 /// file index. Requires valid loaded view maps, writable load destinations and
 /// one free CD-ring slot. Enqueue copies the records before returning; neither
 /// pointer is retained and queueing does not wait for completion.
-static inline void _loadingEnqueueViewFile(_LoadingFileKey* fileKey, _LoadingFileArgs* loadArgs)
+static inline void _loadingEnqueueViewFile(CdCmdFileKey* fileKey, CdCmdFileLoadArgs* loadArgs)
 {
     enum { LOADING_VIEW_FOLDER_SUFFIX = 1 };
 
@@ -48,8 +48,8 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
     DisplayState*          display;
     CdCmdQueue*            queue;
     const GameLocationKey* location;
-    _LoadingFileKey        fileKey;
-    _LoadingFileArgs       loadArgs;
+    CdCmdFileKey           fileKey;
+    CdCmdFileLoadArgs      loadArgs;
 
     location = &gGameSession->location.loc;
     queue    = &gCdCmdQueue;
