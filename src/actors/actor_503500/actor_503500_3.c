@@ -1637,8 +1637,6 @@ static void _actor503500ApplyBossHits(Task* task, WorldCollisionBody* unusedBody
 static void _actor503500TurnBoss(Task* task)
 {
     enum {
-        ACTOR_503500_TURN_RATE_REDUCED   = 1,
-        ACTOR_503500_TURN_RATE_MINIMUM   = 2,
         ACTOR_503500_TURN_LIMIT_REDUCED  = 6 << ACTOR_503500_BOSS_FIXED_FRACTION_BITS,
         ACTOR_503500_TURN_LIMIT_MINIMUM  = 1 << ACTOR_503500_BOSS_FIXED_FRACTION_BITS,
         ACTOR_503500_TURN_LIMIT_NORMAL   = 7 << ACTOR_503500_BOSS_FIXED_FRACTION_BITS,
@@ -1661,7 +1659,7 @@ static void _actor503500TurnBoss(Task* task)
     slotEnemies = work->enemies;
     if (work->state < ACTOR_503500_STATE_PART_LOST) {
         if (work->state >= ACTOR_503500_STATE_IDLE) {
-            switch (D_actor_503500_8016E8FC[work->animationId]) {
+            switch (gActor503500BossAnimationTurnRateClasses[work->animationId]) {
                 case ACTOR_503500_TURN_RATE_REDUCED:
                     turnSpeedLimit = ACTOR_503500_TURN_LIMIT_REDUCED;
                     break;
@@ -1855,18 +1853,11 @@ static void _actor503500WalkBoss(Task* task)
 static void _actor503500UpdateSlotTargetEligibility(Task* task)
 {
     enum {
-        ACTOR_503500_TARGET_HEIGHT_UPPER          = 1 << 0,
-        ACTOR_503500_TARGET_HEIGHT_MIDDLE         = 1 << 1,
-        ACTOR_503500_TARGET_HEIGHT_LOWER          = 1 << 2,
-        ACTOR_503500_TARGET_BEARING_FORWARD       = 1 << 3,
-        ACTOR_503500_TARGET_BEARING_REAR          = 1 << 4,
-        ACTOR_503500_TARGET_BEARING_POSITIVE_SIDE = 1 << 5,
-        ACTOR_503500_TARGET_BEARING_NEGATIVE_SIDE = 1 << 6,
-        ACTOR_503500_TARGET_FORWARD_LIMIT         = 1024,
-        ACTOR_503500_TARGET_SIDE_MIN              = 768,
-        ACTOR_503500_TARGET_SIDE_MAX              = 1152,
-        ACTOR_503500_TARGET_UPPER_BOUNDARY_Y      = -3000,
-        ACTOR_503500_TARGET_LOWER_BOUNDARY_Y      = -999,
+        ACTOR_503500_TARGET_FORWARD_LIMIT    = 1024,
+        ACTOR_503500_TARGET_SIDE_MIN         = 768,
+        ACTOR_503500_TARGET_SIDE_MAX         = 1152,
+        ACTOR_503500_TARGET_UPPER_BOUNDARY_Y = -3000,
+        ACTOR_503500_TARGET_LOWER_BOUNDARY_Y = -999,
     };
     Actor503500Work* work;
     GfxCoord*        rootCoord;
@@ -1907,7 +1898,7 @@ static void _actor503500UpdateSlotTargetEligibility(Task* task)
     for (slotIndex = 0; slotIndex < ARRAY_SIZE(work->enemies); slotIndex++) {
         enemy = work->enemies[slotIndex];
         if (enemy != NULL) {
-            eligibilityMask = D_actor_503500_8016E910[slotIndex];
+            eligibilityMask = gActor503500SlotTargetEligibilityMasks[slotIndex];
             if ((eligibilityMask & bearingMask) != bearingMask || gGameSession->eventState != 0) {
                 enemy->node.state.parts.flags                    |= WORLD_TARGET_NOT_LOCKABLE;
                 work->enemies[slotIndex]->node.state.parts.flags &= ~WORLD_TARGET_KEEP_SCANNED;

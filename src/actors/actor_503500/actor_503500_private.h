@@ -46,8 +46,41 @@ enum {
     ACTOR_503500_BOSS_COMMAND_RESTORE_ROOT           = 5,
 };
 
-/// Tentacle scene action that invokes immediate teardown.
-enum { ACTOR_503500_TENTACLE_COMMAND_EXIT = 3 };
+/// Scripted tentacle actions; context tags are ignored and commands are borrowed.
+///
+/// Stop clears velocity; move sets the first leg's velocity; collapse sets
+/// the second leg's velocity and squash motion; exit invokes immediate teardown.
+enum {
+    ACTOR_503500_TENTACLE_COMMAND_STOP     = 0,
+    ACTOR_503500_TENTACLE_COMMAND_MOVE     = 1,
+    ACTOR_503500_TENTACLE_COMMAND_COLLAPSE = 2,
+    ACTOR_503500_TENTACLE_COMMAND_EXIT     = 3,
+};
+
+/// Animation turn-limit classes before penalties for missing boss parts.
+///
+/// Limits are 7, 6 and 1 angle units per actor tick; angles use 4096 per turn.
+enum {
+    ACTOR_503500_TURN_RATE_NORMAL  = 0,
+    ACTOR_503500_TURN_RATE_REDUCED = 1,
+    ACTOR_503500_TURN_RATE_MINIMUM = 2,
+};
+
+/// Height and relative-bearing bands accepted by each attached target slot.
+///
+/// Heights use player room Y: upper below -3000, middle -3000..-1000,
+/// lower at least -999. Forward is |bearing| < 1024, rear is the rest;
+/// strict side windows (768,1152) and (-1152,-768) override those bands.
+/// Bearings use 4096 per turn relative to the boss's yaw.
+enum {
+    ACTOR_503500_TARGET_HEIGHT_UPPER          = 1 << 0,
+    ACTOR_503500_TARGET_HEIGHT_MIDDLE         = 1 << 1,
+    ACTOR_503500_TARGET_HEIGHT_LOWER          = 1 << 2,
+    ACTOR_503500_TARGET_BEARING_FORWARD       = 1 << 3,
+    ACTOR_503500_TARGET_BEARING_REAR          = 1 << 4,
+    ACTOR_503500_TARGET_BEARING_POSITIVE_SIDE = 1 << 5,
+    ACTOR_503500_TARGET_BEARING_NEGATIVE_SIDE = 1 << 6,
+};
 
 struct Actor503500Work;
 
@@ -290,9 +323,19 @@ extern AnimationSet gActor503500Animation3A190;
 
 extern AnimationSet gActor503500Animation3C968;
 
-extern DamageAttack* D_actor_503500_8016E7CC[1];
+/// Damage table borrowed while a ballistic shot packs its attack sphere's key.
+///
+/// Spawn kind selects row 0 (chain shot, power 20) or 1 (small orb, power 25);
+/// both apply paralysis. Carrier element 0 exports the private rows; row bounds
+/// are unchecked. Linking copies the packed key and retains no row pointer.
+extern DamageAttack* gActor503500BallisticShotAttackTables[1];
 
-extern DamageAttack* D_actor_503500_8016E7D0[1];
+/// Damage table borrowed while a lingering shot packs its attack sphere's key.
+///
+/// Spawn kind selects row 0 (large orb, poison) or 1 (chain-base projectile,
+/// paralysis); both have power 15. Carrier element 0 exports the private rows;
+/// bounds are unchecked. Linking retains only the packed key.
+extern DamageAttack* gActor503500LingeringShotAttackTables[1];
 
 /// Flash damage-table indices: pink capsule and player-centred yellow sphere.
 enum {
@@ -307,7 +350,12 @@ enum {
 /// Keep this overlay loaded for the table and rows' lifetimes.
 extern DamageAttack* gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_COUNT];
 
-extern DamageAttack* D_actor_503500_8016E7DC[1];
+/// Damage table borrowed while an orange-flash capsule packs its attack key.
+///
+/// Carrier element 0 exports the private row. Only damage row 0 is valid:
+/// power 120 with body-blast hit presentation. Linking retains only the packed
+/// key; neither the carrier nor damage row is retained by the collision body.
+extern DamageAttack* gActor503500OrangeFlashAttackTables[1];
 
 /// Shared enemy tuning indexed by the boss or attached part's spawn slot (0..16).
 ///
@@ -318,9 +366,13 @@ extern DamageAttack* D_actor_503500_8016E7DC[1];
 /// Keep the overlay loaded while any enemy retains its parameter pointer.
 extern EnemyParams gActor503500EnemyParams[ACTOR_503500_SLOT_COUNT];
 
-extern s8 D_actor_503500_8016E8FC[20];
-
-extern u8 D_actor_503500_8016E910[20];
+/// Player height/bearing eligibility masks for boss and attached target slots.
+///
+/// Slots 0..16 follow `ACTOR_503500_SLOT_*`; the three trailing bytes are
+/// stored zero and unread. Bits use `ACTOR_503500_TARGET_*`. Bearing failure
+/// or an active event blocks lock-on and scan retention; height-only failure
+/// blocks lock-on but preserves scanning. All twenty stored bytes are retained.
+extern u8 gActor503500SlotTargetEligibilityMasks[20];
 
 extern Task* D_actor_503500_80176558;
 
@@ -343,6 +395,12 @@ enum {
     ACTOR_503500_KNOCKBACK_RESTORE_SET       = 5,
     ACTOR_503500_KNOCKBACK_SET_COUNT         = ACTOR_503500_KNOCKBACK_RESTORE_SET + 1,
 };
+
+/// Turn-limit class for each boss clip, indexed by animation ID 0..19.
+///
+/// Values are `ACTOR_503500_TURN_RATE_*`; the turn step reads one signed byte
+/// without checking bounds. Only idle and attack states use the table.
+extern s8 gActor503500BossAnimationTurnRateClasses[ACTOR_503500_BOSS_ANIMATION_PRESET_COUNT];
 
 /// Boss clip tables selected by the play request's source index (0 or 1).
 ///

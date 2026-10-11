@@ -1,6 +1,8 @@
 #ifndef INCLUDE_ACTORS_ACTOR_503500_H
 #define INCLUDE_ACTORS_ACTOR_503500_H
 
+#include "gameplay/evs.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -13,6 +15,40 @@ enum {
 
 /// Extent of the aligned enemy descriptor, parameter and live-slot tables.
 enum { ACTOR_503500_SLOT_COUNT = 17 };
+
+/// Bodyless scene launcher spawned when Shelter R48 accepts a staff card.
+///
+/// Priority is 192; both spawn arguments are ignored. Requires the room and
+/// actor overlays loaded and event control already held. Its callback starts
+/// the skippable card scene and kills the launcher; the event task outlives it.
+/// The descriptor is borrowed synchronously when spawning.
+extern TaskDesc gActor503500StaffCardSceneTaskDesc;
+
+/// Skippable boss intro that Shelter R48 starts on room initialization.
+///
+/// Selects the intro stream, holds and presents the boss, then places both
+/// actors for battle and resumes control. Use `gActor503500BossIntroSkipScript`
+/// as the initial skip target with `EVENT_SCRIPT_HUD_HIDE_RESTORE`. The event
+/// runner borrows all 56 commands and their referenced data and callbacks;
+/// keep the actor overlay and Shelter R48 scene resources loaded until it ends.
+extern EvsCommand gActor503500BossIntroScript[56];
+
+/// Skip path that establishes the boss intro's playable battle state.
+///
+/// Fades across placement, installs player scene clips, resumes the boss,
+/// stops scene effects and vibration, then starts music and battle control.
+/// Passed as the initial skip target for `gActor503500BossIntroScript`; all
+/// 29 commands and their resources are borrowed for the event's lifetime.
+extern EvsCommand gActor503500BossIntroSkipScript[29];
+
+/// Boss defeat scene started by Shelter R48's second boss-event notification.
+///
+/// Selects the defeat stream, collapses the boss, moves and collapses the
+/// scripted tentacle, then releases both and enables staff-card use. The room
+/// supplies a separate skip path when starting it with hidden/restored HUD.
+/// All 61 commands, callbacks and data are borrowed; keep both overlays and
+/// their scene resources loaded through completion, including vibration tasks.
+extern EvsCommand gActor503500BossDefeatScript[61];
 
 /// Scene-effect spawn recipes borrowed synchronously by the actor scripts and R48.
 ///

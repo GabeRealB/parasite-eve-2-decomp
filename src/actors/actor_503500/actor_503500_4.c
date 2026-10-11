@@ -5933,7 +5933,7 @@ static inline void _actor503500BallisticShotLinkSphere(Task* task, _Actor503500B
     work->body.pos.vx           = D_actor_503500_801715AC.vx;
     work->body.pos.vy           = D_actor_503500_801715AC.vy;
     work->body.pos.vz           = D_actor_503500_801715AC.vz;
-    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7CC[0], task->spawnArg1.value);
+    work->body.key              = damagePackAttackKey(gActor503500BallisticShotAttackTables[0], task->spawnArg1.value);
     work->body.radius           = ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -6187,7 +6187,7 @@ static inline void _actor503500LingeringShotLinkSphere(Task* task, _Actor503500L
     work->body.pos.vx           = D_actor_503500_801715B4.vx;
     work->body.pos.vy           = D_actor_503500_801715B4.vy;
     work->body.pos.vz           = D_actor_503500_801715B4.vz;
-    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D0[0], task->spawnArg1.value);
+    work->body.key              = damagePackAttackKey(gActor503500LingeringShotAttackTables[0], task->spawnArg1.value);
     work->body.radius           = ACTOR_503500_LINGERING_SHOT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

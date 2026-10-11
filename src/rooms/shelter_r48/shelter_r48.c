@@ -82,10 +82,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern TaskDesc   D_actor_503500_8014B958;
-extern EvsCommand D_actor_503500_8014BD48[];
-extern EvsCommand D_actor_503500_8014C288[];
-extern EvsCommand D_actor_503500_8014C540[];
 extern EvsCommand D_actor_503500_8014CAF8[];
 extern EvsCommand D_actor_503500_8014D158[];
 
@@ -2404,7 +2400,7 @@ static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 un
                 // Hold gameplay before queuing the card-use scene.
                 gGameSession->eventState = SHELTER_R48_EVENT_HOLD;
                 D_80115768               = SHELTER_R48_PLAYER_UPDATE_HOLD;
-                taskSpawnFromTableOnDefaultList(&D_actor_503500_8014B958, 0, 0, 0);
+                taskSpawnFromTableOnDefaultList(&gActor503500StaffCardSceneTaskDesc, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_100, SHELTER_R48_CARD_USE_STARTED);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_CARD_USE_STARTED);
                 accepted = SHELTER_R48_ITEM_USE_ACCEPTED;
@@ -2491,7 +2487,7 @@ static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId,
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_INTERRUPTED);
     } else {
         // Queue the scene before the drift emitters at its three fixed positions.
-        evsStartScriptWithSkip(D_actor_503500_8014C540, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
+        evsStartScriptWithSkip(gActor503500BossDefeatScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 0, 0);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 1, 0);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 3, 0);
@@ -2510,7 +2506,7 @@ static void _shelterR48RoomSetupState(Task* task)
     task->msgTable = D_shelter_r48_80182FB8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor503500ClearFadeFromBlackHandle(0);
-    evsStartScriptWithSkip(D_actor_503500_8014BD48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014C288);
+    evsStartScriptWithSkip(gActor503500BossIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor503500BossIntroSkipScript);
     gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_BATTLE);
     task->state += 1;
 }

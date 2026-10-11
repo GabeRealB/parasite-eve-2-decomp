@@ -1865,7 +1865,7 @@ static inline void _actor503500OrangeFlashAttackLinkCapsule(_Actor503500OrangeFl
     work->body.pos.vx          = D_actor_503500_801715DC.vx;
     work->body.pos.vy          = D_actor_503500_801715DC.vy;
     work->body.pos.vz          = D_actor_503500_801715DC.vz;
-    work->body.key             = damagePackAttackKey(D_actor_503500_8016E7DC[0], 0);
+    work->body.key             = damagePackAttackKey(gActor503500OrangeFlashAttackTables[0], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
 
@@ -2375,11 +2375,8 @@ static s32 _actor503500SetTentacleDrawMode(Task* task, s32 msgId, s32 mode, s32 
 static s32 _actor503500ApplyTentacleCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg)
 {
     enum {
-        ACTOR_503500_TENTACLE_COMMAND_STOP     = 0,
-        ACTOR_503500_TENTACLE_COMMAND_MOVE     = 1,
-        ACTOR_503500_TENTACLE_COMMAND_COLLAPSE = 2,
-        ACTOR_503500_TENTACLE_TRANSLATION_ONE  = 0x10000,
-        ACTOR_503500_TENTACLE_MOVE_FRAMES      = 23,
+        ACTOR_503500_TENTACLE_TRANSLATION_ONE = 0x10000,
+        ACTOR_503500_TENTACLE_MOVE_FRAMES     = 23,
         // Fixed Q16 rates: 175/9 on X and 105/9 on Y, truncated toward zero.
         ACTOR_503500_TENTACLE_COLLAPSE_VELOCITY_X = 0x1371C7,
         ACTOR_503500_TENTACLE_COLLAPSE_VELOCITY_Y = 0xBAAAA,
