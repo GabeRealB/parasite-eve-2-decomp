@@ -533,8 +533,8 @@ gShelterR49SurfacePropertiesByClass = 0x8017DDF8; // absolute:True owner=shelter
 actor503500SliderTask = 0x8013270C; // type:func absolute:True owner=actor_503500
 gActor503500Model14DA0 = 0x80147314; // absolute:True owner=actor_503500
 gActor503500Model15820 = 0x80147D6C; // absolute:True owner=actor_503500
-D_mappic_s4_00_8012EFBC = 0x8012EFBC; // absolute:True owner=mappic_s4_00 shared=mappic
-D_mappic_s4_00_8012F0D8 = 0x8012F0D8; // absolute:True owner=mappic_s4_00
+gMappicS400CavernShape = 0x8012EFBC; // absolute:True owner=mappic_s4_00 shared=mappic
+gMappicS400SecretPassageShape = 0x8012F0D8; // absolute:True owner=mappic_s4_00
 gMappicS402MesaShape = 0x8012EFA0; // absolute:True owner=mappic_s4_02 shared=mappic
 gMappicS402TunnelEntranceShape = 0x8012F030; // absolute:True owner=mappic_s4_02 shared=mappic
 gMappicS402TunnelShape = 0x8012F0C0; // absolute:True owner=mappic_s4_02

@@ -678,7 +678,12 @@ extern TmdSource gMappicS302SouvenirShopShape;
 /// mappic_s3_02 package loaded while these are used.
 extern TmdSource gMappicS302WarehouseShape;
 
-extern TmdSource D_mappic_s3_02_8012F36C;
+/// Dilapidated House's four-triangle area fill on page 2 of the nighttime Dryfield map.
+///
+/// Six vertices lie in the model X/Z plane; the map scales them by 1495/4096
+/// and maps Z to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s3_02 loaded during use.
+extern TmdSource gMappicS302DilapidatedHouseShape;
 
 /// Motel room 1's area-fill quad on page 2 of the nighttime Dryfield map.
 ///
@@ -824,12 +829,27 @@ extern TmdSource gMappicS303WaterHoleShape;
 /// keep the mappic_s3_03 package loaded while these are used.
 extern TmdSource gMappicS303CellarShape;
 
-extern TmdSource D_mappic_s3_03_8012F180;
+/// Underpass's two-triangle, three-quad area fill on page 3 of the nighttime Dryfield map.
+///
+/// Ten vertices lie in the model X/Z plane; the map scales them by 1495/4096
+/// and maps Z to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s3_03 loaded during use.
+extern TmdSource gMappicS303UnderpassShape;
 
 // mappic_s4_00
-extern TmdSource D_mappic_s4_00_8012EFBC;
+/// Cavern's two-quad area fill on page 1 of the Mine/Shelter map.
+///
+/// Six vertices lie in the model X/Z plane; the map scales them by 1495/4096
+/// and maps Z to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_00 loaded during use.
+extern TmdSource gMappicS400CavernShape;
 
-extern TmdSource D_mappic_s4_00_8012F0D8;
+/// Secret Passage's six-quad area fill on page 1 of the Mine/Shelter map.
+///
+/// Fourteen vertices lie in the model X/Z plane; the map scales them by
+/// 1495/4096 and maps Z to inverted screen Y. Has no normal data. The map
+/// borrows the vertices and first stream group; keep mappic_s4_00 loaded during use.
+extern TmdSource gMappicS400SecretPassageShape;
 
 // mappic_s4_02
 /// Mesa's area-fill quad on page 2 of the Mine/Shelter map.

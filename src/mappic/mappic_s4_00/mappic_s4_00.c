@@ -1,61 +1,71 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS400Model0005C0008CMappicS400Skeleton[1] = {
+/// Identity transform and self-parented root for the Cavern shape.
+static TmdBone _gMappicS400CavernShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_skeleton.inc"
 };
 
-static u32 _gMappicS400Model0005C0008CMappicS400PartVerts[1] = {
+/// Six vertices in the Cavern shape's sole part.
+static u32 _gMappicS400CavernShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_partVerts.inc"
 };
 
-static SVECTOR _gMappicS400Model0005C0008CMappicS400Verts[6] = {
+/// Cavern's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS400CavernShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_verts.inc"
 };
 
-static u32 _gMappicS400Model0005C0008CMappicS400Stream[12] = {
+/// Packed command stream for the Cavern shape's two unlit quads.
+///
+/// Elements contain four SVECTOR byte offsets and white colour; two group
+/// ends precede the stream end. The map reads only the first group.
+static u32 _gMappicS400CavernShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_stream.inc"
 };
 
-TmdSource D_mappic_s4_00_8012EFBC = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS400Model0005C0008CMappicS400PartVerts,
-    _gMappicS400Model0005C0008CMappicS400Verts,
-    &_gMappicS400Model0005C0008CMappicS400Verts[6],
-    _gMappicS400Model0005C0008CMappicS400Skeleton,
-    _gMappicS400Model0005C0008CMappicS400Stream,
+TmdSource gMappicS400CavernShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS400CavernShapeSkeleton),
+    .partVertexCounts = _gMappicS400CavernShapePartVerts,
+    .verts            = _gMappicS400CavernShapeVerts,
+    .normals          = &_gMappicS400CavernShapeVerts[ARRAY_SIZE(_gMappicS400CavernShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS400CavernShapeSkeleton,
+    .stream           = _gMappicS400CavernShapeStream,
 };
 
-static TmdBone _gMappicS400Model00148Skeleton[1] = {
+/// Identity transform and self-parented root for the Secret Passage shape.
+static TmdBone _gMappicS400SecretPassageShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_00148_skeleton.inc"
 };
 
-static u32 _gMappicS400Model00148PartVerts[1] = {
+/// Fourteen vertices in the Secret Passage shape's sole part.
+static u32 _gMappicS400SecretPassageShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_00148_partVerts.inc"
 };
 
-static SVECTOR _gMappicS400Model00148Verts[14] = {
+/// Secret Passage's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS400SecretPassageShapeVerts[] = {
 #include "assets/mappic_s4_00_model_00148_verts.inc"
 };
 
-static u32 _gMappicS400Model00148Stream[24] = {
+/// Packed command stream for the Secret Passage shape's six unlit quads.
+///
+/// Elements contain four SVECTOR byte offsets and white colour; two group
+/// ends precede the stream end. The map reads only the first group.
+static u32 _gMappicS400SecretPassageShapeStream[] = {
 #include "assets/mappic_s4_00_model_00148_stream.inc"
 };
 
-TmdSource D_mappic_s4_00_8012F0D8 = {
-    0,
-    144,
-    0,
-    1,
-    _gMappicS400Model00148PartVerts,
-    _gMappicS400Model00148Verts,
-    &_gMappicS400Model00148Verts[14],
-    _gMappicS400Model00148Skeleton,
-    _gMappicS400Model00148Stream,
+TmdSource gMappicS400SecretPassageShape = {
+    .bufferHalfBytes  = 6 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS400SecretPassageShapeSkeleton),
+    .partVertexCounts = _gMappicS400SecretPassageShapePartVerts,
+    .verts            = _gMappicS400SecretPassageShapeVerts,
+    .normals          = &_gMappicS400SecretPassageShapeVerts[ARRAY_SIZE(_gMappicS400SecretPassageShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS400SecretPassageShapeSkeleton,
+    .stream           = _gMappicS400SecretPassageShapeStream,
 };

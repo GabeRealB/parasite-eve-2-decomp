@@ -64,30 +64,35 @@ TmdSource gMappicS303CellarShape = {
     .stream           = _gMappicS303CellarShapeStream,
 };
 
-static TmdBone _gMappicS303MappicS203Model001F000250Skeleton[1] = {
+/// Identity transform and self-parented root for the Underpass shape.
+static TmdBone _gMappicS303UnderpassShapeSkeleton[] = {
 #include "assets/mappic_s2_03_model_001F0_00250_skeleton.inc"
 };
 
-static u32 _gMappicS303MappicS203Model001F000250PartVerts[1] = {
+/// Ten vertices in the Underpass shape's sole part.
+static u32 _gMappicS303UnderpassShapePartVerts[] = {
 #include "assets/mappic_s2_03_model_001F0_00250_partVerts.inc"
 };
 
-static SVECTOR _gMappicS303MappicS203Model001F000250Verts[10] = {
+/// Underpass's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS303UnderpassShapeVerts[] = {
 #include "assets/mappic_s2_03_model_001F0_00250_verts.inc"
 };
 
-static u32 _gMappicS303MappicS203Model001F000250Stream[24] = {
+/// Packed command stream for the Underpass shape's two unlit triangles and three unlit quads.
+///
+/// Elements contain SVECTOR byte offsets and white colour; two group ends
+/// precede the stream end. The map reads only the first group.
+static u32 _gMappicS303UnderpassShapeStream[] = {
 #include "assets/mappic_s2_03_model_001F0_00250_stream.inc"
 };
 
-TmdSource D_mappic_s3_03_8012F180 = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS303MappicS203Model001F000250PartVerts,
-    _gMappicS303MappicS203Model001F000250Verts,
-    &_gMappicS303MappicS203Model001F000250Verts[10],
-    _gMappicS303MappicS203Model001F000250Skeleton,
-    _gMappicS303MappicS203Model001F000250Stream,
+TmdSource gMappicS303UnderpassShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS303UnderpassShapeSkeleton),
+    .partVertexCounts = _gMappicS303UnderpassShapePartVerts,
+    .verts            = _gMappicS303UnderpassShapeVerts,
+    .normals          = &_gMappicS303UnderpassShapeVerts[ARRAY_SIZE(_gMappicS303UnderpassShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS303UnderpassShapeSkeleton,
+    .stream           = _gMappicS303UnderpassShapeStream,
 };

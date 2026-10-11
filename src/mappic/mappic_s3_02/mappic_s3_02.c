@@ -196,32 +196,37 @@ TmdSource gMappicS302WarehouseShape = {
     .stream           = _gMappicS302WarehouseShapeStream,
 };
 
-static TmdBone _gMappicS302Model003F4Skeleton[1] = {
+/// Identity transform and self-parented root for the Dilapidated House shape.
+static TmdBone _gMappicS302DilapidatedHouseShapeSkeleton[] = {
 #include "assets/mappic_s3_02_model_003F4_skeleton.inc"
 };
 
-static u32 _gMappicS302Model003F4PartVerts[1] = {
+/// Six vertices in the Dilapidated House shape's sole part.
+static u32 _gMappicS302DilapidatedHouseShapePartVerts[] = {
 #include "assets/mappic_s3_02_model_003F4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302Model003F4Verts[6] = {
+/// Dilapidated House's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302DilapidatedHouseShapeVerts[] = {
 #include "assets/mappic_s3_02_model_003F4_verts.inc"
 };
 
-static u32 _gMappicS302Model003F4Stream[18] = {
+/// Packed command stream for the Dilapidated House shape's four unlit triangles.
+///
+/// Elements contain three SVECTOR byte offsets and white colour; two group
+/// ends precede the stream end. The map reads only the first group.
+static u32 _gMappicS302DilapidatedHouseShapeStream[] = {
 #include "assets/mappic_s3_02_model_003F4_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F36C = {
-    0,
-    80,
-    0,
-    1,
-    _gMappicS302Model003F4PartVerts,
-    _gMappicS302Model003F4Verts,
-    &_gMappicS302Model003F4Verts[6],
-    _gMappicS302Model003F4Skeleton,
-    _gMappicS302Model003F4Stream,
+TmdSource gMappicS302DilapidatedHouseShape = {
+    .bufferHalfBytes  = 4 * sizeof(POLY_F3),
+    .partCount        = ARRAY_SIZE(_gMappicS302DilapidatedHouseShapeSkeleton),
+    .partVertexCounts = _gMappicS302DilapidatedHouseShapePartVerts,
+    .verts            = _gMappicS302DilapidatedHouseShapeVerts,
+    .normals          = &_gMappicS302DilapidatedHouseShapeVerts[ARRAY_SIZE(_gMappicS302DilapidatedHouseShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302DilapidatedHouseShapeSkeleton,
+    .stream           = _gMappicS302DilapidatedHouseShapeStream,
 };
 
 /// Identity transform and self-parented root for the Motel room 1 shape.
