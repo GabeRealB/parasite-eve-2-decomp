@@ -488,32 +488,37 @@ TmdSource gMappicS202SaloonGRShape = {
     .stream           = _gMappicS202SaloonGRShapeStream,
 };
 
-static TmdBone _gMappicS202Model00C48009F4Skeleton[1] = {
+/// Identity transform and self-parented root for the G & R Kitchen shape.
+static TmdBone _gMappicS202GRKitchenShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00C48009F4PartVerts[1] = {
+/// Vertex count of the G & R Kitchen shape's sole part (four vertices).
+static u32 _gMappicS202GRKitchenShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00C48009F4Verts[4] = {
+/// G & R Kitchen's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202GRKitchenShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_verts.inc"
 };
 
-static u32 _gMappicS202Model00C48009F4Stream[9] = {
+/// Packed command stream for the G & R Kitchen shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS202GRKitchenShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F924 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS202Model00C48009F4PartVerts,
-    _gMappicS202Model00C48009F4Verts,
-    &_gMappicS202Model00C48009F4Verts[4],
-    _gMappicS202Model00C48009F4Skeleton,
-    _gMappicS202Model00C48009F4Stream,
+TmdSource gMappicS202GRKitchenShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202GRKitchenShapeSkeleton),
+    .partVertexCounts = _gMappicS202GRKitchenShapePartVerts,
+    .verts            = _gMappicS202GRKitchenShapeVerts,
+    .normals          = &_gMappicS202GRKitchenShapeVerts[ARRAY_SIZE(_gMappicS202GRKitchenShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202GRKitchenShapeSkeleton,
+    .stream           = _gMappicS202GRKitchenShapeStream,
 };
 
 static TmdBone _gMappicS202MappicS400Model0005C00AA0Skeleton[1] = {

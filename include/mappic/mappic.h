@@ -254,7 +254,13 @@ extern TmdSource gMappicS202MotelLobbyShape;
 /// `mappic_s2_02` package loaded while these are used.
 extern TmdSource gMappicS202SaloonGRShape;
 
-extern TmdSource D_mappic_s2_02_8012F924;
+/// G & R Kitchen's area-fill quad on page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s2_02` package loaded while these are used.
+extern TmdSource gMappicS202GRKitchenShape;
 
 extern TmdSource D_mappic_s2_02_8012F9D0;
 
@@ -663,7 +669,13 @@ extern TmdSource gMappicS302MotelLobbyShape;
 /// `mappic_s3_02` package loaded while these are used.
 extern TmdSource gMappicS302SaloonGRShape;
 
-extern TmdSource D_mappic_s3_02_8012F93C;
+/// G & R Kitchen's area-fill quad on page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s3_02` package loaded while these are used.
+extern TmdSource gMappicS302GRKitchenShape;
 
 extern TmdSource D_mappic_s3_02_8012F9E8;
 

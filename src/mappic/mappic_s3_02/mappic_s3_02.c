@@ -488,32 +488,37 @@ TmdSource gMappicS302SaloonGRShape = {
     .stream           = _gMappicS302SaloonGRShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C48009F4Skeleton[1] = {
+/// Identity transform and self-parented root for the G & R Kitchen shape.
+static TmdBone _gMappicS302GRKitchenShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48009F4PartVerts[1] = {
+/// Vertex count of the G & R Kitchen shape's sole part (four vertices).
+static u32 _gMappicS302GRKitchenShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C48009F4Verts[4] = {
+/// G & R Kitchen's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302GRKitchenShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48009F4Stream[9] = {
+/// Packed command stream for the G & R Kitchen shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS302GRKitchenShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_009F4_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F93C = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C48009F4PartVerts,
-    _gMappicS302MappicS202Model00C48009F4Verts,
-    &_gMappicS302MappicS202Model00C48009F4Verts[4],
-    _gMappicS302MappicS202Model00C48009F4Skeleton,
-    _gMappicS302MappicS202Model00C48009F4Stream,
+TmdSource gMappicS302GRKitchenShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302GRKitchenShapeSkeleton),
+    .partVertexCounts = _gMappicS302GRKitchenShapePartVerts,
+    .verts            = _gMappicS302GRKitchenShapeVerts,
+    .normals          = &_gMappicS302GRKitchenShapeVerts[ARRAY_SIZE(_gMappicS302GRKitchenShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302GRKitchenShapeSkeleton,
+    .stream           = _gMappicS302GRKitchenShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS400Model0005C00AA0Skeleton[1] = {
