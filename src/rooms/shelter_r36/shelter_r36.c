@@ -166,9 +166,25 @@ static AnimationPlayRequest _gShelterR36SecondWalkerAnimation8 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DCCC[2] = {
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Two unreferenced reset requests for animation 1.
+///
+/// Both store bank selector 1 and disabled world collision. The intended
+/// receiver and original grouping of these consecutive records are unproven.
+static AnimationPlayRequest _gShelterR36UnreferencedAnimation1Requests[] = {
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 /// Arrival-scene clip 9 for the first scripted walker, restarting without interpolation.
@@ -183,7 +199,17 @@ static AnimationPlayRequest _gShelterR36FirstWalkerAnimation9 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DD08 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// An unreferenced reset request for animation 10.
+///
+/// Stores bank selector 1 and disabled world collision; the intended receiver
+/// and scene use are unproven.
+static AnimationPlayRequest _gShelterR36UnreferencedAnimation10Request = {
+    .source               = { .index = 1 },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Arrival-scene clip 11 for the first scripted walker, restarting without interpolation.
 ///
@@ -221,7 +247,17 @@ static AnimationPlayRequest _gShelterR36FirstWalkerAnimation13 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DD58 = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// An unreferenced reset request for animation 14.
+///
+/// Stores bank selector 1 and disabled world collision; the intended receiver
+/// and scene use are unproven.
+static AnimationPlayRequest _gShelterR36UnreferencedAnimation14Request = {
+    .source               = { .index = 1 },
+    .animationId          = 14,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Arrival-scene clip 15 for the first scripted walker, interpolating for 8 normal-rate frames.
 ///
@@ -259,9 +295,26 @@ static AnimationPlayRequest _gShelterR36FirstWalkerAnimation19 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DDA8[2] = {
-    { { .index = 1 }, 20, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Unreferenced requests to blend into animation 20 and reset animation 9.
+///
+/// The blend requests eight normal-rate frames. Both store bank selector 1
+/// and disabled world collision. Their intended receivers and original
+/// grouping are unproven; animation 20 is outside both room walkers' clip tables.
+static AnimationPlayRequest _gShelterR36UnreferencedAnimation20And9Requests[] = {
+    {
+        .source               = { .index = 1 },
+        .animationId          = 20,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 8,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 9,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 /// Arrival-scene clip 10 for the second scripted walker, restarting without interpolation.
@@ -276,20 +329,104 @@ static AnimationPlayRequest _gShelterR36SecondWalkerAnimation10 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_shelter_r36_8017DDE4[13] = {
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 17, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Thirteen unreferenced animation requests preserved in image order.
+///
+/// Eight reset animation 1, four reset animations 5..8, and the last requests
+/// an eight-normal-rate-frame blend into animation 17. All store bank selector
+/// 1 and disabled world collision. Their intended receivers and original
+/// grouping are unproven.
+static AnimationPlayRequest _gShelterR36UnreferencedAnimationRequests[] = {
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 5,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 6,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 7,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 8,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = 1 },
+        .animationId          = 17,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 8,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 /// Arrival-scene clip 18 for the first scripted walker, restarting without interpolation.
