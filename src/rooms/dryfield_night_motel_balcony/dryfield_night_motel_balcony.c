@@ -78,6 +78,11 @@ enum {
 #define ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG roomVariantMotelBalconyDoorsMsg
 #include "../../shared/room_variants_motel_balcony_doors.inc.c"
 
+/// Selects the balcony sound-message definition shared by this overlay's TUs.
+///
+/// The private header declares the s32 (Task*, s32, s32, s32) handler before
+/// inclusion, with external linkage for the room message table in the data TU.
+/// The fragment undefines this function-identifier binding after its definition.
 #define MOTEL_BALCONY_CUE_SOUND_MSG motelBalconyCueSoundMsg
 #include "../../shared/room_variants_motel_balcony_sound.inc.c"
 

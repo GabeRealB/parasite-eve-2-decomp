@@ -1,11 +1,15 @@
 /* Motel balcony sound cues, shared by the day and night room carriers. */
 
-/// Selects the carrier-declared s32 (Task*, s32, s32, s32) sound-cue handler.
-///
-/// The day balcony uses the private default. The night balcony binds its
-/// overlay-private `motelBalconyCueSoundMsg` around this fragment.
-/// The replacement is one function identifier, without argument evaluation.
 #ifndef MOTEL_BALCONY_CUE_SOUND_MSG
+/// Selects the function identifier for the balcony sound-message definition.
+///
+/// The day balcony uses this default; the night balcony binds its own instance
+/// before inclusion. The replacement must be one unparenthesized identifier.
+/// First declare s32 handler(Task*, s32, s32, s32) in the carrier: static for
+/// a private instance, or externally linked for one shared between overlay TUs.
+/// The carrier supplies the task types and stage-relative sound API declarations.
+/// This binding performs no calls or argument evaluation and is undefined after
+/// emitting the definition, whether supplied by the carrier or defaulted here.
 #define MOTEL_BALCONY_CUE_SOUND_MSG _motelBalconyCueSoundMsg
 
 /// Queues the balcony sound script selected by CAP cue 8 or 9.
