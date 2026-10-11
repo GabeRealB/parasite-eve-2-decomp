@@ -308,8 +308,6 @@ typedef struct {
 } _Actor548100TexRect;
 STATIC_ASSERT_SIZEOF(_Actor548100TexRect, 0x8);
 
-extern _Actor548100TexRect D_actor_548100_801357C0[5];
-
 /// Label of one of the three wire colours beside pointers to its components.
 ///
 /// A wire colour is three separately stored bytes: its red, green and blue at
@@ -513,7 +511,12 @@ static _Actor548100Circuit _gActor548100SecondWiringCircuits[11] = {
     { 3, 4, { { ACTOR_548100_ROUTE_SECOND_SOCKET_3, 22 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_4, 22 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
 };
 
-_Actor548100TexRect D_actor_548100_801357C0[5] = {
+/// Changed-picture rectangles for four filled battery sockets and the thrown switch.
+///
+/// Entries 0..3 follow socket order; `ACTOR_548100_PIECE_SWITCH` is the final
+/// entry. Opposite corners use pixel coordinates, shared by screen placement
+/// and the 15-bit panel texture at VRAM (384, 256).
+static _Actor548100TexRect _gActor548100PanelPieces[5] = {
     { 76, 33, 89, 47 },
     { 89, 45, 103, 59 },
     { 76, 57, 89, 71 },
@@ -1369,7 +1372,7 @@ static void _actor548100DrawPanel(Task* task)
     s32                        passageLit;
 
     socketIndex = 0;
-    socketPiece = D_actor_548100_801357C0;
+    socketPiece = _gActor548100PanelPieces;
     work        = task->work;
     for (; socketIndex < ACTOR_548100_SOCKET_COUNT; socketIndex++, socketPiece++) {
         if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(socketIndex + 1)) != 0) {
@@ -1459,7 +1462,7 @@ static void _actor548100DrawPanel(Task* task)
         gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, ACTOR_548100_PASSAGE_UNPOWERED);
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
     } else {
-        _actor548100DrawPanelPiece(&D_actor_548100_801357C0[ACTOR_548100_PIECE_SWITCH]);
+        _actor548100DrawPanelPiece(&_gActor548100PanelPieces[ACTOR_548100_PIECE_SWITCH]);
     }
 
     // Advance brightness after drawing so every wire uses the same pulse level.

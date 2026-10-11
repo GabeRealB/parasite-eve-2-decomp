@@ -219,14 +219,6 @@ extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
 /// Event script started with `evsStartScript` on arming.
 extern EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[];
 
-/// Effect record handed to `effectSpawnHit`: `coord` is the chosen part of the
-/// model and `spawnArgLo` the scale that goes with it.
-extern EffectSpawnArg gBlazeFireSpawn;
-
-/// Model parts the effect record is aimed at, as indices into the
-/// display object's coordinate array.
-extern u16 gBlazePlayerParts[];
-
 static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task);
 
 static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
@@ -402,9 +394,17 @@ s16 D_shelter_b3_garbage_incinerator_80186F88[4] = {
     0,
 };
 
-EffectSpawnArg gBlazeFireSpawn = { NULL, 0, 1 };
+/// Reusable blast-effect arguments for fire on one live player-model part.
+///
+/// Each spawn replaces the borrowed coordinate and signed low-half size;
+/// the high half stays 1. The effect copies the argument word synchronously.
+static EffectSpawnArg _gBlazePlayerFireArg = { NULL, 0, 1 };
 
-u16 gBlazePlayerParts[16] = {
+/// Sixteen player-model coordinate indices eligible for incinerator body fire.
+///
+/// Initial and small fire select the first four (2, 4, 6, 10); large recurring
+/// fire selects all sixteen. Every coordinate must remain live through spawning.
+static u16 _gBlazePlayerFireParts[16] = {
     2,
     4,
     6,

@@ -159,22 +159,6 @@ extern SVECTOR D_actor_342100_80164948[];
 extern SVECTOR D_actor_342100_80164960[];
 extern SVECTOR D_actor_342100_80164980[];
 
-/// Model/animation set `_actor342100UpdateBlazeScene` installs with
-/// `evsStartScript` on the same arm; a byte address is all the installer sees.
-extern EvsCommand D_actor_342100_801649C8[];
-
-/// Reusable hit-effect argument for fire on a selected player-model part.
-/// `coord` borrows that part's coordinate and `spawnArgLo` carries its fire size;
-/// `spawnArgHi` remains the initial repeat count 1.
-extern EffectSpawnArg gBlazeFireSpawn;
-
-/// The player-model parts the effect record above is aimed at, as indices into
-/// the player's coordinate array (`TmdObject::coords`): sixteen `u16`s
-/// running 1..0x12, of which `_blazeBodyFireTask` takes the first four
-/// (2, 4, 6, 0xA) when it masks the LCG draw with 3 and all sixteen when it
-/// masks with 0xF.
-extern u16 gBlazePlayerParts[];
-
 static s32 _gScreenWaveAmplitude;
 
 static ScreenWaveCtx* _gScreenWaveContext;
@@ -323,9 +307,17 @@ SVECTOR D_actor_342100_80164980[4] = {
     { 0, 0, 0, 0 },
 };
 
-EffectSpawnArg gBlazeFireSpawn = { NULL, 0, 1 };
+/// Reusable blast-effect arguments for fire on one live player-model part.
+///
+/// Each spawn replaces the borrowed coordinate and signed low-half size;
+/// the high half stays 1. The effect copies the argument word synchronously.
+static EffectSpawnArg _gBlazePlayerFireArg = { NULL, 0, 1 };
 
-u16 gBlazePlayerParts[16] = {
+/// Sixteen player-model coordinate indices eligible for incinerator body fire.
+///
+/// Initial and small fire select the first four (2, 4, 6, 10); large recurring
+/// fire selects all sixteen. Every coordinate must remain live through spawning.
+static u16 _gBlazePlayerFireParts[16] = {
     2,
     4,
     6,
@@ -344,18 +336,31 @@ u16 gBlazePlayerParts[16] = {
     18,
 };
 
-EvsCommand D_actor_342100_801649C8[18] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    ACTOR_342100_BLAZE_CLIP_FIRST  = 0,
+    ACTOR_342100_BLAZE_CLIP_SECOND = 1,
+    ACTOR_342100_BLAZE_CLIP_THIRD  = 2,
+    ACTOR_342100_BLAZE_FIRE_START  = 0,
+    ACTOR_342100_BLAZE_FIRE_SPREAD = 1,
+};
+
+/// Burn sequence that plays three added player clips, spreads fire and triggers death.
+///
+/// Coordinates body-fire, red/white fades, room emitters and heat haze over
+/// frame waits before the END command clears event state. The script and all
+/// callback/resource data must remain loaded until playback finishes.
+static EvsCommand _gActor342100BlazeScript[18] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = ACTOR_342100_BLAZE_CLIP_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = ACTOR_342100_BLAZE_FIRE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_FAST_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = ACTOR_342100_BLAZE_CLIP_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100SpawnBlazeFireEmitters }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100StartBlazeHeatHaze }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = ACTOR_342100_BLAZE_CLIP_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = ACTOR_342100_BLAZE_FIRE_SPREAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_SLOW_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -641,7 +646,7 @@ static s32 _actor342100UpdateBlazeScene(Task* controller)
             _actor342100CopyBlazeAnimationSets(controller);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor342100BlazeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, ACTOR_342100_BLAZE_FADE_DESCRIPTOR, 0, controller);
             work->sceneState = work->sceneState + 1;

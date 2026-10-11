@@ -150,6 +150,20 @@ typedef struct {
 } _Actor421600RouteRoamScratch;
 STATIC_ASSERT_SIZEOF(_Actor421600RouteRoamScratch, 0x3C);
 
+/// One full-word X/Z waypoint, narrowed to halfwords when installed in patrol work.
+typedef struct {
+    s32 x; // Root-parent X coordinate; copied as a word before narrowing
+    s32 z; // Root-parent Z coordinate; copied as a word before narrowing
+} _Actor421600PatrolPoint32;
+STATIC_ASSERT_SIZEOF(_Actor421600PatrolPoint32, 8);
+
+/// Two-point routes for the two placement classes in one player quadrant.
+typedef struct {
+    _Actor421600PatrolPoint32 placementZero[2];   // Enemy placement index 0
+    _Actor421600PatrolPoint32 otherPlacements[2]; // Every other enemy placement index
+} _Actor421600PatrolRouteRow;
+STATIC_ASSERT_SIZEOF(_Actor421600PatrolRouteRow, 32);
+
 extern DesertChaserVariant D_actor_421600_8013EF48[];
 extern u8                  D_actor_421600_80151028[];
 // Message-table callbacks use the argument views required by this TU.
@@ -171,9 +185,6 @@ extern SVECTOR D_actor_421600_80151158[];
 
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
-
-/// Two XZ waypoint pairs for each place-key mode, indexed by zone.
-extern s32 D_actor_421600_801511D4[][8];
 
 /// The records closing four of the overlay's model streams, which the
 /// death-tick frames point `gEffectBurstTaskDescriptors[5].data.model` at before each `effectSpawn`.
@@ -1295,11 +1306,16 @@ s8 D_actor_421600_801511D0[4] = {
     2,
 };
 
-s32 D_actor_421600_801511D4[4][8] = {
-    { 0x1F948, 538, 0x1FAC1, 2373, 0x1038C, 0xF78A, 0x108BC, 0xF930 },
-    { 0x102D1, 751, 0x101C1, 2219, 0x1022D, 2329, 0x106DC, 0xFB69 },
-    { 0x1F948, 538, 0x1FAC1, 2373, 0x10247, 2114, 0x10842, 1445 },
-    { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
+/// Two authored patrol routes per player quadrant, in full-word root-parent units.
+///
+/// Rows are +X/+Z, nonpositive X/+Z, +X/nonpositive Z, nonpositive X/Z.
+/// Each route has two alternating points; its placement class chooses the pair.
+/// Word values deliberately narrow to signed halfwords in the consumer.
+static _Actor421600PatrolRouteRow _gActor421600PatrolRoutes[4] = {
+    { { { 0x1F948, 538 }, { 0x1FAC1, 2373 } }, { { 0x1038C, 0xF78A }, { 0x108BC, 0xF930 } } },
+    { { { 0x102D1, 751 }, { 0x101C1, 2219 } }, { { 0x1022D, 2329 }, { 0x106DC, 0xFB69 } } },
+    { { { 0x1F948, 538 }, { 0x1FAC1, 2373 } }, { { 0x10247, 2114 }, { 0x10842, 1445 } } },
+    { { { 0x1F7BC, 1553 }, { 0x1FBDC, 1606 } }, { { 0x10459, 0xF66F }, { 0x106C9, 0xFB85 } } },
 };
 
 TaskDesc gActor421600DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor421600DesertChaserBody } };
@@ -3683,22 +3699,22 @@ static __inline__ s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
 /// Loads both patrol points for one quadrant and this enemy's placement class.
 ///
 /// `playerQuadrant` must point to a live signed-halfword row index 0..3.
-/// Placement zero uses columns 0..3; every other placement index uses columns
-/// 4..7. Rereads the row for each component and copies both XZ points into the work;
+/// Placement zero uses `placementZero`; every other placement index uses
+/// `otherPlacements`. Rereads the row for each component and copies both XZ points into the work;
 /// source words narrow to signed halfwords in root-parent coordinate units.
 /// Does not change the current patrol target or retain the borrowed pointers.
 static inline void _actor421600SelectPatrolRoute(DesertChaserWork* work, const Enemy* enemy, const s16* playerQuadrant)
 {
     if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-        work->patrolPoints[0].x = D_actor_421600_801511D4[*playerQuadrant][0];
-        work->patrolPoints[0].z = D_actor_421600_801511D4[*playerQuadrant][1];
-        work->patrolPoints[1].x = D_actor_421600_801511D4[*playerQuadrant][2];
-        work->patrolPoints[1].z = D_actor_421600_801511D4[*playerQuadrant][3];
+        work->patrolPoints[0].x = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].x;
+        work->patrolPoints[0].z = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].z;
+        work->patrolPoints[1].x = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].x;
+        work->patrolPoints[1].z = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].z;
     } else {
-        work->patrolPoints[0].x = D_actor_421600_801511D4[*playerQuadrant][4];
-        work->patrolPoints[0].z = D_actor_421600_801511D4[*playerQuadrant][5];
-        work->patrolPoints[1].x = D_actor_421600_801511D4[*playerQuadrant][6];
-        work->patrolPoints[1].z = D_actor_421600_801511D4[*playerQuadrant][7];
+        work->patrolPoints[0].x = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].x;
+        work->patrolPoints[0].z = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].z;
+        work->patrolPoints[1].x = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].x;
+        work->patrolPoints[1].z = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].z;
     }
 }
 
@@ -4338,7 +4354,7 @@ static void _actor421600IgnoreMessage2015(Task* task, s32 messageId, s32 unusedA
 
 /// The enemy task's state handlers - spawn, per-frame tick and teardown - run by
 /// `_desertChaserTask`.
-static const DesertChaserTaskStates gDesertChaserTaskStates = {
+static const DesertChaserTaskStates _gDesertChaserTaskStates = {
     {
         _actor421600Spawn,
         _actor421600FrameState,

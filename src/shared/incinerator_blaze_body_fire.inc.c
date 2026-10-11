@@ -6,17 +6,17 @@
 
 /// Binds the shared fire argument to a selected player part and emits one blast.
 ///
-/// Requires the carrier's sixteen-entry gBlazePlayerParts and reusable
-/// gBlazeFireSpawn, plus a live player model containing the selected part.
+/// Requires the carrier's sixteen-entry _gBlazePlayerFireParts and reusable
+/// _gBlazePlayerFireArg, plus a live player model containing the selected part.
 /// playerTask is evaluated twice; partIndex and fireSize once. Arguments must
 /// be stable, side-effect-free expressions. fireSize narrows to the signed low
 /// half of the spawn word. The stored coordinate is borrowed by the effect;
 /// the macro owns no storage and expands to one statement.
-#define BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, fireSize)                                        \
-    do {                                                                                                \
-        gBlazeFireSpawn.spawnArgLo = (fireSize);                                                        \
-        gBlazeFireSpawn.coord      = &(playerTask)->extra.tmd->coords[gBlazePlayerParts[(partIndex)]];  \
-        effectSpawnHit(EFFECT_HIT_KIND_BLAST, (playerTask)->extra.tmd->coords, NULL, &gBlazeFireSpawn); \
+#define BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, fireSize)                                                 \
+    do {                                                                                                         \
+        _gBlazePlayerFireArg.spawnArgLo = (fireSize);                                                            \
+        _gBlazePlayerFireArg.coord      = &(playerTask)->extra.tmd->coords[_gBlazePlayerFireParts[(partIndex)]]; \
+        effectSpawnHit(EFFECT_HIT_KIND_BLAST, (playerTask)->extra.tmd->coords, NULL, &_gBlazePlayerFireArg);     \
     } while (0)
 
 /// Spawns incinerator fire on randomly selected parts of the live player model.
@@ -63,7 +63,7 @@ static void _blazeBodyFireTask(Task* task)
             if (gDisplayState.animFrame & (BLAZE_BODY_FIRE_LARGE_FRAME_PERIOD - 1)) {
                 return;
             }
-            partIndex &= ARRAY_SIZE(gBlazePlayerParts) - 1;
+            partIndex &= ARRAY_SIZE(_gBlazePlayerFireParts) - 1;
             BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, BLAZE_BODY_FIRE_LARGE_SIZE);
             return;
     }

@@ -53,8 +53,8 @@ static void _desertChaserSpawn(Enemy* enemy, Task* task)
     enemy->hp                     = 0;
     enemy->recs                   = 0;
     // Both rigs share the carrier's animation source, with separate pose storage.
-    animationInitContext(&work->rig.anim, (AnimationSet**)gRigAnimSource, model, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, (AnimationSet**)gRigAnimSource, model, work->blend.poses, work->blend.slots);
+    animationInitContext(&work->rig.anim, _gDesertChaserAnimationSource.sets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, _gDesertChaserAnimationSource.sets, model, work->blend.poses, work->blend.slots);
     work->animRequest   = DESERT_CHASER_ANIM_REQUEST_RESET;
     work->animId        = DESERT_CHASER_CUTSCENE_INITIAL_CLIP;
     work->blendActive   = 0;
@@ -63,7 +63,7 @@ static void _desertChaserSpawn(Enemy* enemy, Task* task)
     work->baseRate      = ANIMATION_RATE_ONE;
     work->animRate      = ANIMATION_RATE_ONE;
     _desertChaserAnimTick(task);
-    task->msgTable          = gRigMessages;
+    task->msgTable          = _gDesertChaserMessages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -71,9 +71,9 @@ static void _desertChaserSpawn(Enemy* enemy, Task* task)
     lightingPosition.vy = rootCoord->workm.t[1];
     lightingPosition.vz = rootCoord->workm.t[2];
     worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
-    gRigEffectRec.effectArg.coord      = task->extra.tmd->coords;
-    gRigEffectRec.effectArg.spawnArgLo = DESERT_CHASER_CUTSCENE_EFFECT_MAGNITUDE;
-    gRigEffectRec.effectArg.spawnArgHi = DESERT_CHASER_CUTSCENE_EFFECT_COUNT;
-    work->state                        = DESERT_CHASER_STATE_HIDDEN;
+    _gDesertChaserEffectArg.effectArg.coord      = task->extra.tmd->coords;
+    _gDesertChaserEffectArg.effectArg.spawnArgLo = DESERT_CHASER_CUTSCENE_EFFECT_MAGNITUDE;
+    _gDesertChaserEffectArg.effectArg.spawnArgHi = DESERT_CHASER_CUTSCENE_EFFECT_COUNT;
+    work->state                                  = DESERT_CHASER_STATE_HIDDEN;
     task->state++;
 }

@@ -103,10 +103,9 @@ enum {
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry D_actor_420700_8013EF48[4];
-extern u8               D_actor_420700_8013EF8C[];
-extern s32              D_actor_420700_8013EFF0;
-extern s32              D_actor_420700_8013EFF4;
+extern s32 D_actor_420700_8013EFF0;
+/// Word initialized to 150 at body spawn; no reader or further role is established.
+extern s32 D_actor_420700_8013EFF4;
 
 static TmdSource _gActor420700GaryDouglasBody;
 static TmdSource _gActor420700GaryDouglasHeadHat;
@@ -934,7 +933,10 @@ static AnimationSet _gActor420700Animation0D100 = {
     { NULL, _gActor420700Animation0D100Bank1, NULL, NULL, _gActor420700Animation0D100Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_actor_420700_8013EF48[4] = {
+/// Gary Douglas's animation, drawing and head-turn messages, ending at the sentinel.
+///
+/// Animation and command payloads are borrowed during synchronous dispatch.
+static TaskMessageEntry _gActor420700Messages[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor420700HandleAnimationMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor420700HandleModelDrawMessage },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor420700HandleHeadTurnCommand },
@@ -947,91 +949,32 @@ TaskDesc gActor420700GaryDouglasTaskDescriptors[3] = {
     { { { TASK_BODY_TMD, 192 } }, _actor420700ShotgunTask, { .model = &_gActor420700GaryDouglasShotgun } },
 };
 
-u8 D_actor_420700_8013EF8C[84] = {
-    0,
-    0,
-    0,
-    0,
-    132,
-    194,
-    19,
-    128,
-    48,
-    196,
-    19,
-    128,
-    220,
-    197,
-    19,
-    128,
-    140,
-    199,
-    19,
-    128,
-    132,
-    203,
-    19,
-    128,
-    60,
-    205,
-    19,
-    128,
-    8,
-    207,
-    19,
-    128,
-    208,
-    209,
-    19,
-    128,
-    156,
-    211,
-    19,
-    128,
-    252,
-    213,
-    19,
-    128,
-    240,
-    215,
-    19,
-    128,
-    132,
-    218,
-    19,
-    128,
-    120,
-    220,
-    19,
-    128,
-    112,
-    223,
-    19,
-    128,
-    240,
-    226,
-    19,
-    128,
-    132,
-    229,
-    19,
-    128,
-    236,
-    231,
-    19,
-    128,
-    40,
-    234,
-    19,
-    128,
-    44,
-    237,
-    19,
-    128,
-    32,
-    239,
-    19,
-    128,
+/// Gary Douglas's clip directory, borrowed by the body rig while this overlay is loaded.
+///
+/// Index 0 is unavailable; indices 1..20 select the loaded descriptors. Request
+/// selectors add 0, 10 or 17 to their local ID; the resulting index must be 1..20.
+static AnimationSet* _gActor420700AnimationSets[21] = {
+    NULL,
+    &_gActor420700Animation0A464,
+    &_gActor420700Animation0A610,
+    &_gActor420700Animation0A7BC,
+    &_gActor420700Animation0A96C,
+    &_gActor420700Animation0AD64,
+    &_gActor420700Animation0AF1C,
+    &_gActor420700Animation0B0E8,
+    &_gActor420700Animation0B3B0,
+    &_gActor420700Animation0B57C,
+    &_gActor420700Animation0B7DC,
+    &_gActor420700Animation0B9D0,
+    &_gActor420700Animation0BC64,
+    &_gActor420700Animation0BE58,
+    &_gActor420700Animation0C150,
+    &_gActor420700Animation0C4D0,
+    &_gActor420700Animation0C764,
+    &_gActor420700Animation0C9CC,
+    &_gActor420700Animation0CC08,
+    &_gActor420700Animation0CF0C,
+    &_gActor420700Animation0D100,
 };
 
 /// Borrowed body task of this singleton scripted NPC.
@@ -1105,11 +1048,11 @@ static void _actor420700Spawn(Enemy* enemy, Task* task)
     D_actor_420700_8013EFF4 = 150; // No reader is recovered; the stored value's role is unproven.
     lightingPosition.vz     = rootCoord->workm.t[2];
     worldCoordSetModelLighting(bodyModel, &lightingPosition, 0, ACTOR_420700_SPAWN_LIGHT_COUNT);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, bodyModel,
+    animationInitContext(&_gScriptedWalkWork->rig.anim, _gActor420700AnimationSets, bodyModel,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
     _gScriptedWalkWork->st.animId = ACTOR_420700_SPAWN_IDLE_CLIP;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable                = D_actor_420700_8013EF48;
+    task->msgTable                = _gActor420700Messages;
     _actor420700UpdateAnimation(task);
     task->state++;
 }

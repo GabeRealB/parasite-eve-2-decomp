@@ -508,7 +508,7 @@ actor503500ClearFadeFromBlackHandle = 0x80132F58; // type:func absolute:True own
 D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
 gActor151000GardenArrivalScript = 0x801334EC; // absolute:True owner=actor_151000
 gActor143900ObservatoryEntryScript = 0x80133560; // absolute:True owner=actor_143900
-gActor143900ObservatoryEntrySkipScript = 0x80133860; // absolute:True owner=actor_143900 shared=actors
+gActor143900ObservatoryEntrySkipScript = 0x80133860; // absolute:True owner=actor_143900
 D_actor_535700_80133898 = 0x80133898; // absolute:True owner=actor_535700
 gActor151000GardenArrivalSkipScript = 0x80133954; // absolute:True owner=actor_151000
 gActor461800NeoArkSceneScript = 0x80133F90; // absolute:True owner=actor_461800

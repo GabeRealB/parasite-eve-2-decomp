@@ -249,7 +249,7 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
 
 static s32 _actor00100IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra);
 
-static const DesertChaserTaskStates gDesertChaserTaskStates;
+static const DesertChaserTaskStates _gDesertChaserTaskStates;
 
 static void _actor00100HideState(Task* task);
 
@@ -3348,7 +3348,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
 
 /// The task's handlers, indexed by `Task::state`: set-up, the per-frame state
 /// dispatch, a wait for the pending release before advancing, and teardown.
-static const DesertChaserTaskStates gDesertChaserTaskStates = { {
+static const DesertChaserTaskStates _gDesertChaserTaskStates = { {
     _actor00100SpawnBattleState,
     _actor00100FrameState,
     _actor00100ReleaseBattleState,

@@ -41,9 +41,6 @@ STATIC_ASSERT_SIZEOF(_Actor503500SliderWork, 0x48);
 
 static void _actor503500SliderExit(Task* task);
 static void _actor503500SliderBindLighting(Task* task);
-/// Script pair handed to `padScriptSpawn` on every odd pulse frame.
-extern PadScriptCmd              D_actor_503500_801468A8[2];
-extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
 /// Two 360-entry X/Z paths `_actor503500SliderUpdate` walks the model along,
 /// selected by `_Actor503500SliderWork::path` (1 or 2).
 extern DVECTOR_XZ D_actor_503500_80147D90[];
@@ -64,12 +61,23 @@ TaskMessageEntry D_actor_503500_80146888[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-PadScriptCmd D_actor_503500_801468A8[2] = {
+/// Two-step slider pulse: idle binary motor, play variable segment 1, then stop.
+///
+/// Odd eligible slider ticks spawn a task borrowing these commands and
+/// `_gActor503500SliderVibrationSegments` until both lanes stop.
+static PadScriptCmd _gActor503500SliderVibrationCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_503500_801468B0[2] = { { 0, 0, 2, 0 }, { 156, 106, 2, 1 } };
+/// Two-frame vibration segments for the slider pulse's variable motor.
+///
+/// Only entry 1 is played, ramping intensity from 156 toward 106. Entry 0 is
+/// silent and unused. The final authored bytes (0, 1) are ignored by the interpreter.
+static PadScriptVibrationSegment _gActor503500SliderVibrationSegments[2] = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
+    { .startIntensity = 156, .endIntensity = 106, .durationFrames = 2, .field_3 = 1 },
+};
 
 static TmdBone _gActor503500Model14DA0Skeleton[1] = {
 #include "assets/actor_503500_model_14DA0_skeleton.inc"
@@ -152,7 +160,7 @@ static inline void _actor503500SliderPulseShake(const Enemy* enemy, const _Actor
 
     if (!(enemy->placeKey & ACTOR_503500_SLIDER_SHAKE_KEY_MASK)) {
         if (work->timer & 1) {
-            padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
+            padScriptSpawn(_gActor503500SliderVibrationCommands, _gActor503500SliderVibrationSegments);
             displaySetShakeY(ACTOR_503500_SLIDER_SHAKE_Y);
         } else {
             displaySetShakeY(0);

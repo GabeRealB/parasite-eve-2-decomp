@@ -93,7 +93,11 @@ static SVECTOR ActorContact_ScratchPosition;
 /// have no established role and remain in `OddStrangerTransformStorage`.
 static OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
 
-extern GameActorButtonPressHold D_actor_401800_80155AF8;
+/// Borrowed player hold request requiring eight presses to escape this grab.
+///
+/// Only `pressCount` is set. The addressed player implements the hold and ignores
+/// the generic animation fallback; dispatch consumes this record synchronously.
+static GameActorButtonPressHold _gActor401800GrabButtonPressHold;
 
 static AnimationSet _gActor401800Animation1F3F4;
 static AnimationSet _gActor401800Animation1FDEC;
@@ -1113,7 +1117,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-GameActorButtonPressHold D_actor_401800_80155AF8;
+static GameActorButtonPressHold _gActor401800GrabButtonPressHold;
 
 static void _actor401800BurstDeath(Task* task);
 
@@ -1687,8 +1691,8 @@ static void _actor401800Grab(Task* task)
         if (turnError < ACTOR_401800_GRAB_TURN_LIMIT) {
             if (!_oddStrangerOutOfRange(&separation, ACTOR_401800_GRAB_HOLD_RANGE)) {
                 _actor401800SelectPlayerGrabAnimations();
-                D_actor_401800_80155AF8.pressCount = ACTOR_401800_GRAB_ESCAPE_PRESSES;
-                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401800_80155AF8, 0) == 0) {
+                _gActor401800GrabButtonPressHold.pressCount = ACTOR_401800_GRAB_ESCAPE_PRESSES;
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor401800GrabButtonPressHold, 0) == 0) {
                     work->state                                         = ODD_STRANGER_STATE_GRAB_PULL;
                     work->playerHeld                                    = 1;
                     _gOddStrangerPlayerGrabAnimationRequest.animationId = ACTOR_401800_PLAYER_GRAB_ANIMATION;

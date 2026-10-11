@@ -63,7 +63,36 @@ typedef EnemyTaskFuncTable4 DesertChaserTaskStates;
 typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #endif
 
+/// One tuning of the armed chaser: the four timings a chaser keeps in its
+/// work block from the moment it is set up.
+///
+/// Both armed packages define the same four tunings. The low four bits of the
+/// spawn argument pick one of the first three -- 2 the first, 1 the third,
+/// anything else the second -- and their down time and windup shorten in
+/// that order. The regular build gives the fourth to a chaser the Dryfield
+/// breezeway's command 2 sets pursuing; the Water Tower build never reads it.
+/// Each member seeds the `DesertChaserWork` member of the same name.
+typedef struct {
+    u16 downFramesBase;     // Ticks the downed state lasts, before a random 0..15 more
+    s16 windupFrames;       // Ticks the pursuit crouches before it may lunge
+    s16 roamLookDelay;      // Ticks a roam runs before it looks for the player
+    u16 chaseHoldoffFrames; // Ticks a pack command keeps the roam from starting a pursuit
+} DesertChaserVariant;
+STATIC_ASSERT_SIZEOF(DesertChaserVariant, 0x8);
+
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+/// Animation-source storage containing clip pointers and unaccessed trailing bytes.
+///
+/// Both rigs borrow the pointer region while the overlay remains loaded; only
+/// populated clip indices may be played. The original directory boundary within
+/// or after that region is unproven. The remaining 120 bytes have no recovered
+/// use, and their original object boundaries and meaning are also unproven.
+typedef struct {
+    AnimationSet* sets[55];        // Native descriptor-pointer region; original directory extent unproven
+    u8            unknown_DC[120]; // Following image bytes; role and original ownership unproven
+} DesertChaserAnimationSourceStorage;
+STATIC_ASSERT_SIZEOF(DesertChaserAnimationSourceStorage, 340);
+
 /// Allocation holding the cutscene build's contact push step.
 ///
 /// `step` is the vector `_actorContactGetLastPushStep` hands the contact
@@ -483,23 +512,6 @@ typedef struct {
     TaskFunc handlers[DESERT_CHASER_STATE_COUNT]; // Handler of each state, taking the chaser's task
 } DesertChaserStateTable;
 STATIC_ASSERT_SIZEOF(DesertChaserStateTable, DESERT_CHASER_STATE_COUNT * sizeof(TaskFunc));
-
-/// One tuning of the armed chaser: the four timings a chaser keeps in its
-/// work block from the moment it is set up.
-///
-/// Both armed packages define the same four tunings. The low four bits of the
-/// spawn argument pick one of the first three -- 2 the first, 1 the third,
-/// anything else the second -- and their down time and windup shorten in
-/// that order. The regular build gives the fourth to a chaser the Dryfield
-/// breezeway's command 2 sets pursuing; the Water Tower build never reads it.
-/// Each member seeds the `DesertChaserWork` member of the same name.
-typedef struct {
-    u16 downFramesBase;     // Ticks the downed state lasts, before a random 0..15 more
-    s16 windupFrames;       // Ticks the pursuit crouches before it may lunge
-    s16 roamLookDelay;      // Ticks a roam runs before it looks for the player
-    u16 chaseHoldoffFrames; // Ticks a pack command keeps the roam from starting a pursuit
-} DesertChaserVariant;
-STATIC_ASSERT_SIZEOF(DesertChaserVariant, 0x8);
 
 /// Scratch-stack block of the armed chaser's damage step, which runs every
 /// frame the chaser has health left.

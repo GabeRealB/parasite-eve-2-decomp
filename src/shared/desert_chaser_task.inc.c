@@ -10,6 +10,6 @@ static void _desertChaserTask(Task* task)
 {
     DesertChaserTaskStates states;
 
-    states = gDesertChaserTaskStates;
+    states = _gDesertChaserTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

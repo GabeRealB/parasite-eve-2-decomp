@@ -284,6 +284,34 @@ typedef struct {
 } _Actor00300FireballWork;
 STATIC_ASSERT_SIZEOF(_Actor00300FireballWork, 0x8C);
 
+static SVECTOR _gActor00300MineCavernPatrolMode0Points[4];
+
+static SVECTOR _gActor00300MineSecretPassagePatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB1ElevatorHallPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB1StoreroomPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB1NorthMaintenanceWalkwayPatrolMode0Points[4];
+
+static SVECTOR _gActor00300ShelterB1MainCorridorPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB1TransferTunnelPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB2ElevatorHallPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB2PodAccessTunnelPatrolMode0Points[4];
+
+static SVECTOR _gActor00300ShelterB3ElevatorHallPatrolMode0Points[2];
+
+static SVECTOR _gActor00300ShelterB4UpperSewerPatrolMode0Points[2];
+
+static SVECTOR _gActor00300NeoArkNorthPromenadePatrolMode0Points[2];
+
+static SVECTOR _gActor00300DryfieldMotelBalconyPatrolMode0Points[4];
+
+static SVECTOR _gActor00300DryfieldNightMainStreetPatrolMode0Points[2];
+
 static void _actor00300TickEvent(Enemy* enemy, Task* task);
 static void _actor00300TickCombat(Enemy* enemy, Task* task);
 
@@ -314,12 +342,9 @@ static void _actor00300SetRootScaleY(Task* task, const MATRIX* unscaledMatrix, s
 static void _actor00300InitDrainModel(Enemy* enemy, Task* task);
 static void _actor00300TeardownFireball(Enemy* enemy, Task* task);
 
-extern _Actor00300PatrolRoom Actor00300_D16020[15];
-extern SVECTOR*              Actor00300_D16278[15][2];
 // Typed callback views for the task message dispatcher.
 
-extern TaskMessageEntry Actor00300_D16314[5];
-extern AnimationSet*    Actor00300_D1633C[22];
+extern AnimationSet* Actor00300_D1633C[22];
 
 /// Enemy task states: 0 initialization, 1 event/combat update, 2 death.
 ///
@@ -1123,22 +1148,27 @@ static s16 _gActor00300FireballAttackDraws[16] = {
     ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
 };
 
-_Actor00300PatrolRoom Actor00300_D16020[15] = {
-    { 1, 4, 2, 4 },
-    { 2, 4, 8, 2 },
-    { 3, 4, 9, 2 },
-    { 4, 4, 11, 2 },
-    { 5, 4, 12, 4 },
-    { 6, 4, 15, 2 },
-    { 7, 4, 24, 2 },
-    { 8, 4, 27, 2 },
-    { 9, 4, 35, 4 },
-    { 10, 4, 42, 2 },
-    { 11, 4, 44, 2 },
-    { 12, 5, 10, 2 },
-    { 13, 2, 29, 4 },
-    { 14, 3, 2, 2 },
-    { 0, 0, 0, 0 },
+/// Room keys selecting a cyclic patrol route, ending at route row zero.
+///
+/// Each count is the full route extent in points. A room's placement mode must
+/// select a loaded column of `_gActor00300PatrolRoutes`; an absent room leaves
+/// the initialized enemy with no patrol route.
+static _Actor00300PatrolRoom _gActor00300PatrolRooms[15] = {
+    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, ARRAY_SIZE(_gActor00300MineCavernPatrolMode0Points) },
+    { 2, GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, ARRAY_SIZE(_gActor00300MineSecretPassagePatrolMode0Points) },
+    { 3, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, ARRAY_SIZE(_gActor00300ShelterB1ElevatorHallPatrolMode0Points) },
+    { 4, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, ARRAY_SIZE(_gActor00300ShelterB1StoreroomPatrolMode0Points) },
+    { 5, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, ARRAY_SIZE(_gActor00300ShelterB1NorthMaintenanceWalkwayPatrolMode0Points) },
+    { 6, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, ARRAY_SIZE(_gActor00300ShelterB1MainCorridorPatrolMode0Points) },
+    { 7, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, ARRAY_SIZE(_gActor00300ShelterB1TransferTunnelPatrolMode0Points) },
+    { 8, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, ARRAY_SIZE(_gActor00300ShelterB2ElevatorHallPatrolMode0Points) },
+    { 9, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, ARRAY_SIZE(_gActor00300ShelterB2PodAccessTunnelPatrolMode0Points) },
+    { 10, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, ARRAY_SIZE(_gActor00300ShelterB3ElevatorHallPatrolMode0Points) },
+    { 11, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, ARRAY_SIZE(_gActor00300ShelterB4UpperSewerPatrolMode0Points) },
+    { 12, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, ARRAY_SIZE(_gActor00300NeoArkNorthPromenadePatrolMode0Points) },
+    { 13, GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, ARRAY_SIZE(_gActor00300DryfieldMotelBalconyPatrolMode0Points) },
+    { 14, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_MAIN_STREET, ARRAY_SIZE(_gActor00300DryfieldNightMainStreetPatrolMode0Points) },
+    { 0, GAME_STAGE_NONE, 0, 0 },
 };
 
 /// Cyclic patrol points for Mine Cavern placements in mode 0.
@@ -1345,7 +1375,12 @@ static SVECTOR _gActor00300DryfieldNightMainStreetPatrolMode1Points[2] = {
     { -1000, 0, 6300, 0 },
 };
 
-SVECTOR* Actor00300_D16278[15][2] = {
+/// Room patrol routes indexed by route row 0..14 and placement mode 0..1.
+///
+/// Row zero is unavailable. Other rows belong to `_gActor00300PatrolRooms`;
+/// each non-NULL array contains that room's point count. Authored placements
+/// select only loaded columns. X/Z use root-parent units; Y is ignored.
+static SVECTOR* _gActor00300PatrolRoutes[15][2] = {
     { NULL, NULL },
     { _gActor00300MineCavernPatrolMode0Points, _gActor00300MineCavernPatrolMode1Points },
     { _gActor00300MineSecretPassagePatrolMode0Points, _gActor00300MineSecretPassagePatrolMode1Points },
@@ -1369,7 +1404,10 @@ TaskDesc gActor00300Tasks[3] = {
     { { { TASK_BODY_COORD, ACTOR_00300_TASK_PRIORITY } }, _actor00300FireballTask, { .value = 0 } },
 };
 
-TaskMessageEntry Actor00300_D16314[5] = {
+/// Enemy animation, placement, drawing and command messages with an end sentinel.
+///
+/// Installed for the enemy task; pointer payloads remain borrowed during dispatch.
+static TaskMessageEntry _gActor00300Messages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor00300MsgPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor00300MsgSetModelDraw },
@@ -1539,13 +1577,13 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     task->work             = work;
     work->patrolPoints     = NULL;
     work->patrolPointCount = 0;
-    for (patrolRoomIndex = 0; Actor00300_D16020[patrolRoomIndex].routeRow != 0; patrolRoomIndex++) {
-        if ((gGameSession->location.loc.stage == Actor00300_D16020[patrolRoomIndex].stage) &&
-            (gGameSession->location.loc.area == Actor00300_D16020[patrolRoomIndex].area)) {
+    for (patrolRoomIndex = 0; _gActor00300PatrolRooms[patrolRoomIndex].routeRow != 0; patrolRoomIndex++) {
+        if ((gGameSession->location.loc.stage == _gActor00300PatrolRooms[patrolRoomIndex].stage) &&
+            (gGameSession->location.loc.area == _gActor00300PatrolRooms[patrolRoomIndex].area)) {
             work->patrolPoints =
-                Actor00300_D16278[Actor00300_D16020[patrolRoomIndex].routeRow]
-                                 [enemy->place->mode];
-            work->patrolPointCount = Actor00300_D16020[patrolRoomIndex].pointCount;
+                _gActor00300PatrolRoutes[_gActor00300PatrolRooms[patrolRoomIndex].routeRow]
+                                        [enemy->place->mode];
+            work->patrolPointCount = _gActor00300PatrolRooms[patrolRoomIndex].pointCount;
         }
     }
     work->notLockable       = enemy->place->variant;
@@ -1643,7 +1681,7 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     worldCollisionInitContacts(drainContacts, ARRAY_SIZE(work->drainContacts), 0);
     gStageCountdownMusicEntry = ACTOR_00300_SCENE_MUSIC_ENTRY;
     work->drainBody.flags     = work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->msgTable            = Actor00300_D16314;
+    task->msgTable            = _gActor00300Messages;
     task->state               = ACTOR_00300_TASK_ACTIVE;
 }
 #undef ACTOR_00300_BIND_DRAIN_TEXTURE
@@ -3718,11 +3756,11 @@ static const EnemyTaskFuncTable3 _gActor00300DrainModelTaskStates = {
     },
 };
 
-/// State handlers of the task `_actor00300FireballTask` dispatches, indexed by
-/// `Task::state`. The first sets the task up and moves it to state 1, the
-/// second moves it on to state 2, and the third destroys it once its timer
-/// has run out.
-static const EnemyTaskFuncTable3 Actor00300_D00048 = {
+/// Fireball lifecycle handlers: initialization, flight and delayed teardown.
+///
+/// Indexed by `Task::state` in 0..2 and copied as one value before dispatch.
+/// Each callback receives the live enemy and coordinate-body task.
+static const EnemyTaskFuncTable3 _gActor00300FireballTaskStates = {
     {
         _actor00300InitFireball,
         _actor00300FlyFireball,
@@ -4004,7 +4042,7 @@ static void _actor00300FireballTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor00300_D00048;
+    handlers = _gActor00300FireballTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

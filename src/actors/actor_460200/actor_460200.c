@@ -115,6 +115,8 @@ enum {
     ACTOR_460200_CAP_SOLDIER_C_REPEAT_TALK = 10,
     ACTOR_460200_CAP_SOLDIER_A_FIRST_TALK  = 11,
     ACTOR_460200_CAP_SOLDIER_A_SECOND_TALK = 12,
+    ACTOR_460200_CAP_SOLDIER_A_THIRD_TALK  = 13,
+    ACTOR_460200_CAP_SOLDIER_A_REPEAT_TALK = 14,
 };
 
 /// The complete word span installed in the player's animation-bank extension.
@@ -138,9 +140,6 @@ static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, 
 // Message-table callbacks use the argument views required by this TU.
 
 static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
-
-extern EvsCommand D_actor_460200_80138028[];
-extern EvsCommand D_actor_460200_80138070[];
 
 static void _actorRenderDrawSecondFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierBAnim(Task* task);
@@ -1179,14 +1178,24 @@ static EvsCommand _gActor460200SoldierASecondTalkScript[] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80138028[3] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
+/// Soldier A's third tent conversation.
+///
+/// Starts its CAP dialogue and borrows `_gActor460200SoldierATalkScript` for
+/// animation choreography and player-control release, then ends. Both scripts
+/// and their clip resources stay loaded through playback.
+static EvsCommand _gActor460200SoldierAThirdTalkScript[3] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_A_THIRD_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor460200SoldierATalkScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_460200_80138070[3] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+/// Soldier A's repeating fourth tent conversation.
+///
+/// Starts its CAP dialogue and borrows `_gActor460200SoldierATalkScript` for
+/// animation choreography and player-control release, then ends. Both scripts
+/// and their clip resources stay loaded through playback.
+static EvsCommand _gActor460200SoldierARepeatTalkScript[3] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_A_REPEAT_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor460200SoldierATalkScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -2536,11 +2545,11 @@ void actor460200TalkToSoldierA(void)
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_THIRD);
             break;
         case ACTOR_460200_TALK_THIRD:
-            evsStartScript(D_actor_460200_80138028, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierAThirdTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_REPEAT);
             break;
         case ACTOR_460200_TALK_REPEAT:
-            evsStartScript(D_actor_460200_80138070, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor460200SoldierARepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }

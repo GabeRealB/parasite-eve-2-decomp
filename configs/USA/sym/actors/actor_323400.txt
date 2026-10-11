@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_323400.
 _gDesertChaserClipBlendFrames = 0x80170894; // size:0x7EC defined:True
-gRigAnimSource = 0x80171080; // size:0x154 defined:True
-gRigMessages = 0x801711D4; // size:0x38 defined:True
+_gDesertChaserAnimationSource = 0x80171080; // size:0x154 defined:True
+_gDesertChaserMessages = 0x801711D4; // size:0x38 defined:True
 gActor323400DesertChaserTaskDesc = 0x8017120C; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x80171218; // size:0x10 defined:True
 _gActor323400DesertChaserBodySkeleton = 0x80164D8C; // size:0x288 defined:True
@@ -110,8 +110,8 @@ _gActor323400Animation0EA4CBank4 = 0x8016FF44; // size:0x3DC defined:True
 _gActor323400Animation0EA4CRecords = 0x80170320; // size:0x528 defined:True
 _gActor323400Animation0EA4CIndices = 0x80170848; // size:0x24 defined:True
 _gActor323400Animation0EA4C = 0x8017086C; // size:0x28 defined:True
-gRigEffectRec = 0x80171228; // size:0x60 defined:True
-D_actor_323400_80164D48 = 0x80164D48; // size:0x14 defined:True
+_gDesertChaserEffectArg = 0x80171228; // size:0x60 defined:True
+_gDesertChaserAttacks = 0x80164D48; // size:0x14 defined:True
 gRigParams = 0x80164D5C; // size:0x10 defined:True
 D_actor_323400_80164D6C = 0x80164D6C; // size:0x20 defined:True
 _actorRenderYawJointInWorld = 0x80161E8C; // type:func

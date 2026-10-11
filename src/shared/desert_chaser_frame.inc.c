@@ -15,7 +15,7 @@ static void _desertChaserFrameState(Enemy* enemy, Task* task)
     work = task->work;
     // The player-slot query is retained although its result is unused.
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    states                                = gDesertChaserStates;
+    states                                = _gDesertChaserStates;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     scratch                               = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserFrameScratch);
     // Relight from the model root before dispatching behavior.

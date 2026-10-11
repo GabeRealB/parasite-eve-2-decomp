@@ -83,11 +83,7 @@ static void      _actor535700PairWalkerTask(Task* task);
 static void _actor535700SetBlackoutFrames(s32 frames);
 static void _actor535700FinishScene(void);
 
-extern ActorTransform D_actor_535700_801337D0;
-extern ActorTransform D_actor_535700_801337E8;
-extern ActorTransform D_actor_535700_80133800;
-extern ActorTransform D_actor_535700_80133818;
-static void           _actor535700BlackoutTask(Task* task);
+static void _actor535700BlackoutTask(Task* task);
 
 /// Scheduler order and whole-frame pose transition used by this scene's records.
 enum {
@@ -442,27 +438,73 @@ static ActorTransform _gActor535700PawnGolemLeftWalkTarget = {
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
 };
 
-ActorTransform D_actor_535700_801337D0 = { { 3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+/// Placement of the second scene Pawn GOLEM for its repeated walk from the right.
+///
+/// XYZ uses the root parent frame; the placement handler consumes only XYZ and yaw.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemRightPlacement = {
+    .pos = { 3670, 0, -10000, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801337E8 = { { 400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+/// Destination of the second scene Pawn GOLEM's repeated walk from the right.
+///
+/// X/Z uses the root parent frame. The target handler ignores Y and rotation.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemRightWalkTarget = {
+    .pos = { 400, 0, -10000, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133800 = { { 0, 0, -500, 0 }, { 0, -2048, 0, 0 } };
+/// Placement of the first scene Pawn GOLEM for its final walk down the centre.
+///
+/// XYZ uses the root parent frame; the placement handler consumes only XYZ and yaw.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemCenterPlacement = {
+    .pos = { 0, 0, -500, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 2, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133818 = { { 0, 0, -4500, 0 }, { 0, -2048, 0, 0 } };
+/// Destination of the first scene Pawn GOLEM's final walk down the centre.
+///
+/// X/Z uses the root parent frame. The target handler ignores Y and rotation.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemCenterWalkTarget = {
+    .pos = { 0, 0, -4500, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 2, 0, 0 }
+};
 
 ActorTransform D_actor_535700_80133830[2] = {
     { { 3500, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
     { { 0, 0, -2000, 0 }, { 0, -1024, 0, 0 } },
 };
 
-ActorTransform D_actor_535700_80133860 = { { 0, 0, -0x38A4, 0 }, { 0, -1024, 0, 0 } };
+/// Placement of the third scene Pawn GOLEM for its walk from the rear.
+///
+/// XYZ uses the root parent frame; the placement handler consumes only XYZ and yaw.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemRearPlacement = {
+    .pos = { 0, 0, -14500, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133878 = { { 0, 0, -0x3322, 0 }, { 0, -1024, 0, 0 } };
+/// Destination of the third scene Pawn GOLEM's walk from the rear.
+///
+/// X/Z uses the root parent frame. The target handler ignores Y and rotation.
+/// The scene message consumes the borrowed transform synchronously.
+static ActorTransform _gActor535700PawnGolemRearWalkTarget = {
+    .pos = { 0, 0, -13090, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-EvsSceneKey D_actor_535700_80133890 = { 3, 57, 11 };
+/// Scene/audio stream key for the Aya and three Pawn GOLEM sequence.
+///
+/// Group 3, stream 57, qualifier 11 select the loaded scene stream; this is
+/// a stream key rather than a stage/area location. Playback borrows the record.
+static EvsSceneKey _gActor535700SceneKey = { .group = 3, .streamId = 57, .subId = 11 };
 
 EvsCommand D_actor_535700_80133898[99] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_535700_80133890 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor535700SceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
@@ -524,20 +566,20 @@ EvsCommand D_actor_535700_80133898[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemLeftWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801337D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemRightPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801337E8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemRightWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801337D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemRightPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801337E8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133800 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemRightWalkTarget } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemCenterPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133818 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemCenterWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133860 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemRearPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133878 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemRearWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaFinalCenterPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
