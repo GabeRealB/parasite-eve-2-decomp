@@ -1504,136 +1504,263 @@ static AnimationSet _gGunbladeAimBackwardTurnAnimation = {
     },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0BCB4Bank1[21] = {
+/// Translation/Euler keyframes for `_gGunbladeAimForwardWalkAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeAimForwardWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0BCB4_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0BCB4Bank4[264] = {
+/// Rotation-only keyframes for `_gGunbladeAimForwardWalkAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeAimForwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0BCB4_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0BCB4Records[358] = {
+/// Forward-aim walk keyframes, footstep cues, loop jumps and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words; loop targets are absolute record indices.
+static const AnimationRecord _gGunbladeAimForwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0BCB4_records.inc"
 };
 
-static u16 _gGunbladeAnimation0BCB4Indices[20] = {
+/// Absolute record starts for `_gGunbladeAimForwardWalkAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeAimForwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0BCB4_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0BCB4 = {
-    _gGunbladeAnimation0BCB4Records,
-    _gGunbladeAnimation0BCB4Indices,
-    { NULL, _gGunbladeAnimation0BCB4Bank1, NULL, NULL, _gGunbladeAnimation0BCB4Bank4, NULL, NULL, NULL },
+/// Player forward-walking aim loop supplied by the Gunblade bank.
+///
+/// Native set 12 accompanies forward movement while aiming.
+/// Its track-1 cues drive footsteps; each track contains a loop jump.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeAimForwardWalkAnimation = {
+    .records           = _gGunbladeAimForwardWalkAnimationRecords,
+    .trackStartIndices = _gGunbladeAimForwardWalkAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeAimForwardWalkAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeAimForwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0C9C0Bank1[24] = {
+/// Translation/Euler keyframes for `_gGunbladeReloadAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeReloadAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0C9C0_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0C9C0Bank4[330] = {
+/// Rotation-only keyframes for `_gGunbladeReloadAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0C9C0_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0C9C0Records[413] = {
+/// Reload keyframes, the ammunition-load cue and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words; track 1 carries the combined cue bits.
+static const AnimationRecord _gGunbladeReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0C9C0_records.inc"
 };
 
-static u16 _gGunbladeAnimation0C9C0Indices[20] = {
+/// Absolute record starts for `_gGunbladeReloadAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0C9C0_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0C9C0 = {
-    _gGunbladeAnimation0C9C0Records,
-    _gGunbladeAnimation0C9C0Indices,
-    { NULL, _gGunbladeAnimation0C9C0Bank1, NULL, NULL, _gGunbladeAnimation0C9C0Bank4, NULL, NULL, NULL },
+/// Player reload clip supplied by the Gunblade bank.
+///
+/// Native reload sets 14 and 15 and battle-end set 20 share this clip.
+/// Its track-1 combined cue applies the ammunition load.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeReloadAnimation = {
+    .records           = _gGunbladeReloadAnimationRecords,
+    .trackStartIndices = _gGunbladeReloadAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeReloadAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0E7C4Bank1[55] = {
+/// Translation/Euler keyframes for `_gGunbladeSlashAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeSlashAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0E7C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0E7C4Bank4[803] = {
+/// Rotation-only keyframes for `_gGunbladeSlashAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeSlashAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0E7C4_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0E7C4Records[933] = {
+/// Spinning-slash keyframes and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words; this clip contains no action cues.
+static const AnimationRecord _gGunbladeSlashAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0E7C4_records.inc"
 };
 
-static u16 _gGunbladeAnimation0E7C4Indices[20] = {
+/// Absolute record starts for `_gGunbladeSlashAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeSlashAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0E7C4_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0E7C4 = {
-    _gGunbladeAnimation0E7C4Records,
-    _gGunbladeAnimation0E7C4Indices,
-    { NULL, _gGunbladeAnimation0E7C4Bank1, NULL, NULL, _gGunbladeAnimation0E7C4Bank4, NULL, NULL, NULL },
+/// Player spinning-slash clip for the Gunblade's primary attack.
+///
+/// Native set 10 plays once for either an ordinary or ammunition-charged slash.
+/// Attack counters control contact, charge timing and root spin independently
+/// of this clip's keyframe durations.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeSlashAnimation = {
+    .records           = _gGunbladeSlashAnimationRecords,
+    .trackStartIndices = _gGunbladeSlashAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeSlashAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeSlashAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0EDA4Bank1[8] = {
+/// Translation/Euler keyframes for `_gGunbladeShotAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeShotAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0EDA4_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0EDA4Bank4[142] = {
+/// Rotation-only keyframes for `_gGunbladeShotAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeShotAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0EDA4_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0EDA4Records[190] = {
+/// Shot keyframes and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words; this clip contains no action cues.
+static const AnimationRecord _gGunbladeShotAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0EDA4_records.inc"
 };
 
-static u16 _gGunbladeAnimation0EDA4Indices[20] = {
+/// Absolute record starts for `_gGunbladeShotAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeShotAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0EDA4_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0EDA4 = {
-    _gGunbladeAnimation0EDA4Records,
-    _gGunbladeAnimation0EDA4Indices,
-    { NULL, _gGunbladeAnimation0EDA4Bank1, NULL, NULL, _gGunbladeAnimation0EDA4Bank4, NULL, NULL, NULL },
+/// Player firing clip for the Gunblade's secondary attack.
+///
+/// Native set 11 plays once when a round is consumed and the shot's sound,
+/// muzzle flash and weapon contacts start; those actions use no record cue.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeShotAnimation = {
+    .records           = _gGunbladeShotAnimationRecords,
+    .trackStartIndices = _gGunbladeShotAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeShotAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeShotAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0F6F0Bank1[15] = {
+/// Translation/Euler keyframes for `_gGunbladeAimEntryAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeAimEntryAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0F6F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0F6F0Bank4[238] = {
+/// Rotation-only keyframes for `_gGunbladeAimEntryAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeAimEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0F6F0_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0F6F0Records[292] = {
+/// Aim-entry keyframes and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words.
+static const AnimationRecord _gGunbladeAimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0F6F0_records.inc"
 };
 
-static u16 _gGunbladeAnimation0F6F0Indices[20] = {
+/// Absolute record starts for `_gGunbladeAimEntryAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeAimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_0F6F0_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0F6F0 = {
-    _gGunbladeAnimation0F6F0Records,
-    _gGunbladeAnimation0F6F0Indices,
-    { NULL, _gGunbladeAnimation0F6F0Bank1, NULL, NULL, _gGunbladeAnimation0F6F0Bank4, NULL, NULL, NULL },
+/// Player transition into aiming supplied by the Gunblade bank.
+///
+/// Native set 7 plays once with movement and turning stopped, before
+/// stationary aim resumes on set 9.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeAimEntryAnimation = {
+    .records           = _gGunbladeAimEntryAnimationRecords,
+    .trackStartIndices = _gGunbladeAimEntryAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeAimEntryAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeAimEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation1004CBank1[15] = {
+/// Translation/Euler keyframes for `_gGunbladeAimExitAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns.
+/// Record offsets address each twelve-byte pose in four-byte words.
+static const AnimationPackedPose _gGunbladeAimExitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_1004C_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation1004CBank4[242] = {
+/// Rotation-only keyframes for `_gGunbladeAimExitAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeAimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_1004C_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation1004CRecords[292] = {
+/// Aim-exit keyframes and stop controls, with durations in normal-rate frames.
+///
+/// Pose offsets count four-byte words.
+static const AnimationRecord _gGunbladeAimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_1004C_records.inc"
 };
 
-static u16 _gGunbladeAnimation1004CIndices[20] = {
+/// Absolute record starts for `_gGunbladeAimExitAnimation`'s nineteen player tracks.
+///
+/// Valid track indices are 0..18; native child playback uses 1..18.
+/// The serialized twentieth halfword is zero and is retained in this array.
+static const u16 _gGunbladeAimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_1004C_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation1004C = {
-    _gGunbladeAnimation1004CRecords,
-    _gGunbladeAnimation1004CIndices,
-    { NULL, _gGunbladeAnimation1004CBank1, NULL, NULL, _gGunbladeAnimation1004CBank4, NULL, NULL, NULL },
+/// Player transition out of aiming supplied by the Gunblade bank.
+///
+/// Native set 8 plays once as aiming releases its target, before normal
+/// locomotion resumes. Scripted-attack recovery uses the same transition.
+/// Playback borrows this descriptor and its nineteen tracks; the Gunblade
+/// package must remain loaded while any slot or cue record refers to them.
+static AnimationSet _gGunbladeAimExitAnimation = {
+    .records           = _gGunbladeAimExitAnimationRecords,
+    .trackStartIndices = _gGunbladeAimExitAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeAimExitAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeAimExitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gGunbladeAnimation107ECBank1[16] = {
@@ -1688,20 +1815,20 @@ AnimationBank D_gunblade_8012E108 = { { {
     &_gGunbladeAnimation10F20,
     &_gGunbladeNegativeTurnAnimation,
     &_gGunbladePositiveTurnAnimation,
-    &_gGunbladeAnimation0F6F0,
-    &_gGunbladeAnimation1004C,
+    &_gGunbladeAimEntryAnimation,
+    &_gGunbladeAimExitAnimation,
     &_gGunbladeAimHoldAnimation,
-    &_gGunbladeAnimation0E7C4,
-    &_gGunbladeAnimation0EDA4,
-    &_gGunbladeAnimation0BCB4,
+    &_gGunbladeSlashAnimation,
+    &_gGunbladeShotAnimation,
+    &_gGunbladeAimForwardWalkAnimation,
     &_gGunbladeAimBackwardTurnAnimation,
-    &_gGunbladeAnimation0C9C0,
-    &_gGunbladeAnimation0C9C0,
+    &_gGunbladeReloadAnimation,
+    &_gGunbladeReloadAnimation,
     &_gGunbladePart4HitReactionAnimation,
     &_gGunbladeOtherBodyHitReactionAnimation,
     &_gGunbladeStoppedPoseAnimation,
     &_gGunbladeWalkAnimation,
-    &_gGunbladeAnimation0C9C0,
+    &_gGunbladeReloadAnimation,
     &_gGunbladeIdleAnimation,
     &_gGunbladeIdleAnimation,
     &_gGunbladeHighHealthIdleAnimation,
