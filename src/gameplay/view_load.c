@@ -39,6 +39,7 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
 {
     enum {
         LOADING_VIEW_WAIT_FOR_SCENE_IMAGE = 5,
+        LOADING_VIEW_NORMAL_MASK_CONTROL  = 0,
         LOADING_VIEW_MOVIE_SUB_ID         = 0,
         LOADING_VIEW_REQUIRE_VIEW_MOVIE   = 1,
         LOADING_VIEW_MOVIE_SELECTED       = 1,
@@ -59,8 +60,8 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
     // Wait for the game and task buffer selectors to agree before holding the frame.
     if (display->otBuffer == display->frameBuffer) {
         DrawSync(0);
-        SetDrawStp(&D_80114C50, 0);
-        DrawPrim(&D_80114C50);
+        SetDrawStp(&gLoadingViewMaskResetCommand, LOADING_VIEW_NORMAL_MASK_CONTROL);
+        DrawPrim(&gLoadingViewMaskResetCommand);
         display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
         if (queue->scenePayloadAvailable != 0) {
             mdecRequestSceneImageDecode(&gGameSession->location.loc.view);

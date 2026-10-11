@@ -394,7 +394,11 @@ void loadingUpdateRoomResourcesTask(Task* task);
 /// The selected map and room overlays must stay loaded through borrowed use.
 extern ViewCameraTable* gViewCameraTables[5];
 
-extern DR_STP D_80114C50;
+/// Reusable GPU command that resets mask-bit control before a view-image load.
+///
+/// Initialized for each load; shared storage remains valid for the gameplay
+/// overlay's lifetime while the GPU consumes the submitted packet.
+extern DR_STP gLoadingViewMaskResetCommand;
 
 /// Uploads the loaded view image, then starts its selected movie or finishes loading.
 ///

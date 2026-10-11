@@ -6547,12 +6547,12 @@ block_companion:
 
 ## Pin `ws = index` so `move a1, a0` precedes an independent `lui`
 
-`ws = index` followed by a CVECTOR copy from a global (`col = Gp_ColorOrange;
+`ws = index` followed by a CVECTOR copy from a global (`col = _gTmdOrangeMaterial;
 gte_ldrgb(&col)`) lets `-fschedule-insns` lift the `lui %hi` above the copy:
 
 ```
 addiu  sp, sp, -8
-lui    v0, %hi(Gp_ColorOrange)
+lui    v0, %hi(_gTmdOrangeMaterial)
 move   a1, a0
 ```
 
@@ -6562,7 +6562,7 @@ The target keeps the copy first (`move a1, a0` then `lui`). Pin `ws` so the
 ```c
 ws = arg0;
 __asm__ volatile("" : "+r"(ws));
-col = Gp_ColorOrange;
+col = _gTmdOrangeMaterial;
 gte_ldrgb(&col);
 ```
 
@@ -25133,7 +25133,7 @@ which also swaps the table pointer from `$a3` to `$t0`.
 Read `task->work` after copying the table, then use the typed actor's selector:
 
 ```c
-handlers = Gp_PlayerMode1States;
+handlers = _gPlayerActorDamageHitRegionHandlers;
 actor = task->work;
 handlers.funcs[(u16)actor->hitRegion](task);
 ```
@@ -27087,7 +27087,7 @@ memFillBytes(actor, 0, 0x998);
 
 When a new overlay switch moves the TU `.rodata` range earlier, splat migrates
 jtbls and some data tables onto `INCLUDE_ASM` functions. Tables used only by
-already-matched C (e.g. `_gPlayerActorModeHandlers`, `Gp_PlayerMode1States`) land in a standalone
+already-matched C (e.g. `_gPlayerActorModeHandlers`, `_gPlayerActorDamageHitRegionHandlers`) land in a standalone
 `nonmatchings/.../D_*.s` or in `matchings/<func>.s`. `INCLUDE_RODATA` the
 splat-owned standalone file. For a table stuck in a `matchings/` dump, emit
 the words with inline `.section .rodata` / `.globl` in the C file — a C
@@ -31083,7 +31083,7 @@ Splat often puts a stack-copied function-pointer table in the same
 `INCLUDE_RODATA` of a newly created `nonmatchings/.../D_*.s` looks like
 the `_gPlayerActorModeHandlers` pattern, but configure/splat regenerates that tree and
 deletes the extra file. Emit the table with the same inline
-`.section .rodata` block used for `Gp_PlayerMode1States` (`_playerActorTickDamage`). Keep
+`.section .rodata` block used for `_gPlayerActorDamageHitRegionHandlers` (`_playerActorTickDamage`). Keep
 any trailing `0` word that sits before the next `.align 3` jump table.
 
 ## Copy a `VECTOR3` through the parent pointer; load the compared field first
@@ -34383,12 +34383,12 @@ A 3-way title pick compiled as
 ```c
 if (task->spawnArg1.value == 0) {
     if (task->status == 1) {
-        uiDrawPanelLabel(&object->panel, Gp_StrBattleField);
+        uiDrawPanelLabel(&object->panel, _gItemMenuBattleFieldPaneTitle);
     } else {
-        uiDrawPanelLabel(&object->panel, Gp_StrItemBox);
+        uiDrawPanelLabel(&object->panel, _gItemMenuItemBoxPaneTitle);
     }
 } else {
-    uiDrawPanelLabel(&object->panel, Gp_StrPlayerItem);
+    uiDrawPanelLabel(&object->panel, _gItemMenuCarriedPaneTitle);
 }
 ```
 
@@ -41534,7 +41534,7 @@ file, in address order:
   `#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)`,
   placed at the source position matching its address.
 
-For 3FB8 that meant `Gp_EffTask07States` right after `effectGravityParticleTask` and `Gp_PlayerWorkStates`
+For 3FB8 that meant `_gEffectControl07StateHandlers` right after `effectGravityParticleTask` and `_gPlayerActorWorkStateHandlers`
 right after `INCLUDE_ASM(…, effectSpawnHit)` (whose `.s` now carries
 `jtbl_80097808`). Check the result in `build/USA/out/<ovl>.elf.map`: the unit's
 `.rodata` should start at the jtbl VMA and every named symbol should keep its

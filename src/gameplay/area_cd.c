@@ -43,10 +43,7 @@ u16 gLoadingAreaResourcePass;
 
 extern u16 D_8010CAD0[];
 
-/// No identified reader for either word; preserve the unresolved storage boundary.
-extern u32 D_8010CAC8[2];
-
-/// No identified reader for either word; preserve the unresolved storage boundary.
+/// Retained two-word data with no reader; its purpose and internal format are unproven.
 u32 D_8010CAC8[2] = { 0, 0xE1EFCD00 };
 
 /// File-group base selected by each `AreaResource.fileGroupIndex` value.

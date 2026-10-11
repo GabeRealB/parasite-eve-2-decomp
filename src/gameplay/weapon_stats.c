@@ -883,7 +883,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
         textScratch.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         textScratch.request.alignment  = TEXT_ALIGNMENT_LEFT;
         textScratch.request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&textScratch.request, (const u8*)Gp_StrRemoveAmmo);
+        textDrawString(&textScratch.request, gItemMenuRemoveAmmunitionText);
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {

@@ -292,7 +292,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
             textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
             textRequest.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&textRequest, Gp_StrRemoveArmor);
+            textDrawString(&textRequest, gItemMenuDetachArmorText);
         }
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {

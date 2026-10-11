@@ -209,18 +209,13 @@ _ItemMenuMoveWork* Gp_ItemMoveWork;
 /// enforces the Acropolis 0x703 container's M93R transfer restriction.
 static u16 _gItemMenuTransferPlaceKind;
 
-/// UiList used by `_itemMenuTransferActionsTask`.
-extern UiList Gp_ItemActionList;
-
 extern TaskMessageEntry D_8010D828[2];
 
-/* Kept next to _itemMenuHandleTransferChildResult's jump table so the overlay .rodata stays packed;
-   _gItemMenuAmmoSplitTitleText follows before _itemMenuAmmoSplitTask. */
-static const char Gp_StrBattleField[];
+static const char _gItemMenuBattleFieldPaneTitle[];
 
-static const char Gp_StrItemBox[];
+static const char _gItemMenuItemBoxPaneTitle[];
 
-static const char Gp_StrPlayerItem[];
+static const char _gItemMenuCarriedPaneTitle[];
 
 static const char _gItemMenuAmmoSplitTitleText[];
 
@@ -260,7 +255,19 @@ static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode);
 
 static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask);
 
-UiList Gp_ItemActionList = { gItemMenuTransferActionCallbacks, ARRAY_SIZE(gItemMenuTransferActionCallbacks), { ARRAY_SIZE(gItemMenuTransferActionCallbacks) }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+/// Singleton Move/Switch/Use action list for the active inventory transfer popup.
+///
+/// Opening rebuilds 1..3 callbacks and both row counts for the selected item.
+/// Selection and scrolling are mutable; one popup may borrow this list at a
+/// time. Rows wrap and have ten-pixel spacing. The backing callback array and
+/// list remain valid for the gameplay overlay's lifetime.
+static UiList _gItemMenuTransferActionList = {
+    .rowCallbacks    = gItemMenuTransferActionCallbacks,
+    .itemCount       = ARRAY_SIZE(gItemMenuTransferActionCallbacks),
+    .visibleRowCount = { ARRAY_SIZE(gItemMenuTransferActionCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = 10,
+};
 /// Single row renderer/input handler reused by all three transfer-exit command rows.
 ///
 /// The exit list enables USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch;
@@ -560,11 +567,12 @@ static void _itemMenuHandleTransferChildResult(UiObject* child, Task* childTask)
     }
 }
 
-/* Kept next to _itemMenuHandleTransferChildResult's jump table so the overlay .rodata stays packed;
-   _gItemMenuAmmoSplitTitleText follows before _itemMenuAmmoSplitTask. */
-static const char Gp_StrBattleField[] = "Battle Field";
-static const char Gp_StrItemBox[]     = "Item Box";
-static const char Gp_StrPlayerItem[]  = "Player Item";
+/// Container-pane title for battle-field item transfer.
+static const char _gItemMenuBattleFieldPaneTitle[] = "Battle Field";
+/// Container-pane title for ordinary item-box transfer.
+static const char _gItemMenuItemBoxPaneTitle[] = "Item Box";
+/// Carried-inventory pane title in either transfer mode.
+static const char _gItemMenuCarriedPaneTitle[] = "Player Item";
 
 /// Controls the two-pane container/carried-item transfer screen.
 ///
@@ -787,12 +795,12 @@ static void _itemMenuTransferPaneTask(Task* task)
 
     if (task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER) {
         if (task->status == ITEM_MENU_PANE_MODE_BATTLE_FIELD) {
-            uiDrawPanelLabel(&(object)->panel, Gp_StrBattleField);
+            uiDrawPanelLabel(&(object)->panel, _gItemMenuBattleFieldPaneTitle);
         } else {
-            uiDrawPanelLabel(&(object)->panel, Gp_StrItemBox);
+            uiDrawPanelLabel(&(object)->panel, _gItemMenuItemBoxPaneTitle);
         }
     } else {
-        uiDrawPanelLabel(&(object)->panel, Gp_StrPlayerItem);
+        uiDrawPanelLabel(&(object)->panel, _gItemMenuCarriedPaneTitle);
     }
     uiRefreshListViewport(list, &(object)->panel);
     list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -1043,7 +1051,7 @@ static void _itemMenuTransferActionsTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    list           = &Gp_ItemActionList;
+    list           = &_gItemMenuTransferActionList;
     if (task->state == 0) {
         parentTask = task->parent;
         if (parentTask != NULL) {

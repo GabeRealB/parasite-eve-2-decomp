@@ -255,7 +255,7 @@ enum {
 
 /// Scripted-control messages of the player and companion tasks.
 ///
-/// The player's `Gp_PlayerMsgTable` and the companion actors' tables share this
+/// The player's `_gPlayerActorMessageTable` and the companion actors' tables share this
 /// protocol. A companion that does not support an id maps it to its generic
 /// animation handler instead, so check the receiver's table before relying on
 /// a result. Messages that take scripted control leave the receiver in

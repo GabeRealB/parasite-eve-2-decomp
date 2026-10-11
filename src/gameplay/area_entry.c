@@ -26,9 +26,6 @@
 
 Task* gPlayerActorTasks[PLAYER_ACTOR_TASK_COUNT];
 
-/// Unreferenced halfword table following the item-grant scan.
-static u16 D_8010CA30[];
-
 /// Area transition panel and item-title panel, selected by the spawn index.
 extern UiObjectDesc D_8010CA40[];
 
@@ -41,7 +38,7 @@ u8                 gItemPickupBonusNoticeText[]    = "Bonus item!!";
 s32                gHudInputDelayUpdates           = 0;
 InventoryItemRange gInventoryBattleRewardRange     = { .firstRow = 0, .rowCount = ARRAY_SIZE(gInventoryBattleRewardRows), .tableId = INVENTORY_ITEM_TABLE_AREA_GRANTS };
 
-/// Unreferenced halfword table following the item-grant scan.
+/// Retained eight-halfword data with no reader; its purpose is unproven.
 static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
 
 /// Area transition panel and item-title panel, selected by the spawn index.

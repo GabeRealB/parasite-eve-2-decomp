@@ -315,23 +315,13 @@ typedef struct {
 } _PlayerActorVibrationPreset;
 STATIC_ASSERT_SIZEOF(_PlayerActorVibrationPreset, 0x4);
 
-/// 2-wide rows of `GfxCoord` indices. `_playerActorGetCharacterPartCoord` indexes
-/// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector]`.
-extern u8 D_80112E2C[][2];
+static const TaskFuncTable3 _gEffectControl07StateHandlers;
 
-extern TaskMessageEntry Gp_PlayerMsgTable[28];
+static const TaskFuncTable4 _gPlayerActorWorkStateHandlers;
 
-static const TaskFuncTable3 Gp_EffTask07States;
+static const TaskFuncTable4 _gPlayerActorDamageHitRegionHandlers;
 
-/// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
-/// `_playerActorWorkState2`, `_playerActorTeardown`.
-static const TaskFuncTable4 Gp_PlayerWorkStates;
-
-/// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
-static const TaskFuncTable4 Gp_PlayerMode1States;
-
-/// `state` dispatcher copied by `_playerActorTickScripted`.
-static const TaskFuncTable12 Gp_PlayerMode2States;
+static const TaskFuncTable12 _gPlayerActorScriptedStateHandlers;
 
 static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
@@ -841,7 +831,19 @@ static s32 _gEffectAttachmentBlastSoundIds[3] = {
     SOUND_ID(14, 17, 1),
 };
 
-TaskMessageEntry Gp_PlayerMsgTable[28] = {
+/// Retained null record after the player's live message entries; not a dispatcher end marker.
+enum { PLAYER_ACTOR_MESSAGE_TABLE_TRAILER = -1 };
+
+/// Player task's message handlers for IDs 1000..1026, in ascending ID order.
+///
+/// Installed after player work initialization and borrowed for that task's
+/// lifetime. Only these IDs may be sent: the final -1/null record does not
+/// terminate `taskMessageDispatch`, and must itself never be selected. Payloads
+/// and results follow the animation/player message contracts; IDs 1002..1004
+/// use the same AnimationPlayRequest contract as ANIMATION_MESSAGE_PLAY.
+/// Event scripts targeting the player must obey this domain as well.
+/// Mutable storage satisfies `Task::msgTable`'s interface; consumers only read it.
+static TaskMessageEntry _gPlayerActorMessageTable[28] = {
     { ANIMATION_MESSAGE_PLAY, _playerActorPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1002, _playerActorPlayScriptedAnimation },
@@ -869,7 +871,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK, _playerActorEnterScriptedAttack },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
     { PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE, _playerActorEnterItemUse },
-    { -1, NULL },
+    { PLAYER_ACTOR_MESSAGE_TABLE_TRAILER, NULL },
 };
 u16 gPlayerActorWeaponAnimationBankBases[2] = {
     1,
@@ -946,7 +948,12 @@ static u16 _gPlayerActorBodyTurnRates[4] = {
 static _PlayerActorVibrationPreset _gPlayerActorVibrationPresets[1] = {
     { 255, 0, 2 },
 };
-u8 D_80112E2C[2][2] = {
+/// Character-specific player-model coordinate indices for selectors 0 and 1.
+///
+/// Rows select saved characterId minus one (characterId 1..2). Character 1
+/// chooses model parts 18/15, character 2 root 0 for either selector. The
+/// selectors' anatomical or action roles are unproven; neither is a weapon id.
+static const u8 _gPlayerActorCharacterPartIndices[2][2] __attribute__((section(".data"))) = {
     { 18, 15 },
     { 0, 0 },
 };
@@ -1292,8 +1299,6 @@ u8             gCompanionVariantUsesTorsoPitch[8] = {
     238,
     239,
 };
-
-static const TaskFuncTable3 Gp_EffTask07States;
 
 void effectSpriteTask46(Task* task)
 {
@@ -2364,7 +2369,11 @@ void effectGravityParticleTask(Task* task)
 #undef EFFECT_GRAVITY_PARTICLE_ADVANCE
 }
 
-static const TaskFuncTable3 Gp_EffTask07States = { {
+/// PE-controller task handlers: 0 initialize, 1 dispatch active PE, 2 kill.
+///
+/// `Task::state` must stay in 0..2. Initialization advances once to active;
+/// the active handler holds that state while processing the live room PE state.
+static const TaskFuncTable3 _gEffectControl07StateHandlers = { {
     _effectControlTask07State0,
     _effectControlTask07State1,
     taskKill,
@@ -3468,7 +3477,7 @@ void effectControlTask07(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = Gp_EffTask07States;
+    stateHandlers = _gEffectControl07StateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -4053,9 +4062,12 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
     }
 }
 
-/// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
-/// `_playerActorWorkState2`, `_playerActorTeardown`.
-static const TaskFuncTable4 Gp_PlayerWorkStates = { {
+/// Player work handlers: 0 initialize, 1 collision update, 2 request teardown, 3 teardown.
+///
+/// Indexed by `Task::state` (0..3), independently of `GameActor::mode/state`.
+/// Initialization enters 1; state 2 schedules 3 for the next dispatch. Teardown
+/// unlinks actor bodies and children before releasing the task's owned storage.
+static const TaskFuncTable4 _gPlayerActorWorkStateHandlers = { {
     _playerActorInitWork,
     _playerActorWorkState1,
     _playerActorWorkState2,
@@ -5161,7 +5173,7 @@ static void _playerActorInitWork(Task* task)
     model     = task->extra.tmd;
     rootCoord = model->coords;
     task->state++;
-    task->msgTable                              = Gp_PlayerMsgTable;
+    task->msgTable                              = _gPlayerActorMessageTable;
     task->exitCallback                          = _playerActorTeardown;
     actor->animationSlotCount                   = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = task;
@@ -5477,7 +5489,7 @@ void playerActorWorkTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = Gp_PlayerWorkStates;
+    handlers = _gPlayerActorWorkStateHandlers;
     handlers.funcs[task->state](task);
 }
 
@@ -6841,7 +6853,7 @@ static GfxCoord* _playerActorGetCharacterPartCoord(s32 partSelector)
     u8    partIndex;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    partIndex  = D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector];
+    partIndex  = _gPlayerActorCharacterPartIndices[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector];
     return &playerTask->extra.tmd->coords[partIndex];
 }
 
@@ -10099,8 +10111,12 @@ void playerActorSetLockTarget(Task* task, WorldTargetNode* target)
     _playerActorSetTargetNode(task, target);
 }
 
-/// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
-static const TaskFuncTable4 Gp_PlayerMode1States = { {
+/// Damage-mode handlers selected by `GameActor::hitRegion`, interpreted as u16.
+///
+/// Selectors 0..2 run the damage reaction; selector 3 is an empty continuation.
+/// Requires hitRegion in 0..3. This table does not index `GameActor::state`;
+/// animation, facing and movement continue after the selected callback.
+static const TaskFuncTable4 _gPlayerActorDamageHitRegionHandlers = { {
     _playerActorTickDamageReaction,
     _playerActorTickDamageReaction,
     _playerActorTickDamageReaction,
@@ -10117,7 +10133,7 @@ static void _playerActorTickDamage(Task* task)
     TaskFuncTable4 handlers;
     GameActor*     actor;
 
-    handlers = Gp_PlayerMode1States;
+    handlers = _gPlayerActorDamageHitRegionHandlers;
     actor    = task->work;
     handlers.funcs[(u16)actor->hitRegion](task);
     playerActorTickAnimationState(task);
@@ -10126,8 +10142,13 @@ static void _playerActorTickDamage(Task* task)
     playerActorStepMovement(task);
 }
 
-/// `state` dispatcher copied by `_playerActorTickScripted`.
-static const TaskFuncTable12 Gp_PlayerMode2States = { {
+/// Scripted player-action handlers indexed by `GameActor::state` (0..11).
+///
+/// Used only in `GAME_ACTOR_MODE_SCRIPTED`, independently of `Task::state`.
+/// Slots 0..6 are idle, animation, turn, stairs, move-to, walk-steps and button
+/// hold; 7..11 are presentation, run-to, child playback only, attack and item use.
+/// Each action manages its own playback/movement; dispatch then updates facing.
+static const TaskFuncTable12 _gPlayerActorScriptedStateHandlers = { {
     playerActorScriptedState0,
     playerActorTickScriptedAnimation,
     playerActorMode2State2,
@@ -10154,7 +10175,7 @@ static void _playerActorTickScripted(Task* task)
     GameActor*      actor;
     TaskFuncTable12 states;
 
-    states = Gp_PlayerMode2States;
+    states = _gPlayerActorScriptedStateHandlers;
     actor  = task->work;
     states.funcs[actor->state](task);
     playerActorUpdateFacing(task);

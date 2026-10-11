@@ -22,8 +22,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern const CVECTOR Gp_ColorOrange;
-
 // Bank-0 descriptor that refreshes coordinates and draws the active model list.
 enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
 
@@ -1323,8 +1321,9 @@ u32* tmdDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
 }
 
 const CVECTOR gModelLightingNeutralColor = { 0x80, 0x80, 0x80, 0 };
-const CVECTOR Gp_ColorOrange             = { 0xFF, 0xA0, 0x60, 0 };
-const CVECTOR gModelLightingWhiteColor   = { 0xFF, 0xFF, 0xFF, 0 };
+/// Fixed orange RGB/code material (255,160,96,0) for reduced environment-map lighting.
+static const CVECTOR _gTmdOrangeMaterial      = { 0xFF, 0xA0, 0x60, 0 };
+const CVECTOR        gModelLightingWhiteColor = { 0xFF, 0xFF, 0xFF, 0 };
 
 /// Projects and lights paired grey corners with reduced environment UVs on the layer.
 ///
@@ -1422,7 +1421,7 @@ static u32* _tmdXformStreamVertsOrangeEnvMapLitReduced(TmdStreamWorkspace* works
 {
     CVECTOR material;
 
-    material = Gp_ColorOrange;
+    material = _gTmdOrangeMaterial;
     gte_ldrgb(&material);
     return _tmdXformStreamVertsEnvMapLitReduced(workspace, elements);
 }

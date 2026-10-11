@@ -118,11 +118,11 @@ static u8 _gPadScriptBinaryMotorHalt;
 /// clearing the gate resumes only tasks that have not yet been killed.
 static u8 _gPadScriptVariableMotorHalt;
 
-static const TaskFuncTable3 Gp_Script18States;
+static const TaskFuncTable3 _gPadScriptTaskStates;
 
-static const TaskFuncTable5 Gp_ScriptAStates;
+static const TaskFuncTable5 _gPadScriptBinaryLaneStates;
 
-static const TaskFuncTable5 Gp_ScriptBStates;
+static const TaskFuncTable5 _gPadScriptVariableLaneStates;
 
 static void _padScriptStepBinaryLane(Task* task);
 
@@ -147,10 +147,6 @@ static void _padScriptVariableLaneStoppedState(Task* task);
 static void _padScriptVariableLaneLoopState(Task* task);
 
 static void _padScriptVariableLaneJumpState(Task* task);
-
-static const TaskFuncTable3 Gp_Script18States;
-static const TaskFuncTable5 Gp_ScriptAStates;
-static const TaskFuncTable5 Gp_ScriptBStates;
 
 /// Updates a lane's LOOP counter and advances its byte-sized command cursor.
 ///
@@ -411,8 +407,8 @@ static void _padScriptTickLanes(Task* task)
     _PadScriptWork* work;
 
     work               = task->work;
-    binaryLaneStates   = Gp_ScriptAStates;
-    variableLaneStates = Gp_ScriptBStates;
+    binaryLaneStates   = _gPadScriptBinaryLaneStates;
+    variableLaneStates = _gPadScriptVariableLaneStates;
     binaryLaneStates.funcs[work->holdCommand.bytes.opcode](task);
     variableLaneStates.funcs[work->lerpCommand.bytes.opcode](task);
     if (work->holdCommand.bytes.opcode == PAD_SCRIPT_STOP && work->lerpCommand.bytes.opcode == PAD_SCRIPT_STOP) {
@@ -451,7 +447,7 @@ void padScriptTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Gp_Script18States;
+    states = _gPadScriptTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (_gPadScriptInterpreterHalt != 0) {
             task->state = PAD_SCRIPT_TASK_STATE_FINISH;
@@ -573,26 +569,39 @@ void padScriptVariableMotorRampTask(Task* task)
     }
 }
 
-static const TaskFuncTable3 Gp_Script18States = { {
-    _padScriptStartLanes,
-    _padScriptTickLanes,
-    taskKill,
+/// Vibration-interpreter lifecycle handlers indexed by PAD_SCRIPT_TASK_STATE_* (0..2).
+///
+/// START steps both lanes and enters RUN; RUN enters FINISH when both lanes
+/// stop or a halt is requested. FINISH releases the interpreter's owned work;
+/// independently spawned motor tasks keep their own countdowns.
+static const TaskFuncTable3 _gPadScriptTaskStates = { {
+    [PAD_SCRIPT_TASK_STATE_START]  = _padScriptStartLanes,
+    [PAD_SCRIPT_TASK_STATE_RUN]    = _padScriptTickLanes,
+    [PAD_SCRIPT_TASK_STATE_FINISH] = taskKill,
 } };
 
-// Indexed by the lane opcode: stop, play, wait, loop, jump.
-static const TaskFuncTable5 Gp_ScriptAStates = { {
-    _padScriptBinaryLaneStoppedState,
-    _padScriptTickBinaryLaneDelay,
-    _padScriptTickBinaryLaneDelay,
-    _padScriptBinaryLaneLoopState,
-    _padScriptBinaryLaneJumpState,
+/// Binary-motor lane handlers indexed by the saved PAD_SCRIPT_* opcode (0..4).
+///
+/// STOP holds idle; PLAY and WAIT count down the byte-sized delay; LOOP and
+/// JUMP step the lane. Receives the shared interpreter task and drives its
+/// binary on/off motor lane; the other lane keeps an independent cursor.
+static const TaskFuncTable5 _gPadScriptBinaryLaneStates = { {
+    [PAD_SCRIPT_STOP] = _padScriptBinaryLaneStoppedState,
+    [PAD_SCRIPT_PLAY] = _padScriptTickBinaryLaneDelay,
+    [PAD_SCRIPT_WAIT] = _padScriptTickBinaryLaneDelay,
+    [PAD_SCRIPT_LOOP] = _padScriptBinaryLaneLoopState,
+    [PAD_SCRIPT_JUMP] = _padScriptBinaryLaneJumpState,
 } };
 
-// Indexed by the lane opcode: stop, play, wait, loop, jump.
-static const TaskFuncTable5 Gp_ScriptBStates = { {
-    _padScriptVariableLaneStoppedState,
-    _padScriptTickVariableLaneDelay,
-    _padScriptTickVariableLaneDelay,
-    _padScriptVariableLaneLoopState,
-    _padScriptVariableLaneJumpState,
+/// Variable-motor lane handlers indexed by the saved PAD_SCRIPT_* opcode (0..4).
+///
+/// STOP holds idle; PLAY and WAIT count down the byte-sized delay; LOOP and
+/// JUMP step the lane. Receives the shared interpreter task and drives its
+/// variable-intensity motor lane; the other lane keeps an independent cursor.
+static const TaskFuncTable5 _gPadScriptVariableLaneStates = { {
+    [PAD_SCRIPT_STOP] = _padScriptVariableLaneStoppedState,
+    [PAD_SCRIPT_PLAY] = _padScriptTickVariableLaneDelay,
+    [PAD_SCRIPT_WAIT] = _padScriptTickVariableLaneDelay,
+    [PAD_SCRIPT_LOOP] = _padScriptVariableLaneLoopState,
+    [PAD_SCRIPT_JUMP] = _padScriptVariableLaneJumpState,
 } };

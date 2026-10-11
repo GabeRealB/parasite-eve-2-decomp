@@ -2106,7 +2106,7 @@ void menuMapTask(Task* mapTask)
 {
     TaskFuncTable4 handlers;
 
-    handlers = Gp_MapTaskStates;
+    handlers = gMenuMapStateHandlers;
     handlers.funcs[mapTask->state](mapTask);
 }
 
@@ -3945,7 +3945,7 @@ void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object)
     TextDrawReq request;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
-    textDrawString(&request, (const u8*)Gp_StrItem2);
+    textDrawString(&request, gItemMenuHotspotItemText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS, object);

@@ -23,7 +23,7 @@
 
 #include "mapui/map_shelter.h"
 
-DR_STP D_80114C50;
+DR_STP gLoadingViewMaskResetCommand;
 
 ViewCameraTable* gViewCameraTables[5] = {
     [GAME_STAGE_ACROPOLIS - 1]       = &gMapAkropolisViewCameraTable,

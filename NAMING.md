@@ -252,7 +252,7 @@ than an invented visual description:
 | Family | Pattern | Dispatched by |
 |---|---|---|
 | Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | `taskSpawn(6, ID, …)` via the bank-6 `TaskDesc` table `gEffectTaskDescriptors`; `effectSpawn(0x6xxxx, …)` passes the same ID. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
-| Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.state` indexes `_gPlayerActorNormalStateHandlers` in mode 0 (`_playerActorTickNormal`) and `Gp_PlayerMode2States` in mode 2; `mode` picks the mode through `_gPlayerActorModeHandlers`, which also has a mode 1 (`_playerActorTickDamage`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
+| Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.state` indexes `_gPlayerActorNormalStateHandlers` in mode 0 (`_playerActorTickNormal`) and `_gPlayerActorScriptedStateHandlers` in mode 2; `mode` picks the mode through `_gPlayerActorModeHandlers`, which also has a mode 1 (`_playerActorTickDamage`). `_gPlayerActorWorkStateHandlers` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead
 (`effectThrownModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).

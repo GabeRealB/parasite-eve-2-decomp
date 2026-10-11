@@ -187,7 +187,10 @@ extern UiObjectDesc D_8010F178;
 
 extern char Gp_StrDiscard2[];
 
-extern char Gp_StrItem2[];
+/// NUL-terminated Item command text that opens the hotspot's collected-item picker.
+///
+/// Borrowed encoded bytes, valid for the gameplay overlay's lifetime.
+extern const u8 gItemMenuHotspotItemText[5];
 
 extern char Gp_StrExamine[];
 
@@ -252,7 +255,11 @@ extern s32 D_80114E90;
 
 extern s32 D_80114E94;
 
-extern const TaskFuncTable4 Gp_MapTaskStates;
+/// Map-screen task handlers: 0 open, 1 wait for page, 2 navigate, 3 close.
+///
+/// `Task::state` must be 0..3. The live panel is borrowed through spawnArg2;
+/// the dispatcher copies the complete table before calling one handler.
+extern const TaskFuncTable4 gMenuMapStateHandlers;
 
 /// "Help". The three bytes after the terminator are not zero: the original
 /// toolchain left them in the alignment gap.
@@ -774,7 +781,7 @@ void menuMapOpenTask(Task* mapTask);
 
 /// Waits for the map page load, draws the ready page and resumes map input state.
 ///
-/// `mapTask` is in state 1 of `Gp_MapTaskStates` with its live `UiObject` in `spawnArg2`.
+/// `mapTask` is in state 1 of `gMenuMapStateHandlers` with its live `UiObject` in `spawnArg2`.
 /// Its current stage/page indices must fit the loaded tables, and those tables
 /// and page resources must remain available.
 /// A busy CD queue adds one animation tick to offset opening's subsequent tick;
@@ -1236,9 +1243,15 @@ extern UiObject* D_80114D98[2];
 
 extern s32 Gp_AttachListIds[6];
 
-extern char Gp_StrNoUseNow[];
+/// Complete notice when the room refuses the selected collected key item.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuKeyItemRefusedText[21];
 
-extern char Gp_StrUsed[];
+/// First-line verb above the collected item name after the room accepts its use.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuKeyItemUsedText[5];
 
 extern char Gp_StrSelectDest[];
 
@@ -1276,13 +1289,19 @@ extern char Gp_StrUse[];
 
 extern char Gp_StrMove[];
 
-extern char Gp_StrRemoveAmmo[];
+/// Command text for the no-consumable row that removes a weapon's loaded ammunition.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuRemoveAmmunitionText[18];
 
 extern char Gp_StrLoad[];
 
 extern char Gp_StrExchange[];
 
-extern char Gp_StrRemoveArmor[];
+/// Command text for the row that clears the selected armor attachment slot.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuDetachArmorText[18];
 
 /// NUL-terminated byte text for the item-menu dialog's Yes answer.
 extern u8 gItemMenuYesText[4];

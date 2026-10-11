@@ -48,8 +48,6 @@ UiObject* D_80114D98[2];
 
 s32 Gp_AttachListIds[6];
 
-static char D_8010E548[];
-
 extern UiListRowCallback Gp_MainMenuCmds[6];
 
 extern UiListRowCallback D_8010E850[1];
@@ -71,40 +69,39 @@ enum {
     ITEM_MENU_PANEL_TASK_PRIORITY       = 192
 };
 
-static s32 D_8010EA54[];
-
 static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
 
-u8          gItemMenuAddonUsedText[6]                 = "used.";
-u8          gItemMenuAddonCreatedText[9]              = "created.";
-char        Gp_StrNoUseNow[]                          = "No use for this now.";
-char        Gp_StrUsed[]                              = "Used";
-char        Gp_StrSelectDest[]                        = "Select destination.";
-u8          gItemMenuEquippedText[9]                  = "Equipped";
-u8          gItemPickupObtainedText[9]                = "Obtained";
-u8          gItemMenuLoadedText[7]                    = "Loaded";
-u8          gItemMenuRemovedText[8]                   = "Removed";
-u8          gItemMenuRemovedAmmunitionText[20]        = "Removed ammunition.";
-u8          gItemMenuInvokedText[8]                   = "Invoked";
-char        Gp_StrAmmoNone[]                          = "Ammunition: None";
-char        Gp_StrAttachNone[]                        = "Attachments: None";
-char        Gp_StrUse[]                               = "Use";
-char        Gp_StrMove[]                              = "Move";
-char        Gp_StrRemoveAmmo[]                        = "Remove ammunition";
-char        Gp_StrLoad[]                              = "Load";
-char        Gp_StrExchange[]                          = "Exchange";
-char        Gp_StrRemoveArmor[]                       = "Remove from armor";
-static char D_8010E548[]                              = "Equip";
-u8          gItemMenuYesText[4]                       = "Yes";
-u8          gItemMenuNoText[3]                        = "No";
-u8          gItemMenuOkText[3]                        = "OK";
-u8          gItemMenuCancelText[7]                    = "Cancel";
-u8          gItemPickupQuestionText[19]               = "Pick up this item?";
-u8          gItemPickupInventoryFullText[16]          = "Inventory full.";
-u8          gItemPickupInventoryFullSecondLineText[1] = "";
-char        Gp_StrSort[]                              = "Sort";
-u8          gItemMenuAmmoLabelText[5]                 = "AMMO";
-u8          gItemMenuPeriodText[2]                    = ".";
+u8       gItemMenuAddonUsedText[6]                                           = "used.";
+u8       gItemMenuAddonCreatedText[9]                                        = "created.";
+const u8 gItemMenuKeyItemRefusedText[21] __attribute__((section(".data")))   = "No use for this now.";
+const u8 gItemMenuKeyItemUsedText[5] __attribute__((section(".data")))       = "Used";
+char     Gp_StrSelectDest[]                                                  = "Select destination.";
+u8       gItemMenuEquippedText[9]                                            = "Equipped";
+u8       gItemPickupObtainedText[9]                                          = "Obtained";
+u8       gItemMenuLoadedText[7]                                              = "Loaded";
+u8       gItemMenuRemovedText[8]                                             = "Removed";
+u8       gItemMenuRemovedAmmunitionText[20]                                  = "Removed ammunition.";
+u8       gItemMenuInvokedText[8]                                             = "Invoked";
+char     Gp_StrAmmoNone[]                                                    = "Ammunition: None";
+char     Gp_StrAttachNone[]                                                  = "Attachments: None";
+char     Gp_StrUse[]                                                         = "Use";
+char     Gp_StrMove[]                                                        = "Move";
+const u8 gItemMenuRemoveAmmunitionText[18] __attribute__((section(".data"))) = "Remove ammunition";
+char     Gp_StrLoad[]                                                        = "Load";
+char     Gp_StrExchange[]                                                    = "Exchange";
+const u8 gItemMenuDetachArmorText[18] __attribute__((section(".data")))      = "Remove from armor";
+/// Retained NUL-terminated Equip command text with no current reader.
+static const u8 _gItemMenuEquipText[6] __attribute__((section(".data"))) = "Equip";
+u8              gItemMenuYesText[4]                                      = "Yes";
+u8              gItemMenuNoText[3]                                       = "No";
+u8              gItemMenuOkText[3]                                       = "OK";
+u8              gItemMenuCancelText[7]                                   = "Cancel";
+u8              gItemPickupQuestionText[19]                              = "Pick up this item?";
+u8              gItemPickupInventoryFullText[16]                         = "Inventory full.";
+u8              gItemPickupInventoryFullSecondLineText[1]                = "";
+char            Gp_StrSort[]                                             = "Sort";
+u8              gItemMenuAmmoLabelText[5]                                = "AMMO";
+u8              gItemMenuPeriodText[2]                                   = ".";
 /// NUL-only text for properties with no displayed label in the specifications panel.
 static u8 _gItemMenuEmptyPropertyText[] = "";
 /// Armor-feature label with the status name colored orange by an inline text command.
@@ -339,6 +336,7 @@ UiListRowCallback Gp_ItemCmdFns[6] = {
 
 UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
+/// Retained six-word data with no reader; its purpose and units are unproven.
 static s32 D_8010EA54[] = { 30, 60, 50, 100, 100, 200 };
 
 UiListRowCallback gItemMenuDialogRowCallbacks[2] = {

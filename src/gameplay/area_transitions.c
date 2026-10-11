@@ -122,11 +122,9 @@ typedef struct {
 } _DirectionWarpPhaseTable;
 STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
-/// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
-/// bit 0x800 is added onto that nibble's value.
-extern const TaskFuncTable3 Gp_DirTaskStates;
+static const TaskFuncTable3 _gDirectionTaskStates;
 
-static const _DirectionWarpPhaseTable Gp_WarpPhaseFns;
+static const _DirectionWarpPhaseTable _gDirectionWarpPhaseHandlers;
 
 static const _DirectionFacingPhaseTable D_80093990;
 
@@ -424,9 +422,11 @@ void menuMapRebuildMarkedAreaBits(void)
 #undef MENU_MAP_CLEAR_MARKED_AREA_BIT
 }
 
-/// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
-/// bit 0x800 is added onto that nibble's value.
-const TaskFuncTable3 Gp_DirTaskStates = { {
+/// Direction-task lifecycle handlers: 0 initialize, 1 update, 2 kill.
+///
+/// Initialization advances to 1; update holds that state. `Task::state` must
+/// stay in 0..2. Dispatch copies the complete table and requires a live player.
+static const TaskFuncTable3 _gDirectionTaskStates = { {
     _directionInitTask,
     _directionUpdateTask,
     taskKill,
@@ -442,7 +442,12 @@ const DirectionActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = _directionDispatchWeaponCapEvent,
 } };
 
-static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
+/// Warp-action handlers indexed by `DIRECTION_WARP_PHASE_*` (0..5).
+///
+/// A copied `_DirectionWarpPhaseTable` dispatches the latched phase. Query can
+/// end the action immediately; later phases advance at most once per update,
+/// and LEAVE ends the action without advancing beyond the last entry.
+static const _DirectionWarpPhaseTable _gDirectionWarpPhaseHandlers = { {
     [DIRECTION_WARP_PHASE_QUERY]       = directionQueryWarp,
     [DIRECTION_WARP_PHASE_AWAIT_TURN]  = directionAwaitWarpTurn,
     [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
@@ -591,7 +596,7 @@ void directionTask(Task* task)
     Task*          playerTask;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    states     = Gp_DirTaskStates;
+    states     = _gDirectionTaskStates;
     if (playerTask != NULL) {
         states.funcs[task->state](task);
     }
@@ -621,7 +626,7 @@ static void _directionUpdateWarpAction(void)
 {
     _DirectionWarpPhaseTable phaseTable;
 
-    phaseTable = Gp_WarpPhaseFns;
+    phaseTable = _gDirectionWarpPhaseHandlers;
     phaseTable.handlers[(s16)gDirectionActionPhase]();
 }
 

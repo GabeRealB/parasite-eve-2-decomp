@@ -722,7 +722,7 @@ void itemMenuUseKeyItemTask(Task* task)
         if (useResult == ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE) {
             task->spawnArg1.value = itemId;
             noticeWidth           = textMeasureLineWidth(itemGetText(itemId, ITEM_TEXT_NAME, 0)) + 0xB;
-            usedLabelWidth        = textMeasureLineWidth((const u8*)Gp_StrUsed);
+            usedLabelWidth        = textMeasureLineWidth(gItemMenuKeyItemUsedText);
             if (noticeWidth < usedLabelWidth) {
                 noticeWidth = usedLabelWidth;
             }
@@ -736,7 +736,7 @@ void itemMenuUseKeyItemTask(Task* task)
             task->state                  = task->state + 1;
         } else {
             task->spawnArg1.value = ITEM_MENU_KEY_ITEM_USE_REFUSED_ID;
-            uiSizePanelForTextDefault(&object->panel, (const u8*)Gp_StrNoUseNow);
+            uiSizePanelForTextDefault(&object->panel, gItemMenuKeyItemRefusedText);
             object->panel.style &= (s32)~USER_INTERFACE_PANEL_NO_FRAME;
         }
         task->killCountdown = ITEM_MENU_NOTICE_DURATION_TICKS;
@@ -746,11 +746,11 @@ void itemMenuUseKeyItemTask(Task* task)
         uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNoticePanelTitle);
         if (task->spawnArg1.value == ITEM_MENU_KEY_ITEM_USE_REFUSED_ID) {
             textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
-            textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuKeyItemRefusedText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
             textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
             drawMode     = TEXT_DRAW_OUTLINED;
-            textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuKeyItemUsedText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
             itemName  = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
             textRight = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, 0x37A78, drawMode, TEXT_ALIGNMENT_LEFT);
             textDrawUiLine(object, textRight, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, ITEM_MENU_PANEL_TEXT_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);

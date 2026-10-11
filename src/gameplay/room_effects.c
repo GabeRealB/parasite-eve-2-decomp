@@ -436,7 +436,10 @@ RoomEffectState* gRoomEffectState;
 
 s32 gRoomEffectHaloId;
 
-Task* Gp_State1CTask;
+/// Last successfully initialized room-effect controller task.
+///
+/// Borrows the task without extending its lifetime; teardown does not clear it.
+static Task* _gRoomEffectTask;
 
 s32 gRoomEffectWaterRippleId;
 
@@ -457,7 +460,10 @@ extern s32 D_80111C58[38];
 
 extern s32 D_80111CF0[49];
 
-extern s32 D_80111DB4[33];
+/// Zero area-table entries suppress the ambient-effect task.
+enum { ROOM_EFFECT_AMBIENT_TASK_NONE = 0 };
+
+static const s32 _gRoomEffectShelterNeoArkTaskTypes[33];
 
 static const TaskFuncTable3 D_80097678;
 
@@ -1355,40 +1361,45 @@ s32 D_80111CF0[49] = {
     332,
     354,
 };
-s32 D_80111DB4[33] = {
-    355,
-    356,
-    357,
-    358,
-    333,
-    359,
-    334,
-    335,
-    336,
-    337,
-    250,
-    338,
-    339,
-    340,
-    341,
-    342,
-    343,
-    344,
-    345,
-    346,
-    347,
-    348,
-    349,
-    350,
-    351,
-    360,
-    352,
-    361,
-    353,
-    402,
-    0,
-    453,
-    56,
+/// Ambient-effect task types for the Shelter/Neo Ark stage, indexed by area minus one.
+///
+/// Areas 1..33 are supported. A zero entry suppresses the area's ambient task;
+/// nonzero entries select bank-6 descriptors and require that area's effect
+/// resources and callbacks to be loaded. These are task types, not packed IDs.
+static const s32 _gRoomEffectShelterNeoArkTaskTypes[33] __attribute__((section(".data"))) = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = 0x163,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = 0x164,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = 0x165,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = 0x166,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = 0x14D,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = 0x167,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = 0x14E,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = 0x14F,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = 0x150,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = 0x151,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = 0x0FA,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = 0x152,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = 0x153,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = 0x154,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = 0x155,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = 0x156,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = 0x157,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = 0x158,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = 0x159,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = 0x15A,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = 0x15B,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = 0x15C,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = 0x15D,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = 0x15E,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = 0x15F,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = 0x168,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = 0x160,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = 0x169,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = 0x161,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = 0x192,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = 0x1C5,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = 0x038,
 };
 
 static const TaskFuncTable3 D_80097678 = { {
@@ -1414,7 +1425,7 @@ static void _roomEffectInitController(Task* task)
     RoomEffectState* effectState;
     s32              roomEffectType;
 
-    roomEffectType = 0;
+    roomEffectType = ROOM_EFFECT_AMBIENT_TASK_NONE;
     effectState    = memCalloc(sizeof(*effectState), false);
     if (effectState == NULL) {
         taskKill(task);
@@ -1422,7 +1433,7 @@ static void _roomEffectInitController(Task* task)
     }
 
     // Publish the allocation for the controller's lifetime.
-    Gp_State1CTask                  = task;
+    _gRoomEffectTask                = task;
     gRoomEffectState                = effectState;
     task->work                      = effectState;
     effectState->effectCount        = 0;
@@ -1473,11 +1484,11 @@ static void _roomEffectInitController(Task* task)
             roomEffectType = D_80111CF0[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_SHELTER_NEO_ARK:
-            roomEffectType = D_80111DB4[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectShelterNeoArkTaskTypes[gGameSession->location.loc.area - 1];
             break;
     }
 
-    if (roomEffectType != 0) {
+    if (roomEffectType != ROOM_EFFECT_AMBIENT_TASK_NONE) {
         effectSpawn(EFFECT_ID(EFFECT_TASK_BANK, roomEffectType), NULL, 0, NULL);
     }
     taskSpawn(EFFECT_TASK_BANK, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);

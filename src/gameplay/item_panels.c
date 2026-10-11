@@ -135,8 +135,6 @@ s32 D_80114E94;
 
 extern UiObjectDesc D_8010F02C[3];
 
-static u8 D_8010F194[];
-
 extern UiListRowCallback D_8010F5C8[2];
 
 static const char _gItemMenuHealingStatusTitle[];
@@ -369,10 +367,13 @@ UiObjectDesc D_8010F15C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, 50, 280, 5
 
 UiObjectDesc D_8010F178 = { 3, { -140, -107, 170, 15 }, 24, 0, TASK_BODY_NONE, 192, menuMapAreaNameTask, 0 };
 
-static u8 D_8010F194[] = { 142, 204, 130, 196, 130, 233, 0, 0 };
+/// Retained Shift-JIS command text "捨てる" (Discard), with no current reader.
+///
+/// Includes one zero byte after the NUL terminator.
+static const u8 _gItemMenuJapaneseDiscardText[8] __attribute__((section(".data"))) = "\x8E\xCC\x82\xC4\x82\xE9";
 
 char     Gp_StrDiscard2[]                                              = "Discard";
-char     Gp_StrItem2[]                                                 = "Item";
+const u8 gItemMenuHotspotItemText[5] __attribute__((section(".data"))) = "Item";
 char     Gp_StrExamine[]                                               = "Examine";
 char     Gp_StrPush[]                                                  = "Push";
 const u8 gItemMenuPeReviveText[] __attribute__((section(".data")))     = "Revive";
@@ -583,7 +584,6 @@ enum {
 };
 
 static const _ItemMenuM4a1VariantTable _gItemMenuM4a1VariantTable;
-const TaskFuncTable4                   Gp_MapTaskStates;
 
 void itemMenuCommandTask(Task* task)
 {
@@ -2064,7 +2064,7 @@ static const char _gItemPickupQuestionTitle[] = "Message";
 /// Title of the pickup warning when the carried inventory has no capacity.
 static const char _gItemPickupInventoryFullTitle[] = "Warning";
 
-const TaskFuncTable4 Gp_MapTaskStates = { {
+const TaskFuncTable4 gMenuMapStateHandlers = { {
     menuMapOpenTask,
     menuMapWaitForPageTask,
     menuMapNavigateTask,

@@ -165,9 +165,9 @@ static SVECTOR _gEffectWeaponMuzzleOffsets[34];
 
 extern SVECTOR D_801125EC[34];
 
-extern SVECTOR D_801126FC[34];
+static const SVECTOR _gEffectGrenadeMuzzleOffsets[34];
 
-extern SVECTOR D_8011280C[34];
+static SVECTOR _gEffectGrenadeEmissionOffsets[34];
 
 static void _effectDrawMuzzleFlash(const GfxCoord* coord, s32 size, s32 angle);
 
@@ -1034,9 +1034,9 @@ void effectControlTask6C(Task* task)
                 pointLight->outer                                       = EFFECT_WEAPON_FLASH_LIGHT_OUTER_RADIUS;
                 pointLight->head.transform.coord.coord.t[2]             = spawnZ;
                 muzzleCoord->parent                                     = work->parent;
-                muzzleCoord->coord.t[0]                                 = D_801126FC[task->spawnArg1.value].vx;
-                muzzleCoord->coord.t[1]                                 = D_801126FC[task->spawnArg1.value].vy;
-                muzzleCoord->coord.t[2]                                 = D_801126FC[task->spawnArg1.value].vz;
+                muzzleCoord->coord.t[0]                                 = _gEffectGrenadeMuzzleOffsets[task->spawnArg1.value].vx;
+                muzzleCoord->coord.t[1]                                 = _gEffectGrenadeMuzzleOffsets[task->spawnArg1.value].vy;
+                muzzleCoord->coord.t[2]                                 = _gEffectGrenadeMuzzleOffsets[task->spawnArg1.value].vz;
                 muzzleCoord->composeStamp                               = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(muzzleCoord);
                 randomState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1077,15 +1077,15 @@ void effectControlTask6C(Task* task)
                 if (work->age == work->scale) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & 0xFF) + EFFECT_GRENADE_FLASH_SHORT_SPARK_ARG,
-                                &D_8011280C[task->spawnArg1.value]);
+                                &_gEffectGrenadeEmissionOffsets[task->spawnArg1.value]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & 0xFF) + EFFECT_GRENADE_FLASH_MEDIUM_SPARK_ARG,
-                                &D_8011280C[task->spawnArg1.value]);
+                                &_gEffectGrenadeEmissionOffsets[task->spawnArg1.value]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & 0xFF) + EFFECT_GRENADE_FLASH_LONG_SPARK_ARG,
-                                &D_8011280C[task->spawnArg1.value]);
+                                &_gEffectGrenadeEmissionOffsets[task->spawnArg1.value]);
                     effectSpawn(EFFECT_091, muzzleCoord, task->spawnArg1.value + work->angle,
-                                &D_8011280C[task->spawnArg1.value]);
+                                &_gEffectGrenadeEmissionOffsets[task->spawnArg1.value]);
                     task->state = EFFECT_WEAPON_FLASH_STATE_WAIT;
                 }
                 break;
@@ -3698,7 +3698,13 @@ SVECTOR D_801125EC[34] = {
     { 0, 0, 256, 0 },
     { 0, 0, 480, 0 },
 };
-SVECTOR D_801126FC[34] = {
+/// Grenade-flash muzzle placements indexed by weapon-flash profile 0..33.
+///
+/// Signed halfword XYZ use the weapon parent's local game-coordinate units;
+/// the controller reparents its coordinate before applying these translations.
+/// The fourth halfword is zero and unused. These are distinct from the ordinary
+/// weapon muzzle placements, including the MM1 and M4A1 grenade profiles.
+static const SVECTOR _gEffectGrenadeMuzzleOffsets[34] __attribute__((section(".data"))) = {
     { 0, 0, 0, 0 },
     { 0, 384, 96, 0 },
     { 0, 448, 96, 0 },
@@ -3734,7 +3740,13 @@ SVECTOR D_801126FC[34] = {
     { 0, 576, 64, 0 },
     { 0, 640, 96, 0 },
 };
-SVECTOR D_8011280C[34] = {
+/// Delayed grenade-flash emission offsets indexed by weapon-flash profile 0..33.
+///
+/// Signed halfword XYZ use the controller muzzle's local game-coordinate units,
+/// after its parent-local muzzle translation has been installed. Child effects
+/// copy placement and borrow the entry until teardown. The fourth halfword is
+/// zero and unused. The effect-spawn interface takes writable SVECTOR storage.
+static SVECTOR _gEffectGrenadeEmissionOffsets[34] = {
     { 0, 0, 0, 0 },
     { 0, 0, 256, 0 },
     { 0, 0, 320, 0 },
