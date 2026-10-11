@@ -4,10 +4,21 @@
 #include "types.h"
 
 #include "main/stage_types.h"
+#include "main/task_types.h"
+
+/// Bodyless priority-192 recipe for the resident four-state stage-music loader.
+///
+/// Spawn descriptor index zero with `STAGE_MUSIC_REQUEST_*` in spawnArg1 and
+/// zero in spawnArg2, after writing both `gStageMusicParams` halfwords. Requests
+/// must serialize the pending block until state zero reads it. Stage must be
+/// 1..5 and the selected area/column or countdown index must fit its loaded map
+/// table; that map must remain loaded until the task releases its selection.
+/// The descriptor is read synchronously and has resident program lifetime.
+extern TaskDesc gStageMusicTaskDesc;
 
 /// Pending outgoing-song parameters shared by all stage-music requesters.
 ///
-/// Write both halfwords before spawning `Stage_MusicTaskDesc`. The selection
+/// Write both halfwords before spawning `gStageMusicTaskDesc`. The selection
 /// state reads the fade from this resident block, rather than a task-local
 /// snapshot, so another request must not replace it before selection runs.
 /// The block is retained afterwards; the second halfword has no established

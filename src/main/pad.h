@@ -5,7 +5,19 @@
 
 #include "pad_types.h"
 
-extern PadRawPort Pad_RawPorts[2];
+/// Two persistent libpad receive buffers, one per physical controller port.
+///
+/// `PadInitDirect` borrows their fixed addresses while communication runs.
+/// Each response has a 0x24-byte stride; failed exchanges retain response bytes.
+/// The game seeds/clears active-low buttons as released on unavailable input.
+/// Raw readers accept ports 0..1; VSync polling and processed updates use port 0.
+extern PadRawPort gPadRawPorts[PAD_PORT_COUNT];
+
+/// Previous processed port-0 held-button sample for the consecutive soft-reset test.
+///
+/// Active-high Psy-Q button bits. Each test replaces it; an input block clears
+/// it to zero. Resident zero-initialized storage survives overlay changes.
+extern u16 gPadSoftResetPreviousButtons;
 
 /// Initializes processed controller state and starts communication on both ports.
 ///

@@ -5,12 +5,16 @@
 
 #include "main/task_types.h"
 
-/// The task tables a spawn selects by bank number instead of by address, one
-/// entry per bank.
+enum { TASK_DESCRIPTOR_BANK_COUNT = 15 };
+
+/// Resident directory of task descriptor tables selected by bank number.
 ///
-/// `taskSpawn` and `taskGetDesc` pick a bank here and then index the
-/// `TaskDesc` run it points at. Several banks share one table.
-extern TaskDesc* gTaskDescBanks[15];
+/// Bank IDs are 0..14, without a bounds check; banks 11..13 alias bank 2.
+/// Each table has its own descriptor-index domain. Lookup borrows the resident
+/// descriptors; spawning reads one synchronously. Selected callback code and
+/// any model source can belong to an overlay and must remain loaded while used.
+/// Descriptor tables are mutable, including caller-filled model-source slots.
+extern TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT];
 
 /// Resident bank 3: four teardown stubs followed by four development-image tasks.
 ///

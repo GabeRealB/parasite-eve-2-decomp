@@ -79,15 +79,14 @@ static s16 _gFadeBootImageMaskLevel;
 
 BootLoadDestination gGameFlowLoadScreenDestination;
 
-/// Unreferenced.
+/// Four retained BSS bytes with no accesses; their type and role are unproven.
+///
+/// The adjacent loading destination does not establish a containing object.
 static s32 D_8006ACBC;
 
 s16 gGameFlowLoadAlternateCaption;
 
 #include "fs.h"
-
-/// Retained unused caption variant.
-static TextStream BootCaption_MistUnused;
 
 static s32 _fadeBootImageToBlack(s16 levelStep);
 
@@ -1009,7 +1008,7 @@ static TextStream _gGameFlowLoadCaptionMistArrival = {
 };
 /// Glyph script for a retained, unselected M.I.S.T. date/place caption.
 ///
-/// Only `BootCaption_MistUnused` references it; no loading selector reaches that record.
+/// Only `_gGameFlowLoadCaptionMistUnused` references it; no loading selector reaches that record.
 /// Two lines in 49 bytes, including the line break and terminator. Bytes
 /// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
 /// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
@@ -1066,8 +1065,28 @@ static u8 _gGameFlowLoadCaptionMistUnusedChars[] = {
     TEXT_STREAM_END,
 };
 STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionMistUnusedChars, 49);
-/// Retained unused caption variant.
-static TextStream BootCaption_MistUnused = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMistUnusedChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Retained, unselected M.I.S.T. date/place loading-caption playback record.
+///
+/// Uses resident glyph/script storage, a three-frame glyph countdown reload
+/// and a 300-frame final reload. No loading-screen selector chooses this record.
+/// Coordinates and backing-plate dimensions are in pixels; the loading drawer
+/// does not draw the plate.
+static TextStream _gGameFlowLoadCaptionMistUnused = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMistUnusedChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the Akropolis Tower arrival date loading caption.
 ///
 /// Two lines; the Acropolis square and ordinary tower-area selectors share this script.

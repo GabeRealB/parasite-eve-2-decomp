@@ -223,7 +223,7 @@ def is_function_asm(path: Path) -> bool:
     splat declares a function with `glabel` and data with `dlabel`, and across
     every nonmatchings file the two never disagree. Names do: data named from a
     family's imports carries no `D_`/`jtbl_` prefix (RoomsShared8017d878Table,
-    in 142 rooms; ActorsShared*, Display_TaskStates), and a `.text` span that
+    in 142 rooms; ActorsShared*, _gStageModeControllerStates), and a `.text` span that
     comes up short files code into `.rodata` under a `func_` name
     (func_actor_104000_8013206C), which is not matchable as a function either.
     The prefix test is only a shortcut that avoids reading the common case.

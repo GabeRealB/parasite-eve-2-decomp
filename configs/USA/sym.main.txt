@@ -2325,7 +2325,7 @@ _ramsize                    = 0x8005C358;
 //--------------------------------------------------------------------
 //--- PA: 0x4CB5C   VA: 0x8005C35C   subsegment: c, main
 //--------------------------------------------------------------------
-GStackBase                  = 0x8005C35C;
+_gBootStackAddress                  = 0x8005C35C;
 gMemPrimaryHeapBase          = 0x8005C360;
 
 //--------------------------------------------------------------------
@@ -2729,7 +2729,7 @@ GsIDMATRIX2                  = 0x80071178;
 //--------------------------------------------------------------------
 //--- PA: 0x619B8   VA: 0x800711B8   subsegment: bss
 //--------------------------------------------------------------------
-Pad_RawPorts                = 0x800711C8; // type:PadRawPort
+gPadRawPorts                = 0x800711C8; // type:PadRawPort
 
 //--------------------------------------------------------------------
 //--- PA: 0x61CB8   VA: 0x800714B8   subsegment: o, libpad/waitrc2
@@ -2820,7 +2820,7 @@ gStreamSlots                = 0x8006D4F0; // type:StreamSlot size:0x258
 _gStageTransitionState                   = 0x80062698;
 
 // Remaining GStruct cleanup (Wip_* = weak evidence)
-Snd_BankInitTable           = 0x80068A60;
+_gSndBankBootReservations           = 0x80068A60;
 _gCdAudioTableEntries          = 0x80082794;
 gGameDebugState              = 0x800626A8;
 gPlayerStatus               = 0x80073B88; // type:PlayerStatus size:0x80
@@ -2834,7 +2834,7 @@ _gCdCmdEntryIterator             = 0x8006AC04; // type:func
 // Display tables (taskutil.c .rodata)
 _gDisplayWidthPixelsBySelector          = 0x80013E88; // type:u16
 _gDisplayHeightLinesBySelector         = 0x80013E94; // type:u16
-Display_TaskStates                  = 0x80013E98; // size:0x18
+_gStageModeControllerStates                  = 0x80013E98; // size:0x18
 
 // Gameplay naming pass 2 (main-exe table used by overlay)
 
@@ -2871,7 +2871,7 @@ _gCdStreamChunkSequenceErrorCount                  = 0x80068B67; // size:0x1
 gSndVolumeNeoArkDuckUpdates                  = 0x800820E4; // type:s16 size:0x2
 gSndVolumeNeoArkRestoreUpdates                  = 0x800820E6; // type:s16 size:0x2
 gMdecMovieOutputSlot                  = 0x8005EAEE; // type:u16 size:0x2
-D_8005ED8A                  = 0x8005ED8A; // type:u16 size:0x2
+gPadSoftResetPreviousButtons                  = 0x8005ED8A; // type:u16 size:0x2
 gStageMusicLoadState        = 0x80062734; // type:u8 size:0x1
 gStageCountdownMusicEntry       = 0x80062735; // type:u8 size:0x1
 _gStageAmbientRequested             = 0x80062736; // type:u8 size:0x1
@@ -2892,9 +2892,9 @@ _gMidiSequenceMixLevels                  = 0x800689F0; // type:u8 size:0x64
 // Rodata dispatch tables
 _gMidiEventHandlers               = 0x800689C4; // size:0x20
 _gCdAudioDrivers            = 0x80068B34;
-Stage_TaskStates            = 0x80013F1C;
-GameFlow_States5            = 0x800134BC;
-GameFlow_States3            = 0x800134D0;
+_gStageMusicStates            = 0x80013F1C;
+_gGameFlowLoadDialogStates            = 0x800134BC;
+_gGameFlowStartSessionStates            = 0x800134D0;
 _gMcLoadDialogStates         = 0x80013ACC;
 _gMcSaveDialogStates             = 0x800139AC;
 _gTmdReleaseBufferTaskStates              = 0x80013EDC;
@@ -2931,7 +2931,7 @@ _gGameFlowLegacySecondaryLoadCaptionMuseumFlashback = 0x80062CB4;
 _gGameFlowLoadCaptionMistArrivalChars = 0x80062CD4;
 _gGameFlowLoadCaptionMistArrival = 0x80062D08;
 _gGameFlowLoadCaptionMistUnusedChars = 0x80062D28;
-BootCaption_MistUnused = 0x80062D5C;
+_gGameFlowLoadCaptionMistUnused = 0x80062D5C;
 _gGameFlowLoadCaptionAcropolisChars = 0x80062D7C;
 _gGameFlowLoadCaptionAcropolis = 0x80062DB0;
 _gGameFlowLoadCaptionMistDepartureChars = 0x80062DD0;
@@ -3148,25 +3148,25 @@ _gCdCmdMovieWorkspaceBytesByStage = 0x8005DCB4;
 
 _gDisplayTaskPrimitiveArenaBytes = 0x8007A0E4;
 
-Display_HoldMode = 0x8007A118;
+_gDisplayHoldStateSelector = 0x8007A118;
 
 _gDisplaySmallTaskOtTags = 0x8007A120;
 
-Display_MenuTaskDesc = 0x8006268C;
+_gDisplayMenuTaskDesc = 0x8006268C;
 
-Display_ModeTaskDesc = 0x8006269C;
+_gStageModeControllerTaskDesc = 0x8006269C;
 
 _gStageTransitionStorage = 0x8007A320;
 
-Stage_MusicTables = 0x8006273C;
+_gStageAreaMusicTables = 0x8006273C;
 
-Stage_CountdownMusicTables = 0x80062750;
+_gStageCountdownMusicTables = 0x80062750;
 
 _gStageMusicColumnCounts = 0x80062764;
 
 _gStageMusicSceneEventBases = 0x8006276C;
 
-Stage_MusicTaskDesc = 0x80062774;
+gStageMusicTaskDesc = 0x80062774;
 
 _gStageMusicCountdownActive = 0x8007A398;
 
@@ -3182,7 +3182,7 @@ gSpuVelocityGainTable = 0x80068E78; // size:0x100
 
 _gSndScriptVoiceRangeIndices = 0x80068A7C;
 
-Spu_InitialAdpcmBlock = 0x80068184;
+_gSpuSilentLoopAdpcm = 0x80068184;
 
 _gMcDialogWork = 0x80071730;
 
@@ -3222,15 +3222,15 @@ gMcSavePointPreviewLabels = 0x80067418;
 
 gMcSavePointTitleLabels = 0x800675F0;
 
-Text_FillClutPixels = 0x80060910;
+_gTextFontPaletteWords = 0x80060910;
 
-Text_FillClut = 0x80060990;
+_gTextFontPaletteUploadList = 0x80060990;
 
-Text_OutlineClutPixels = 0x800609B0;
+_gTextGlyphPaletteWords = 0x800609B0;
 
-Text_OutlineClut = 0x80060A10;
+_gTextGlyphPaletteUploadList = 0x80060A10;
 
-Ui_OverlayLoadingDesc = 0x800608F4;
+_gUiVibrationOptionsDescriptor = 0x800608F4;
 
 _gUiOptionDialogRowCallbacks = 0x80067650;
 
@@ -3399,3 +3399,6 @@ gDisplayTaskFlipControlSnapshot = 0x80070e38;
 gFsLzssTokenValue = 0x8006ea08;
 gFsLzssTokenBitsNeeded = 0x8006ea0a;
 gFsLzssMatchReadIndex = 0x8006ea0c;
+_gPadActuatorAlignment = 0x8005ed84;
+_gCdSyncDiscInitSettlePolls = 0x8006ebb8;
+_gCdSyncDiscInitHandle = 0x8006ebf2;

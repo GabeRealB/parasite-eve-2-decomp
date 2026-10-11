@@ -468,7 +468,6 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         LOADING_DEATH_SOUND_INITIAL_TICKS = 1,
         LOADING_DEATH_RESTART_DELAY_TICKS = 30,
         LOADING_MUSIC_FADE_OUT_TICKS      = 60,
-        STAGE_MUSIC_REQUEST_ORDINARY      = 0,
     };
     TILE*            fadeTile;
     DR_TPAGE*        blendCommand;
@@ -511,7 +510,7 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         gGameSession->deathRestartDelay   = LOADING_DEATH_RESTART_DELAY_TICKS;
         gStageMusicParams.fadeOutTicks    = LOADING_MUSIC_FADE_OUT_TICKS;
         gStageMusicParams.field_2         = 0;
-        taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
+        taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
         task->state++;
     }
 }

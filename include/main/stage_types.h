@@ -9,6 +9,18 @@ enum {
     STAGE_MUSIC_LOAD_IDLE   = 0xFF,
 };
 
+/// Request modes in the stage-music task's untruncated spawnArg1 value.
+///
+/// Every mode selects the area's scene column except COUNTDOWN, which uses the
+/// scene's direct countdown-table index. LOAD_ONLY skips starting after a new
+/// load; an already-loaded selection can bypass that gate and apply its policy.
+enum {
+    STAGE_MUSIC_REQUEST_ORDINARY   = 0, // Deferred entries are not started; other non-immediate starts wait for view readiness
+    STAGE_MUSIC_REQUEST_AREA_ENTRY = 1, // Apply the area's entry policy without the ordinary request's view/deferred gates
+    STAGE_MUSIC_REQUEST_COUNTDOWN  = 2, // Countdown-table selection with a 300-task-frame outgoing-song deadline
+    STAGE_MUSIC_REQUEST_LOAD_ONLY  = 3, // Area selection; a newly queued load finishes without starting the song
+};
+
 /// How a stage music task disposes of the song it replaces.
 ///
 /// A requester fills this in and then spawns the task, which reads it once

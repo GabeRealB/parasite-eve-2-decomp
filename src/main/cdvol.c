@@ -28,7 +28,11 @@ typedef struct {
     u8     unreadBytes[8]; // Remaining header bytes; not interpreted here
 } _FsSoundBankSectorHeader;
 
-static u16 D_8006EBB8;
+/// Settling polls completed since the resident disc-init job accepted read mode.
+///
+/// Reset to zero at mode acceptance; four polls finish the job. The poll callback
+/// narrows the increment through a signed halfword before testing completion.
+static u16 _gCdSyncDiscInitSettlePolls;
 
 /// Resident output selection (0 mono, 1 stereo), shared by all sound paths.
 ///
@@ -46,9 +50,14 @@ static u8 D_8006EBC0[8];
 /// reading this record does not query hardware. It is separate from the fade cursor.
 static SpuCommonAttr _gSpuCommonOutputAttr;
 
+/// Reset-only halfword storage; its role is unproven and no reader is present.
 static s16 D5B498_8006EBF0;
 
-static s16 D_8006EBF2;
+/// Retained one-based async-queue cancellation handle for resident disc initialization.
+///
+/// Values 1..4 identify a queue slot; zero records enqueue failure or completion.
+/// There is no current reader, and the standalone enqueue entry has no callers.
+static s16 _gCdSyncDiscInitHandle;
 
 /// CD-input fade cursor in seven-bit gain levels (0 silent, 127 full).
 ///
@@ -203,8 +212,8 @@ static s32 _cdSyncPollDiscInit(AsyncCbEntry* entry)
                                                 case CD_SYNC_DISC_INIT_SET_MODE:
                                                     scratch.readMode = (s8)(CdlModeSpeed | CdlModeSize1);
                                                     if (CdControl(CdlSetmode, (u8*)&scratch.readMode, NULL) != 0) {
-                                                        D_8006EBB8              = 0;
-                                                        entry->status.pollState = CD_SYNC_DISC_INIT_SETTLE;
+                                                        _gCdSyncDiscInitSettlePolls = 0;
+                                                        entry->status.pollState     = CD_SYNC_DISC_INIT_SETTLE;
                                                     }
                                             }
                                     }
@@ -213,8 +222,8 @@ static s32 _cdSyncPollDiscInit(AsyncCbEntry* entry)
             }
             break;
         case CD_SYNC_DISC_INIT_SETTLE:
-            settlePolls = D_8006EBB8 + 1;
-            D_8006EBB8  = settlePolls;
+            settlePolls                 = _gCdSyncDiscInitSettlePolls + 1;
+            _gCdSyncDiscInitSettlePolls = settlePolls;
             if (settlePolls >= CD_SYNC_DISC_INIT_SETTLE_POLLS) {
                 return CD_SYNC_COMPLETE;
             }
@@ -315,7 +324,7 @@ static void _cdSyncQueueDiscInit(void)
     AsyncCbEntry callbacks;
     s16*         handle;
 
-    handle             = &D_8006EBF2;
+    handle             = &_gCdSyncDiscInitHandle;
     callbacks.pollFn   = _cdSyncPollDiscInit;
     callbacks.doneFn   = _cdSyncCompleteDiscInit;
     callbacks.cancelFn = _cdSyncCancelDiscInit;
@@ -330,7 +339,7 @@ static void _cdSyncCompleteDiscInit(AsyncCbEntry* entry)
 {
     enum { CD_SYNC_DISC_INIT_HANDLE_NONE = 0 };
 
-    D_8006EBF2 = CD_SYNC_DISC_INIT_HANDLE_NONE;
+    _gCdSyncDiscInitHandle = CD_SYNC_DISC_INIT_HANDLE_NONE;
 }
 
 /// Flushes CD library state when a disc-initialization job is cancelled.

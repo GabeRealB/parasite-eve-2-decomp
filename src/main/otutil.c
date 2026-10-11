@@ -44,7 +44,11 @@ GsOT gGpuTaskOrderingTables[2];
 
 TaskNode gDisplayTaskList;
 
-static s32 Display_HoldMode;
+/// Selector for the unused signed hold-state resolver; no producer is present.
+///
+/// Values 2/3 return overrides 4/6, and other values return the display hold
+/// byte. The selector values' original roles are unproven; BSS starts at zero.
+static s32 _gDisplayHoldStateSelector;
 
 /// Two resident 64-word DMA tag banks for modal task presentation.
 ///
@@ -56,15 +60,23 @@ static u_long _gDisplaySmallTaskOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
 #include "display.h"
 #include "task.h"
 
-static TaskDesc Display_MenuTaskDesc;
-
 static void _displayFlipOtAndDrawViewActors(void);
 
 static void _displayResumeGameLoop(void);
 
 static void _displayFlipOtAndDrawFlaggedModels(void);
 
-static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, menuRootTask };
+enum { DISPLAY_MENU_TASK_PRIORITY = 192 };
+
+/// Bodyless gameplay menu-root recipe queued by resident display-mode requests.
+///
+/// The mode request becomes spawnArg1 and spawnArg2 is zero. Gameplay menu
+/// code must be loaded when the queued callback runs. The descriptor itself
+/// has program lifetime and is copied synchronously when the task is spawned.
+static TaskDesc _gDisplayMenuTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, DISPLAY_MENU_TASK_PRIORITY } },
+    .callback = menuRootTask,
+};
 
 /// Selects the resident small ordering tables and primitive arena for task presentation.
 ///
@@ -298,11 +310,11 @@ void displayReleaseMenuHold(void)
 
 /// Returns selector 2's value 4, selector 3's value 6, or the signed hold byte.
 ///
-/// No caller or writer of `Display_HoldMode` is present in the game. The
+/// No caller or writer of `_gDisplayHoldStateSelector` is present in the game. The
 /// selector, override values and hold byte's low bits have unproven roles.
 static s32 _displayResolveHoldState(void)
 {
-    switch (Display_HoldMode) {
+    switch (_gDisplayHoldStateSelector) {
         case 2:
             return 4;
         case 3:
@@ -335,9 +347,9 @@ s32 displayDispatchModeRequest(s32 modeRequest)
             gDisplayState.pendingMode = DISPLAY_MODE_NONE;
             // Retain the map's constant argument: merging these calls changes the binary.
             if (modeRequest != DISPLAY_MODE_MAP) {
-                displayQueueModeTask(&Display_MenuTaskDesc, modeRequest, 0, STAGE_ENTRY_RELOAD);
+                displayQueueModeTask(&_gDisplayMenuTaskDesc, modeRequest, 0, STAGE_ENTRY_RELOAD);
             } else {
-                displayQueueModeTask(&Display_MenuTaskDesc, DISPLAY_MODE_MAP, 0, STAGE_ENTRY_RELOAD);
+                displayQueueModeTask(&_gDisplayMenuTaskDesc, DISPLAY_MODE_MAP, 0, STAGE_ENTRY_RELOAD);
             }
             gDisplayState.pendingMode = modeRequest;
             if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {

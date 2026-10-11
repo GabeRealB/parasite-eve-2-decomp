@@ -146,8 +146,6 @@ static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT];
 
 static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT];
 
-static UiObjectDesc Ui_OverlayLoadingDesc[];
-
 static const char _gTextSignedDecimalOverflow[sizeof("99999999")];
 
 static const char _gTextNumberZero[sizeof("0")];
@@ -227,7 +225,7 @@ static TaskDesc _gTaskSystemDescs[39] = {
     { { { TASK_BODY_NONE, 0xF8 } }, loadingRestoreViewGraphicsTask },
 };
 
-TaskDesc* gTaskDescBanks[15] = {
+TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT] = {
     _gTaskSystemDescs,
     gTaskBank1Descs,
     gTaskBank2Descs,
@@ -281,8 +279,26 @@ static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
 #include "assets/font_glyphs2.inc"
 };
 
-static UiObjectDesc Ui_OverlayLoadingDesc[] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 0x120, 0x90 }, 0x38, 0, TASK_BODY_NONE, 0xC0, uiUpdateOptionsAfterLoadTask, 0 },
+/// Ordering-table tag seed and task priority of the resident vibration panel.
+enum {
+    USER_INTERFACE_VIBRATION_OPTIONS_OT_INDEX = 56,
+    USER_INTERFACE_VIBRATION_OPTIONS_PRIORITY = 192,
+};
+
+/// Resident title-style panel recipe for vibration-only options after CD loading.
+///
+/// Bounds are screen-centered pixels. The content wrapper waits for CD idle;
+/// options-overlay code must be loaded before it dispatches the menu. Spawning
+/// borrows this one descriptor only during the call; the UI owns the new panel.
+static UiObjectDesc _gUiVibrationOptionsDescriptor = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 288, 144 },
+    .otIndexSeed     = USER_INTERFACE_VIBRATION_OPTIONS_OT_INDEX,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = USER_INTERFACE_VIBRATION_OPTIONS_PRIORITY,
+    .contentCallback = uiUpdateOptionsAfterLoadTask,
+    .taskDataValue   = 0,
 };
 
 void taskNoopCallback(Task* unusedTask)
@@ -1518,7 +1534,7 @@ static void _uiVibrationOptionsTask(Task* task)
 
     if (task->state == USER_INTERFACE_VIBRATION_OPEN) {
         gUiPromptObject = NULL;
-        panel           = uiSpawnObject(Ui_OverlayLoadingDesc, OPTIONS_MENU_VIBRATION_ONLY, USER_INTERFACE_PANEL_ACTIVE,
+        panel           = uiSpawnObject(&_gUiVibrationOptionsDescriptor, OPTIONS_MENU_VIBRATION_ONLY, USER_INTERFACE_PANEL_ACTIVE,
                                         USER_INTERFACE_VIBRATION_OPEN_TICKS, NULL);
         if (panel != NULL) {
             task->spawnArg2.pointer = panel;

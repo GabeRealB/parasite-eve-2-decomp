@@ -13,7 +13,7 @@ TmdListNode gTmdList;
 
 TmdListNode gModelObjectCoordBodyList;
 
-PadRawPort Pad_RawPorts[2];
+PadRawPort gPadRawPorts[PAD_PORT_COUNT];
 
 s32 gActorRenderCoordPassCounter;
 
@@ -56,13 +56,13 @@ void padInit(void)
         gPadStates[portIndex].modeSetupPending                              = true;
     }
 
-    rawPorts = Pad_RawPorts;
+    rawPorts = gPadRawPorts;
     PadInitDirect((u8*)rawPorts, (u8*)(rawPorts + 1));
     rawPortIndex = 0;
     PadStartCom();
     // Failed exchanges leave response bytes stale, so seed all buttons as released.
     rawPort = rawPorts;
-    for (; rawPortIndex < ARRAY_SIZE(Pad_RawPorts); rawPortIndex++) {
+    for (; rawPortIndex < ARRAY_SIZE(gPadRawPorts); rawPortIndex++) {
         rawPort->buttonsHigh = PAD_RAW_BUTTONS_RELEASED;
         rawPort->buttonsLow  = PAD_RAW_BUTTONS_RELEASED;
         rawPort++;

@@ -156,9 +156,6 @@ static u8 _gMcSavePointTitleTentText[2 * 4 + 1];
 
 static u8 _gMcSavePointTitleWhereAmIText[2 * 11 + 1];
 
-/// Unreferenced.
-static s32 D_80067638;
-
 /// Option-dialog row pitch in pixels, ordering-table seed in tags and task priority.
 enum {
     USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS = 15,
@@ -651,7 +648,9 @@ const u8* gMcSavePointTitleLabels[MEMORY_CARD_SAVE_POINT_TITLE_LABEL_COUNT] = {
 };
 
 UiObject* gItemMenuInfoPanel = NULL;
-/// Unreferenced.
+/// Retained initialized word with no accesses; its type and role are unproven.
+///
+/// The following indexed text-color array does not establish this word's membership.
 static s32 D_80067638 = 0x001C2824;
 /// Indexed text-modulation RGB words, with red in the low byte and no GPU command byte.
 ///

@@ -112,7 +112,7 @@ def declaration(path: Path, text: str) -> re.Match | None:
     * ``dlabel`` - data. Except when a `.text` span comes up short and splat
       files code into `.rodata` as ``.word``; that only happens to functions,
       which carry the ``func_`` name, so data tables with names of their own
-      (``Display_TaskStates``, ``_gBootBuildStamp``) stay out.
+      (``_gStageModeControllerStates``, ``_gBootBuildStamp``) stay out.
     """
     kinds = "glabel|jlabel|dlabel" if path.stem.startswith("func_") else "glabel|jlabel"
     return re.search(rf"^(?:{kinds}) {re.escape(path.stem)}\b", text, re.M)

@@ -555,12 +555,19 @@ pen by 2 pixels, or by 1 when `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`.
 
 | Source | Size | `LoadImage` dest | GPU clut |
 |---|---|---|---|
-| `Text_FillClutPixels` | 32 packed 32-bit words / 64 colors (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | `0x3CD0` / `0x3CD1` / `0x3CD2` / `0x3CD3` |
-| `Text_OutlineClutPixels` | 24 packed 32-bit words / 48 colors (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | glyph fill `0x7FFD` / translucent-text outline `0x7FFE` / ordinary outline `0x7FFF` |
+| `_gTextFontPaletteWords` | 32 packed 32-bit words / 64 colors (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | `0x3CD0` / `0x3CD1` / `0x3CD2` / `0x3CD3` |
+| `_gTextGlyphPaletteWords` | 24 packed 32-bit words / 48 colors (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | glyph fill `0x7FFD` / translucent-text outline `0x7FFE` / ordinary outline `0x7FFF` |
 
 Both transfers cover their complete resident arrays. Rectangle widths count
 16-bit VRAM colors, rather than the packed `u_long` source elements. The
 uploader queues the copies without waiting for GPU completion.
+
+The unused `_gTextFontPaletteUploadList` and `_gTextGlyphPaletteUploadList`
+each contain one copy record and one terminator. The font list describes the
+live font-row destination, but the retained glyph list names `(256,240)` rather
+than the live glyph-row destination `(976,511)`; that unused position's original
+purpose is unproven. Both lists reference the same resident packed words as the
+live uploader.
 
 Opaque UI glyph fills (`_textDrawGlyphImmediate` / `_textDrawGlyphFill`) use **`0x7FFD` only**.
 Indices 0–10 are transparent; 11–15 are the letter. Dual SPRT (`0x7FFD` +

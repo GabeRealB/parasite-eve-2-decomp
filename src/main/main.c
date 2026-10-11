@@ -7,15 +7,11 @@
 
 #include "gamemain.h"
 
-// For some reason, the program starts by modifying its stack pointer and
-// calling the actual entry function of the game. This address does not
-// seem to be inserted by the linker.
-static u32 GStackBase;
-
-// For some reason, the program starts by modifying its stack pointer and
-// calling the actual entry function of the game. This address does not
-// seem to be inserted by the linker.
-static u32 GStackBase = 0x801fff00;
+/// Initial CPU stack-pointer byte address installed before resident execution.
+///
+/// The stack grows downward from this cached RAM address. Stored as the
+/// unsigned address word accepted by `SetSp`, rather than a C object pointer.
+static u32 _gBootStackAddress = 0x801fff00;
 
 // Keep the heap-base word in main's fixed .data subsegment.
 void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
@@ -32,6 +28,6 @@ void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
 /// stack, and `gameMainRun` runs indefinitely on the replacement stack.
 int main(void)
 {
-    SetSp(GStackBase);
+    SetSp(_gBootStackAddress);
     gameMainRun();
 }

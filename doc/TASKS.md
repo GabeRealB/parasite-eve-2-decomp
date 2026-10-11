@@ -14,7 +14,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
 | Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
 | Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
-| Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
+| Bank tables | `src/main/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescriptors`, `gEffectBurstTaskDescriptors`) |
 | Title extras | `src/title/title.c`, `gTitleStartupTaskDescriptors` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
@@ -447,9 +447,9 @@ These are real actors too; they just skip `gTaskDescBanks`.
 |-------|-----------------|
 | `gTitleStartupTaskDescriptors[0]` | `_titleStartupTask` |
 | `gTitleStartupTaskDescriptors[1]` | `_titleIntroMovieTask` (`displaySpawnTaskFromTable`) |
-| `Display_ModeTaskDesc[0]` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
-| `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |
-| `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
+| `_gStageModeControllerTaskDesc` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
+| `gStageMusicTaskDesc` | `_stageMusicTask` — resident four-state music loader, with ordinary/area-entry/countdown/load-only request modes |
+| `_gDisplayMenuTaskDesc` | `menuRootTask` — gameplay menu root queued by resident display-mode requests |
 | `_gStageTransitionState->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
 | `gLoadingRestartPresentationTaskDesc`, `gCapPlaybackTaskDescriptors`, `D_80115D9C`, `D_80119218`, `gReplayBonusCreditsTaskDescriptors`, `gEffectPlayerBodyHitTaskDescriptors`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |

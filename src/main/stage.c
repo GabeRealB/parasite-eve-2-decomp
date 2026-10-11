@@ -173,10 +173,6 @@ static GameDebugState _gGameDebugStateStorage;
 
 static StageCtx* _gStageTransitionState;
 
-static TaskDesc Display_ModeTaskDesc;
-
-static const TaskFuncTable6 Display_TaskStates;
-
 void func_80701470(Task* arg0);
 
 static void _stageStepFadeOverlay(void);
@@ -223,9 +219,17 @@ static void _mdecImageStripCallback(void);
 /// Always addresses `_gStageTransitionStorage`. Mode setup clears that object
 /// in place; transition and fade helpers borrow it across subsequent task frames.
 static StageCtx* _gStageTransitionState = &_gStageTransitionStorage;
-static TaskDesc  Display_ModeTaskDesc   = { { { TASK_BODY_NONE, 0 } }, _stageModeControllerTask };
-GameDebugState*  gGameDebugState        = &_gGameDebugStateStorage;
-TaskDesc         gTaskBank5Descs[5]     = {
+/// Bodyless, priority-zero recipe for the resident six-phase mode controller.
+///
+/// Spawned as descriptor zero on the newly initialized modal execution list
+/// with both payloads zero. The task coordinates queued mode entry, view/file
+/// transitions, exit reload and movie resumption using resident stage storage.
+static TaskDesc _gStageModeControllerTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, 0 } },
+    .callback = _stageModeControllerTask,
+};
+GameDebugState* gGameDebugState    = &_gGameDebugStateStorage;
+TaskDesc        gTaskBank5Descs[5] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskDebugLaunchCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -233,7 +237,12 @@ TaskDesc         gTaskBank5Descs[5]     = {
     { { { TASK_BODY_NONE, 0xC0 } }, func_80701470 },
 };
 
-static const TaskFuncTable6 Display_TaskStates = { {
+/// Mode-controller phases in unchecked Task state order 0..5.
+///
+/// Suspend/spawn, wait/spawn, process requests, begin exit reload, await reload,
+/// then resume the movie and exit. Dispatch copies all six resident callbacks
+/// before calling one; grey-fade advancement follows every dispatch.
+static const TaskFuncTable6 _gStageModeControllerStates = { {
     _stageSuspendCdAndSpawnModeTask,
     _stageWaitCdAndSpawnModeTask,
     _stageProcessTransitionRequests,
@@ -789,7 +798,7 @@ void stageStartModeController(void)
     display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
     display->frameBuffer            = display->otBuffer ^ 1;
     taskInitList(&gDisplayTaskList);
-    taskSpawnFromTable(&Display_ModeTaskDesc, STAGE_MODE_CONTROLLER_ENTRY, 0, 0);
+    taskSpawnFromTable(&_gStageModeControllerTaskDesc, STAGE_MODE_CONTROLLER_ENTRY, 0, 0);
 }
 
 s32 stageRequestModeTaskExit(void)
@@ -1109,7 +1118,7 @@ static void _stageModeControllerTask(Task* task)
 {
     TaskFuncTable6 stateHandlers;
 
-    stateHandlers = Display_TaskStates;
+    stateHandlers = _gStageModeControllerStates;
     stateHandlers.funcs[task->state](task);
     _stageStepFadeOverlay();
 }

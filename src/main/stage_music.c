@@ -25,14 +25,11 @@
 
 #include "mapui/map_shelter.h"
 
-/// Request modes and timing values consumed by the stage music task.
+/// Timing and status values consumed by the stage music task.
 ///
-/// Request mode is the untruncated `Task::spawnArg1.value`. Countdown time is
-/// measured in task frames; the ambient fade is measured in audio updates.
+/// Countdown time is measured in task frames; the ambient fade is measured
+/// in audio updates.
 enum {
-    STAGE_MUSIC_REQUEST_ORDINARY         = 0,
-    STAGE_MUSIC_REQUEST_COUNTDOWN        = 2,
-    STAGE_MUSIC_REQUEST_LOAD_ONLY        = 3,
     STAGE_MUSIC_COUNTDOWN_INACTIVE       = 0,
     STAGE_MUSIC_COUNTDOWN_ACTIVE         = 0xFF,
     STAGE_MUSIC_COUNTDOWN_TIMEOUT_FRAMES = 300,
@@ -82,15 +79,9 @@ static u8 _gStageMusicColumn;
 
 static u8 _gStageMusicSequenceId;
 
-static StageMusicEntry* Stage_MusicTables[];
-
-static StageMusicEntry* Stage_CountdownMusicTables[];
-
 static u8 _gStageMusicColumnCounts[];
 
 static u8 _gStageMusicSceneEventBases[];
-
-static const TaskFuncTable4 Stage_TaskStates;
 
 void func_80703FE8(Task* arg0);
 
@@ -127,20 +118,31 @@ static u8 _gStageMusicColumn = 0;
 ///
 /// Zero addresses all sequences. Never-start entries are recorded too, and
 /// queued starts can fail, so this byte does not establish actual playback.
-static u8               _gStageMusicSequenceId = 0;
-static StageMusicEntry* Stage_MusicTables[]    = {
-    gMapAkropolisAreaMusicEntries,
-    gMapDryfieldAreaMusicEntries,
-    gMapDryfieldFullAreaMusicEntries,
-    gMapShelterAreaMusicEntries,
-    gMapNeoArkAreaMusicEntries,
+static u8 _gStageMusicSequenceId = 0;
+/// Loaded-map area-music matrices for stages 1..5, indexed by stage minus one.
+///
+/// Rows use area IDs directly; widths are 8/7/11/12/10 scene columns and area
+/// maxima are 20/38/38/49/33. Column zero also controls ambient eligibility.
+/// Entries borrow map-overlay storage, which must remain loaded throughout a
+/// music task's selection lifetime. Neither stage nor entry indices are checked.
+static StageMusicEntry* _gStageAreaMusicTables[GAME_STAGE_SHELTER_NEO_ARK] = {
+    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisAreaMusicEntries,
+    [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldAreaMusicEntries,
+    [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullAreaMusicEntries,
+    [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterAreaMusicEntries,
+    [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkAreaMusicEntries,
 };
-static StageMusicEntry* Stage_CountdownMusicTables[] = {
-    gMapAkropolisCountdownMusicEntries,
-    gMapDryfieldCountdownMusicEntries,
-    gMapDryfieldFullCountdownMusicEntries,
-    gMapShelterCountdownMusicEntries,
-    gMapNeoArkCountdownMusicEntries,
+/// Loaded-map countdown-music lists for stages 1..5, indexed by stage minus one.
+///
+/// Each map supplies twenty entries, directly indexed by the scene-selected
+/// `gStageCountdownMusicEntry` in 0..19. The lists borrow map-overlay storage
+/// through completion of the music task; no bounds checks or terminators exist.
+static StageMusicEntry* _gStageCountdownMusicTables[GAME_STAGE_SHELTER_NEO_ARK] = {
+    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisCountdownMusicEntries,
+    [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldCountdownMusicEntries,
+    [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullCountdownMusicEntries,
+    [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterCountdownMusicEntries,
+    [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkCountdownMusicEntries,
 };
 /// Columns per area row in each stage's flat music matrix, indexed by stage minus one.
 ///
@@ -159,8 +161,13 @@ static u8 _gStageMusicColumnCounts[] = {
 /// Stages 1..5 supply 9, 8, 12, 9 and 20. These are event bases, not row widths;
 /// the selector applies stage-specific overrides before clamping the column.
 static u8 _gStageMusicSceneEventBases[] = { 9, 8, 12, 9, 20 };
-TaskDesc  Stage_MusicTaskDesc           = { { { TASK_BODY_NONE, 0xC0 } }, _stageMusicTask };
-TaskDesc  gTaskBank3Descs[8]            = {
+enum { STAGE_MUSIC_TASK_PRIORITY = 192 };
+
+TaskDesc gStageMusicTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, STAGE_MUSIC_TASK_PRIORITY } },
+    .callback = _stageMusicTask,
+};
+TaskDesc gTaskBank3Descs[8] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -171,7 +178,12 @@ TaskDesc  gTaskBank3Descs[8]            = {
     { { { TASK_BODY_TMD, 0xC0 } }, func_80704AD0, { &D_80725F44 } },
 };
 
-static const TaskFuncTable4 Stage_TaskStates = { {
+/// Stage-music task states: select, await stop/load, start when CD idle, finish when idle.
+///
+/// Unchecked `Task::state` domain 0..3. Selection allocates task-owned work;
+/// later handlers borrow its loaded-map table. Dispatch copies all four
+/// resident callbacks before calling one, which may retire the task.
+static const TaskFuncTable4 _gStageMusicStates = { {
     _stageMusicSelectEntry,
     _stageMusicLoadSequence,
     _stageMusicStartWhenCdIdle,
@@ -190,7 +202,7 @@ static inline void _stageMusicChooseCountdownEntry(_StageMusicSelection* selecti
     u16              countdownEntryIndex;
     countdownStageId            = gGameSession->location.loc.stage;
     _gStageMusicCountdownActive = STAGE_MUSIC_COUNTDOWN_ACTIVE;
-    countdownTable              = Stage_CountdownMusicTables[countdownStageId - 1];
+    countdownTable              = _gStageCountdownMusicTables[countdownStageId - 1];
     countdownEntryIndex         = gStageCountdownMusicEntry;
     _gStageMusicCountdownFrames = STAGE_MUSIC_COUNTDOWN_TIMEOUT_FRAMES;
     selection->index            = countdownEntryIndex;
@@ -236,7 +248,7 @@ static void _stageMusicSelectEntry(Task* task)
     if (requestMode == STAGE_MUSIC_REQUEST_COUNTDOWN) {
         _stageMusicChooseCountdownEntry(selection);
     } else {
-        selection->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
+        selection->table = _gStageAreaMusicTables[gGameSession->location.loc.stage - 1];
         selection->index =
             _gStageMusicColumn + (gGameSession->location.loc.area * columnCount);
         if ((selection->table[gGameSession->location.loc.area * columnCount].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
@@ -390,7 +402,7 @@ void stageMusicRequestAreaStart(s32 fadeInTicks)
     stageIndex    = session->location.loc.stage - 1;
     areaRowOffset = session->location.loc.area * _gStageMusicColumnCounts[stageIndex];
     entryIndex    = (_gStageMusicColumn + areaRowOffset) & 0xFFFF;
-    areaTable     = Stage_MusicTables[stageIndex];
+    areaTable     = _gStageAreaMusicTables[stageIndex];
     if (areaTable[entryIndex].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
         if (areaTable[entryIndex].startMode != STAGE_MUSIC_START_NEVER) {
             sndEvtRequestMidiStart(areaTable[entryIndex].sequenceId, fadeInTicks & 0xFFFF);
@@ -412,7 +424,7 @@ void stageMusicRequestAreaStop(s32 fadeOutTicks)
     stageIndex    = session->location.loc.stage - 1;
     areaRowOffset = session->location.loc.area * _gStageMusicColumnCounts[stageIndex];
     entryIndex    = (_gStageMusicColumn + areaRowOffset) & 0xFFFF;
-    areaTable     = Stage_MusicTables[stageIndex];
+    areaTable     = _gStageAreaMusicTables[stageIndex];
     if (areaTable[entryIndex].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
         if (midiIsSequenceBusy(areaTable[entryIndex].sequenceId) != 0) {
             sndEvtRequestMidiStop(areaTable[entryIndex].sequenceId, (fadeOutTicks + 1) & 0xFFFF);
@@ -428,7 +440,7 @@ static void _stageMusicTask(Task* task)
 {
     TaskFuncTable4 musicStates;
 
-    musicStates = Stage_TaskStates;
+    musicStates = _gStageMusicStates;
     musicStates.funcs[task->state](task);
 }
 
@@ -456,7 +468,7 @@ void stageMusicUpdateAreaAmbient(s32 unused)
     session       = gGameSession;
     stageIndex    = session->location.loc.stage - 1;
     areaRowOffset = session->location.loc.area * _gStageMusicColumnCounts[stageIndex];
-    areaTable     = Stage_MusicTables[stageIndex];
+    areaTable     = _gStageAreaMusicTables[stageIndex];
     // Ambient eligibility belongs to the area's first column, independent of scene music.
     if (areaTable[areaRowOffset].sequenceId == STAGE_MUSIC_AMBIENT_AREA) {
         if (gameFlagGetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == STAGE_MUSIC_AMBIENT_MUTED) {

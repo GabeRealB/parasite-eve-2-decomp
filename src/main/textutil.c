@@ -14,12 +14,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/gpu_image_upload.h"
 
-/// Fill palettes (64 entries) for textUploadPalettes → (256, 243).
-static u_long Text_FillClutPixels[];
-
-/// Outline palettes (48 entries) for textUploadPalettes → (0x3D0, 0x1FF).
-static u_long Text_OutlineClutPixels[];
-
 /// How `_textParseLine` finished the line it copied.
 enum {
     /// A line break was consumed. The cursor is at the next line, which may be empty.
@@ -56,31 +50,54 @@ static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8*
 
 static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
-/// Fill palettes (64 entries) for textUploadPalettes → (256, 243).
-static u_long Text_FillClutPixels[] = {
+/// Four resident 16-color font palettes, packed two RGB555/STP colors per word.
+///
+/// The 32 `u_long` words hold 64 VRAM colors uploaded at (256,243), yielding
+/// CLUTs 0x3CD0..0x3CD3. These retain a nontransparent glyph-cell background;
+/// the separate glyph palette row supplies transparent cell padding.
+static u_long _gTextFontPaletteWords[] = {
 #include "assets/text_clut0.inc"
 };
-/// Upload list for the fill palettes: one copy to (256, 243) and the end record.
+STATIC_ASSERT_SIZEOF(_gTextFontPaletteWords, 32 * sizeof(u_long));
+
+/// Retained two-record font-palette upload list: copy to (256,243), then end.
 ///
-/// The palette data carries the list form that gameplay's `gpuUploadImages`
-/// walks, but the resident executable never reads it: `textUploadPalettes`
-/// uploads the same words to the same rectangle itself.
-static GpuImageUpload Text_FillClut[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF3, 0x40, 1 }, Text_FillClutPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// No code reads the list. Its 64-color width covers the complete resident
+/// font palette row at the same destination used by the live uploader.
+static GpuImageUpload _gTextFontPaletteUploadList[2] = {
+    {
+        .operation   = GPU_IMAGE_UPLOAD_COPY,
+        .unknown_2   = 0,
+        .destination = { 256, 243, sizeof(_gTextFontPaletteWords) / sizeof(u16), 1 },
+        .pixels      = _gTextFontPaletteWords,
+    },
+    { .operation = GP_IMG_REC_END },
 };
 
-/// Outline palettes (48 entries) for textUploadPalettes → (0x3D0, 0x1FF).
-static u_long Text_OutlineClutPixels[] = {
+/// Resident glyph-fill and outline palettes, packed two RGB555/STP colors per word.
+///
+/// The 24 `u_long` words hold 48 VRAM colors in three 16-color blocks: fill,
+/// translucent-text outline, then ordinary/standalone outline. The live upload
+/// at (976,511) yields CLUTs 0x7FFD, 0x7FFE and 0x7FFF. Fill indices 0..10
+/// are transparent, including the font texture's cell-padding index 5.
+static u_long _gTextGlyphPaletteWords[] = {
 #include "assets/text_clut1.inc"
 };
-/// Upload list for the outline palettes: one copy to (256, 240) and the end record.
+STATIC_ASSERT_SIZEOF(_gTextGlyphPaletteWords, 24 * sizeof(u_long));
+
+/// Retained two-record glyph-palette upload list: copy to (256,240), then end.
 ///
-/// Never read, like `Text_FillClut`. Its destination is not where
-/// `textUploadPalettes` uploads these words.
-static GpuImageUpload Text_OutlineClut[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF0, 0x30, 1 }, Text_OutlineClutPixels },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// No code reads the list. Its 48-color width covers all three resident glyph
+/// palettes. This retained destination differs from the live upload at (976,511);
+/// the original purpose of the unused destination is unproven.
+static GpuImageUpload _gTextGlyphPaletteUploadList[2] = {
+    {
+        .operation   = GPU_IMAGE_UPLOAD_COPY,
+        .unknown_2   = 0,
+        .destination = { 256, 240, sizeof(_gTextGlyphPaletteWords) / sizeof(u16), 1 },
+        .pixels      = _gTextGlyphPaletteWords,
+    },
+    { .operation = GP_IMG_REC_END },
 };
 
 GameFlagStageHeader* gGameFlagStageHeaders[] = {
@@ -440,14 +457,14 @@ void textUploadPalettes(void)
     // VRAM widths count 16-bit colors; each RAM word packs two colors.
     uploadRect.x = TEXT_FONT_PALETTE_ROW_X;
     uploadRect.y = TEXT_FONT_PALETTE_ROW_Y;
-    uploadRect.w = sizeof(Text_FillClutPixels) / sizeof(u16);
+    uploadRect.w = sizeof(_gTextFontPaletteWords) / sizeof(u16);
     uploadRect.h = 1;
-    LoadImage(&uploadRect, Text_FillClutPixels);
+    LoadImage(&uploadRect, _gTextFontPaletteWords);
 
     // The glyph row contains the fill and both outline palettes.
     uploadRect.x = TEXT_GLYPH_PALETTE_ROW_X;
     uploadRect.y = TEXT_GLYPH_PALETTE_ROW_Y;
-    uploadRect.w = sizeof(Text_OutlineClutPixels) / sizeof(u16);
+    uploadRect.w = sizeof(_gTextGlyphPaletteWords) / sizeof(u16);
     uploadRect.h = 1;
-    LoadImage(&uploadRect, Text_OutlineClutPixels);
+    LoadImage(&uploadRect, _gTextGlyphPaletteWords);
 }

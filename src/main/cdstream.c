@@ -419,9 +419,6 @@ static volatile u8 _gCdStreamDiscInitStep;
 
 static volatile u8 _gCdStreamChunkSequenceErrorCount;
 
-/// Unreferenced.
-static s16 D_80068B68;
-
 static volatile u16 _gCdStreamReadyCallbackActive;
 
 static const u8* volatile _gCdStreamLastDmaSource;
@@ -512,7 +509,7 @@ static volatile u8 _gCdStreamSectorTransferErrorCount = 0;
 static volatile u8 _gCdStreamDiscInitStep = 0;
 /// Wrapping byte count of disagreements between playhead and expected chunk sequence.
 static volatile u8 _gCdStreamChunkSequenceErrorCount = 0;
-/// Unreferenced.
+/// Retained initialized halfword with no accesses; its type and role are unproven.
 static s16 D_80068B68 = 0;
 /// CD-ready callback reentry guard (0 idle, 1 executing); reset clears it.
 static volatile u16 _gCdStreamReadyCallbackActive = 0;

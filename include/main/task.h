@@ -83,8 +83,6 @@ enum {
 /// synchronously; its model source and overlay must outlive the effect.
 extern TaskDesc gTaskBank1Descs[TASK_BANK1_DESCRIPTOR_COUNT];
 
-extern TaskDesc Stage_MusicTaskDesc;
-
 /// Spawns an indexed descriptor onto the currently selected execution list.
 ///
 /// `table[index]` must be a live, non-terminator descriptor; the signed element

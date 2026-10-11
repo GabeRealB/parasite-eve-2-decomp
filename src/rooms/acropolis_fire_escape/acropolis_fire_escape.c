@@ -841,7 +841,6 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
         ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FADE_TICKS      = 30,
         ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT        = 5,
         ACROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT        = 7,
-        ACROPOLIS_FIRE_ESCAPE_MUSIC_REQUEST_ORDINARY   = 0,
     };
     s32 levelPercent;
     s32 previousLevelPercent;
@@ -865,7 +864,7 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT;
                 gStageMusicParams.fadeOutTicks                      = 1;
                 gStageMusicParams.field_2                           = 1;
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, ACROPOLIS_FIRE_ESCAPE_MUSIC_REQUEST_ORDINARY, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
                 gGameSession->flowFlags = 0;
             }
             break;

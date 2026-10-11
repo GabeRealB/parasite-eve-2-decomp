@@ -84,8 +84,6 @@ void sceneBattleStartTransitionTask(Task* task)
         SCENE_BATTLE_START_LOAD_MUSIC        = 1,
         SCENE_BATTLE_START_DELAY_FRAMES      = 30,
         SCENE_BATTLE_START_LONG_DELAY_FRAMES = 90,
-        STAGE_MUSIC_REQUEST_COUNTDOWN        = 2,
-        STAGE_MUSIC_REQUEST_LOAD_ONLY        = 3,
         STAGE_MUSIC_LOAD_IDLE                = 0xFF
     };
     GameSession* session;
@@ -109,9 +107,9 @@ void sceneBattleStartTransitionTask(Task* task)
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if ((session->flowFlags & GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY) == 0) {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_COUNTDOWN, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_COUNTDOWN, 0);
             } else {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
             }
         } else {
             gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;

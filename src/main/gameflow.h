@@ -5,8 +5,6 @@
 
 #include "main/task_types.h"
 
-extern u16 D_8005ED8A;
-
 /// Prepares a new game, saved session or attract demo and queues session startup.
 ///
 /// Resident bank 0, slot 3 interprets spawnArg1 as 0 for a new save (retaining

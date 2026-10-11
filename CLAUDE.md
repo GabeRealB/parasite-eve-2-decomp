@@ -687,7 +687,7 @@ from an extracted source than hard-coded in C.
 
 **Not assets, so eligible for C:** program tables such as the item and balance
 tables (`gItemDescriptors`, `gAttachmentLevelTable`), function-pointer dispatch tables
-(`Display_TaskStates`, `_gMcLoadDialogStates`, `Gp_ItemMenuStates`), index
+(`_gStageModeControllerStates`, `_gMcLoadDialogStates`, `Gp_ItemMenuStates`), index
 tables such as `gWorldCollisionFaceEdges`, constants, UI strings and zero-initialised
 state. Declaring one in C means placing it in the unit that owns it, at the
 position and alignment the original had - the same care as a `rodata` cut

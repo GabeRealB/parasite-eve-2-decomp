@@ -337,7 +337,6 @@ static void _evsExecuteInterpreterTask(Task* task)
         EVENT_SCRIPT_WEAPONS_PLAYER              = 0,
         EVENT_SCRIPT_WEAPONS_COMPANION           = 1,
         EVENT_SCRIPT_WEAPONS_BOTH                = 2,
-        STAGE_MUSIC_REQUEST_ORDINARY             = 0,
     };
 
     work = task->work;
@@ -551,7 +550,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 gStageMusicParams.fadeOutTicks                      = work->command->operand1.value;
                 gStageMusicLoadState                                = STAGE_MUSIC_LOAD_ACTIVE;
                 gStageMusicParams.field_2                           = work->command->operand2.value;
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD:

@@ -84,8 +84,6 @@ static void _sceneBattleResultTask(Task* task)
         SCENE_BATTLE_RESULT_ITEM_NOTICE_DELAY       = 17,
         SCENE_BATTLE_RESULT_BONUS_NOTICE_DELAY      = 33,
         SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY      = 4,
-        STAGE_MUSIC_REQUEST_AREA_ENTRY              = 1,
-        STAGE_MUSIC_REQUEST_LOAD_ONLY               = 3,
         STAGE_MUSIC_LOAD_IDLE                       = 0xFF
     };
     u32                 stageAreaKey;
@@ -153,9 +151,9 @@ static void _sceneBattleResultTask(Task* task)
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY)) {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_AREA_ENTRY, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_AREA_ENTRY, 0);
             } else {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
+                taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
             }
         } else {
             gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;

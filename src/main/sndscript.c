@@ -544,8 +544,6 @@ enum {
 
 static u8 _gSndScriptHighReverbAreas[GAME_STAGE_SHELTER_NEO_ARK + 1][SOUND_SCRIPT_REVERB_AREAS_PER_STAGE];
 
-static _SndBankInitEntry Snd_BankInitTable[];
-
 static s16 _gSndScriptVoiceRangeIndices[];
 
 static void _sndBankReleaseAmbientTables(void);
@@ -611,10 +609,42 @@ static u8 _gSndScriptHighReverbAreas[GAME_STAGE_SHELTER_NEO_ARK + 1][SOUND_SCRIP
     [GAME_STAGE_MINE_SHELTER]    = { GAME_AREA_SHELTER_B4_WATER_SUPPLY, GAME_AREA_MINE_GORGE },
     [GAME_STAGE_SHELTER_NEO_ARK] = { GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, SOUND_SCRIPT_REVERB_UNUSED_AREA },
 };
-static _SndBankInitEntry Snd_BankInitTable[] = {
-    { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
-    { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
+/// Boot reservations use a valid bank id with low bank number 255, not a free id.
+/// Table/image capacities are sound-heap bytes; sample origins are SPU bytes.
+enum {
+    SOUND_BANK_BOOT_RESERVED_NUMBER       = 255,
+    SOUND_BANK_BOOT_PE_TYPE               = (u32)SOUND_BANK_TYPE_PE_ALL >> 28,
+    SOUND_BANK_BOOT_WEAPON_TABLE_BYTES    = 206,
+    SOUND_BANK_BOOT_WEAPON_IMAGE_BYTES    = 528,
+    SOUND_BANK_BOOT_PE_TABLE_BYTES        = 120,
+    SOUND_BANK_BOOT_PE_IMAGE_BYTES        = 360,
+    SOUND_BANK_BOOT_WEAPON_SAMPLE_ADDRESS = 0x73810,
+    SOUND_BANK_BOOT_PE_SAMPLE_ADDRESS     = 0x6F810,
 };
+
+/// Weapon and PE script-bank reservations installed once at sound-system boot.
+///
+/// Each row seeds a type-mapped descriptor/slot and reserves uninitialized
+/// table and script-image blocks; it supplies no playable bank contents.
+/// Later loads release these blocks and allocate at least the same byte
+/// capacities. The SPU origins are stored on the slots without uploading samples.
+static _SndBankInitEntry _gSndBankBootReservations[] = {
+    {
+        .bankType   = SOUND_BANK_TYPE_WEAPON,
+        .bankId     = (SOUND_BANK_TYPE_WEAPON << 12) | SOUND_BANK_BOOT_RESERVED_NUMBER,
+        .tableBytes = SOUND_BANK_BOOT_WEAPON_TABLE_BYTES,
+        .imageBytes = SOUND_BANK_BOOT_WEAPON_IMAGE_BYTES,
+        .spuAddr    = SOUND_BANK_BOOT_WEAPON_SAMPLE_ADDRESS,
+    },
+    {
+        .bankType   = SOUND_BANK_BOOT_PE_TYPE,
+        .bankId     = ((u32)SOUND_BANK_TYPE_PE_ALL >> 16) | SOUND_BANK_BOOT_RESERVED_NUMBER,
+        .tableBytes = SOUND_BANK_BOOT_PE_TABLE_BYTES,
+        .imageBytes = SOUND_BANK_BOOT_PE_IMAGE_BYTES,
+        .spuAddr    = SOUND_BANK_BOOT_PE_SAMPLE_ADDRESS,
+    },
+};
+STATIC_ASSERT_SIZEOF(_gSndBankBootReservations, 2 * sizeof(_SndBankInitEntry));
 volatile s32 gSndBankInitializationBusy = 0;
 /// Ordered allocation preferences: script-exclusive voices, then shared voices.
 ///
@@ -1082,8 +1112,8 @@ s32 sndScriptInitSystem(u32 unused)
     sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_ALL_NON_AMBIENT);
 
     // Reserve buffers for types 2 and 14; a later bank load fills their contents.
-    for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(Snd_BankInitTable); entryIndex++) {
-        _sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex]);
+    for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(_gSndBankBootReservations); entryIndex++) {
+        _sndScriptReserveBootBank(&_gSndBankBootReservations[entryIndex]);
     }
 
     gSndBankInitializationBusy = SOUND_BANK_INIT_IDLE;

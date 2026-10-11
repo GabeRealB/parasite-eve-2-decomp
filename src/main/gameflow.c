@@ -94,21 +94,6 @@ PadState gPadStates[PAD_PORT_COUNT];
 #include "main/game_debug.h"
 #include "main/pad.h"
 
-/// Unreferenced.
-static s32 D_8005ED6C;
-
-/// Unreferenced.
-static s32 D_8005ED7C;
-
-/// Unreferenced.
-static s32 D_8005ED80;
-
-static u8 D_8005ED84[];
-
-static const TaskFuncTable5 GameFlow_States5;
-
-static const TaskFuncTable3 GameFlow_States3;
-
 static void _gameFlowResetNewSession(Task* task);
 
 static void _gameFlowSpawnLoadDialog(Task* task);
@@ -141,19 +126,36 @@ enum {
 
 GameSession* gGameSession           = &_gGameSessionState;
 s32          gPlayClockPendingTicks = 0;
-/// Unreferenced.
+/// Retained initialized word with no accesses; its type and role are unproven.
 static s32 D_8005ED6C            = 0x40;
 s32        gPadConfirmButtonMask = PAD_BUTTON_CROSS;
 s32        gPadCancelButtonMask  = PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
 s32        gPadMenuButtonMask    = PAD_BUTTON_START | PAD_BUTTON_SELECT;
-/// Unreferenced.
+/// Retained initialized word with no accesses; its type and role are unproven.
 static s32 D_8005ED7C = 0x10;
-/// Unreferenced.
-static s32 D_8005ED80   = 0x80;
-static u8  D_8005ED84[] = { 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };
-u16        D_8005ED8A   = 0;
+/// Retained initialized word with no accesses; its type and role are unproven.
+static s32 D_8005ED80 = 0x80;
 
-static const TaskFuncTable5 GameFlow_States5 = { {
+/// Six libpad command-byte slots; 255 leaves a slot without an actuator mapping.
+enum { PAD_ACTUATOR_SLOT_COUNT = 6,
+       PAD_ACTUATOR_UNMAPPED   = 0xFF };
+
+/// Command-byte-to-actuator mapping used when port 0's analog controller is stable.
+///
+/// Command slots 0/1 select actuators 0/1 for the binary and variable motors;
+/// the remaining four are unmapped. Libpad retains the six-byte map until its
+/// alignment command completes; resident storage also survives reconnection.
+static u8 _gPadActuatorAlignment[PAD_ACTUATOR_SLOT_COUNT] = {
+    PAD_VIBRATION_MOTOR_BINARY, PAD_VIBRATION_MOTOR_VARIABLE,
+    PAD_ACTUATOR_UNMAPPED, PAD_ACTUATOR_UNMAPPED, PAD_ACTUATOR_UNMAPPED, PAD_ACTUATOR_UNMAPPED
+};
+u16 gPadSoftResetPreviousButtons = 0;
+
+/// Load-dialog task states: reset, open, await closure, delay, then title/session handoff.
+///
+/// Unchecked `Task::state` domain 0..4; the dispatcher copies the complete
+/// five-handler value before invoking one resident callback.
+static const TaskFuncTable5 _gGameFlowLoadDialogStates = { {
     _gameFlowResetNewSession,
     _gameFlowSpawnLoadDialog,
     _gameFlowWaitForLoadDialog,
@@ -161,7 +163,11 @@ static const TaskFuncTable5 GameFlow_States5 = { {
     _gameFlowFinishLoadDialog,
 } };
 
-static const TaskFuncTable3 GameFlow_States3 = { {
+/// Session-start states: restore saved location, queue gameplay load, then hand off.
+///
+/// Unchecked `Task::state` domain 0..2; the dispatcher copies the complete
+/// three-handler value. Later states wait for disc readiness and CD idleness.
+static const TaskFuncTable3 _gGameFlowStartSessionStates = { {
     _gameFlowRestoreSavedLocation,
     _gameFlowQueueGameplayLoad,
     _gameFlowHandOffSessionLoad,
@@ -457,7 +463,7 @@ void gameFlowLoadDialogTask(Task* task)
 {
     TaskFuncTable5 states;
 
-    states = GameFlow_States5;
+    states = _gGameFlowLoadDialogStates;
     states.funcs[task->state](task);
 }
 
@@ -539,7 +545,7 @@ void gameFlowStartSessionTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = GameFlow_States3;
+    states = _gGameFlowStartSessionStates;
     padStartInputBlock(0);
     states.funcs[task->state](task);
 }
@@ -694,7 +700,7 @@ void padPollPort0(void)
                         pad->actuatorCommand[0] = PAD_LEGACY_VIBRATION_PREFIX;
                     } else if ((actuatorState == PadStateStable) && (modeRequestAttempted == 0)) {
                         PadSetAct(work->portId, pad->actuatorCommand, sizeof(pad->actuatorCommand));
-                        if (PadSetActAlign(work->portId, D_8005ED84) != 0) {
+                        if (PadSetActAlign(work->portId, _gPadActuatorAlignment) != 0) {
                             pad->actuatorAlignmentReady = 1;
                         }
                     }
@@ -720,7 +726,7 @@ void padPollPort0(void)
                 }
                 // Normalize all four wire-order axes after removing the raw dead zone.
                 normalizedAxis = pad->stickAxes;
-                rawAxis        = Pad_RawPorts[port].stickAxes;
+                rawAxis        = gPadRawPorts[port].stickAxes;
                 axisIndex      = 0;
                 do {
                     rawDelta    = *rawAxis - pad->stickCenters[axisIndex];
@@ -754,7 +760,7 @@ void padPollPort0(void)
             case PAD_MODE_ID_KONAMI_GUN:
             case PAD_MODE_ID_NAMCO_GUN:
             case PAD_MODE_ID_MULTITAP:
-                rawPort                           = &Pad_RawPorts[port];
+                rawPort                           = &gPadRawPorts[port];
                 rawPort->buttonsHigh              = PAD_RAW_BUTTON_BYTE_RELEASED;
                 rawPort->buttonsLow               = PAD_RAW_BUTTON_BYTE_RELEASED;
                 inputFormat                       = PAD_INPUT_FORMAT_UNAVAILABLE;
@@ -819,7 +825,7 @@ void padUpdatePort0(void)
     do {
         pad = &gPadStates[port];
         if (pad->inputBlockPolls == 0) {
-            buttons = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
+            buttons = _padSampleRawButtons(scratch, &gPadRawPorts[port]);
 
             // Add left-stick directions only beyond half of normalized Q12 travel.
             if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
@@ -878,7 +884,7 @@ void padUpdatePort0(void)
             pad->releasedButtons = 0;
             pad->buttons         = 0;
             if (pad->inputBlockPolls == 0) {
-                buttons      = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
+                buttons      = _padSampleRawButtons(scratch, &gPadRawPorts[port]);
                 pad->buttons = buttons;
             }
         }

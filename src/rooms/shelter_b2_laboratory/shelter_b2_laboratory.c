@@ -1560,14 +1560,13 @@ static void _shelterB2LaboratoryConsoleKeypadTask(Task* task)
 static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task)
 {
     enum {
-        SHELTER_B2_LABORATORY_FINISH_WAIT_VIEW              = 0,
-        SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC          = 1,
-        SHELTER_B2_LABORATORY_FINISH_WAIT_SCENE             = 2,
-        SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW             = 13,
-        SHELTER_B2_LABORATORY_FINISH_MUSIC_SCENE            = 14,
-        SHELTER_B2_LABORATORY_FINISH_MUSIC_REQUEST_ORDINARY = 0,
-        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_SET          = 0x24,
-        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_CLEAR        = 0x23,
+        SHELTER_B2_LABORATORY_FINISH_WAIT_VIEW       = 0,
+        SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC   = 1,
+        SHELTER_B2_LABORATORY_FINISH_WAIT_SCENE      = 2,
+        SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW      = 13,
+        SHELTER_B2_LABORATORY_FINISH_MUSIC_SCENE     = 14,
+        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_SET   = 0x24,
+        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_CLEAR = 0x23,
     };
 
     switch (task->state) {
@@ -1581,7 +1580,7 @@ static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B2_LABORATORY_FINISH_MUSIC_SCENE;
             gStageMusicParams.fadeOutTicks                      = 0;
             gStageMusicParams.field_2                           = 0;
-            taskSpawnFromTable(&Stage_MusicTaskDesc, 0, SHELTER_B2_LABORATORY_FINISH_MUSIC_REQUEST_ORDINARY, 0);
+            taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
             task->state++;
             return;
         case SHELTER_B2_LABORATORY_FINISH_WAIT_SCENE:

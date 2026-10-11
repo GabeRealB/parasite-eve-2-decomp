@@ -8516,12 +8516,12 @@ where the dest is already a parameter.
 `global = func(...)` after a call can need the local-pointer form when the
 target saves `$s0`, does `lui s0,%hi(global)` / `sh v0,%lo(global)(s0)`, then
 restores `$s0`. A bare store picks `$v1` and drops the save/restore
-(`_cdSyncQueueDiscInit` / `D_8006EBF2`):
+(`_cdSyncQueueDiscInit` / `_gCdSyncDiscInitHandle`):
 
 ```c
 s16 *handle;
 
-handle = &D_8006EBF2;
+handle = &_gCdSyncDiscInitHandle;
 /* ... fill stack args ... */
 *handle = asyncCbEnqueue(&callbacks);
 ```
@@ -12334,7 +12334,7 @@ can optimize the stack stores away):
 volatile PadRawButtons rawButtons;
 const PadRawPort* rawPorts;
 
-rawPorts = Pad_RawPorts;
+rawPorts = gPadRawPorts;
 rawButtons.bytes.high = rawPorts[port].buttonsHigh;
 rawButtons.bytes.low  = rawPorts[port].buttonsLow;
 return (u16)~rawButtons.word;
@@ -12354,7 +12354,7 @@ Avoid `p = &D_array[index]` / `p = base + index` if that yields `addu v1, v0, v1
 (pointer in `$v1`) — reusing the base local via `base[index]` twice keeps the
 pointer in `$v0` so the first `lbu` can land in `$v1`.
 
-`padReadRawButtons` is the pure example (`Pad_RawPorts`, stride 0x24).
+`padReadRawButtons` is the pure example (`gPadRawPorts`, stride 0x24).
 
 ## Ordering-table descriptors are libgs `GsOT`
 
@@ -13061,13 +13061,13 @@ typedef struct {
     TaskFunc funcs[3];
 } TaskFuncTable3;
 
-extern TaskFuncTable3 GameFlow_States3;
+extern TaskFuncTable3 _gGameFlowStartSessionStates;
 
 void dispatcher(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = GameFlow_States3;
+    sp = _gGameFlowStartSessionStates;
     /* … setup … */
     sp.funcs[arg0->field_30](arg0);
 }
@@ -13075,7 +13075,7 @@ void dispatcher(Task* arg0)
 
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `gameFlowStartSessionTask` is the pure example (3 entries). The same idea
-applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `gameFlowLoadDialogTask`.
+applies to `_gGameFlowLoadDialogStates` (5 entries) for the sibling dispatcher `gameFlowLoadDialogTask`.
 
 Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `_gUiPanelLifecycleHandlers` / `_uiDispatchPanelLifecycle`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
@@ -15374,10 +15374,10 @@ pointer for the call, then assign a `volatile PadRawPort*` for the init loop:
 PadRawPort* rawPorts;
 volatile PadRawPort* rawPort;
 
-rawPorts = Pad_RawPorts;
+rawPorts = gPadRawPorts;
 PadInitDirect((u8*)rawPorts, (u8*)(rawPorts + 1));
 rawPort = rawPorts;
-for (rawPortIndex = 0; rawPortIndex < ARRAY_SIZE(Pad_RawPorts); rawPortIndex++) {
+for (rawPortIndex = 0; rawPortIndex < ARRAY_SIZE(gPadRawPorts); rawPortIndex++) {
     rawPort->buttonsHigh = PAD_RAW_BUTTONS_RELEASED;
     rawPort->buttonsLow = PAD_RAW_BUTTONS_RELEASED;
     rawPort++;
@@ -17428,7 +17428,7 @@ loop:
 `gSndBankSlotsByType[entry->bankType]` and `&gSndBankDescriptors[slotIndex]` preserve
 offset-first `addu` with their symbol bases visible to the compiler.
 `sndScriptInitSystem`'s indexed `for` calls
-`_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`; the loop pass
+`_sndScriptReserveBootBank(&_gSndBankBootReservations[entryIndex])`; the loop pass
 places the independent pointer and counter increments in these delay slots.
 `gSndBankInitializationBusy = …` (a volatile word store) before the call keeps its last arg (`li a2`)
 in the `jal` delay instead of the store (see “volatile blocks delay-slot
@@ -22194,13 +22194,13 @@ strength-reduced the induction variable to `base + offset` and emitted
 kept the offsets but forced `lui s2; addiu s2,s2` instead of
 `lui v0; addiu s2,v0`.
 
-The current `padUpdatePort0` indexes `Pad_RawPorts[port]` and passes that
+The current `padUpdatePort0` indexes `gPadRawPorts[port]` and passes that
 entry to `_padSampleRawButtons`. The inline helper preserves both byte writes
 before reading the halfword and produces the target's true-base loads at
 offsets 2 and 3 in both the normal sample and input-block expiry path:
 
 ```c
-buttons = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
+buttons = _padSampleRawButtons(scratch, &gPadRawPorts[port]);
 ```
 
 Its scratch reservation is `scratch = SCRATCH_PUSH_AT(scratchHead, _PadScratch)`.
@@ -66134,7 +66134,7 @@ bottom looks equivalent, but shrinks the loop before `loop.c` runs: the shorter
 form hoists a clamp/scaling constant and changes register allocation. The
 per-branch increments are later merged into the target's single common pointer
 increment. Read `.loop` before trying to fix the resulting register differences.
-Ordinary `gPadStates[port]` / `Pad_RawPorts[port]` indexing also lets GCC create
+Ordinary `gPadStates[port]` / `gPadRawPorts[port]` indexing also lets GCC create
 the two byte-offset induction variables after the hoisted constants, matching
 the prologue order that manually initialized offsets missed.
 
@@ -66144,7 +66144,7 @@ while GCC's local labels were already resolved. Two generated tables also used
 separate target symbols versus `.rodata` and `.rodata+0x20` in C. The final seed
 had 243 identical linked instructions (972 bytes compared against the original
 `assets/USA/main.exe`); unlinked scoring reported 99.934%, or 99.893% after using
-`Pad_RawPorts[port].stickAxes` instead of its `D_800711CC` alias. This is a
+`gPadRawPorts[port].stickAxes` instead of its `D_800711CC` alias. This is a
 relocation-comparison limitation, not permission to ignore unexplained diffs:
 resolve the actual symbols and compare original bytes, then run the full build.
 The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two
@@ -148092,8 +148092,8 @@ finding - name the global (`gSndBankSlotsByType[entry->bankType]`), whose
 symbol is a constant and swaps to the end. Its `lui`/`addiu` is hoisted only
 out of a real loop: a `loop:`/`goto` body has no loop notes, so the address is
 rebuilt per iteration. `sndScriptInitSystem` matched as a plain
-`for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(Snd_BankInitTable); entryIndex++)`
-over `_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`, whose inline
+`for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(_gSndBankBootReservations); entryIndex++)`
+over `_sndScriptReserveBootBank(&_gSndBankBootReservations[entryIndex])`, whose inline
 body uses `gSndBankSlotsByType[...]` and `&gSndBankDescriptors[slotIndex]` directly;
 the early `entryIndex = 0`, the mid-body `entryIndex++` and the hoist order
 in the target were all the scheduler and loop pass.

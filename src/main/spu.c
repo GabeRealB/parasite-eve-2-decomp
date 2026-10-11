@@ -161,17 +161,21 @@ static u32 _gSpuPendingKeyOffMask;
 /// Startup applies attributes immediately without seeding `activeMode`.
 static _SpuReverbConfig _gSpuReverbConfig;
 
-static u8 Spu_InitialAdpcmBlock[];
-
 static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 
 static void _spuApplyReverbUpdates(void);
 
 static void _spuKeyOnSilentBlock(u32 voiceIdx);
 
-static u8 Spu_InitialAdpcmBlock[] = {
+/// Resident 48-byte ADPCM silent-loop asset used to park idle hardware voices.
+///
+/// Three encoded 16-byte blocks are uploaded once at `SPU_SILENT_BLOCK_ADDRESS`
+/// before voice initialization. Voice resets select that same SPU byte address
+/// for both start and loop; the encoded bytes stay resident for the boot upload.
+static u8 _gSpuSilentLoopAdpcm[] = {
 #include "assets/spu_voice_block.inc"
 };
+STATIC_ASSERT_SIZEOF(_gSpuSilentLoopAdpcm, 48);
 
 /// Selects the same SPU byte address for a queued voice's start and loop.
 ///
@@ -330,7 +334,7 @@ void spuInitVoices(void)
     // Install the silent loop before any voice can select it.
     silentBlockAddr = SPU_SILENT_BLOCK_ADDRESS;
     SpuSetTransferStartAddr(silentBlockAddr);
-    SpuWrite(Spu_InitialAdpcmBlock, sizeof(Spu_InitialAdpcmBlock));
+    SpuWrite(_gSpuSilentLoopAdpcm, sizeof(_gSpuSilentLoopAdpcm));
     SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
 
     clearWord                   = (s32*)&_gSpuVoiceUpdateList;

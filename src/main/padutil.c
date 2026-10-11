@@ -4,7 +4,6 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
-#include "gameflow.h"
 #include "pad.h"
 #include "main/pad_types.h"
 #include "pad_types.h"
@@ -105,7 +104,7 @@ s32 padReadRawButtons(s32 port)
     const PadRawPort*      rawPorts;
 
     // Keep the ordered byte writes and subsequent halfword read in memory.
-    rawPorts              = Pad_RawPorts;
+    rawPorts              = gPadRawPorts;
     rawButtons.bytes.high = rawPorts[port].buttonsHigh;
     rawButtons.bytes.low  = rawPorts[port].buttonsLow;
     return (u16)~rawButtons.word;
@@ -144,15 +143,15 @@ s32 padCheckSoftResetCombo(void)
     pad     = gPadStates;
     buttons = pad->buttons;
     if (buttons == PAD_SOFT_RESET_COMBO) {
-        resetRequested = D_8005ED8A == PAD_SOFT_RESET_COMBO;
+        resetRequested = gPadSoftResetPreviousButtons == PAD_SOFT_RESET_COMBO;
     } else {
         resetRequested = 0;
     }
-    D_8005ED8A = buttons;
+    gPadSoftResetPreviousButtons = buttons;
     // An input block breaks the consecutive-sample reset test.
     if (pad->inputBlockPolls != 0) {
-        D_8005ED8A     = 0;
-        resetRequested = 0;
+        gPadSoftResetPreviousButtons = 0;
+        resetRequested               = 0;
     }
     return resetRequested;
 }
