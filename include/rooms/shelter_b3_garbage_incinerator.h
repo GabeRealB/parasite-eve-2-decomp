@@ -75,19 +75,22 @@ enum {
 /// Applying the list also discards those areas' saved enemy poses.
 extern AreaApplyRec gShelterB3GarbageIncineratorDescentAreaUpdates[23];
 
-/// Initial script-clock value and an adjacent halfword of unproven meaning.
+/// Room-owned seed for the countdown before the incinerator's burn scene.
 ///
-/// The four-byte record retains the resource's full observed extent.
+/// `initialSceneClock` is copied into the signed `GameSession::sceneClock`.
+/// One eligible caption-task tick consumes one count; CAP playback and actor
+/// freezes suspend the countdown. The trailing bytes retain adjacent storage;
+/// their meaning, subdivision and membership in the seed object are unproven.
 typedef struct {
-    u16 initialSceneClock; // Successor script countdown in caption-task ticks (8850)
-    u16 unknown_2;         // No observed reader; meaning and subdivision unproven
+    u16 initialSceneClock; // Initial remaining caption-task ticks, read unsigned
+    u8  unknown_2[2];      // Unaccessed bytes; role and internal subdivision unproven
 } ShelterB3GarbageIncineratorSceneTiming;
 STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncineratorSceneTiming, 4);
 
 /// Script countdown seed used when the Glutton event hands control back to the room.
 ///
 /// The seed is copied into `GameSession::sceneClock`; caption-task ticks decrement
-/// it while CAP is idle and actors are running. The adjacent halfword has no
+/// it while CAP is idle and actors are running. The adjacent bytes have no
 /// established use. Actor overlays borrow this record while the room remains loaded.
 extern ShelterB3GarbageIncineratorSceneTiming gShelterB3GarbageIncineratorSuccessorSceneTiming;
 

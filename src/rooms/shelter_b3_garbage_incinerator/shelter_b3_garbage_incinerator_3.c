@@ -84,6 +84,9 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate);
 static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation);
 
+/// Eligible caption-task ticks from the scene handoff to the burn deadline.
+enum { SHELTER_B3_GARBAGE_INCINERATOR_INITIAL_SCENE_CLOCK_TICKS = 8850 };
+
 /// Directed horizontal edge extruded into one collision-wall quad.
 ///
 /// X/Z store signed game-coordinate bits in unsigned halfwords. Builders
@@ -2421,7 +2424,10 @@ AreaApplyRec gShelterB3GarbageIncineratorDescentAreaUpdates[23] = {
     { AREA_APPLY_END, 0, 0, 0 },
 };
 
-ShelterB3GarbageIncineratorSceneTiming gShelterB3GarbageIncineratorSuccessorSceneTiming = { .initialSceneClock = 8850, .unknown_2 = 0xDECA };
+ShelterB3GarbageIncineratorSceneTiming gShelterB3GarbageIncineratorSuccessorSceneTiming = {
+    .initialSceneClock = SHELTER_B3_GARBAGE_INCINERATOR_INITIAL_SCENE_CLOCK_TICKS,
+    .unknown_2         = { 0xCA, 0xDE },
+};
 
 /// Six directed XZ edges forming the exit sequence's two low wall groups.
 ///
