@@ -62,18 +62,9 @@ static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueK
 extern RoomEventReq gRoomEventReq;
 extern u8           gRoomEventActive;
 
-extern TaskDesc gStoreTaskDescs[];
-
-/// The stage byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` held when the cutscene began, saved by
-/// `_generalStoreUnderpassTransitionTask`'s first state and restored into
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` when the cutscene is cut short.
-extern u8 gStoreSavedView;
-
-/// The two script arguments, latched from the message that armed the cutscene
-/// task `gStoreTaskDescs`; the task itself reads them back to
-/// place its actors.
-extern u8 gStoreWarp;
-extern u8 gStoreRoom;
+static u8 _gGeneralStoreUnderpassSavedView;
+static u8 _gGeneralStoreUnderpassArrivalWarp;
+static u8 _gGeneralStoreUnderpassRoom;
 
 /// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
 #define GENERAL_STORE_UNDERPASS_FADE _gGeneralStoreUnderpassFade
@@ -138,9 +129,16 @@ enum {
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gStoreTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _generalStoreToggleFlagTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
+enum { GENERAL_STORE_TASK_PRIORITY = 32 };
+
+/// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
+///
+/// Both are bodyless at priority 32; slot 2 is a task-bank end marker. Toggle
+/// payloads are a flag index and CAP command, while departure payloads are unused.
+/// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
+static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
+    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1797,7 +1795,11 @@ WorldCollisionSurfaceProperties* gDryfieldGeneralStoreSurfacePropertiesByClass[8
     &_gDryfieldGeneralStoreSilentBlockingSurface,
 };
 
-u8 gStoreSavedView = 0;
+/// Live-save view selector captured before the underpass prompt switches to view 16.
+///
+/// Cancellation restores this byte. One transition owns the singleton capture
+/// until cancellation or reload; loading the room image resets it to zero.
+static u8 _gGeneralStoreUnderpassSavedView = 0;
 
 /// Room-owned subtractive fade control for an accepted underpass departure.
 ///
@@ -1815,9 +1817,18 @@ static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-u8 gStoreWarp = 0;
+/// Underpass arrival-warp byte latched by the accepted departure request.
+///
+/// Written after requesting the deferred task, then copied into the live save
+/// on acceptance. Keep unchanged through prompt completion; reload discards it.
+static u8 _gGeneralStoreUnderpassArrivalWarp = 0;
 
-u8 gStoreRoom = 0;
+/// Underpass room selector latched from the request after destination resolution.
+///
+/// An aliased request/reply supplies the resolved room; distinct records retain
+/// the input room. Acceptance copies this byte to the live save. One pending
+/// transition owns the latch until cancellation or reload; no queue is stored.
+static u8 _gGeneralStoreUnderpassRoom = 0;
 
 /// Retained byte initialized to 208; no consumer or semantic role is established.
 static u8 D_dryfield_general_store_8018570B = 208;
@@ -1828,9 +1839,17 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 #include "../../shared/room_event_task.inc.c"
 
+/// Bind writable u8 latches for this carrier's singleton underpass prompt.
+/// Keep them live through prompt completion and bind both shared fragments alike.
+#define GENERAL_STORE_UNDERPASS_SAVED_VIEW   _gGeneralStoreUnderpassSavedView
+#define GENERAL_STORE_UNDERPASS_ARRIVAL_WARP _gGeneralStoreUnderpassArrivalWarp
+#define GENERAL_STORE_UNDERPASS_ROOM         _gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
 #include "../../shared/general_store_cutscene_task.inc.c"
+#undef GENERAL_STORE_UNDERPASS_SAVED_VIEW
+#undef GENERAL_STORE_UNDERPASS_ARRIVAL_WARP
+#undef GENERAL_STORE_UNDERPASS_ROOM
 #undef GENERAL_STORE_UNDERPASS_FADE
 
 /// The room task's three-state table, run from a stack copy by

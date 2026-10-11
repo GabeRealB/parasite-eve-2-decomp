@@ -148,14 +148,6 @@ enum {
         }                                                                               \
     }
 
-/// Descriptor of the room's own event task, which the message handler spawns.
-extern TaskDesc gMainStreetEventTaskDesc;
-
-/// Descriptor of the event task the event gate spawns.
-
-/// Descriptor of the task `_mainStreetFinishIceBagEvent` runs as.
-extern TaskDesc gMainStreetPlayTimeTaskDesc;
-
 /// The room effect mode of each view, indexed by view - 1.
 
 /// View masks of the room task's anchors.
@@ -166,7 +158,7 @@ extern RoomFadeStorage gRoomEventFade;
 /// The message and event the message handler latched for the room's event
 /// task, and the flag it raises once it has spawned that task.
 static RoomEventMsg            _gRoomEventStagedMsg;
-extern RoomEventStartStorage   gMainStreetEventSpawned;
+static RoomEventStartStorage   _gMainStreetStagedSceneStartStorage;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The request the event gate latched for its event task.
@@ -194,7 +186,13 @@ static WorldCollisionTrigger _gDryfieldNightMainStreetRoom1ActionTriggers[12];
 static WorldCoordRoomAmbientEntry _gDryfieldNightMainStreetRoomAmbientTable[25];
 static WorldCoordRoomLights       _gDryfieldNightMainStreetRoomLights;
 
-TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+enum { MAIN_STREET_EVENT_TASK_PRIORITY = 32 };
+
+/// Bodyless staged motel-scene recipe, using the room's latched event and destination.
+///
+/// Priority 32; spawn payloads and metadata are unused. Spawn reads the recipe
+/// synchronously, and the callback and singleton snapshots stay live through reload.
+static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
@@ -204,7 +202,11 @@ TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStage
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
+/// Bodyless Ice Bag handover-completion recipe at priority 32.
+///
+/// Waits for CAP to become idle, then updates the saved timer and water-bag
+/// possession. Spawn payloads and metadata are unused; keep callback code loaded.
+static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
 /// Room-task message interface, borrowed from this overlay until receiver teardown.
 ///
@@ -1849,7 +1851,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-RoomEventStartStorage gMainStreetEventSpawned = { 0 };
+/// Latest staged motel-scene start indication (0 no accepted start, 1 requested).
+///
+/// Each eligible resolver branch clears it, including queries, then sets it
+/// after requesting a task even if spawn fails. It is not a live-task handle.
+/// Retains seven zero bytes whose role and grouping remain unproven.
+static RoomEventStartStorage _gMainStreetStagedSceneStartStorage = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///

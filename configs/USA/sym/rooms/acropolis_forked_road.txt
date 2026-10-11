@@ -1,7 +1,7 @@
 // Overlay-local symbols for acropolis_forked_road.
 _gAcropolisForkedRoadMoviePlayerPositions = 0x80180F80; // size:0x960 defined:True
-D_acropolis_forked_road_80180F14 = 0x80180F14; // size:0x28 defined:True
-D_acropolis_forked_road_80180F3C = 0x80180F3C; // size:0x8 defined:True
+_gAcropolisForkedRoadRoomMessages = 0x80180F14; // size:0x28 defined:True
+_gAcropolisForkedRoadReturnRideLatch = 0x80180F3C; // size:0x8 defined:True
 gAcropolisForkedRoadMovieTaskDescriptors = 0x80180F44; // size:0x3C defined:True
 _gAcropolisForkedRoadAnimation045FCBank1 = 0x801818E0; // size:0x48 defined:True
 _gAcropolisForkedRoadAnimation045FCBank4 = 0x80181928; // size:0xB8 defined:True
@@ -115,9 +115,9 @@ _gAcropolisForkedRoadPointLights = 0x80184570; // size:0x900 defined:True
 _gAcropolisForkedRoadRoomLights = 0x80184E70; // size:0x18 defined:True
 gAcropolisForkedRoadViewCameras = 0x80184E88; // size:0x1B0 defined:True
 _gAcropolisForkedRoadReturnMovieVibrationCommands = 0x80185038; // size:0x18 defined:True
-D_acropolis_forked_road_80185050 = 0x80185050; // size:0x8 defined:True
-D_acropolis_forked_road_80185058 = 0x80185058; // size:0x18 defined:True
-D_acropolis_forked_road_80185070 = 0x80185070; // size:0x8 defined:True
+_gAcropolisForkedRoadReturnMovieVibrationSegments = 0x80185050; // size:0x8 defined:True
+_gAcropolisForkedRoadOutboundMovieVibrationCommands = 0x80185058; // size:0x18 defined:True
+_gAcropolisForkedRoadOutboundMovieVibrationSegments = 0x80185070; // size:0x8 defined:True
 _gAcropolisForkedRoadSurfaceClass4FootstepSounds = 0x80185078; // size:0xC defined:True
 _gAcropolisForkedRoadDefaultSurfaceProperties = 0x80185084; // size:0x8 defined:True
 _gAcropolisForkedRoadSurfaceClass2Properties = 0x8018508C; // size:0x8 defined:True
@@ -153,3 +153,4 @@ _acropolisForkedRoadHandleActionMessage = 0x8017d8a8; // type:func
 _acropolisForkedRoadStartReturnArrivalScene = 0x8017d970; // type:func
 _acropolisForkedRoadOutboundMoviePathTask = 0x8017da24; // type:func
 _acropolisForkedRoadReturnMoviePathTask = 0x8017dd60; // type:func
+_gAcropolisForkedRoadRoomTaskStates = 0x8017d5c4;

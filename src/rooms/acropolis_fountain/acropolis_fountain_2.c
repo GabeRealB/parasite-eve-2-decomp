@@ -89,8 +89,6 @@ typedef struct {
 } _AcropolisFountainWaterLoop;
 STATIC_ASSERT_SIZEOF(_AcropolisFountainWaterLoop, 4);
 
-extern TaskDesc D_acropolis_fountain_8017E7FC[];
-
 static void _acropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex);
 
 /// Ordered phases of the player's single-step climb and subsequent walk.
@@ -155,9 +153,16 @@ static SVECTOR _gAcropolisFountainSprayOffset = { 4000, -688, -6300, 0 };
 /// Retains signed-halfword storage; this is not confirmed playback state.
 static s16 _gAcropolisFountainWaterLoopRequested = 0;
 
-TaskDesc D_acropolis_fountain_8017E7FC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisFountainWaterMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisFountainStopWaterMovieTask, { .value = 0 } },
+enum { ACROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY = 192 };
+
+/// Bodyless water-movie recipes: slot 0 starts the updater, slot 1 stops it.
+///
+/// Both use priority 192 and ignore spawn payloads. This complete indexed table
+/// has no end marker. The stop recipe requires the published updater to be live;
+/// callbacks and movie/sound resources must remain loaded through task teardown.
+static TaskDesc _gAcropolisFountainWaterMovieTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _acropolisFountainWaterMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _acropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources gAcropolisFountainRoomCollisionResources[ACROPOLIS_FOUNTAIN_ROOM_COUNT] = {
@@ -1634,7 +1639,7 @@ WorldCollisionSurfaceProperties* gAcropolisFountainSurfacePropertiesByClass[ACRO
 
 u8 gAcropolisFountainPatioArrivalWarp = 0;
 
-u8 D_acropolis_fountain_80183BB1 = 0;
+u8 gAcropolisFountainPatioRequestedRoom = 0;
 
 u16 D_acropolis_fountain_80183BB2 = 8192;
 
@@ -1869,7 +1874,7 @@ void acropolisFountainViewEffectsTask(Task* task)
         case ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE:
             latchedViewBit = 1 << (effectWork->scale - 1);
             if (latchedViewBit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
-                taskSpawnFromTable(D_acropolis_fountain_8017E7FC, ACROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY, 0, 0);
+                taskSpawnFromTable(_gAcropolisFountainWaterMovieTaskDescriptors, ACROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY, 0, 0);
             }
             task->state = ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW;
             break;
@@ -1879,7 +1884,7 @@ void acropolisFountainViewEffectsTask(Task* task)
             if (latchedViewIndex != (mappedViewIndex & 0xFF)) {
                 // Retire the old view's movie before starting the new one next update.
                 if (latchedViewBit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
-                    taskSpawnFromTable(D_acropolis_fountain_8017E7FC, ACROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY, 0, 0);
+                    taskSpawnFromTable(_gAcropolisFountainWaterMovieTaskDescriptors, ACROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY, 0, 0);
                 }
                 effectWork->scale = (u8)mappedViewIndex;
                 task->state       = ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE;

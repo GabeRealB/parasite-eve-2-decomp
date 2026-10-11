@@ -19,15 +19,11 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern TaskMessageEntry D_acropolis_fountain_8017E764[];
-extern TaskDesc         D_acropolis_fountain_8017E78C[];
-
 static void _acropolisFountainInitializeRoomTask(Task* task);
 static void _acropolisFountainIdleRoomTask(Task* unusedTask);
 
-/// State handlers of the room task: set-up, an empty per-frame tick and
-/// `taskKill`.
-static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
+/// Room-task lifecycle: initialize, idle, release; indexed by unchecked state 0..2.
+static const TaskFuncTable3 _gAcropolisFountainRoomTaskStates = {
     { _acropolisFountainInitializeRoomTask, _acropolisFountainIdleRoomTask, taskKill },
 };
 
@@ -37,7 +33,11 @@ static s32  _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 message
 static s32  _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 static void _acropolisFountainPatioDepartureTask(Task* task);
 
-TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
+/// Room-message interface borrowed until the fountain receiver is released.
+///
+/// Resolves departures, runs CAP commands, refuses key items and routes sound
+/// cues. The fifth record terminates unsupported-ID lookup.
+static const TaskMessageEntry _gAcropolisFountainRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFountainResolveTransitionMessage },
     { ROOM_MESSAGE_COMMAND, _acropolisFountainHandleCommandMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisFountainRejectKeyItemUse },
@@ -45,8 +45,14 @@ TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_acropolis_fountain_8017E78C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _acropolisFountainPatioDepartureTask, { .value = 0 } },
+enum { ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_PRIORITY = 32 };
+
+/// Bodyless patio-departure recipe at slot 0, followed by a task-bank end marker.
+///
+/// Spawn reads the recipe synchronously; the latched arrival warp and callback
+/// must remain loaded until departure. Both spawn payloads and metadata are unused.
+static TaskDesc _gAcropolisFountainPatioDepartureTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_PRIORITY } }, _acropolisFountainPatioDepartureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -74,9 +80,9 @@ static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 mess
     if (destinationAreaId == GAME_AREA_ACROPOLIS_PATIO) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_COMPLETE) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-                gAcropolisFountainPatioArrivalWarp = request->warp;
-                D_acropolis_fountain_80183BB1      = request->room;
-                taskSpawnFromTable(D_acropolis_fountain_8017E78C, ACROPOLIS_FOUNTAIN_TASK_PATIO_DEPARTURE, 0, 0);
+                gAcropolisFountainPatioArrivalWarp   = request->warp;
+                gAcropolisFountainPatioRequestedRoom = request->room;
+                taskSpawnFromTable(_gAcropolisFountainPatioDepartureTaskDescriptors, ACROPOLIS_FOUNTAIN_TASK_PATIO_DEPARTURE, 0, 0);
             }
             return 0;
         }
@@ -233,7 +239,7 @@ static void _acropolisFountainPatioDepartureTask(Task* task)
 /// climb trigger when its saved progress flag is nonzero, then enters state 1.
 static void _acropolisFountainInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_acropolis_fountain_8017E764;
+    task->msgTable = _gAcropolisFountainRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
         acropolisFountainEnableClimbTrigger();
@@ -248,6 +254,6 @@ static void _acropolisFountainIdleRoomTask(Task* unusedTask)
 
 void acropolisFountainRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_acropolis_fountain_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gAcropolisFountainRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

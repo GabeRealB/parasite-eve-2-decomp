@@ -53,7 +53,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
 /// commits the flag and indication. Expands to one compound statement.
 #define MAIN_STREET_LATCH_STAGED_SCENE()                                             \
     {                                                                                \
-        gMainStreetEventSpawned.eventStarted = 0;                                    \
+        _gMainStreetStagedSceneStartStorage.eventStarted = 0;                        \
         if (gameFlagGetNibble(stagedEvent.flagId) == 0 || stagedEvent.flagId == 0) { \
             if (reply->queryOnly == ROOM_EVENT_EXECUTE) {                            \
                 ROOM_EVENT_STAGED_MSG = *reply;                                      \
@@ -61,8 +61,8 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
                 if (stagedEvent.flagId != 0) {                                       \
                     gameFlagSetNibble(stagedEvent.flagId, 1);                        \
                 }                                                                    \
-                taskSpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);              \
-                gMainStreetEventSpawned.eventStarted = 1;                            \
+                taskSpawnFromTable(&_gMainStreetStagedSceneTaskDescriptor, 0, 0, 0); \
+                _gMainStreetStagedSceneStartStorage.eventStarted = 1;                \
                 return MAIN_STREET_TRANSITION_HANDLED;                               \
             }                                                                        \
             return MAIN_STREET_TRANSITION_HANDLED;                                   \

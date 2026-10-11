@@ -33,6 +33,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -90,30 +91,6 @@ static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cue
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-/// Descriptor of the room's own event task, which the message handler spawns.
-extern TaskDesc gMainStreetEventTaskDesc;
-
-/// Descriptor of the event task the event gate spawns.
-
-/// Descriptor of the task `_mainStreetTalkMessage` spawns.
-extern TaskDesc gMainStreetPlayTimeTaskDesc;
-
-/// Message table the room entry task installs at `Task::msgTable`.
-extern TaskMessageEntry D_dryfield_main_street_80180EA0[];
-
-/// Payload of message 0x7DA the room entry task sends to pointer slot 4.
-extern s32 D_dryfield_main_street_80180ED0;
-
-/// The first-visit scene and its skip continuation.
-extern EvsCommand D_dryfield_main_street_80181624[];
-extern EvsCommand D_dryfield_main_street_80181A14[];
-
-/// The room effect mode of each view, indexed by view - 1.
-extern u16 D_dryfield_main_street_80181B94[];
-
-/// Spawn position scratch of the room task's effects.
-extern SVECTOR D_dryfield_main_street_80181BA4;
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -122,9 +99,7 @@ extern RoomFadeStorage gRoomEventFade;
 static RoomEventMsg            _gRoomEventStagedMsg;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
-/// Set by the message handler when its last 0xB/0xC message latched an event
-/// and spawned the room's event task; every such message clears it first.
-extern RoomEventStartStorage gMainStreetEventSpawned;
+static RoomEventStartStorage _gMainStreetStagedSceneStartStorage;
 
 /// The request the event gate latched for its event task.
 extern RoomEventReq gRoomEventReq;
@@ -158,7 +133,13 @@ enum {
     DRYFIELD_MAIN_STREET_HEAD_AIM_STOP    = -1,
 };
 
-TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+enum { MAIN_STREET_EVENT_TASK_PRIORITY = 32 };
+
+/// Bodyless staged motel-scene recipe, using the room's latched event and destination.
+///
+/// Priority 32; spawn payloads and metadata are unused. Spawn reads the recipe
+/// synchronously, and the callback and singleton snapshots stay live through reload.
+static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
@@ -168,9 +149,17 @@ TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStage
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
+/// Bodyless Ice Bag handover-completion recipe at priority 32.
+///
+/// Waits for CAP to become idle, then updates the saved timer and water-bag
+/// possession. Spawn payloads and metadata are unused; keep callback code loaded.
+static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
+/// Main Street's room-message interface, borrowed until receiver teardown.
+///
+/// Resolves departures, refuses key items, starts the first-visit action, handles
+/// talk commands and routes CAP sound cues. The sixth record ends unsupported-ID lookup.
+static const TaskMessageEntry _gDryfieldMainStreetRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
     { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMainStreetStartFirstVisitCutscene },
@@ -179,7 +168,16 @@ TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 D_dryfield_main_street_80180ED0 = 514;
+enum { DRYFIELD_MAIN_STREET_INITIAL_CHASER_HIDE = 0 };
+
+/// Hides the cutscene chaser while the first-visit scene is still unseen.
+///
+/// The room initializer broadcasts this complete record synchronously in the
+/// Dryfield/Main Street command namespace. Preserve its authored word alignment.
+static ActorCommand _gDryfieldMainStreetInitialChaserHideCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET } },
+    .command = DRYFIELD_MAIN_STREET_INITIAL_CHASER_HIDE,
+};
 
 static AnimationPackedPose _gDryfieldMainStreetAnimation03BF0Bank1[6] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank1.inc"
@@ -261,7 +259,11 @@ static AnimationBankCopyRequest _gDryfieldMainStreetPlayerAnimationBankCopy = {
     .wordCount = DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT,
 };
 
-AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained five-word record matching the neighboring animation-play requests.
+///
+/// Encodes bank index 1, clip 1, reset blending and disabled grid participation.
+/// No recovered consumer establishes its intended actor or playback purpose.
+static AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Opening player clip 48, blended over ten frames with grid participation disabled.
 ///
@@ -310,8 +312,11 @@ static ActorTransform _gDryfieldMainStreetFirstVisitPlayerPlacement = {
     .rot = { 0, 0, 0, 0 },
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-ActorTransform D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
+/// Retained 24-byte record with a candidate position (-3000, 0, 6000) and zero angles.
+///
+/// Its layout agrees with the adjacent live placement record, but no recovered
+/// consumer establishes that it is an actor transform or which actor would use it.
+static ActorTransform D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
 
 /// Cutscene-chaser selectors in the Dryfield/Main Street command namespace.
 enum {
@@ -344,14 +349,20 @@ static ActorCommand _gDryfieldMainStreetChaserPlayClip14Command = {
     .command = DRYFIELD_MAIN_STREET_CHASER_PLAY_CLIP14,
 };
 
-EvsCommand D_dryfield_main_street_80181624[42] = {
+/// First-visit chaser scene, ending with player control in battle view 2.
+///
+/// Forty-two instructions including END. Borrows room animation requests,
+/// placement and actor-command records until their instructions execute; the
+/// installed clips and callback code remain live through the scene. Paired with
+/// the skip script by the room-action handler, with HUD hide/restore enabled.
+static EvsCommand _gDryfieldMainStreetFirstVisitScript[42] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5202000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 15) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldMainStreetPlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip49Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 48 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_SET_RATE }, { .value = 3 * ANIMATION_RATE_ONE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldMainStreetFirstVisitPlayerPlacement } }, { .value = 0 } },
@@ -373,7 +384,7 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5202000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 14) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -382,17 +393,22 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldMainStreetChaserHideCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_main_street_80181A14[16] = {
+/// First-visit skip continuation restoring placement and starting the same battle.
+///
+/// Sixteen instructions including END. Releases framebuffer blending, fades out,
+/// places the player, hides the chaser and stops head aiming before restoring view
+/// 2 and control. Borrows room payloads and callbacks through interpreter completion.
+static EvsCommand _gDryfieldMainStreetFirstVisitSkipScript[16] = {
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldMainStreetFirstVisitPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip9Request }, { .value = 0 } },
@@ -403,23 +419,33 @@ EvsCommand D_dryfield_main_street_80181A14[16] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetBeginFirstVisitBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-u16 D_dryfield_main_street_80181B94[8] = {
-    0,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
-    0,
+/// Ambient-effect gates for mapped views 1..8; views 2..4 enable the effect.
+///
+/// Indexed by mapped view minus one. The controller also admits the room's
+/// views 9..13, whose reads exceed this eight-halfword object; their intended
+/// access model is unproven. Preserve the separate following mutable vector.
+static const u16 _gDryfieldMainStreetViewEffectModes[8] SECTION(".data") = {
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_ENABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
+    ROOM_EFFECT_VIEW_DISABLED,
 };
 
-SVECTOR D_dryfield_main_street_80181BA4 = { -850, -1320, 9770, 0 };
+/// Reusable smoke placement sampled separately for every view-eight puff.
+///
+/// XYZ uses game units in the input space of GsWSMATRIX; sampling writes X/Y/Z
+/// in that order and leaves the fourth halfword zero. Spawning snapshots XYZ
+/// and retains a borrowed pointer; the room storage stays live with the effects.
+static SVECTOR _gDryfieldMainStreetSmokeSpawnPosition = { -850, -1320, 9770, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
@@ -1344,7 +1370,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-RoomEventStartStorage gMainStreetEventSpawned = { 0 };
+/// Latest staged motel-scene start indication (0 no accepted start, 1 requested).
+///
+/// Each eligible resolver branch clears it, including queries, then sets it
+/// after requesting a task even if spawn fails. It is not a live-task handle.
+/// Retains seven zero bytes whose role and grouping remain unproven.
+static RoomEventStartStorage _gMainStreetStagedSceneStartStorage = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -1373,8 +1404,8 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
+/// Room-task lifecycle: initialize, idle, release; indexed by unchecked state 0..2.
+static const TaskFuncTable3 _gDryfieldMainStreetRoomTaskStates = {
     { _dryfieldMainStreetInitialize, _dryfieldMainStreetIdle, taskKill },
 };
 
@@ -1408,7 +1439,7 @@ static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unus
     if ((request->actionId == DRYFIELD_MAIN_STREET_ACTION_FIRST_VISIT_SCENE) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
         // Begin with no retained head-aim handle; the script may spawn a new one.
         _dryfieldMainStreetForgetPlayerHeadAimTask(0);
-        evsStartScriptWithSkip(D_dryfield_main_street_80181624, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_main_street_80181A14);
+        evsStartScriptWithSkip(_gDryfieldMainStreetFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldMainStreetFirstVisitSkipScript);
         gameFlagSetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
@@ -1424,11 +1455,11 @@ static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unus
 /// while its task can receive messages.
 static void _dryfieldMainStreetInitialize(Task* task)
 {
-    task->msgTable = D_dryfield_main_street_80180EA0;
+    task->msgTable = _gDryfieldMainStreetRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_80115598 = 1;
     if (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldMainStreetInitialChaserHideCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state++;
 }
@@ -1444,7 +1475,7 @@ void dryfieldMainStreetTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_main_street_8017D5F4;
+    stateHandlers = _gDryfieldMainStreetRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1657,19 +1688,19 @@ void dryfieldMainStreetRoomEffectsTask(Task* task)
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_MAIN_STREET_SPARK_BURST;
         task->state             = DRYFIELD_MAIN_STREET_ROOM_EFFECTS_ACTIVE;
     }
-    gRoomEffectState->roomEffectMode = D_dryfield_main_street_80181B94[(viewGetMappedIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = _gDryfieldMainStreetViewEffectModes[(viewGetMappedIndex() & 0xFF) - 1];
     if ((viewGetMappedIndex() & 0xFF) == DRYFIELD_MAIN_STREET_SMOKE_VIEW) {
         if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
             // Seed the view with fast puffs, then replenish it on odd animation frames.
             for (puffIndex = 0; puffIndex < DRYFIELD_MAIN_STREET_INITIAL_PUFF_COUNT; puffIndex++) {
-                _dryfieldMainStreetChooseSmokePosition(&D_dryfield_main_street_80181BA4);
+                _dryfieldMainStreetChooseSmokePosition(&_gDryfieldMainStreetSmokeSpawnPosition);
                 effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & DRYFIELD_MAIN_STREET_PUFF_RANDOM_MASK) + DRYFIELD_MAIN_STREET_INITIAL_PUFF_ARG,
-                            &D_dryfield_main_street_80181BA4);
+                            &_gDryfieldMainStreetSmokeSpawnPosition);
             }
         } else if (gDisplayState.animFrame & 1) {
-            _dryfieldMainStreetChooseSmokePosition(&D_dryfield_main_street_80181BA4);
+            _dryfieldMainStreetChooseSmokePosition(&_gDryfieldMainStreetSmokeSpawnPosition);
             effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & DRYFIELD_MAIN_STREET_PUFF_RANDOM_MASK) | DRYFIELD_MAIN_STREET_STEADY_PUFF_ARG,
-                        &D_dryfield_main_street_80181BA4);
+                        &_gDryfieldMainStreetSmokeSpawnPosition);
         }
     }
     task->spawnArg1.value = viewGetMappedIndex() & 0xFF;

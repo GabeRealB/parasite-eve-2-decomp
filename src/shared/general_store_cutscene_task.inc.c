@@ -1,11 +1,14 @@
 /* Included General Store underpass transition; each carrier declares its static instance.
  * GENERAL_STORE_UNDERPASS_FADE selects a writable room-owned ScreenFade lvalue.
- * Its storage must remain loaded throughout the resident fade task's lifetime.
+ * GENERAL_STORE_UNDERPASS_SAVED_VIEW, GENERAL_STORE_UNDERPASS_ARRIVAL_WARP and
+ * GENERAL_STORE_UNDERPASS_ROOM select writable u8 singleton latches. Day binds
+ * private storage; night binds its overlay-private interface. Keep all storage
+ * loaded through the prompt and the fade record through the resident fade task.
  */
 
 /// Cancels the underpass prompt by restoring actor control and the saved view.
 ///
-/// Requires the live saved-view slot and `gStoreSavedView` captured before the
+/// Requires the live saved-view slot and `GENERAL_STORE_UNDERPASS_SAVED_VIEW` captured before the
 /// prompt. Resumes player scripted control and automatic model drawing, enables
 /// actor updates and requests the cancellation sound. This restores the saved
 /// view selector without requesting a reload; the caller ends the prompt task.
@@ -13,15 +16,16 @@ static inline void _generalStoreCancelUnderpassTransition(void)
 {
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
     sndEvtRequestStageScriptStart(SOUND_GENERAL_STORE_UNDERPASS_CANCEL, 0, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gStoreSavedView;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = GENERAL_STORE_UNDERPASS_SAVED_VIEW;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
 }
 
 /// Prompts for the General Store's underpass departure and commits or cancels it.
 ///
-/// Start in state 0 with the destination warp and room latched in `gStoreWarp`
-/// and `gStoreRoom`. Holds player control, hides its model and saves the live
+/// Start in state 0 with the destination warp and room latched in
+/// `GENERAL_STORE_UNDERPASS_ARRIVAL_WARP` and `GENERAL_STORE_UNDERPASS_ROOM`.
+/// Holds player control, hides its model and saves the live
 /// view before selecting prompt view 16. CAP key 11 requests a subtractive
 /// eight-frame fade and a reload from the latched underpass destination;
 /// another key restores the view, player presentation and actor control.
@@ -51,7 +55,7 @@ static void _generalStoreUnderpassTransitionTask(Task* task)
         case GENERAL_STORE_TRANSITION_HOLD_PLAYER:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            gStoreSavedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            GENERAL_STORE_UNDERPASS_SAVED_VIEW                         = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = GENERAL_STORE_TRANSITION_PROMPT_VIEW;
             task->state                                               += 1;
             return;
@@ -81,8 +85,8 @@ static void _generalStoreUnderpassTransitionTask(Task* task)
             // Reload from the live save after committing the latched destination.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_UNDERPASS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gStoreWarp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gStoreRoom;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = GENERAL_STORE_UNDERPASS_ARRIVAL_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = GENERAL_STORE_UNDERPASS_ROOM;
             gDisplayState.spriteVariant                                = GENERAL_STORE_RELOAD_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             break;

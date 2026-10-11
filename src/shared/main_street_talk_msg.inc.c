@@ -22,7 +22,7 @@ static s32 _mainStreetTalkMessage(Task* task, s32 messageId, s32 command, s32 un
                 areaSetCurrentObjectState(MAIN_STREET_ICE_BAG_OBJECT_SLOT, 1);
             }
             capSpawnEventIfIdle(MAIN_STREET_CAP_AFTER_HANDOVER, CAP_EVENT_PAUSE_ACTORS);
-            taskSpawnFromTable(&gMainStreetPlayTimeTaskDesc, 0, 0, 0);
+            taskSpawnFromTable(&_gMainStreetIceBagCompletionTaskDescriptor, 0, 0, 0);
         } else {
             capSpawnEventIfIdle(MAIN_STREET_CAP_BEFORE_HANDOVER, CAP_EVENT_PAUSE_ACTORS);
         }

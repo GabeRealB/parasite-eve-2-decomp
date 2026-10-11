@@ -96,7 +96,7 @@ gNeoArkNorthPromenadeViewCameras = 0x80182410; // absolute:True owner=neo_ark_no
 gNeoArkNorthPromenadeSpriteViews = 0x80182CA4; // absolute:True owner=neo_ark_north_promenade
 gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // absolute:True owner=neo_ark_north_promenade
 neoArkForestZoneRoomTask = 0x8017DBBC; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
-gNeoArkForestZoneRoomCollisionResources = 0x801820A4; // absolute:True owner=neo_ark_forest_zone shared=rooms
+gNeoArkForestZoneRoomCollisionResources = 0x801820A4; // absolute:True owner=neo_ark_forest_zone
 gNeoArkForestZoneRoomLighting = 0x801820B4; // absolute:True owner=neo_ark_forest_zone
 gNeoArkForestZoneViewMaps = 0x801820BC; // absolute:True owner=neo_ark_forest_zone shared=rooms
 gNeoArkForestZoneViewCounts = 0x801820C0; // absolute:True owner=neo_ark_forest_zone
@@ -124,7 +124,7 @@ gNeoArkPavilionSpriteViews = 0x801873B8; // absolute:True owner=neo_ark_pavilion
 gNeoArkPavilionSurfaceProperties = 0x801879EC; // absolute:True owner=neo_ark_pavilion
 neoArkIslandRoomTask = 0x8017EB10; // type:func absolute:True owner=neo_ark_island
 D_neo_ark_island_80181B94 = 0x80181B94; // absolute:True owner=neo_ark_island shared=rooms
-gNeoArkIslandRoomLighting = 0x80181BA4; // absolute:True owner=neo_ark_island shared=rooms
+gNeoArkIslandRoomLighting = 0x80181BA4; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewMaps = 0x80181BAC; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewCounts = 0x80181BB0; // absolute:True owner=neo_ark_island shared=rooms
 D_neo_ark_island_80181BB4 = 0x80181BB4; // absolute:True owner=neo_ark_island shared=rooms

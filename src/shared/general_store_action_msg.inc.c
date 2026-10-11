@@ -28,7 +28,7 @@ static s32 _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 co
         capSpawnEventIfIdle(capCommand, CAP_EVENT_NO_FLAGS);
     }
     if (commandId == GENERAL_STORE_COMMAND_TOGGLE_FLAG) {
-        taskSpawnFromTable(gStoreTaskDescs, GENERAL_STORE_TOGGLE_FLAG_TASK_INDEX, GAME_FLAG_053, GENERAL_STORE_CAP_TOGGLE_FLAG);
+        taskSpawnFromTable(_gGeneralStoreTaskDescriptors, GENERAL_STORE_TOGGLE_FLAG_TASK_INDEX, GAME_FLAG_053, GENERAL_STORE_CAP_TOGGLE_FLAG);
     }
     return 0;
 }

@@ -1758,7 +1758,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightGeneralStoreSurfacePropertiesByCl
     &_gDryfieldNightGeneralStoreDefaultSurfaceProperties,
 };
 
-u8 gStoreSavedView = 0;
+u8 gGeneralStoreUnderpassSavedView = 0;
 
 ScreenFade gGeneralStoreUnderpassFade = { 0 };
 
@@ -1766,9 +1766,9 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-u8 gStoreWarp = 0;
+u8 gGeneralStoreUnderpassArrivalWarp = 0;
 
-u8 gStoreRoom = 0;
+u8 gGeneralStoreUnderpassRoom = 0;
 
 /// Retained initialized byte with value 3; no consumer or role is established.
 u8 D_dryfield_night_general_store_801858C7 = 3;

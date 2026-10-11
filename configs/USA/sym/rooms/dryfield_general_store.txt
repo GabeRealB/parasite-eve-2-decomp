@@ -64,7 +64,7 @@ _gDryfieldGeneralStoreClass1FootstepSounds = 0x801856BC; // size:0xC defined:Tru
 _gDryfieldGeneralStoreSilentBlockingSurface = 0x801856C8; // size:0x8 defined:True
 _gDryfieldGeneralStoreClass1SurfaceProperties = 0x801856D0; // size:0x8 defined:True
 gDryfieldGeneralStoreSurfacePropertiesByClass = 0x801856D8; // size:0x20 defined:True
-gStoreSavedView = 0x801856F8; // size:0x1 defined:True
+_gGeneralStoreUnderpassSavedView = 0x801856F8; // size:0x1 defined:True
 _gGeneralStoreUnderpassFade = 0x801856FC; // size:0x4 defined:True
 _gRoomEventMsg = 0x80185700; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
@@ -72,7 +72,7 @@ gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_10400
 gActor223600BloodSucklerTaskDesc = 0x80150B48; // absolute:True owner=actor_223600
 gMapDryfieldGeneralStoreVariant1Placements = 0x8017AE44; // absolute:True owner=map_dryfield
 _gRoomEventTaskDesc = 0x8017E158; // size:0xC defined:True
-gStoreTaskDescs = 0x8017E164; // size:0x24 defined:True
+_gGeneralStoreTaskDescriptors = 0x8017E164; // size:0x24 defined:True
 D_dryfield_general_store_8017E188 = 0x8017E188; // size:0x30 defined:True
 D_dryfield_general_store_8017E1B8 = 0x8017E1B8; // size:0x4 defined:True
 _gDryfieldGeneralStoreAnimation00ED8Bank1 = 0x8017E1BC; // size:0x48 defined:True
@@ -86,8 +86,8 @@ _gDryfieldGeneralStoreEncounterAnimationSets = 0x8017E4D8; // size:0x8 defined:T
 _gDryfieldGeneralStoreEncounterAnimationBankCopy = 0x8017E4E0; // size:0x8 defined:True
 D_dryfield_general_store_8017E4E8 = 0x8017E4E8; // size:0x14 defined:True
 gRoomEventActive = 0x80185708; // size:0x1 defined:True
-gStoreWarp = 0x80185709; // size:0x1 defined:True
-gStoreRoom = 0x8018570A; // size:0x1 defined:True
+_gGeneralStoreUnderpassArrivalWarp = 0x80185709; // size:0x1 defined:True
+_gGeneralStoreUnderpassRoom = 0x8018570A; // size:0x1 defined:True
 D_dryfield_general_store_8018570B = 0x8018570B; // size:0x1 defined:True
 gRoomEventReq = 0x8018570C; // size:0x14 defined:True
 

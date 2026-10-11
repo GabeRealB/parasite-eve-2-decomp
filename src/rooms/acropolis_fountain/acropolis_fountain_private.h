@@ -11,7 +11,12 @@
 /// is retained after consumption and belongs to the loaded fountain overlay.
 extern u8 gAcropolisFountainPatioArrivalWarp;
 
-extern u8 D_acropolis_fountain_80183BB1;
+/// Requested patio room byte retained when a deferred departure is accepted.
+///
+/// The executing request replaces this singleton latch before task spawn. No
+/// recovered code reads it: departure selects patio room 3 independently.
+/// Kept separately from the arrival warp and reset by loading the room image.
+extern u8 gAcropolisFountainPatioRequestedRoom;
 
 /// Replaces the fountain's inspection trigger with its enabled climb interaction.
 ///

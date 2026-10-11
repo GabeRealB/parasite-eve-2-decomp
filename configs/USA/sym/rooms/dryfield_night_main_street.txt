@@ -2,9 +2,9 @@
 _gDryfieldNightMainStreetAmbientEffectGateByView = 0x80182178; // size:0x30 defined:True
 _gDryfieldNightMainStreetAmbientEffectAnchors = 0x801821A8; // size:0x88 defined:True
 _gDryfieldNightMainStreetGlowViewMasks = 0x80182230; // size:0x40 defined:True
-gMainStreetEventTaskDesc = 0x8018208C; // size:0xC defined:True
+_gMainStreetStagedSceneTaskDescriptor = 0x8018208C; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x80182098; // size:0xC defined:True
-gMainStreetPlayTimeTaskDesc = 0x801820A4; // size:0xC defined:True
+_gMainStreetIceBagCompletionTaskDescriptor = 0x801820A4; // size:0xC defined:True
 _gDryfieldNightMainStreetMessageTable = 0x801820B0; // size:0x30 defined:True
 _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches = 0x801820E0; // size:0x10 defined:True
 _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches = 0x801820F0; // size:0x10 defined:True
@@ -112,7 +112,7 @@ gMapDryfieldFullMainStreetVariant1Placements = 0x8017ADF8; // absolute:True owne
 gMapDryfieldFullMainStreetVariant2Placements = 0x8017AE78; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullMainStreetVariant7Placements = 0x8017AE98; // absolute:True owner=map_dryfield_full
 _gRoomEventStagedMsg = 0x80188BAC; // size:0x8 defined:True
-gMainStreetEventSpawned = 0x80188BB4; // size:0x8 defined:True
+_gMainStreetStagedSceneStartStorage = 0x80188BB4; // size:0x8 defined:True
 _gRoomEventMsg = 0x80188BBC; // size:0x8 defined:True
 gRoomEventActive = 0x80188BC4; // size:0x1 defined:True
 gRoomEventLatched = 0x80188BC8; // size:0x10 defined:True

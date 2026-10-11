@@ -2,9 +2,9 @@
 _gAcropolisFountainClimbTrigger = 0x8017E7A4; // size:0x4C defined:True
 _gAcropolisFountainSprayOffset = 0x8017E7F0; // size:0x8 defined:True
 _gAcropolisFountainWaterLoopRequested = 0x8017E7F8; // size:0x2 defined:True
-D_acropolis_fountain_8017E764 = 0x8017E764; // size:0x28 defined:True
-D_acropolis_fountain_8017E78C = 0x8017E78C; // size:0x18 defined:True
-D_acropolis_fountain_8017E7FC = 0x8017E7FC; // size:0x18 defined:True
+_gAcropolisFountainRoomMessages = 0x8017E764; // size:0x28 defined:True
+_gAcropolisFountainPatioDepartureTaskDescriptors = 0x8017E78C; // size:0x18 defined:True
+_gAcropolisFountainWaterMovieTaskDescriptors = 0x8017E7FC; // size:0x18 defined:True
 gAcropolisFountainRoomCollisionResources = 0x8017E814; // size:0x20 defined:True
 _gAcropolisFountainRoom2ViewMap = 0x8017E834; // size:0x18 defined:True
 gAcropolisFountainViewMaps = 0x8017E84C; // size:0x8 defined:True
@@ -73,7 +73,7 @@ _gAcropolisFountainClass4SurfaceProperties = 0x80183B80; // size:0x8 defined:Tru
 _gAcropolisFountainClass5SurfaceProperties = 0x80183B88; // size:0x8 defined:True
 gAcropolisFountainSurfacePropertiesByClass = 0x80183B90; // size:0x20 defined:True
 gAcropolisFountainPatioArrivalWarp = 0x80183BB0; // size:0x1 defined:True
-D_acropolis_fountain_80183BB1 = 0x80183BB1; // size:0x1 defined:True
+gAcropolisFountainPatioRequestedRoom = 0x80183BB1; // size:0x1 defined:True
 D_acropolis_fountain_80183BB2 = 0x80183BB2; // size:0x2 defined:True
 _gAcropolisFountainWaterMovieTask = 0x80183BB4; // size:0x4 defined:True
 
@@ -101,3 +101,4 @@ _acropolisFountainHandleCommandMessage = 0x8017d77c; // type:func
 _acropolisFountainUpdateWaterLoop = 0x8017e15c; // type:func
 _acropolisFountainWaterMovieTask = 0x8017e3d4; // type:func
 _acropolisFountainPatioDepartureTask = 0x8017d868; // type:func
+_gAcropolisFountainRoomTaskStates = 0x8017d5c4;

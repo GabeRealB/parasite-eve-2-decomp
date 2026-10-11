@@ -70,13 +70,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/falling_leaves.h"
 
-/// The script pair the streamed scene runs.
-extern PadScriptCmd              D_acropolis_forked_road_80185058[6];
-extern PadScriptVibrationSegment D_acropolis_forked_road_80185070[2];
-
-/// The script pair the return ride runs.
-extern PadScriptVibrationSegment D_acropolis_forked_road_80185050[2];
-
 static void _acropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _acropolisForkedRoadReturnMoviePathTask(Task* task);
 static void _acropolisForkedRoadSkipFadeOutTask(Task* task);
@@ -1122,23 +1115,41 @@ static PadScriptCmd _gAcropolisForkedRoadReturnMovieVibrationCommands[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_forked_road_80185050[2] = {
-    { 0, 0, 2, 0 },
-    { 60, 60, 1, 0 },
+/// Return-movie binary-motor holds: segment 0 lasts two frames, segment 1 one.
+///
+/// The return commands select both entries. Their intensity bytes are ignored
+/// by the binary lane; the variable lane stays stopped. Borrowed until teardown.
+static const PadScriptVibrationSegment _gAcropolisForkedRoadReturnMovieVibrationSegments[2] SECTION(".data") = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
+    { .startIntensity = 60, .endIntensity = 60, .durationFrames = 1, .field_3 = 0 },
 };
 
-PadScriptCmd D_acropolis_forked_road_80185058[6] = {
+enum {
+    ACROPOLIS_FORKED_ROAD_OUTBOUND_VIBRATION_WAIT_FRAMES = 2,
+    ACROPOLIS_FORKED_ROAD_OUTBOUND_VIBRATION_LOOP_COUNT  = 38,
+};
+
+/// Outbound-movie binary-motor pulses with a two-frame pause and loop counter 38.
+///
+/// Steps 0/2 play segments 0/1; step 4 jumps to step 0 while the loop counter
+/// remains nonzero, otherwise step 5 stops. The variable lane stays stopped.
+/// Commands and segments remain borrowed until the adopted script task is killed.
+static const PadScriptCmd _gAcropolisForkedRoadOutboundMovieVibrationCommands[6] SECTION(".data") = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, ACROPOLIS_FORKED_ROAD_OUTBOUND_VIBRATION_WAIT_FRAMES), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 38), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_FORKED_ROAD_OUTBOUND_VIBRATION_LOOP_COUNT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_forked_road_80185070[2] = {
-    { 0, 0, 2, 0 },
-    { 60, 60, 1, 0 },
+/// Outbound-movie binary-motor holds: segment 0 lasts two frames, segment 1 one.
+///
+/// Both entries are selected by the outbound commands. Intensity bytes are
+/// ignored by the binary lane; the variable lane stays stopped. Borrowed until teardown.
+static const PadScriptVibrationSegment _gAcropolisForkedRoadOutboundMovieVibrationSegments[2] SECTION(".data") = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
+    { .startIntensity = 60, .endIntensity = 60, .durationFrames = 1, .field_3 = 0 },
 };
 
 enum {
@@ -1304,8 +1315,8 @@ static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
 
         case ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_MOVIE:
             if (cdQueue->movieReady != 0) {
-                movieWork->padScriptTask      = padScriptSpawn(D_acropolis_forked_road_80185058,
-                                                               D_acropolis_forked_road_80185070);
+                movieWork->padScriptTask      = padScriptSpawn(_gAcropolisForkedRoadOutboundMovieVibrationCommands,
+                                                               _gAcropolisForkedRoadOutboundMovieVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, movieWork->padScriptTask);
                 task->state = task->state + 1;
@@ -1399,7 +1410,7 @@ static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
             if (cdQueue->movieReady != 0) {
                 ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame);
                 movieWork->padScriptTask      = padScriptSpawn(_gAcropolisForkedRoadReturnMovieVibrationCommands,
-                                                               D_acropolis_forked_road_80185050);
+                                                               _gAcropolisForkedRoadReturnMovieVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, movieWork->padScriptTask);
                 SetDispMask(0);

@@ -60,10 +60,6 @@
 static Task* _gAcropolisHelicopterLandingPadPlayerPitchTask;
 
 /// Vibration programs paired with the departure timeline's screen shakes.
-extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D40[2];
-extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D48[2];
-extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D50[4];
-extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D60[2];
 extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D68[4];
 extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2];
 
@@ -73,10 +69,10 @@ static void _acropolisHelicopterLandingPadInitRoom(Task* task);
 /// A debug format string nothing in the room reads.
 static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
 
-/// State handlers of the room's script task
-/// `acropolisHelicopterLandingPadRoomTask`, indexed by
-/// `Task::state`: set-up, the per-frame phase tick and `taskKill`.
-static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
+/// Room-task lifecycle: initialize, update the encounter phase, release.
+///
+/// Indexed by unchecked state 0..2; keep the room loaded until task teardown.
+static const TaskFuncTable3 _gAcropolisHelicopterLandingPadRoomTaskStates = {
     { _acropolisHelicopterLandingPadInitRoom, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
@@ -1292,26 +1288,44 @@ PadScriptCmd gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands[2] = {
 
 PadScriptVibrationSegment gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment = { 120, 70, 20, 1 };
 
-PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
+/// Third departure cue at timeline tick 535: play both motors once, then stop.
+///
+/// The binary lane selects segment 0 and the variable lane segment 1. The
+/// two steps and their segments remain borrowed until the script task ends.
+static const PadScriptCmd _gAcropolisHelicopterLandingPadDepartureThirdVibrationCommands[2] SECTION(".data") = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D48[2] = {
-    { 0, 0, 20, 0 },
-    { 255, 220, 25, 1 },
+/// Third departure cue's 20-frame binary hold and 25-frame variable ramp 255 to 220.
+///
+/// Intensities are unsigned motor units before attenuation. The final byte is
+/// retained but unconsumed by the interpreter. Borrowed through script teardown.
+static const PadScriptVibrationSegment _gAcropolisHelicopterLandingPadDepartureThirdVibrationSegments[2] SECTION(".data") = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 20, .field_3 = 0 },
+    { .startIntensity = 255, .endIntensity = 220, .durationFrames = 25, .field_3 = 1 },
 };
 
-PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
+enum { ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SECOND_VIBRATION_LOOP_COUNT = 10 };
+
+/// Second departure cue at tick 421: repeat binary pulses while one variable ramp plays.
+///
+/// Steps 1/2 loop the binary lane back to step 0 with counter 10; step 3 stops.
+/// The variable lane plays segment 1 once and stops at step 1. Both arrays are borrowed.
+static const PadScriptCmd _gAcropolisHelicopterLandingPadDepartureSecondVibrationCommands[4] SECTION(".data") = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SECOND_VIBRATION_LOOP_COUNT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D60[2] = {
-    { 0, 0, 1, 0 },
-    { 220, 180, 25, 1 },
+/// Second departure cue's one-frame binary pulse and 25-frame variable ramp 220 to 180.
+///
+/// Intensities are unsigned motor units before attenuation. The final byte is
+/// retained but unconsumed by the interpreter. Borrowed through script teardown.
+static const PadScriptVibrationSegment _gAcropolisHelicopterLandingPadDepartureSecondVibrationSegments[2] SECTION(".data") = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 1, .field_3 = 0 },
+    { .startIntensity = 220, .endIntensity = 180, .durationFrames = 25, .field_3 = 1 },
 };
 
 PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
@@ -1718,13 +1732,13 @@ void acropolisHelicopterLandingPadDepartureShakeTimelineTask(Task* task)
             _acropolisHelicopterLandingPadSpawnScreenShake(22, 3);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_SECOND_FRAME:
-            padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D50, D_acropolis_helicopter_landing_pad_80187D60);
+            padScriptSpawn(_gAcropolisHelicopterLandingPadDepartureSecondVibrationCommands, _gAcropolisHelicopterLandingPadDepartureSecondVibrationSegments);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_THIRD_FRAME:
             _acropolisHelicopterLandingPadSpawnScreenShake(30, 4);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_THIRD_FRAME:
-            padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D40, D_acropolis_helicopter_landing_pad_80187D48);
+            padScriptSpawn(_gAcropolisHelicopterLandingPadDepartureThirdVibrationCommands, _gAcropolisHelicopterLandingPadDepartureThirdVibrationSegments);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_TIMELINE_END_FRAME:
             taskKill(task);
@@ -2167,6 +2181,6 @@ void acropolisHelicopterLandingPadRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_acropolis_helicopter_landing_pad_8017D5E4;
+    stateHandlers = _gAcropolisHelicopterLandingPadRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

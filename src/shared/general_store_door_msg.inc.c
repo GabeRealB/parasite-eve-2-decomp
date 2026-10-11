@@ -1,4 +1,8 @@
-/* Included General Store departure resolver; each carrier declares its static instance. */
+/* Included General Store departure resolver; each carrier declares its static instance.
+ * GENERAL_STORE_UNDERPASS_ARRIVAL_WARP and GENERAL_STORE_UNDERPASS_ROOM select
+ * the same writable u8 latches supplied to the shared prompt fragment. Their
+ * singleton values must remain unchanged until the pending prompt finishes.
+ */
 
 /// Selects the General Store's underpass destination from event and switch state.
 ///
@@ -89,9 +93,9 @@ static s32 _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, co
     }
     if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED) == 0) {
         // The singleton destination is latched after requesting the deferred task.
-        taskSpawnFromTable(gStoreTaskDescs, GENERAL_STORE_UNDERPASS_TRANSITION_TASK_INDEX, 0, 0);
-        gStoreWarp = request->warp;
-        gStoreRoom = request->room;
+        taskSpawnFromTable(_gGeneralStoreTaskDescriptors, GENERAL_STORE_UNDERPASS_TRANSITION_TASK_INDEX, 0, 0);
+        GENERAL_STORE_UNDERPASS_ARRIVAL_WARP = request->warp;
+        GENERAL_STORE_UNDERPASS_ROOM         = request->room;
     } else {
         capRunCommandWithTransition(GENERAL_STORE_UNDERPASS_BLOCKED_CAP_COMMAND);
     }

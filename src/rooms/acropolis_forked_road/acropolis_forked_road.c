@@ -25,9 +25,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// The room's message table, installed on its entry task.
-extern TaskMessageEntry D_acropolis_forked_road_80180F14[];
-
 /// The room task's once-per-visit latch for the return ride, and the word that
 /// follows it.
 ///
@@ -44,13 +41,13 @@ typedef struct {
 } _AcropolisForkedRoadReturnRideLatch;
 STATIC_ASSERT_SIZEOF(_AcropolisForkedRoadReturnRideLatch, 8);
 
-extern _AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C;
-
 static void _acropolisForkedRoadInitializeRoomTask(Task* task);
 static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask);
 
-/// State handlers of the room's own task.
-static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
+/// Room-task lifecycle: initialize, start the return ride when eligible, release.
+///
+/// The unchecked state selector must be in 0..2; the complete table has no end marker.
+static const TaskFuncTable3 _gAcropolisForkedRoadRoomTaskStates = {
     { _acropolisForkedRoadInitializeRoomTask, _acropolisForkedRoadStartReturnArrivalScene, taskKill }
 };
 
@@ -59,7 +56,11 @@ static s32 _acropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 messageId,
 static s32 _acropolisForkedRoadHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
 static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg);
 
-TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
+/// Room-message interface borrowed until the room receiver is released.
+///
+/// Resolves departures, refuses key items, selects CAP commands and handles the
+/// lock-release action. The fifth record terminates unsupported-ID lookup.
+static const TaskMessageEntry _gAcropolisForkedRoadRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisForkedRoadResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisForkedRoadRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _acropolisForkedRoadHandleCommandMessage },
@@ -67,7 +68,11 @@ TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-_AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C = { 0, { 0 } };
+/// Once-per-overlay-load start indication for the arrival-warp-2 return movie.
+///
+/// Set before the spawn request, including failed requests, and never cleared
+/// while loaded. Retains the four following zero bytes whose grouping is unproven.
+static _AcropolisForkedRoadReturnRideLatch _gAcropolisForkedRoadReturnRideLatch = { 0, { 0 } };
 
 /// Resolves departures to the fountain or observatory and starts their pending scenes.
 ///
@@ -220,7 +225,7 @@ static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 message
 /// table, publishes the task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
 static void _acropolisForkedRoadInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_acropolis_forked_road_80180F14;
+    task->msgTable = _gAcropolisForkedRoadRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -234,14 +239,14 @@ static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask)
     enum {
         ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP = 2
     };
-    if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
-        D_acropolis_forked_road_80180F3C.spawned = 1;
+    if ((_gAcropolisForkedRoadReturnRideLatch.spawned == 0) && (gGameSession->location.loc.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
+        _gAcropolisForkedRoadReturnRideLatch.spawned = 1;
         taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE, 0, 0);
     }
 }
 
 void acropolisForkedRoadRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_acropolis_forked_road_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gAcropolisForkedRoadRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

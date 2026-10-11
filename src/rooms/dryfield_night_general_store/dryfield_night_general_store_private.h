@@ -8,7 +8,11 @@
 
 #include "rooms/room_common.h"
 
-extern u8 gStoreSavedView;
+/// Live-save view selector captured before the underpass prompt switches to view 16.
+///
+/// Cancellation restores this byte. One transition owns the singleton capture
+/// until cancellation or reload; loading the room image resets it to zero.
+extern u8 gGeneralStoreUnderpassSavedView;
 
 /// Room-owned subtractive fade control for an accepted underpass departure.
 ///
@@ -29,9 +33,18 @@ extern RoomEventMsg gRoomEventMsg;
 
 extern u8 gRoomEventActive;
 
-extern u8 gStoreWarp;
+/// Underpass arrival-warp byte latched by the accepted departure request.
+///
+/// Written after requesting the deferred task, then copied into the live save
+/// on acceptance. Keep unchanged through prompt completion; reload discards it.
+extern u8 gGeneralStoreUnderpassArrivalWarp;
 
-extern u8 gStoreRoom;
+/// Underpass room selector latched from the request after destination resolution.
+///
+/// An aliased request/reply supplies the resolved room; distinct records retain
+/// the input room. Acceptance copies this byte to the live save. One pending
+/// transition owns the latch until cancellation or reload; no queue is stored.
+extern u8 gGeneralStoreUnderpassRoom;
 
 extern RoomEventReq gRoomEventReq;
 

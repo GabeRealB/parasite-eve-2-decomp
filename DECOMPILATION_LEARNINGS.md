@@ -90428,7 +90428,7 @@ The arity is fixed by the only caller a table handler has. `taskMessageDispatch`
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
 `TaskMessageHandler` in `include/gameplay/message.h` spells
 `s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)`. So the room's own table
-matters for the convention: `D_dryfield_main_street_80180EA0` registers this
+matters for the convention: `_gDryfieldMainStreetRoomMessages` registers this
 function under `0x13EF` beside `Room_Snd01` under `0x13F2`, and `Room_Snd01` is
 already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
 

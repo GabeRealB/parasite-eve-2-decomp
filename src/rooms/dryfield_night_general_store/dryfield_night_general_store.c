@@ -40,11 +40,6 @@ static s32  _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 c
 
 static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-/// The room's two spawnable tasks: entry 0 the CAP-command task
-/// `_generalStoreToggleFlagTask`, entry 1 the cutscene task
-/// `_generalStoreUnderpassTransitionTask`.
-extern TaskDesc gStoreTaskDescs[];
-
 static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task);
 static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask);
 
@@ -59,9 +54,16 @@ static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unus
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gStoreTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _generalStoreToggleFlagTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
+enum { GENERAL_STORE_TASK_PRIORITY = 32 };
+
+/// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
+///
+/// Both are bodyless at priority 32; slot 2 is a task-bank end marker. Toggle
+/// payloads are a flag index and CAP command, while departure payloads are unused.
+/// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
+static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
+    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -82,11 +84,19 @@ static const TaskMessageEntry _gDryfieldNightGeneralStoreMessageTable[6] SECTION
 
 #include "../../shared/room_event_task.inc.c"
 
+/// Bind writable u8 latches for this carrier's singleton underpass prompt.
+/// Keep them live through prompt completion and bind both shared fragments alike.
+#define GENERAL_STORE_UNDERPASS_SAVED_VIEW   gGeneralStoreUnderpassSavedView
+#define GENERAL_STORE_UNDERPASS_ARRIVAL_WARP gGeneralStoreUnderpassArrivalWarp
+#define GENERAL_STORE_UNDERPASS_ROOM         gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
 /// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
 #define GENERAL_STORE_UNDERPASS_FADE gGeneralStoreUnderpassFade
 #include "../../shared/general_store_cutscene_task.inc.c"
+#undef GENERAL_STORE_UNDERPASS_SAVED_VIEW
+#undef GENERAL_STORE_UNDERPASS_ARRIVAL_WARP
+#undef GENERAL_STORE_UNDERPASS_ROOM
 #undef GENERAL_STORE_UNDERPASS_FADE
 
 /// Room-task lifecycle: state 0 initializes, state 1 waits or updates, state 2 releases.
