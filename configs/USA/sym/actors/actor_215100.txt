@@ -379,7 +379,7 @@ mistShootingGallerySpawnDemoTarget = 0x801848B4; // type:func absolute:True owne
 
 mistShootingGallerySignalAction = 0x80184954; // type:func absolute:True owner=mist_shooting_gallery
 
-D_mist_shooting_gallery_80185384 = 0x80185384; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryMovieTaskDescs = 0x80185384; // absolute:True owner=mist_shooting_gallery
 
 gMistShootingGalleryTaskDescs = 0x801856B8; // absolute:True owner=mist_shooting_gallery
 

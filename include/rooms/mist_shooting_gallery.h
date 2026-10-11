@@ -55,7 +55,17 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryWork, 0x24);
 /// throughout the course, including its result display.
 extern Task* gMistShootingGalleryControllerTask;
 
-extern TaskDesc D_mist_shooting_gallery_80185384[3];
+/// Number of entries in the gallery's movie-presentation task table.
+enum { MIST_SHOOTING_GALLERY_MOVIE_TASK_COUNT = 3 };
+
+/// Post-clear presentation recipes: slot 0 session, slot 1 movie, slot 2 mode splash.
+///
+/// All three tasks are bodyless at priority 192 and take unused zero spawn
+/// arguments. Actor 215100 starts slot 0; it queues the splash after a clear,
+/// then the movie through the display task list. There is no terminator.
+/// Spawning reads each recipe synchronously; keep the gallery and presentation
+/// resources loaded until playback restores the game loop.
+extern TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COUNT];
 
 /// Indices in `gMistShootingGalleryTaskDescs`; these are descriptor slots, not states.
 enum {
@@ -74,7 +84,14 @@ extern TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT];
 
 extern AreaVariant D_mist_shooting_gallery_8018DF74[12];
 
-extern UiObjectDesc D_mist_shooting_gallery_80185000;
+/// RESULT-panel recipe used by gameplay after a gallery course ends.
+///
+/// Initial bounds (-104, -48, 208, 64) are screen-centered pixels, with OT base
+/// 32 and a bodyless priority-192 task. The handler fits the height to nonzero
+/// kill-count rows and reads the live gallery controller; it ignores the first
+/// spawn argument. Spawning copies this recipe. Keep the gallery overlay and
+/// controller work live through the result and any BONUS child panel.
+extern const UiObjectDesc gMistShootingGalleryResultPanelDesc;
 
 /// Gallery weapon-picker recipe exported to the inventory menu's root session.
 ///

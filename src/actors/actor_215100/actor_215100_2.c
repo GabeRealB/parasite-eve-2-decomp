@@ -2822,7 +2822,7 @@ static void _actor215100StartGalleryMovie(void)
 {
     enum { ACTOR_215100_GALLERY_MOVIE_SESSION_TASK = 0 };
 
-    taskSpawnFromTable(D_mist_shooting_gallery_80185384, ACTOR_215100_GALLERY_MOVIE_SESSION_TASK, 0, 0);
+    taskSpawnFromTable(gMistShootingGalleryMovieTaskDescs, ACTOR_215100_GALLERY_MOVIE_SESSION_TASK, 0, 0);
 }
 
 /// Spawns the introduction's demonstration target for a nonzero enable word.

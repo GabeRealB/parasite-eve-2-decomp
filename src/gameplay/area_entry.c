@@ -113,7 +113,7 @@ static void _sceneBattleResultTask(Task* task)
         sndEvtRequestScriptMute(SCENE_BATTLE_RESULT_MUTED_SOUND);
         sndLoadEnqueuePeFile((attachmentGetEffectiveLevel(ATTACHMENT_INDEX_HEALING) + SCENE_BATTLE_RESULT_HEALING_SOUND_FILE_BASE) & 0xFF);
         if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
-            task->spawnArg2.pointer = uiSpawnObject(&D_mist_shooting_gallery_80185000, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY, NULL);
+            task->spawnArg2.pointer = uiSpawnObject(&gMistShootingGalleryResultPanelDesc, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY, NULL);
         } else {
             task->spawnArg2.pointer = uiSpawnObject(D_8010CA40, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
             if (task->spawnArg1.value == SCENE_BATTLE_RESULT_WON) {

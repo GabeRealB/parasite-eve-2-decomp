@@ -160,7 +160,7 @@ gAcropolisHelicopterLandingPadCollisionRoomResources = 0x80184F10; // absolute:T
 gAcropolisHelicopterLandingPadViewMaps = 0x80184F3C; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadViewCounts = 0x80184F40; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 gAcropolisHelicopterLandingPadRoomLightingTable = 0x80184F44; // absolute:True owner=acropolis_helicopter_landing_pad
-gAcropolisHelicopterLandingPadWarps = 0x80184F4C; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
+gAcropolisHelicopterLandingPadWarps = 0x80184F4C; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadSpriteViews = 0x80187824; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadViewCameras = 0x80187968; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadSurfacePropertiesByClass = 0x80187DC8; // absolute:True owner=acropolis_helicopter_landing_pad

@@ -123,28 +123,10 @@ typedef struct {
 } _MistShootingGalleryTargetScore;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
 
-extern TaskDesc D_mist_shooting_gallery_80184F8C;
-
 static const char _gMistShootingGallerySupplyLevelCaption[];
 
 extern EvsCommand D_actor_215100_80153274[];
 extern EvsCommand D_actor_215100_80153D6C[];
-
-/// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
-/// weapon family is not owned (`inventoryIsItemLimitReached` returns 0) are skipped, so
-/// `UiList::currentItemIndex` indexes the drawn rows rather than table slots.
-extern s16 D_mist_shooting_gallery_80184F34[];
-
-extern UiList D_mist_shooting_gallery_80184F4C;
-
-extern UiObjectDesc                    D_mist_shooting_gallery_8018501C;
-extern _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT];
-extern TaskMessageEntry                D_mist_shooting_gallery_801850E8[];
-
-extern TaskDesc           D_mist_shooting_gallery_801850DC;
-extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
-
-extern TaskDesc D_mist_shooting_gallery_80185378;
 
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
 
@@ -256,24 +238,55 @@ static const char _gMistShootingGalleryGaugeFourMarksText[8] __attribute__((sect
 /// NUL-terminated DATA-panel gauge text for rating level 5; each { glyph draws one mark.
 static const char _gMistShootingGalleryGaugeFiveMarksText[8] __attribute__((section(".data"))) = "{{{{{";
 
-s16 D_mist_shooting_gallery_80184F34[10] = {
-    129,
-    130,
-    157,
-    143,
-    136,
-    132,
-    144,
-    140,
-    141,
-    142,
+// Inventory item IDs offered by this picker, rather than equipped-weapon selectors.
+enum {
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M93R     = 0x81,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M950     = 0x82,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MP5A5    = 0x9D,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M4A1     = 0x8F,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MONGOOSE = 0x88,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_P229     = 0x84,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M249     = 0x90,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_PA3      = 0x8C,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_SP12     = 0x8D,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_AS12     = 0x8E,
+    MIST_SHOOTING_GALLERY_WEAPON_COUNT         = 10,
 };
 
-UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
+/// Weapon-picker catalogue in offer order, with no terminator.
+///
+/// Signed halfwords hold inventory item IDs. Entries without saved ownership
+/// are skipped; M4A1 and MP5A5 ownership includes their upgraded variants.
+/// Displayed row indices address that filtered order, not these ten slots.
+static s16 _gMistShootingGalleryWeaponItemIds[MIST_SHOOTING_GALLERY_WEAPON_COUNT] = {
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M93R,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M950,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MP5A5,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M4A1,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MONGOOSE,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_P229,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M249,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_PA3,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_SP12,
+    MIST_SHOOTING_GALLERY_WEAPON_ITEM_AS12,
+};
+
+/// Single row handler used for every owned weapon through shared-row dispatch.
+static UiListRowCallback _gMistShootingGalleryWeaponRowCallbacks[1] = {
     _mistShootingGalleryWeaponRow,
 };
 
-UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+/// Mutable singleton weapon-picker list with clamped navigation and 15-pixel rows.
+///
+/// Initialization replaces the one-row seed with the owned-weapon count and
+/// enables shared-row dispatch. At most ten rows are drawn. The gallery must
+/// remain loaded, and only one weapon picker may use this state at a time.
+static UiList _gMistShootingGalleryWeaponList = {
+    .rowCallbacks    = _gMistShootingGalleryWeaponRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
 const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc __attribute__((section(".data"))) = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
@@ -284,9 +297,22 @@ const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc __attribute__((sect
     .contentCallback = _mistShootingGalleryWeaponSelectPanelTask,
 };
 
-TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, menuRootTask, { .value = 0 } };
+/// Bodyless priority-192 inventory-menu session used for the gallery weapon picker.
+///
+/// The display queue supplies request 0x44 in the first spawn argument and zero
+/// in the second. The gallery recipe and its callback must stay loaded until
+/// the inventory-menu session closes.
+static TaskDesc _gMistShootingGalleryWeaponMenuTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .callback = menuRootTask,
+    .data     = { .value = 0 },
+};
 
-_MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
+/// Per-kill signed points and RESULT labels for target kinds 0..12.
+///
+/// Indexed with the controller's kill counts. Civilian kind 9 deducts 3000
+/// points per kill; the other kinds add points. There is no terminator.
+static _MistShootingGalleryTargetScore _gMistShootingGalleryTargetScores[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
     { 600, _gMistShootingGalleryBacteriumTargetLabel },
     { 1600, _gMistShootingGalleryBearTargetLabel },
     { 900, _gMistShootingGalleryMonkeyTargetLabel },
@@ -302,9 +328,28 @@ _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_G
     { 600, _gMistShootingGalleryRedTargetLabel },
 };
 
-UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -104, -48, 208, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryResultPanelTask, 0 };
+const UiObjectDesc gMistShootingGalleryResultPanelDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -104, -48, 208, 64 },
+    .otIndexSeed     = 32,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _mistShootingGalleryResultPanelTask,
+};
 
-UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, _mistShootingGalleryBonusPanelTask, 0 };
+/// BONUS child-panel recipe for a course's total score and earned BP.
+///
+/// Spawning copies centered pixel bounds (-72, -48, 144, 56), OT base 24 and a
+/// bodyless priority-192 task. The first spawn argument is the signed total
+/// score. Keep the gallery and controller work live until the child closes.
+static const UiObjectDesc _gMistShootingGalleryBonusPanelDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -72, -48, 144, 56 },
+    .otIndexSeed     = 24,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _mistShootingGalleryBonusPanelTask,
+};
 
 /// Single row handler shared by every run mode; initialization enables shared dispatch.
 static UiListRowCallback _gMistShootingGalleryModeRowCallbacks[1] = {
@@ -382,9 +427,23 @@ static TaskDesc _gMistShootingGalleryCarryoverModeSessionDesc = {
     .data     = { .value = 0 },
 };
 
-TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCapPlaybackTask, { .value = 0 } };
+/// Bodyless priority-192 task recipe for the gallery's room CAP commands.
+///
+/// The first spawn argument is a command index; the second selects loaded file
+/// slot 1 for commands 5..8 or slot 3 for commands 33..34. Playback holds player
+/// control until completion. The gallery and selected CAP resources stay loaded.
+static TaskDesc _gMistShootingGalleryCapPlaybackTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .callback = _mistShootingGalleryCapPlaybackTask,
+    .data     = { .value = 0 },
+};
 
-TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
+/// Borrowed room-task message dispatch, terminated by TASK_MESSAGE_TABLE_END.
+///
+/// Handles transition request/reply records, key-item ID words, room-action
+/// requests and CAP-command index words. Payloads live only for the synchronous
+/// call; the table and callback code stay loaded throughout the room task.
+static const TaskMessageEntry _gMistShootingGalleryRoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistShootingGalleryResolveRoomEvent },
     { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistShootingGalleryHandleRoomAction },
@@ -392,29 +451,52 @@ TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static SVECTOR _gMistShootingGalleryCollision07BD8Normals[3] = {
+/// Three story-barrier room-space normals, scaled to 4096 for unit length.
+static SVECTOR _gMistShootingGalleryStoryBarrierCollisionTemplateNormals[3] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_normals.inc"
 };
 
-static SVECTOR _gMistShootingGalleryCollision07BD8Verts[8] = {
+/// Eight original story-barrier corners in signed room-coordinate units.
+static SVECTOR _gMistShootingGalleryStoryBarrierCollisionTemplateVerts[8] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistShootingGalleryCollision07BD8Faces[3] = {
+/// Three barrier quads using template-local indices and surface class zero.
+static WorldCollisionGridFace _gMistShootingGalleryStoryBarrierCollisionTemplateFaces[3] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_faces.inc"
 };
 
-static s16 _gMistShootingGalleryCollision07BD8Cells[4] = {
+/// Sole cell's face indices 0..2 followed by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMistShootingGalleryStoryBarrierCollisionTemplateCells[4] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistShootingGalleryCollision07BD8Cells[i])
-static s16* _gMistShootingGalleryCollision07BD8Table[1] = {
+#define GRID_CELL(i) (&_gMistShootingGalleryStoryBarrierCollisionTemplateCells[i])
+/// Single-cell XZ lookup borrowing the template's terminated face list.
+static s16* _gMistShootingGalleryStoryBarrierCollisionTemplateTable[1] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_80185198 = { NULL, _gMistShootingGalleryCollision07BD8Normals, _gMistShootingGalleryCollision07BD8Verts, _gMistShootingGalleryCollision07BD8Faces, _gMistShootingGalleryCollision07BD8Table, 0x28B9, -4925, 1, 1, 4000, 3 };
+/// Original collision patch for the story-controlled barrier at the firing lane.
+///
+/// Restores live normals/faces 0..2 and vertices 0..7 before an optional +3000
+/// Y displacement. Its single 4000-unit XZ cell starts at (-10425, 4925);
+/// neither the cell table nor a view transform is copied into the live grid.
+/// The descriptor and source pools belong to the loaded gallery overlay.
+static const WorldCollisionGrid _gMistShootingGalleryStoryBarrierCollisionTemplate __attribute__((section(".data"))) = {
+    .viewCoord   = NULL,
+    .normals     = _gMistShootingGalleryStoryBarrierCollisionTemplateNormals,
+    .vertices    = _gMistShootingGalleryStoryBarrierCollisionTemplateVerts,
+    .faces       = _gMistShootingGalleryStoryBarrierCollisionTemplateFaces,
+    .cellFaceIds = _gMistShootingGalleryStoryBarrierCollisionTemplateTable,
+    .xBias       = 10425,
+    .zBias       = -4925,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMistShootingGalleryStoryBarrierCollisionTemplateFaces),
+};
 
 /// Training barrier's room-space normal, scaled to 4096 for unit length.
 static SVECTOR _gMistShootingGalleryTrainingBarrierCollisionTemplateNormals[1] = {
@@ -636,12 +718,32 @@ static UiObjectDesc _gJukeboxPanelDesc = {
     .taskDataValue   = 0,
 };
 
-TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
+/// Bodyless priority-192 display session for this gallery's jukebox panel.
+///
+/// Queued with both spawn arguments zero. The shared host borrows the gallery
+/// panel until it closes, then restores frame timing and exits the display mode.
+static TaskDesc _gMistShootingGalleryJukeboxSessionDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .callback = _jukeboxHostTask,
+    .data     = { .value = 0 },
+};
 
-TaskDesc D_mist_shooting_gallery_80185384[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryMovieSessionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryClearMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryModeSplashTask, { .value = 0 } },
+TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COUNT] = {
+    {
+        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .callback = _mistShootingGalleryMovieSessionTask,
+        .data     = { .value = 0 },
+    },
+    {
+        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .callback = _mistShootingGalleryClearMovieTask,
+        .data     = { .value = 0 },
+    },
+    {
+        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .callback = _mistShootingGalleryModeSplashTask,
+        .data     = { .value = 0 },
+    },
 };
 
 WorldCollisionRoomResources gMistShootingGalleryRoomCollisionResources[MIST_SHOOTING_GALLERY_ROOM_COUNT] = {
@@ -891,20 +993,20 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
     u8*                               equippedWeapon;
     InventoryItemRange*               carriedInventory;
 
-    // Map the displayed loadOptions through the owned entries of the weapon table.
+    // Map the displayed row through the owned entries of the weapon catalogue.
     weaponItemId     = 0;
     ownedRowsToSkip  = list->currentItemIndex;
     weaponTableIndex = 0;
     do {
-        if (inventoryIsItemLimitReached(D_mist_shooting_gallery_80184F34[weaponTableIndex]) != 0) {
+        if (inventoryIsItemLimitReached(_gMistShootingGalleryWeaponItemIds[weaponTableIndex]) != 0) {
             ownedRowsToSkip--;
             if (ownedRowsToSkip < 0) {
-                weaponItemId = D_mist_shooting_gallery_80184F34[weaponTableIndex];
+                weaponItemId = _gMistShootingGalleryWeaponItemIds[weaponTableIndex];
                 break;
             }
         }
         weaponTableIndex++;
-    } while (weaponTableIndex < (s32)ARRAY_SIZE(D_mist_shooting_gallery_80184F34));
+    } while (weaponTableIndex < (s32)ARRAY_SIZE(_gMistShootingGalleryWeaponItemIds));
 
     itemMenuDrawItemRow(object, list->rowTextX.signedValue, list->rowTextY.signedValue, weaponItemId, list->colorRgb, 0);
     panelControl = object->panel.control.word;
@@ -939,7 +1041,8 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
         }
     }
 }
-static const char D_mist_shooting_gallery_8017D5D8[8] = "Select";
+/// NUL-terminated title of the gallery weapon picker, stored in eight rodata bytes.
+static const char _gMistShootingGalleryWeaponSelectCaption[8] = "Select";
 /// RESULT-panel label for red target kind 12 (600 points per kill).
 static const char _gMistShootingGalleryRedTargetLabel[12] = "Red Target";
 /// RESULT-panel label for brown target kind 11 (400 points per kill).
@@ -975,22 +1078,22 @@ static const char _gMistShootingGalleryBacteriumTargetLabel[12] = "Bacterium";
 static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 {
     enum { MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS = 10 };
-    UiObject* object;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObject;
-    s16*      weaponItem;
-    s32       weaponIndex;
-    s32       ownedWeaponCount;
+    UiObject*  object;
+    UiList*    list;
+    Task*      child;
+    UiObject*  childObject;
+    const s16* weaponItem;
+    s32        weaponIndex;
+    s32        ownedWeaponCount;
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    list           = &D_mist_shooting_gallery_80184F4C;
-    uiDrawPanelLabel(&object->panel, D_mist_shooting_gallery_8017D5D8);
+    list           = &_gMistShootingGalleryWeaponList;
+    uiDrawPanelLabel(&object->panel, _gMistShootingGalleryWeaponSelectCaption);
     if (task->state == 0) {
         ownedWeaponCount = 0;
         weaponIndex      = ownedWeaponCount;
-        weaponItem       = D_mist_shooting_gallery_80184F34;
+        weaponItem       = _gMistShootingGalleryWeaponItemIds;
         do {
             if (inventoryIsItemLimitReached(*weaponItem) != 0) {
                 itemSetIdentified(*weaponItem, 1);
@@ -998,7 +1101,7 @@ static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
             }
             weaponIndex++;
             weaponItem++;
-        } while (weaponIndex < (s32)ARRAY_SIZE(D_mist_shooting_gallery_80184F34));
+        } while (weaponIndex < (s32)ARRAY_SIZE(_gMistShootingGalleryWeaponItemIds));
 
         list->itemCount = ownedWeaponCount;
         if ((u8)ownedWeaponCount > MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS) {
@@ -1094,13 +1197,13 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         do {
             killCount = work->kills[targetKind];
             if (killCount > 0) {
-                pointsPerKill = D_mist_shooting_gallery_80184F98[targetKind].points;
+                pointsPerKill = _gMistShootingGalleryTargetScores[targetKind].points;
                 rowCount     += 1;
 
                 nameText.x = object->panel.contentOriginX.unsignedValue + contentInset;
                 nameText.y = object->panel.contentOriginY.unsignedValue + rowY;
                 MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-                textDrawString(&nameText, D_mist_shooting_gallery_80184F98[targetKind].name);
+                textDrawString(&nameText, _gMistShootingGalleryTargetScores[targetKind].name);
 
                 pointsText.x = object->panel.contentOriginX.unsignedValue + 0x6E + contentInset;
                 pointsText.y = object->panel.contentOriginY.unsignedValue + rowY;
@@ -1200,7 +1303,7 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
                     } else {
                         gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_COURSE_BP_ONLY);
                     }
-                    uiSpawnObject(&D_mist_shooting_gallery_8018501C, totalScore, 1, 1, object);
+                    uiSpawnObject(&_gMistShootingGalleryBonusPanelDesc, totalScore, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                     object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
                     object->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -1673,7 +1776,7 @@ s32 mistShootingGalleryOpenWeaponMenu(s32 unused)
 {
     enum { MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST = 0x44 };
 
-    displayQueueModeTask(&D_mist_shooting_gallery_80184F8C, MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gMistShootingGalleryWeaponMenuTaskDesc, MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -1745,7 +1848,7 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     };
     s32 storyBarrierLowered;
 
-    task->msgTable = D_mist_shooting_gallery_801850E8;
+    task->msgTable = _gMistShootingGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor215100SelectCaptionResource(MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X, 0, MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX);
     if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
@@ -1923,12 +2026,12 @@ static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 comm
             if (commandIndex < MIST_SHOOTING_GALLERY_HIGH_COMMAND_END) {
                 if (commandIndex >= MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                    taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+            taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;
@@ -1967,11 +2070,12 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
     return 0;
 }
 
-/// The room task's three-state table, run from a stack copy by
-/// `mistShootingGalleryRoomTask`: the entry tick
-/// `_mistShootingGalleryInitRoomTask`, the per-frame state
-/// `_mistShootingGalleryUpdateRoomTask`, then `taskKill`.
-static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
+/// Room task handlers in state order: initialization, running, then teardown.
+///
+/// Dispatch copies all three callback pointers to the stack before indexing
+/// with task state 0..2. There is no terminator or bounds check; handlers and
+/// the table belong to the loaded gallery overlay.
+static const TaskFuncTable3 _gMistShootingGalleryRoomStates = {
     { _mistShootingGalleryInitRoomTask, _mistShootingGalleryUpdateRoomTask, taskKill },
 };
 
@@ -2044,7 +2148,7 @@ void mistShootingGalleryRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_mist_shooting_gallery_8017D860;
+    states = _gMistShootingGalleryRoomStates;
     states.funcs[task->state](task);
 }
 
@@ -2058,10 +2162,10 @@ static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
     enum { MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT   = 3,
            MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT = 8,
            MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y      = 3000 };
-    WorldCollisionGrid* liveGrid     = &gMistShootingGalleryCollisionGrid;
-    WorldCollisionGrid* templateGrid = &D_mist_shooting_gallery_80185198;
-    SVECTOR             offset;
-    s32                 index;
+    WorldCollisionGrid*       liveGrid     = &gMistShootingGalleryCollisionGrid;
+    const WorldCollisionGrid* templateGrid = &_gMistShootingGalleryStoryBarrierCollisionTemplate;
+    SVECTOR                   offset;
+    s32                       index;
 
     for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT; index++) {
         liveGrid->normals[index].vx = templateGrid->normals[index].vx;
@@ -2285,7 +2389,7 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
 
 s32 mistShootingGalleryOpenJukebox(s32 unused)
 {
-    displayQueueModeTask(&D_mist_shooting_gallery_80185378, 0, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gMistShootingGalleryJukeboxSessionDesc, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -2539,14 +2643,14 @@ static void _mistShootingGalleryMovieSessionTask(Task* task)
                 return;
             }
             // The display child owns the splash before this session runs again.
-            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX, 0, 0);
+            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             viewQueueCurrentCameraAndPackets();
         case MIST_SHOOTING_GALLERY_MOVIE_SESSION_WAIT_SPLASH:
             task->state = task->state + 1;
             return;
         case MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY:
-            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX, 0, 0);
+            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             taskKill(task);
