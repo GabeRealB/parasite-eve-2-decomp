@@ -5,9 +5,9 @@
 #include <psyq/libetc.h>
 #include <psyq/libspu.h>
 
-#include "types.h"
+#include "common.h"
 
-#include "cdaudio.h"
+#include "cdvol.h"
 #include "cdstream.h"
 #include "fs.h"
 #include "main/sound.h"
@@ -358,15 +358,14 @@ static s32 _cdVolGetLevel(void)
 void cdVolApplyMoviePreset(u16 presetIndex)
 {
     enum {
-        CD_VOLUME_MOVIE_PRESET_COUNT  = 40,
         CD_VOLUME_MOVIE_SILENT_PRESET = 0,
     };
 
-    if (presetIndex >= CD_VOLUME_MOVIE_PRESET_COUNT) {
+    if (presetIndex >= ARRAY_SIZE(gCdVolMoviePresetLevels)) {
         presetIndex = CD_VOLUME_MOVIE_SILENT_PRESET;
     }
-    _gCdVolFadeLevel = D_80068AF0[presetIndex];
-    _cdVolSetLevel(D_80068AF0[presetIndex]);
+    _gCdVolFadeLevel = gCdVolMoviePresetLevels[presetIndex];
+    _cdVolSetLevel(gCdVolMoviePresetLevels[presetIndex]);
 }
 
 /// Applies the low seven bits of `level` equally to the SPU's CD inputs.

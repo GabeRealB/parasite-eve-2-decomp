@@ -3,8 +3,6 @@
 
 #include "types.h"
 
-extern u8 D_80068AF0[];
-
 /// Results of requesting CD-audio cancellation.
 enum {
     CD_AUDIO_CANCEL_OPEN_PENDING = -3, // Track setup has not reached its opening driver; cancel remains requested
@@ -18,7 +16,7 @@ enum {
 ///
 /// Returns a `CD_AUDIO_CANCEL_*` result. The request remains latched until
 /// another track is set up; continue servicing the audio driver and poll
-/// `CdAudio_Phase.stopStep` for `CD_AUDIO_STOP_STEP_DONE` before reusing the stream.
+/// `gCdAudioProgress.stopStep` for `CD_AUDIO_STOP_STEP_DONE` before reusing the stream.
 s32 cdAudioCancel(void);
 
 /// Requests CD-audio cancellation and blocks until its stop step is done.

@@ -13577,10 +13577,10 @@ but leaves the prologue as pure `lui`/`addiu`/`lbu`/`li`/`beq`:
 ```c
 /* Wrong: li a1,-1 first, delay slot filled with li v0,4 */
 ret = -1;
-p = &CdAudio_Phase;
-if (p->field_0 != 3) {
-    p->field_1 = 4;
-    p->field_2 = 1;
+p = &gCdAudioProgress;
+if (p->openStep != 3) {
+    p->playStep = 4;
+    p->stopStep = 1;
 } else {
     ret = 0;
     /* ... */
@@ -13588,11 +13588,11 @@ if (p->field_0 != 3) {
 return ret;
 
 /* Right: li a1,-1 in beq delay slot */
-p = &CdAudio_Phase;
-if (p->field_0 != 3) {
+p = &gCdAudioProgress;
+if (p->openStep != 3) {
     ret = -1;          /* lifted into delay slot */
-    p->field_1 = 4;
-    p->field_2 = 1;
+    p->playStep = 4;
+    p->stopStep = 1;
 } else {
     ret = 0;
     /* ... */
@@ -13796,14 +13796,14 @@ equivalent under GCC 2.8.1 register assignment. The inline form often emits
 `lw v1,off(sN)` of a struct field, assign the call result to a temp first:
 
 ```c
-pos = CdPosToInt(loc);
-if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
+sectorPosition = CdPosToInt(&sector->location);
+if (playback->baseSector != sectorPosition) {  /* beq v1,v0 — field in v1, pos in v0 */
     ...
 }
 ```
 
 `_cdAudioHeaderSectorReadyCallback` is the example. Also mark interrupt-shared flags like
-`D_80082770` (written by a `CdReadyCallback`, polled on the main path)
+`_gCdAudioHeaderSectorArrived` (written by a `CdReadyCallback`, polled on the main path)
 `volatile` so the post-call store stays out of a `j` delay slot.
 
 ## Volatile global: index via global name, not a local pointer
@@ -17337,7 +17337,7 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 like a large diff even when the body is otherwise identical.
 
 `_cdAudioWaveSectorReadyCallback` needs `sector = &gFsSectorBuffers.sector` first, then the
-`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.waveLoadResult` guards, then `readyStatus = interruptStatus`.
+`_gCdAudioDriverStatus.waveLoadError` / `_gCdAudioReadState.waveLoadResult` guards, then `readyStatus = interruptStatus`.
 
 ## `volatile` struct pointer preserves independent field load order
 
@@ -21039,25 +21039,25 @@ bodies and compiler-generated tables.
 ## Load the header after the switch step and retain the slot-table buffer reload
 
 `_cdAudioReadHeaderDriver` loads the step before the header pointer so `lbu` /
-`lw CdAudio_SectorBuffer` interleave and the table index stays in `$a0`. The
+`lw _gCdAudioHeaderBuffer` interleave and the table index stays in `$a0`. The
 header pointer supplies the serialized indices, while the slot-table expression
 reloads the buffer after drive calls. Ordinary locals and typed array access
 match without register pins:
 
 ```c
-step   = CdAudio_Phase.headerReadStep;
-header = (_CdAudioHeader*)CdAudio_SectorBuffer;
+step   = gCdAudioProgress.headerReadStep;
+header = _gCdAudioHeaderBuffer;
 switch (step) {
 case CD_AUDIO_HEADER_READ_STEP_WAIT_SECTOR:
     /* ...wait and error checks... */
-    _gCdAudioState.playback.spuBase = D_80068B18[header->spuBaseIndex];
-    CdAudio_Tbl.slotTable = (_CdAudioHeaderSlot*)&
-        ((u32*)CdAudio_SectorBuffer)[header->slotTableOffset];
+    _gCdAudioState.playback.spuBase = _gCdAudioHeaderSpuBases[header->spuBaseIndex];
+    _gCdAudioReadState.slotTable = (_CdAudioHeaderSlot*)&
+        ((u32*)_gCdAudioHeaderBuffer)[header->slotTableOffset];
     /* ...pause... */
 }
-waitTicks = CdAudio_Ctl.waitTicks;
+waitTicks = _gCdAudioDriverStatus.waitTicks;
 waitTicks = waitTicks + 1;
-CdAudio_Ctl.waitTicks = waitTicks;
+_gCdAudioDriverStatus.waitTicks = waitTicks;
 ```
 
 Using `header` itself for the slot-table base removes the reload and two
@@ -21110,26 +21110,26 @@ volatile _CdAudioDriverStatus* modeWaitStatus; /* case 2: coloured $s0, inlines 
 volatile _CdAudioDriverStatus* driverStatus;   /* case 5/8/9 + timeout: coloured $v1, shared tail */
 
 case 2:
-    modeWaitStatus = &CdAudio_Ctl;
+    modeWaitStatus = &_gCdAudioDriverStatus;
     if (modeWaitStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) goto sync;
     modeWaitStatus->failedStep  = phase;
     modeWaitStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
     goto error;
 /* ... */
 timeout:
-    driverStatus->failedStep  = phase;  /* no re-load of &CdAudio_Ctl — callers set driverStatus/$v1 */
+    driverStatus->failedStep  = phase;  /* no re-load of &_gCdAudioDriverStatus — callers set driverStatus/$v1 */
     driverStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
 error:
     ...
 ```
 
-`CdAudio_Tbl`'s address also has to form before the player state's. The
+`_gCdAudioReadState`'s address also has to form before the player state's. The
 cross-struct store comes first, and the volatile state is named in each
 statement:
 
 ```c
-CdAudio_Ctl.waitTicks = 0;
-CdAudio_Tbl.waveLoadNextSector = _gCdAudioState.playback.baseSector;
+_gCdAudioDriverStatus.waitTicks = 0;
+_gCdAudioReadState.waveLoadNextSector = _gCdAudioState.playback.baseSector;
 CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
 ```
 
@@ -150593,7 +150593,7 @@ attempts; left as it was.
   that shares the default's code gives `bgt 2 -> right; j default`, which
   jump.c inverts into the `slti 3; bnez default`. Four ladders in
   `_cdAudioReadHeaderDriver` and `_cdAudioLoadWavesDriver`; the `status` and `ret` locals
-  and the doubled `driverStatus = &CdAudio_Ctl` labels went with them. Case
+  and the doubled `driverStatus = &_gCdAudioDriverStatus` labels went with them. Case
   order in the source is the block order in the image (`CdlDiskError` first).
 - **An error call at the end of the function, reached from two guards, with
   an in-loop exit block sitting between the second guard and the loop**
@@ -150635,8 +150635,8 @@ attempts; left as it was.
     duplicate of either after `_gCdStreamLastErrorCode = _gCdStreamErrorCode`
     would reuse the loaded error code where the label reloads it.
   - `_cdAudioReadHeaderDriver`: the tick-and-return after the switch is the `break`
-    target (a `j` to it carries a fresh `lui v1,%hi(CdAudio_Ctl)` right after
-    a store through `&CdAudio_Ctl`), and the error block sits behind that
+    target (a `j` to it carries a fresh `lui v1,%hi(_gCdAudioDriverStatus)` right after
+    a store through `&_gCdAudioDriverStatus`), and the error block sits behind that
     `return`, so it is reachable only by a jump.
 - Dropping `fsUploadImageStrips`'s `do { ... break; ... } while (0)` around the
   GPU-idle wait for `if (GetRCnt() >= K && retry == 0) { ...; return; }` is 1

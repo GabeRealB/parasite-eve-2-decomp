@@ -2778,7 +2778,7 @@ _gSpuPendingKeyOnMask             = 0x8007EBA8; // type:u32
 _gSpuPendingStreamKeyOnMask             = 0x8007EBAC; // type:u32
 _gSpuPendingKeyOffMask             = 0x8007EBB0; // type:u32
 _gSpuReverbConfig         = 0x8007EBB8; // size:0x24
-CdAudio_Phase                  = 0x80082798; // type:CdAudioProgress size:0x6
+gCdAudioProgress                  = 0x80082798; // type:CdAudioProgress size:0x6
 _gCdStreamRuntime            = 0x80082818; // type:CdStreamRuntime size:0xD8
 _gCdReadyQueue               = 0x800828F0; // size:0x58
 
@@ -2814,14 +2814,14 @@ gModelObjectCoordBodyList              = 0x800711C0; // type:TmdListNode size:0x
 
 // CdAudio / AudioTick / Spu range / Stream slot renames
 _gCdAudioState              = 0x800827A0; // size:0x44
-CdAudio_Tbl                 = 0x80082758; // size:0x18
-CdAudio_Ctl                 = 0x80082780; // size:0x14
+_gCdAudioReadState                 = 0x80082758; // size:0x18
+_gCdAudioDriverStatus                 = 0x80082780; // size:0x14
 gStreamSlots                = 0x8006D4F0; // type:StreamSlot size:0x258
 _gStageTransitionState                   = 0x80062698;
 
 // Remaining GStruct cleanup (Wip_* = weak evidence)
 Snd_BankInitTable           = 0x80068A60;
-CdAudio_TblEntries          = 0x80082794;
+_gCdAudioTableEntries          = 0x80082794;
 gGameDebugState              = 0x800626A8;
 gPlayerStatus               = 0x80073B88; // type:PlayerStatus size:0x80
 gUiPromptObject                = 0x80067694;
@@ -2891,7 +2891,7 @@ D_800689F0                  = 0x800689F0; // type:u8 size:0x64
 
 // Rodata dispatch tables
 Midi_EventFns               = 0x800689C4;
-CdAudio_DriveFns            = 0x80068B34;
+_gCdAudioDrivers            = 0x80068B34;
 Stage_TaskStates            = 0x80013F1C;
 GameFlow_States5            = 0x800134BC;
 GameFlow_States3            = 0x800134D0;
@@ -3256,9 +3256,9 @@ _gCdStreamLastDmaSpuAddress = 0x80068B70;
 
 _gGameDebugStateStorage = 0x8007A370; // type:GameDebugState size:0x1C
 
-CdAudio_SectorBuffer = 0x80082750; // size:0x4
+_gCdAudioHeaderBuffer = 0x80082750; // size:0x4
 
-CdAudio_SectorEntries = 0x80082778; // size:0x4
+_gCdAudioHeaderTrackEntries = 0x80082778; // size:0x4
 
 gSndBankSequenceTableBlock = 0x8007E0D4; // size:0x4
 
@@ -3336,3 +3336,11 @@ _gGameFlowLegacySecondaryLoadCaptionFramesLeft = 0x8006aca4;
 _gGameFlowLoadCaptionRevealStatus = 0x8006aca6;
 _gGameFlowLegacySecondaryLoadCaptionRevealStatus = 0x8006aca8;
 _gFadeBootImageMaskLevel = 0x8006acb4;
+gCdVolMoviePresetLevels = 0x80068af0;
+_gCdAudioHeaderSpuBases = 0x80068b18;
+_gCdAudioDefaultStreamSpuBase = 0x80068b1c;
+_gCdStreamVoiceRangeIndices = 0x80068b28;
+_gCdAudioWaveSpuAddresses = 0x80068b2c;
+_gCdAudioHeaderTrackBaseIndex = 0x80082754;
+_gCdAudioHeaderSectorArrived = 0x80082770;
+_gCdAudioInitialStreamMuted = 0x8008277c;

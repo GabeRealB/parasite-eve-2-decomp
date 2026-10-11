@@ -812,7 +812,7 @@ static void _cdCmdHandleRequestCancellation(void)
                         queue->cancelStep = queue->cancelStep + 1;
                         return;
                     case CD_COMMAND_CANCEL_WAIT:
-                        if (CdAudio_Phase.stopStep == CD_AUDIO_STOP_STEP_DONE) {
+                        if (gCdAudioProgress.stopStep == CD_AUDIO_STOP_STEP_DONE) {
                             sceneStream        = queue->sceneStream;
                             resumeSectorOffset = sceneStream->data.scene.resumeSectorOffset;
                             if (resumeSectorOffset) {
@@ -825,7 +825,7 @@ static void _cdCmdHandleRequestCancellation(void)
                         }
                         return;
                     case CD_COMMAND_CANCEL_FINISH:
-                        if (CdAudio_Phase.waveLoadStep == CD_AUDIO_WAVE_LOAD_STEP_DONE) {
+                        if (gCdAudioProgress.waveLoadStep == CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                             _cdCmdFinishSceneAudio();
                             return;
                         }

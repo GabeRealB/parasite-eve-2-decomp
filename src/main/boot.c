@@ -358,7 +358,7 @@ void cdAudioCancelAndWait(void)
 {
     cdAudioCancel();
     // The VBlank driver must finish the stop before callbacks are reset.
-    while (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_DONE) {
+    while (gCdAudioProgress.stopStep != CD_AUDIO_STOP_STEP_DONE) {
     }
 }
 

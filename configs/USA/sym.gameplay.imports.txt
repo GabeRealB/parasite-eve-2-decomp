@@ -273,7 +273,7 @@ gGpuTaskOrderingTables = 0x8007A0E8; // absolute:True size:0x28
 gLoadUiDiskSwapState = 0x8007A394; // absolute:True
 gMidiMusicVolume = 0x8007A396; // absolute:True
 gStageMusicParams = 0x8007A39C; // absolute:True
-CdAudio_Phase = 0x80082798; // absolute:True
+gCdAudioProgress = 0x80082798; // absolute:True
 D_aya_20900_80115D9C = 0x80115D9C; // absolute:True owner=aya_20900
 D_replay_bonus_80119218 = 0x80119218; // absolute:True owner=replay_bonus
 D_replay_bonus_8011922C = 0x8011922C; // absolute:True owner=replay_bonus

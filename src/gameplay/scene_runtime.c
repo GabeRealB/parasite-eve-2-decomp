@@ -950,7 +950,7 @@ void cdCmdHandleSceneAudio(void)
                 audioOpened: {
                     s32 command;
 
-                    if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
+                    if (gCdAudioProgress.openStep != CD_AUDIO_OPEN_STEP_DONE) {
                         break;
                     }
                     enabled                  = CD_COMMAND_SCENE_PLAYING;
@@ -984,7 +984,7 @@ void cdCmdHandleSceneAudio(void)
                     // Resume trailing audio when present before restoring the scene's sound and RNG state.
                     StreamSlot* sceneStream;
 
-                    if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
+                    if (gCdAudioProgress.playStep != CD_AUDIO_PLAY_STEP_DONE) {
                         break;
                     }
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
@@ -1004,7 +1004,7 @@ void cdCmdHandleSceneAudio(void)
                     break;
                 }
                 case CD_COMMAND_SCENE_AUDIO_WAIT_WAVES: {
-                    if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
+                    if (gCdAudioProgress.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                         break;
                     }
                     _cdCmdSetSceneAudioSoundRequests(queue->sceneStream->data.scene.soundBankMask, true);
