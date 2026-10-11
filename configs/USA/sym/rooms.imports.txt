@@ -600,7 +600,7 @@ actor341300ResetScriptTaskHandle = 0x8016268C; // type:func absolute:True owner=
 actor361100ClearHeadAimTaskHandle = 0x80162B0C; // type:func absolute:True owner=actor_361100
 gActor341900GluttonEntranceTaskDescs = 0x80164190; // absolute:True owner=actor_341900
 gActor342100EncounterBlazeTaskDescriptors = 0x80164B78; // absolute:True owner=actor_342100
-D_actor_342000_80164FF8 = 0x80164FF8; // absolute:True owner=actor_342000
+gActor342000IncineratorEventTaskDescs = 0x80164FF8; // absolute:True owner=actor_342000
 gActor335800BalconyEntryScript = 0x80165060; // absolute:True owner=actor_335800
 gActor341300WalkwaySceneScript = 0x80165354; // absolute:True owner=actor_341300
 gActor335800BalconyBattleStartScript = 0x80165720; // absolute:True owner=actor_335800

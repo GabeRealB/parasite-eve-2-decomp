@@ -11,6 +11,8 @@
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachment_state.h"
@@ -66,8 +68,6 @@
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/incinerator_blaze.h"
-
-extern TaskDesc D_actor_342000_80164FF8[];
 
 /// Lift task state selected by the actor event to begin the carried move.
 enum { SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_CARRY_ACTOR = 5 };
@@ -822,7 +822,7 @@ static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task)
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_LOAD:
             if (cdCmdIsSlotEmpty(task->spawnArg1.value)) {
-                task->spawnArg2.pointer = taskSpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
+                task->spawnArg2.pointer = taskSpawnFromTable(gActor342000IncineratorEventTaskDescs, ACTOR_342000_TASK_EVENT, 0, 0);
                 task->state++;
             }
             break;

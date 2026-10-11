@@ -822,6 +822,9 @@ values are separate from runtime stage numbers.
 `glutton` owns the included boss helpers shared by `actor_403200` and
 `actor_444000`. Its implementation interface is `src/shared/glutton.h`;
 `GLUTTON_` instance bindings select each carrier's local boss state.
+The staged display models share `GluttonPartAttachment` in
+`include/actors/glutton_display_types.h`: a child's local XYZ offset and the
+body-model coordinate it attaches to. Each scene package owns its attachment table.
 
 `bossStranger` owns the included Boss Stranger movement core shared by
 `actor_110600` and `acropolis_bridge`. Its implementation interface is

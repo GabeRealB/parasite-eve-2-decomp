@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/glutton_display_types.h"
 
 #include "actors/actor_444000.h"
 
@@ -104,21 +105,6 @@ typedef struct {
     byte           pad_6E[0x2];            // Never accessed
 } _Actor341900EventWork;
 STATIC_ASSERT_SIZEOF(_Actor341900EventWork, 0x70);
-
-/// Where one task of the Glutton's display model hangs on the body's model:
-/// the body part its root coordinate is made a child of, and its translation
-/// from that part.
-///
-/// The model's tasks are spawned with the index of their record as
-/// `Task::spawnArg1`. The body places itself in the view and never reads its
-/// own record; the two legs hang from the body's root part with no offset.
-typedef struct {
-    s16 offsetX;    // Translation of the task's root part from the parent part, in the parent part's X
-    s16 offsetY;    // Likewise in Y
-    s16 offsetZ;    // Likewise in Z
-    s16 parentPart; // Index of the body model's part coordinate the task's root part hangs from
-} _Actor341900GluttonPartAttachment;
-STATIC_ASSERT_SIZEOF(_Actor341900GluttonPartAttachment, 0x8);
 
 /// Animation id of the clip the Glutton advances in, as the event requests it
 /// of the body. Two cues of this clip each make the body start a pad-vibration
@@ -313,7 +299,7 @@ static TaskMessageEntry _gActor341900GluttonMessages[4] = {
 /// to body coordinate 0. Records 3..5 attach the remaining models to coordinates
 /// 4, 3 and 2. XYZ translations use each parent coordinate's local game units.
 /// Child spawn arguments are 1..5; the table is consumed during initialization.
-static _Actor341900GluttonPartAttachment _gActor341900GluttonPartAttachments[6] = {
+static GluttonPartAttachment _gActor341900GluttonPartAttachments[6] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
