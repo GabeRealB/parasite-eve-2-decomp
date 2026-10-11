@@ -67,13 +67,25 @@
 #define SCREEN_WAVE_GRID gScreenWaveGrid
 #endif
 
-/// Borrowed ScreenWaveCtx* lvalue holding the renderer's active task context.
+/// Writable pointer slot for the screen-wave renderer's borrowed ramp and tint context.
 ///
-/// Defaults to TU-local `_gScreenWaveContext`. Split overlays bind their
-/// externally linked `gScreenWaveContext` before this header. The replacement
-/// must be side-effect-free; the task repeatedly reads and writes its fields.
+/// Bind a side-effect-free, assignable `ScreenWaveCtx*` lvalue before including
+/// this header and keep the binding through the renderer fragment. The default
+/// names the carrier's static `_gScreenWaveContext`; actor_205200, the submarine
+/// tunnel and the garbage incinerator bind overlay-private `gScreenWaveContext`
+/// storage defined in another translation unit. Declare the slot in the carrier
+/// or its private header at the existing BSS position.
+///
+/// The seed tick replaces the slot with `task->spawnArg2.pointer`, resets its
+/// frame and starts a rising ramp. The borrowed context must be non-null, have
+/// positive `span` and remain writable through the final drawing tick, including
+/// the tick that kills the task. Only one wave may use a package's slot at a time.
+/// Teardown leaves the pointer in place; its value does not indicate a live task.
+/// The grid renderer fixes tint at initialization; the per-frame renderer reads
+/// tint on each draw. Expansion is repeated for pointer assignment and field
+/// access, so a replacement expression must be parenthesized and have no side effects.
 #ifndef SCREEN_WAVE_ACTIVE_CONTEXT
-#define SCREEN_WAVE_ACTIVE_CONTEXT _gScreenWaveContext
+#define SCREEN_WAVE_ACTIVE_CONTEXT (_gScreenWaveContext)
 #endif
 
 /// Addressable column-oscillator array used by the selected wave renderer.

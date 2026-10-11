@@ -57,7 +57,12 @@
 
 #include "rooms/shelter_b6_training_room.h"
 // The wave task and its persistent storage occupy separate translation units.
-#define SCREEN_WAVE_ACTIVE_CONTEXT     gScreenWaveContext
+/// Binds the pulse renderer to this overlay's writable borrowed-context slot.
+///
+/// The slot is defined in actor_205200_2.c and declared in the private header.
+/// The renderer borrows `gActor205200ScreenWaveSpawnCtx`; the controller steers
+/// that persistent ramp directly. Keep this binding through the grid fragment.
+#define SCREEN_WAVE_ACTIVE_CONTEXT     (gScreenWaveContext)
 #define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
 #define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"

@@ -45,7 +45,12 @@
 
 #include "overlay.h"
 // The wave task and its persistent storage occupy separate translation units.
-#define SCREEN_WAVE_ACTIVE_CONTEXT     gScreenWaveContext
+/// Binds the scripted-wave renderer to this overlay's writable borrowed-context slot.
+///
+/// The slot is defined in neo_ark_submarine_tunnel_2.c and declared in the
+/// private header. The renderer borrows `gScreenWaveSpawnCtx`, which event
+/// requests steer directly. Keep this binding through the per-frame fragment.
+#define SCREEN_WAVE_ACTIVE_CONTEXT     (gScreenWaveContext)
 #define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
 #define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
