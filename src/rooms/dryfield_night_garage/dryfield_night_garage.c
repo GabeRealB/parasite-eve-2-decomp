@@ -54,9 +54,6 @@
 #include "rooms/shop_tier.h"
 #include "../../shared/garage.h"
 
-extern EvsCommand D_actor_136300_8013B590[];
-extern EvsCommand D_actor_136300_8013C388[];
-
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
@@ -303,7 +300,7 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             companionRestoreFullHp();
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
-            evsStartScriptWithSkip(D_actor_136300_8013B590, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136300_8013C388);
+            evsStartScriptWithSkip(gActor136300GarageCompanionSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor136300GarageCompanionSceneSkipScript);
         } else {
             evsStartScript(D_dryfield_night_garage_80181C7C, EVENT_SCRIPT_HUD_KEEP);
         }

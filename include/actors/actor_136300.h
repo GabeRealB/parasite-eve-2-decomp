@@ -1,6 +1,7 @@
 #ifndef ACTORS_ACTOR_136300_H
 #define ACTORS_ACTOR_136300_H
 
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -30,5 +31,27 @@ extern TaskDesc gActor136300TaskTable[ACTOR_136300_TASK_COUNT];
 /// package; borrow this record only while that package is loaded. Placement
 /// messages consume the position and all three Euler angles synchronously.
 extern ActorTransform gActor136300CompanionGaragePlacement;
+
+/// First-visit companion scene in the night garage, including its movie interlude.
+///
+/// The companion room variant starts this with HUD hide/restore and
+/// `gActor136300GarageCompanionSceneSkipScript` as its input-skip target.
+/// Requires live player, companion, CAP and garage-movie resources. Installs
+/// borrowed animation-bank extensions, stages the actors and synchronizes
+/// dialogue with CAP cues. Completion restores player weapon effects, companion
+/// placement, player control and default captions, selecting saved scene event
+/// 7 and view 2.
+/// The 149-command stream ends with `EVENT_SCRIPT_OPCODE_END`; keep this actor
+/// package and the garage overlay loaded until the interpreter finishes.
+extern EvsCommand gActor136300GarageCompanionSceneScript[149];
+
+/// Input-skip cleanup for the night garage's first companion scene.
+///
+/// The 16-command stream fades out, releases scene effects and restores the
+/// same saved scene event, view, player weapon effects, companion placement,
+/// player control and default captions as normal completion. It also shows the
+/// companion in clip 50. Run only as the main scene's skip target, with both
+/// overlays and their borrowed resources loaded through `EVENT_SCRIPT_OPCODE_END`.
+extern EvsCommand gActor136300GarageCompanionSceneSkipScript[16];
 
 #endif // ACTORS_ACTOR_136300_H
