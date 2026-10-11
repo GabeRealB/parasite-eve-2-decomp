@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_548100.
 _gActor548100ShortRed = 0x80135B59; // type:u8 size:0x1 defined:True
-D_actor_548100_80135B5A = 0x80135B5A; // type:s8 size:0x1
+_gActor548100ShortGreen = 0x80135B5A; // type:u8 size:0x1 defined:True
 D_actor_548100_80135B5B = 0x80135B5B; // type:s8 size:0x1
 _gActor548100PanelWires = 0x801351D0; // size:0x508 defined:True
 D_actor_548100_801351B4 = 0x801351B4; // size:0xC defined:True

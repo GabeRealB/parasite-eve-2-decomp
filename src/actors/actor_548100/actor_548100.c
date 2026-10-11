@@ -353,7 +353,6 @@ extern TaskDesc D_actor_548100_801351B4;
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_548100_801351C0[];
-extern s8               D_actor_548100_80135B5A;
 extern s8               D_actor_548100_80135B5B;
 
 static s32  _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -1076,6 +1075,13 @@ static u8 _gActor548100StopBlue = 0;
 /// produce 80..160 from the authored value 160; the GPU consumes it unsigned.
 static u8 _gActor548100ShortRed = 0;
 
+/// Current frame's green RGB byte for short-circuit wires.
+///
+/// Recomputed before wire drawing as the authored green channel times the pulse
+/// numerator over 32, retaining the low eight bits. Normal pulse levels 16..32
+/// produce 8..16 from the authored value 16; decay brings it down to zero.
+static u8 _gActor548100ShortGreen = 0;
+
 /// Undirected node-pair lookup of byte indices into the panel wire table.
 ///
 /// Key = previousNode * 100 + currentNode. Opening the panel writes both
@@ -1404,7 +1410,7 @@ static void _actor548100DrawPanel(Task* task)
     // The signed-byte scaler writes the same low eight bits into the unsigned RGB storage.
     _actor548100ScaleFlowColor(_gActor548100ColorPulse, (s8*)&_gActor548100FlowRed, (s8*)&_gActor548100FlowGreen, (s8*)&_gActor548100FlowBlue);
     _actor548100ScaleStopColor(_gActor548100ColorPulse, (s8*)&_gActor548100StopRed, (s8*)&_gActor548100StopGreen, (s8*)&_gActor548100StopBlue);
-    _actor548100ScaleShortColor(_gActor548100ColorPulse, (s8*)&_gActor548100ShortRed, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
+    _actor548100ScaleShortColor(_gActor548100ColorPulse, (s8*)&_gActor548100ShortRed, (s8*)&_gActor548100ShortGreen, &D_actor_548100_80135B5B);
     // Rebuild this frame from stopped wires before applying the selected circuit.
     _actor548100ResetWireStates();
     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, ACTOR_548100_PASSAGE_UNPOWERED);
@@ -1728,7 +1734,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
     toNode   = edge->nodeB;
     switch (edge->state) {
         case ACTOR_548100_EDGE_STATE_SHORT:
-            _actor548100DrawWire(fromNode, toNode, _gActor548100ShortRed, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
+            _actor548100DrawWire(fromNode, toNode, _gActor548100ShortRed, _gActor548100ShortGreen, D_actor_548100_80135B5B);
             break;
         case ACTOR_548100_EDGE_STATE_FLOW:
             _actor548100DrawWire(fromNode, toNode, _gActor548100FlowRed, _gActor548100FlowGreen, _gActor548100FlowBlue);
