@@ -4,6 +4,7 @@
     trace_replay.py show TRACE                     a readable summary per session
     trace_replay.py check TRACE                    the trace's room loads against the residency graph
     trace_replay.py observe [TRACE ...] [--write]  observed residency, merged into tools/peassets/observed.tsv
+                            [--fresh]              (with --write: forget the traces not observed now)
 
 TRACE is a file, or a name under local/gametrace/; `observe` without one takes every trace there.
 
@@ -746,6 +747,7 @@ def main() -> int:
     ap.add_argument("command", choices=("show", "check", "observe"))
     ap.add_argument("traces", nargs="*")
     ap.add_argument("--write", action="store_true", help="observe: merge into tools/peassets/observed.tsv")
+    ap.add_argument("--fresh", action="store_true", help="observe --write: drop the lines of every trace not observed now, instead of keeping them")
     ap.add_argument("--out", type=Path, default=OBSERVED, help="observe --write: the file to merge into")
     ap.add_argument("--db", type=Path, default=residency.DB)
     args = ap.parse_args()
@@ -763,7 +765,7 @@ def main() -> int:
             print(f"{replay.name}: {len(found)} lines for {len({r[0] for r in found})} assets" + (f"; {len(replay.unknown)} things not established" if replay.unknown else ""))
         if args.write:
             names = {p.stem for p in paths}
-            kept = [r for r in read_observed(args.out) if r[2] not in names]
+            kept = [] if args.fresh else [r for r in read_observed(args.out) if r[2] not in names]
             merged = sorted(set(kept) | set(rows))
             args.out.write_text(HEADER + "".join("\t".join(r) + "\n" for r in merged), encoding="utf-8")
             print(f"wrote {args.out}: {len(merged)} lines ({len(kept)} kept from other traces)")

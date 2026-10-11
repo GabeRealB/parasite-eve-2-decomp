@@ -418,6 +418,9 @@ def write_traces(folder: Path) -> list:
     session is opened. Returns [trace, [[session, number, started, dropped, first record, last record], ...]] each."""
     import trace_replay
     paths = trace_replay.all_traces()
+    for old in folder.glob("trace_*.js") if folder.is_dir() else ():       # a trace that is gone leaves no playback behind
+        if old.stem.removeprefix("trace_") not in {p.stem for p in paths}:
+            old.unlink()
     if not paths:
         return []
     folder.mkdir(parents=True, exist_ok=True)
