@@ -1996,136 +1996,203 @@ static AnimationSet _gMongooseParasiteEnergyCastFamily2Animation = {
                            [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseParasiteEnergyCastFamily2AnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0AA68Bank1[2] = {
+/// Aim-idle poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseAimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0AA68_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0AA68Bank4[17] = {
+/// Aim-idle rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseAimIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0AA68_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0AA68Records[76] = {
+/// Aim-idle keyframes and return controls with retained stops; durations count normal-rate frames.
+static const AnimationRecord _gMongooseAimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0AA68_records.inc"
 };
 
-static u16 _gMongooseAnimation0AA68Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseAimIdleAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseAimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0AA68_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0AA68 = {
-    _gMongooseAnimation0AA68Records,
-    _gMongooseAnimation0AA68Indices,
-    { NULL, _gMongooseAnimation0AA68Bank1, NULL, NULL, _gMongooseAnimation0AA68Bank4, NULL, NULL, NULL },
+/// Player's fixed aim pose while holding the Mongoose.
+///
+/// Native-bank set 9 also supplies the ready pose before a shot. Each of its
+/// nineteen tracks repeats two identical keyframes and returns to its start.
+/// Enemy knockback recovery can borrow this set as its final player pose.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseAimIdleAnimation = {
+    .records           = _gMongooseAimIdleAnimationRecords,
+    .trackStartIndices = _gMongooseAimIdleAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseAimIdleAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimIdleAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0B158Bank1[12] = {
+/// Aiming backward/turn poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0B158_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0B158Bank4[164] = {
+/// Aiming backward/turn rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0B158_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0B158Records[224] = {
+/// Aiming backward/turn keyframes, footstep cues and loop controls with retained stops.
+///
+/// Keyframe durations count normal-rate frames; cues occur only on part 1.
+static const AnimationRecord _gMongooseAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0B158_records.inc"
 };
 
-static u16 _gMongooseAnimation0B158Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseAimBackwardOrTurnAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0B158_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0B158 = {
-    _gMongooseAnimation0B158Records,
-    _gMongooseAnimation0B158Indices,
-    { NULL, _gMongooseAnimation0B158Bank1, NULL, NULL, _gMongooseAnimation0B158Bank4, NULL, NULL, NULL },
+/// Player's backward-step or stationary-turn clip while aiming with the Mongoose.
+///
+/// Native-bank set 13 supplies nineteen part tracks. The root holds its fixed
+/// pose while the remaining tracks loop after their introductory keyframes.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseAimBackwardOrTurnAnimation = {
+    .records           = _gMongooseAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gMongooseAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseAimBackwardOrTurnAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimBackwardOrTurnAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0BD44Bank1[19] = {
+/// Aiming forward-walk poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseAimForwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0BD44_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0BD44Bank4[304] = {
+/// Aiming forward-walk rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseAimForwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0BD44_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0BD44Records[382] = {
+/// Aiming forward-walk keyframes, footstep cues and loop controls with retained stops.
+///
+/// Keyframe durations count normal-rate frames; cues occur only on part 1.
+static const AnimationRecord _gMongooseAimForwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0BD44_records.inc"
 };
 
-static u16 _gMongooseAnimation0BD44Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseAimForwardWalkAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseAimForwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0BD44_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0BD44 = {
-    _gMongooseAnimation0BD44Records,
-    _gMongooseAnimation0BD44Indices,
-    { NULL, _gMongooseAnimation0BD44Bank1, NULL, NULL, _gMongooseAnimation0BD44Bank4, NULL, NULL, NULL },
+/// Player's forward walk while aiming with the Mongoose.
+///
+/// Native-bank set 12 supplies nineteen part tracks. The root holds its fixed
+/// pose while the remaining tracks loop after their introductory keyframes.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseAimForwardWalkAnimation = {
+    .records           = _gMongooseAimForwardWalkAnimationRecords,
+    .trackStartIndices = _gMongooseAimForwardWalkAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseAimForwardWalkAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimForwardWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0C59CBank1[15] = {
+/// Reload poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0C59C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0C59CBank4[205] = {
+/// Reload rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0C59C_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0C59CRecords[264] = {
+/// Reload keyframes, the part-1 loading cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0C59C_records.inc"
 };
 
-static u16 _gMongooseAnimation0C59CIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseReloadAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0C59C_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0C59C = {
-    _gMongooseAnimation0C59CRecords,
-    _gMongooseAnimation0C59CIndices,
-    { NULL, _gMongooseAnimation0C59CBank1, NULL, NULL, _gMongooseAnimation0C59CBank4, NULL, NULL, NULL },
+/// Player's Mongoose reload clip, including its ammunition-loading cue.
+///
+/// Native-bank sets 14, 15 and 20 share this clip for both load selections and
+/// battle-end reload. Part 1's full cue mask signals the loading sound and
+/// ammunition transfer; all nineteen tracks stop at their final poses.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseReloadAnimation = {
+    .records           = _gMongooseReloadAnimationRecords,
+    .trackStartIndices = _gMongooseReloadAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseReloadAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseReloadAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0CB90Bank1[10] = {
+/// Shot/recovery poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseFireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0CB90_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0CB90Bank4[138] = {
+/// Shot/recovery rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseFireAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0CB90_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0CB90Records[193] = {
+/// Shot/recovery keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseFireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0CB90_records.inc"
 };
 
-static u16 _gMongooseAnimation0CB90Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseFireAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseFireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0CB90_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0CB90 = {
-    _gMongooseAnimation0CB90Records,
-    _gMongooseAnimation0CB90Indices,
-    { NULL, _gMongooseAnimation0CB90Bank1, NULL, NULL, _gMongooseAnimation0CB90Bank4, NULL, NULL, NULL },
+/// Player's shot and recovery clip while holding the Mongoose.
+///
+/// Native-bank sets 10 and 11 share this clip. Primary firing starts set 10
+/// with the shot sound, muzzle flash and ammunition consumption, then waits
+/// for recovery or held-input cancellation. Its nineteen part tracks stop.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseFireAnimation = {
+    .records           = _gMongooseFireAnimationRecords,
+    .trackStartIndices = _gMongooseFireAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseFireAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseFireAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0D20CBank1[11] = {
+/// Aim-entry poses for parts 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseAimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mongoose_animation_0D20C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0D20CBank4[161] = {
+/// Aim-entry rotations for parts 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseAimEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D20C_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0D20CRecords[201] = {
+/// Aim-entry keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseAimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D20C_records.inc"
 };
 
-static u16 _gMongooseAnimation0D20CIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseAimEntryAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseAimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D20C_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation0D20C = {
-    _gMongooseAnimation0D20CRecords,
-    _gMongooseAnimation0D20CIndices,
-    { NULL, _gMongooseAnimation0D20CBank1, NULL, NULL, _gMongooseAnimation0D20CBank4, NULL, NULL, NULL },
+/// Player's transition into aiming with the Mongoose.
+///
+/// Native-bank set 7 stops its nineteen part tracks before aim-idle set 9.
+/// Enemy grab and hit-recovery sequences also borrow this set for the player.
+/// This set and its read-only private arrays stay loaded during playback.
+static AnimationSet _gMongooseAimEntryAnimation = {
+    .records           = _gMongooseAimEntryAnimationRecords,
+    .trackStartIndices = _gMongooseAimEntryAnimationIndices,
+    .poseBanks         = { [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseAimEntryAnimationBank1,
+                           [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimEntryAnimationBank4 },
 };
 
 static AnimationPackedPose _gMongooseAnimation0D7D8Bank1[10] = {
@@ -2158,20 +2225,20 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseRunAnimation,
     &_gMongooseNegativeTurnAnimation,
     &_gMongoosePositiveTurnAnimation,
-    &_gMongooseAnimation0D20C,
+    &_gMongooseAimEntryAnimation,
     &_gMongooseAnimation0D7D8,
-    &_gMongooseAnimation0AA68,
-    &_gMongooseAnimation0CB90,
-    &_gMongooseAnimation0CB90,
-    &_gMongooseAnimation0BD44,
-    &_gMongooseAnimation0B158,
-    &_gMongooseAnimation0C59C,
-    &_gMongooseAnimation0C59C,
+    &_gMongooseAimIdleAnimation,
+    &_gMongooseFireAnimation,
+    &_gMongooseFireAnimation,
+    &_gMongooseAimForwardWalkAnimation,
+    &_gMongooseAimBackwardOrTurnAnimation,
+    &_gMongooseReloadAnimation,
+    &_gMongooseReloadAnimation,
     &_gMongoosePart4HitReactionAnimation,
     &_gMongooseOtherBodyHitReactionAnimation,
     &_gMongooseDeathAnimation,
     &_gMongooseUnarmedWalkAnimation,
-    &_gMongooseAnimation0C59C,
+    &_gMongooseReloadAnimation,
     &_gMongooseIdleAnimation,
     &_gMongooseIdleAnimation,
     &_gMongooseHealthyIdleAnimation,
