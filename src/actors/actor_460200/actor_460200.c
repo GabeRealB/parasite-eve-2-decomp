@@ -2723,9 +2723,13 @@ static void _actor460200SoldierBTask(Task* task)
 #include "../../shared/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-// The second walker is a stride walker, so its copies of the paced walk
-// helpers run on that walker's block.
 #undef PACED_WALK_WORK_T
+/// Work type for Soldier B's reused paced-walk animation and placement fragments.
+///
+/// His stride spawn allocates `StrideWalkWork` at `Task::work`. Keep this
+/// selection through his tick, reset, blend and placement copies, then restore
+/// the paced-work selection for Soldier C. The binding follows the
+/// `PACED_WALK_WORK_T` contract; Soldier A used the header's default.
 #define PACED_WALK_WORK_T StrideWalkWork
 
 // Soldier B's tick uses the StrideWalkWork binding above.
@@ -2755,6 +2759,7 @@ static void _actor460200SoldierBTask(Task* task)
 #define PACED_WALK_PLACE _pacedWalkPlace
 
 #undef PACED_WALK_WORK_T
+/// Restores the allocated paced-walker type for Soldier C's four reusable fragments.
 #define PACED_WALK_WORK_T PacedWalkWork
 
 /// Sets a stride walker's head-turn mode from a borrowed command word.

@@ -46,7 +46,12 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b6_nursery.h"
-// The paced walk helpers this package carries run on Kyle Madigan's block.
+/// Work type for Kyle Madigan's reused paced-walk animation and placement fragments.
+///
+/// Kyle's spawn allocates this type at `Task::work`; its definition below must
+/// precede all four fragment copies. Keep the selection through tick, reset,
+/// blend and placement so blend reads Kyle's duration after his three helper
+/// task pointers. The binding follows the `PACED_WALK_WORK_T` contract.
 #define PACED_WALK_WORK_T _Actor450800KyleMadiganWork
 #include "../../shared/paced_walk.h"
 #include "../../shared/pair_walk.h"

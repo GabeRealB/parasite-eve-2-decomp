@@ -36,7 +36,12 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_1f_heliport.h"
-// The paced walk helpers this package carries run on the stride walker's block.
+/// Work type for the soldier's reused paced-walk animation and placement fragments.
+///
+/// The stride spawn allocates `StrideWalkWork` at `Task::work`. Select it
+/// before the shared header and keep it through the tick, reset, blend and
+/// placement definitions; `stride_walk.h` completes the type before those
+/// fragments. The binding follows the `PACED_WALK_WORK_T` contract.
 #define PACED_WALK_WORK_T StrideWalkWork
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"

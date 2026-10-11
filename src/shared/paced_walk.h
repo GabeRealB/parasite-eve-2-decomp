@@ -61,21 +61,29 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
-/// Type `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `PACED_WALK_BLEND_ANIM` and
-/// `PACED_WALK_PLACE` take the block at `Task::work` as.
+/// Allocated work type used by the reusable paced-walk animation and placement fragments.
 ///
-/// Walkers whose work block is a type of their own carry some of those four,
-/// so each includer binds the type its walker allocates; the default is the
-/// paced walker's own block. The tick, the reset and the placement reach only
-/// the rig and the animation state, so a bound type has to declare an
-/// `ActorAnimRig20 rig` and an `ActorEnemyState st`, as every walker of this
-/// family does behind its two light matrices. An includer that also carries
-/// the blended reseed binds a type with an `s16 blendFrames` as well, as the
-/// stride walker's `StrideWalkWork` has.
+/// This object-like alias names a typedef, defaulting to `PacedWalkWork`.
+/// At each fragment definition, the selected type must be complete and match
+/// the live, task-owned allocation at `Task::work`. Member order and offsets
+/// belong to the selected type.
 ///
-/// Bind before this header. The binding persists across the fragments'
-/// inclusions; a file whose walkers differ in block type undefines and
-/// redefines it around the copies of the walker that differs.
+/// The tick fragment needs `ActorAnimRig20 rig`; reset also needs
+/// `ActorEnemyState st`. Blend needs both and `s16 blendFrames`, in whole
+/// normal-rate frames. Placement needs only `ActorEnemyState st`, storing
+/// signed `st.yaw` in 4096 units per turn. Animation drives slots 1 through
+/// 19 of the initialized rig; keep work, model coordinates and borrowed clip
+/// data live through playback. The other paced-walk fragments use
+/// `PacedWalkWork` directly, independently of this binding.
+///
+/// Override before this header's first inclusion, or undefine and redefine
+/// before further fragment copies. The header guard supplies the default only
+/// once. Keep the selection through every reusable fragment for that walker;
+/// restore it before including another walker's copies. actor_161500 selects
+/// `StrideWalkWork`, actor_450800 selects `_Actor450800KyleMadiganWork`, and
+/// actor_460200 selects `StrideWalkWork` for Soldier B between its two paced
+/// walkers. This alias evaluates no arguments, captures no locals and uses
+/// no stringification or token pasting.
 #define PACED_WALK_WORK_T PacedWalkWork
 #endif
 
