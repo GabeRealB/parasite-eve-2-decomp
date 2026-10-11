@@ -388,6 +388,7 @@ class Session:
         self.gdb.halt_reason()
         if self.patched:
             base = self.cfg["blob"]["address"]
+            self.refuse_mirror(base)
             try:
                 self.gdb.write(base, self.code)
             except OSError as error:
@@ -396,6 +397,30 @@ class Session:
             self.install()
         for address in self.by_address:
             self.gdb.breakpoint(address)
+
+    def refuse_mirror(self, base: int) -> None:
+        """Stop before writing the blob into memory that is really somewhere else.
+
+        A console with 2 MB of memory shows it again at every 2 MB above: 0x80200000 is then 0x80000000, the
+        kernel's own tables and its exception vector, and a blob written there takes the machine down. Memory that
+        is its own differs from what lies 2 MB below it; where the two read the same, or nothing has been loaded
+        yet and both are empty, nothing is written."""
+        span, step = 0x200, 0x200000
+        here = self.gdb.read(base, span)
+        lower = base - step
+        while (lower & 0x1FFFFFFF) >= 0:
+            try:
+                below = self.gdb.read(lower, span)
+            except OSError:
+                break
+            if below == here:
+                what = "is empty, like the memory below it: start once the game has booted" if not any(here) else f"is the same memory as {lower:#010x}"
+                raise SystemExit(f"blob.address {base:#010x} {what}.\nNothing was written. The patch blob needs memory of its own - "
+                                 "a target with memory above 2 MB (an 8 MB mode), or an address inside the 2 MB that the game leaves free. "
+                                 "Events with patch = false need none of this.")
+            if (lower & 0x1FFFFFFF) < step:
+                break
+            lower -= step
 
     def install(self) -> None:
         """Write each patch whose function is in memory unpatched (a load may have put it back)."""
