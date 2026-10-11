@@ -433,7 +433,7 @@ D_unused_85_8012A474 = 0x8012A474; // absolute:True owner=unused_85
 D_unused_86_8012A0D8 = 0x8012A0D8; // absolute:True owner=unused_86
 D_mongoose_8012A9C0 = 0x8012A9C0; // absolute:True owner=mongoose
 gGrenadePistolPlayerAnimationBank = 0x8012B2E4; // absolute:True owner=grenade_pistol
-D_mm1_8012D184 = 0x8012D184; // absolute:True owner=mm1
+gMm1PlayerAnimationBank = 0x8012D184; // absolute:True owner=mm1
 D_pa3_8012C18C = 0x8012C18C; // absolute:True owner=pa3
 D_sp12_8012BCC8 = 0x8012BCC8; // absolute:True owner=sp12
 gAs12PlayerAnimationBank = 0x8012C300; // absolute:True owner=as12

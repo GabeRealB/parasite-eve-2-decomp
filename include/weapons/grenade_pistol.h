@@ -18,6 +18,17 @@
 /// their source overlays to remain loaded as well.
 extern AnimationBank gGrenadePistolPlayerAnimationBank;
 
+/// Native player motion bank used while the MM1 is equipped.
+///
+/// Gameplay selects bank index 13: character-1 base 1 plus weapon 12. Slots
+/// 1..44 contain 36 distinct clips for locomotion, aiming, attacks, reactions
+/// and scripted actions; native slots 0, 45 and 46 are NULL. The extension at
+/// indices 47..78 starts cleared and remains writable for raw-word copies,
+/// including non-pointer payloads. Play only entries containing valid clip
+/// pointers. Keep the MM1 package loaded while playback borrows the bank or its
+/// native clips; copied clips also require their source packages to stay loaded.
+extern AnimationBank gMm1PlayerAnimationBank;
+
 /// Single-part held Grenade Pistol model attached to the player's weapon hand.
 ///
 /// Geometry and draw commands are shared by its runtime instances; initial

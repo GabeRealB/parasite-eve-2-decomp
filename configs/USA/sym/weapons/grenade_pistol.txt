@@ -7,3 +7,4 @@ _grenadeShellExit = 0x8011DB8C; // type:func
 grenadePistolShellTask = 0x8011dbd0; // type:func
 grenadePistolAttackState = 0x8011d1d4; // type:func
 gGrenadePistolPlayerAnimationBank = 0x8012b2e4;
+_gGrenadePistolShellStateHandlers = 0x8011d1c4;

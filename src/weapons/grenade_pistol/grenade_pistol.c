@@ -126,18 +126,27 @@ void grenadePistolAttackState(Task* playerTask)
 
 #include "../../shared/grenade_shell_exit.inc.c"
 
-static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
-    _grenadeShellSpawn,
-    _grenadeShellFly,
-    _grenadeShellBlast,
-    _grenadeShellExit,
-} };
+/// Projectile state handlers for the Grenade Pistol and MM1 builds.
+///
+/// `Task::state` selects 0 spawn, 1 flight, 2 blast countdown or 3 teardown.
+/// The dispatcher copies all four `void(Task*)` callbacks before calling one;
+/// there is no terminator or bounds check. Keep the matching weapon package
+/// loaded through dispatch. Spawn allocates work; later states require it live,
+/// and teardown releases the task after unlinking its collision bodies.
+static const TaskFuncTable4 _gGrenadePistolShellStateHandlers = {
+    .funcs = {
+        _grenadeShellSpawn,
+        _grenadeShellFly,
+        _grenadeShellBlast,
+        _grenadeShellExit,
+    },
+};
 
 void grenadePistolShellTask(Task* task)
 {
     TaskFuncTable4 stateHandlers;
 
-    stateHandlers = D_grenade_pistol_8011D1C4;
+    stateHandlers = _gGrenadePistolShellStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1150,26 +1159,46 @@ static AnimationSet _gMm1UnarmedWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation02404Bank1[19] = {
+/// Translation/rotation poses for tracks 0 and 1 of the unreferenced MM1 clip.
+///
+/// Translations use integer model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gMm1Animation02404Bank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_02404_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation02404Bank4[193] = {
+/// Rotation-only poses for tracks 2..18 of the unreferenced MM1 clip.
+///
+/// Signed 11/10/11-bit components encode eight angle units per step.
+static const AnimationPackedRotation _gMm1Animation02404Bank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_02404_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation02404Records[296] = {
+/// Keyframes and track-local loop/stop controls of the unreferenced MM1 clip.
+///
+/// Durations count whole normal-rate frames; pose offsets count u32 words and
+/// control jumps select absolute record indices. Track 1 carries paired cues;
+/// the clip's intended player action is unproven.
+static const AnimationRecord _gMm1Animation02404Records[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_02404_records.inc"
 };
 
-static u16 _gMm1Animation02404Indices[20] = {
+/// Record starts for the unreferenced MM1 clip's tracks 0..18 and one retained final halfword.
+static const u16 _gMm1Animation02404Indices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_02404_indices.inc"
 };
 
+/// Unreferenced nineteen-track MM1 clip whose intended player action is unproven.
+///
+/// No native bank entry selects it. Tracks 0 and 1 contain translation/rotation;
+/// tracks 2..18 contain packed rotation. Every track loops before a retained stop
+/// control. The descriptor and its read-only banks remain part of the package.
 static AnimationSet _gMm1Animation02404 = {
-    _gMm1Animation02404Records,
-    _gMm1Animation02404Indices,
-    { NULL, _gMm1Animation02404Bank1, NULL, NULL, _gMm1Animation02404Bank4, NULL, NULL, NULL },
+    .records           = _gMm1Animation02404Records,
+    .trackStartIndices = _gMm1Animation02404Indices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1Animation02404Bank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1Animation02404Bank4,
+    },
 };
 
 /// Negative-turn translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
@@ -2346,131 +2375,132 @@ static AnimationSet _gMm1WalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation0F5C8Bank1[16] = {
+/// Backward-walk translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1BackwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0F5C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0F5C8Bank4[157] = {
+/// Backward-walk rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1BackwardWalkAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0F5C8_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0F5C8Records[263] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for walking backward with the MM1.
+///
+/// Durations count whole normal-rate frames; pose offsets count u32 words and
+/// control jumps select absolute record indices. Track 1 carries cue 1 then cue 2.
+static const AnimationRecord _gMm1BackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0F5C8_records.inc"
 };
 
-static u16 _gMm1Animation0F5C8Indices[20] = {
+/// Backward-walk record starts for tracks 0..18, followed by one retained final halfword.
+static const u16 _gMm1BackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0F5C8_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0F5C8 = {
-    _gMm1Animation0F5C8Records,
-    _gMm1Animation0F5C8Indices,
-    { NULL, _gMm1Animation0F5C8Bank1, NULL, NULL, _gMm1Animation0F5C8Bank4, NULL, NULL, NULL },
+/// Player backward walk with the MM1, selected by native bank slot 3.
+///
+/// Loops during backward locomotion; the controller applies root movement
+/// separately. Tracks 0 and 1 carry translation/rotation, and 2..18 carry packed
+/// rotation. Keep the MM1 package loaded while playback borrows this clip.
+static AnimationSet _gMm1BackwardWalkAnimation = {
+    .records           = _gMm1BackwardWalkAnimationRecords,
+    .trackStartIndices = _gMm1BackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1BackwardWalkAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1BackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0FF9CBank1[25] = {
+/// Run translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1RunAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0FF9C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0FF9CBank4[223] = {
+/// Run rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1RunAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0FF9C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0FF9CRecords[311] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for running with the MM1.
+///
+/// Durations count whole normal-rate frames; pose offsets count u32 words and
+/// control jumps select absolute record indices. Track 1 carries cue 2 then cue 1.
+static const AnimationRecord _gMm1RunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0FF9C_records.inc"
 };
 
-static u16 _gMm1Animation0FF9CIndices[20] = {
+/// Run record starts for tracks 0..18, followed by one retained final halfword.
+static const u16 _gMm1RunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0FF9C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0FF9C = {
-    _gMm1Animation0FF9CRecords,
-    _gMm1Animation0FF9CIndices,
-    { NULL, _gMm1Animation0FF9CBank1, NULL, NULL, _gMm1Animation0FF9CBank4, NULL, NULL, NULL },
+/// Player run with the MM1, selected by native bank slot 4.
+///
+/// Loops during forward running and the default scripted run-to action. The
+/// controller applies root movement separately. Tracks 0 and 1 carry
+/// translation/rotation, and 2..18 carry packed rotation. Keep the MM1 package
+/// loaded while playback borrows this clip.
+static AnimationSet _gMm1RunAnimation = {
+    .records           = _gMm1RunAnimationRecords,
+    .trackStartIndices = _gMm1RunAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1RunAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1RunAnimationBank4,
+    },
 };
 
-AnimationBank D_mm1_8012D184 = { { {
-    NULL,
-    &_gMm1IdleAnimation,
-    &_gMm1WalkAnimation,
-    &_gMm1Animation0F5C8,
-    &_gMm1Animation0FF9C,
-    &_gMm1NegativeTurnAnimation,
-    &_gMm1PositiveTurnAnimation,
-    &_gMm1AimEntryAnimation,
-    &_gMm1AimExitAnimation,
-    &_gMm1AimHoldAnimation,
-    &_gMm1FireAnimation,
-    &_gMm1FireAnimation,
-    &_gMm1AimForwardAnimation,
-    &_gMm1AimBackwardOrTurnAnimation,
-    &_gMm1ReloadAnimation,
-    &_gMm1ReloadAnimation,
-    &_gMm1Part4HitReactionAnimation,
-    &_gMm1OtherBodyHitReactionAnimation,
-    &_gMm1DeathAnimation,
-    &_gMm1UnarmedWalkAnimation,
-    &_gMm1ReloadAnimation,
-    &_gMm1IdleAnimation,
-    &_gMm1IdleAnimation,
-    &_gMm1HealthyIdleAnimation,
-    &_gMm1InjuredIdleAnimation,
-    &_gMm1CriticalIdleAnimation,
-    &_gMm1ParasiteEnergyReleaseFamily0Animation,
-    &_gMm1ParasiteEnergyChargeFamily0Animation,
-    &_gMm1ParasiteEnergyCastFamily0Animation,
-    &_gMm1ParasiteEnergyReleaseFamily1Animation,
-    &_gMm1ParasiteEnergyChargeFamily1Animation,
-    &_gMm1ParasiteEnergyCastFamily1Animation,
-    &_gMm1ScriptedPresentationEntryAnimation,
-    &_gMm1ScriptedPresentationExitAnimation,
-    &_gMm1ScriptedPresentationEntryAnimation,
-    &_gMm1ScriptedPresentationExitAnimation,
-    &_gMm1StairAscentAnimation,
-    &_gMm1StairDescentAnimation,
-    &_gMm1StairAscentFinishEvenAnimation,
-    &_gMm1StairAscentFinishOddAnimation,
-    &_gMm1ItemUseAnimation,
-    &_gMm1IdleAnimation,
-    &_gMm1ParasiteEnergyReleaseFamily2Animation,
-    &_gMm1ParasiteEnergyChargeFamily2Animation,
-    &_gMm1ParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gMm1PlayerAnimationBank = {
+    .table = {
+        // Initialize native clips; slots 0, 45, 46 and the writable extension start cleared.
+        .sets = {
+            [1]  = &_gMm1IdleAnimation,
+            [2]  = &_gMm1WalkAnimation,
+            [3]  = &_gMm1BackwardWalkAnimation,
+            [4]  = &_gMm1RunAnimation,
+            [5]  = &_gMm1NegativeTurnAnimation,
+            [6]  = &_gMm1PositiveTurnAnimation,
+            [7]  = &_gMm1AimEntryAnimation,
+            [8]  = &_gMm1AimExitAnimation,
+            [9]  = &_gMm1AimHoldAnimation,
+            [10] = &_gMm1FireAnimation,
+            [11] = &_gMm1FireAnimation,
+            [12] = &_gMm1AimForwardAnimation,
+            [13] = &_gMm1AimBackwardOrTurnAnimation,
+            [14] = &_gMm1ReloadAnimation,
+            [15] = &_gMm1ReloadAnimation,
+            [16] = &_gMm1Part4HitReactionAnimation,
+            [17] = &_gMm1OtherBodyHitReactionAnimation,
+            [18] = &_gMm1DeathAnimation,
+            [19] = &_gMm1UnarmedWalkAnimation,
+            [20] = &_gMm1ReloadAnimation,
+            [21] = &_gMm1IdleAnimation,
+            [22] = &_gMm1IdleAnimation,
+            [23] = &_gMm1HealthyIdleAnimation,
+            [24] = &_gMm1InjuredIdleAnimation,
+            [25] = &_gMm1CriticalIdleAnimation,
+            [26] = &_gMm1ParasiteEnergyReleaseFamily0Animation,
+            [27] = &_gMm1ParasiteEnergyChargeFamily0Animation,
+            [28] = &_gMm1ParasiteEnergyCastFamily0Animation,
+            [29] = &_gMm1ParasiteEnergyReleaseFamily1Animation,
+            [30] = &_gMm1ParasiteEnergyChargeFamily1Animation,
+            [31] = &_gMm1ParasiteEnergyCastFamily1Animation,
+            [32] = &_gMm1ScriptedPresentationEntryAnimation,
+            [33] = &_gMm1ScriptedPresentationExitAnimation,
+            [34] = &_gMm1ScriptedPresentationEntryAnimation,
+            [35] = &_gMm1ScriptedPresentationExitAnimation,
+            [36] = &_gMm1StairAscentAnimation,
+            [37] = &_gMm1StairDescentAnimation,
+            [38] = &_gMm1StairAscentFinishEvenAnimation,
+            [39] = &_gMm1StairAscentFinishOddAnimation,
+            [40] = &_gMm1ItemUseAnimation,
+            [41] = &_gMm1IdleAnimation,
+            [42] = &_gMm1ParasiteEnergyReleaseFamily2Animation,
+            [43] = &_gMm1ParasiteEnergyChargeFamily2Animation,
+            [44] = &_gMm1ParasiteEnergyCastFamily2Animation,
+        },
+    },
+};
 #endif
 
 /// Grenade Pistol/MM1 muzzle offsets in integer launcher-local coordinates.

@@ -1,3 +1,4 @@
 // Overlay-local model records for the MM1 variant.
 gMm1WeaponModel = 0x8011E494; // size:0x24
 gMm1ShellModel = 0x8012D444; // size:0x24
+gMm1PlayerAnimationBank = 0x8012D184; // size:0x13C
