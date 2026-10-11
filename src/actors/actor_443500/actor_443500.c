@@ -3471,8 +3471,8 @@ static void _actor443500InitPierce(Task* task)
         return;
     }
     task->work            = work;
-    work->model.animId    = ACTOR_MODEL_STATE_NONE;
-    work->model.bank      = ACTOR_MODEL_STATE_NONE;
+    work->model.animId    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank      = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown   = ACTOR_443500_PIERCE_NO_BUFFER_RELEASE;
     work->savedModelFlags = task->extra.tmd->flags;
     childTask             = taskSpawnFromTable(gActor443500PierceTaskDescs, ACTOR_443500_PIERCE_CHILD_DESCRIPTOR, ACTOR_443500_PIERCE_CHILD_PART, task);
@@ -3697,7 +3697,7 @@ static inline void _actor443500ApplyAnimationRequest(_Actor443500PierceCarradine
 /// `request` is borrowed read-only through dispatch and must not overlap the rig.
 /// Bank index must be 0 and clip index 1..35; their data, model coordinates and
 /// work-owned slots/poses stay borrowed through playback. Initialize bank to
-/// `ACTOR_MODEL_STATE_NONE` before the first request. Slots 1..19 blend when
+/// `ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first request. Slots 1..19 blend when
 /// already ticking and requested, using `blendFrames` in whole frames (normally
 /// 0..2047), or reset otherwise, then tick once. Even a repeated clip restarts.
 /// Ignores message ID, collision choice and fourth argument. Returns 0.

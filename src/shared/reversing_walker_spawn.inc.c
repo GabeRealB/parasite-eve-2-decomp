@@ -21,8 +21,8 @@ static void _reverseWalkSpawn(Task* task)
     }
 
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = REVERSE_WALK_BUFFER_RELEASE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;

@@ -129,7 +129,7 @@ enum {
 ///
 /// A play request rebinds the rig when its bank differs from `bank` and
 /// reseeds the slots when its clip differs from `animId`; both start as
-/// `ACTOR_MODEL_STATE_NONE`, so the first request does both. The rest is the
+/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first request does both. The rest is the
 /// two models the body carries, the blink that swaps the eye texture of the
 /// face, and the delayed free of the model's buffers once it has been hidden.
 typedef struct {
@@ -1420,8 +1420,8 @@ static void _actor511000InitRupert(Task* task)
         return;
     }
     task->work          = work;
-    work->animId        = ACTOR_MODEL_STATE_NONE;
-    work->bank          = ACTOR_MODEL_STATE_NONE;
+    work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->shotTicks     = 0;
     work->freeCountdown = ACTOR_511000_RUPERT_NO_BUFFER_RELEASE;
     flags               = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1514,7 +1514,7 @@ static s32 _actor511000PlayRupertAnimation(Task* task, s32 messageId, const Anim
     // A new bank invalidates the selected clip before its pose is seeded.
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor511000RupertAnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }

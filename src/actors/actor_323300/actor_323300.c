@@ -109,8 +109,8 @@ enum {
 typedef struct {
     ActorAnimRig19 rig;                // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
     s32            ticking;            // Set once a clip has been applied, never cleared: the slots are ticked each frame and a request may blend from their pose
-    s32            bank;               // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first)
-    s32            animId;             // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first)
+    s32            bank;               // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first)
+    s32            animId;             // Clip the slots were last seeded with, within `bank` (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first)
     byte           unknown_448[0x4];   // Never accessed
     s32            transformCountdown; // Stage of the transformation, from `ACTOR_323300_TRANSFORM_START` down to 0 by `_STEP` a tick
     GfxCoord       unscaledParts[3];   // This tick's parts 3, 4 and 5 as they were before the scale; parts 4, 5 and 6 are parented to them in that order
@@ -576,8 +576,8 @@ static void _actor323300WomanSpawn(Task* task)
         return;
     }
     task->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
+    work->model.animId     = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->loopSoundEnabled = 1;
     work->freeCountdown    = ACTOR_323300_WOMAN_NO_BUFFER_FREE;
     _actor323300WomanBindLighting(task);
@@ -748,7 +748,7 @@ static inline void _actor323300WomanApplyAnimationRequest(Task* task, const Anim
     model = task->extra.tmd;
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model,
                              work->rig.poses, work->rig.slots);
     }
@@ -1011,8 +1011,8 @@ static void _actor323300StrangerSpawn(Task* task)
         return;
     }
     task->work               = work;
-    work->animId             = ACTOR_MODEL_STATE_NONE;
-    work->bank               = ACTOR_MODEL_STATE_NONE;
+    work->animId             = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank               = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->transformCountdown = ACTOR_323300_TRANSFORM_START;
     // Select the transformation palettes and build both primitive-buffer halves.
     model->clutRowOffset          = 2;
@@ -1252,7 +1252,7 @@ static s32 _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const An
     model = task->extra.tmd;
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor323300StrangerAnimationBanks[work->bank], model,
                              work->rig.poses, work->rig.slots);
     }

@@ -56,7 +56,7 @@ enum {
 /// body model and what that rig is playing, kept as words: a play request
 /// rebinds the rig when its bank differs from `bank`, seeds the slots with its
 /// clip and records it in `animId`. The spawn sets both ids to
-/// `ACTOR_MODEL_STATE_NONE`, so the first request always binds its bank. The
+/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first request always binds its bank. The
 /// model object borrows `light` and `color` for as long as the block lives.
 ///
 /// What follows the matrices is the blink that swaps the eye band of the
@@ -515,8 +515,8 @@ static void _actor113000Spawn(Task* task)
         return;
     }
     task->work          = work;
-    work->animId        = ACTOR_MODEL_STATE_NONE;
-    work->bank          = ACTOR_MODEL_STATE_NONE;
+    work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->field_4C6     = 0;
     work->freeCountdown = ACTOR_113000_BUFFER_FREE_NONE;
     modelFlags          = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -620,7 +620,7 @@ static s32 _actor113000PlayAnimation(Task* task, s32 messageId, const AnimationP
     if (request->source.index != work->bank) {
         // Bind the bank before selecting a clip, including the first request.
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor113000AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }

@@ -27,9 +27,9 @@ static void _reverseWalkBeginMove(Task* task)
         localVelocity.vz = localVelocity.vz * REVERSE_WALK_BACKWARD_VELOCITY_SCALE;
     }
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
-    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walk.motionStep++;
 }
 

@@ -1347,7 +1347,7 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
     // A changed bank invalidates the old clip even if the clip IDs agree.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
@@ -1452,8 +1452,8 @@ static void _actor141000SpawnAyaBreaWalker(Task* task)
     }
 
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = ACTOR_141000_BUFFER_RELEASE_NONE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
@@ -1568,9 +1568,9 @@ static void _actor141000BeginAyaBreaWalk(Task* task)
         localVelocity.vz >>= 1;
     }
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
-    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walk.motionStep      = work->walk.motionStep + 1;
 }
 

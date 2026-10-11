@@ -937,8 +937,8 @@ static void _actor120400SpawnKyleMadiganWalker(Task* task)
         return;
     }
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = ACTOR_120400_KYLE_FREE_NOT_PENDING;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
@@ -1163,7 +1163,7 @@ static void _actor120400RunKyleMadiganWalkStep(Task* task)
 /// Requires a live TMD root and walker work in step 1. The root's Q12 rotation
 /// transforms local +Z velocity of 32 units per frame, stored as signed 16.16,
 /// into the parent's frame. Seeds all previous-distance components with
-/// `ACTOR_WALK_DISTANCE_NONE`, so the first arrival check records X/Z distance.
+/// `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` for the first arrival comparison.
 static void _actor120400BeginKyleMadiganWalk(Task* task)
 {
     _Actor120400KyleMadiganWork* work;
@@ -1175,9 +1175,9 @@ static void _actor120400BeginKyleMadiganWalk(Task* task)
 
     localVelocity = _gActor120400KyleMadiganForwardWalkVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
-    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walk.motionStep++;
 }
 

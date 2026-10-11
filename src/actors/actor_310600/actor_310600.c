@@ -80,8 +80,8 @@ enum {
 typedef struct {
     ActorAnimRig20        rig;              // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s8                    ticking;          // Set once a clip has been applied, never cleared: the slots are ticked each frame
-    s8                    animId;           // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first request); also selects the clip's cue list
-    s8                    bank;             // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first request)
+    s8                    animId;           // Clip the slots were last seeded with, within `bank` (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first request); also selects the clip's cue list
+    s8                    bank;             // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first request)
     s8                    freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     s16                   cueFrame;         // Ticks since the clip was applied, counted only while the clip has a cue list; a cue fires on the tick this equals its frame
     s16                   shotCueCount;     // Cues clip 1 or 2 has reached since it was applied: the first five each spawn a muzzle flash, a later one starts the room's follow-up task instead
@@ -95,7 +95,7 @@ typedef struct {
     VECTOR                walkVelocity;     // Displacement added each frame, in signed 16.16 units; zero while standing. The fourth word is never accessed
     Fixed16               walkCarry[3];     // X, Y and Z displacement not yet applied; only the fractions survive a frame
     byte                  pad_524[0x4];     // never accessed
-    SVECTOR               walkLastDistance; // Absolute X and Z distance to `walkTarget` at the last arrival check, `ACTOR_WALK_DISTANCE_NONE` before the first; Y is only seeded
+    SVECTOR               walkLastDistance; // Absolute X and Z distance to `walkTarget` at the last arrival check, `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` before the first; Y is only seeded
     byte                  pad_530[0x8];     // never accessed
 } _Actor310600RupertBroderickWork;
 STATIC_ASSERT_SIZEOF(_Actor310600RupertBroderickWork, 0x538);
@@ -495,8 +495,8 @@ static void _actor310600InitBody(Task* task)
         return;
     }
     task->work              = work;
-    work->animId            = ACTOR_MODEL_STATE_NONE;
-    work->bank              = ACTOR_MODEL_STATE_NONE;
+    work->animId            = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank              = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown     = ACTOR_310600_BUFFER_RELEASE_NONE;
     work->walkMotion        = ACTOR_WALK_MOTION_IDLE;
     work->walkStep          = ACTOR_310600_WALK_STEP_FACE_TARGET;
@@ -709,7 +709,7 @@ static s32 _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationP
     // Changing banks forces the selected clip to be seeded again.
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor310600AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
@@ -949,7 +949,7 @@ static void _actor310600FaceWalkTarget(Task* task)
 /// Requires initialized body work and the root rotation set by the facing
 /// step. Rotates a local +Z speed of 32 world units per tick into signed
 /// 16.16 `walkVelocity`, seeds distance thresholds with
-/// `ACTOR_WALK_DISTANCE_NONE` and advances to step 2. No position is changed
+/// `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` and advances to step 2. No position is changed
 /// here. Cafeteria scripts never select this retained walk path.
 static void _actor310600StartWalkVelocity(Task* task)
 {
@@ -962,9 +962,9 @@ static void _actor310600StartWalkVelocity(Task* task)
 
     localVelocity = _gActor310600WalkLocalVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
-    work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walkLastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walkLastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walkStep++;
 }
 

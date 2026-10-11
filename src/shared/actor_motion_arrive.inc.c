@@ -7,7 +7,7 @@
 /// Requires a live root coordinate and initialized `ActorMotionWalkWork`.
 /// Gaps use root-parent coordinate units, truncated to signed halfwords before
 /// comparison; previous gaps store their absolute values. The movement step
-/// seeds both previous gaps with `ACTOR_WALK_DISTANCE_NONE` before this step.
+/// seeds both previous gaps with `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` before this step.
 /// On arrival, plays the queued bank-0 clip with a five-frame blend, clears XYZ
 /// velocity and advances the walk step. The clip must be loaded. Neither
 /// position nor fractional carry is changed; only X/Z previous gaps are updated.

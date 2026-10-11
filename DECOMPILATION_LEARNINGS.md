@@ -85322,9 +85322,9 @@ is worth recognising before spending attempts on the seed.
 
     localVelocity = _gActor310600WalkLocalVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
-    work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walkLastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walkLastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walkStep++;
 ```
 

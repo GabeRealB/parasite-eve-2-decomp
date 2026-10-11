@@ -40,8 +40,8 @@
 typedef struct {
     ActorAnimRig20 rig;               // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s8             ticking;           // Set once a clip has been applied, never cleared: the slots are ticked each frame
-    s8             animId;            // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first request)
-    s8             bank;              // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first request)
+    s8             animId;            // Clip the slots were last seeded with, within `bank` (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first request)
+    s8             bank;              // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first request)
     s8             freeCountdown;     // Ticks left before the body model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     s32            field_478;         // Cleared by the spawn state and never read; role unproven
     MATRIX         light;             // Light-direction matrix lent to the model object
@@ -558,8 +558,8 @@ static void _actor213000InitializeEricBaldwin(Task* task)
         return;
     }
     task->work              = work;
-    work->animId            = ACTOR_MODEL_STATE_NONE;
-    work->bank              = ACTOR_MODEL_STATE_NONE;
+    work->animId            = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank              = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->field_478         = 0;
     work->freeCountdown     = ACTOR_213000_FREE_DISABLED;
     bodyModel->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -868,7 +868,7 @@ static s32 _actor213000PlayAnimation(Task* actorTask, s32 messageId, const Anima
     model = actorTask->extra.tmd;
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor213000EricBaldwinAnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }

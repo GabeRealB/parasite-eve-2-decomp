@@ -731,8 +731,8 @@ static void _actor350700KyleMadiganWalkerInitialize(Task* task)
         return;
     }
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = ACTOR_350700_KYLE_FREE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
@@ -932,9 +932,9 @@ static void _actor350700KyleMadiganWalkerBeginMove(Task* task)
     // Rotate velocity only; the root's translation must not affect the step.
     forwardVelocity = _gActor350700KyleMadiganForwardWalkVelocity;
     ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
-    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
-    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vx = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vy = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+    work->walk.lastDistance.vz = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
     work->walk.motionStep++;
 }
 

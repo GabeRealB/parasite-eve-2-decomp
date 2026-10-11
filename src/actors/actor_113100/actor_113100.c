@@ -1232,8 +1232,8 @@ static void _actor113100SpawnPierceCarradine(Task* task)
         return;
     }
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = ACTOR_113100_BUFFER_FREE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
@@ -1421,7 +1421,7 @@ static inline void _actor113100ApplyAnimationRequest(_Actor113100PierceCarradine
 
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor113100PierceAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
@@ -1490,9 +1490,9 @@ static void _actor113100TurnAndBeginWalk(Task* task)
         forwardVelocity.vy = 0;
         forwardVelocity.vz = ACTOR_113100_WALK_SPEED_16_16;
         ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
-        work->walk.lastDistance.vx       = ACTOR_WALK_DISTANCE_NONE;
-        work->walk.lastDistance.vy       = ACTOR_WALK_DISTANCE_NONE;
-        work->walk.lastDistance.vz       = ACTOR_WALK_DISTANCE_NONE;
+        work->walk.lastDistance.vx       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+        work->walk.lastDistance.vy       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
+        work->walk.lastDistance.vz       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
         walkRequest.source.index         = ACTOR_113100_BODY_ANIMATION_BANK;
         walkRequest.animationId          = ACTOR_113100_ANIM_WALK;
         walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1933,7 +1933,7 @@ static void _actor113100TurnToArrivalYaw(Task* task)
 /// Applies a changed clip to Pierce's twenty-part rig and selects its head-turn ramp.
 ///
 /// Requires live model coordinates and allocated body work with `model.bank`
-/// initially `ACTOR_MODEL_STATE_NONE`. Borrows a nonoverlapping readable request
+/// initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. Borrows a nonoverlapping readable request
 /// through the call. The loaded bank is 0; clip IDs 1..35 index both its sets and
 /// the head-turn table, and stored IDs narrow to signed bytes. A bank change binds
 /// the rig and invalidates the previous clip. A changed clip blends for whole

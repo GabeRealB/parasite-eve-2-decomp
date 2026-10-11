@@ -2149,8 +2149,8 @@ static void _actor361100InitTentacle(Task* task)
     }
 
     task->work          = work;
-    work->model.animId  = ACTOR_MODEL_STATE_NONE;
-    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->model.animId  = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_361100_BUFFER_FREE_IDLE;
     work->carry[0].word = 0;
     work->carry[1].word = 0;
@@ -2408,8 +2408,8 @@ static void _actor361100InitAyaBrea(Task* task)
     }
 
     task->work          = work;
-    work->model.animId  = ACTOR_MODEL_STATE_NONE;
-    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->model.animId  = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_361100_BUFFER_FREE_IDLE;
     _actor361100BindAyaBreaLighting(task);
     task->msgTable     = _gActor361100AyaBreaMessageTable;
@@ -2489,7 +2489,7 @@ static s32 _actor361100PlayAyaBreaAnimation(Task* task, s32 msgId, const Animati
     // A bank switch rebinds the rig; every request restarts or blends its clip.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor361100AyaBreaAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }

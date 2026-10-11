@@ -13,7 +13,7 @@
 /// Restarts an actor's requested clip on slots 1..19 and enables frame ticking.
 ///
 /// Requires writable work and a live twenty-part model. Before the first call,
-/// set `work->model.bank` to `ACTOR_MODEL_STATE_NONE` and clear
+/// set `work->model.bank` to `ACTOR_MOTION_ANIMATION_INDEX_NONE` and clear
 /// `work->model.ticking`; later calls must use the same model and storage.
 /// `source.index` and `animationId` must select loaded, non-NULL entries in
 /// `_gActorMotionAnimBanks` and fit 0..127: both narrow to signed bytes before

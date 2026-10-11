@@ -47,7 +47,7 @@
 ///
 /// Nothing but a play request binds `rig`, and one does so only when its bank
 /// differs from `model.bank`. The package therefore allocates the block
-/// zeroed and sets `model.bank` to `ACTOR_MODEL_STATE_NONE` before the first
+/// zeroed and sets `model.bank` to `ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first
 /// request, which makes that request bind the rig whichever bank it names;
 /// left at zero, a first request for bank 0 would seed and tick the slots of
 /// an unbound context.
@@ -127,7 +127,7 @@ static void _actorMotionArrive19(Task* task);
 /// Applies a changed animation clip to the carrier's nineteen-part model.
 ///
 /// Requires a live TMD task whose work opens as `ActorMotion19PlayWork` does,
-/// with `model.bank` initially `ACTOR_MODEL_STATE_NONE`. Request is borrowed
+/// with `model.bank` initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. Request is borrowed
 /// through the call and must not overlap playback state. Bank and clip must
 /// index loaded entries of `_gActorMotionAnimBanks19`; stored IDs narrow to
 /// signed bytes before indexing. A bank change binds the rig and clears its

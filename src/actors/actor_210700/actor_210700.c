@@ -64,8 +64,8 @@ enum { ACTOR_210700_BUFFER_FREE_NONE = -1 };
 typedef struct {
     ActorAnimRig20 rig;               // Playback storage of the body model; slots 1 to 19 are driven
     s32            ticking;           // Set once a clip has been applied, never cleared: the slots are ticked each frame
-    s32            animId;            // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first)
-    s32            bank;              // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first)
+    s32            animId;            // Clip the slots were last seeded with, within `bank` (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first)
+    s32            bank;              // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MOTION_ANIMATION_INDEX_NONE` before the first)
     MATRIX         light;             // Light-direction matrix lent to the model object
     MATRIX         color;             // Light-colour matrix lent to the model object
     byte           unknown_4C0[0x78]; // Never accessed
@@ -673,8 +673,8 @@ static void _actor210700Init(Task* task)
         return;
     }
     task->work          = work;
-    work->animId        = ACTOR_MODEL_STATE_NONE;
-    work->bank          = ACTOR_MODEL_STATE_NONE;
+    work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_210700_BUFFER_FREE_NONE;
     model->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
@@ -778,7 +778,7 @@ static s32 _actor210700PlayAnimation(Task* task, s32 messageId, const AnimationP
     model = task->extra.tmd;
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
-        work->animId = ACTOR_MODEL_STATE_NONE;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActor210700AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }

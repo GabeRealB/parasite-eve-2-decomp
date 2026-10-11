@@ -7,7 +7,7 @@
 /// Requires a live root coordinate and initialized `ActorMotion19WalkWork`.
 /// Gaps use root-parent coordinate units, truncated to signed halfwords before
 /// comparison; previous gaps store their absolute values. The movement step
-/// seeds both previous gaps with `ACTOR_WALK_DISTANCE_NONE` before this step.
+/// seeds both previous gaps with `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` before this step.
 /// On arrival, requests the queued bank-0 clip with a five-frame blend through
 /// `ACTOR_MOTION_PLAY19_HANDLER`, or `_actorMotionPlayAnim19` by default. The
 /// clip must be loaded; restart behavior belongs to the selected handler.

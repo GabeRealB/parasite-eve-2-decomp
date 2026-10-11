@@ -2291,8 +2291,8 @@ static void _actor503500InitTentacle(Task* task)
     }
 
     task->work          = work;
-    work->model.animId  = ACTOR_MODEL_STATE_NONE;
-    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->model.animId  = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_503500_TENTACLE_NO_BUFFER_RELEASE;
     work->carry[0].word = 0;
     work->carry[1].word = 0;

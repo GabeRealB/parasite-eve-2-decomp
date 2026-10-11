@@ -588,7 +588,7 @@ static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYa
 /// Applies the leap's requested start clip without restarting repeated clips.
 ///
 /// Requires a live nineteen-part TMD task and initialized `_Actor317000Work`,
-/// with `model.bank` initially `ACTOR_MODEL_STATE_NONE`. The readable request
+/// with `model.bank` initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. The readable request
 /// must not overlap playback storage: `source.index` selects bank 0 and
 /// `animationId` selects a loaded clip 1..8; stored IDs narrow to signed bytes.
 /// A bank change binds the rig and invalidates the old clip. An unchanged clip
@@ -611,7 +611,7 @@ static inline void _actor317000ApplyLeapStartAnimation(Task* task, const Animati
     // Changing banks invalidates the previous clip even when its ID agrees.
     if (request->source.index != playbackWork->model.bank) {
         playbackWork->model.bank   = request->source.index;
-        playbackWork->model.animId = ACTOR_MODEL_STATE_NONE;
+        playbackWork->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&playbackWork->rig.anim, _gActorMotionAnimBanks19[playbackWork->model.bank], bodyModel, playbackWork->rig.poses,
                              playbackWork->rig.slots);
     }
@@ -706,8 +706,8 @@ static void _actor317000Init(Task* task)
     }
 
     task->work               = work;
-    work->model.animId       = ACTOR_MODEL_STATE_NONE;
-    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown      = ACTOR_317000_BUFFER_FREE_NONE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;

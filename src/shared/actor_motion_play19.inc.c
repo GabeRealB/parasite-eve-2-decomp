@@ -5,7 +5,7 @@
 /// Borrows writable `ActorMotion19PlayWork`, a live nineteen-part model and a
 /// readable request that must not overlap playback storage. Bank and clip must
 /// be loaded indices of `_gActorMotionAnimBanks19`, representable as nonnegative
-/// signed bytes. Initialize `model.bank` to `ACTOR_MODEL_STATE_NONE` before the
+/// signed bytes. Initialize `model.bank` to `ACTOR_MOTION_ANIMATION_INDEX_NONE` before the
 /// first request. A bank change binds the rig and invalidates its previous clip;
 /// an unchanged clip in the same bank performs no playback work. Slots 1..18
 /// blend for `blendFrames` whole frames (normally 0..2047) when requested and
@@ -19,7 +19,7 @@ static inline void _actorMotionApplyAnimationRequest19(ActorMotion19PlayWork* wo
     // Changing banks invalidates the old clip even when the numeric ID agrees.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     if (request->animationId != work->model.animId) {

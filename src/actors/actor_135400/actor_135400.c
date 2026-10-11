@@ -739,8 +739,8 @@ static void _actor135400GaryDouglasSpawn(Task* task)
         return;
     }
     task->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
+    work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank   = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     _actor135400SpawnGaryAttachments(task, work);
     _actor135400GaryDouglasBindLighting(task);
     task->msgTable = _gActor135400GaryDouglasMessages;
@@ -1117,8 +1117,8 @@ static void _actor135400FlintSpawn(Task* task)
         return;
     }
     task->work          = work;
-    work->model.animId  = ACTOR_MODEL_STATE_NONE;
-    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->model.animId  = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_135400_FLINT_BUFFER_FREE_INACTIVE;
     work->cycleRequest  = cycleRequest;
     _actor135400FlintPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &initialRequest, 0);

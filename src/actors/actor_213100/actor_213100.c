@@ -561,8 +561,8 @@ static void _actor213100InitBody(Task* actorTask)
         return;
     }
     actorTask->work     = work;
-    work->model.animId  = ACTOR_MODEL_STATE_NONE;
-    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->model.animId  = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->model.bank    = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->freeCountdown = ACTOR_213100_BUFFER_FREE_NONE;
     heldModelTask       = taskSpawnFromTable(gActor213100JodieBouquetTaskDescriptors, ACTOR_213100_HELD_MODEL_DESCRIPTOR, ACTOR_213100_HELD_MODEL_PART, actorTask);
     work->heldModelTask = heldModelTask;

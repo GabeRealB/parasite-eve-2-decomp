@@ -880,12 +880,15 @@ typedef struct {
 } ActorSpriteUv;
 STATIC_ASSERT_SIZEOF(ActorSpriteUv, 0x4);
 
-/// `ActorModelState::animId` and `ActorModelState::bank` before the first play
-/// request: no clip applied, no bank bound.
+/// Unset bank or clip index in an actor's animation-request state.
 ///
-/// Bank indices and clip ids index tables, so it matches none of them: a block
-/// seeded with it binds its bank and applies its clip on the first request.
-#define ACTOR_MODEL_STATE_NONE (-1)
+/// The signed integer constant fits both signed-byte and signed-word playback
+/// fields, including work blocks that keep them outside `ActorModelState`.
+/// Seed the bank and clip with it before the first request; a bank change also
+/// invalidates the remembered clip in handlers that skip repeated requests.
+/// Loaded bank and clip indices are nonnegative, so the first valid request
+/// binds the bank and applies its clip. This value must never index a table.
+#define ACTOR_MOTION_ANIMATION_INDEX_NONE (-1)
 
 /// What an actor's model is playing and the matrices it is lit with, kept
 /// right after the model's rig in the actor's work block.
@@ -894,7 +897,7 @@ STATIC_ASSERT_SIZEOF(ActorSpriteUv, 0x4);
 /// records the clip it seeds the slots with in `animId`; the handlers that
 /// skip a repeated request do so by comparing against `animId`. The work block
 /// is allocated zeroed, and the actor's spawn then sets both ids to
-/// `ACTOR_MODEL_STATE_NONE`. The model object borrows `light` and `color` for
+/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`. The model object borrows `light` and `color` for
 /// as long as the work block lives.
 typedef struct {
     s8     ticking;    // Set once a clip has been applied, never cleared: the slots are ticked each frame and a request may blend from their pose
@@ -913,9 +916,17 @@ enum {
     ACTOR_WALK_MOTION_WALKING = 1, // A walk in progress: the handler runs the step `motionStep` selects
 };
 
-/// `ActorWalkState::lastDistance` before a walk's first arrival check: larger
-/// than any distance the check measures, so that check only records.
-#define ACTOR_WALK_DISTANCE_NONE 0x7FFF
+/// Initial horizontal arrival-gap threshold for a scripted actor walk.
+///
+/// The signed integer constant is the maximum positive signed halfword, in
+/// root-parent coordinate units. Seeds the previous X/Z gaps, either inside
+/// `ActorWalkState` or in a package's separate fields; Y is seeded but unused.
+/// Arrival compares signed-halfword current gaps with inclusive >= tests on
+/// both axes. It can therefore occur on the first check when both gaps equal
+/// 32767; this threshold does not unconditionally defer arrival. Subsequent
+/// thresholds store the narrowed gap's magnitude back into a signed halfword,
+/// so a gap of -32768 remains -32768 rather than becoming positive.
+#define ACTOR_MOTION_INITIAL_ARRIVAL_GAP 0x7FFF
 
 /// The walk a scripted walker keeps after its model state: an actor the room
 /// script places and sends from point to point.
@@ -939,7 +950,7 @@ typedef struct {
     VECTOR  velocity;     // Displacement added each frame, in signed 16.16 units; zero while standing
     Fixed16 carry[3];     // X, Y and Z displacement not yet applied; only the fractions survive a frame
     byte    pad_2C[0x4];
-    SVECTOR lastDistance; // Absolute X and Z distance to `target` at the last arrival check, `ACTOR_WALK_DISTANCE_NONE` before the first; Y is only seeded
+    SVECTOR lastDistance; // Absolute X and Z distance to `target` at the last arrival check, `ACTOR_MOTION_INITIAL_ARRIVAL_GAP` before the first; Y is only seeded
     SVECTOR targetRot;    // Rotation of the destination, 4096 to a turn; the closing turn steers the yaw to `vy`, the other angles are not read
     s16     motion;       // Handler the tick runs (0 `ACTOR_WALK_MOTION_IDLE`, 1 `ACTOR_WALK_MOTION_WALKING`)
     s16     motionStep;   // Step of the package's walk sequence in progress, counted from 0
@@ -1134,6 +1145,34 @@ static __inline__ void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRI
     }
 }
 
+/// Transforms a staged point into its parent frame and narrows XYZ in place.
+///
+/// All arguments must be stable, side-effect-free expressions. `localToParent`
+/// points to a readable word-aligned MATRIX and is evaluated twice. The other
+/// pointers, evaluated once each, address a writable word-aligned SVECTOR,
+/// a separate writable word-aligned VECTOR and a separate writable word-aligned
+/// s32 FLAG word. The staged point must have initialized XYZ. `stagedPointValue`
+/// and `longResultValue` are lvalues for those same two vectors, evaluated three
+/// times each by the narrowing assignments. Pointer arguments may be precomputed
+/// or taken directly from these lvalues; separate arguments retain each caller's
+/// GTE address setup while the XYZ assignments access the vector values.
+///
+/// Matrix coefficients have 12 fractional bits; translation and XYZ use game
+/// units. Loads the point's ignored fourth halfword without changing it; stores
+/// replace only the long XYZ and FLAG word, then narrow XYZ to signed halfwords
+/// without saturation. Overflow flags do not reject the result. Captures no
+/// identifiers and changes GTE working state. Expands to one compound statement;
+/// use as a standalone statement within braces. Requires the project's GTE macros.
+#define ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(localToParent, stagedPoint, longResult, flags, stagedPointValue, longResultValue) \
+    {                                                                                                                                  \
+        gte_SetTransMatrix((localToParent));                                                                                           \
+        gte_SetRotMatrix((localToParent));                                                                                             \
+        gte_RotTrans((stagedPoint), (longResult), (flags));                                                                            \
+        (stagedPointValue).vx = (longResultValue).vx;                                                                                  \
+        (stagedPointValue).vy = (longResultValue).vy;                                                                                  \
+        (stagedPointValue).vz = (longResultValue).vz;                                                                                  \
+    }
+
 /// Transforms an actor-local point in place into world space.
 ///
 /// `localCoord` and its borrowed ancestors must remain live, word-aligned and
@@ -1159,24 +1198,6 @@ static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, 
     VECTOR*         transformedPointPtr = &transformedPoint;
     s32*            gteFlagsPtr         = &gteFlags;
 
-/// Transforms a staged point through a local-to-parent matrix into long XYZ.
-///
-/// Arguments are stable, side-effect-free pointers to disjoint, word-aligned
-/// objects: a readable MATRIX, a readable SVECTOR with initialized XYZ, a
-/// writable VECTOR and a writable s32 FLAG word. Coefficients have 12 fractional
-/// bits; translation and XYZ use game units. Evaluates `localToParent` twice
-/// and the other pointers once each. The GTE load reads the staged point's
-/// ignored fourth halfword; stores replace only the long XYZ and FLAG word.
-/// Captures no caller identifiers, changes GTE working state and expands to a
-/// single compound statement. Overflow flags are captured without rejecting XYZ.
-/// Use as a standalone statement within braces; requires the project's GTE macros.
-#define ACTOR_RENDER_STEP_POINT_TO_PARENT(localToParent, stagedPoint, longResult, flags) \
-    {                                                                                    \
-        gte_SetTransMatrix((localToParent));                                             \
-        gte_SetRotMatrix((localToParent));                                               \
-        gte_RotTrans((stagedPoint), (longResult), (flags));                              \
-    }
-
     // Stage the walk so an incomplete chain cannot partially change the point.
     parentPoint.vx = point->vx;
     parentPoint.vy = point->vy;
@@ -1185,11 +1206,8 @@ static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, 
         if (localCoord->parent != NULL) {
             if (localCoord != viewCoord) {
                 // Keep the halfword truncation at each parent instead of composing matrices.
-                ACTOR_RENDER_STEP_POINT_TO_PARENT(&localCoord->coord, parentPointPtr, transformedPointPtr, gteFlagsPtr);
-                parentPoint.vx = transformedPoint.vx;
-                parentPoint.vy = transformedPoint.vy;
-                parentPoint.vz = transformedPoint.vz;
-                localCoord     = localCoord->parent;
+                ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(&localCoord->coord, parentPointPtr, transformedPointPtr, gteFlagsPtr, parentPoint, transformedPoint);
+                localCoord = localCoord->parent;
                 continue;
             }
             point->vx = parentPoint.vx;
@@ -1199,7 +1217,6 @@ static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, 
         break;
     }
 }
-#undef ACTOR_RENDER_STEP_POINT_TO_PARENT
 
 /// Wraps an actor heading or turn difference into [-2048, 2048].
 ///
@@ -1830,27 +1847,6 @@ static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* lo
     VECTOR  transformedPoint;
     s32     gteFlags;
 
-/// Applies a local matrix and narrows XYZ before the next parent is visited.
-///
-/// Arguments must be stable, side-effect-free expressions for disjoint objects.
-/// `localToParent` is a readable word-aligned matrix pointer, evaluated twice.
-/// `localPoint` is a word-aligned SVECTOR lvalue, evaluated four times; its
-/// ignored fourth halfword is loaded but preserved. `longResult` is a writable,
-/// word-aligned VECTOR lvalue, evaluated four times, receiving the GTE's XYZ.
-/// `flags` is a writable word-aligned s32 lvalue, evaluated once, receiving the
-/// GTE FLAG word. Captures no caller identifiers; changes GTE working state.
-/// Coefficients have 12 fractional bits and translation uses game units.
-/// Expands to one compound statement; use as a standalone statement within braces.
-#define ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(localToParent, localPoint, longResult, flags) \
-    {                                                                                              \
-        gte_SetTransMatrix((localToParent));                                                       \
-        gte_SetRotMatrix((localToParent));                                                         \
-        gte_RotTrans(&(localPoint), &(longResult), &(flags));                                      \
-        (localPoint).vx = (longResult).vx;                                                         \
-        (localPoint).vy = (longResult).vy;                                                         \
-        (localPoint).vz = (longResult).vz;                                                         \
-    }
-
     // Stage the walk so an incomplete chain cannot partially change the point.
     parentPoint.vx = point->vx;
     parentPoint.vy = point->vy;
@@ -1862,7 +1858,7 @@ static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* lo
         }
         if (localCoord != &gGfxViewCoord) {
             // Preserve truncation at each parent rather than composing matrices.
-            ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(&localCoord->coord, parentPoint, transformedPoint, gteFlags);
+            ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(&localCoord->coord, &parentPoint, &transformedPoint, &gteFlags, parentPoint, transformedPoint);
             localCoord = localCoord->parent;
         } else {
             point->vx = parentPoint.vx;
@@ -1902,10 +1898,14 @@ static __inline__ void _actorRenderAccumulateWorldRotation(const GfxCoord* joint
 /// `parentBasis` is a readable word-aligned `MATRIX` pointer, evaluated once;
 /// `rotation` is a writable word-aligned `MATRIX` pointer, evaluated three times.
 /// `normalized` is a writable word-aligned `MATRIX` lvalue, evaluated twice.
-/// Only the product's 3x3 is valid; the whole-matrix copy overwrites translation
-/// and alignment bytes with unspecified data.
-/// Coefficients have 12 fractional bits; GTE working registers change. Captures
-/// no identifiers and expands to one compound statement; use within braces.
+/// The parent basis and rotation must have initialized 3x3 coefficients, in
+/// signed Q12 (`ONE` is 1.0). The product is normalized with the SDK's basis
+/// reconstruction, discarding scale; only its 3x3 is valid. `MatrixNormal`
+/// writes only those nine halfwords of `normalized`, so the whole-matrix copy
+/// also replaces the rotation's translation and alignment bytes with whatever
+/// the scratch matrix held. Supply translation separately before using the
+/// result as a complete transform. Changes GTE working registers, captures no
+/// identifiers and expands to one compound statement; use within braces.
 #define ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT(parentBasis, rotation, normalized) \
     {                                                                                     \
         gte_SetRotMatrix((parentBasis));                                                  \

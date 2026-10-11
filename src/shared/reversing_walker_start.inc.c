@@ -3,7 +3,7 @@
 /// Starts a changed walk clip on the reversing walker's nineteen-part rig.
 ///
 /// Borrows the task handle read only; its live model and `ReverseWalkWork`
-/// remain writable. Initialize `model.bank` to `ACTOR_MODEL_STATE_NONE` and
+/// remain writable. Initialize `model.bank` to `ACTOR_MOTION_ANIMATION_INDEX_NONE` and
 /// `model.ticking` to zero before the first request. Both carriers provide
 /// bank 0 with loaded clips 1..4. Bank and clip are compared as signed words,
 /// then stored and used as signed bytes; no bounds are checked.
@@ -32,7 +32,7 @@ static inline void _reverseWalkApplyAnimationRequest(const Task* task, const Ani
     // A new bank must select its clip even when the numeric clip ID agrees.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
         animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     if (request->animationId != work->model.animId) {
@@ -57,7 +57,7 @@ static inline void _reverseWalkApplyAnimationRequest(const Task* task, const Ani
 /// Starts a scripted walk to a borrowed destination and final yaw.
 ///
 /// Handles `ACTOR_MESSAGE_WALK_TO` on a live TMD task with `ReverseWalkWork`;
-/// the model bank must initially be `ACTOR_MODEL_STATE_NONE`. Destination XYZ
+/// the model bank must initially be `ACTOR_MOTION_ANIMATION_INDEX_NONE`. Destination XYZ
 /// uses the root's parent-coordinate units; Euler angles use 4096 per turn.
 /// Both payloads are read only and may expire after dispatch; neither may
 /// overlap the work. Optional clip IDs select loaded entries 1..4 in bank 0;
