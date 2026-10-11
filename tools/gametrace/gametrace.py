@@ -461,7 +461,7 @@ class Assembler:
             return [(0x10 << 26) | ((0 if op == "mfc0" else 4) << 21) | (R(a[0]) << 16) | (int(a[1].strip().lstrip("$")) << 11)]
         if op == "li":
             value, rt = int(a[1], 0) & 0xFFFFFFFF, R(a[0])
-            if value >= 0xFFFF8000:
+            if value >= 0xFFFF8000 or value < 0x8000:
                 return [itype(9, 0, rt, value)]                       # addiu rt, $zero, value
             if value < 0x10000:
                 return [itype(13, 0, rt, value)]                      # ori rt, $zero, value
