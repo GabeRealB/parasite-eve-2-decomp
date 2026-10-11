@@ -259,13 +259,19 @@ class Names:
             if found:
                 self.by_image[image] = found
 
-    def at(self, address: int, images: tuple[str, ...] = ("main", "gameplay")) -> str:
-        """The symbol at or before `address` in the resident images; an overlay's address is left as a number."""
+    def at(self, address: int, images: tuple = ("main", "gameplay")) -> str:
+        """The symbol at or before `address` in the given images; an address in none of them is left as a number.
+
+        An image is a name, or (name, first address, end address): a symbol map also lists what its image only
+        refers to - a stage's map names every room's tables - and those are not places inside it."""
         best = None
         for image in images:
-            table = self.by_image.get(image) or []
-            i = bisect_right(table, (address, "￿")) - 1
-            if i >= 0 and address - table[i][0] < 0x4000 and (best is None or table[i][0] > best[0]):
+            name, low, high = image if isinstance(image, tuple) else (image, 0, 1 << 32)
+            if not low <= address < high:
+                continue
+            table = self.by_image.get(name) or []
+            i = bisect_right(table, (address, chr(0xFFFF))) - 1
+            if i >= 0 and table[i][0] >= low and address - table[i][0] < 0x4000 and (best is None or table[i][0] > best[0]):
                 best = table[i]
         return f"{best[1]}+{address - best[0]:#x}" if best else f"{address:#010x}"
 
@@ -947,6 +953,7 @@ class Session:
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
         self.halted = True                            # whether the game is stopped right now
         self.residents: dict = {}                     # load address -> the image a handler last said is there
+        self.extents: dict[str, tuple] = {}
         self.loads: dict[str, int] = {"gameplay": 0x80093800}
         try:                                          # where each package loads, from the overlay manifest; without it images are told apart by name
             sys.path.insert(0, str(ROOT / "tools" / "peassets"))
@@ -1070,7 +1077,15 @@ class Session:
     def symbol(self, address: int) -> str:
         """The function an address is in, as `name+0xoffset`: in the executable, gameplay, or an image a handler has
         said is in memory."""
-        return self.names.at(address, ("main", "gameplay", *self.residents.values()))
+        return self.names.at(address, (("main", 0x80010000, 0x80093800), self.extent("gameplay"), *(self.extent(image) for image in self.residents.values())))
+
+    def extent(self, image: str) -> tuple:
+        """(image, where it loads, where it ends), from the manifest and the package's own length."""
+        if image not in self.extents:
+            load = self.loads.get(image)
+            pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
+            self.extents[image] = (image, load, load + pkg.stat().st_size) if load is not None and pkg.is_file() else (image, 0, 1 << 32)
+        return self.extents[image]
 
     def write(self, text: str) -> None:
         """A line of its own in the log, for a renderer."""
