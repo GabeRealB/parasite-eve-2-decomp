@@ -1354,136 +1354,273 @@ static AnimationSet _gMp5a5ParasiteEnergyCastFamily2Animation = {
     },
 };
 
-static AnimationPackedPose _gMp5a5Animation0BBB0Bank1[19] = {
+/// Encoding-1 local translations and rotations for forward aim walking.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5AimForwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0BBB0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0BBB0Bank4[269] = {
+/// Encoding-4 rotations for forward aim walking, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5AimForwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BBB0_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0BBB0Records[336] = {
+/// Keyframes, footstep cues and loop controls for forward aim walking.
+///
+/// Track 1 carries `ANIMATION_RECORD_CUE_1` and `ANIMATION_RECORD_CUE_2`.
+/// Track-local jumps repeat the stride before the trailing stop records.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5AimForwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BBB0_records.inc"
 };
 
-static u16 _gMp5a5Animation0BBB0Indices[20] = {
+/// Absolute record starts for the 19 tracks of forward aim walking.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5AimForwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BBB0_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0BBB0 = {
-    _gMp5a5Animation0BBB0Records,
-    _gMp5a5Animation0BBB0Indices,
-    { NULL, _gMp5a5Animation0BBB0Bank1, NULL, NULL, _gMp5a5Animation0BBB0Bank4, NULL, NULL, NULL },
+/// MP5A5 player's forward aim-walk loop in native bank slot 12.
+///
+/// Used for forward movement while aiming; actor control supplies root displacement.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5AimForwardWalkAnimation = {
+    .records           = _gMp5a5AimForwardWalkAnimationRecords,
+    .trackStartIndices = _gMp5a5AimForwardWalkAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5AimForwardWalkAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5AimForwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0BD88Bank1[2] = {
+/// Encoding-1 local translations and rotations for the steady aim pose.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5AimHoldAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0BD88_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0BD88Bank4[16] = {
+/// Encoding-4 rotations for the steady aim pose, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5AimHoldAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BD88_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0BD88Records[76] = {
+/// Repeated pose keyframes and loop controls for the steady aim pose.
+///
+/// Each track loops two equal one-frame keyframes before its trailing stop.
+/// Pose offsets count four-byte words; no action or footstep cues are present.
+static const AnimationRecord _gMp5a5AimHoldAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BD88_records.inc"
 };
 
-static u16 _gMp5a5Animation0BD88Indices[20] = {
+/// Absolute record starts for the 19 tracks of the steady aim pose.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5AimHoldAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0BD88_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0BD88 = {
-    _gMp5a5Animation0BD88Records,
-    _gMp5a5Animation0BD88Indices,
-    { NULL, _gMp5a5Animation0BD88Bank1, NULL, NULL, _gMp5a5Animation0BD88Bank4, NULL, NULL, NULL },
+/// MP5A5 player's steady aim pose in native bank slot 9.
+///
+/// Holds stationary aim and prepares either attack; secondary fire continues this pose.
+/// Also supplies the aim hold used after enemy grab recovery.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5AimHoldAnimation = {
+    .records           = _gMp5a5AimHoldAnimationRecords,
+    .trackStartIndices = _gMp5a5AimHoldAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5AimHoldAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5AimHoldAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0C4BCBank1[12] = {
+/// Encoding-1 local translations and rotations for backward aim walking or turning.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5AimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0C4BC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0C4BCBank4[165] = {
+/// Encoding-4 rotations for backward aim walking or turning, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5AimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0C4BC_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0C4BCRecords[240] = {
+/// Keyframes, footstep cues and loop controls for backward aim walking or turning.
+///
+/// Track 1 carries `ANIMATION_RECORD_CUE_1` and `ANIMATION_RECORD_CUE_2`.
+/// Track-local jumps repeat the stride before the trailing stop records.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5AimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0C4BC_records.inc"
 };
 
-static u16 _gMp5a5Animation0C4BCIndices[20] = {
+/// Absolute record starts for the 19 tracks of backward aim walking or turning.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5AimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0C4BC_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0C4BC = {
-    _gMp5a5Animation0C4BCRecords,
-    _gMp5a5Animation0C4BCIndices,
-    { NULL, _gMp5a5Animation0C4BCBank1, NULL, NULL, _gMp5a5Animation0C4BCBank4, NULL, NULL, NULL },
+/// MP5A5 player's backward aim-walk and stationary-turn loop in native bank slot 13.
+///
+/// Used for backward movement or turning while aiming; actor control supplies root motion.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5AimBackwardOrTurnAnimation = {
+    .records           = _gMp5a5AimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gMp5a5AimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5AimBackwardOrTurnAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5AimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0D268Bank1[23] = {
+/// Encoding-1 local translations and rotations for the MP5A5 reload.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5ReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0D268_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0D268Bank4[369] = {
+/// Encoding-4 rotations for the MP5A5 reload, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D268_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0D268Records[417] = {
+/// Keyframes, the load-completion cue and stop controls for the MP5A5 reload.
+///
+/// Track 1 carries `ANIMATION_RECORD_CUE_MASK` together at the loading keyframe.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D268_records.inc"
 };
 
-static u16 _gMp5a5Animation0D268Indices[20] = {
+/// Absolute record starts for the 19 tracks of the MP5A5 reload.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D268_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0D268 = {
-    _gMp5a5Animation0D268Records,
-    _gMp5a5Animation0D268Indices,
-    { NULL, _gMp5a5Animation0D268Bank1, NULL, NULL, _gMp5a5Animation0D268Bank4, NULL, NULL, NULL },
+/// MP5A5 player's reload clip shared by native bank slots 14, 15 and 20.
+///
+/// Slots 14/15 select the primary/secondary load; slot 20 serves battle-end reloads.
+/// Track 1's combined cue applies the selected load; each track stops at its final pose.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ReloadAnimation = {
+    .records           = _gMp5a5ReloadAnimationRecords,
+    .trackStartIndices = _gMp5a5ReloadAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ReloadAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0D768Bank1[9] = {
+/// Encoding-1 local translations and rotations for the MP5A5 firing clip.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5FireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0D768_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0D768Bank4[120] = {
+/// Encoding-4 rotations for the MP5A5 firing clip, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5FireAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D768_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0D768Records[153] = {
+/// Keyframes and stop controls for the MP5A5 firing clip.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+/// No action or footstep cues are present.
+static const AnimationRecord _gMp5a5FireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D768_records.inc"
 };
 
-static u16 _gMp5a5Animation0D768Indices[20] = {
+/// Absolute record starts for the 19 tracks of the MP5A5 firing clip.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5FireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0D768_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0D768 = {
-    _gMp5a5Animation0D768Records,
-    _gMp5a5Animation0D768Indices,
-    { NULL, _gMp5a5Animation0D768Bank1, NULL, NULL, _gMp5a5Animation0D768Bank4, NULL, NULL, NULL },
+/// MP5A5 player's firing clip shared by native bank slots 10 and 11.
+///
+/// Primary fire restarts slot 10 with a two-frame blend on every shot.
+/// Each track stops at its final pose. Supplies tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5FireAnimation = {
+    .records           = _gMp5a5FireAnimationRecords,
+    .trackStartIndices = _gMp5a5FireAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5FireAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5FireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0DC58Bank1[9] = {
+/// Encoding-1 local translations and rotations for entering the MP5A5 aim stance.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only, word-aligned payload retains its serialized data-section position.
+static const AnimationPackedPose _gMp5a5AimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0DC58_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0DC58Bank4[116] = {
+/// Encoding-4 rotations for entering the MP5A5 aim stance, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5AimEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0DC58_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0DC58Records[153] = {
+/// Keyframes and stop controls for entering the MP5A5 aim stance.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+/// No action or footstep cues are present.
+static const AnimationRecord _gMp5a5AimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0DC58_records.inc"
 };
 
-static u16 _gMp5a5Animation0DC58Indices[20] = {
+/// Absolute record starts for the 19 tracks of MP5A5 aim entry.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5AimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0DC58_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0DC58 = {
-    _gMp5a5Animation0DC58Records,
-    _gMp5a5Animation0DC58Indices,
-    { NULL, _gMp5a5Animation0DC58Bank1, NULL, NULL, _gMp5a5Animation0DC58Bank4, NULL, NULL, NULL },
+/// MP5A5 player's aim-entry clip in native bank slot 7.
+///
+/// Stops in the aim stance, then normal animation control selects the aim-hold clip.
+/// Enemy recovery can also borrow this set to restore the player's aim pose.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5AimEntryAnimation = {
+    .records           = _gMp5a5AimEntryAnimationRecords,
+    .trackStartIndices = _gMp5a5AimEntryAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5AimEntryAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5AimEntryAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMp5a5Animation0E1E4Bank1[10] = {
@@ -1516,20 +1653,20 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5RunAnimation,
     &_gMp5a5TurnLeftAnimation,
     &_gMp5a5TurnRightAnimation,
-    &_gMp5a5Animation0DC58,
+    &_gMp5a5AimEntryAnimation,
     &_gMp5a5Animation0E1E4,
-    &_gMp5a5Animation0BD88,
-    &_gMp5a5Animation0D768,
-    &_gMp5a5Animation0D768,
-    &_gMp5a5Animation0BBB0,
-    &_gMp5a5Animation0C4BC,
-    &_gMp5a5Animation0D268,
-    &_gMp5a5Animation0D268,
+    &_gMp5a5AimHoldAnimation,
+    &_gMp5a5FireAnimation,
+    &_gMp5a5FireAnimation,
+    &_gMp5a5AimForwardWalkAnimation,
+    &_gMp5a5AimBackwardOrTurnAnimation,
+    &_gMp5a5ReloadAnimation,
+    &_gMp5a5ReloadAnimation,
     &_gMp5a5Part4HitAnimation,
     &_gMp5a5OtherBodyHitAnimation,
     &_gMp5a5DeathAnimation,
     &_gMp5a5WalkAnimation,
-    &_gMp5a5Animation0D268,
+    &_gMp5a5ReloadAnimation,
     &_gMp5a5IdleAnimation,
     &_gMp5a5IdleAnimation,
     &_gMp5a5HealthyIdleAnimation,
