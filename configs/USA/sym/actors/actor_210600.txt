@@ -74,3 +74,4 @@ _actor210600ApplyCommand = 0x8014b770; // type:func
 _actor210600Update = 0x8014b434; // type:func
 _actor210600Spawn = 0x8014b8c8; // type:func
 _actor210600Task = 0x8014ba3c; // type:func
+_gActor210600GrinningStrangerTaskStates = 0x80149e24;

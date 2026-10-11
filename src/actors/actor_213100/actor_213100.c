@@ -45,14 +45,6 @@ typedef struct {
 } _Actor213100JodieBouquetWork;
 STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
-/// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
-/// animation handler `_actorMotionPlayAnim19`, 0x7D4 the placement
-/// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
-/// `_actor213100SetModelDraw`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_213100_801521C0[4];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor213100UpdateBody(Task* actorTask);
 static void _actor213100HeldModelIdle(Task* unusedTask);
@@ -367,7 +359,13 @@ TaskDesc gActor213100JodieBouquetTaskDescriptors[2] = {
     },
 };
 
-TaskMessageEntry D_actor_213100_801521C0[4] = {
+/// Jodie Bouquet's body messages for animation, placement and paired model drawing.
+///
+/// Payloads are a borrowed play request, borrowed transform and integer draw
+/// mode respectively. Drawing applies to the body and held model together.
+/// Three handlers precede the end marker. The body borrows this table and its
+/// loaded callbacks while it can receive messages.
+static const TaskMessageEntry _gActor213100JodieBouquetBodyMessages[4] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor213100SetModelDraw },
@@ -507,8 +505,12 @@ static void _actor213100HeldModelIdle(Task* unusedTask)
 {
 }
 
-/// The actor's three states: spawn, per-frame tick and teardown.
-static const TaskFuncTable3 D_actor_213100_80149E30 = {
+/// Jodie Bouquet's body lifecycle: 0 initialize, 1 update, 2 release the actor.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Initialization owns body work and the held-model task; keep this package
+/// and the live Enemy spawn payload available until teardown.
+static const TaskFuncTable3 _gActor213100JodieBouquetBodyStates = {
     {
         _actor213100InitBody,
         _actor213100UpdateBody,
@@ -525,7 +527,7 @@ static void _actor213100BodyTask(Task* actorTask)
 {
     TaskFuncTable3 stateCallbacks;
 
-    stateCallbacks = D_actor_213100_80149E30;
+    stateCallbacks = _gActor213100JodieBouquetBodyStates;
     stateCallbacks.funcs[actorTask->state](actorTask);
 }
 
@@ -580,7 +582,7 @@ static void _actor213100InitBody(Task* actorTask)
     initialAnimation.blendFrames          = 0;
     initialAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     _actorMotionPlayAnim19(actorTask, 0, &initialAnimation, 0);
-    actorTask->msgTable     = D_actor_213100_801521C0;
+    actorTask->msgTable     = _gActor213100JodieBouquetBodyMessages;
     actorTask->exitCallback = _actor213100ExitBody;
     actorTask->state++;
 }

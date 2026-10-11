@@ -50,14 +50,6 @@ typedef struct {
 } _Actor213000EricBaldwinWork;
 STATIC_ASSERT_SIZEOF(_Actor213000EricBaldwinWork, 0x4C4);
 
-/// The actor's message table: `(message id, handler)` pairs for 0x7D3 / 0x7D4 /
-/// 0x7D5 / 0x7DB, ended by `TASK_MESSAGE_TABLE_END`. The spawn handler parks its address in
-/// `Task::msgTable`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_213000_80157E1C[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlagsTask(Task* childTask);
@@ -521,7 +513,12 @@ TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
     },
 };
 
-TaskMessageEntry D_actor_213000_80157E1C[5] = {
+/// Eric Baldwin's body messages for animation, placement, drawing and held-model commands.
+///
+/// Payloads are borrowed play requests, transforms, integer draw modes and
+/// ActorCommand records respectively. Four handlers precede the end marker.
+/// The body borrows this table and callback code while it can receive messages.
+static const TaskMessageEntry _gActor213000EricBaldwinBodyMessages[5] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor213000PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor213000SetModelDraw },
@@ -577,7 +574,7 @@ static void _actor213000InitializeEricBaldwin(Task* task)
         _actorRenderApplyTaskPlacementTextureOffsets(rightHandTask, task->spawnArg2.pointer);
     }
     _actor213000InitBodyLighting(task);
-    task->msgTable     = D_actor_213000_80157E1C;
+    task->msgTable     = _gActor213000EricBaldwinBodyMessages;
     task->exitCallback = enemyTaskExit;
     task->state++;
 }
@@ -760,8 +757,12 @@ static void _actor213000ThreeRootModelTask(Task* childTask)
     states.funcs[childTask->state](childTask);
 }
 
-/// The actor's three states: spawn, per-frame tick and teardown.
-static const TaskFuncTable3 D_actor_213000_80149E48 = {
+/// Eric Baldwin's body lifecycle: 0 initialize, 1 update, 2 release the actor.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Initialization owns body work and four child tasks; keep this package and
+/// the live Enemy spawn payload available until teardown.
+static const TaskFuncTable3 _gActor213000EricBaldwinBodyStates = {
     {
         _actor213000InitializeEricBaldwin,
         _actor213000UpdateBody,
@@ -779,7 +780,7 @@ static void _actor213000BodyTask(Task* actorTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_213000_80149E48;
+    states = _gActor213000EricBaldwinBodyStates;
     states.funcs[actorTask->state](actorTask);
 }
 

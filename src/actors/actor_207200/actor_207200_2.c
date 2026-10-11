@@ -242,9 +242,12 @@ static void            _actor207200CreepingStrangerCollapseHeadPart(Task* task, 
 static void            _actor207200CreepingStrangerCopyBurstTextures(Task* burstTask, Task* sourceTask);
 static void            _actor207200CreepingStrangerExit(Task* task);
 
-/// The large enemy's state handlers - spawn, live tick and teardown tick -
-/// which `_actor207200CreepingStrangerTask` dispatches through by task state.
-static const EnemyTaskFuncTable3 D_actor_207200_80149E30 = {
+/// Creeping Stranger lifecycle: 0 spawn, 1 live combat update, 2 death sequence.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Each handler takes the live Enemy spawn payload and owning Task; the death
+/// sequence eventually releases both. Keep this package loaded through death.
+static const EnemyTaskFuncTable3 _gActor207200CreepingStrangerTaskStates = {
     { _actor207200CreepingStrangerSpawnState, _actor207200CreepingStrangerLiveState, _actor207200CreepingStrangerDeathState }
 };
 
@@ -1774,7 +1777,7 @@ static void _actor207200CreepingStrangerTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_207200_80149E30;
+    handlers = _gActor207200CreepingStrangerTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

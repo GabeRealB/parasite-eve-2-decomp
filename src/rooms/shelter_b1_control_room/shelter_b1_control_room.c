@@ -180,8 +180,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorScratch, 0x8C);
 
 extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
-extern EvsCommand       D_actor_150400_80132D70[];
-extern EvsCommand       D_actor_150400_80133088[];
 
 static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1ControlRoomMirrorConfig* config);
 
@@ -854,7 +852,7 @@ static void _shelterB1ControlRoomInitializeRoom(Task* task)
     if (gGameSession->location.loc.variant == SHELTER_B1_CONTROL_ROOM_SLIDING_MODEL_LAYOUT) {
         actor150400SpawnSlidingModels();
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_B1_CONTROL_ROOM_SKIP_SCRIPT_DEMO) {
-            evsStartScriptWithSkip(D_actor_150400_80132D70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_150400_80133088);
+            evsStartScriptWithSkip(gActor150400FreezerSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor150400FreezerSceneSkipScript);
         }
     }
     task->state++;

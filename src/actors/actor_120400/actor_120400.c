@@ -58,11 +58,6 @@ typedef struct {
 } _Actor120400KyleMadiganWork;
 STATIC_ASSERT_SIZEOF(_Actor120400KyleMadiganWork, 0x504);
 
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_120400_8013E76C[];
-
 static void _actor120400SpawnKyleMadiganWalker(Task* task);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _actor120400UpdateKyleMadiganWalker(Task* task);
@@ -82,9 +77,11 @@ static const TaskFuncTable3 _gActor120400KyleMadiganHandStates = { {
     taskKill,
 } };
 
-/// Spawn, tick and teardown handlers of the parent task, dispatched by
-/// `_actor120400KyleMadiganWalkerTask`.
-static const TaskFuncTable3 D_actor_120400_80131E30 = { {
+/// Kyle Madigan's body lifecycle: 0 initialize, 1 update, 2 release the actor.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Dispatch requires this package loaded and initialized work after state 0.
+static const TaskFuncTable3 _gActor120400KyleMadiganWalkerStates = { {
     _actor120400SpawnKyleMadiganWalker,
     _actor120400UpdateKyleMadiganWalker,
     _actor120400ExitKyleMadiganWalker,
@@ -897,7 +894,13 @@ TaskDesc gActor120400KyleMadiganTaskDescriptors[3] = {
     },
 };
 
-TaskMessageEntry D_actor_120400_8013E76C[6] = {
+/// Kyle Madigan's body messages for animation, placement, drawing and scripted walking.
+///
+/// Animation borrows a play request; placement and walking borrow a transform,
+/// with optional start/closing clips in the walk's second word. Draw mode is an
+/// integer; actor commands are ignored. Five handlers precede the end marker.
+/// The body borrows this table and its callback code for its active lifetime.
+static const TaskMessageEntry _gActor120400KyleMadiganWalkerMessages[6] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120400SetKyleMadiganDrawMode },
@@ -950,7 +953,7 @@ static void _actor120400SpawnKyleMadiganWalker(Task* task)
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
     _actor120400BindKyleMadiganWalkerLighting(task);
-    task->msgTable     = D_actor_120400_8013E76C;
+    task->msgTable     = _gActor120400KyleMadiganWalkerMessages;
     task->exitCallback = _actor120400ExitKyleMadiganWalker;
     task->state       += 1;
 }
@@ -1101,7 +1104,7 @@ static void _actor120400KyleMadiganWalkerTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_120400_80131E30;
+    states = _gActor120400KyleMadiganWalkerStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         states.funcs[task->state](task);
     }

@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_213000.
 gActor213000EricBaldwinTaskDescriptors = 0x80157DE0; // size:0x3C defined:True
-D_actor_213000_80157E1C = 0x80157E1C; // size:0x28 defined:True
+_gActor213000EricBaldwinBodyMessages = 0x80157E1C; // size:0x28 defined:True
 _gActor213000EricBaldwinBodySkeleton = 0x8014AA4C; // size:0x2D0 defined:True
 _gActor213000EricBaldwinBodyPartVerts = 0x8014AD1C; // size:0x50 defined:True
 _gActor213000EricBaldwinBodyVerts = 0x8014AD6C; // size:0xA90 defined:True
@@ -102,3 +102,4 @@ _actor213000InitializeEricBaldwin = 0x80149e54; // type:func
 _gActor213000HeldModelStates = 0x80149e24;
 _gActor213000RightHandStates = 0x80149e30;
 _gActor213000ThreeRootModelStates = 0x80149e3c;
+_gActor213000EricBaldwinBodyStates = 0x80149e48;

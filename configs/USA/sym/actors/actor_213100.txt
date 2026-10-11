@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_213100.
 _gActor213100JodieVisibilityByView = 0x801521E0; // size:0x18 defined:True
 gActor213100JodieBouquetTaskDescriptors = 0x801521A8; // size:0x18 defined:True
-D_actor_213100_801521C0 = 0x801521C0; // size:0x20 defined:True
+_gActor213100JodieBouquetBodyMessages = 0x801521C0; // size:0x20 defined:True
 _gActor213100JodieBouquetBody1Skeleton = 0x8014A500; // size:0x2AC defined:True
 _gActor213100JodieBouquetBody1PartVerts = 0x8014A7AC; // size:0x4C defined:True
 _gActor213100JodieBouquetBody1Verts = 0x8014A7F8; // size:0xC50 defined:True
@@ -72,3 +72,4 @@ _actor213100InitBody = 0x8014a118; // type:func
 _actor213100BodyTask = 0x8014a0c0; // type:func
 _actor213100SetModelDraw = 0x8014a40c; // type:func
 _gActor213100HeldModelStates = 0x80149e24;
+_gActor213100JodieBouquetBodyStates = 0x80149e30;

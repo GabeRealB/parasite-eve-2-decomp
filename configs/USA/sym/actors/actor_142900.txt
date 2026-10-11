@@ -1,12 +1,12 @@
 // Overlay-local symbols for actor_142900.
 _gActor142900ScreenShakeFadeCallbacksRemaining = 0x801382A8; // size:0x4 defined:True
 _gActor142900ScreenShakePhase = 0x801382AC; // size:0x4 defined:True
-D_actor_142900_801380F8 = 0x801380F8; // size:0x1B0 defined:True
+gActor142900ElevatorFirstVisitSkipScript = 0x801380F8; // size:0x1B0 defined:True
 _gActor142900PlayerAnimationBankCopyRequest = 0x80137890; // size:0x8 defined:True
 _gActor142900CompanionAnimationBankCopyRequest = 0x80137898; // size:0x8 defined:True
 _gActor142900PlayerElevatorPlacement = 0x801378A0; // size:0x18 defined:True
 _gActor142900CompanionElevatorPlacement = 0x801378B8; // size:0x18 defined:True
-D_actor_142900_801378D0 = 0x801378D0; // size:0x828 defined:True
+gActor142900ElevatorFirstVisitScript = 0x801378D0; // size:0x828 defined:True
 _gActor142900CompanionAnimationBankExtension = 0x80137618; // size:0x34 defined:True
 _gActor142900UnusedCompanionPlayAnimation47 = 0x8013764C; // size:0x14 defined:True
 _gActor142900CompanionPlayAnimation47 = 0x80137660; // size:0x14 defined:True

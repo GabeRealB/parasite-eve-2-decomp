@@ -122,8 +122,6 @@ typedef struct {
 } _Actor135400GaryDouglasPlaces;
 STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
-extern TaskMessageEntry D_actor_135400_8013A4D0[5];
-
 /// Psy-Q `RotMatrixY`: the angle is a `long`, so a negated angle is passed
 /// without re-truncation to 16 bits.
 
@@ -164,17 +162,22 @@ static const TaskFuncTable3 _gActor135400GaryDouglasCarriedStates = { {
     taskKill,
 } };
 
-/// State table of the main task: spawn, per-frame tick and exit callback.
-/// Dispatched by `_actor135400GaryDouglasTask`.
-static const TaskFuncTable3 D_actor_135400_80131E3C = { {
+/// Gary Douglas's body lifecycle: 0 initialize, 1 update, 2 release the actor.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Dispatch requires this package loaded and initialized work after state 0.
+static const TaskFuncTable3 _gActor135400GaryDouglasStates = { {
     _actor135400GaryDouglasSpawn,
     _actor135400GaryDouglasTick,
     _actor135400GaryDouglasExit,
 } };
 
-/// The two spawn placements `_actor135400GaryDouglasSpawn` copies as a whole:
-/// the flag-clear branch's first, the other second.
-static const _Actor135400GaryDouglasPlaces D_actor_135400_80131E48 = {
+/// Gary Douglas's body placements before and after the night-garage event.
+///
+/// Zero night-garage progress selects beforeEvent; positive progress selects
+/// afterEvent. Both transforms are copied together as 48 bytes. Positions use
+/// room-coordinate units and Euler rotations use 4096 units per turn.
+static const _Actor135400GaryDouglasPlaces _gActor135400GaryDouglasSpawnPlacements = {
     { { 5700, -150, 5900, 0 }, { 1024, 0, -1024, 0 } },
     { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } },
 };
@@ -394,7 +397,13 @@ TaskDesc gActor135400GaryDouglasTasks[3] = {
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
 };
 
-TaskMessageEntry D_actor_135400_8013A4D0[5] = {
+/// Gary Douglas's body messages for animation, placement, drawing and actor commands.
+///
+/// Payloads are borrowed play requests, transforms, integer draw modes and
+/// ActorCommand records respectively. Commands control the carried model and
+/// head aiming. Four handlers precede the end marker; the body borrows this
+/// table and its loaded callback code while it can receive messages.
+static const TaskMessageEntry _gActor135400GaryDouglasMessages[5] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135400GaryDouglasSetDrawMode },
@@ -720,7 +729,7 @@ static void _actor135400GaryDouglasSpawn(Task* task)
     _Actor135400GaryDouglasPlaces places;
     AnimationPlayRequest          animationRequests[2];
 
-    places = D_actor_135400_80131E48;
+    places = _gActor135400GaryDouglasSpawnPlacements;
     memset(animationRequests, 0, sizeof(animationRequests));
     animationRequests[0].animationId = ACTOR_135400_GARY_BEFORE_EVENT_CLIP;
     animationRequests[1].animationId = ACTOR_135400_GARY_AFTER_EVENT_CLIP;
@@ -734,7 +743,7 @@ static void _actor135400GaryDouglasSpawn(Task* task)
     work->model.bank   = ACTOR_MODEL_STATE_NONE;
     _actor135400SpawnGaryAttachments(task, work);
     _actor135400GaryDouglasBindLighting(task);
-    task->msgTable = D_actor_135400_8013A4D0;
+    task->msgTable = _gActor135400GaryDouglasMessages;
     _actor135400GaryDouglasSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
         actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
@@ -864,7 +873,7 @@ static void _actor135400GaryDouglasTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_135400_80131E3C;
+    handlers = _gActor135400GaryDouglasStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }

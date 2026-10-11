@@ -21,16 +21,27 @@
 
 #include "rooms/mist_shooting_gallery.h"
 
-extern AnimationPlayRequest D_actor_215100_8014CF84;
-extern AnimationPlayRequest D_actor_215100_8014D010;
-extern s32                  D_actor_215100_8014D040;
+extern s32 D_actor_215100_8014D040;
 
 TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
 };
 
-AnimationPlayRequest D_actor_215100_8014CF84 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_215100_LEVEL_PROMPT_PLAYER_CLIP = 9 };
+
+/// Resets player clip 9 as the gallery course-level prompt begins.
+///
+/// The menu rewrites source.index to the equipped weapon bank before each
+/// synchronous dispatch. Drops player grid participation; reset ignores the
+/// zero blend duration. Keep the live player and its weapon clips loaded.
+static AnimationPlayRequest _gActor215100GalleryLevelPromptPlayerAnimation9Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_215100_LEVEL_PROMPT_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8014CF98 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -58,7 +69,19 @@ AnimationPlayRequest D_actor_215100_8014CFC0[4] = {
     { { .index = 1 }, 22, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_215100_8014D010 = { { .index = 1 }, 23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_215100_LEVEL_PROMPT_PIERCE_CLIP = 23 };
+
+/// Resets Pierce to clip 23 as the gallery course-level prompt begins.
+///
+/// Placed actor 1 borrows this request during synchronous dispatch and ignores
+/// the stored bank and collision selectors. Keep Pierce and his clips loaded.
+static const AnimationPlayRequest _gActor215100GalleryLevelPromptPierceAnimation23Request SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_215100_LEVEL_PROMPT_PIERCE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets Pierce to clip 24 when the course-level reply countdown reaches zero.
 ///
@@ -373,9 +396,9 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             task->state = ACTOR_215100_MENU_LEVEL_CAPTION;
             break;
         case ACTOR_215100_MENU_LEVEL_CAPTION:
-            playerActorWriteWeaponAnimationBankIndex(&D_actor_215100_8014CF84.source.index);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014D010, 0);
+            playerActorWriteWeaponAnimationBankIndex(&_gActor215100GalleryLevelPromptPlayerAnimation9Request.source.index);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gActor215100GalleryLevelPromptPlayerAnimation9Request, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor215100GalleryLevelPromptPierceAnimation23Request, 0);
             task->killCountdown = ACTOR_215100_MENU_ANIMATION_DELAY;
             capStartSequenceSlot(ACTOR_215100_MENU_LEVEL_CAPTION_BASE, 0, 0);
             task->state++;

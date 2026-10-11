@@ -589,9 +589,12 @@ static void _actor210600Spawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// The actor's three task states - spawn, update and teardown - which
-/// `_actor210600Task` runs by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_210600_80149E24 = {
+/// Grinning Stranger lifecycle: 0 spawn, 1 update, 2 destroy the enemy and task.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// Each handler receives the live Enemy spawn payload and owning Task. Spawn
+/// owns animation/lighting work; keep this package loaded until destruction.
+static const EnemyTaskFuncTable3 _gActor210600GrinningStrangerTaskStates = {
     {
         _actor210600Spawn,
         _actor210600Update,
@@ -610,6 +613,6 @@ static void _actor210600Task(Task* task)
     // its original type and extent are unproven.
     byte unused[8];
 
-    stateHandlers = D_actor_210600_80149E24;
+    stateHandlers = _gActor210600GrinningStrangerTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

@@ -3,6 +3,15 @@
 
 #include "main/task_types.h"
 
+/// Bodyless one-shot task recipe for completing the companion's heliport item request.
+///
+/// Spawn the single descriptor at index 0, priority 32, with unused zero spawn
+/// arguments. The room first requires pending request state, item 0x124, a live
+/// companion and the nearby action trigger. The task identifies the item, marks
+/// the request complete, starts the handover scene and kills itself. Keep this
+/// actor, the heliport, both actors and CAP resources loaded until that scene ends.
+extern TaskDesc gActor161500CompleteCompanionRequestTaskDesc;
+
 /// Spawn recipes for this package's soldier B body (0) and carried rifle (1).
 ///
 /// Rooms spawn descriptor 0 with a live Enemy in the second spawn payload.

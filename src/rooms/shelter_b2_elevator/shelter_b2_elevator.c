@@ -5,6 +5,7 @@
 
 #include "common.h"
 
+#include "actors/actor_142900.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -63,9 +64,6 @@ typedef struct {
     s32 travel; // World units slid from the shut position, 0 to `SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX`
 } _ShelterB2ElevatorDoorLeafWork;
 STATIC_ASSERT_SIZEOF(_ShelterB2ElevatorDoorLeafWork, 4);
-
-extern EvsCommand D_actor_142900_801378D0[];
-extern EvsCommand D_actor_142900_801380F8[];
 
 /// Borrowed door-leaf task handles in negative-Z, positive-Z order.
 ///
@@ -487,7 +485,7 @@ static void _shelterB2ElevatorRoomInitState(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_B2_ELEVATOR_SETUP_ONLY_DEMO) {
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, SHELTER_B2_ELEVATOR_FIRST_VISIT_RECORDED);
-            evsStartScriptWithSkip(D_actor_142900_801378D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142900_801380F8);
+            evsStartScriptWithSkip(gActor142900ElevatorFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor142900ElevatorFirstVisitSkipScript);
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_ELEVATOR_OBJECTIVE_AFTER_ENTRY);
         } else {
             gGameSession->hideHud    = SHELTER_B2_ELEVATOR_HUD_HIDDEN;

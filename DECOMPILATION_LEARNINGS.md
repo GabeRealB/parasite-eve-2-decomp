@@ -13118,7 +13118,7 @@ the object comes out with `li`/`sb` above the multi-load and scores 96% with
 `reorder=2` and `regs=0`: every instruction present, only that pair moved.
 
 ```c
-    sp                  = D_actor_206100_80149E94;  /* the 5-word copy stays here */
+    sp                  = _gActor206100EntranceSubstates;  /* the 5-word copy stays here */
     enemy->node.flags = 1;                          /* …so this must follow it */
     sp.funcs[(s16)work->subState](task);
 ```
@@ -85888,13 +85888,13 @@ only the frame grows. This is what the tree has, with the same bare
     EnemyTaskFuncTable3 stateHandlers;
     byte                unused[8];               /* never read or written */
 
-    stateHandlers = D_actor_210600_80149E24;       /* still 3 lw / 3 sw */
+    stateHandlers = _gActor210600GrinningStrangerTaskStates;       /* still 3 lw / 3 sw */
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);   /* 100.000% */
 
 A struct assignment moves exactly the **source's** size, so the first form that
 matched put the extra bytes in the *destination* instead: a 20-byte record with
 the table as its member at offset 0 and two unused words behind it, assigned
-through `sp.table = D_actor_210600_80149E24;`. That compiles to the same bytes,
+through `sp.table = _gActor210600GrinningStrangerTaskStates;`. That compiles to the same bytes,
 but it invents a record the code gives no evidence of, so it was replaced by
 the separate local.
 

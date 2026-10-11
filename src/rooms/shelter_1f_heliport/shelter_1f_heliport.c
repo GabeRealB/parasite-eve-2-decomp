@@ -65,8 +65,6 @@
 #include "../../shared/follow_collision.h"
 #include "../../shared/actor_messages.h"
 
-extern TaskDesc D_actor_161500_80136CDC;
-
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
@@ -857,7 +855,7 @@ static s32 _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s
             gGameSession->hideHud    = true;
             gGameSession->eventState = SHELTER_1F_HELIPORT_EVENT_ACTIVE;
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, SHELTER_1F_HELIPORT_COMPANION_HANDOVER_SCHEDULE);
-            taskSpawnFromTableOnDefaultList(&D_actor_161500_80136CDC, 0, 0, 0);
+            taskSpawnFromTableOnDefaultList(&gActor161500CompleteCompanionRequestTaskDesc, 0, 0, 0);
             return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
         }
     }

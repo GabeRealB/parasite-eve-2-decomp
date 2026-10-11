@@ -148,3 +148,4 @@ _actor207200CreepingStrangerScanContacts = 0x8014bef4; // type:func
 _actor207200CreepingStrangerUpdateLiveColor = 0x8014d70c; // type:func
 _actor207200CreepingStrangerDeathState = 0x8014ca84; // type:func
 _actor207200CreepingStrangerLiveState = 0x8014d2dc; // type:func
+_gActor207200CreepingStrangerTaskStates = 0x80149e30;

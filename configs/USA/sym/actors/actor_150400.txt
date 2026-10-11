@@ -36,7 +36,7 @@ _gActor150400Animation0A538Bank4 = 0x8013BAD8; // size:0x3B4 defined:True
 _gActor150400Animation0A538Records = 0x8013BE8C; // size:0x4A4 defined:True
 _gActor150400Animation0A538Indices = 0x8013C330; // size:0x28 defined:True
 _gActor150400Animation0A538 = 0x8013C358; // size:0x28 defined:True
-D_actor_150400_80133088 = 0x80133088; // size:0x150 defined:True
+gActor150400FreezerSceneSkipScript = 0x80133088; // size:0x150 defined:True
 _gActor150400Model00C44Skeleton = 0x8013292C; // size:0x24 defined:True
 _gActor150400Model00C44PartVerts = 0x80132950; // size:0x4 defined:True
 _gActor150400Model00C44Verts = 0x80132954; // size:0x110 defined:True
@@ -49,7 +49,7 @@ _gActor150400FreezerPlayerAnimation1Request = 0x80132D24; // size:0x14 defined:T
 _gActor150400FreezerNo9Placement = 0x80132D38; // size:0x18 defined:True
 _gActor150400FreezerNo9WalkTarget = 0x80132D50; // size:0x18 defined:True
 _gActor150400FreezerSceneKey = 0x80132D68; // size:0x6 defined:True
-D_actor_150400_80132D70 = 0x80132D70; // size:0x318 defined:True
+gActor150400FreezerSceneScript = 0x80132D70; // size:0x318 defined:True
 
 D_shelter_b1_control_room_80181BBC = 0x80181BBC; // absolute:True owner=shelter_b1_control_room shared=rooms
 

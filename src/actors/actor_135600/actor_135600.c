@@ -36,13 +36,6 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// The actor's message table, stored in `Task::msgTable`: 0x7D3, 0x7D4, 0x7D5,
-/// 0x7DD and 0x7DB against the handlers below.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_135600_8013B0F4[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor135600InitializeKyleMadiganWalker(Task* task);
 static s32  _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12);
@@ -89,9 +82,12 @@ static const TaskFuncTable3 _gActor135600KyleMadiganHeldItemStates = { {
     taskKill,
 } };
 
-/// States of the actor itself (entry 0), dispatched by
-/// `_actor135600KyleMadiganWalkerTask`: setup, per-frame tick, exit.
-static const TaskFuncTable3 D_actor_135600_80131E3C = { {
+/// Kyle Madigan's body lifecycle: 0 initialize, 1 update, 2 release the actor.
+///
+/// Task state indexes a complete twelve-byte value copy, without a terminator.
+/// The body owns its work and attachment tasks after initialization; keep this
+/// package loaded through teardown. The update state handles actor freezing.
+static const TaskFuncTable3 _gActor135600KyleMadiganWalkerStates = { {
     _actor135600InitializeKyleMadiganWalker,
     _actor135600UpdateKyleMadiganWalker,
     _actor135600ExitKyleMadiganWalker,
@@ -660,7 +656,13 @@ TaskDesc gActor135600KyleMadiganTaskDescriptors[4] = {
     },
 };
 
-TaskMessageEntry D_actor_135600_8013B0F4[6] = {
+/// Kyle Madigan's body messages for animation, placement, drawing and scripted walking.
+///
+/// Animation borrows a play request; placement and walking borrow a transform,
+/// with optional start/closing clips in the walk's second word. Draw mode also
+/// updates the hands and held item; actor commands are ignored. Five handlers
+/// precede the end marker. The body borrows this table and its loaded callbacks.
+static const TaskMessageEntry _gActor135600KyleMadiganWalkerMessages[6] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135600SetKyleMadiganDrawMode },
@@ -861,7 +863,7 @@ static void _actor135600InitializeKyleMadiganWalker(Task* task)
 
     _actor135600SetKyleMadiganDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
 
-    task->msgTable     = D_actor_135600_8013B0F4;
+    task->msgTable     = _gActor135600KyleMadiganWalkerMessages;
     task->exitCallback = _actor135600ExitKyleMadiganWalker;
     task->state       += 1;
 }
@@ -1076,7 +1078,7 @@ static void _actor135600KyleMadiganWalkerTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_135600_80131E3C;
+    states = _gActor135600KyleMadiganWalkerStates;
     states.funcs[task->state](task);
 }
 

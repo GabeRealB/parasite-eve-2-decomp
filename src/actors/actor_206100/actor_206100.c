@@ -347,11 +347,47 @@ static void _actor206100StatusHoldTick(Task* task);
 
 static void _actor206100FlyShot(Task* task);
 
-static const TaskFuncTable3 D_actor_206100_80149E24 = {
+/// Task-state domains of the Sea Diver body and its coordinate-body shots.
+enum {
+    ACTOR_206100_TASK_STATE_SPAWN    = 0,
+    ACTOR_206100_TASK_STATE_CIRCLING = 1,
+    ACTOR_206100_TASK_STATE_FIGHT    = 2,
+    ACTOR_206100_TASK_STATE_DEATH    = 3,
+    ACTOR_206100_TASK_STATE_DESPAWN  = 4,
+    ACTOR_206100_SHOT_STATE_LAUNCH   = 0,
+    ACTOR_206100_SHOT_STATE_FLIGHT   = 1,
+    ACTOR_206100_SHOT_STATE_BURST    = 2,
+};
+
+/// Substate domains of entrance, dive and surface, and the separate death-state domain.
+enum {
+    ACTOR_206100_ENTRANCE_STATE_HOLD_PLAYER = 0,
+    ACTOR_206100_ENTRANCE_STATE_LEAD_IN     = 1,
+    ACTOR_206100_ENTRANCE_STATE_RELOCATE    = 2,
+    ACTOR_206100_ENTRANCE_STATE_DEPART      = 3,
+    ACTOR_206100_ENTRANCE_STATE_ARRIVE      = 4,
+    ACTOR_206100_DIVE_STATE_ENTER           = 0,
+    ACTOR_206100_DIVE_STATE_SPLASH          = 1,
+    ACTOR_206100_DIVE_STATE_WAIT            = 2,
+    ACTOR_206100_SURFACE_STATE_ENTER        = 0,
+    ACTOR_206100_SURFACE_STATE_SPLASH       = 1,
+    ACTOR_206100_SURFACE_STATE_WAIT         = 2,
+    ACTOR_206100_DEATH_STATE_UNLINK         = 0,
+    ACTOR_206100_DEATH_STATE_ENTER_PLAYBACK = 1,
+    ACTOR_206100_DEATH_STATE_PLAYBACK       = 2,
+    ACTOR_206100_DEATH_STATE_SINK           = 3,
+};
+
+/// Sea Diver shot lifecycle: launch, flight, then burst linger and teardown.
+///
+/// Task state 0..2 indexes a complete twelve-byte value copy. The spawner supplies
+/// owned shot work; launch initializes collision and burst state. Teardown unlinks
+/// the body and releases work after the linger interval. Keep the package loaded.
+static const TaskFuncTable3 _gActor206100ShotStates = {
     {
-        _actor206100LaunchShot,
-        _actor206100FlyShot,
-        _diverStrikeTeardown,
+        [ACTOR_206100_SHOT_STATE_LAUNCH] = _actor206100LaunchShot,
+        [ACTOR_206100_SHOT_STATE_FLIGHT] = _actor206100FlyShot,
+        [ACTOR_206100_SHOT_STATE_BURST]  = _diverStrikeTeardown,
     },
 };
 
@@ -1538,11 +1574,10 @@ static inline void _actor206100AnimUpdate(Task* task)
 /// and selects ring placement. Task teardown owns release of the work block.
 static void _actor206100Spawn(Task* task)
 {
-    enum { ACTOR_206100_SPAWN_SWIM_CLIP     = 3,
-           ACTOR_206100_SPAWN_MODEL_SCALE   = 0x1EAA,
-           ACTOR_206100_SPAWN_ROOT_Y        = 10000,
-           ACTOR_206100_TASK_STATE_CIRCLING = 1,
-           ACTOR_206100_RING_STATE_PLACE    = 0 };
+    enum { ACTOR_206100_SPAWN_SWIM_CLIP   = 3,
+           ACTOR_206100_SPAWN_MODEL_SCALE = 0x1EAA,
+           ACTOR_206100_SPAWN_ROOT_Y      = 10000,
+           ACTOR_206100_RING_STATE_PLACE  = 0 };
     _Actor206100Work* work;
     _Actor206100Work* requestWork;
     Enemy*            enemy;
@@ -1585,32 +1620,38 @@ static void _actor206100Spawn(Task* task)
     // Ring entry repeats the nested-state reset made by the task transition.
     _diverSetState(task, ACTOR_206100_RING_STATE_PLACE);
 }
-/// The actor's five top-level states, dispatched on `Task::state` by its task
-/// callback `_actor206100Task`: `_actor206100Spawn` (which
-/// builds the work block), `_actor206100CirclingTick`,
-/// `_actor206100FightTick`, `_actor206100DeathTick` and the exit
-/// `_actor206100Despawn`.
-static const TaskFuncTable5 D_actor_206100_80149E5C = {
+/// Sea Diver lifecycle: spawn, waypoint circling, fight, death sequence, despawn.
+///
+/// Task state 0..4 indexes a complete twenty-byte value copy. State 0 owns work
+/// allocation; later states require it. No terminator is present. Keep the
+/// package, model and Enemy spawn payload live until the final state releases them.
+static const TaskFuncTable5 _gActor206100TaskStates = {
     {
-        _actor206100Spawn,
-        _actor206100CirclingTick,
-        _actor206100FightTick,
-        _actor206100DeathTick,
-        _actor206100Despawn,
+        [ACTOR_206100_TASK_STATE_SPAWN]    = _actor206100Spawn,
+        [ACTOR_206100_TASK_STATE_CIRCLING] = _actor206100CirclingTick,
+        [ACTOR_206100_TASK_STATE_FIGHT]    = _actor206100FightTick,
+        [ACTOR_206100_TASK_STATE_DEATH]    = _actor206100DeathTick,
+        [ACTOR_206100_TASK_STATE_DESPAWN]  = _actor206100Despawn,
     },
 };
 
-static const TaskFuncTable9 D_actor_206100_80149E70 = {
+/// Sea Diver fight states selected by the body's work-state index during task state 2.
+///
+/// Slots 0..3 run entrance, attack, dive and surface; 4..6 are unselected inert
+/// slots, 7 runs recoil and 8 holds status buildup. Dispatch copies all 36 bytes
+/// and has no terminator or bounds check. Requires initialized body work and
+/// this package's callback code loaded through combat.
+static const TaskFuncTable9 _gActor206100FightStates = {
     {
-        _actor206100DispatchEntrance,
-        _actor206100DispatchAttack,
-        _actor206100DispatchDive,
-        _actor206100DispatchSurface,
-        _actor206100FightState4,
-        _actor206100FightState5,
-        _actor206100FightState6,
-        _actor206100DispatchRecoil,
-        _actor206100DispatchStatusHold,
+        [ACTOR_206100_FIGHT_STATE_ENTRANCE]    = _actor206100DispatchEntrance,
+        [ACTOR_206100_FIGHT_STATE_ATTACK]      = _actor206100DispatchAttack,
+        [ACTOR_206100_FIGHT_STATE_DIVE]        = _actor206100DispatchDive,
+        [ACTOR_206100_FIGHT_STATE_SURFACE]     = _actor206100DispatchSurface,
+        [4]                                    = _actor206100FightState4,
+        [5]                                    = _actor206100FightState5,
+        [6]                                    = _actor206100FightState6,
+        [ACTOR_206100_FIGHT_STATE_RECOIL]      = _actor206100DispatchRecoil,
+        [ACTOR_206100_FIGHT_STATE_STATUS_HOLD] = _actor206100DispatchStatusHold,
     },
 };
 
@@ -1841,14 +1882,13 @@ static inline void _actor206100TickDischargeEffects(Task* task)
 static void _actor206100FightTick(Task* task)
 {
     enum {
-        ACTOR_206100_TASK_STATE_DEATH         = 3,
         ACTOR_206100_ROOT_HEIGHT_EASING_SHIFT = 4,
     };
     _Actor206100Work* work        = task->work;
     GfxCoord*         rootCoord   = task->extra.tmd->coords;
     TmdObject*        model       = task->extra.tmd;
     Enemy*            enemy       = task->spawnArg2.pointer;
-    TaskFuncTable9    fightStates = D_actor_206100_80149E70;
+    TaskFuncTable9    fightStates = _gActor206100FightStates;
     _Actor206100Work* counterWork;
     _Actor206100Work* deathWork;
 
@@ -1883,7 +1923,7 @@ static void _actor206100FightTick(Task* task)
             if (enemy->hp <= 0) {
                 deathWork           = task->work;
                 task->state         = ACTOR_206100_TASK_STATE_DEATH;
-                deathWork->state    = 0;
+                deathWork->state    = ACTOR_206100_DEATH_STATE_UNLINK;
                 deathWork->subState = 0;
             }
             rootCoord->coord.t[1] =
@@ -2271,54 +2311,59 @@ static void _actor206100AttackTick(Task* task)
     _actor206100StepWithinFightArea(task, ACTOR_206100_ATTACK_STEP_DISTANCE);
 }
 
-/// The five sub-state handlers `_actor206100DispatchEntrance` picks between: it
-/// copies the table onto its stack and calls `funcs[subState]`.
-static const TaskFuncTable5 D_actor_206100_80149E94 = {
+/// Sea Diver entrance stages: hold player, lead in, darken/relocate, depart, arrive.
+///
+/// During fight state 0, subState 0..4 indexes a complete twenty-byte value
+/// copy. Stages advance in order and arrival selects attack at substate zero.
+/// Requires initialized body/player and loaded room wave resources; no terminator.
+static const TaskFuncTable5 _gActor206100EntranceSubstates = {
     {
-        _actor206100EntranceHoldPlayer,
-        _actor206100EntranceLeadInTick,
-        _actor206100EntranceRelocateTick,
-        _actor206100EntranceDepartureTick,
-        _actor206100EntranceArrivalTick,
+        [ACTOR_206100_ENTRANCE_STATE_HOLD_PLAYER] = _actor206100EntranceHoldPlayer,
+        [ACTOR_206100_ENTRANCE_STATE_LEAD_IN]     = _actor206100EntranceLeadInTick,
+        [ACTOR_206100_ENTRANCE_STATE_RELOCATE]    = _actor206100EntranceRelocateTick,
+        [ACTOR_206100_ENTRANCE_STATE_DEPART]      = _actor206100EntranceDepartureTick,
+        [ACTOR_206100_ENTRANCE_STATE_ARRIVE]      = _actor206100EntranceArrivalTick,
     },
 };
 
-/// The state-0 dispatcher's sub-state table, a table in its own right rather
-/// than the local array `_actor206100DispatchAttack` builds -- the dispatcher
-/// copies it whole, which is why the copy is a three-word block move out of
-/// `.rodata`.  `_actor206100DispatchSurface` has the same body over the sibling
-/// table `D_actor_206100_80149EB4`.
-static const TaskFuncTable3 D_actor_206100_80149EA8 = {
+/// Sea Diver dive stages: enter the clip, emit water spray, wait underwater.
+///
+/// During fight state 2, subState 0..2 indexes a complete twelve-byte value
+/// copy. The splash starts descent and the timed wait selects surface.
+/// Requires initialized body work and loaded spray resources; no terminator.
+static const TaskFuncTable3 _gActor206100DiveSubstates = {
     {
-        _actor206100EnterDive,
-        _actor206100DiveSplashTick,
-        _actor206100WaitUnderwater,
+        [ACTOR_206100_DIVE_STATE_ENTER]  = _actor206100EnterDive,
+        [ACTOR_206100_DIVE_STATE_SPLASH] = _actor206100DiveSplashTick,
+        [ACTOR_206100_DIVE_STATE_WAIT]   = _actor206100WaitUnderwater,
     },
 };
 
-/// The sibling table, immediately after `D_actor_206100_80149EA8` in
-/// `.rodata`: the three sub-state handlers `_actor206100DispatchSurface`
-/// dispatches between, the first `_actor206100EnterSurface` and the third
-/// `_actor206100WaitSurface` bracketing the ring of debris
-/// `_actor206100SurfaceSplashTick` throws.
-static const TaskFuncTable3 D_actor_206100_80149EB4 = {
+/// Sea Diver surface stages: enter the clip, splash/choose redive, wait before attacking.
+///
+/// During fight state 3, subState 0..2 indexes a complete twelve-byte value
+/// copy. The splash can restart the dive; otherwise the timed wait selects
+/// attack. Requires initialized body work and loaded water-spray resources;
+/// the table has no terminator.
+static const TaskFuncTable3 _gActor206100SurfaceSubstates = {
     {
-        _actor206100EnterSurface,
-        _actor206100SurfaceSplashTick,
-        _actor206100WaitSurface,
+        [ACTOR_206100_SURFACE_STATE_ENTER]  = _actor206100EnterSurface,
+        [ACTOR_206100_SURFACE_STATE_SPLASH] = _actor206100SurfaceSplashTick,
+        [ACTOR_206100_SURFACE_STATE_WAIT]   = _actor206100WaitSurface,
     },
 };
 
-/// The last object in this unit's `.rodata`, one object after
-/// `D_actor_206100_80149EB4` and flush against the unit's first code address:
-/// the four steps of the death `_actor206100DeathTick` dispatches on
-/// `_Actor206100Work::state`.
-static const TaskFuncTable4 D_actor_206100_80149EC0 = {
+/// Sea Diver death stages: unlink/reward, enter playback, play fifty ticks, sink.
+///
+/// During task state 3, work state 0..3 indexes a complete sixteen-byte value
+/// copy. Stages advance in order; sinking selects the final task despawn state.
+/// Requires live body work/model and loaded callbacks until teardown; no terminator.
+static const TaskFuncTable4 _gActor206100DeathStates = {
     {
-        _actor206100UnlinkForDeath,
-        _actor206100EnterDeathPlayback,
-        _actor206100DeathPlaybackTick,
-        _actor206100DeathSinkTick,
+        [ACTOR_206100_DEATH_STATE_UNLINK]         = _actor206100UnlinkForDeath,
+        [ACTOR_206100_DEATH_STATE_ENTER_PLAYBACK] = _actor206100EnterDeathPlayback,
+        [ACTOR_206100_DEATH_STATE_PLAYBACK]       = _actor206100DeathPlaybackTick,
+        [ACTOR_206100_DEATH_STATE_SINK]           = _actor206100DeathSinkTick,
     },
 };
 
@@ -2334,7 +2379,7 @@ static void _actor206100DispatchDive(Task* task)
            ACTOR_206100_DIVE_YAW_DEADBAND  = 40,
            ACTOR_206100_DIVE_STEP_DISTANCE = 20 };
     _Actor206100Work* work             = task->work;
-    TaskFuncTable3    substateHandlers = D_actor_206100_80149EA8;
+    TaskFuncTable3    substateHandlers = _gActor206100DiveSubstates;
 
     if (_actor206100ConsumeHitReaction(task) == 0) {
         substateHandlers.funcs[work->subState](task);
@@ -2394,7 +2439,7 @@ static void _actor206100DispatchSurface(Task* task)
            ACTOR_206100_SURFACE_YAW_DEADBAND  = 40,
            ACTOR_206100_SURFACE_STEP_DISTANCE = 20 };
     _Actor206100Work* work             = task->work;
-    TaskFuncTable3    substateHandlers = D_actor_206100_80149EB4;
+    TaskFuncTable3    substateHandlers = _gActor206100SurfaceSubstates;
 
     if (_actor206100ConsumeHitReaction(task) == 0) {
         substateHandlers.funcs[work->subState](task);
@@ -2485,7 +2530,6 @@ static void _actor206100SummonBogDiversTick(Task* task)
 {
     enum {
         ACTOR_206100_RING_ENGAGE_TICK       = 30,
-        ACTOR_206100_TASK_STATE_FIGHT       = 2,
         ACTOR_206100_BOG_DIVER_SUMMON_COUNT = 5
     };
     _Actor206100Work* work;
@@ -2531,7 +2575,7 @@ static void _actor206100SummonBogDiversTick(Task* task)
                 transitionWork           = task->work;
                 task->state              = ACTOR_206100_TASK_STATE_FIGHT;
                 transitionWork->state    = ACTOR_206100_FIGHT_STATE_ENTRANCE;
-                transitionWork->subState = 0;
+                transitionWork->subState = ACTOR_206100_ENTRANCE_STATE_HOLD_PLAYER;
             }
         }
         retireSlotIndex++;
@@ -2792,7 +2836,7 @@ static void _actor206100DeathTick(Task* task)
     work          = task->work;
     model         = task->extra.tmd;
     rootCoord     = model->coords;
-    deathHandlers = D_actor_206100_80149EC0;
+    deathHandlers = _gActor206100DeathStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3034,7 +3078,7 @@ static void _actor206100ShotTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_206100_80149E24;
+    stateHandlers = _gActor206100ShotStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -3145,7 +3189,7 @@ static void _actor206100Task(Task* task)
 {
     TaskFuncTable5 stateHandlers;
 
-    stateHandlers = D_actor_206100_80149E5C;
+    stateHandlers = _gActor206100TaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -3180,7 +3224,7 @@ static void _actor206100DispatchEntrance(Task* task)
 
     work                          = task->work;
     enemy                         = task->spawnArg2.pointer;
-    substateHandlers              = D_actor_206100_80149E94;
+    substateHandlers              = _gActor206100EntranceSubstates;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     substateHandlers.funcs[work->subState](task);
 }
@@ -3539,7 +3583,6 @@ static void _actor206100DeathSinkTick(Task* task)
         ACTOR_206100_DEATH_SINK_UNITS_PER_TICK = 16,
         ACTOR_206100_DEATH_ROOM_EFFECT_TICK    = 90,
         ACTOR_206100_DEATH_DESPAWN_TICK        = 270,
-        ACTOR_206100_TASK_STATE_DESPAWN        = 4,
     };
 
     _Actor206100Work* work;
