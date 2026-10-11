@@ -103565,15 +103565,15 @@ instruction-for-instruction identical for 190 of 210 instructions: the whole
 scratchpad allocate/free and the prologue need no experiment at all. Only the
 block after the magnitude switch differs, and only in three places:
 
-* the table symbol (`Actor00100_D1B9F4` against `_gActor401300HitPlacements`),
+* the table symbol (`_gDesertChaserHitAnchors` against `_gActor401300HitPlacements`),
 * the part index - a constant 1 in the sibling (`addiu $v1, $v1, 0x50`), here
-  `sc->anchor.partIndex` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
+  `hitAnchor->anchor.partIndex` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
   `GfxCoord` stride),
-* the third `effectSpawnHit` argument - `sc` itself in the sibling, here a copy
-  saved into the work block (`work->field_8A0 = *sc;` then `&work->field_8A0`),
+* the third `effectSpawnHit` argument - `&hitPlacement->position` in the sibling, here a copy
+  saved into the work block (`work->hitAnchor = *hitAnchor;` then `&work->hitAnchor.position`),
   which is the `lwl`/`lwr` quad decribed in "`lwl`/`lwr` + `swl`/`swr` quads are
   a whole-struct assignment" - the member's *declared* alignment is what picks
-  the byte-lane form, so at 0x8A0 it has to be an `SVECTOR` (alignment 2),
+  the byte-lane form, so at 0x8A0 it has to be an `ActorHitAnchor` (alignment 2),
   not a word-aligned field.
 
 Retelling the sibling's body with those three substitutions is 100.000% on the
@@ -113831,7 +113831,7 @@ turn = (ActorTurnScratch*)(*(u32*)SCRATCH_STACK_CURSOR_SLOT -= 0xC);
 The store the expression performs *is* the reservation, so no separate
 `*(T**)SCRATCH_STACK_CURSOR_SLOT = turn;` statement may follow. `SCRATCH_STACK_CURSOR_SLOT` is
 `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` to update its 32-bit address in bytes, or to `T**` to step the stored pointer by `sizeof(T)` per element.
-`_actor401300SpawnHitEffect` uses a typed block step through `hitOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);`.
+`_actor401300SpawnHitEffect` uses a typed block step through `hitPlacement = SCRATCH_STACK_RESERVE_BLOCK(ActorHitAnchor);`.
 Writing the head into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
 collapse to the single `addiu` and lose the copy. Same family as "Combined
 `*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one
