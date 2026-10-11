@@ -1239,9 +1239,9 @@ rooms' included sound-cue mappings. They translate `ROOM_MESSAGE_SOUND` integer
 cue keys into their room bank's scripts for the current stage. Constants use
 `PARKING_LOT_`, `GENERAL_STORE_`, `TOILET_` and `UNDERPASS_`. Callbacks reached
 only by a carrier's own table are static and declared in its prologue.
-`PARKING_LOT_SOUND_MSG` selects the parking-lot definition: the day copy is
-static, while the night copy is shared between that overlay's translation
-units and declared in its private header. The main-street sound-cue mapping
+`PARKING_LOT_SOUND_MESSAGE_HANDLER` selects the parking-lot definition: the
+day copy is static, while the night copy is shared between that overlay's
+translation units and declared in its private header. The main-street sound-cue mapping
 likewise keeps static `mainStreet` instances and uses `MAIN_STREET_` constants.
 
 `trailerCoach` owns the paired rooms' included ordering-table depth-scale

@@ -71,7 +71,12 @@ enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT = 3 };
 
 #include "../../shared/parking_lot_event_msg.inc.c"
 
-#define PARKING_LOT_SOUND_MSG parkingLotSoundMsg
+/// Selects the parking-lot sound-message definition shared by this overlay's TUs.
+///
+/// Single function identifier declared in `dryfield_night_parking_lot_private.h`
+/// as s32 (Task*, s32, s32, s32), with external linkage for the room-message table.
+/// The following fragment consumes this binding and undefines it afterwards.
+#define PARKING_LOT_SOUND_MESSAGE_HANDLER parkingLotSoundMsg
 #include "../../shared/parking_lot_sound_msg.inc.c"
 
 s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
