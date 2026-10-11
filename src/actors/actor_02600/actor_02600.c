@@ -66,9 +66,6 @@ enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/* Model stream in this overlay's own data. */
-extern TmdSource gMaggotCaterpillarHuskModel;
-
 static AnimationSet _gActor02600Actor102600Animation06198;
 static AnimationSet _gActor02600Actor102600Animation0644C;
 static AnimationSet _gActor02600Actor102600Animation068D0;
@@ -116,37 +113,7 @@ static TmdSource _gActor02600CaterpillarMaggotBody = {
     _gActor02600CaterpillarMaggotBodyStream,
 };
 
-static TmdBone _gActor02600CaterpillarMaggotBurstHeadSkeleton[1] = {
-#include "assets/caterpillar_maggot_burst_head_skeleton.inc"
-};
-
-static u32 _gActor02600CaterpillarMaggotBurstHeadPartVerts[1] = {
-#include "assets/caterpillar_maggot_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor02600CaterpillarMaggotBurstHeadVerts[40] = {
-#include "assets/caterpillar_maggot_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor02600CaterpillarMaggotBurstHeadNormals[40] = {
-#include "assets/caterpillar_maggot_burst_head_normals.inc"
-};
-
-static u32 _gActor02600CaterpillarMaggotBurstHeadStream[310] = {
-#include "assets/caterpillar_maggot_burst_head_stream.inc"
-};
-
-TmdSource gMaggotCaterpillarHuskModel = {
-    0,
-    2144,
-    0,
-    1,
-    _gActor02600CaterpillarMaggotBurstHeadPartVerts,
-    _gActor02600CaterpillarMaggotBurstHeadVerts,
-    _gActor02600CaterpillarMaggotBurstHeadNormals,
-    _gActor02600CaterpillarMaggotBurstHeadSkeleton,
-    _gActor02600CaterpillarMaggotBurstHeadStream,
-};
+#include "../../shared/maggot_caterpillar_husk_model.inc.c"
 
 static AnimationPackedPose _gActor02600Actor102600Animation06198Bank1[10] = {
 #include "assets/actor_102600_animation_06198_bank1.inc"

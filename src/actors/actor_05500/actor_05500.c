@@ -56,8 +56,6 @@
 #define MAGGOT_CATERPILLAR_BODY_TASK gActor05500MaggotCaterpillarTasks[0]
 #include "../../shared/maggot_caterpillar.h"
 
-extern TmdSource gMaggotCaterpillarHuskModel;
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -108,37 +106,7 @@ static TmdSource _gActor05500CaterpillarMaggotBody = {
     _gActor05500CaterpillarMaggotBodyStream,
 };
 
-static TmdBone _gActor05500CaterpillarMaggotBurstHeadSkeleton[1] = {
-#include "assets/caterpillar_maggot_burst_head_skeleton.inc"
-};
-
-static u32 _gActor05500CaterpillarMaggotBurstHeadPartVerts[1] = {
-#include "assets/caterpillar_maggot_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor05500CaterpillarMaggotBurstHeadVerts[40] = {
-#include "assets/caterpillar_maggot_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor05500CaterpillarMaggotBurstHeadNormals[40] = {
-#include "assets/caterpillar_maggot_burst_head_normals.inc"
-};
-
-static u32 _gActor05500CaterpillarMaggotBurstHeadStream[310] = {
-#include "assets/caterpillar_maggot_burst_head_stream.inc"
-};
-
-TmdSource gMaggotCaterpillarHuskModel = {
-    0,
-    2144,
-    0,
-    1,
-    _gActor05500CaterpillarMaggotBurstHeadPartVerts,
-    _gActor05500CaterpillarMaggotBurstHeadVerts,
-    _gActor05500CaterpillarMaggotBurstHeadNormals,
-    _gActor05500CaterpillarMaggotBurstHeadSkeleton,
-    _gActor05500CaterpillarMaggotBurstHeadStream,
-};
+#include "../../shared/maggot_caterpillar_husk_model.inc.c"
 
 static AnimationPackedPose _gActor05500Actor105500Animation061A0Bank1[10] = {
 #include "assets/actor_105500_animation_061A0_bank1.inc"
