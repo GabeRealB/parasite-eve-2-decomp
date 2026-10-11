@@ -389,7 +389,7 @@ enum {
 /// Pawn and grenade-launcher Rook GOLEM recipes for placement variant 11.
 ///
 /// Keys 56 and 57 load files 105600 and 205700 and spawn descriptor zero.
-/// Paired with `D_map_neo_ark_8017BD80`; AREA_PLACEMENT_END ends the list.
+/// Paired with `gMapNeoArkSavannaZoneVariant11Placements`; AREA_PLACEMENT_END ends the list.
 /// Retain room recipes, placements and actor descriptors through loading,
 /// spawning and model-flag updates.
 static AreaResource _gNeoArkSavannaZoneVariant11Resources[3] = {
