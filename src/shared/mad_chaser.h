@@ -29,6 +29,18 @@
 #define MAD_CHASER_ENEMY_PARAMS _gMadChaserEnemyParams
 #endif
 
+/// Selects the detached-arm source published for a burst model-effect spawn.
+///
+/// Bind to a writable TmdSource lvalue that outlives all effects borrowing it.
+/// The default is TU-local; actor_342400 binds its source shared between its
+/// data and spawn translation units. The spawn fragment takes its address once.
+#ifndef MAD_CHASER_BURST_ARM_SOURCE
+#define MAD_CHASER_BURST_ARM_SOURCE _gMadChaserBurstArm
+#endif
+
+/// Body-coordinate index whose placement the detached-arm effect snapshots.
+enum { MAD_CHASER_BURST_ARM_BODY_PART = 8 };
+
 /// Values of `MadChaserWork::animRequest`.
 enum {
     MAD_CHASER_ANIM_REQUEST_BLEND   = 1, // blend into `animId` over `animBlendFrames` frames

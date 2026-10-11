@@ -100,7 +100,6 @@ static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
 
 extern TmdSource gMadChaserChunkModel0;
-extern TmdSource gMadChaserChunkModel1;
 extern TmdSource gMadChaserChunkModel2;
 
 static const TaskFuncTable3 gMadChaserWalkSteps;
@@ -139,36 +138,42 @@ TmdSource gMadChaserChunkModel0 = {
     _gActor04400MadChaserBurstHeadStream,
 };
 
-static TmdBone _gActor04400MadChaserBurstArmSkeleton[1] = {
+static TmdBone _gMadChaserBurstArmSkeleton[1] = {
 #include "assets/mad_chaser_burst_arm_skeleton.inc"
 };
 
-static u32 _gActor04400MadChaserBurstArmPartVerts[1] = {
+static u32 _gMadChaserBurstArmPartVerts[1] = {
 #include "assets/mad_chaser_burst_arm_partVerts.inc"
 };
 
-static SVECTOR _gActor04400MadChaserBurstArmVerts[28] = {
+static SVECTOR _gMadChaserBurstArmVerts[28] = {
 #include "assets/mad_chaser_burst_arm_verts.inc"
 };
 
-static SVECTOR _gActor04400MadChaserBurstArmNormals[37] = {
+static SVECTOR _gMadChaserBurstArmNormals[37] = {
 #include "assets/mad_chaser_burst_arm_normals.inc"
 };
 
-static u32 _gActor04400MadChaserBurstArmStream[276] = {
+static u32 _gMadChaserBurstArmStream[276] = {
 #include "assets/mad_chaser_burst_arm_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel1 = {
+/// Detached Mad Chaser arm thrown from body part 8 during a burst death.
+///
+/// One rigid part, with 34 textured triangles and nine textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+static TmdSource _gMadChaserBurstArm = {
     0,
-    1828,
+    34 * sizeof(POLY_GT3) + 9 * sizeof(POLY_GT4),
     0,
-    1,
-    _gActor04400MadChaserBurstArmPartVerts,
-    _gActor04400MadChaserBurstArmVerts,
-    _gActor04400MadChaserBurstArmNormals,
-    _gActor04400MadChaserBurstArmSkeleton,
-    _gActor04400MadChaserBurstArmStream,
+    ARRAY_SIZE(_gMadChaserBurstArmSkeleton),
+    _gMadChaserBurstArmPartVerts,
+    _gMadChaserBurstArmVerts,
+    _gMadChaserBurstArmNormals,
+    _gMadChaserBurstArmSkeleton,
+    _gMadChaserBurstArmStream,
 };
 
 static TmdBone _gActor04400MadChaserBurstTailSkeleton[1] = {

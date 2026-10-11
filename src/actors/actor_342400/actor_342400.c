@@ -223,36 +223,36 @@ TmdSource gMadChaserChunkModel0 = {
     _gActor342400MadChaserBurstHeadStream,
 };
 
-static TmdBone _gActor342400MadChaserBurstArmSkeleton[1] = {
+static TmdBone _gMadChaserBurstArmSkeleton[1] = {
 #include "assets/mad_chaser_burst_arm_skeleton.inc"
 };
 
-static u32 _gActor342400MadChaserBurstArmPartVerts[1] = {
+static u32 _gMadChaserBurstArmPartVerts[1] = {
 #include "assets/mad_chaser_burst_arm_partVerts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstArmVerts[28] = {
+static SVECTOR _gMadChaserBurstArmVerts[28] = {
 #include "assets/mad_chaser_burst_arm_verts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstArmNormals[37] = {
+static SVECTOR _gMadChaserBurstArmNormals[37] = {
 #include "assets/mad_chaser_burst_arm_normals.inc"
 };
 
-static u32 _gActor342400MadChaserBurstArmStream[276] = {
+static u32 _gMadChaserBurstArmStream[276] = {
 #include "assets/mad_chaser_burst_arm_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel1 = {
+TmdSource gMadChaserBurstArm = {
     0,
-    1828,
+    34 * sizeof(POLY_GT3) + 9 * sizeof(POLY_GT4),
     0,
-    1,
-    _gActor342400MadChaserBurstArmPartVerts,
-    _gActor342400MadChaserBurstArmVerts,
-    _gActor342400MadChaserBurstArmNormals,
-    _gActor342400MadChaserBurstArmSkeleton,
-    _gActor342400MadChaserBurstArmStream,
+    ARRAY_SIZE(_gMadChaserBurstArmSkeleton),
+    _gMadChaserBurstArmPartVerts,
+    _gMadChaserBurstArmVerts,
+    _gMadChaserBurstArmNormals,
+    _gMadChaserBurstArmSkeleton,
+    _gMadChaserBurstArmStream,
 };
 
 static TmdBone _gActor342400MadChaserBurstTailSkeleton[1] = {

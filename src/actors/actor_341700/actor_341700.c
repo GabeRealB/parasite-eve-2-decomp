@@ -249,36 +249,42 @@ TmdSource gMadChaserChunkModel0 = {
     _gActor341700MadChaserBurstHeadStream,
 };
 
-static TmdBone _gActor341700MadChaserBurstArmSkeleton[1] = {
+static TmdBone _gMadChaserBurstArmSkeleton[1] = {
 #include "assets/mad_chaser_burst_arm_skeleton.inc"
 };
 
-static u32 _gActor341700MadChaserBurstArmPartVerts[1] = {
+static u32 _gMadChaserBurstArmPartVerts[1] = {
 #include "assets/mad_chaser_burst_arm_partVerts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstArmVerts[28] = {
+static SVECTOR _gMadChaserBurstArmVerts[28] = {
 #include "assets/mad_chaser_burst_arm_verts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstArmNormals[37] = {
+static SVECTOR _gMadChaserBurstArmNormals[37] = {
 #include "assets/mad_chaser_burst_arm_normals.inc"
 };
 
-static u32 _gActor341700MadChaserBurstArmStream[276] = {
+static u32 _gMadChaserBurstArmStream[276] = {
 #include "assets/mad_chaser_burst_arm_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel1 = {
+/// Detached Mad Chaser arm thrown from body part 8 during a burst death.
+///
+/// One rigid part, with 34 textured triangles and nine textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+static TmdSource _gMadChaserBurstArm = {
     0,
-    1828,
+    34 * sizeof(POLY_GT3) + 9 * sizeof(POLY_GT4),
     0,
-    1,
-    _gActor341700MadChaserBurstArmPartVerts,
-    _gActor341700MadChaserBurstArmVerts,
-    _gActor341700MadChaserBurstArmNormals,
-    _gActor341700MadChaserBurstArmSkeleton,
-    _gActor341700MadChaserBurstArmStream,
+    ARRAY_SIZE(_gMadChaserBurstArmSkeleton),
+    _gMadChaserBurstArmPartVerts,
+    _gMadChaserBurstArmVerts,
+    _gMadChaserBurstArmNormals,
+    _gMadChaserBurstArmSkeleton,
+    _gMadChaserBurstArmStream,
 };
 
 static TmdBone _gActor341700MadChaserBurstTailSkeleton[1] = {
@@ -885,8 +891,6 @@ static u8 _gMadChaserSettleAnims[19] = {
 static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
 
 extern TmdSource gMadChaserChunkModel0;
-
-extern TmdSource gMadChaserChunkModel1;
 
 extern TmdSource gMadChaserChunkModel2;
 
