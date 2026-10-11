@@ -467,7 +467,7 @@ static inline void _hudDrawHpMpLabels(const UiPanel* panel, s32 offsetX, s32 off
     mpRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     mpRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     mpRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&mpRequest, (const u8*)Gp_StrMP);
+    textDrawString(&mpRequest, gHudMpLabelText);
 }
 
 void hudDrawStatusBlock(const HudState* hud)

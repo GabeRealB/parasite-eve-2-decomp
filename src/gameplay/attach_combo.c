@@ -71,7 +71,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
             s32                         level;
 
             level      = gAttachmentState.attachId % 10;
-            comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ANTIBODY][level - 1].combo;
+            comboParam = &gAttachmentAreaTable[ATTACHMENT_INDEX_ANTIBODY][level - 1].combo;
             _attachmentRefreshStackedCombo(&gAttachmentState.antibodyCombo, &gAttachmentState.antibodyTicks, comboParam, level);
             break;
         }
@@ -82,7 +82,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
             s32                         level;
 
             level      = gAttachmentState.attachId % 10;
-            comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ENERGY_SHOT][level - 1].combo;
+            comboParam = &gAttachmentAreaTable[ATTACHMENT_INDEX_ENERGY_SHOT][level - 1].combo;
             _attachmentRefreshStackedCombo(&gAttachmentState.energyShotCombo, &gAttachmentState.energyShotTicks, comboParam, level);
             break;
         }
@@ -95,7 +95,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
             s32                         durationFrames;
 
             level                            = gAttachmentState.attachId % 10;
-            comboParam                       = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][level - 1].combo;
+            comboParam                       = &gAttachmentAreaTable[ATTACHMENT_INDEX_METABOLISM][level - 1].combo;
             stackCount                       = gAttachmentState.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
             durationFrames                   = comboParam->ticks;
             gAttachmentState.metabolismCombo = stackCount;

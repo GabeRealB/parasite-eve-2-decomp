@@ -3,7 +3,6 @@
 #include "types.h"
 
 #include "area_transitions.h"
-#include "gameplay/ending.h"
 #include "hud.h"
 #include "hud_sprites.h"
 #include "items.h"
@@ -21,37 +20,37 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-s16 D_80114BDC;
+/// Signed BP award or escape penalty, retained while the single result panel is live.
+static s16 _gItemMenuBattleResultBpDelta;
 
-s16 D_80114BDE;
+/// EXP award narrowed to a signed halfword before application and result drawing.
+static s16 _gItemMenuBattleResultExpGain;
 
-s16 D_80114BE0;
+/// Base MP award, excluding equipment recovery, retained by the active result panel.
+static s16 _gItemMenuBattleResultMpGain;
 
-s16 D_80114BE2;
+/// Equipment HP recovery before the player's maximum-HP cap, or zero on escape.
+static s16 _gItemMenuBattleResultHpRecovery;
 
-s16 D_80114BE4;
+/// Equipment MP recovery added to the base award and displayed as a separate bonus.
+///
+/// Stores the unsigned quarter-round-up narrowed to s16, then capped above at 99;
+/// negative narrowed values are retained. Zero on escape or without recovery.
+static s16 _gItemMenuBattleResultMpRecovery;
 
-extern const char Gp_StrBattleResult[];
-
-extern const char Gp_StrTotal[];
-
-extern const char Gp_StrBP[];
-
-extern const char Gp_StrEXP[];
-
-PadScriptCmd D_80114A24[4] = {
+PadScriptCmd gPadScriptTransitionCommands[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 4) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
-PadScriptVibrationSegment D_80114A34[3] = {
+PadScriptVibrationSegment gPadScriptTransitionSegments[3] = {
     { 200, 255, 7, 1 },
     { 170, 70, 7, 1 },
     { 180, 60, 1, 0 }
 };
 
-const TaskFuncTable6 Gp_PlayClockStates = { {
+const TaskFuncTable6 gPlayClockStates = { {
     playClockInitializeTask,
     playClockUpdateTask,
     playClockStartDeathFade,
@@ -60,19 +59,23 @@ const TaskFuncTable6 Gp_PlayClockStates = { {
     taskKill,
 } };
 
-const char Gp_StrBattleResult[] = "Battle Result";
+/// Encoded title of the battle-result gains and totals panel.
+static const char _gItemMenuBattleResultTitleText[] = "Battle Result";
 
-const char Gp_StrTotal[] = "Total";
+/// Encoded heading of the battle-result column showing the player's updated totals.
+static const u8 _gItemMenuBattleResultTotalLabelText[] = "Total";
 
 const u8 gHudHpLabelText[] = "HP";
 
-const char Gp_StrMP[] = "MP";
+const u8 gHudMpLabelText[] = "MP";
 
-const char Gp_StrBP[] = "BP";
+/// Encoded BP label for the signed award/penalty and updated total.
+static const u8 _gItemMenuBattleResultBpLabelText[] = "BP";
 
-const char Gp_StrEXP[] = "EXP";
+/// Encoded EXP label for the battle award and updated total.
+static const u8 _gItemMenuBattleResultExpLabelText[] = "EXP";
 
-const char Gp_StrItem[] = "Item";
+const char gItemPickupTitleText[] = "Item";
 
 void sceneBattleStartTransitionTask(Task* task)
 {
@@ -97,7 +100,7 @@ void sceneBattleStartTransitionTask(Task* task)
             task->killCountdown = SCENE_BATTLE_START_LONG_DELAY_FRAMES;
         }
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
-        padScriptSpawn(D_80114A24, D_80114A34);
+        padScriptSpawn(gPadScriptTransitionCommands, gPadScriptTransitionSegments);
         areaSetCurrentMapMark();
         task->state++;
     } else if (task->state == SCENE_BATTLE_START_LOAD_MUSIC) {
@@ -187,44 +190,44 @@ void itemMenuBattleResultTask(Task* task)
     // Apply rewards once; preserve the halfword recovery and reward narrowing.
     if (task->state == ITEM_MENU_BATTLE_INITIALIZE) {
         if (task->spawnArg1.value == ITEM_MENU_BATTLE_WON) {
-            D_80114BE2 = 0;
-            D_80114BE4 = 0;
-            D_80114BDC = gSceneCombatState.bpReward;
-            D_80114BDE = gSceneCombatState.expReward;
-            D_80114BE0 = gSceneCombatState.mpReward;
+            _gItemMenuBattleResultHpRecovery = 0;
+            _gItemMenuBattleResultMpRecovery = 0;
+            _gItemMenuBattleResultBpDelta    = gSceneCombatState.bpReward;
+            _gItemMenuBattleResultExpGain    = gSceneCombatState.expReward;
+            _gItemMenuBattleResultMpGain     = gSceneCombatState.mpReward;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_MP_RECOVERY) != 0) {
-                D_80114BE4 = ((u32)(gSceneCombatState.mpReward - 1) >> 2) + 1;
-                if (D_80114BE4 >= ITEM_MENU_BATTLE_MP_BONUS_MAX + 1) {
-                    D_80114BE4 = ITEM_MENU_BATTLE_MP_BONUS_MAX;
+                _gItemMenuBattleResultMpRecovery = ((u32)(gSceneCombatState.mpReward - 1) >> 2) + 1;
+                if (_gItemMenuBattleResultMpRecovery >= ITEM_MENU_BATTLE_MP_BONUS_MAX + 1) {
+                    _gItemMenuBattleResultMpRecovery = ITEM_MENU_BATTLE_MP_BONUS_MAX;
                 }
             }
             if (equipmentHasEffect(EQUIPMENT_EFFECT_HP_RECOVERY) != 0) {
-                hpRecovery  = (u16)gSceneCombatState.mpReward;
-                D_80114BE2  = hpRecovery;
-                player->hp += hpRecovery;
+                hpRecovery                       = (u16)gSceneCombatState.mpReward;
+                _gItemMenuBattleResultHpRecovery = hpRecovery;
+                player->hp                      += hpRecovery;
                 if (player->hp >= player->hpMax) {
                     player->hp = player->hpMax;
                 }
             }
         } else {
-            D_80114BDE = 0;
-            D_80114BDC = ITEM_MENU_BATTLE_ESCAPE_BP_PENALTY;
-            D_80114BE0 = ITEM_MENU_BATTLE_ESCAPE_MP_GAIN;
-            D_80114BE2 = 0;
-            D_80114BE4 = 0;
+            _gItemMenuBattleResultExpGain    = 0;
+            _gItemMenuBattleResultBpDelta    = ITEM_MENU_BATTLE_ESCAPE_BP_PENALTY;
+            _gItemMenuBattleResultMpGain     = ITEM_MENU_BATTLE_ESCAPE_MP_GAIN;
+            _gItemMenuBattleResultHpRecovery = 0;
+            _gItemMenuBattleResultMpRecovery = 0;
         }
-        player->bp += D_80114BDC;
+        player->bp += _gItemMenuBattleResultBpDelta;
         if (player->bp > ITEM_MENU_BATTLE_POINT_TOTAL_MAX) {
             player->bp = ITEM_MENU_BATTLE_POINT_TOTAL_MAX;
         }
         if (player->bp < 0) {
             player->bp = 0;
         }
-        player->exp += D_80114BDE;
+        player->exp += _gItemMenuBattleResultExpGain;
         if (player->exp > ITEM_MENU_BATTLE_POINT_TOTAL_MAX) {
             player->exp = ITEM_MENU_BATTLE_POINT_TOTAL_MAX;
         }
-        player->mp += D_80114BE0 + D_80114BE4;
+        player->mp += _gItemMenuBattleResultMpGain + _gItemMenuBattleResultMpRecovery;
         if (player->mp > player->mpMax) {
             player->mp = player->mpMax;
         }
@@ -233,7 +236,7 @@ void itemMenuBattleResultTask(Task* task)
     }
 
     // Draw gains immediately, then reveal the updated totals from EXP to HP.
-    uiDrawTitle(&object->panel, Gp_StrBattleResult);
+    uiDrawTitle(&object->panel, _gItemMenuBattleResultTitleText);
     if (task->killCountdown < ITEM_MENU_BATTLE_ELAPSED_UPDATES_MAX) {
         task->killCountdown++;
     }
@@ -247,14 +250,14 @@ void itemMenuBattleResultTask(Task* task)
     totalLabelRequest.x = object->panel.contentRight.signedValue + totalLabelX;
     totalLabelRequest.y = object->panel.contentOriginY.unsignedValue + contentTop + 5;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(totalLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-    textDrawString(&totalLabelRequest, Gp_StrTotal);
+    textDrawString(&totalLabelRequest, _gItemMenuBattleResultTotalLabelText);
 
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, contentTop + 9);
     uiDrawVerticalSeparator(&object->panel, contentTop + 0xC, object->panel.contentBottom.signedValue, 0x1C);
 
     contentBottom = object->panel.contentBottom.signedValue;
     rowY          = contentBottom - 2;
-    if (D_80114BE2 > 0) {
+    if (_gItemMenuBattleResultHpRecovery > 0) {
         rowY             = contentBottom - 1;
         hpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
         hpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
@@ -265,23 +268,23 @@ void itemMenuBattleResultTask(Task* task)
         hpGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
         hpGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
         ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpGainRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-        textDrawString(&hpGainRequest, textItoaUnsigned(numberText, D_80114BE2));
+        textDrawString(&hpGainRequest, textItoaUnsigned(numberText, _gItemMenuBattleResultHpRecovery));
         rowY -= 0xA;
     }
 
     mpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
     mpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&mpLabelRequest, Gp_StrMP);
+    textDrawString(&mpLabelRequest, gHudMpLabelText);
 
     mpGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
     mpGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpGainRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&mpGainRequest, textItoaUnsigned(numberText, D_80114BE0));
+    textDrawString(&mpGainRequest, textItoaUnsigned(numberText, _gItemMenuBattleResultMpGain));
 
-    if (D_80114BE4 > 0) {
+    if (_gItemMenuBattleResultMpRecovery > 0) {
         numberText[0] = '+';
-        textItoaUnsigned(&numberText[1], D_80114BE4);
+        textItoaUnsigned(&numberText[1], _gItemMenuBattleResultMpRecovery);
         mpBonusOrBpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
         mpBonusOrBpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
         ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpBonusOrBpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
@@ -292,18 +295,18 @@ void itemMenuBattleResultTask(Task* task)
     mpBonusOrBpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
     mpBonusOrBpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpBonusOrBpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&mpBonusOrBpLabelRequest, Gp_StrBP);
+    textDrawString(&mpBonusOrBpLabelRequest, _gItemMenuBattleResultBpLabelText);
 
-    if (D_80114BDC < 0) {
+    if (_gItemMenuBattleResultBpDelta < 0) {
         bpGainOrExpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
         bpGainOrExpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
         ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, ITEM_MENU_BATTLE_PENALTY_COLOR_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-        textDrawString(&bpGainOrExpLabelRequest, textItoaSigned(numberText, D_80114BDC));
+        textDrawString(&bpGainOrExpLabelRequest, textItoaSigned(numberText, _gItemMenuBattleResultBpDelta));
     } else {
         bpGainOrExpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
         bpGainOrExpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
         ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-        textDrawString(&bpGainOrExpLabelRequest, textItoaUnsigned(numberText, D_80114BDC));
+        textDrawString(&bpGainOrExpLabelRequest, textItoaUnsigned(numberText, _gItemMenuBattleResultBpDelta));
     }
 
     rowY                     -= rowHeight;
@@ -311,16 +314,16 @@ void itemMenuBattleResultTask(Task* task)
     bpGainOrExpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
     bpGainOrExpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, totalColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&bpGainOrExpLabelRequest, Gp_StrEXP);
+    textDrawString(&bpGainOrExpLabelRequest, _gItemMenuBattleResultExpLabelText);
 
     expGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
     expGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
     ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(expGainRequest, &object->panel, totalColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&expGainRequest, textItoaUnsigned(numberText, D_80114BDE));
+    textDrawString(&expGainRequest, textItoaUnsigned(numberText, _gItemMenuBattleResultExpGain));
 
     rowY    = object->panel.contentBottom.signedValue - 2;
     columnX = object->panel.contentRight.signedValue - 2;
-    if (D_80114BE2 > 0) {
+    if (_gItemMenuBattleResultHpRecovery > 0) {
         rowY = object->panel.contentBottom.signedValue - 1;
         if (task->killCountdown >= ITEM_MENU_BATTLE_HP_TOTAL_UPDATE) {
             hpOrMpTotalRequest.x = object->panel.contentOriginX.unsignedValue + columnX;

@@ -73,8 +73,21 @@ static InventoryItemRange _gInventoryContainerRange9 = { .firstRow = 150, .rowCo
 static InventoryItemRange _gInventoryContainerRange10 = { .firstRow = 160, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
 /// Container selector 11's saved rows 170..179.
-static InventoryItemRange _gInventoryContainerRange11 = { .firstRow = 170, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
-InventoryItemRange*       Gp_ScanPtrs[12]             = { &gInventoryBattleRewardRange, &_gInventoryContainerRange1, &_gInventoryContainerRange2, &_gInventoryContainerRange3, &_gInventoryContainerRange4, &_gInventoryContainerRange5, &_gInventoryContainerRange6, &_gInventoryContainerRange7, &_gInventoryContainerRange8, &_gInventoryContainerRange9, &_gInventoryContainerRange10, &_gInventoryContainerRange11 };
+static InventoryItemRange _gInventoryContainerRange11                          = { .firstRow = 170, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
+InventoryItemRange*       gInventoryContainerRanges[INVENTORY_CONTAINER_COUNT] = {
+    &gInventoryBattleRewardRange,
+    &_gInventoryContainerRange1,
+    &_gInventoryContainerRange2,
+    &_gInventoryContainerRange3,
+    &_gInventoryContainerRange4,
+    &_gInventoryContainerRange5,
+    &_gInventoryContainerRange6,
+    &_gInventoryContainerRange7,
+    &_gInventoryContainerRange8,
+    &_gInventoryContainerRange9,
+    &_gInventoryContainerRange10,
+    &_gInventoryContainerRange11,
+};
 
 /// Stores carried extras and converts selected training equipment before the reset.
 ///
@@ -147,11 +160,11 @@ void inventoryInitializeStarterLoadout(void)
             itemTable = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
-    storedRange = Gp_ScanPtrs[INVENTORY_STARTER_STORED_RANGE_INDEX];
+    storedRange = gInventoryContainerRanges[INVENTORY_STARTER_STORED_RANGE_INDEX];
     _inventoryStoreStarterExtras(carriedRange, storedRange, itemTable);
     // Rebuild the carried loadout and weapon supplies for field deployment.
     inventoryClearItems(carriedRange);
-    containerRanges = Gp_ScanPtrs;
+    containerRanges = gInventoryContainerRanges;
     inventoryClearItems(containerRanges[INVENTORY_STARTER_TEMP_RANGE_A_INDEX]);
     inventoryClearItems(containerRanges[INVENTORY_STARTER_TEMP_RANGE_B_INDEX]);
     weaponLoad = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;

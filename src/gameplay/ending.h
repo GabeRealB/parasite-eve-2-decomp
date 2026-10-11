@@ -3,15 +3,21 @@
 
 #include "main/task_types.h"
 
-/// Colours and labels defined in `gameplay.c`, shared with `78.c`.
-extern const TaskFuncTable6 Gp_PlayClockStates;
+/// Six phases of the play-time/HUD controller and its death/restart sequence.
+///
+/// Task state 0 initializes, 1 updates play, 2 starts the death fade, 3 waits
+/// for it, 4 restarts the session and 5 tears down. `playClockTask` copies the
+/// complete table before dispatch; the state must be in 0..5.
+extern const TaskFuncTable6 gPlayClockStates;
 
 /// Encoded byte-string HP label shared by the HUD and battle-result readout.
 extern const u8 gHudHpLabelText[];
 
-extern const char Gp_StrMP[];
+/// Encoded byte-string MP label shared by the HUD and battle-result readout.
+extern const u8 gHudMpLabelText[];
 
-extern const char Gp_StrItem[];
+/// Encoded title of the item-pickup panel, before its confirmation closes it.
+extern const char gItemPickupTitleText[];
 
 /// Applies the battle result once and draws its gains and updated player totals.
 ///

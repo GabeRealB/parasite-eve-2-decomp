@@ -44,6 +44,13 @@ extern AttachmentState gAttachmentState;
 /// Flag byte cleared by `attachmentCancel` / `playerActorSpawn`.
 extern u8 D_80115768;
 
-extern AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT];
+/// Target-area and self-effect parameters indexed by ability slot and level minus one.
+///
+/// Slots 0..17 cover the twelve wheel spells and six item abilities; levels
+/// are 1..3. Unlike `gAttachmentLevelTable`, this table has no empty leading
+/// row. Region dimensions use hundreds of world units. Metabolism, Antibody
+/// and Energy Shot read the combo view's unsigned frame duration. Gameplay
+/// owns the table; PE overlays borrow it while their effects run.
+extern AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT];
 
 #endif // GAMEPLAY_ATTACHMENTS_H

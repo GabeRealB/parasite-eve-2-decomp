@@ -13,7 +13,6 @@
 #include "gameplay/display.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
-#include "gameplay/ending.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -2034,7 +2033,7 @@ static void _actor136300StageExitCountdownTask(Task* task)
     s32 countdownTicks;
 
     if (task->state == 0) {
-        padScriptSpawn(D_80114A24, D_80114A34);
+        padScriptSpawn(gPadScriptTransitionCommands, gPadScriptTransitionSegments);
         task->state += 1;
     }
     // Test the entry value; zero takes one more decrement before requesting exit.

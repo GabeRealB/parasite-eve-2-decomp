@@ -358,7 +358,7 @@ void pyrokinesisCastTask(Task* task)
                 return;
             }
             age = effect->age;
-            if (age * PYROKINESIS_TRAVEL_EXTENT_PER_FRAME > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][effect->index].area.extent) {
+            if (age * PYROKINESIS_TRAVEL_EXTENT_PER_FRAME > gAttachmentAreaTable[ATTACHMENT_INDEX_PYROKINESIS][effect->index].area.extent) {
                 worldCollisionUnlinkBody(&collision->damageBody);
                 worldCollisionUnlinkBody(&collision->gridBody);
                 task->state = PYROKINESIS_STATE_SHRINKING;

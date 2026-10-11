@@ -1066,7 +1066,7 @@ void playClockTask(Task* task)
 {
     TaskFuncTable6 states;
 
-    states = Gp_PlayClockStates;
+    states = gPlayClockStates;
     states.funcs[task->state](task);
 }
 
@@ -1144,7 +1144,7 @@ void itemPickupTitleTask(Task* task)
 
     panelObject         = task->spawnArg2.pointer;
     panelObject->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&panelObject->panel, Gp_StrItem);
+    uiDrawTitle(&panelObject->panel, gItemPickupTitleText);
     if (panelObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             panelObject->result = USER_INTERFACE_RESULT_CONFIRM;

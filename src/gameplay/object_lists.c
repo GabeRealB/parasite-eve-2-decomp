@@ -192,10 +192,6 @@ WorldCollisionBody* gWorldCollisionBlastListHead;
 #include "world_collision.h"
 #include "attachments.h"
 
-/// One-entry table of `WorldCollisionOccluder` list heads. `worldCollisionLinkOccluder` appends to
-/// `Gp_Obj3ALists[index]`; `worldCollisionClearOccluderList` walks and clears that list.
-extern WorldCollisionOccluder** Gp_Obj3ALists[1];
-
 /// Writes the X/Z products of two contact normals and marks an opposed result.
 ///
 /// Used inside the resolvers' retained pair loops. `contactsArg` is evaluated
@@ -238,7 +234,11 @@ static WorldCollisionTrigger** _gWorldCollisionTriggerListHeads[2] = {
     &gWorldCollisionActionTriggerListHead,
     &gWorldCollisionViewBoundaryListHead,
 };
-WorldCollisionOccluder** Gp_Obj3ALists[1] = {
+/// Address of the borrowed sight-occluder list's writable first link, at index zero.
+///
+/// Link and clear operations mutate the head through this table. Occluders
+/// remain owned by their room/model resources; this table owns no records.
+static WorldCollisionOccluder** _gWorldCollisionOccluderListHeads[1] = {
     &gWorldCollisionOccluderListHead,
 };
 
@@ -981,7 +981,7 @@ void worldCollisionLinkOccluder(s32 listIndex, WorldCollisionOccluder* occluder)
     u8                       flags;
     WorldCollisionOccluder** listHead;
 
-    listHead = Gp_Obj3ALists[listIndex];
+    listHead = _gWorldCollisionOccluderListHeads[listIndex];
     flags    = occluder->flags;
     if (!(flags & WORLD_COLLISION_OCCLUDER_LINKED)) {
         occluder->flags = flags | WORLD_COLLISION_OCCLUDER_LINKED;
@@ -1036,7 +1036,7 @@ void worldCollisionClearOccluderList(s32 listIndex)
     WorldCollisionOccluder*  first;
     s32                      flags;
 
-    listHead = Gp_Obj3ALists[listIndex];
+    listHead = _gWorldCollisionOccluderListHeads[listIndex];
     first    = *listHead;
     if (first != NULL) {
         occluder  = first;

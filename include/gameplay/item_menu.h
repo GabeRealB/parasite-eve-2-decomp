@@ -8,15 +8,25 @@
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 
-/// Item-move `UiObjectDesc` table. `_itemMenuTransferScreenTask` spawns `[0]` / `[1]`
-/// and, when `spawnArg1 == 1`, `[9]`.
-/// `[4]` is the popup `itemMenuDrawTransferInventoryRow` spawns on confirm when
-/// `owner->state == 1`, `[5]` the quantity-selection popup `itemMenuDrawTransferMoveRow`
-/// opens when moving ammo stacks, `[9]` also the "Move items" confirmation
-/// `_itemMenuHandleTransferChildResult` spawns when the pane is closed with items still selected
-/// (`itemMenuCanMoveAllItems` result as arg1), and `[10]` an extra descriptor spawned
-/// after the `[0]` / `[1]` pair.
-extern UiObjectDesc D_8010D6F4[];
+/// Layout slots in the container/carried-item transfer screen's panel recipes.
+///
+/// Slots 0 and 1 are its two panes. Empty slots 2/3/6/7/8 must not be spawned.
+enum {
+    ITEM_MENU_TRANSFER_ACTIONS_PANEL = 4,
+    ITEM_MENU_TRANSFER_AMMO_PANEL    = 5,
+    ITEM_MENU_TRANSFER_EXIT_PANEL    = 9,
+    ITEM_MENU_TRANSFER_PROMPT_PANEL  = 10,
+    ITEM_MENU_TRANSFER_PANEL_COUNT   = 11
+};
+
+/// Panel recipes for inventory transfer, including the shop's shared help-text holder.
+///
+/// Slots 0/1 are container/carried panes, 4 the Move/Switch actions, 5 the
+/// ammunition-quantity editor, 9 the All/Select/Discard exit choice and 10
+/// the two-line prompt holder. All other slots are empty. Bounds use centered
+/// screen pixels and ordering seeds count tags. `uiSpawnObject` copies the
+/// recipe; gameplay must remain loaded while its content callbacks are live.
+extern UiObjectDesc gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_PANEL_COUNT];
 
 /// Animates a placed container's lid around its pickup prompt and completes its CAP request.
 ///

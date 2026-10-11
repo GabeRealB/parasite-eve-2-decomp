@@ -2549,7 +2549,7 @@ void inventoryInitializeNewGame(void)
     GP_GIVE_LOADED(itemRange, INVENTORY_NEW_GAME_ITEM_M93R, INVENTORY_NEW_GAME_ITEM_9MM_PB);
     inventoryGiveItem(itemRange, INVENTORY_NEW_GAME_ITEM_RECOVERY_2, 1)->attachSlot = INVENTORY_NEW_GAME_RECOVERY_ATTACHMENT;
     // Seed separate container ranges; repeated grants preserve their original row behavior.
-    containerRanges = Gp_ScanPtrs;
+    containerRanges = gInventoryContainerRanges;
     itemRange       = containerRanges[1];
     inventoryClearItems(itemRange);
     inventoryGiveItem(itemRange, INVENTORY_NEW_GAME_ITEM_RECOVERY_1, 1);

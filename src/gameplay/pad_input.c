@@ -13,25 +13,39 @@
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-u8 Gp_MenuLockNow;
+/// Last automatic menu-lock decision (0 unlocked, 1 locked), frozen by explicit hold.
+static u8 _gPadInputMenuLocked;
 
-u8 Gp_MenuLockPrev;
+/// Automatic decision last applied to the logical Select/Start suppression bits.
+static u8 _gPadInputPreviousMenuLocked;
 
 u16 Gp_PadSuppressMask;
 
-u16 Gp_PadSuppressPrev;
+/// Logical-button suppression mask sampled by the preceding player-present update.
+static u16 _gPadInputPreviousSuppressionMask;
 
-u16 Gp_PadSuppressRise;
+/// Logical suppression bits newly set by this update, truncated to sixteen bits.
+static u16 _gPadInputSuppressionSet;
 
-u16 Gp_PadSuppressFall;
+/// Logical suppression bits newly cleared by this update, truncated to sixteen bits.
+static u16 _gPadInputSuppressionCleared;
 
-u16 Gp_PadSuppressRefs;
+/// Outstanding display menu holds acquired by gameplay's suppression edges.
+///
+/// Outside demos, any newly suppressed Select/Start bit adds one hold; any
+/// cleared Select/Start bit releases all tracked holds. Room reset clears this
+/// count without releasing holds. Other display clients own their own counts.
+static u16 _gPadInputMenuHoldCount;
 
 u8 Gp_MenuLockHold;
 
 s16 Gp_MenuLockDelay;
 
-s16 Gp_PadSuppressTimer;
+/// Player-present input updates remaining with logical Triangle forcibly removed.
+///
+/// Reset and automatic menu ineligibility arm four updates. Decremented after
+/// normal publication, including the arming update; zero leaves Triangle alone.
+static s16 _gPadInputWheelBlockUpdates;
 
 #include "gameplay/pad_input.h"
 
@@ -175,38 +189,38 @@ void padInputUpdate(void)
             player->state != PAD_INPUT_PLAYER_STATE_ATTACHMENT_USE && playerStatus->hp > 0 && gGameSession->deathVariant == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
-                Gp_MenuLockNow = true;
+                _gPadInputMenuLocked = true;
             } else {
-                Gp_MenuLockNow = false;
+                _gPadInputMenuLocked = false;
             }
         } else {
-            Gp_MenuLockNow                    = true;
-            Gp_PadSuppressTimer               = PAD_INPUT_WHEEL_BLOCK_UPDATES;
+            _gPadInputMenuLocked              = true;
+            _gPadInputWheelBlockUpdates       = PAD_INPUT_WHEEL_BLOCK_UPDATES;
             Gp_MenuLockDelay                  = PAD_INPUT_MENU_UNLOCK_UPDATES;
             gDirectionInteractionRearmUpdates = PAD_INPUT_INTERACTION_REARM_DELAY;
         }
-        if (Gp_MenuLockNow == true && Gp_MenuLockPrev == false) {
+        if (_gPadInputMenuLocked == true && _gPadInputPreviousMenuLocked == false) {
             Gp_MenuLockHold     = false;
             Gp_PadSuppressMask |= PAD_INPUT_SUPPRESS_MENU;
-        } else if (Gp_MenuLockNow == false && Gp_MenuLockPrev == true) {
+        } else if (_gPadInputMenuLocked == false && _gPadInputPreviousMenuLocked == true) {
             Gp_MenuLockHold     = false;
             Gp_PadSuppressMask &= (0xFFFF ^ PAD_INPUT_SUPPRESS_MENU);
         }
-        Gp_MenuLockPrev = Gp_MenuLockNow;
+        _gPadInputPreviousMenuLocked = _gPadInputMenuLocked;
     }
     // Only suppression edges acquire or release this module's display holds.
-    Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
-    Gp_PadSuppressFall = Gp_PadSuppressPrev & ~Gp_PadSuppressMask;
-    Gp_PadSuppressPrev = Gp_PadSuppressMask;
+    _gPadInputSuppressionSet          = ~_gPadInputPreviousSuppressionMask & Gp_PadSuppressMask;
+    _gPadInputSuppressionCleared      = _gPadInputPreviousSuppressionMask & ~Gp_PadSuppressMask;
+    _gPadInputPreviousSuppressionMask = Gp_PadSuppressMask;
     if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
-        if (Gp_PadSuppressRise & PAD_INPUT_SUPPRESS_MENU) {
+        if (_gPadInputSuppressionSet & PAD_INPUT_SUPPRESS_MENU) {
             displayAcquireMenuHold();
-            Gp_PadSuppressRefs++;
+            _gPadInputMenuHoldCount++;
         }
-        if (Gp_PadSuppressFall & PAD_INPUT_SUPPRESS_MENU) {
-            while (Gp_PadSuppressRefs != 0) {
+        if (_gPadInputSuppressionCleared & PAD_INPUT_SUPPRESS_MENU) {
+            while (_gPadInputMenuHoldCount != 0) {
                 displayReleaseMenuHold();
-                Gp_PadSuppressRefs--;
+                _gPadInputMenuHoldCount--;
             }
         }
     }
@@ -269,8 +283,8 @@ void padInputUpdate(void)
     }
     // Suppression masks address logical buttons, so apply them after remapping.
     _padInputPublishButtons(player, heldButtons, pressedButtons, releasedButtons, ~0);
-    if (Gp_PadSuppressTimer != 0) {
-        Gp_PadSuppressTimer--;
+    if (_gPadInputWheelBlockUpdates != 0) {
+        _gPadInputWheelBlockUpdates--;
         _padInputPublishButtons(player, heldButtons, pressedButtons, releasedButtons, ~PAD_BUTTON_TRIANGLE);
     }
 }
@@ -342,14 +356,14 @@ void padInputChangeSuppression(u8 command, s32 buttonMask)
 
 void padInputResetSuppression(void)
 {
-    Gp_PadSuppressRefs  = 0;
-    Gp_PadSuppressMask  = 0;
-    Gp_PadSuppressPrev  = 0;
-    Gp_PadSuppressRise  = 0;
-    Gp_PadSuppressFall  = 0;
-    Gp_MenuLockNow      = false;
-    Gp_MenuLockPrev     = false;
-    Gp_MenuLockHold     = false;
-    Gp_MenuLockDelay    = PAD_INPUT_MENU_UNLOCK_UPDATES;
-    Gp_PadSuppressTimer = PAD_INPUT_WHEEL_BLOCK_UPDATES;
+    _gPadInputMenuHoldCount           = 0;
+    Gp_PadSuppressMask                = 0;
+    _gPadInputPreviousSuppressionMask = 0;
+    _gPadInputSuppressionSet          = 0;
+    _gPadInputSuppressionCleared      = 0;
+    _gPadInputMenuLocked              = false;
+    _gPadInputPreviousMenuLocked      = false;
+    Gp_MenuLockHold                   = false;
+    Gp_MenuLockDelay                  = PAD_INPUT_MENU_UNLOCK_UPDATES;
+    _gPadInputWheelBlockUpdates       = PAD_INPUT_WHEEL_BLOCK_UPDATES;
 }

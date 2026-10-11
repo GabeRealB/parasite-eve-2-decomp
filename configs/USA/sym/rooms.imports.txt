@@ -369,7 +369,7 @@ gSpriteAreaTables = 0x8010CB68; // absolute:True
 gWorldCollisionSurfacePropertiesTables = 0x8010CBB8; // absolute:True
 gAreaRecordsByStage = 0x8010CBCC; // absolute:True
 gEquipmentModeBaseStats = 0x8010D328; // absolute:True
-Gp_ScanPtrs = 0x8010D550; // absolute:True size:0x30
+gInventoryContainerRanges = 0x8010D550; // absolute:True size:0x30
 gItemDescriptors = 0x8010D838; // absolute:True
 Gp_QtyById0 = 0x8010E038; // absolute:True
 gItemMenuEmptyPromptText = 0x8010F8D0; // absolute:True
@@ -446,8 +446,8 @@ gCapInlineIconCells = 0x8010FB70; // absolute:True
 gEffectUnitQuadCorners = 0x80111E38; // absolute:True
 gEffectSpriteAtlasFrames = 0x80111E48; // absolute:True
 gPlayerActorWeaponReaches = 0x80112F60; // absolute:True size:0x42
-D_80114A24 = 0x80114A24; // absolute:True
-D_80114A34 = 0x80114A34; // absolute:True
+gPadScriptTransitionCommands = 0x80114A24; // absolute:True
+gPadScriptTransitionSegments = 0x80114A34; // absolute:True
 D_80114C0B = 0x80114C0B; // absolute:True
 D_80114C11 = 0x80114C11; // absolute:True
 D_80114C12 = 0x80114C12; // absolute:True
@@ -620,7 +620,7 @@ func_80724608 = 0x80724608; // type:func absolute:True
 gInventoryConsumableStacks = 0x8010E3B8; // absolute:True
 gEquipmentWeaponPrimaryLoadOptions = 0x8010E238; // absolute:True
 
-D_8010D6F4 = 0x8010D6F4; // absolute:True size:0x134
+gItemMenuTransferPanelDescriptors = 0x8010D6F4; // absolute:True size:0x134
 
 gItemMenuPanelDescriptors = 0x8010EAB4; // absolute:True size:0x578
 

@@ -74,6 +74,23 @@ typedef struct PadScriptVibrationSegment {
 } PadScriptVibrationSegment;
 STATIC_ASSERT_SIZEOF(PadScriptVibrationSegment, 4);
 
+/// Shared short vibration cue for battle and cutscene transitions.
+///
+/// Four commands terminate both lanes without looping. The binary lane stops
+/// immediately; the variable lane plays segment 0, waits four script frames,
+/// then plays segment 1 and stops. Segment 2 is retained but not reached.
+/// Gameplay owns the command storage; script tasks borrow it without mutation
+/// until teardown, so gameplay must remain loaded throughout playback.
+extern PadScriptCmd gPadScriptTransitionCommands[4];
+
+/// Variable-motor intensity ramps used by `gPadScriptTransitionCommands`.
+///
+/// Entries 0/1 ramp 200 to 255 and 170 to 70 over seven script frames each.
+/// The one-frame 180-to-60 entry 2 has no reachable PLAY in this cue. The final
+/// byte of each segment is retained metadata with no interpreter read.
+/// Gameplay storage remains live for every borrowing script task.
+extern PadScriptVibrationSegment gPadScriptTransitionSegments[3];
+
 /// Requests teardown of vibration scripts and both motor tasks, and stops port 0's requests.
 ///
 /// Raises all three halt gates and clears the session's vibration activity and

@@ -31,7 +31,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
-#include "gameplay/ending.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
@@ -3901,7 +3900,7 @@ static void _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames)
 static void _dryfieldDilapidatedHouseSetNegativeCapture(s32 durationFrames)
 {
     if (durationFrames != 0) {
-        padScriptSpawn(D_80114A24, D_80114A34);
+        padScriptSpawn(gPadScriptTransitionCommands, gPadScriptTransitionSegments);
         _gDryfieldDilapidatedHouseNegativeCaptureArgs.duration = durationFrames;
         taskSpawnFromTable(_gDryfieldDilapidatedHouseNegativeCaptureTaskDescriptors, 0, 0, &_gDryfieldDilapidatedHouseNegativeCaptureArgs);
         return;

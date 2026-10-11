@@ -157,8 +157,15 @@ u16 gDamageEnemyPoisonPulseDamagePercent[4] = {
     8,
 };
 
-AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT] = {
-    {
+/// Base combo durations in gameplay frames and the unused dimensions of all-target rows.
+enum {
+    ATTACHMENT_METABOLISM_COMBO_FRAMES = 600,
+    ATTACHMENT_PROTECTION_COMBO_FRAMES = 2250,
+    ATTACHMENT_ALL_DIMENSION_UNUSED    = -1,
+};
+
+AttachmentAreaRow gAttachmentAreaTable[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT] = {
+    [ATTACHMENT_INDEX_PYROKINESIS] = {
         { .area = { ATTACHMENT_AREA_PROJECTILE, 6, 65, 0 } },
         { .area = { ATTACHMENT_AREA_PROJECTILE, 8, 90, 0 } },
         { .area = { ATTACHMENT_AREA_PROJECTILE, 10, 200, 0 } },
@@ -169,9 +176,9 @@ AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA
         { .area = { ATTACHMENT_AREA_CYLINDER, 32, 50, 1 } },
     },
     {
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
     {
         { .area = { ATTACHMENT_AREA_PROJECTILE, 11, 40, 0 } },
@@ -186,14 +193,14 @@ AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA
     {
         { .area = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
         { .area = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
-    {
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 600 } },
+    [ATTACHMENT_INDEX_METABOLISM] = {
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_METABOLISM_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_METABOLISM_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_METABOLISM_COMBO_FRAMES } },
     },
-    {
+    [ATTACHMENT_INDEX_HEALING] = {
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 0 } },
@@ -201,42 +208,43 @@ AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA
     {
         { .area = { ATTACHMENT_AREA_CYLINDER, 40, 50, 0 } },
         { .area = { ATTACHMENT_AREA_CYLINDER, 60, 50, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
-    {
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    [ATTACHMENT_INDEX_ANTIBODY] = {
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
     },
-    {
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
-        { .area = { ATTACHMENT_AREA_SELF, 0, 0, 2250 } },
+    [ATTACHMENT_INDEX_ENERGY_SHOT] = {
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
+        { .combo = { { ATTACHMENT_AREA_SELF, 0, 0 }, ATTACHMENT_PROTECTION_COMBO_FRAMES } },
     },
-    {
+    [ATTACHMENT_INDEX_ENERGY_BALL] = {
+        // No established reader of these final halfwords; they are not proven combo durations.
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 10 } },
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 13 } },
         { .area = { ATTACHMENT_AREA_SELF, 0, 0, 15 } },
     },
     {
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
     {
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
     {
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
     {
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
-        { .area = { ATTACHMENT_AREA_ALL, -1, -1, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
+        { .area = { ATTACHMENT_AREA_ALL, ATTACHMENT_ALL_DIMENSION_UNUSED, ATTACHMENT_ALL_DIMENSION_UNUSED, 0 } },
     },
     {
         { .area = { ATTACHMENT_AREA_CYLINDER, 20, 25, 1 } },
@@ -355,7 +363,7 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
     }
     ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level);
     // Reset cast totals and convert the selected region to whole world units.
-    area                  = &Gp_AttachParams[abilityIndex][level - 1].area;
+    area                  = &gAttachmentAreaTable[abilityIndex][level - 1].area;
     combat                = &gSceneCombatState;
     radiusHundreds        = area->radius;
     extentHundreds        = area->extent;

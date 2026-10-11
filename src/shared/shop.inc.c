@@ -814,7 +814,7 @@ static void _shopCategoryListTask(Task* task)
         itemMenuClearPreviewItems();
         gItemMenuInfoPanel = NULL;
         uiSpawnObject(&_gShopBalancePanelDescriptor, task->spawnArg1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
-        uiSpawnObject(&D_8010D6F4[10], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        uiSpawnObject(&gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_PROMPT_PANEL], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         list->itemCount                     = SHOP_CATEGORY_COUNT + 1;
         list->visibleRowCount.unsignedValue = SHOP_CATEGORY_COUNT + 1;
         uiFitPanelToList(list, &object->panel);

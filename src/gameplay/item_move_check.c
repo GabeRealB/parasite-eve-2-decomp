@@ -12,11 +12,11 @@ u8 Gp_StrMove2[] = "Move";
 
 char Gp_StrSwitch[] = "Switch";
 
-char Gp_StrSetAmmoHelp[] = "Set ammo# with the directional\nbuttons. } button to confirm.";
+u8 gItemMenuAmmoSplitHelpText[] = "Set ammo# with the directional\nbuttons. } button to confirm.";
 
-char Gp_StrAmmoLocked[] = "Ammo loaded in a weapon\ncannot be moved.";
+u8 gItemMenuAmmoLoadedNoticeText[] = "Ammo loaded in a weapon\ncannot be moved.";
 
-char Gp_StrMaxCapacity[] = "Maximum capacity.";
+u8 gItemMenuAmmoCapacityNoticeText[] = "Maximum capacity.";
 
 u8 gItemMenuTransferAllText[] = "All";
 
@@ -37,9 +37,9 @@ InventoryItemRange gItemMenuTransferRanges[ITEM_MENU_PANE_COUNT] = {
 /// so entry zero handles every row without indexing beyond this one-element table.
 static UiListRowCallback _gItemMenuTransferInventoryRowCallbacks[1] = { itemMenuDrawTransferInventoryRow };
 
-UiList Gp_InvLists[2] = {
-    { _gItemMenuTransferInventoryRowCallbacks, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
-    { _gItemMenuTransferInventoryRowCallbacks, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
+UiList gItemMenuTransferPaneLists[ITEM_MENU_PANE_COUNT] = {
+    [ITEM_MENU_PANE_CONTAINER] = { .rowCallbacks = _gItemMenuTransferInventoryRowCallbacks, .itemCount = 60, .visibleRowCount = { 60 }, .rowHeight = 15 },
+    [ITEM_MENU_PANE_CARRIED]   = { .rowCallbacks = _gItemMenuTransferInventoryRowCallbacks, .itemCount = 60, .visibleRowCount = { 60 }, .rowHeight = 15 },
 };
 
 UiListRowCallback Gp_ItemActionFns[3] = {

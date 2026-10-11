@@ -1572,9 +1572,13 @@ enum {
 /// Storage remains valid until gameplay unloads; bindings are replaced on opening.
 extern InventoryItemRange gItemMenuTransferRanges[ITEM_MENU_PANE_COUNT];
 
-/// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
-/// `selectedItemIndex` is the range-relative row passed to `inventoryGetRow`.
-extern UiList Gp_InvLists[];
+/// Mutable container/carried list controls for the single active transfer screen.
+///
+/// Indexed by ITEM_MENU_PANE_* after removing the battle-field flag. Each pane
+/// binds its count to the corresponding range and enables the single shared
+/// row callback. Selection is a range-relative item row, independent per pane;
+/// viewport and drawing state are retained between updates and reset on opening.
+extern UiList gItemMenuTransferPaneLists[ITEM_MENU_PANE_COUNT];
 
 /// Action-button callbacks for `Gp_ItemActionList`, filled by `_itemMenuFillTransferActions`.
 extern UiListRowCallback Gp_ItemActionFns[];
@@ -1593,11 +1597,14 @@ extern u8 gItemMenuTransferEndText[];
 
 extern u8 Gp_StrMove2[];
 
-extern char Gp_StrSetAmmoHelp[];
+/// Encoded instructions for the ammunition quantity and confirmation controls.
+extern u8 gItemMenuAmmoSplitHelpText[];
 
-extern char Gp_StrAmmoLocked[];
+/// Encoded notice that loaded carried rounds cannot cross to the container.
+extern u8 gItemMenuAmmoLoadedNoticeText[];
 
-extern char Gp_StrMaxCapacity[];
+/// Encoded notice that the proposed stack has reached its per-item capacity.
+extern u8 gItemMenuAmmoCapacityNoticeText[];
 
 extern char Gp_StrSwitch[];
 

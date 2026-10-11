@@ -33430,12 +33430,12 @@ so the address is a loop invariant, not an early named assignment.
 `-O2` strength-reduces it back to a pointer increment:
 
 ```c
-scans = Gp_ScanPtrs;
+scans = gInventoryContainerRanges;
 do {
     if (i == 0) {
         item       = gItemPickupPublishedKind;
         src        = scans[item & 0xFF];
-        Gp_MoveItemKey = item;
+        _gItemMenuTransferPlaceKind = item;
     } else {
         src = &gMcSaveData.carriedItems;
     }
@@ -37449,20 +37449,20 @@ the store — and duplicates that `lui` into an earlier branch's delay slot —
 the source is reading the global back, not reusing a local:
 
 ```c
-/* target: lui a1,%hi(Gp_PadSuppressRise) sits in the `bnez` delay slot of the block
-   above, and the store is `sh a3,%lo(Gp_PadSuppressRise)(a1)` */
-Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
+/* target: lui a1,%hi(_gPadInputSuppressionSet) sits in the `bnez` delay slot of the block
+   above, and the store is `sh a3,%lo(_gPadInputSuppressionSet)(a1)` */
+_gPadInputSuppressionSet = ~_gPadInputPreviousSuppressionMask & Gp_PadSuppressMask;
 ...
-if (Gp_PadSuppressRise & 0x900) { ... }      /* not `if (cached & 0x900)` */
+if (_gPadInputSuppressionSet & 0x900) { ... }      /* not `if (cached & 0x900)` */
 ```
 
-With `cached = ...; Gp_PadSuppressRise = cached; ... if (cached & 0x900)` GCC has only
+With `cached = ...; _gPadInputSuppressionSet = cached; ... if (cached & 0x900)` GCC has only
 one reference to the address, materializes `lui`+`sh` back to back at the store,
 and fills the earlier delay slot with some other constant. Reading it back gives
 the address two uses, so CSE promotes it to its own pseudo that lives across the
 whole preceding block; GCC still forwards the stored value, so no `lhu` appears.
 `padInputUpdate` went 96.4% → 97.7% on that one change. The neighbouring
-`Gp_PadSuppressFall` (also stored then re-read) is the control: it already matched.
+`_gPadInputSuppressionCleared` (also stored then re-read) is the control: it already matched.
 
 ## Order `p = &Global` inits to pick the `%hi` scratch register
 
@@ -41971,7 +41971,7 @@ When no old name survives and every new one is present, the pass already ran
 and exits 0, which keeps re-running it harmless.
 
 Cross-overlay reuse is not a clash: `0x80093830` is `_gTitleAttractDemoRestoreFormat`
-in `sym.title.txt` and `Gp_PlayClockStates` in `sym.gameplay.txt`, because
+in `sym.title.txt` and `gPlayClockStates` in `sym.gameplay.txt`, because
 each overlay carries its own map.
 
 ## `rename_item.py`'s comment pass is a token match, so a placeholder name takes unrelated prose with it
@@ -148560,7 +148560,7 @@ source.
   three: 10 references, or a live length of 246 or more. Both `%hi` lengths
   are doubled (`REG_EQUIV`), so they move in steps of two. The two
   `(use (reg))` insns combine leaves at a label when it merges an `lh` out of
-  an `lhu` that stays live (`Gp_MenuLockDelay`, `Gp_PadSuppressTimer`) are
+  an `lhu` that stays live (`Gp_MenuLockDelay`, `_gPadInputWheelBlockUpdates`) are
   counted in live lengths; nothing else in the range is absent from the
   output. Publishing the three masks through an inline with a `u32` third
   parameter gives the right three priorities (1400 / 1372 / 1358) but moves
@@ -153745,9 +153745,9 @@ a candidate, not a finding. The same holds for `McSaveData.preview`: one site
 
 Two spellings give a location inside an object a name of its own.
 
-**An object-like macro** (`#define D_8010D764 D_8010D6F4[4]`,
+**An object-like macro** (`#define D_8010D764 gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_ACTIONS_PANEL]`,
 `#define D_x (D_y + 4)`). The preprocessor already hands the compiler the
-element expression, so writing `&D_8010D6F4[4]` at the use cannot change the
+element expression, so writing `&gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_ACTIONS_PANEL]` at the use cannot change the
 object: 100 such macros were expanded and all 184 recompiled objects came out
 byte-identical, relocations included. `&(D_y + 4)[2]` and `&D_y[6]` fold to the
 same tree too, including the negative indices the alias form needed

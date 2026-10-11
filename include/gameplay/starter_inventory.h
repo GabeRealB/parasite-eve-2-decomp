@@ -3,9 +3,17 @@
 
 #include "main/mc_types.h"
 
-/// Array of `InventoryItemRange*` (`inventoryInitializeStarterLoadout` clears `[1]` and `[2]`,
-/// and uses `[3]` as the scan destination while it copies the current inventory out).
-extern InventoryItemRange* Gp_ScanPtrs[];
+/// Number of container selectors accepted by the inventory-transfer screen.
+enum { INVENTORY_CONTAINER_COUNT = 12 };
+
+/// Container ranges selected by the low byte of a bank-7 placed-item kind.
+///
+/// Selector 0 is the temporary battle-reward range; 1..11 address saved
+/// containers. Each borrowed descriptor supplies its backing table and row
+/// extent. Gameplay owns the descriptors for its loaded lifetime; transfers,
+/// new-game setup and room prize grants change their rows, not the pointer order.
+/// The selector must be in 0..11; lookup performs no bounds check.
+extern InventoryItemRange* gInventoryContainerRanges[INVENTORY_CONTAINER_COUNT];
 
 /// Rebuilds the player's starter field loadout while preserving selected carried extras.
 ///
