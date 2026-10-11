@@ -98,7 +98,7 @@ void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
         (position) = CdPosToInt(&(header).location);                  \
     } while (0)
 
-    loadState             = &SndLoad_State;
+    loadState             = &gSndLoadState;
     loadState->syncUpload = 0;
     if (interruptStatus != CdlDiskError) {
         // Validate the absolute sector before consuming its sound-bank payload.

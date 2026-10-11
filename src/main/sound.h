@@ -37,9 +37,19 @@ extern u16 gSpuVelocityGainTable[128];
 /// expire on release/reload or sound-heap reset. Type 4 uses slots 4..6.
 extern SndBank gSndBankDescriptors[SOUND_BANK_DESCRIPTOR_COUNT];
 
-extern SndLoadState SndLoad_State;
+/// Working state shared by the sole resident bank load and CD waveform upload.
+///
+/// Feed modes share this block and must be serialized. Bank descriptors and
+/// script images remain held here until installation transfers them to a
+/// playback slot or teardown releases them; sequence images borrow the fixed
+/// MIDI buffer. The sector buffer is borrowed through the final DMA/read.
+/// Area reset discards the bank/image pointers without completing a transfer.
+extern SndLoadState gSndLoadState;
 
-extern volatile u8 D_80082120;
+/// Sound area's stage id (low byte, 0..5), published with `gSndScriptArea`.
+///
+/// Selects Neo Ark's area-volume policy for sequence 0x4F when the stage is 5.
+extern volatile u8 gSndScriptStage;
 
 /// Maps bank-id high nibbles 0..15 to resident descriptor and script-slot indices.
 ///
@@ -99,23 +109,75 @@ extern volatile s16 gSndVolumeReducedMode;
 /// independent of bank IDs; word accesses remain observable during setup.
 extern volatile s32 gSndBankInitializationBusy;
 
-extern volatile u8 D_80082121;
+/// Committed character-bank restart state used for loader rollback.
+///
+/// Snapshots `gSndLoadCharacterRestartState` at chunk begin and area reset,
+/// and commits successful script installation. Teardown restores the live byte.
+extern volatile u8 gSndLoadSavedCharacterRestartState;
 
-extern volatile u8 D_80082122;
+/// Ordinal selecting the next character bank's descriptor and script slot.
+///
+/// Successful placements advance 0..2 to 1..3 and occupy slots 4..6;
+/// installation uses the preceding ordinal. Area reset starts at zero, or
+/// one when the first bank is retained. Pending restart places the first bank
+/// and sets one. Chunk loading saves/commits/restores the byte for rollback.
+/// Ordinary placement rejects ordinal three after descriptor selection.
+extern volatile u8 gSndLoadCharacterUploadOrdinal;
 
-extern volatile s32 D_80082124;
+/// SPU byte origin of the area sample pool and destination for CD wave loads.
+///
+/// Placed below the type-1 origin, or below 0x63810 when that origin is zero,
+/// after rounding the sample length up to 64 bytes. Drained skipped banks
+/// still publish this origin. Boot initializes it to 0x63810; area reset
+/// clears it, so placement must precede a CD wave load using this destination.
+extern volatile s32 gSndLoadAreaSampleOrigin;
 
-extern volatile s32 D_80082128;
+/// SPU byte origin of the type-1 sample pool, also the upper limit for area samples.
+///
+/// Placement subtracts the 64-byte-rounded sample length from 0x63810, even
+/// for a drained skipped bank. Area reset and an accepted type-1 header clear
+/// it; zero makes area placement fall back to 0x63810. Boot starts at that limit.
+extern volatile s32 gSndLoadType1SampleOrigin;
 
-extern volatile u8 D_8008212C;
+/// Committed next-character-bank ordinal used for loader rollback.
+///
+/// Snapshots `gSndLoadCharacterUploadOrdinal` at chunk begin and area reset,
+/// and commits successful script installation. Teardown restores the live byte.
+extern volatile u8 gSndLoadSavedCharacterUploadOrdinal;
 
-extern volatile s32 D_80082130;
+/// SPU byte end of the most recent character-sample placement, or zero on failure.
+///
+/// Stores the placed origin plus its 64-byte-rounded length. Boot and area
+/// reset initialize it to 0x3D010. No current reader uses this marker to place
+/// another bank; later placement derives its origin from the preceding descriptor.
+extern volatile s32 gSndLoadCharacterSampleEnd;
 
+/// Normalized ambient-table retention request byte; its consumer role is unproven.
+///
+/// Zero is written after releasing the tables, one for a nonzero retention
+/// request. No current reader of this signed volatile byte is known.
 extern volatile s8 D_80082134;
 
-extern volatile u8 D_80082135;
+/// Supported byte states of first-character-bank retention and placement.
+enum {
+    SOUND_LOAD_CHARACTER_RESTART_NONE    = 0, // First bank is released at area reset
+    SOUND_LOAD_CHARACTER_RESTART_PENDING = 1, // Next placement restarts at the first bank
+    SOUND_LOAD_CHARACTER_RESTARTED       = 2  // First bank is placed and retained at area reset
+};
 
-extern volatile u8 D_80082136;
+/// First-character-bank retention/restart state (0 disabled, 1 pending, 2 placed).
+///
+/// Enabling retention from zero sets pending. Placement restarts at 0x3D010
+/// and marks placed; area reset then retains slot four and begins at ordinal
+/// one. Disabling retention clears pending or placed without releasing it
+/// immediately. State decisions use a signed byte view; unsupported values
+/// are retained. Loader teardown restores its committed checkpoint.
+extern volatile u8 gSndLoadCharacterRestartState;
+
+/// Sound area's id (low byte), published with `gSndScriptStage` on area reset.
+///
+/// The Neo Ark sequence-volume policy consumes it during MIDI audio updates.
+extern volatile u8 gSndScriptArea;
 
 /// Retained sound-heap allocation for sequence-bank program/layer tables.
 ///

@@ -181,6 +181,7 @@ enum {
     MIDI_SONG_INITIAL_TEMPO_BPM  = 0xFF,     // Quarter notes per minute before a tempo event
     MIDI_MICROSECONDS_PER_MINUTE = 60000000, // SMF tempo: quarter notes per minute = this / microseconds per quarter
     MIDI_SONG_ALL_CHANNELS_DIRTY = 0xFFFF,   // Every channel bit in volumeDirtyChannels
+    MIDI_RESIDENT_SONG_COUNT     = 1,        // Sole resident sequence slot
     MIDI_SONG_TRACK_CAPACITY     = 18,       // Track records; the header count is not checked against this
     MIDI_SONG_VOICE_COUNT        = 18        // Voice slots, indexed by SPU voice 0..17
 };
@@ -285,46 +286,77 @@ enum { SOUND_EVENT_POOL_CAPACITY = 64 };
 /// commands and unqueued reservations together.
 static SndEvt _gSndEvtPool[SOUND_EVENT_POOL_CAPACITY];
 
-static u8 D_8007F2F0;
+/// MIDI master gain (0 silent, 127 full), initialized to 64.
+///
+/// Scales the sequence level by 1/127 before its fade ramp is applied.
+/// Master changes mark all channels for remixing on the next audio update.
+static u8 _gMidiMasterVolume;
 
-/// Unreferenced.
+/// Unreferenced eight-byte BSS span; its representation and role are unproven.
 static u8 D_8007F2F8[8];
 
-static _MidiSong Midi_Song;
+/// Resident sequence slots, with only slot zero available.
+///
+/// Playback, deferred commands and loading share this storage. Each track
+/// cursor borrows `_gMidiSequenceBuffer`; each active voice callback retains
+/// a note-slot address until that voice is released or reassigned. Resetting
+/// a slot requires playback and callbacks to be quiescent.
+static _MidiSong _gMidiSongSlots[MIDI_RESIDENT_SONG_COUNT];
 
-static u8 D_8007F8E0[0x2800];
+/// Resident 10 KiB buffer borrowed by the loaded sequence and its track cursors.
+///
+/// Sequence-image loads reuse this fixed allocation and must fit its full
+/// byte extent. Starting another load invalidates the previous image and all
+/// cursors into it; the loader neither allocates it nor checks the copy length.
+static u8 _gMidiSequenceBuffer[0x2800];
 
-s32 D_800820E0;
+s32 gSndVolumeNeoArkLevel;
 
-s16 D_800820E4;
+s16 gSndVolumeNeoArkDuckUpdates;
 
-s16 D_800820E6;
+s16 gSndVolumeNeoArkRestoreUpdates;
 
-static u8 D_800820E8;
+/// Normalized gain (0..127) of the latest successfully queued MIDI volume event.
+///
+/// Shared across sequence selectors, even when none matches at dispatch.
+/// Muting can queue zero here; unmuting uses this latest value, with no
+/// separately saved pre-mute gain. Producers read the payload after enqueue.
+static u8 _gMidiLastQueuedVolumeScale;
 
-static s8 D_800820E9;
+// Independent music-output gate states; retain signed-byte reads of the latch.
+enum {
+    MIDI_MUSIC_MUTE_DISABLED = 0,
+    MIDI_MUSIC_MUTE_ENABLED  = 1
+};
 
-SndLoadState SndLoad_State;
+/// Music-output mute gate (0 disabled, 1 enabled), initialized disabled.
+///
+/// Suppresses MIDI voice gain except for sequence 0x5A. Gate changes precede
+/// event reservation and take effect even when the volume request is dropped.
+/// Existing voices observe the gate when their dirty channels are remixed.
+static s8 _gMidiMusicMuteActive;
 
-volatile u8 D_80082120;
+SndLoadState gSndLoadState;
 
-volatile u8 D_80082121;
+volatile u8 gSndScriptStage;
 
-volatile u8 D_80082122;
+volatile u8 gSndLoadSavedCharacterRestartState;
 
-volatile s32 D_80082124;
+volatile u8 gSndLoadCharacterUploadOrdinal;
 
-volatile s32 D_80082128;
+volatile s32 gSndLoadAreaSampleOrigin;
 
-volatile u8 D_8008212C;
+volatile s32 gSndLoadType1SampleOrigin;
 
-volatile s32 D_80082130;
+volatile u8 gSndLoadSavedCharacterUploadOrdinal;
+
+volatile s32 gSndLoadCharacterSampleEnd;
 
 volatile s8 D_80082134;
 
-volatile u8 D_80082135;
+volatile u8 gSndLoadCharacterRestartState;
 
-volatile u8 D_80082136;
+volatile u8 gSndScriptArea;
 
 #include "main/sound.h"
 
@@ -347,20 +379,11 @@ enum {
 
 // One resident song; these sequence ids select the two special mixing policies.
 enum {
-    MIDI_RESIDENT_SONG_COUNT     = 1,
     MIDI_SEQUENCE_AREA_VOLUME    = 0x4F,
     MIDI_SEQUENCE_FIXED_GAIN     = 0x5A,
     MIDI_STARTUP_GAIN_MULTIPLIER = 3,
     MIDI_STARTUP_GAIN_SHIFT      = 5
 };
-
-extern void (*SndEvt_Handlers[])(SndEvt*);
-
-static _MidiEventHandler Midi_EventFns[];
-
-static volatile s32 D_800689E8;
-
-static u8 D_800689F0[];
 
 static void _sndEvtRelease(SndEvt* event);
 
@@ -456,7 +479,12 @@ static void _sndLoadResetState(s32 feedMode, void* sectorBuffer);
 
 static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind);
 
-void (*SndEvt_Handlers[])(SndEvt*) = {
+/// Deferred sound-command dispatch, indexed by `SndEvt::command` (0..15).
+///
+/// Each handler borrows the reserved event through its call; dispatch then
+/// releases it. Slots zero and twelve perform no audio work. The drain checks
+/// the unsigned halfword command against the complete table before indexing.
+static void (*_gSndEvtHandlers[])(SndEvt* event) = {
     _sndEvtHandleNoOp,              // SOUND_EVENT_NO_OP
     _sndEvtHandleMidiStart,         // SOUND_EVENT_MIDI_START
     _sndEvtHandleMidiStop,          // SOUND_EVENT_MIDI_STOP
@@ -474,21 +502,40 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
     _sndEvtHandleScriptDuckRelease, // SOUND_EVENT_SCRIPT_DUCK_RELEASE
     _sndEvtHandleScriptKeyOff,      // SOUND_EVENT_SCRIPT_KEY_OFF
 };
+STATIC_ASSERT(ARRAY_SIZE(_gSndEvtHandlers) == SOUND_EVENT_SCRIPT_KEY_OFF + 1, sound_event_handler_count);
 
-static _MidiEventHandler Midi_EventFns[] = {
-    _midiHandleNoteOff,
-    _midiHandleNoteOn,
-    _midiHandleUnsupportedPressure,
-    _midiHandleControlChange,
-    _midiHandleProgramChange,
-    _midiHandleUnsupportedPressure,
-    _midiHandlePitchBend,
-    _midiHandleSystemEvent,
+/// MIDI event decoders for the eight status classes 0x8..0xF.
+///
+/// Indexed by the status high nibble minus eight. An implicit status dispatches
+/// note-on at index one with the saved channel and a cursor one byte before
+/// the data. Handlers return the next delta cursor or NULL on a decode error.
+static _MidiEventHandler _gMidiEventHandlers[] = {
+    _midiHandleNoteOff,             // 0x8: note off
+    _midiHandleNoteOn,              // 0x9: note on
+    _midiHandleUnsupportedPressure, // 0xA: polyphonic pressure (status only consumed)
+    _midiHandleControlChange,       // 0xB: control change
+    _midiHandleProgramChange,       // 0xC: program change
+    _midiHandleUnsupportedPressure, // 0xD: channel pressure (status only consumed)
+    _midiHandlePitchBend,           // 0xE: pitch bend
+    _midiHandleSystemEvent,         // 0xF: system and meta events
 };
-volatile s32        gSndLoadBankId        = SOUND_LOAD_BANK_NONE;
-static volatile s32 D_800689E8            = 0;
+STATIC_ASSERT(ARRAY_SIZE(_gMidiEventHandlers) == 8, midi_event_handler_count);
+volatile s32 gSndLoadBankId = SOUND_LOAD_BANK_NONE;
+/// Failure result of the resident sound-bank transfer, cleared for each new load.
+///
+/// 0 permits installation; 1 rejects a header type, 4 reports no sample address,
+/// and 5 reports an unfinished preceding DMA. DMA failure stops sector feeding.
+/// An early failure that waits out the declared sectors becomes 6 (drained);
+/// chunk completion accepts that as a finished skip without installing a bank.
+/// Other nonzero results reject installation. Independent of the published id.
+static volatile s32 _gSndLoadFailure      = SOUND_LOAD_FAILURE_NONE;
 volatile s16        gSndVolumeReducedMode = SOUND_VOLUME_MODE_NORMAL;
-static u8           D_800689F0[]          = {
+/// Per-sequence mix levels, indexed by loaded sequence id 0..99.
+///
+/// Byte levels 0..127 are multiplied by the requested gain (also 0..127);
+/// startup instead multiplies by 96. The master gain and fade apply later.
+/// Sequence 0x5A always uses its startup level. There are no runtime writers.
+static u8 _gMidiSequenceMixLevels[] = {
     0x60,
     0x0,
     0x0,
@@ -590,6 +637,7 @@ static u8           D_800689F0[]          = {
     0x5A,
     0x60,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gMidiSequenceMixLevels) == 100, midi_sequence_mix_level_count);
 
 /// Clears every reservation, payload and link in the resident sound-event pool.
 ///
@@ -625,7 +673,7 @@ void sndEvtDrainQueue(void)
     do {
         event = _gSndEvtHead;
         // Unsigned narrowing rejects negative stored commands as well as high ones.
-        if ((u16)event->command >= (u32)ARRAY_SIZE(SndEvt_Handlers)) {
+        if ((u16)event->command >= (u32)ARRAY_SIZE(_gSndEvtHandlers)) {
             // Invalidate queued and unqueued reservations before resetting the FIFO.
             _sndEvtClearPool();
             _gSndEvtHead           = NULL;
@@ -633,7 +681,7 @@ void sndEvtDrainQueue(void)
             _gSndEvtProcessEnabled = true;
             return;
         }
-        SndEvt_Handlers[event->command](event);
+        _gSndEvtHandlers[event->command](event);
         // Reload the head after dispatch before releasing the processed reservation.
         event     = _gSndEvtHead;
         nextEvent = event->next;
@@ -899,18 +947,18 @@ s32 midiInitSystem(u32 unused)
     _MidiSong* song;
     SndBank*   bank;
 
-    for (songIndex = 0; songIndex < MIDI_RESIDENT_SONG_COUNT; songIndex++) {
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
         _midiResetSongSlot(songIndex & 0xFF);
     }
-    D_8007F2F0 = MIDI_INITIAL_MASTER_VOLUME;
-    D_800820E9 = 0;
-    D_800820E0 = 0;
-    D_800820E4 = 0;
+    _gMidiMasterVolume          = MIDI_INITIAL_MASTER_VOLUME;
+    _gMidiMusicMuteActive       = MIDI_MUSIC_MUTE_DISABLED;
+    gSndVolumeNeoArkLevel       = 0;
+    gSndVolumeNeoArkDuckUpdates = 0;
     spuSetVoiceRange(SPU_VOICE_RANGE_MUSIC, MIDI_MUSIC_FIRST_VOICE, MIDI_MUSIC_VOICE_COUNT);
     song                = _midiPrepareSongForLoad(SOUND_EVENT_MIDI_INVALID_SEQUENCE);
     song->sequenceId    = SOUND_EVENT_MIDI_INVALID_SEQUENCE;
     song->sequenceBytes = MIDI_INITIAL_LENGTH_BYTES;
-    song->sequenceData  = D_8007F8E0;
+    song->sequenceData  = _gMidiSequenceBuffer;
     // Reserve the type-F tables; a later load partitions the retained block.
     bank                        = &gSndBankDescriptors[gSndBankSlotsByType[MIDI_SEQUENCE_BANK_TYPE_INDEX]];
     song->bank                  = bank;
@@ -970,7 +1018,7 @@ static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks)
 
     songIndex = 0;
     do {
-        song = &Midi_Song + songIndex;
+        song = _gMidiSongSlots + songIndex;
         if (song->sequenceId != SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
             if ((song->sequenceId == sequenceId) && (song->status == MIDI_SONG_IDLE)) {
                 _midiResetChannelTable(&song->channels);
@@ -996,7 +1044,7 @@ static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks)
                         trackData                             = _midiResolveTrackData(song, entryIndex & 0xFF, song->sequenceData);
                         track->savedCursors.startup.dataStart = trackData;
                         track->eventCursor                    = trackData;
-                        if ((trackData < D_8007F8E0) || (trackData >= D_8007F8E0 + sizeof(D_8007F8E0))) {
+                        if ((trackData < _gMidiSequenceBuffer) || (trackData >= _gMidiSequenceBuffer + sizeof(_gMidiSequenceBuffer))) {
                             return MIDI_START_INVALID_IMAGE;
                         }
                         _midiInitializeTrackClock(track);
@@ -1012,8 +1060,8 @@ static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks)
                 song->currentTempoBpm       = MIDI_SONG_INITIAL_TEMPO_BPM;
                 song->pendingTempoOffsetBpm = 0;
                 song->currentTempoOffsetBpm = 0;
-                song->volumeScale           = (D_800689F0[song->sequenceId] * MIDI_STARTUP_GAIN_MULTIPLIER) << MIDI_STARTUP_GAIN_SHIFT;
-                linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, fadeTicks);
+                song->volumeScale           = (_gMidiSequenceMixLevels[song->sequenceId] * MIDI_STARTUP_GAIN_MULTIPLIER) << MIDI_STARTUP_GAIN_SHIFT;
+                linInterpSetup(&song->volumeRamp, 0, _gMidiMasterVolume, fadeTicks);
 
                 if (fadeTicks != 0) {
                     song->status = MIDI_SONG_FADING_IN;
@@ -1033,7 +1081,7 @@ static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks)
             break;
         }
         songIndex++;
-    } while (songIndex < MIDI_RESIDENT_SONG_COUNT);
+    } while (songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots));
 
     return MIDI_START_NO_IDLE_SEQUENCE;
 }
@@ -1044,8 +1092,8 @@ s32 midiTick(s32* unused)
     s32        songIndex;
     s32        trackIndex;
 
-    for (songIndex = 0; songIndex < MIDI_RESIDENT_SONG_COUNT; songIndex++) {
-        song = &Midi_Song + songIndex;
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        song = _gMidiSongSlots + songIndex;
         if (song->sequenceId == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
             break;
         }
@@ -1221,7 +1269,7 @@ static inline void _sndEvtQueueMidiVolume(SndEvt* event, u8 sequenceSelector, u8
     }
     sndEvtEnqueue(event);
     // Read after reopening audio dispatch; releasing a slot retains its payload.
-    D_800820E8 = midiArgs->volumeScale;
+    _gMidiLastQueuedVolumeScale = midiArgs->volumeScale;
 }
 
 s32 sndEvtRequestMidiVolume(s32 sequenceSelector, s32 volumeScale)
@@ -1247,9 +1295,9 @@ s32 midiIsSequenceBusy(s32 sequenceSelector)
     if (sequenceSelector == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return 0;
     }
-    for (songIndex = 0; songIndex <= 0; songIndex++) {
-        if ((sequenceSelector == (&Midi_Song)[songIndex].sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
-            if ((&Midi_Song)[songIndex].status & MIDI_SONG_BUSY) {
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        if ((sequenceSelector == _gMidiSongSlots[songIndex].sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
+            if (_gMidiSongSlots[songIndex].status & MIDI_SONG_BUSY) {
                 return 1;
             }
         }
@@ -1267,8 +1315,8 @@ s32 midiCanSelectSequence(u8 sequenceId)
     if (sequenceId == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return 1;
     }
-    for (songIndex = 0; songIndex <= 0; songIndex++) {
-        if ((&Midi_Song)[songIndex].sequenceId == sequenceId) {
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        if (_gMidiSongSlots[songIndex].sequenceId == sequenceId) {
             return 0;
         }
     }
@@ -1286,12 +1334,12 @@ static void _midiStopMatching(u8 sequenceSelector, u16 fadeTicks)
     s32        songIndex;
     _MidiSong* song;
 
-    for (songIndex = 0; songIndex < MIDI_RESIDENT_SONG_COUNT; songIndex++) {
-        song = &Midi_Song + songIndex;
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        song = _gMidiSongSlots + songIndex;
         if ((sequenceSelector == song->sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
             if (song->status == MIDI_SONG_PLAYING) {
                 song->status = MIDI_SONG_FADING_OUT;
-                linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, fadeTicks);
+                linInterpSetup(&song->volumeRamp, _gMidiMasterVolume, 0, fadeTicks);
             } else {
                 song->status = MIDI_SONG_STOPPING;
             }
@@ -1311,18 +1359,18 @@ static void _midiSetMuteMatching(u8 sequenceSelector, s32 muted)
     s32        songIndex;
     _MidiSong* song;
 
-    for (songIndex = 0; songIndex <= 0; songIndex++) {
-        song = &Midi_Song + songIndex;
+    for (songIndex = 0; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        song = _gMidiSongSlots + songIndex;
         if ((sequenceSelector == song->sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
             if (muted == 0) {
                 if (song->status == MIDI_SONG_MUTED) {
                     song->status = MIDI_SONG_UNMUTING;
-                    linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, MIDI_MUTE_RAMP_UPDATES);
+                    linInterpSetup(&song->volumeRamp, 0, _gMidiMasterVolume, MIDI_MUTE_RAMP_UPDATES);
                 }
             } else {
                 if (song->status & MIDI_SONG_MUTABLE) {
                     song->status = MIDI_SONG_MUTED;
-                    linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, MIDI_MUTE_RAMP_UPDATES);
+                    linInterpSetup(&song->volumeRamp, _gMidiMasterVolume, 0, MIDI_MUTE_RAMP_UPDATES);
                 }
             }
         }
@@ -1344,10 +1392,10 @@ static void _midiSetSequenceVolume(u8 sequenceSelector, u8 volumeScale)
     s32        gainProduct;
 
     songIndex = 0;
-    song      = &Midi_Song;
-    for (; songIndex <= 0; songIndex++) {
+    song      = _gMidiSongSlots;
+    for (; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
         if ((sequenceSelector == song[songIndex].sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
-            mixLevels                           = D_800689F0;
+            mixLevels                           = _gMidiSequenceMixLevels;
             gainProduct                         = mixLevels[song[songIndex].sequenceId] * volumeScale;
             song[songIndex].volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
             song[songIndex].volumeScale         = gainProduct;
@@ -1361,7 +1409,7 @@ void midiSetMasterVolume(s32 volume)
     s32 dirtyChannels;
     u8* masterVolume;
 
-    masterVolume = &D_8007F2F0;
+    masterVolume = &_gMidiMasterVolume;
     if ((s8)volume >= 0) {
         *masterVolume = volume;
     } else {
@@ -1371,14 +1419,14 @@ void midiSetMasterVolume(s32 volume)
     // Refresh every channel of the resident song on the next volume update.
     songIndex     = 0;
     dirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
-    for (; songIndex <= 0; songIndex++) {
-        (&Midi_Song)[songIndex].volumeDirtyChannels = dirtyChannels;
+    for (; songIndex < (s32)ARRAY_SIZE(_gMidiSongSlots); songIndex++) {
+        _gMidiSongSlots[songIndex].volumeDirtyChannels = dirtyChannels;
     }
 }
 
 s32 midiGetMasterVolume(void)
 {
-    return D_8007F2F0;
+    return _gMidiMasterVolume;
 }
 
 /// Returns the sole resident song, ending its tracks if playback has not stopped.
@@ -1388,20 +1436,20 @@ s32 midiGetMasterVolume(void)
 /// record is resident and is also used during system initialization.
 static _MidiSong* _midiPrepareSongForLoad(s32 sequenceId)
 {
-    if (Midi_Song.status != MIDI_SONG_IDLE) {
-        _midiEndTracks(&Midi_Song);
-        Midi_Song.status = MIDI_SONG_STOPPING;
+    if (_gMidiSongSlots[0].status != MIDI_SONG_IDLE) {
+        _midiEndTracks(_gMidiSongSlots);
+        _gMidiSongSlots[0].status = MIDI_SONG_STOPPING;
     }
-    return &Midi_Song;
+    return _gMidiSongSlots;
 }
 
 /// Returns the resident 10 KiB sequence-image buffer without allocating or clearing it.
 ///
-/// Both request arguments are ignored. Loads must fit `sizeof(D_8007F8E0)`;
+/// Both request arguments are ignored. Loads must fit `sizeof(_gMidiSequenceBuffer)`;
 /// reusing the buffer invalidates the previous sequence's borrowed track cursors.
 static u8* _midiGetSequenceBuffer(s32 unused, s32 requestedBytes)
 {
-    return D_8007F8E0;
+    return _gMidiSequenceBuffer;
 }
 
 /// Clears a complete note slot before marking its channel and SPU voice free.
@@ -1439,33 +1487,31 @@ static void _midiOnVoiceReleased(void* context)
 
 void midiMuteMusic(void)
 {
-    enum { MIDI_MUSIC_MUTE_ENABLED = 1 };
     SndEvt*         event;
     SndEvtMidiArgs* midiArgs;
 
     // Keep the output gate enabled even when no command slot is available.
-    D_800820E9 = MIDI_MUSIC_MUTE_ENABLED;
-    event      = sndEvtAlloc();
+    _gMidiMusicMuteActive = MIDI_MUSIC_MUTE_ENABLED;
+    event                 = sndEvtAlloc();
     if (event != NULL) {
         midiArgs              = &event->args.midi;
         event->command        = SOUND_EVENT_MIDI_SET_VOLUME;
         midiArgs->sequenceId  = SOUND_EVENT_MIDI_ALL_SEQUENCES;
         midiArgs->volumeScale = SOUND_EVENT_MIDI_VOLUME_SILENT;
         sndEvtEnqueue(event);
-        D_800820E8 = midiArgs->volumeScale;
+        _gMidiLastQueuedVolumeScale = midiArgs->volumeScale;
     }
 }
 
 void midiUnmuteMusic(void)
 {
-    enum { MIDI_MUSIC_MUTE_DISABLED = 0 };
     SndEvt* event;
     u8      lastRequestedVolumeScale;
 
-    if (D_800820E9 != MIDI_MUSIC_MUTE_DISABLED) {
+    if (_gMidiMusicMuteActive != MIDI_MUSIC_MUTE_DISABLED) {
         // Release the gate even if the cached-gain request cannot be queued.
-        lastRequestedVolumeScale = D_800820E8;
-        D_800820E9               = MIDI_MUSIC_MUTE_DISABLED;
+        lastRequestedVolumeScale = _gMidiLastQueuedVolumeScale;
+        _gMidiMusicMuteActive    = MIDI_MUSIC_MUTE_DISABLED;
         event                    = sndEvtAlloc();
         if (event != NULL) {
             _sndEvtQueueMidiVolume(event, SOUND_EVENT_MIDI_ALL_SEQUENCES, lastRequestedVolumeScale);
@@ -1486,7 +1532,7 @@ static void _midiResetSongSlot(s32 songIndex)
     u32        entryIndex;
 
     songIndex &= 0xFF;
-    song       = &(&Midi_Song)[songIndex];
+    song       = &_gMidiSongSlots[songIndex];
 
     songWords  = (s32*)song;
     entryIndex = 0;
@@ -1648,10 +1694,10 @@ static void _midiAdvanceTrack(_MidiSong* song, _MidiTrack* track)
                 if ((status & MIDI_STATUS_CLASS_MASK) != MIDI_STATUS_SYSTEM) {
                     track->runningChannel = status & MIDI_CHANNEL_STATUS_MASK;
                 }
-                track->eventCursor = Midi_EventFns[((status & MIDI_STATUS_CLASS_MASK) >> MIDI_STATUS_CLASS_SHIFT) - MIDI_STATUS_FIRST_CLASS](status, track->eventCursor, song, track);
+                track->eventCursor = _gMidiEventHandlers[((status & MIDI_STATUS_CLASS_MASK) >> MIDI_STATUS_CLASS_SHIFT) - MIDI_STATUS_FIRST_CLASS](status, track->eventCursor, song, track);
             } else {
                 track->implicitNoteOn = true;
-                track->eventCursor    = Midi_EventFns[MIDI_NOTE_ON_HANDLER_INDEX](track->runningChannel | MIDI_STATUS_NOTE_ON, track->eventCursor - 1, song, track);
+                track->eventCursor    = _gMidiEventHandlers[MIDI_NOTE_ON_HANDLER_INDEX](track->runningChannel | MIDI_STATUS_NOTE_ON, track->eventCursor - 1, song, track);
             }
             if (track->ended != false) {
                 track->ticksUntilEvent -= ticksLeft;
@@ -1684,8 +1730,7 @@ static void _midiUpdateVoiceVolumes(_MidiSong* song)
     enum {
         MIDI_VELOCITY_GAIN_FULL   = 0x3FFF,
         MIDI_CHANNEL_GAIN_DIVISOR = SOUND_EVENT_MIDI_VOLUME_FULL * MIDI_VELOCITY_GAIN_FULL,
-        MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL,
-        MIDI_MUSIC_MUTE_ENABLED   = 1
+        MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL
     };
     SpuVoiceRef    voiceRef;
     SpuVolume      panVolumes;
@@ -1703,10 +1748,10 @@ static void _midiUpdateVoiceVolumes(_MidiSong* song)
 
     volumeRamp = &song->volumeRamp;
     // Apply the sequence's policy before mixing the individual notes.
-    if (song->sequenceId == MIDI_SEQUENCE_AREA_VOLUME && D_80082120 == GAME_STAGE_SHELTER_NEO_ARK) {
-        songVolume = mapNeoArkUpdateMusicVolume((u16)song->volumeScale, D_80082136, volumeRamp);
+    if (song->sequenceId == MIDI_SEQUENCE_AREA_VOLUME && gSndScriptStage == GAME_STAGE_SHELTER_NEO_ARK) {
+        songVolume = mapNeoArkUpdateMusicVolume((u16)song->volumeScale, gSndScriptArea, volumeRamp);
     } else if (song->sequenceId == MIDI_SEQUENCE_FIXED_GAIN) {
-        songVolume = linInterpApply(volumeRamp, (u32)((midiGetMasterVolume() & 0xFF) * ((D_800689F0[MIDI_SEQUENCE_FIXED_GAIN] * MIDI_STARTUP_GAIN_MULTIPLIER) << MIDI_STARTUP_GAIN_SHIFT)) / (u32)SOUND_EVENT_MIDI_VOLUME_FULL);
+        songVolume = linInterpApply(volumeRamp, (u32)((midiGetMasterVolume() & 0xFF) * ((_gMidiSequenceMixLevels[MIDI_SEQUENCE_FIXED_GAIN] * MIDI_STARTUP_GAIN_MULTIPLIER) << MIDI_STARTUP_GAIN_SHIFT)) / (u32)SOUND_EVENT_MIDI_VOLUME_FULL);
     } else {
         songVolume = linInterpApply(volumeRamp, (u32)((midiGetMasterVolume() & 0xFF) * (u16)song->volumeScale) / (u32)SOUND_EVENT_MIDI_VOLUME_FULL);
     }
@@ -1725,7 +1770,7 @@ static void _midiUpdateVoiceVolumes(_MidiSong* song)
                 panOffset       = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
                 spuCalcPanVolumes(&panVolumes, slot->pan + panOffset, voiceVolume);
                 spuGetVoiceRef(voiceIndex, &voiceRef);
-                if (D_800820E9 == MIDI_MUSIC_MUTE_ENABLED && song->sequenceId != MIDI_SEQUENCE_FIXED_GAIN) {
+                if (_gMidiMusicMuteActive == MIDI_MUSIC_MUTE_ENABLED && song->sequenceId != MIDI_SEQUENCE_FIXED_GAIN) {
                     voiceRef.attr->volume.left  = 0;
                     voiceRef.attr->volume.right = 0;
                 } else {
@@ -2293,7 +2338,7 @@ s32 sndLoadProcessSector(u32* payloadWords)
     s32           transferCount; // Image words in COPY_IMAGE; sample bytes in UPLOAD_WAVE
     s32           spuAddr;
 
-    state = &SndLoad_State;
+    state = &gSndLoadState;
     switch (state->phase) {
         case SOUND_LOAD_PHASE_HEADER:
             // Retain the hSPK header. Group and layer tables follow it in this sector.
@@ -2311,12 +2356,12 @@ s32 sndLoadProcessSector(u32* payloadWords)
             // Slot-map types 8 through 13 cannot install a sound bank.
             if ((u32)(bankType - (SOUND_LOAD_FIRST_UNSUPPORTED_BANK_TYPE << 12)) <
                 (u32)((SOUND_LOAD_LAST_UNSUPPORTED_BANK_TYPE - SOUND_LOAD_FIRST_UNSUPPORTED_BANK_TYPE) * (1 << 12) + 1)) {
-                D_800689E8   = SOUND_LOAD_FAILURE_INVALID_TYPE;
-                state->phase = SOUND_LOAD_PHASE_ERROR;
+                _gSndLoadFailure = SOUND_LOAD_FAILURE_INVALID_TYPE;
+                state->phase     = SOUND_LOAD_PHASE_ERROR;
                 break;
             }
             if (bankType == SOUND_BANK_TYPE_1) {
-                D_80082128 = 0;
+                gSndLoadType1SampleOrigin = 0;
             }
             {
                 // Publish the accepted id before the previous bank is released.
@@ -2401,8 +2446,8 @@ s32 sndLoadProcessSector(u32* payloadWords)
             spuAddr = state->bank->spuAddr;
         }
             if (spuAddr == 0) {
-                D_800689E8   = SOUND_LOAD_FAILURE_NO_SAMPLE_ADDRESS;
-                state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
+                _gSndLoadFailure = SOUND_LOAD_FAILURE_NO_SAMPLE_ADDRESS;
+                state->phase     = SOUND_LOAD_PHASE_WAIT_FAIL;
                 sndBankFree(state->bank);
                 state->bank = 0;
                 break;
@@ -2431,8 +2476,8 @@ s32 sndLoadProcessSector(u32* payloadWords)
                         sndBankFree(state->bank);
                         state->bank = 0;
                     }
-                    D_800689E8   = SOUND_LOAD_FAILURE_TRANSFER_BUSY;
-                    state->phase = SOUND_LOAD_PHASE_ERROR;
+                    _gSndLoadFailure = SOUND_LOAD_FAILURE_TRANSFER_BUSY;
+                    state->phase     = SOUND_LOAD_PHASE_ERROR;
                     break;
                 }
                 SpuWritePartly((u8*)payloadWords, transferCount);
@@ -2448,16 +2493,16 @@ s32 sndLoadProcessSector(u32* payloadWords)
         case SOUND_LOAD_PHASE_WAIT_FAIL:
             // The failure stands until `transferSectors` sectors have arrived.
             if ((state->sectorsArrived + 1) >= (s32)state->payload.header.transferSectors) {
-                D_800689E8 = SOUND_LOAD_FAILURE_DRAINED;
+                _gSndLoadFailure = SOUND_LOAD_FAILURE_DRAINED;
                 if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == (SOUND_BANK_TYPE_AREA << 12)) {
-                    if (D_80082128 == 0) {
-                        D_80082124 = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
+                    if (gSndLoadType1SampleOrigin == 0) {
+                        gSndLoadAreaSampleOrigin = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                     } else {
-                        D_80082124 = D_80082128 - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
+                        gSndLoadAreaSampleOrigin = gSndLoadType1SampleOrigin - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                     }
                 }
                 if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == SOUND_BANK_TYPE_1) {
-                    D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
+                    gSndLoadType1SampleOrigin = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                 }
                 state->phase = SOUND_LOAD_PHASE_DONE;
             }
@@ -2503,7 +2548,7 @@ static s32 _sndLoadInstallScriptBank(SndLoadState* load)
     s8           slotIndex;
 
     bank = load->bank;
-    if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (bankId = bank->bankId) == SOUND_BANK_ID_FREE) {
+    if (_gSndLoadFailure != SOUND_LOAD_FAILURE_NONE || (bankId = bank->bankId) == SOUND_BANK_ID_FREE) {
     fail:
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
         return SOUND_LOAD_RESULT_ERROR;
@@ -2514,7 +2559,7 @@ static s32 _sndLoadInstallScriptBank(SndLoadState* load)
     }
     if ((bankId & SOUND_BANK_TYPE_MASK) == (SOUND_BANK_TYPE_CHARACTER << 12)) {
         // Placement already advanced the ordinal; bind the bank it just placed.
-        slotIndex = slotIndex - 1 + D_80082122;
+        slotIndex = slotIndex - 1 + gSndLoadCharacterUploadOrdinal;
     }
     bankSlot = sndBankSlotGet(slotIndex);
     if (bankSlot == NULL) {
@@ -2526,11 +2571,11 @@ static s32 _sndLoadInstallScriptBank(SndLoadState* load)
     bankSlot->spuAddr = bank->spuAddr;
     _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
     sndBankBuildLayerIndex(bankSlot->bank);
-    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
-    load->bank        = 0;
-    load->imageBuffer = 0;
-    D_8008212C        = D_80082122;
-    D_80082121        = D_80082135;
+    gSndLoadBankId                      = SOUND_LOAD_BANK_NONE;
+    load->bank                          = 0;
+    load->imageBuffer                   = 0;
+    gSndLoadSavedCharacterUploadOrdinal = gSndLoadCharacterUploadOrdinal;
+    gSndLoadSavedCharacterRestartState  = gSndLoadCharacterRestartState;
     return 0;
 }
 
@@ -2549,7 +2594,7 @@ static s32 _sndLoadComplete(SndLoadState* load)
     s32        sequenceId;
     s32        result;
 
-    if (D_800689E8 == SOUND_LOAD_FAILURE_DRAINED) {
+    if (_gSndLoadFailure == SOUND_LOAD_FAILURE_DRAINED) {
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
         result         = 0;
     } else {
@@ -2557,7 +2602,7 @@ static s32 _sndLoadComplete(SndLoadState* load)
         switch (load->payload.header.imageKind) {
             case SOUND_BANK_IMAGE_SEQUENCE:
                 bank = load->bank;
-                if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
+                if (_gSndLoadFailure != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
                     gSndLoadBankId = SOUND_LOAD_BANK_NONE;
                 } else {
                     sequenceId         &= SOUND_LOAD_SEQUENCE_ID_MASK;
@@ -2598,9 +2643,9 @@ void sndLoadBeginSectorLoad(void* sectorBuffer)
 
 void sndLoadBeginChunkLoad(u8 syncUpload, void* sectorBuffer)
 {
-    SndLoad_State.syncUpload = syncUpload;
-    D_8008212C               = D_80082122;
-    D_80082121               = D_80082135;
+    gSndLoadState.syncUpload            = syncUpload;
+    gSndLoadSavedCharacterUploadOrdinal = gSndLoadCharacterUploadOrdinal;
+    gSndLoadSavedCharacterRestartState  = gSndLoadCharacterRestartState;
     _sndLoadResetState(SOUND_LOAD_FEED_CHUNK, sectorBuffer);
 }
 
@@ -2608,9 +2653,9 @@ void sndLoadTeardown(void)
 {
     SndLoadState* state;
 
-    D_80082122 = D_8008212C;
-    D_80082135 = D_80082121;
-    state      = &SndLoad_State;
+    gSndLoadCharacterUploadOrdinal = gSndLoadSavedCharacterUploadOrdinal;
+    gSndLoadCharacterRestartState  = gSndLoadSavedCharacterRestartState;
+    state                          = &gSndLoadState;
     if (state->phase != SOUND_LOAD_PHASE_WAIT_FAIL) {
         state->phase = SOUND_LOAD_PHASE_TORN_DOWN;
         sndHeapFree(state->imageBuffer);
@@ -2628,7 +2673,7 @@ s32 sndLoadFeedChunkSector(u8* sector)
     if (gSndBankInitializationBusy != 0) {
         return SOUND_LOAD_RESULT_ERROR;
     }
-    state = &SndLoad_State;
+    state = &gSndLoadState;
     if (state->syncUpload != 0) {
         state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
     } else {
@@ -2681,7 +2726,7 @@ s32 sndLoadInstallSequence(SndLoadState* load)
     u8*        sequenceData;
 
     bank = load->bank;
-    if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
+    if (_gSndLoadFailure != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
         return SOUND_LOAD_RESULT_ERROR;
     }
@@ -2776,12 +2821,11 @@ static s32 _sndLoadResolveSampleAddress(s32 imageKind, s32 bankId, s32 waveBytes
 /// The loader failure status is cleared for the new transfer.
 static void _sndLoadResetState(s32 feedMode, void* sectorBuffer)
 {
-    enum { SOUND_LOAD_STATUS_OK = 0 };
     SndLoadState* state;
     s32           sectorBytes;
 
-    D_800689E8 = SOUND_LOAD_STATUS_OK;
-    state      = &SndLoad_State;
+    _gSndLoadFailure = SOUND_LOAD_FAILURE_NONE;
+    state            = &gSndLoadState;
     if (feedMode == SOUND_LOAD_FEED_SECTOR) {
         sectorBytes     = SOUND_LOAD_SECTOR_BYTES;
         state->feedMode = feedMode;
@@ -2841,7 +2885,7 @@ static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind)
                 descriptorIndex++;
                 descriptor++;
             } while (descriptorIndex < SOUND_LOAD_CHARACTER_SLOT_END);
-            slotIndex = D_80082122 + SOUND_LOAD_CHARACTER_FIRST_SLOT;
+            slotIndex = gSndLoadCharacterUploadOrdinal + SOUND_LOAD_CHARACTER_FIRST_SLOT;
             break;
         case SOUND_BANK_TYPE_SEQUENCE >> 12:
             break;

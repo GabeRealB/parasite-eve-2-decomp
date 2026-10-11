@@ -28,8 +28,8 @@ gPadConfirmButtonMask = 0x8005ED70; // absolute:True
 gPadCancelButtonMask = 0x8005ED74; // absolute:True
 gPadMenuButtonMask = 0x8005ED78; // absolute:True
 gCdCmdQueue = 0x80068FA0; // absolute:True
-D_800820E4 = 0x800820E4; // absolute:True
-D_800820E6 = 0x800820E6; // absolute:True
+gSndVolumeNeoArkDuckUpdates = 0x800820E4; // absolute:True
+gSndVolumeNeoArkRestoreUpdates = 0x800820E6; // absolute:True
 
 // --- from gameplay (30 symbols)
 itemGetText = 0x800B8EB0; // type:func absolute:True
@@ -75,7 +75,7 @@ D_8006AC5A = 0x8006AC5A; // absolute:True
 D_8006AC5C = 0x8006AC5C; // absolute:True
 D_8006AC60 = 0x8006AC60; // absolute:True
 D_8006AC6C = 0x8006AC6C; // absolute:True
-D_800820E0 = 0x800820E0; // absolute:True
+gSndVolumeNeoArkLevel = 0x800820E0; // absolute:True
 
 gItemMenuPanelDescriptors = 0x8010EAB4; // absolute:True size:0x578
 gFsImageWorkspace = 0x801D7000; // absolute:True

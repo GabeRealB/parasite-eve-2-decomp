@@ -283,7 +283,7 @@ static __inline__ s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* songRamp)
     u32 volumeProduct;
 
     masterGain    = (u8)midiGetMasterVolume();
-    volumeProduct = masterGain * D_800820E0;
+    volumeProduct = masterGain * gSndVolumeNeoArkLevel;
     return linInterpApply(songRamp, volumeProduct / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
 }
 
@@ -300,41 +300,41 @@ s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp)
 
     // Delay each area transition before stepping the shared song gain.
     if (areaId == GAME_AREA_NEO_ARK_SUBSTATION) {
-        if (D_800820E4 == 0) {
-            D_800820E4 = 1;
-            D_800820E6 = 0;
-            D_800820E0 = fullVolume;
-        } else if (D_800820E4 < MAP_NEO_ARK_MUSIC_DUCK_WAIT_UPDATES) {
-            D_800820E4 = D_800820E4 + 1;
-        } else if ((fullVolume >> 1) < (u32)D_800820E0) {
-            D_800820E0 = D_800820E0 - MAP_NEO_ARK_MUSIC_VOLUME_STEP;
+        if (gSndVolumeNeoArkDuckUpdates == 0) {
+            gSndVolumeNeoArkDuckUpdates    = 1;
+            gSndVolumeNeoArkRestoreUpdates = 0;
+            gSndVolumeNeoArkLevel          = fullVolume;
+        } else if (gSndVolumeNeoArkDuckUpdates < MAP_NEO_ARK_MUSIC_DUCK_WAIT_UPDATES) {
+            gSndVolumeNeoArkDuckUpdates = gSndVolumeNeoArkDuckUpdates + 1;
+        } else if ((fullVolume >> 1) < (u32)gSndVolumeNeoArkLevel) {
+            gSndVolumeNeoArkLevel = gSndVolumeNeoArkLevel - MAP_NEO_ARK_MUSIC_VOLUME_STEP;
         } else {
-            D_800820E4 = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
-            D_800820E6 = 0;
-            D_800820E0 = fullVolume >> 1;
+            gSndVolumeNeoArkDuckUpdates    = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
+            gSndVolumeNeoArkRestoreUpdates = 0;
+            gSndVolumeNeoArkLevel          = fullVolume >> 1;
         }
         volume = _mapNeoArkApplyAreaMusicVolume(ramp);
     } else if (areaId == GAME_AREA_NEO_ARK_POWER_PLANT_2) {
-        if (D_800820E6 == 0) {
-            D_800820E4 = 0;
-            D_800820E6 = 1;
-            D_800820E0 = fullVolume >> 1;
-        } else if (D_800820E6 < MAP_NEO_ARK_MUSIC_RESTORE_WAIT_UPDATES) {
-            D_800820E6 = D_800820E6 + 1;
-        } else if ((u32)D_800820E0 < fullVolume) {
-            D_800820E0 = D_800820E0 + MAP_NEO_ARK_MUSIC_VOLUME_STEP;
+        if (gSndVolumeNeoArkRestoreUpdates == 0) {
+            gSndVolumeNeoArkDuckUpdates    = 0;
+            gSndVolumeNeoArkRestoreUpdates = 1;
+            gSndVolumeNeoArkLevel          = fullVolume >> 1;
+        } else if (gSndVolumeNeoArkRestoreUpdates < MAP_NEO_ARK_MUSIC_RESTORE_WAIT_UPDATES) {
+            gSndVolumeNeoArkRestoreUpdates = gSndVolumeNeoArkRestoreUpdates + 1;
+        } else if ((u32)gSndVolumeNeoArkLevel < fullVolume) {
+            gSndVolumeNeoArkLevel = gSndVolumeNeoArkLevel + MAP_NEO_ARK_MUSIC_VOLUME_STEP;
         } else {
-            D_800820E4 = 0;
-            D_800820E6 = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
-            D_800820E0 = fullVolume;
+            gSndVolumeNeoArkDuckUpdates    = 0;
+            gSndVolumeNeoArkRestoreUpdates = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
+            gSndVolumeNeoArkLevel          = fullVolume;
         }
         volume = _mapNeoArkApplyAreaMusicVolume(ramp);
     } else {
-        scaledVolume = midiGetMasterVolume() & 0xFF;
-        scaledVolume = scaledVolume * fullVolume;
-        volume       = linInterpApply(ramp, scaledVolume / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
-        D_800820E4   = 0;
-        D_800820E6   = 0;
+        scaledVolume                   = midiGetMasterVolume() & 0xFF;
+        scaledVolume                   = scaledVolume * fullVolume;
+        volume                         = linInterpApply(ramp, scaledVolume / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
+        gSndVolumeNeoArkDuckUpdates    = 0;
+        gSndVolumeNeoArkRestoreUpdates = 0;
     }
     return volume;
 }

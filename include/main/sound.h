@@ -7,11 +7,25 @@
 
 #include "main/sound_types.h"
 
-extern s32 D_800820E0;
+/// Neo Ark's selected sequence level before MIDI master gain and the song fade.
+///
+/// Substation policy ramps toward half the song's unsigned 16-bit mix level;
+/// Power Plant 2 restores the full level. Each step changes this signed word
+/// by 768 without clamping; target comparisons interpret it as unsigned.
+extern s32 gSndVolumeNeoArkLevel;
 
-extern s16 D_800820E4;
+/// Substation music-policy call counter (0 inactive, 1..121 delay, 255 settled).
+///
+/// Counts volume-policy calls, which can occur on extra PAL audio updates.
+/// Held at 121 while the selected level steps downward; leaving both policy
+/// areas or starting restoration clears it. MIDI initialization also clears it.
+extern s16 gSndVolumeNeoArkDuckUpdates;
 
-extern s16 D_800820E6;
+/// Power Plant 2 music-policy call counter (0 inactive, 1..241 delay, 255 settled).
+///
+/// Held at 241 while the selected level steps upward. Entering Substation or
+/// leaving both policy areas clears it; calls include extra PAL audio updates.
+extern s16 gSndVolumeNeoArkRestoreUpdates;
 
 /// Last music gain selected from the saved option or an explicit override.
 ///

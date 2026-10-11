@@ -1128,7 +1128,7 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
         // First waveform sector: skip its lead and upload samples.
         // A busy SPU transfer keeps the bank.
         waveLead  = (const _CdAudioWaveLead*)sector->bytes;
-        loadState = &SndLoad_State;
+        loadState = &gSndLoadState;
         _cdAudioPrepareWaveUpload(loadState, waveLead);
         spuAddressIndex = waveLead->spuAddressIndex;
         if (spuAddressIndex != 0) {
@@ -1384,7 +1384,7 @@ s32 cdAudioLoadWaves(s32 firstSector)
     if (firstSector == CD_AUDIO_SECTOR_NONE) {
         return CD_AUDIO_WAVE_LOAD_NO_SECTOR;
     }
-    _cdAudioStartWaveLoad(firstSector, D_80082124);
+    _cdAudioStartWaveLoad(firstSector, gSndLoadAreaSampleOrigin);
     return CD_AUDIO_WAVE_LOAD_REQUESTED;
 }
 

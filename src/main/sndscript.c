@@ -648,18 +648,15 @@ static inline s32 _sndScriptSelectStageReverbLevel(s32 stage, s32 area)
 void sndScriptResetForArea(s32 stage, s32 area)
 {
     enum {
-        SOUND_LOAD_CHARACTER_SAMPLE_BASE     = 0x3D010,
-        SOUND_SCRIPT_LOCATION_BYTE_MASK      = 0xFF,
-        SOUND_SCRIPT_RESET_COMMON_ENTRY      = 13,
-        SOUND_BANK_SLOT_TYPE_1               = 1,
-        SOUND_BANK_SLOT_TYPE_3               = 3,
-        SOUND_BANK_SLOT_CHARACTER_FIRST      = 4,
-        SOUND_BANK_SLOT_CHARACTER_SECOND     = 5,
-        SOUND_BANK_SLOT_CHARACTER_THIRD      = 6,
-        SOUND_BANK_SLOT_AREA                 = 7,
-        SOUND_LOAD_CHARACTER_RESTART_NONE    = 0,
-        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
-        SOUND_LOAD_CHARACTER_RESTARTED       = 2
+        SOUND_LOAD_CHARACTER_SAMPLE_BASE = 0x3D010,
+        SOUND_SCRIPT_LOCATION_BYTE_MASK  = 0xFF,
+        SOUND_SCRIPT_RESET_COMMON_ENTRY  = 13,
+        SOUND_BANK_SLOT_TYPE_1           = 1,
+        SOUND_BANK_SLOT_TYPE_3           = 3,
+        SOUND_BANK_SLOT_CHARACTER_FIRST  = 4,
+        SOUND_BANK_SLOT_CHARACTER_SECOND = 5,
+        SOUND_BANK_SLOT_CHARACTER_THIRD  = 6,
+        SOUND_BANK_SLOT_AREA             = 7
     };
     SndBank* bankBase;
     s32      loadMode;
@@ -674,37 +671,37 @@ void sndScriptResetForArea(s32 stage, s32 area)
     sndEvtRequestScriptStop(SOUND_COMMON(SOUND_SCRIPT_RESET_COMMON_ENTRY) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    area       = area & SOUND_SCRIPT_LOCATION_BYTE_MASK;
-    D_80082120 = stage;
-    D_80082136 = area;
+    area            = area & SOUND_SCRIPT_LOCATION_BYTE_MASK;
+    gSndScriptStage = stage;
+    gSndScriptArea  = area;
     sndBankSlotReleaseImage(SOUND_BANK_SLOT_TYPE_1);
     sndBankSlotReleaseImage(SOUND_BANK_SLOT_AREA);
 
     _sndScriptSetReverb(_sndScriptSelectStageReverbLevel(stage, area));
-    D_80082130 = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
-    D_80082128 = 0;
-    D_80082124 = D_80082128;
+    gSndLoadCharacterSampleEnd = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
+    gSndLoadType1SampleOrigin  = 0;
+    gSndLoadAreaSampleOrigin   = gSndLoadType1SampleOrigin;
 
     // The character-load mode decides whether slot 4 survives the area change.
-    loadMode = (s8)D_80082135;
+    loadMode = (s8)gSndLoadCharacterRestartState;
     switch (loadMode) {
         case SOUND_LOAD_CHARACTER_RESTART_NONE:
             sndBankFree(&gSndBankDescriptors[SOUND_BANK_SLOT_CHARACTER_FIRST]);
             sndBankSlotReleaseImage(SOUND_BANK_SLOT_CHARACTER_FIRST);
         case SOUND_LOAD_CHARACTER_RESTART_PENDING:
-            D_80082122 = 0;
+            gSndLoadCharacterUploadOrdinal = 0;
             break;
         case SOUND_LOAD_CHARACTER_RESTARTED:
-            D_80082122 = 1;
+            gSndLoadCharacterUploadOrdinal = 1;
             break;
     }
     bankBase = &gSndBankDescriptors[SOUND_BANK_SLOT_TYPE_1];
 
     // Reset the in-flight loader and discard the transient sample descriptors.
-    SndLoad_State.imageBuffer = NULL;
-    SndLoad_State.bank        = NULL;
-    D_8008212C                = D_80082122;
-    D_80082121                = D_80082135;
+    gSndLoadState.imageBuffer           = NULL;
+    gSndLoadState.bank                  = NULL;
+    gSndLoadSavedCharacterUploadOrdinal = gSndLoadCharacterUploadOrdinal;
+    gSndLoadSavedCharacterRestartState  = gSndLoadCharacterRestartState;
     sndBankFree(bankBase);
     sndBankFree(bankBase + (SOUND_BANK_SLOT_AREA - SOUND_BANK_SLOT_TYPE_1));
     sndBankFree(bankBase + (SOUND_BANK_SLOT_CHARACTER_SECOND - SOUND_BANK_SLOT_TYPE_1));
@@ -726,8 +723,6 @@ s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId)
         SOUND_LOAD_HIGH_SAMPLE_END           = 0x7B010,
         SOUND_LOAD_PE_SAMPLE_BASE            = 0x6F810,
         SOUND_LOAD_CHARACTER_BANK_LIMIT      = 3,
-        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
-        SOUND_LOAD_CHARACTER_RESTARTED       = 2,
         SOUND_LOAD_SAMPLE_NO_ADDRESS         = 0
     };
     s32 alignedWaveBytes;
@@ -739,8 +734,8 @@ s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId)
             spuAddr = SOUND_LOAD_COMMON_SAMPLE_BASE;
             break;
         case SOUND_BANK_TYPE_1 >> 12:
-            D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE - alignedWaveBytes;
-            spuAddr    = D_80082128;
+            gSndLoadType1SampleOrigin = SOUND_LOAD_COMMON_SAMPLE_BASE - alignedWaveBytes;
+            spuAddr                   = gSndLoadType1SampleOrigin;
             break;
         case 3:
             spuAddr = SOUND_LOAD_TYPE_3_SAMPLE_BASE;
@@ -748,40 +743,40 @@ s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId)
         case SOUND_BANK_TYPE_CHARACTER:
             // Character banks append after the preceding descriptor's sample pool.
             // A pending mode change instead restarts placement at the first bank.
-            if ((s8)D_80082135 == SOUND_LOAD_CHARACTER_RESTART_PENDING) {
-                D_80082135 = SOUND_LOAD_CHARACTER_RESTARTED;
+            if ((s8)gSndLoadCharacterRestartState == SOUND_LOAD_CHARACTER_RESTART_PENDING) {
+                gSndLoadCharacterRestartState = SOUND_LOAD_CHARACTER_RESTARTED;
             } else {
-                if ((s8)D_80082122 > 0 && (s8)D_80082122 < SOUND_LOAD_CHARACTER_BANK_LIMIT) {
-                    spuAddr = gSndBankDescriptors[(s8)D_80082122 + 3].spuAddr +
-                              gSndBankDescriptors[(s8)D_80082122 + 3].waveBytes;
-                    D_80082122 += 1;
-                    D_80082130  = alignedWaveBytes + spuAddr;
+                if ((s8)gSndLoadCharacterUploadOrdinal > 0 && (s8)gSndLoadCharacterUploadOrdinal < SOUND_LOAD_CHARACTER_BANK_LIMIT) {
+                    spuAddr = gSndBankDescriptors[(s8)gSndLoadCharacterUploadOrdinal + 3].spuAddr +
+                              gSndBankDescriptors[(s8)gSndLoadCharacterUploadOrdinal + 3].waveBytes;
+                    gSndLoadCharacterUploadOrdinal += 1;
+                    gSndLoadCharacterSampleEnd      = alignedWaveBytes + spuAddr;
                     break;
                 }
                 spuAddr = SOUND_LOAD_SAMPLE_NO_ADDRESS;
-                if (D_80082122 != 0) {
+                if (gSndLoadCharacterUploadOrdinal != 0) {
                     goto clearPlacementEnd;
                 }
             }
-            spuAddr    = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
-            D_80082122 = 1;
-            D_80082130 = alignedWaveBytes + spuAddr;
+            spuAddr                        = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
+            gSndLoadCharacterUploadOrdinal = 1;
+            gSndLoadCharacterSampleEnd     = alignedWaveBytes + spuAddr;
             break;
         clearPlacementEnd:
-            D_80082130 = SOUND_LOAD_SAMPLE_NO_ADDRESS;
+            gSndLoadCharacterSampleEnd = SOUND_LOAD_SAMPLE_NO_ADDRESS;
             break;
         case SOUND_BANK_TYPE_AREA: {
             s32 type1Base;
 
             // Area samples end below the type-1 pool, or below the common pool.
-            type1Base = D_80082128;
+            type1Base = gSndLoadType1SampleOrigin;
             if (type1Base == 0) {
                 type1Base = SOUND_LOAD_COMMON_SAMPLE_BASE;
             } else {
-                type1Base = D_80082128;
+                type1Base = gSndLoadType1SampleOrigin;
             }
-            D_80082124 = type1Base - alignedWaveBytes;
-            spuAddr    = D_80082124;
+            gSndLoadAreaSampleOrigin = type1Base - alignedWaveBytes;
+            spuAddr                  = gSndLoadAreaSampleOrigin;
             break;
         }
         case (u32)SOUND_STAGE_AMBIENT >> 28:
@@ -922,22 +917,17 @@ static void _sndBankSetAmbientRetention(s32 retainBank)
 
 void sndLoadSetFirstCharacterBankRetention(s32 retainFirstBank)
 {
-    enum {
-        SOUND_LOAD_CHARACTER_RESTART_NONE    = 0,
-        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
-        SOUND_LOAD_CHARACTER_RESTARTED       = 2
-    };
     s8 retentionState;
 
     // Interpret the stored byte as signed, leaving unsupported states untouched.
-    retentionState = (s8)D_80082135;
+    retentionState = (s8)gSndLoadCharacterRestartState;
     if (retentionState == SOUND_LOAD_CHARACTER_RESTART_NONE) {
         if (retainFirstBank != 0) {
-            D_80082135 = SOUND_LOAD_CHARACTER_RESTART_PENDING;
+            gSndLoadCharacterRestartState = SOUND_LOAD_CHARACTER_RESTART_PENDING;
         }
     } else if (retentionState >= 0) {
         if ((retentionState < SOUND_LOAD_CHARACTER_RESTARTED + 1) && (retainFirstBank == 0)) {
-            D_80082135 = SOUND_LOAD_CHARACTER_RESTART_NONE;
+            gSndLoadCharacterRestartState = SOUND_LOAD_CHARACTER_RESTART_NONE;
         }
     }
 }
@@ -950,23 +940,22 @@ void asyncCbPollMainLoop(s32 unused)
 void audioTickInitPlayback(void)
 {
     enum {
-        SOUND_LOAD_CHARACTER_SAMPLE_BASE  = 0x3D010,
-        SOUND_LOAD_COMMON_SAMPLE_BASE     = 0x63810,
-        SOUND_LOAD_CHARACTER_RESTART_NONE = 0
+        SOUND_LOAD_CHARACTER_SAMPLE_BASE = 0x3D010,
+        SOUND_LOAD_COMMON_SAMPLE_BASE    = 0x63810
     };
 
     audioTickInsert(midiTick, NULL, AUDIO_TICK_ID_MIDI, NULL);
     audioTickInsert(_sndScriptTickSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
 
     // Reset upward character allocation and downward type-1/area allocation.
-    D_80082130              = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
-    D_80082128              = SOUND_LOAD_COMMON_SAMPLE_BASE;
-    D_80082124              = D_80082128;
-    D_80082122              = 0;
-    D_8008212C              = 0;
-    D_80082135              = SOUND_LOAD_CHARACTER_RESTART_NONE;
-    D_80082121              = SOUND_LOAD_CHARACTER_RESTART_NONE;
-    _gSndScriptDuckRequests = 0;
+    gSndLoadCharacterSampleEnd          = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
+    gSndLoadType1SampleOrigin           = SOUND_LOAD_COMMON_SAMPLE_BASE;
+    gSndLoadAreaSampleOrigin            = gSndLoadType1SampleOrigin;
+    gSndLoadCharacterUploadOrdinal      = 0;
+    gSndLoadSavedCharacterUploadOrdinal = 0;
+    gSndLoadCharacterRestartState       = SOUND_LOAD_CHARACTER_RESTART_NONE;
+    gSndLoadSavedCharacterRestartState  = SOUND_LOAD_CHARACTER_RESTART_NONE;
+    _gSndScriptDuckRequests             = 0;
 }
 
 /// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.

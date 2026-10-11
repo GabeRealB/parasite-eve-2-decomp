@@ -614,7 +614,7 @@ SndBank* sndBankAllocTables(const SndBankPayload* payload)
     }
 
     if (bankType == SOUND_BANK_TYPE_4) {
-        descriptorSlot = D_80082122 + SOUND_BANK_TYPE_4_FIRST_SLOT;
+        descriptorSlot = gSndLoadCharacterUploadOrdinal + SOUND_BANK_TYPE_4_FIRST_SLOT;
     }
 
     // Sequence reloads retain their table block; other slots release theirs first.

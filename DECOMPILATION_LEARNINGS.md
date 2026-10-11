@@ -11267,8 +11267,8 @@ then emits the shift pair. Related stores that must keep program order around
 that load (e.g. a `vol_a = 0; vol_b = vol_a;` chain just before the cast)
 should also be `volatile`, or the load will sink into the middle of them.
 
-`sndScriptResetForArea` needs this on `D_80082135` and the surrounding
-`D_80082128` / `D_80082124` / `D_80082130` stores.
+`sndScriptResetForArea` needs this on `gSndLoadCharacterRestartState` and the surrounding
+`gSndLoadType1SampleOrigin` / `gSndLoadAreaSampleOrigin` / `gSndLoadCharacterSampleEnd` stores.
 
 A `volatile s8` reads the same way with no cast at all, so a volatile byte whose
 every arithmetic read is spelled `(s8)x` is a signed byte, not an unsigned one
@@ -11666,7 +11666,7 @@ j     end
 Hold the address in a local first:
 
 ```c
-u8* masterVolume = &D_8007F2F0;
+u8* masterVolume = &_gMidiMasterVolume;
 if ((s8)volume >= 0) {
     *masterVolume = volume;
 } else {
@@ -11674,11 +11674,11 @@ if ((s8)volume >= 0) {
 }
 ```
 
-`midiSetMasterVolume` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
+`midiSetMasterVolume` needs this so both stores share one `lui v1, %hi(_gMidiMasterVolume)`.
 
 ## One-iteration `for (i = 0; i <= 0; i++)` + array stride
 
-Several audio helpers walk `Midi_Song` with stride `0x5DC` and loop condition
+Several audio helpers walk `_gMidiSongSlots` with stride `0x5DC` and loop condition
 `blez` after `i++` from zero — i.e. exactly one iteration. A pointer `++` do/while
 often becomes a countdown (`addiu -1` / `bgez`). Array indexing matches:
 
@@ -11686,11 +11686,11 @@ often becomes a countdown (`addiu -1` / `bgez`). Array indexing matches:
 i = 0;
 val = 0xFFFF;
 for (; i <= 0; i++) {
-    (&Midi_Song)[i].field_C = val;
+    _gMidiSongSlots[i].volumeDirtyChannels = val;
 }
 ```
 
-The element type must be size `0x5DC` (logical stride). BSS for `Midi_Song` is
+The element type must be size `0x5DC` (logical stride). BSS for `_gMidiSongSlots` is
 still `0x5E0` (4 bytes of tail padding after the logical block).
 
 ## GTE inline macros: real COP2 opcodes, not DMPSX encodings
@@ -12184,15 +12184,15 @@ compare), declare the global as `s8` even if it only holds 0/1.
 A cast at the use site is not enough:
 
 ```c
-if ((s8)D_800820E9 != 0)  /* still emits lbu, then sign-extends the reg */
+if ((s8)_gMidiMusicMuteActive != 0)  /* still emits lbu, then sign-extends the reg */
 ```
 
 ```c
-extern s8 D_800820E9;
-if (D_800820E9 != 0)      /* emits lb */
+extern s8 _gMidiMusicMuteActive;
+if (_gMidiMusicMuteActive != 0)      /* emits lb */
 ```
 
-`midiUnmuteMusic` / `_midiUpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
+`midiUnmuteMusic` / `_midiUpdateVoiceVolumes` both `lb` `_gMidiMusicMuteActive`; stores remain `sb`
 either way.
 
 Declaring the *field* `s8` is necessary but not sufficient: the type of the
@@ -13976,7 +13976,7 @@ Target often has `beq a0, v0` after `lbu v0, field(ptr)` (loaded value in
 
 ```c
 /* target: beq a0, v0 after lbu v0, 1(v1) */
-if (arg0 == (&Midi_Song)[i].field_1) {
+if (arg0 == _gMidiSongSlots[i].sequenceId) {
 ```
 
 `midiIsSequenceBusy` needed this (99.6% → 100%).
@@ -14377,24 +14377,24 @@ Assigning the table *inside* the conditional that first uses `index` still lets
 
 ```c
 i   = 0;
-arr = &Midi_Song;
+arr = _gMidiSongSlots;
 for (; i <= 0; i++) {
-    if ((arg0 == arr[i].field_1) || (arg0 == 0)) {
-        table = D_800689F0; /* hoisted after andi a0 */
-        product = table[arr[i].field_1] * arg1;
-        arr[i].field_C = 0xFFFF;
-        arr[i].field_8 = product;
+    if ((arg0 == arr[i].sequenceId) || (arg0 == 0)) {
+        table = _gMidiSequenceMixLevels; /* hoisted after andi a0 */
+        product = table[arr[i].sequenceId] * arg1;
+        arr[i].volumeDirtyChannels = 0xFFFF;
+        arr[i].volumeScale = product;
     }
 }
 ```
 
 Do **not** fix this by early `index &= 0xFF` on an `s32` parameter: that gets the
 `andi` order right but kills delay-slot fill of `addu index, table` on the
-equality branch (and the matching reload of `field_1` on the `index == 0` path).
+equality branch (and the matching reload of `sequenceId` on the `index == 0` path).
 Keeping `u8` params and moving the table assignment is what preserves both.
 
 `_midiSetSequenceVolume` is the pure example. Pair with the one-iteration
-`for (i = 0; i <= 0; i++)` + `_MidiSong` array pattern for `Midi_Song`.
+`for (i = 0; i <= 0; i++)` + `_MidiSong` array pattern for `_gMidiSongSlots`.
 
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
 
@@ -15250,13 +15250,13 @@ Fix: recompute the element pointer from the index each iteration, with no
 
 ```c
 for (i = 0; i <= 0; i++) {
-    ptr = &Midi_Song + i; /* not ptr++ */
-    if ((id == ptr->field_1) || (id == 0)) {
-        if (ptr->field_0 == 2) {
-            ptr->field_0 = 0x80;
-            linInterpSetup(&ptr->field_14, vol, 0, fade);
+    ptr = _gMidiSongSlots + i; /* not ptr++ */
+    if ((id == ptr->sequenceId) || (id == 0)) {
+        if (ptr->status == 2) {
+            ptr->status = 0x80;
+            linInterpSetup(&ptr->sequenceId4, vol, 0, fade);
         } else {
-            ptr->field_0 = 4;
+            ptr->status = 4;
         }
     }
 }
@@ -17846,7 +17846,7 @@ cursor += 0x3C;
 } while (++j < (s32)obj->field_3);
 ```
 
-`midiTick` is the pure example (_MidiSong status driver over Midi_Song).
+`midiTick` is the pure example (_MidiSong status driver over _gMidiSongSlots).
 
 
 ## Reuse a temp through field copy and `&= ~const` masks
@@ -19236,7 +19236,7 @@ and it survives because the loaded value (`a1`) stays live for a later
 
 ```c
 u16 id;
-if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+if (_gSndLoadFailure != 0 || (id = bank->bankId) == 0xFFFF) {
 fail:
     gSndLoadBankId = SOUND_LOAD_BANK_NONE;
     return -1;
@@ -19252,11 +19252,11 @@ does. Writing each later failure as its own copy of that block does not: jump
 cross-jumping keeps the *last* copy and redirects the earlier ones to it, so
 they need to `goto` the first.
 
-In the same function, `s8 slot; slot += D_80082122 - 1;` narrows the whole sum
+In the same function, `s8 slot; slot += gSndLoadCharacterUploadOrdinal - 1;` narrows the whole sum
 to 8 bits and emits `addiu v0,v0,0xff`, while the target adds a callee-saved
-register holding -1 (`addu v0,v0,s2`). `slot = slot - 1 + D_80082122` keeps
+register holding -1 (`addu v0,v0,s2`). `slot = slot - 1 + gSndLoadCharacterUploadOrdinal` keeps
 the `-1` as a separate SImode addend, and cse substitutes the pseudo already
-loaded with -1 for the earlier `slot == -1` test. `slot + D_80082122 - 1`
+loaded with -1 for the earlier `slot == -1` test. `slot + gSndLoadCharacterUploadOrdinal - 1`
 matches the register too but adds in the other order.
 
 ## Signed `/ 64` map store: pin dividend adj to `$v1`, shift result to `$v0`
@@ -23095,7 +23095,7 @@ lw    v0, %lo(g)(v1)  /* reload on non-zero path */
 a pure C ternary / if-else (`v = *p ? *p : K`) leaves a `nop` after `bnez`
 and builds `K` with a non-delay `lui`/`ori` pair. Force the delay-slot form with
 tab-`.set noreorder` asm (same maspsx rule as ProcessChunkData case-4).
-`sndLoadPlaceScriptSamples` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
+`sndLoadPlaceScriptSamples` case 5 (`gSndLoadType1SampleOrigin ?: 0x63810`) is the pure example.
 
 ## Const data between two compiler jtbls in one TU
 
@@ -23126,7 +23126,7 @@ example of that case.
 
 ## Volatile load-status flags keep `%hi` in `$a0` across reloads
 
-Shared status words reloaded twice in a prologue (e.g. `D_800689E8`) CSE into
+Shared status words reloaded twice in a prologue (e.g. `_gSndLoadFailure`) CSE into
 one load when non-volatile, and the address often lands in `$a1`. Mark them
 `volatile` so each access reloads and GCC keeps `%hi` in `$a0` after
 `move sN,a0` frees the argument register — same pattern as `GameMain_HaltFlags` in
@@ -59786,30 +59786,30 @@ the multiply-assigned local feeding it.
 ## A fresh `lui %hi(SYM+N)` per access means two globals, not one array
 
 splat groups adjacent unreferenced bytes under a single BSS label, so a pair of
-`s16` globals shows up as one `D_800820E4, 0x4` and the disassembly of the
-*other* one reads `%lo(D_800820E4 + 0x2)`. Declaring that as `s16
-D_800820E4[2]` and writing `D_800820E4[1]` does not reproduce the target: GCC
+`s16` globals shows up as one `gSndVolumeNeoArkDuckUpdates, 0x4` and the disassembly of the
+*other* one reads `%lo(gSndVolumeNeoArkDuckUpdates + 0x2)`. Declaring that as `s16
+gSndVolumeNeoArkDuckUpdates[2]` and writing `gSndVolumeNeoArkDuckUpdates[1]` does not reproduce the target: GCC
 2.8.1 sees several references to `SYM` and `SYM+2` in the same function, so CSE
 materialises the base once and indexes off it.
 
 ```
 # target: a fresh lui per access, no base register
-lui  v0,%hi(D_800820E4)
-sh   zero,%lo(D_800820E4+2)(v0)
+lui  v0,%hi(gSndVolumeNeoArkDuckUpdates)
+sh   zero,%lo(gSndVolumeNeoArkDuckUpdates+2)(v0)
 
 # array version: the base gets CSE'd into a register
-addiu a3,a2,%lo(D_800820E4)
+addiu a3,a2,%lo(gSndVolumeNeoArkDuckUpdates)
 sh    zero,2(a3)
 ```
 
 The base register also steals the branch's delay slot, so the score reads as a
 control-flow miss (`branch`/`insert`/`delete` non-zero) rather than an
-addressing one. Two separate `extern s16 D_800820E4; extern s16 D_800820E6;`
+addressing one. Two separate `extern s16 gSndVolumeNeoArkDuckUpdates; extern s16 gSndVolumeNeoArkRestoreUpdates;`
 restore the per-access `lui` and take `branch`/`insert`/`delete` to zero
 (88.2% -> 99.2% here).
 
 The cost is one config line: the second symbol has no name, so add
-`D_800820E6 = 0x800820E6; // absolute:True` to the family's
+`gSndVolumeNeoArkRestoreUpdates = 0x800820E6; // absolute:True` to the family's
 `configs/USA/sym/<family>.imports.txt` or the link fails. That entry survives
 regeneration -- `gen_overlay_imports.py` scans `src/<family>` for bare
 `D_<VRAM>` tokens as well as `asm/`, so a symbol referenced only from
