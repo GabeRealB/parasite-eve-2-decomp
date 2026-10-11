@@ -1325,137 +1325,230 @@ static AnimationSet _gHypervelocityAnimation047D0 = {
     { NULL, _gHypervelocityAnimation047D0Bank1, NULL, NULL, _gHypervelocityAnimation047D0Bank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gHypervelocityAnimation05030Bank1[19] = {
+/// Pose-bank selectors for the player clips' two supported track encodings.
+enum {
+    HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+// Immutable clip payloads retain the exported package's data-section layout.
+/// Negative-turn encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityNegativeTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05030_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation05030Bank4[169] = {
+/// Negative-turn encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityNegativeTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05030_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation05030Records[290] = {
+/// Negative-turn keyframes and absolute-index loops in normal-rate frames.
+static const AnimationRecord _gHypervelocityNegativeTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05030_records.inc"
 };
 
-static u16 _gHypervelocityAnimation05030Indices[20] = {
+/// Nineteen negative-turn track starts and the unused exported trailing halfword.
+static const u16 _gHypervelocityNegativeTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05030_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation05030 = {
-    _gHypervelocityAnimation05030Records,
-    _gHypervelocityAnimation05030Indices,
-    { NULL, _gHypervelocityAnimation05030Bank1, NULL, NULL, _gHypervelocityAnimation05030Bank4, NULL, NULL, NULL },
+/// Player turn toward decreasing yaw in Hypervelocity bank slot 5.
+///
+/// Moving tracks repeat a 32-frame cycle after their entry keyframes; fixed
+/// tracks hold a two-frame loop. Tracks 0 and 1 carry translation and rotation,
+/// and tracks 2..18 carry rotation only. Playback borrows these private arrays,
+/// which must remain loaded while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityNegativeTurnAnimation = {
+    .records           = _gHypervelocityNegativeTurnAnimationRecords,
+    .trackStartIndices = _gHypervelocityNegativeTurnAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityNegativeTurnAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityNegativeTurnAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityNegativeTurnAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_negative_turn_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation05894Bank1[19] = {
+/// Positive-turn encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityPositiveTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05894_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation05894Bank4[170] = {
+/// Positive-turn encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityPositiveTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05894_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation05894Records[290] = {
+/// Positive-turn keyframes and absolute-index loops in normal-rate frames.
+static const AnimationRecord _gHypervelocityPositiveTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05894_records.inc"
 };
 
-static u16 _gHypervelocityAnimation05894Indices[20] = {
+/// Nineteen positive-turn track starts and the unused exported trailing halfword.
+static const u16 _gHypervelocityPositiveTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05894_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation05894 = {
-    _gHypervelocityAnimation05894Records,
-    _gHypervelocityAnimation05894Indices,
-    { NULL, _gHypervelocityAnimation05894Bank1, NULL, NULL, _gHypervelocityAnimation05894Bank4, NULL, NULL, NULL },
+/// Player turn toward increasing yaw in Hypervelocity bank slot 6.
+///
+/// Moving tracks repeat a 32-frame cycle after their entry keyframes; fixed
+/// tracks hold a two-frame loop. Tracks 0 and 1 carry translation and rotation,
+/// and tracks 2..18 carry rotation only. Playback borrows these private arrays,
+/// which must remain loaded while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityPositiveTurnAnimation = {
+    .records           = _gHypervelocityPositiveTurnAnimationRecords,
+    .trackStartIndices = _gHypervelocityPositiveTurnAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityPositiveTurnAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityPositiveTurnAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityPositiveTurnAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_positive_turn_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation05BA8Bank1[3] = {
+/// Item-use encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05BA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation05BA8Bank4[69] = {
+/// Item-use encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05BA8_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation05BA8Records[99] = {
+/// Item-use keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gHypervelocityItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05BA8_records.inc"
 };
 
-static u16 _gHypervelocityAnimation05BA8Indices[20] = {
+/// Nineteen item-use track starts and the unused exported trailing halfword.
+static const u16 _gHypervelocityItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_05BA8_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation05BA8 = {
-    _gHypervelocityAnimation05BA8Records,
-    _gHypervelocityAnimation05BA8Indices,
-    { NULL, _gHypervelocityAnimation05BA8Bank1, NULL, NULL, _gHypervelocityAnimation05BA8Bank4, NULL, NULL, NULL },
+/// Player's scripted item-use motion in Hypervelocity bank slot 40.
+///
+/// All tracks stop at their final keyframe. Tracks 0 and 1 carry translation
+/// and rotation, and tracks 2..18 carry rotation only. The player blends into
+/// this clip and resumes aim locomotion when it finishes. Playback borrows the
+/// private arrays, which must stay loaded while any slot or record refers to them.
+static AnimationSet _gHypervelocityItemUseAnimation = {
+    .records           = _gHypervelocityItemUseAnimationRecords,
+    .trackStartIndices = _gHypervelocityItemUseAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityItemUseAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityItemUseAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityItemUseAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_item_use_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation06304Bank1[14] = {
+/// Stair-ascent encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06304_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation06304Bank4[156] = {
+/// Stair-ascent encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06304_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation06304Records[253] = {
+/// Stair-ascent keyframes, footstep cues and loop controls in normal-rate frames.
+static const AnimationRecord _gHypervelocityStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06304_records.inc"
 };
 
-static u16 _gHypervelocityAnimation06304Indices[20] = {
+/// Nineteen stair-ascent track starts and the unused exported trailing halfword.
+static const u16 _gHypervelocityStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06304_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation06304 = {
-    _gHypervelocityAnimation06304Records,
-    _gHypervelocityAnimation06304Indices,
-    { NULL, _gHypervelocityAnimation06304Bank1, NULL, NULL, _gHypervelocityAnimation06304Bank4, NULL, NULL, NULL },
+/// Player's scripted stair-ascent cycle in Hypervelocity bank slot 36.
+///
+/// Moving tracks repeat 32-frame loops; fixed tracks hold two-frame loops.
+/// Track 1 carries the footstep cues that gate stair strides. Tracks 0 and 1
+/// carry translation and rotation, and tracks 2..18 carry rotation only.
+/// Playback borrows the private arrays, which must remain loaded while any
+/// slot or cached record refers to them.
+static AnimationSet _gHypervelocityStairAscentAnimation = {
+    .records           = _gHypervelocityStairAscentAnimationRecords,
+    .trackStartIndices = _gHypervelocityStairAscentAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityStairAscentAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityStairAscentAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityStairAscentAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_stair_ascent_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation06A8CBank1[16] = {
+/// Stair-descent encoding-1 poses in local model units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06A8C_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation06A8CBank4[167] = {
+/// Stair-descent encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06A8C_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation06A8CRecords[247] = {
+/// Stair-descent keyframes, footstep cues and loop controls in normal-rate frames.
+static const AnimationRecord _gHypervelocityStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06A8C_records.inc"
 };
 
-static u16 _gHypervelocityAnimation06A8CIndices[20] = {
+/// Nineteen stair-descent track starts and the unused exported trailing halfword.
+static const u16 _gHypervelocityStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06A8C_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation06A8C = {
-    _gHypervelocityAnimation06A8CRecords,
-    _gHypervelocityAnimation06A8CIndices,
-    { NULL, _gHypervelocityAnimation06A8CBank1, NULL, NULL, _gHypervelocityAnimation06A8CBank4, NULL, NULL, NULL },
+/// Player's scripted stair-descent cycle in Hypervelocity bank slot 37.
+///
+/// Moving tracks repeat 30-frame loops; fixed tracks hold two-frame loops.
+/// Track 1 carries the footstep cues that gate stair strides. Tracks 0 and 1
+/// carry translation and rotation, and tracks 2..18 carry rotation only.
+/// Playback borrows the private arrays, which must remain loaded while any
+/// slot or cached record refers to them.
+static AnimationSet _gHypervelocityStairDescentAnimation = {
+    .records           = _gHypervelocityStairDescentAnimationRecords,
+    .trackStartIndices = _gHypervelocityStairDescentAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityStairDescentAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityStairDescentAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityStairDescentAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_stair_descent_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation06D60Bank1[6] = {
+/// Odd-step stair-finish encoding-1 poses in local units and 1/4096-turn angles.
+static const AnimationPackedPose _gHypervelocityStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06D60_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation06D60Bank4[52] = {
+/// Odd-step stair-finish encoding-4 rotations in packed 1/512-turn steps.
+static const AnimationPackedRotation _gHypervelocityStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06D60_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation06D60Records[91] = {
+/// Odd-step stair-finish keyframes, footstep cue and stops in normal-rate frames.
+static const AnimationRecord _gHypervelocityStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06D60_records.inc"
 };
 
-static u16 _gHypervelocityAnimation06D60Indices[20] = {
+/// Nineteen odd-step stair-finish track starts and the unused exported halfword.
+static const u16 _gHypervelocityStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/hypervelocity_animation_06D60_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation06D60 = {
-    _gHypervelocityAnimation06D60Records,
-    _gHypervelocityAnimation06D60Indices,
-    { NULL, _gHypervelocityAnimation06D60Bank1, NULL, NULL, _gHypervelocityAnimation06D60Bank4, NULL, NULL, NULL },
+/// Player's stair-ascent finish for an odd initial step count, in bank slot 39.
+///
+/// All tracks stop at their final keyframe; track 1 carries a footstep cue.
+/// Tracks 0 and 1 carry translation and rotation, and tracks 2..18 carry
+/// rotation only. Playback borrows the private arrays, which must remain
+/// loaded while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityStairAscentFinishOddAnimation = {
+    .records           = _gHypervelocityStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gHypervelocityStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityStairAscentFinishOddAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityStairAscentFinishOddAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityStairAscentFinishOddAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_stair_ascent_finish_odd_animation_track_starts);
 
 static AnimationPackedPose _gHypervelocityAnimation070F0Bank1[7] = {
 #include "assets/hypervelocity_animation_070F0_bank1.inc"
@@ -2125,8 +2218,8 @@ AnimationBank gHypervelocityPlayerAnimationBank = {
             &_gHypervelocityAnimation10A50,
             &_gHypervelocityAnimation111F0,
             &_gHypervelocityAnimation11BE8,
-            &_gHypervelocityAnimation05030,
-            &_gHypervelocityAnimation05894,
+            &_gHypervelocityNegativeTurnAnimation,
+            &_gHypervelocityPositiveTurnAnimation,
             &_gHypervelocityAnimation0F964,
             &_gHypervelocityAnimation10198,
             &_gHypervelocityAnimation0C914,
@@ -2156,11 +2249,11 @@ AnimationBank gHypervelocityPlayerAnimationBank = {
             &_gHypervelocityAnimation0BB60,
             &_gHypervelocityAnimation0B988,
             &_gHypervelocityAnimation0BB60,
-            &_gHypervelocityAnimation06304,
-            &_gHypervelocityAnimation06A8C,
+            &_gHypervelocityStairAscentAnimation,
+            &_gHypervelocityStairDescentAnimation,
             &_gHypervelocityAnimation070F0,
-            &_gHypervelocityAnimation06D60,
-            &_gHypervelocityAnimation05BA8,
+            &_gHypervelocityStairAscentFinishOddAnimation,
+            &_gHypervelocityItemUseAnimation,
             &_gHypervelocityIdleAnimation,
             &_gHypervelocityAnimation0C0C4,
             &_gHypervelocityAnimation0C2B8,
