@@ -328,11 +328,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// varying address, this load a scalar MEM at a fixed one -- and sched2 then
 /// hoists this load above the store, ahead of the `sll`.
 
-/// The s16 run at 0x801414C8, one entry per animation in
-/// `_Actor105100Work::anim`; `_actor105100UpdateAnimation` reads the entry
-/// the new state selects before it re-queues every slot.
-extern s16 D_actor_105100_801414C8[];
-
 /// The animation data `animationInitContext` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
@@ -877,19 +872,17 @@ static AnimationSet* _gActor105100PlayerAnimationSets[5] = {
     &_gActor105100Animation0F538,
 };
 
-s16 D_actor_105100_801414C8[12] = {
-    0,
-    8,
-    4,
-    4,
-    0,
-    0,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
+/// Blend durations in whole normal-rate frames, indexed by the enemy's requested clip.
+///
+/// Requests 1..10 select the loaded clips. Slots 0 and 11 retain zero duration;
+/// the twelfth stored entry has no recovered request. Each change seeks frame zero.
+static s16 _gActor105100AnimationBlendFrames[12] = {
+    [ACTOR_105100_ANIM_IDLE]         = 8,
+    [ACTOR_105100_ANIM_RAISE_SHIELD] = 4,
+    [ACTOR_105100_ANIM_CAST]         = 4,
+    [ACTOR_105100_ANIM_STAGGER]      = 2,
+    [ACTOR_105100_ANIM_DIE]          = 2,
+    [ACTOR_105100_ANIM_BUILDUP]      = 2,
 };
 
 SVECTOR D_actor_105100_801414E0[7] = {
@@ -1907,7 +1900,7 @@ static inline void _actor105100AnimUpdate(Task* task)
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        blendFrames       = D_actor_105100_801414C8[work->anim];
+        blendFrames       = _gActor105100AnimationBlendFrames[work->anim];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }

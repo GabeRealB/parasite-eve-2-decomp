@@ -179,10 +179,6 @@ extern TaskMessageEntry D_actor_421600_80151118[8];
 /// other.
 extern SVECTOR D_actor_421600_80151158[];
 
-/// Hit-position table `_desertChaserHitEffect` picks one of twelve entries
-/// from by relative hit yaw: the same 8-byte `SVECTOR` records as the pose
-/// table above, at the 0x801510B8 end of the same trailing data run.
-
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
 
@@ -212,15 +208,14 @@ static s16 _gActor421600RemainingLives;
 /// still writes set 5, ONE PAST THE END of the chosen table, and the player's
 /// animation task then reads it back from there. For the front table that
 /// word is `gDesertChaserRearAnim[0]`, an entry no request names; for the rear
-/// table it is the `vx` and `vy` of `gDesertChaserHitOffsets[0]`.
+/// table it is `anchor.x` and `anchor.y` of `_gDesertChaserHitAnchors[0]`.
 ///
 /// The out-of-bounds access is the original program's, kept as it is: the
 /// tables have their real five-entry extent, and the handler indexes them the
 /// way the regular build does. Whether a rear catch reaches set 5 in play,
 /// and with it the overwritten hit offset, is not established.
-extern AnimationSet* gDesertChaserFrontAnim[5];   // Sets sent to a player caught facing the chaser
-extern AnimationSet* gDesertChaserRearAnim[5];    // Sets sent to a player caught from behind
-extern SVECTOR       gDesertChaserHitOffsets[12]; // Offsets of the hit effects from their model part, with the part's index in `pad`
+extern AnimationSet* gDesertChaserFrontAnim[5]; // Sets sent to a player caught facing the chaser
+extern AnimationSet* gDesertChaserRearAnim[5];  // Sets sent to a player caught from behind
 
 static void _actor421600Exit(Task* task);
 static void _actor421600HideState(Task* task);
@@ -1244,7 +1239,25 @@ AnimationSet* gDesertChaserFrontAnim[5] = { NULL, &_gActor421600Animation19E54, 
 
 AnimationSet* gDesertChaserRearAnim[5] = { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL };
 
-SVECTOR gDesertChaserHitOffsets[12] = { { 60, -12, 30, 2 }, { -50, -130, 29, 2 }, { 20, -70, 25, 2 }, { -30, -65, 25, 2 }, { 60, -120, 30, 2 }, { 20, -20, -5, 2 }, { -15, -50, 0, 2 }, { 2, 10, -15, 2 }, { 14, 0, 0, 7 }, { 25, 0, 0, 2 }, { -14, 0, 0, 9 }, { -25, 0, 0, 2 } };
+/// Part-local hit-effect positions and model coordinate selectors for the Water Tower chaser.
+///
+/// Relative yaw selects front 0..4, rear 5..7 or sides 8..11; the retained
+/// masks never select entries 4 or 6. A rear catch's set-5 write overlaps
+/// entry 0's X/Y word. Keep this writable table immediately after the catch banks.
+static ActorHitAnchor _gDesertChaserHitAnchors[12] = {
+    { .anchor = { 60, -12, 30, 2 } },
+    { .anchor = { -50, -130, 29, 2 } },
+    { .anchor = { 20, -70, 25, 2 } },
+    { .anchor = { -30, -65, 25, 2 } },
+    { .anchor = { 60, -120, 30, 2 } },
+    { .anchor = { 20, -20, -5, 2 } },
+    { .anchor = { -15, -50, 0, 2 } },
+    { .anchor = { 2, 10, -15, 2 } },
+    { .anchor = { 14, 0, 0, 7 } },
+    { .anchor = { 25, 0, 0, 2 } },
+    { .anchor = { -14, 0, 0, 9 } },
+    { .anchor = { -25, 0, 0, 2 } },
+};
 
 TaskMessageEntry D_actor_421600_80151118[8] = {
     { ACTOR421600_MESSAGE_IGNORE_2015, _actor421600IgnoreMessage2015 },

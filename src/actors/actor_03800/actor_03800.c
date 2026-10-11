@@ -216,7 +216,6 @@ static TmdSource _gActor03800BlackBeetleEffect3;
 static TmdSource _gActor03800BlackBeetleEffect4;
 static TmdSource _gActor03800BlackBeetleEffect5;
 
-extern s16           Actor03800_D05F90[];
 extern s16           Actor03800_D05FA8[];
 extern AnimationSet* Actor03800_D05F60[12];
 
@@ -747,19 +746,14 @@ AnimationSet* Actor03800_D05F60[12] = {
     &_gActor03800Actor103800Animation05F18,
 };
 
-s16 Actor03800_D05F90[12] = {
-    0,
-    8,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
+/// Beetle blend durations in whole normal-rate frames, indexed by `ACTOR_03800_ANIM_*`.
+///
+/// Changed requests select clips 1..11; slot 0 is retained for the initial
+/// no-change request. Unlisted clips have no transition time.
+static s16 _gActor03800AnimationBlendFrames[12] = {
+    [ACTOR_03800_ANIM_STAND] = 8,
+    [ACTOR_03800_ANIM_WALK]  = 3,
+    [ACTOR_03800_ANIM_LEAP]  = 3,
 };
 
 s16 Actor03800_D05FA8[2] = {
@@ -2195,7 +2189,7 @@ static inline void _actor03800TickAnim(Task* task)
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        blendFrames       = Actor03800_D05F90[work->anim];
+        blendFrames       = _gActor03800AnimationBlendFrames[work->anim];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }

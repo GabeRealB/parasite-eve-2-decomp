@@ -45,7 +45,7 @@ _gAcropolisObservatoryView2SpriteSources = 0x801817A4; // size:0x3D4 defined:Tru
 _gAcropolisObservatoryView2SpriteBatches = 0x80181B78; // size:0x38 defined:True
 _gAcropolisObservatoryView3SpriteSources = 0x80181BB0; // size:0x4C4 defined:True
 _gAcropolisObservatoryView3SpriteBatches = 0x80182074; // size:0xB0 defined:True
-gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_101200 shared=actors
+gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_101200
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100

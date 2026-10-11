@@ -84,12 +84,6 @@ typedef struct {
 } _Actor210600Work;
 STATIC_ASSERT_SIZEOF(_Actor210600Work, 0x8D8);
 
-/// Step table the seeding body `_actor210600DriveAnimation` walks: one 5-byte
-/// row per animation in `_Actor210600Work::appliedAnim`, addressed by the
-/// requested animation in `_Actor210600Work::animId`. The byte it reads is
-/// handed to `animationSeekSlotWithBlend` as the request's fifth argument.
-extern s8 D_actor_210600_8015A498[][5];
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// Animation source the spawn body starts the work block's animation context
@@ -212,7 +206,11 @@ static AnimationSet _gActor210600Animation10650 = {
     { NULL, _gActor210600Animation10650Bank1, NULL, NULL, _gActor210600Animation10650Bank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_210600_8015A498[5][5] = { 0 };
+/// Transition blend durations in normal-rate frames, indexed [previous clip][requested clip].
+///
+/// Both indices must be in 0..4. Every stored duration is zero. This package
+/// only requests clip 1 with RESET, so its retained BLEND path is not selected.
+static s8 _gActor210600AnimationBlendFrames[5][5] = { 0 };
 
 u8 D_actor_210600_8015A4B4[24] = {
     0,
@@ -426,7 +424,7 @@ static void _actor210600DriveAnimation(Task* task)
         for (seekSlot = 1; seekSlot < ARRAY_SIZE(seekWork->rig.slots); seekSlot++) {
             seekWork->rig.slots[seekSlot].rate = seekWork->animRate;
             animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlot, seekWork->animId, 0,
-                                       D_actor_210600_8015A498[seekWork->appliedAnim][seekWork->animId]);
+                                       _gActor210600AnimationBlendFrames[seekWork->appliedAnim][seekWork->animId]);
         }
         seekWork->appliedAnim = seekWork->animId;
         work->animRequest     = ACTOR_210600_ANIM_REQUEST_PLAYING;

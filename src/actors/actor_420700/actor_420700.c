@@ -83,9 +83,7 @@ static _Actor420700Work* _gScriptedWalkWork;
 
 static Task* _gActor420700BodyTask;
 
-/// The first task the state-0 handler spawns, the frame-4 model task
-/// `_actor420700HeadHatTask`; the actor's exit callback kills it.
-extern Task* D_actor_420700_8013EFE8;
+static Task* _gActor420700HeadHatTask;
 
 /// The second task the state-0 handler spawns, the frame-8 model task
 /// `_actor420700ShotgunTask`.
@@ -983,7 +981,12 @@ static AnimationSet* _gActor420700AnimationSets[21] = {
 /// attachment roots. Teardown ends its lifetime without clearing the pointer.
 static Task* _gActor420700BodyTask;
 
-Task* D_actor_420700_8013EFE8;
+/// Live head-and-hat attachment task of the singleton Gary Douglas actor.
+///
+/// Spawn publishes it before texture binding; draw messages require it live.
+/// The body exit kills the task and leaves the pointer uncleared. Attachment
+/// allocation must succeed before the spawning body continues.
+static Task* _gActor420700HeadHatTask;
 
 Task* D_actor_420700_8013EFEC;
 
@@ -1036,10 +1039,10 @@ static void _actor420700Spawn(Enemy* enemy, Task* task)
     bodyModel->otOffset              = ACTOR_420700_SPAWN_OT_OFFSET;
     bodyModel->flags                 = 0;
     // The head-and-hat must spawn successfully before its texture binding.
-    _gActor420700BodyTask   = task;
-    D_actor_420700_8013EFE8 = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
-    D_actor_420700_8013EFEC = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
-    _actorRenderApplyTaskPlacementTextureOffsets(D_actor_420700_8013EFE8, enemy);
+    _gActor420700BodyTask    = task;
+    _gActor420700HeadHatTask = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
+    D_actor_420700_8013EFEC  = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
+    _actorRenderApplyTaskPlacementTextureOffsets(_gActor420700HeadHatTask, enemy);
     bodyModel->lightMtx     = &_gScriptedWalkWork->light;
     bodyModel->colorMtx     = &_gScriptedWalkWork->color;
     D_actor_420700_8013EFF0 = 0;
@@ -1172,7 +1175,7 @@ static void _actor420700GaryDouglasTask(Task* task)
 /// killed here; both task globals and the borrowed work pointer are left intact.
 static void _actor420700Exit(Task* task)
 {
-    taskKill(D_actor_420700_8013EFE8);
+    taskKill(_gActor420700HeadHatTask);
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
@@ -1312,7 +1315,7 @@ static s32 _actor420700HandleModelDrawMessage(Task* task, s32 messageId, s32 dra
         ACTOR_420700_DRAW_NO_AUTO_BUFFER = 1 << 1,
     };
     TmdObject* bodyModel    = _gActor420700BodyTask->extra.tmd;
-    TmdObject* headHatModel = D_actor_420700_8013EFE8->extra.tmd;
+    TmdObject* headHatModel = _gActor420700HeadHatTask->extra.tmd;
     TmdObject* shotgunModel = D_actor_420700_8013EFEC->extra.tmd;
 
     if (drawFlags & ACTOR_420700_DRAW_VISIBLE) {

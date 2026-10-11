@@ -70,7 +70,7 @@ _gDryfieldMotelBalconyClass3Surfaces = 0x801866F4; // size:0x10 defined:True
 gDryfieldMotelBalconySurfaceClasses = 0x80186704; // size:0x20 defined:True
 _gRoomEventMsg = 0x80186724; // size:0x8 defined:True
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700

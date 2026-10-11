@@ -71,14 +71,14 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             enemy->hp         = _gGolemKnightBishopParams.hpMax;
             for (roomIndex = 0; _gGolemKnightBishopRoomRegions[roomIndex].regionTable != GOLEM_KNIGHT_BISHOP_REGION_TABLE_END; roomIndex++) {
                 if (gGameSession->location.loc.stage == _gGolemKnightBishopRoomRegions[roomIndex].stage && gGameSession->location.loc.area == _gGolemKnightBishopRoomRegions[roomIndex].area) {
-                    work->regions     = gGolemKnightBishopRegions[_gGolemKnightBishopRoomRegions[roomIndex].regionTable];
+                    work->regions     = _gGolemKnightBishopRegionTables[_gGolemKnightBishopRoomRegions[roomIndex].regionTable];
                     work->regionCount = _gGolemKnightBishopRoomRegions[roomIndex].regionCount;
                 }
             }
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;
             (sceneAcquireBattleRef)(0);
             work->actorId = GOLEM_KNIGHT_BISHOP_ID;
-            areaSoundSets = gGolemKnightBishopStageCues[gGameSession->location.loc.stage];
+            areaSoundSets = _gGolemKnightBishopStageSoundSets[gGameSession->location.loc.stage];
             if (areaSoundSets != NULL) {
                 work->soundSet = areaSoundSets[gGameSession->location.loc.area];
             }

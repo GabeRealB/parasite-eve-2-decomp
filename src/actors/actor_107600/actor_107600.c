@@ -332,7 +332,7 @@ static void _actor107600ApplyTargetScale(Task* task);
 extern DVECTOR D_actor_107600_80135730[];
 
 /* The pair-source record the spawn state hangs off the enemy's `Enemy.param`
- * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
+ * (a pointer to the zero-power `_gActor107600TargetAttacks`, 0x32 and 0xFF000000) and the
  * 16-entry HP table it indexes with the target kind. Both are trailing-blob
  * data, after the collision tables. */
 /* Pair-source record the spawn state hangs off `Enemy.param`. */
@@ -358,12 +358,13 @@ static const TaskFuncTable4 D_actor_107600_80131E24 = { {
     _actor107600DestroyMount,
 } };
 
-/// One entry per `_Actor107600MountWork::behaviour`, run by
-/// `_actor107600UpdateMountBehaviour`.
-static const TaskFuncTable3 D_actor_107600_80131E34 = { {
-    _actor107600UpdateStandingMountPath,
-    _actor107600UpdateHangingMountPath,
-    _actor107600UpdateFixedMount,
+/// Gallery mount behavior callbacks, copied before dispatch by behavior 0..2.
+///
+/// Standing and hanging mounts follow paths; fixed mounts serve demonstrations.
+static const TaskFuncTable3 _gActor107600MountBehaviourHandlers = { {
+    [ACTOR_107600_MOUNT_STANDING] = _actor107600UpdateStandingMountPath,
+    [ACTOR_107600_MOUNT_HANGING]  = _actor107600UpdateHangingMountPath,
+    [ACTOR_107600_MOUNT_FIXED]    = _actor107600UpdateFixedMount,
 } };
 
 DamageAttack D_actor_107600_80134F80[1] = { 0 };
@@ -962,9 +963,13 @@ static const _Actor107600Waypoint* _gActor107600MountPaths[] = {
     _gActor107600MountPath61,
 };
 
-DamageAttack D_actor_107600_8013571C[1] = { 0 };
+/// Retained zero-power, ordinary-reaction attack row in the gallery target parameters.
+///
+/// The target borrows this row through its enemy record. Its direct player
+/// strike supplies damage separately rather than packing this row into a key.
+static DamageAttack _gActor107600TargetAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
 
-EnemyParams D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0 };
+EnemyParams D_actor_107600_80135720 = { _gActor107600TargetAttacks, 50, 0, 0, 0, 255, 0, 0, 0 };
 
 DVECTOR D_actor_107600_80135730[8] = {
     { 0, -0x120 },
@@ -1419,7 +1424,7 @@ static void _actor107600UpdateMountBehaviour(Task* task)
     TaskFuncTable3         handlers;
     _Actor107600MountWork* work = task->work;
 
-    handlers = D_actor_107600_80131E34;
+    handlers = _gActor107600MountBehaviourHandlers;
     handlers.funcs[work->behaviour](task);
     if (work->rotating != 0) {
         work->yaw += 0x20;

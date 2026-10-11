@@ -124,9 +124,6 @@ STATIC_ASSERT_SIZEOF(_Actor03700Work, 0x270);
 extern u16 Actor03700_D07F3C[];
 extern u16 Actor03700_D07F5C[];
 
-/// Halfword table `_actor03700AttackHeldPlayer` indexes by a 4-bit LCG draw.
-extern s16 Actor03700_D07F1C[];
-
 /// One segment of the path a perched actor leaves its perch along.
 ///
 /// A take-off table lists its segments in frame order, the last one ending on
@@ -537,7 +534,11 @@ static DamageAttack _gActor03700HeldPlayerAttack = { 3, ACTOR_03700_HELD_PLAYER_
 
 EnemyParams Actor03700_D07F0C = { &_gActor03700HeldPlayerAttack, 1, 5, 18, 1, 100, 0, 100, 99 };
 
-s16 Actor03700_D07F1C[16] = {
+/// Bat dash and held-player return speeds, in parent-coordinate units per tick.
+///
+/// The four-bit random index covers all sixteen nonzero signed-halfword speeds
+/// (30..60). Dash timing divides a 3D distance by the selected speed.
+static s16 _gActor03700DashSpeeds[16] = {
     30,
     32,
     34,
@@ -1443,7 +1444,7 @@ static void _actor03700Chase(Task* task)
             _actor03700StepSway(task, 20);
             if (work->yaw == work->targetYaw) {
                 work->actionStep = ACTOR_03700_CHASE_DASH;
-                work->speed      = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->speed      = _gActor03700DashSpeeds[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
                 coord            = task->extra.tmd->coords;
                 targetOffset->vx = work->targetPos.vx - coord->coord.t[0];
                 targetOffset->vy = work->targetPos.vy - coord->coord.t[1];
@@ -1542,7 +1543,7 @@ static void _actor03700AttackHeldPlayer(Task* task)
             break;
         case ACTOR_03700_ATTACK_RETURN:
             _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
-            work->speed    = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            work->speed    = _gActor03700DashSpeeds[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
             work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (work->touchingPlayer != 0) {
                 work->actionStep = 0;

@@ -196,14 +196,6 @@ typedef struct {
 } _Actor01200StateTable;
 STATIC_ASSERT_SIZEOF(_Actor01200StateTable, ACTOR_01200_STATE_COUNT * sizeof(EnemyTaskFunc));
 
-extern EnemyParams               Actor01200_D04034;
-extern PadScriptCmd              Actor01200_D04044[3];
-extern PadScriptVibrationSegment Actor01200_D04050[3];
-extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed to `animationInitContext`
-// Typed callback views for the task message dispatcher.
-
-extern TaskMessageEntry Actor01200_D07058[4];
-
 /// Integer part of the last movement step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -230,19 +222,47 @@ static void      _actor01200Task(Task* task);
 static s32 _actor01200SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32 _actor01200ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 
-DamageAttack Actor01200_D04030[1] = {
-    { 24, 7 },
+/// Distinct, status-free player hit presentation selected by the burst attack.
+enum {
+    ACTOR_01200_BURST_HIT_REACTION = 7,
+    ACTOR_01200_BURST_ATTACK_INDEX = 0
 };
 
-EnemyParams Actor01200_D04034 = { Actor01200_D04030, 1, 6, 20, 3, 100, 0, 100, 0 };
+/// The Bone Suckler's single burst attack, borrowed by its enemy parameters.
+static DamageAttack _gActor01200BurstAttacks[1] = {
+    { 24, ACTOR_01200_BURST_HIT_REACTION },
+};
 
-PadScriptCmd Actor01200_D04044[3] = {
+/// Shared Bone Suckler combat and battle-release reward parameters.
+///
+/// Each live enemy borrows this record until teardown. Its burst uses attack 0.
+static EnemyParams _gActor01200Params = {
+    .attacks              = _gActor01200BurstAttacks,
+    .hpMax                = 1,
+    .exp                  = 6,
+    .bp                   = 20,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0
+};
+
+/// Two-lane burst vibration script: binary pulse, full intensity, then decay.
+///
+/// Both lanes start at command 0 and stop by command 2. The vibration task
+/// borrows the commands and segments, so the actor overlay must remain loaded.
+static PadScriptCmd _gActor01200BurstPadCommands[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment Actor01200_D04050[3] = {
+/// Burst motor segments: a nine-frame binary pulse and twelve/six-frame variable ramps.
+///
+/// Segment 0 times the binary lane; segments 1 and 2 drive the variable lane.
+/// Intensities are bytes in 0..255; durations count vibration-script frames.
+static PadScriptVibrationSegment _gActor01200BurstPadSegments[3] = {
     { 0, 0, 9, 0 },
     { 255, 255, 12, 1 },
     { 100, 50, 6, 1 },
@@ -500,28 +520,24 @@ static AnimationSet _gActor01200Actor101200Animation06F70 = {
     { NULL, _gActor01200Actor101200Animation06F70Bank1, NULL, NULL, _gActor01200Actor101200Animation06F70Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* Actor01200_D06F98[19] = {
-    NULL,
-    &_gActor01200Actor101200Animation05A94,
-    &_gActor01200Actor101200Animation05D58,
-    &_gActor01200Actor101200Animation05FFC,
-    &_gActor01200Actor101200Animation061DC,
-    &_gActor01200Actor101200Animation06314,
-    &_gActor01200Actor101200Animation064B4,
-    &_gActor01200Actor101200Animation066C8,
-    &_gActor01200Actor101200Animation06AD8,
-    &_gActor01200Actor101200Animation06D98,
-    &_gActor01200Actor101200Animation06F70,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+/// Bone Suckler clip bank borrowed by its six-part animation rig.
+///
+/// Slots 1..10 contain clips; 0 and 11..18 are NULL. Behavior selects
+/// `ACTOR_01200_ANIM_*`; the bank and clips remain live until actor teardown.
+static AnimationSet* _gActor01200AnimationSets[19] = {
+    [1]                       = &_gActor01200Actor101200Animation05A94,
+    [ACTOR_01200_ANIM_WALK]   = &_gActor01200Actor101200Animation05D58,
+    [ACTOR_01200_ANIM_RUN]    = &_gActor01200Actor101200Animation05FFC,
+    [ACTOR_01200_ANIM_SETTLE] = &_gActor01200Actor101200Animation061DC,
+    [ACTOR_01200_ANIM_IDLE]   = &_gActor01200Actor101200Animation06314,
+    [ACTOR_01200_ANIM_ROUSE]  = &_gActor01200Actor101200Animation064B4,
+    [7]                       = &_gActor01200Actor101200Animation066C8,
+    [8]                       = &_gActor01200Actor101200Animation06AD8,
+    [9]                       = &_gActor01200Actor101200Animation06D98,
+    [ACTOR_01200_ANIM_BURST]  = &_gActor01200Actor101200Animation06F70,
 };
 
+/// Retained 116-byte data run with no recovered consumer; its role is unproven.
 u8 Actor01200_D06FE4[116] = {
     6,
     0,
@@ -641,7 +657,10 @@ u8 Actor01200_D06FE4[116] = {
     0,
 };
 
-TaskMessageEntry Actor01200_D07058[4] = {
+/// Bone Suckler draw, behavior-command and placement callbacks, ending in the sentinel.
+///
+/// Live tasks borrow the table. Payloads follow the selected message's contract.
+static TaskMessageEntry _gActor01200Messages[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor01200SetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor01200ApplyCommand },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
@@ -795,10 +814,10 @@ static void _actor01200Spawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->msgTable    = Actor01200_D07058;
+    task->msgTable    = _gActor01200Messages;
     rootCoord->parent = &gGfxViewCoord;
     model->flags      = 0;
-    animationInitContext(&work->rig.anim, Actor01200_D06F98, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor01200AnimationSets, model, work->rig.poses, work->rig.slots);
 
     // Register movement, damage-reception and initially inactive burst spheres.
     gridBody                   = &work->gridBody;
@@ -868,8 +887,8 @@ static void _actor01200Spawn(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->hp = enemy->hpMax = 1;
     enemy->reactionFlags     = 0;
-    enemy->hp = enemy->hpMax  = Actor01200_D04034.hpMax;
-    enemy->param              = &Actor01200_D04034;
+    enemy->hp = enemy->hpMax  = _gActor01200Params.hpMax;
+    enemy->param              = &_gActor01200Params;
     enemy->recs               = hitContacts;
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
     work->driver.requestedSet = ACTOR_01200_INITIAL_ANIMATION;
@@ -1106,7 +1125,7 @@ static void _actor01200StateSelfBurst(Enemy* enemy, Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                  = 0;
         _actor01200DisablePairBodies(work);
-        work->burstAttackBody.key = damagePackEnemyAttackKey(enemy, 0);
+        work->burstAttackBody.key = damagePackEnemyAttackKey(enemy, ACTOR_01200_BURST_ATTACK_INDEX);
         work->burstWaveBody.key   = ACTOR_01200_BURST_WAVE_KEY;
         work->stateFrame          = 0;
         work->gridBody.flags     |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -1141,7 +1160,7 @@ static void _actor01200StateSelfBurst(Enemy* enemy, Task* task)
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = ACTOR_01200_BURST_EFFECT_REPEAT;
             effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_01200_BURST_EFFECT_ATTACK_KEY), &task->extra.tmd->coords[4], NULL, &work->effectArg);
-            padScriptSpawnDepthScaled(Actor01200_D04044, Actor01200_D04050, (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            padScriptSpawnDepthScaled(_gActor01200BurstPadCommands, _gActor01200BurstPadSegments, (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             work->burstAttackBody.radius = ACTOR_01200_BURST_RADIUS;
             work->burstWaveBody.radius   = ACTOR_01200_BURST_WAVE_START_RADIUS;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1255,7 +1274,7 @@ static void _actor01200StateDeathBurst(Enemy* enemy, Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                  = 0;
         _actor01200DisablePairBodies(work);
-        work->burstAttackBody.key = damagePackEnemyAttackKey(enemy, 0);
+        work->burstAttackBody.key = damagePackEnemyAttackKey(enemy, ACTOR_01200_BURST_ATTACK_INDEX);
         work->burstWaveBody.key   = ACTOR_01200_BURST_WAVE_KEY;
         work->stateFrame          = 0;
         work->gridBody.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1293,7 +1312,7 @@ static void _actor01200StateDeathBurst(Enemy* enemy, Task* task)
             work->burstAttackBody.radius = ACTOR_01200_BURST_RADIUS;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], ACTOR_01200_BURST_RING_STYLE, NULL);
-            padScriptSpawn(Actor01200_D04044, Actor01200_D04050);
+            padScriptSpawn(_gActor01200BurstPadCommands, _gActor01200BurstPadSegments);
             work->effectArg.coord      = &task->extra.tmd->coords[4];
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = ACTOR_01200_BURST_EFFECT_REPEAT;
@@ -1670,18 +1689,19 @@ static void _actor01200StateReturn(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
-static const _Actor01200StateTable Actor01200_D000E4 = {
+/// Behavior callbacks indexed by `ACTOR_01200_STATE_*`, copied before dispatch.
+static const _Actor01200StateTable _gActor01200StateHandlers = {
     {
-        _actor01200StateHidden,
-        _actor01200StateSettle,
-        _actor01200StateIdle,
-        _actor01200StateRouse,
-        _actor01200StateChase,
-        _actor01200StateSelfBurst,
-        _actor01200StateDeathBurst,
-        _actor01200StatePatrol,
-        _actor01200StateReturn,
-        _actor01200StateWalkInPlace,
+        [ACTOR_01200_STATE_HIDDEN]        = _actor01200StateHidden,
+        [ACTOR_01200_STATE_SETTLE]        = _actor01200StateSettle,
+        [ACTOR_01200_STATE_IDLE]          = _actor01200StateIdle,
+        [ACTOR_01200_STATE_ROUSE]         = _actor01200StateRouse,
+        [ACTOR_01200_STATE_CHASE]         = _actor01200StateChase,
+        [ACTOR_01200_STATE_SELF_BURST]    = _actor01200StateSelfBurst,
+        [ACTOR_01200_STATE_DEATH_BURST]   = _actor01200StateDeathBurst,
+        [ACTOR_01200_STATE_PATROL]        = _actor01200StatePatrol,
+        [ACTOR_01200_STATE_RETURN]        = _actor01200StateReturn,
+        [ACTOR_01200_STATE_WALK_IN_PLACE] = _actor01200StateWalkInPlace,
     }
 };
 
@@ -1719,7 +1739,7 @@ static void _actor01200Tick(Enemy* enemy, Task* task)
     s32                   soundCue;
 
     work                                  = task->work;
-    stateHandlers                         = Actor01200_D000E4;
+    stateHandlers                         = _gActor01200StateHandlers;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldPosition.vx = task->extra.tmd->coords->workm.t[0];
@@ -1774,7 +1794,7 @@ static void _actor01200Tick(Enemy* enemy, Task* task)
 }
 
 /// The actor's three task states: spawn, per-frame tick and teardown.
-static const EnemyTaskFuncTable3 Actor01200_D0010C = {
+static const EnemyTaskFuncTable3 _gActor01200TaskStates = {
     {
         _actor01200Spawn,
         _actor01200Tick,
@@ -1984,7 +2004,7 @@ static void _actor01200Task(Task* task)
 {
     EnemyTaskFuncTable3 taskStates;
 
-    taskStates = Actor01200_D0010C;
+    taskStates = _gActor01200TaskStates;
     taskStates.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

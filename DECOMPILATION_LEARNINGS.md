@@ -13190,7 +13190,7 @@ placement.
 
 **Size the table from the copy count, not from the splat symbol's extent.** A
 `dlabel` runs to the next label, so it swallows any alignment word between the
-table and what follows. `D_actor_107600_80131E34` is `.size` 16 — three function
+table and what follows. `_gActor107600MountBehaviourHandlers` is `.size` 16 — three function
 pointers plus the `0x00000000` word that pads the `jtbl_actor_107600_80131E44`
 after it — but `_actor107600UpdateMountBehaviour` copies three words, so the extern is
 `TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
@@ -79198,7 +79198,7 @@ with a *register* count:
 ```
 lh    v0, 0x58E(s1)
 sllv  v0, v0, s0        ; $s0 holds 1 -- the i = 1 loop counter, not 2
-addu  v0, v0, v1        ; %hi/%lo of D_actor_105100_801414C8
+addu  v0, v0, v1        ; %hi/%lo of _gActor105100AnimationBlendFrames
 lh    s2, 0(v0)
 ```
 
@@ -127965,7 +127965,7 @@ and the object becomes byte-identical:
 
 ```c
 animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->animId, 0,
-              D_actor_210600_8015A498[start->appliedAnim][(s16)start->animId]);
+              _gActor210600AnimationBlendFrames[start->appliedAnim][(s16)start->animId]);
 ```
 
 The `lhu` + `sh` copy does not prove the field unsigned, though: a copy between

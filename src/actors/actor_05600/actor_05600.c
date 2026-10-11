@@ -70,10 +70,6 @@ extern u16* gGolemPawnRookAreaParams[];
 /// Animation stream set bound into the work block's animation context.
 extern AnimationSet* gGolemPawnRookAnimSets[31];
 
-/// Sound id of the burst cue, with the spawn context's room/channel bits packed
-/// in.
-extern s32 gGolemPawnRookShotSound;
-
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
 extern s16 gGolemPawnRookWeakPointWeapons[];
@@ -901,7 +897,11 @@ static s32 _gGolemPawnRookMotionCues[17] = {
     SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 18),
 };
 
-s32 gGolemPawnRookShotSound = 0x40380007;
+/// Character-bank script ID played when a grenade detaches from its launcher.
+///
+/// The stored instance byte is zero; the grenade inserts its placement index
+/// in bits 8..15 before requesting the spatialized sound.
+static s32 _gGolemPawnRookGrenadeLaunchCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 7);
 
 /// Sound id of the cue a grenade plays where its flight ends; the bullet ORs
 /// the firing enemy's place index into bits 8 and up before queueing it.

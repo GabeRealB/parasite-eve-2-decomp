@@ -65,9 +65,6 @@ extern s16 gGolemKnightBishopIdleWaits[];
 /// Per-roll state offsets the wait state adds to 2 when `feintBroken` is set.
 extern u16 gGolemKnightBishopIdleSteps[];
 
-extern GolemKnightBishopRegion* gGolemKnightBishopRegions[];
-extern s16*                     gGolemKnightBishopStageCues[];
-
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 gGolemKnightBishopGrabHpLimits[];
 
@@ -898,7 +895,7 @@ static GolemKnightBishopRegion _gActor403900NeoArkPowerPlant2Regions[4];
 
 /// Room selection for the GOLEM's activation regions.
 ///
-/// `regionTable` indexes `gGolemKnightBishopRegions`; zero ends the list.
+/// `regionTable` indexes `_gGolemKnightBishopRegionTables`; zero ends the list.
 /// Matching rows supply both circle and box regions, with the last match winning.
 static GolemKnightBishopRoomRegions _gGolemKnightBishopRoomRegions[9] = {
     { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, ARRAY_SIZE(_gActor403900ShelterB2BreedingRoomRegions) },
@@ -1020,7 +1017,11 @@ static GolemKnightBishopRegion _gActor403900NeoArkPowerPlant2Regions[4] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 2048 }, 7750, -3000, 6500, -6000, 9000, -9000 },
 };
 
-GolemKnightBishopRegion* gGolemKnightBishopRegions[9] = {
+/// Bishop room activation-region tables, selected by the room directory's 1..8 keys.
+///
+/// Slot 0 is NULL. Each selected table is borrowed with the corresponding
+/// directory row's complete regionCount for the actor overlay's lifetime.
+static GolemKnightBishopRegion* _gGolemKnightBishopRegionTables[9] = {
     NULL,
     _gActor403900ShelterB2BreedingRoomRegions,
     _gActor403900NeoArkShrineRegions,
@@ -1118,13 +1119,18 @@ static s16 _gActor403900ShelterNeoArkSoundSets[34] = {
     [GAME_AREA_NEO_ARK_PYRAMID]              = 4,
 };
 
-s16* gGolemKnightBishopStageCues[6] = {
-    NULL,
-    _gActor403900AcropolisSoundSets,
-    _gActor403900DryfieldSoundSets,
-    _gActor403900DryfieldNightSoundSets,
-    _gActor403900MineShelterSoundSets,
-    _gActor403900ShelterNeoArkSoundSets,
+/// Per-area sound-set selector tables indexed by `GAME_STAGE_*` (0..5).
+///
+/// Stage 0 has no table. Area bounds for stages 1..5 are 21, 39, 39, 50 and
+/// 34 entries; selectors 0..4 control bank loading and motion/impact scripts.
+/// Spawn copies the selector, while these carrier-owned tables remain loaded.
+static s16* _gGolemKnightBishopStageSoundSets[6] = {
+    [GAME_STAGE_NONE]            = NULL,
+    [GAME_STAGE_ACROPOLIS]       = _gActor403900AcropolisSoundSets,
+    [GAME_STAGE_DRYFIELD]        = _gActor403900DryfieldSoundSets,
+    [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor403900DryfieldNightSoundSets,
+    [GAME_STAGE_MINE_SHELTER]    = _gActor403900MineShelterSoundSets,
+    [GAME_STAGE_SHELTER_NEO_ARK] = _gActor403900ShelterNeoArkSoundSets,
 };
 
 /// Player clips borrowed for the GOLEM grab: start, hold, kill and release.

@@ -147,13 +147,14 @@ static const TaskFuncTable3 D_actor_113100_80131E3C = { {
     _actor113100Exit,
 } };
 
-/// The four main-body handlers, dispatched by `_actor113100StepWalk`
-/// through `_Actor113100PierceCarradineWork::walk.motionStep`.
-static const TaskFuncTable4 D_actor_113100_80131E48 = { {
-    _actor113100QueueWalkHeading,
-    _actor113100TurnAndBeginWalk,
-    _actor113100CheckWalkArrival,
-    _actor113100TurnToArrivalYaw,
+/// Pierce Carradine's four scripted-walk steps, copied before dispatch.
+///
+/// `walk.motionStep` must be in 0..3; the closing turn returns motion to idle.
+static const TaskFuncTable4 _gActor113100PierceCarradineWalkSteps = { {
+    _actor113100QueueWalkHeading, // 0: queue destination heading and opening-turn clip
+    _actor113100TurnAndBeginWalk, // 1: face the destination and begin forward motion
+    _actor113100CheckWalkArrival, // 2: stop when the destination is reached or passed
+    _actor113100TurnToArrivalYaw, // 3: face the destination yaw and return to idle
 } };
 
 static TmdSource _gActor113100PierceCarradineBody;
@@ -1843,7 +1844,7 @@ static void _actor113100StepWalk(Task* task)
     TaskFuncTable4                   walkSteps;
 
     work      = task->work;
-    walkSteps = D_actor_113100_80131E48;
+    walkSteps = _gActor113100PierceCarradineWalkSteps;
     walkSteps.funcs[work->walk.motionStep](task);
 }
 

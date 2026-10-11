@@ -129,3 +129,4 @@ _actor135600InitializeKyleMadiganWalker = 0x80132234; // type:func
 _gActor135600KyleMadiganHandStates = 0x80131e24;
 _gActor135600KyleMadiganHeldItemStates = 0x80131e30;
 _gActor135600KyleMadiganForwardWalkVelocity = 0x80131e58;
+_gActor135600KyleMadiganWalkSteps = 0x80131e48;

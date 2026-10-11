@@ -144,7 +144,7 @@ static void _golemPawnRookGrenadeSpawn(Enemy* enemy, Task* grenade)
     actorRenderComposeCoord(root);
 
     spawnEnemy = grenade->spawnArg2.pointer;
-    soundId    = gGolemPawnRookShotSound | ((spawnEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
+    soundId    = _gGolemPawnRookGrenadeLaunchCue | ((spawnEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
     audioPan   = (s8)worldCoordGetOriginAudioPan(root);
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
 

@@ -185,8 +185,8 @@ static void _actor143000OutlineKeypadHotspots(void);
 static void _actor143000KeypadCursorTask(Task* task);
 static void _actor143000KeypadTask(Task* task);
 
-extern const char D_actor_143000_80131E54[14];
-extern const char D_actor_143000_80131E64[14];
+static const char _gActor143000KeypadBottomRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
+static const char _gActor143000KeypadMiddleRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 extern const char D_actor_143000_80131E74[14];
 
 TaskDesc D_actor_143000_80134558 = { { { TASK_BODY_NONE, 192 } }, _actor143000KeypadCursorTask, { .value = 0 } };
@@ -234,8 +234,8 @@ static ActionPromptHotspot _gActor143000KeypadHotspots[10] = {
 
 const char* D_actor_143000_801345F8[3] = {
     D_actor_143000_80131E74,
-    D_actor_143000_80131E64,
-    D_actor_143000_80131E54,
+    _gActor143000KeypadMiddleRow,
+    _gActor143000KeypadBottomRow,
 };
 
 static AnimationPackedPose _gActor143000Animation02A20Bank1[2] = {
@@ -533,11 +533,11 @@ static void _actor143000HandleKeypadInput(Task* task)
     }
 }
 
-/// The three rows of the code keypad, bottom row first;
-/// `D_actor_143000_801345F8` lists them top row first.
-const char D_actor_143000_80131E54[] = "NOPQRSTUVWXYZ";
-const char D_actor_143000_80131E64[] = "ABCDEFGHIJKLM";
-const char D_actor_143000_80131E74[] = "0123456789-# ";
+/// Bottom keypad row: thirteen selectable uppercase letters N..Z and a trailing NUL.
+static const char _gActor143000KeypadBottomRow[ACTOR_143000_KEYPAD_COLUMNS + 1] = "NOPQRSTUVWXYZ";
+/// Middle keypad row: thirteen selectable uppercase letters A..M and a trailing NUL.
+static const char _gActor143000KeypadMiddleRow[ACTOR_143000_KEYPAD_COLUMNS + 1] = "ABCDEFGHIJKLM";
+const char        D_actor_143000_80131E74[]                                     = "0123456789-# ";
 
 /// State table of the actor's callback, `_actor143000KeypadTask`, which
 /// copies it onto its stack and indexes it with `Task::state`.

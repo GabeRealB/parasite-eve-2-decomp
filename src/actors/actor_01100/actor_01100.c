@@ -2805,8 +2805,8 @@ static void _actor01100FacePlayer(Enemy* enemy, Task* task, _Actor01100Work* wor
     task->killCountdown = spitWaitFrames;
 }
 
-/// Scale `_actor01100Death` applies to the model's matrix: 0x10 on each axis.
-static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
+/// Q12 factor that scales each chest basis column by 1/256 during a death burst.
+static const VECTOR _gActor01100BurstChestScale = { ONE / 256, ONE / 256, ONE / 256, 0 };
 
 /// Stretches the left arm into a punch aimed at the player's initial distance.
 ///
@@ -3584,7 +3584,7 @@ static void _actor01100Death(
     scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (enemy->spawnState == ACTOR_01100_DEATH_BURST_SPAWN_STATE) {
         coords = task->extra.tmd->coords;
-        scale  = Actor01100_D000CC;
+        scale  = _gActor01100BurstChestScale;
         _gfxScaleMatrixColumns(&coords[ACTOR_01100_PART_CHEST].coord, &scale);
         coords[ACTOR_01100_PART_CHEST].composeStamp = GRAPHICS_COORD_DIRTY;
         if ((enemy->spawnState == ACTOR_01100_DEATH_BURST_SPAWN_STATE) && !(model->flags & TMD_OBJECT_SEMI_TRANS)) {

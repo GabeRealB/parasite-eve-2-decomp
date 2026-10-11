@@ -52,7 +52,7 @@ _gShelterB1StoreroomFloorSurfaceProperties = 0x80186DE4; // size:0x8 defined:Tru
 gShelterB1StoreroomSurfaceClassProperties = 0x80186DEC; // size:0x20 defined:True
 gActor102400Tasks = 0x8013647C; // absolute:True owner=actor_102400
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 gActor300700RatTaskDesc = 0x801693AC; // absolute:True owner=actor_300700

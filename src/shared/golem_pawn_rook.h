@@ -20,6 +20,7 @@
  *   s16 _gGolemPawnRookAnimBlendFrames[32]  blend-in length per animation, in frames
  *   s32 _gGolemPawnRookMotionCues[17]        animation/fall script IDs with a zero instance byte
  *   s32 _gGolemPawnRookSwingCue             sword swing/charge script ID (Beam Sword only)
+ *   s32 _gGolemPawnRookGrenadeLaunchCue    grenade launch script ID (Grenade Launcher only)
  *   s32 gGolemPawnRookImpactSound          the grenade's impact cue (Grenade Launcher only)
  */
 

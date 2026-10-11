@@ -292,13 +292,21 @@ static s32 _actor04000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
 static s32 _actor04000ReleaseHold(Task* task, s32 messageId, s32 unusedPayload, s32 unusedArg);
 static s32 _actor04000RequestAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
-DamageAttack Actor04000_D07078[3] = {
-    { 1, 7 },
-    { 18, 7 },
-    { 30, 0 },
+/// Distinct, status-free player hit presentation selected by latch and burst damage.
+enum { ACTOR_04000_HOLD_HIT_REACTION = 7,
+       ACTOR_04000_HOLD_ATTACK_INDEX = 0 };
+
+/// Blood Suckler attack rows borrowed by its enemy parameters.
+///
+/// Row 0 deals periodic held-player damage; row 1 is the burst attack.
+/// Row 2 retains an ordinary 30-power attack with no recovered selector.
+static DamageAttack _gActor04000Attacks[3] = {
+    { 1, ACTOR_04000_HOLD_HIT_REACTION },
+    { 18, ACTOR_04000_HOLD_HIT_REACTION },
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor04000_D07084 = { Actor04000_D07078, 1, 8, 28, 4, 100, 100, 100, 0 };
+EnemyParams Actor04000_D07084 = { _gActor04000Attacks, 1, 8, 28, 4, 100, 100, 100, 0 };
 
 PadScriptCmd Actor04000_D07094[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -847,7 +855,20 @@ static AnimationSet* _gActor04000PlayerRightLatchAnimationSets[4] = {
     NULL,
 };
 
-AnimationPlayRequest Actor04000_D0C530 = { { .sets = _gActor04000PlayerRightLatchAnimationSets }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player latch/release clip selectors and retained reset blend duration.
+enum {
+    ACTOR_04000_PLAYER_LATCH_ANIMATION   = 1,
+    ACTOR_04000_PLAYER_RELEASE_ANIMATION = 2,
+    ACTOR_04000_PLAYER_HOLD_BLEND_FRAMES = 3,
+};
+
+/// Mutable request for the player's side-specific latch and release animations.
+///
+/// A catch selects the left/right bank and clip 1; release reuses that bank with
+/// clip 2. Dispatch borrows the request synchronously, while the player retains
+/// the selected clip bank until its animation bank changes. Keep the overlay
+/// loaded through that playback. Reset ignores the retained three-frame duration.
+static AnimationPlayRequest _gActor04000PlayerHoldAnimationRequest = { { .sets = _gActor04000PlayerRightLatchAnimationSets }, ACTOR_04000_PLAYER_LATCH_ANIMATION, ANIMATION_BLEND_RESET, ACTOR_04000_PLAYER_HOLD_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
 u8 Actor04000_D0C544[364] = {
     0,
@@ -1256,8 +1277,6 @@ extern EnemyParams Actor04000_D07084;
 extern AnimationSet* Actor04000_D0C4C4[19];
 
 extern TaskMessageEntry Actor04000_D0C6B0[6];
-
-extern AnimationPlayRequest Actor04000_D0C530;
 
 extern PadScriptCmd Actor04000_D07094[3];
 
@@ -1686,7 +1705,6 @@ static void _actor04000StateLunge(Enemy* enemy, Task* task)
     enum {
         ACTOR_04000_LUNGE_MAX_YAW          = ACTOR_TRANSFORM_ANGLE_TURN / 8,
         ACTOR_04000_LUNGE_HOLD_PRESS_COUNT = 12,
-        ACTOR_04000_PLAYER_LATCH_ANIMATION = 1,
     };
 
     _Actor04000Work*         work;
@@ -1748,12 +1766,12 @@ static void _actor04000StateLunge(Enemy* enemy, Task* task)
                     yawDelta      = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-facingCoord->coord.m[2][0], facingCoord->coord.m[2][2]);
                     scratch->turn = _actorAngleNormalizeYaw(yawDelta);
                     if (scratch->turn < 0) {
-                        Actor04000_D0C530.source.sets = Actor04000_D0C510;
+                        _gActor04000PlayerHoldAnimationRequest.source.sets = Actor04000_D0C510;
                     } else {
-                        Actor04000_D0C530.source.sets = _gActor04000PlayerRightLatchAnimationSets;
+                        _gActor04000PlayerHoldAnimationRequest.source.sets = _gActor04000PlayerRightLatchAnimationSets;
                     }
-                    Actor04000_D0C530.animationId = ACTOR_04000_PLAYER_LATCH_ANIMATION;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
+                    _gActor04000PlayerHoldAnimationRequest.animationId = ACTOR_04000_PLAYER_LATCH_ANIMATION;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor04000PlayerHoldAnimationRequest, 0);
                     work->state         = ACTOR_04000_STATE_LATCHED;
                     work->holdingPlayer = 1;
                     // Place on the selected player side, then turn back toward them.
@@ -1814,7 +1832,6 @@ static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task)
         ACTOR_04000_RELEASE_SCALE_END_TICK   = 0x65,
         ACTOR_04000_RELEASE_GROWTH_BASE_TICK = 0x5A,
         ACTOR_04000_RELEASE_DRIFT_STEP_UNITS = 21,
-        ACTOR_04000_PLAYER_RELEASE_ANIMATION = 2,
     };
     SVECTOR          driftStep;
     SVECTOR*         driftStepPtr;
@@ -1842,14 +1859,14 @@ static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task)
         work->driver.state            = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rateBias         = 0;
         _animDriverTick(task);
-        work->burstWaveBody.pos.vx    = task->extra.tmd->coords->coord.t[0];
-        work->burstWaveBody.pos.vy    = task->extra.tmd->coords->coord.t[1] - ACTOR_04000_BURST_WAVE_HEIGHT;
-        work->burstWaveBody.pos.vz    = task->extra.tmd->coords->coord.t[2];
-        work->burstAttackBody.pos.vx  = task->extra.tmd->coords->coord.t[0];
-        work->burstAttackBody.pos.vy  = task->extra.tmd->coords->coord.t[1];
-        work->burstAttackBody.pos.vz  = task->extra.tmd->coords->coord.t[2];
-        Actor04000_D0C530.animationId = ACTOR_04000_PLAYER_RELEASE_ANIMATION;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
+        work->burstWaveBody.pos.vx                         = task->extra.tmd->coords->coord.t[0];
+        work->burstWaveBody.pos.vy                         = task->extra.tmd->coords->coord.t[1] - ACTOR_04000_BURST_WAVE_HEIGHT;
+        work->burstWaveBody.pos.vz                         = task->extra.tmd->coords->coord.t[2];
+        work->burstAttackBody.pos.vx                       = task->extra.tmd->coords->coord.t[0];
+        work->burstAttackBody.pos.vy                       = task->extra.tmd->coords->coord.t[1];
+        work->burstAttackBody.pos.vz                       = task->extra.tmd->coords->coord.t[2];
+        _gActor04000PlayerHoldAnimationRequest.animationId = ACTOR_04000_PLAYER_RELEASE_ANIMATION;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor04000PlayerHoldAnimationRequest, 0);
         work->stateFrame = 0;
     }
     /// Steps the release drift along the root's flattened local X axis.
@@ -3333,7 +3350,7 @@ static void _actor04000StateLatched(Enemy* enemy, Task* task)
     _animDriverTick(task);
     if (!(work->stateFrame & (ACTOR_04000_LATCH_DAMAGE_INTERVAL_TICKS - 1))) {
         padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_04000_HOLD_ATTACK_INDEX), 0);
     }
     work->stateFrame++;
     if (work->stateFrame > ACTOR_04000_LATCH_HOLD_CHECK_TICK) {

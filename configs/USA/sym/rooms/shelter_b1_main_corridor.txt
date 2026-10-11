@@ -58,7 +58,7 @@ gShelterB1MainCorridorSurfacePropertiesByClass = 0x80185D04; // size:0x20 define
 gRoomEventFade = 0x80185D24; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200

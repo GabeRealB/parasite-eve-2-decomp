@@ -24,6 +24,7 @@
 #include "types.h"
 
 #include "actors/actor.h"
+#include "actors/hit_effect.h"
 
 #include "main/areas.h"
 #include "main/task_types.h"
@@ -370,7 +371,7 @@ typedef struct {
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     EffectSpawnArg           effectArg;          // argument record of the hit effects, hung off the part the hit offset names
     SVECTOR                  effectOffset;       // offset of the last dust effect from its part
-    SVECTOR                  hitOffset;          // offset of the last hit effect from its part, with the part's index in `pad`
+    ActorHitAnchor           hitAnchor;          // Part-local position and model coordinate selector of the last hit effect
     SVECTOR                  burnPosFront;       // view-space anchor of the first corpse-burn effect: part 2's origin, lowered to the root's height once spawned
     SVECTOR                  burnPosForeleg;     // view-space anchor of the second corpse-burn effect: part 9's origin at the root's height
     byte                     field_8B8[8];       // never accessed
@@ -404,7 +405,7 @@ typedef struct {
     byte                     field_C2C[4];       // never accessed
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
     EffectSpawnArg           effectArg;          // argument record of the hit effects, hung off the part the hit offset names
-    SVECTOR                  hitOffset;          // offset of the last hit effect from its part, with the part's index in `pad`
+    ActorHitAnchor           hitAnchor;          // Part-local position and model coordinate selector of the last hit effect
     s8                       roomNotified;       // 1 once the dead chaser has told the room the pack is spent, cleared as its death starts; never read
     byte                     field_8A1[3];       // never accessed
     GameActorMoveBy          playerMove;         // the push sent to the caught player, halved or cleared as the catch goes on

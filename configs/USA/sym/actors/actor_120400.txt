@@ -182,3 +182,4 @@ _actor120400IgnoreKyleMadiganCommand = 0x80132d14; // type:func
 _actor120400SpawnKyleMadiganWalker = 0x80131e5c; // type:func
 _gActor120400KyleMadiganHandStates = 0x80131e24;
 _gActor120400KyleMadiganForwardWalkVelocity = 0x80131e4c;
+_gActor120400KyleMadiganWalkSteps = 0x80131e3c;

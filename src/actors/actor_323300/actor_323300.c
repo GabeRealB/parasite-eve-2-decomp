@@ -128,7 +128,6 @@ extern ActorTransform D_actor_323300_8017259C;
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `_actorMotionPlayAnim19`.
 extern AnimationPlayRequest D_actor_323300_801725B4;
-extern AnimationPlayRequest D_actor_323300_801725DC;
 
 /// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
 enum {
@@ -365,7 +364,14 @@ enum { ACTOR_323300_WOMAN_TURN_ANIMATION    = 2,
 /// disables it for handlers that interpret it.
 static AnimationPlayRequest _gActor323300WomanTurnAnimationRequest = { { .index = 0 }, ACTOR_323300_WOMAN_TURN_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_323300_WOMAN_TURN_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_323300_801725DC = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_323300_WOMAN_TURN_COMPLETE_ANIMATION = 3 };
+
+/// Toilet-event woman's bank-0 completion clip after reaching her target yaw.
+///
+/// Dispatch borrows this request synchronously. Clip 3 blends over ten
+/// normal-rate frames; an unticked rig resets instead. The actor retains
+/// its existing clip bank and ignores the world-collision word.
+static AnimationPlayRequest _gActor323300WomanTurnCompleteAnimationRequest = { { .index = 0 }, ACTOR_323300_WOMAN_TURN_COMPLETE_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_323300_WOMAN_TURN_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
 static AnimationPackedPose _gActor323300Animation11FC4Bank1[58] = {
 #include "assets/actor_323300_animation_11FC4_bank1.inc"
@@ -936,7 +942,7 @@ static void _actor323300WomanTurnTowardTarget(Task* task)
         }
     } else {
         rootAngles.vy = work->walk.targetRot.vy;
-        _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
+        _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300WomanTurnCompleteAnimationRequest, 0);
         for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             work->rig.slots[slotIndex].rate = ACTOR_323300_WOMAN_IDLE_RATE;
         }

@@ -204,10 +204,6 @@ extern s16 Actor01500_D0A050[];
 /// Fifteen vertical bob offsets cycled by `bobPhase` while `anim` is `ACTOR_01500_ANIM_HOVER`.
 extern s16 Actor01500_D0A070[];
 
-/// Sixteen distances `advanceLeft` is reloaded from when the actor starts to
-/// advance, picked by a `gRandomLcgState` draw.
-extern u16 Actor01500_D09FE8[];
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -769,7 +765,11 @@ static u16 _gActor01500HoverWaitTicks[16] = {
     65,
 };
 
-u16 Actor01500_D09FE8[16] = {
+/// Random Mind Suckler advance distances, in the root's parent-coordinate units.
+///
+/// A four-bit draw selects all sixteen unsigned-halfword entries (1000..1600).
+/// Both the player chase and fixed-point scripted advance use this distribution.
+static u16 _gActor01500AdvanceDistances[16] = {
     1000,
     1050,
     1100,
@@ -1501,7 +1501,7 @@ static void _actor01500ChaseAction(Task* actor)
             work->lunged        = 0;
             if (--work->timer < 0) {
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                advanceDistance   = Actor01500_D09FE8[(gRandomLcgState >> 16) & (ARRAY_SIZE(Actor01500_D09FE8) - 1)];
+                advanceDistance   = _gActor01500AdvanceDistances[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
                 work->advanceLeft = advanceDistance;
@@ -1981,7 +1981,7 @@ static void _actor01500ScriptedAction(Task* actor)
             work->lunged        = 0;
             if (--work->timer < 0) {
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                advanceDistance   = Actor01500_D09FE8[(gRandomLcgState >> 16) & (ARRAY_SIZE(Actor01500_D09FE8) - 1)];
+                advanceDistance   = _gActor01500AdvanceDistances[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
                 work->advanceLeft = advanceDistance;

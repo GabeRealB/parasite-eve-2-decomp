@@ -182,11 +182,6 @@ extern AnimationSet* gDesertChaserRearAnim[9];
 
 extern TaskMessageEntry Actor00100_D1BA54[6];
 
-/// Twelve `SVECTOR` hit positions `_desertChaserHitEffect` picks from by relative
-/// hit yaw. The fourth halfword (`pad`, unused by the effect) is the model
-/// part index the spawned effect anchors to.
-extern SVECTOR gDesertChaserHitOffsets[12];
-
 static void _actor00100ResumePursuit(Task* task);
 
 static AnimationSet _gActor00100Actor400100Animation129A4;
@@ -1211,19 +1206,24 @@ AnimationSet* gDesertChaserFrontAnim[9] = { NULL, &_gActor00100Actor400100Animat
 
 AnimationSet* gDesertChaserRearAnim[9] = { NULL, &_gActor00100Actor400100Animation1A0B4, &_gActor00100Actor400100Animation1B0D4, &_gActor00100Actor400100Animation1B6A8, NULL, NULL, NULL, NULL, NULL };
 
-SVECTOR gDesertChaserHitOffsets[12] = {
-    { 60, -12, 30, 2 },
-    { -50, -130, 29, 2 },
-    { 20, -70, 25, 2 },
-    { -30, -65, 25, 2 },
-    { 60, -120, 30, 2 },
-    { 20, -20, -5, 2 },
-    { -15, -50, 0, 2 },
-    { 2, 10, -15, 2 },
-    { 14, 0, 0, 7 },
-    { 25, 0, 0, 2 },
-    { -14, 0, 0, 9 },
-    { -25, 0, 0, 2 },
+/// Part-local hit-effect positions and model coordinate selectors for the regular chaser.
+///
+/// Relative hit yaw selects front entries 0..4, rear 5..7 or sides 8..11.
+/// Retained random masks leave entries 4 and 6 unselected. Coordinates 2, 7
+/// and 9 must remain live; the chosen eight-byte anchor is copied into work.
+static ActorHitAnchor _gDesertChaserHitAnchors[12] = {
+    { .anchor = { 60, -12, 30, 2 } },
+    { .anchor = { -50, -130, 29, 2 } },
+    { .anchor = { 20, -70, 25, 2 } },
+    { .anchor = { -30, -65, 25, 2 } },
+    { .anchor = { 60, -120, 30, 2 } },
+    { .anchor = { 20, -20, -5, 2 } },
+    { .anchor = { -15, -50, 0, 2 } },
+    { .anchor = { 2, 10, -15, 2 } },
+    { .anchor = { 14, 0, 0, 7 } },
+    { .anchor = { 25, 0, 0, 2 } },
+    { .anchor = { -14, 0, 0, 9 } },
+    { .anchor = { -25, 0, 0, 2 } },
 };
 
 TaskMessageEntry Actor00100_D1BA54[6] = {

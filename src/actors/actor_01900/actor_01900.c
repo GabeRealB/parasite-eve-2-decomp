@@ -55,12 +55,29 @@
 /// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.
 enum { ACTOR_01900_ROOT_SCALE = 0x1194 };
 
-/// Clips used for walking, running, staggering and lying down.
+/// Clip-bank selectors used by the Grinning Stranger's behavior and sound cues.
+///
+/// WALK/RUN, ALERT/SCRIPTED_WATCH and DOWN/STATUS_HOLD share stored clips.
+/// DORMANT_SCRIPTED is installed on state entry. SLIDE names the requested slot;
+/// its clip remains NULL in the stored bank and no installation is recovered.
 enum {
-    ACTOR_01900_ANIM_WALK = 2,
-    ACTOR_01900_ANIM_RUN  = 3,
-    ACTOR_01900_ANIM_FALL = 10,
-    ACTOR_01900_ANIM_DOWN = 11
+    ACTOR_01900_ANIM_WALK              = 2,
+    ACTOR_01900_ANIM_RUN               = 3,
+    ACTOR_01900_ANIM_STRIKE            = 4,
+    ACTOR_01900_ANIM_STEP_BACK         = 7,
+    ACTOR_01900_ANIM_RISE              = 8,
+    ACTOR_01900_ANIM_ALERT             = 9,
+    ACTOR_01900_ANIM_FALL              = 10,
+    ACTOR_01900_ANIM_DOWN              = 11,
+    ACTOR_01900_ANIM_FLINCH            = 13,
+    ACTOR_01900_ANIM_DORMANT_SCRIPTED  = 16,
+    ACTOR_01900_ANIM_BACK_OFF          = 17,
+    ACTOR_01900_ANIM_SLIDE             = 18,
+    ACTOR_01900_ANIM_SCRIPTED_WATCH    = 19,
+    ACTOR_01900_ANIM_SIDESTEP_NEGATIVE = 20,
+    ACTOR_01900_ANIM_SIDESTEP_POSITIVE = 21,
+    ACTOR_01900_ANIM_STATUS_HOLD       = 23,
+    ACTOR_01900_ANIM_DEATH_BURST       = 24,
 };
 
 /// Collision-sphere radii in game-coordinate units.
@@ -73,11 +90,6 @@ enum {
 enum {
     ACTOR_01900_HIT_EFFECT_ARGUMENT_LOW = 0x300,
     ACTOR_01900_HIT_EFFECT_REPEAT_COUNT = 2
-};
-
-/// Recoil clip shared by hit blending and the damage-over-time flinch state.
-enum {
-    ACTOR_01900_ANIM_FLINCH = 13
 };
 
 /// Burn-sequence tick offsets and root flattening rate (Q12 units per tick).
@@ -250,7 +262,6 @@ STATIC_ASSERT_SIZEOF(_Actor01900StateTable, ACTOR_01900_STATE_COUNT * sizeof(Tas
 
 extern EnemyParams          Actor01900_D0AC54;
 extern ActorStrangerVariant Actor01900_D0AC64[];
-extern AnimationSet*        Actor01900_D17174[46];
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor01900_D1728C[8];
@@ -280,12 +291,22 @@ static s32       _actor01900AcknowledgeHoldRelease(Task* task, s32 messageId, s3
 static s32       _actor01900IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unused);
 static void      _actor01900Task(Task* task);
 
-DamageAttack Actor01900_D0AC4C[2] = {
-    { 16, 7 },
-    { 22, 0 },
+/// Distinct, status-free player hit presentation selected by the Stranger strike.
+enum {
+    ACTOR_01900_STRIKE_HIT_REACTION = 7,
+    ACTOR_01900_STRIKE_ATTACK_INDEX = 0
 };
 
-EnemyParams Actor01900_D0AC54 = { Actor01900_D0AC4C, 160, 42, 48, 4, 100, 10, 100, 0 };
+/// Grinning Stranger attack rows borrowed by its enemy parameters.
+///
+/// The strike sphere uses row 0. Row 1 retains an ordinary 22-power attack;
+/// no recovered code selects it.
+static DamageAttack _gActor01900Attacks[2] = {
+    { 16, ACTOR_01900_STRIKE_HIT_REACTION },
+    { 22, GAME_ACTOR_REACTION_ORDINARY },
+};
+
+EnemyParams Actor01900_D0AC54 = { _gActor01900Attacks, 160, 42, 48, 4, 100, 10, 100, 0 };
 
 ActorStrangerVariant Actor01900_D0AC64[3] = {
     { 15, 400, 8, 2000, { 0, 0, 0, 0 } },
@@ -695,53 +716,27 @@ static s8 _gActor01900AnimationBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* Actor01900_D17174[46] = {
-    NULL,
-    NULL,
-    &_gActor01900Actor101900Animation15F20,
-    &_gActor01900Actor101900Animation15F20,
-    &_gActor01900Actor101900Animation115E8,
-    NULL,
-    NULL,
-    &_gActor01900Actor101900Animation15420,
-    &_gActor01900Actor101900Animation125D0,
-    &_gActor01900Actor101900Animation12AF0,
-    &_gActor01900Actor101900Animation132D0,
-    &_gActor01900Actor101900Animation13658,
-    NULL,
-    &_gActor01900Actor101900Animation119EC,
-    NULL,
-    NULL,
-    NULL,
-    &_gActor01900Actor101900Animation12F44,
-    NULL,
-    &_gActor01900Actor101900Animation12AF0,
-    &_gActor01900Actor101900Animation14164,
-    &_gActor01900Actor101900Animation14938,
-    NULL,
-    &_gActor01900Actor101900Animation13658,
-    &_gActor01900Actor101900Animation139DC,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+/// Mutable clip bank shared by the primary and reaction rigs for the overlay lifetime.
+///
+/// Behavior selectors are `ACTOR_01900_ANIM_*`; unlisted slots are NULL.
+/// Dormant entry installs slot 16. Slide requests slot 18 and message requests
+/// map to 34..37/39, but no loaded clips for those slots are established.
+static AnimationSet* _gActor01900AnimationSets[46] = {
+    [ACTOR_01900_ANIM_WALK]              = &_gActor01900Actor101900Animation15F20,
+    [ACTOR_01900_ANIM_RUN]               = &_gActor01900Actor101900Animation15F20,
+    [ACTOR_01900_ANIM_STRIKE]            = &_gActor01900Actor101900Animation115E8,
+    [ACTOR_01900_ANIM_STEP_BACK]         = &_gActor01900Actor101900Animation15420,
+    [ACTOR_01900_ANIM_RISE]              = &_gActor01900Actor101900Animation125D0,
+    [ACTOR_01900_ANIM_ALERT]             = &_gActor01900Actor101900Animation12AF0,
+    [ACTOR_01900_ANIM_FALL]              = &_gActor01900Actor101900Animation132D0,
+    [ACTOR_01900_ANIM_DOWN]              = &_gActor01900Actor101900Animation13658,
+    [ACTOR_01900_ANIM_FLINCH]            = &_gActor01900Actor101900Animation119EC,
+    [ACTOR_01900_ANIM_BACK_OFF]          = &_gActor01900Actor101900Animation12F44,
+    [ACTOR_01900_ANIM_SCRIPTED_WATCH]    = &_gActor01900Actor101900Animation12AF0,
+    [ACTOR_01900_ANIM_SIDESTEP_NEGATIVE] = &_gActor01900Actor101900Animation14164,
+    [ACTOR_01900_ANIM_SIDESTEP_POSITIVE] = &_gActor01900Actor101900Animation14938,
+    [ACTOR_01900_ANIM_STATUS_HOLD]       = &_gActor01900Actor101900Animation13658,
+    [ACTOR_01900_ANIM_DEATH_BURST]       = &_gActor01900Actor101900Animation139DC,
 };
 
 SVECTOR Actor01900_D1722C[12] = {
@@ -946,14 +941,14 @@ static void _actor01900TickBlendedAnimSlots(Task* task)
 static s32 _actor01900TakeAnimSoundCue(_Actor01900Work* work)
 {
     enum {
-        ACTOR_01900_CUE_ANIM_WALK        = 2,
-        ACTOR_01900_CUE_ANIM_RUN         = 3,
-        ACTOR_01900_CUE_ANIM_STRIKE      = 4,
-        ACTOR_01900_CUE_ANIM_STEP_BACK   = 7,
-        ACTOR_01900_CUE_ANIM_ALERT       = 9,
-        ACTOR_01900_CUE_ANIM_DOWN        = 11,
-        ACTOR_01900_CUE_ANIM_SIDESTEP_1  = 20,
-        ACTOR_01900_CUE_ANIM_SIDESTEP_2  = 21,
+        ACTOR_01900_CUE_ANIM_WALK        = ACTOR_01900_ANIM_WALK,
+        ACTOR_01900_CUE_ANIM_RUN         = ACTOR_01900_ANIM_RUN,
+        ACTOR_01900_CUE_ANIM_STRIKE      = ACTOR_01900_ANIM_STRIKE,
+        ACTOR_01900_CUE_ANIM_STEP_BACK   = ACTOR_01900_ANIM_STEP_BACK,
+        ACTOR_01900_CUE_ANIM_ALERT       = ACTOR_01900_ANIM_ALERT,
+        ACTOR_01900_CUE_ANIM_DOWN        = ACTOR_01900_ANIM_DOWN,
+        ACTOR_01900_CUE_ANIM_SIDESTEP_1  = ACTOR_01900_ANIM_SIDESTEP_NEGATIVE,
+        ACTOR_01900_CUE_ANIM_SIDESTEP_2  = ACTOR_01900_ANIM_SIDESTEP_POSITIVE,
         ACTOR_01900_SOUND_GAIT_FIRST     = 0x400A0002,
         ACTOR_01900_SOUND_GAIT_SECOND    = 0x400A0001,
         ACTOR_01900_SOUND_ALERT          = 0x400A0006,
@@ -1272,7 +1267,6 @@ static __inline__ void _actor01900BindLightingMatrices(Task* task)
 static void _actor01900Initialize(Enemy* enemy, Task* task)
 {
     enum {
-        ACTOR_01900_ANIM_WALK           = 2,
         ACTOR_01900_SPAWN_MODE_SHIFT    = 16,
         ACTOR_01900_SPAWN_SELECTOR_MASK = 0xF,
         ACTOR_01900_STATE_REENTER       = -1,
@@ -1313,9 +1307,9 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
     enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
     enemy->param                  = &Actor01900_D0AC54;
     enemy->recs                   = work->hitContacts;
-    animationInitContext(&work->rig.anim, Actor01900_D17174, model,
+    animationInitContext(&work->rig.anim, _gActor01900AnimationSets, model,
                          work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, Actor01900_D17174, model,
+    animationInitContext(&work->blend.anim, _gActor01900AnimationSets, model,
                          work->blend.poses, work->blend.slots);
     work->animRequest   = ACTOR_01900_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
@@ -1368,7 +1362,7 @@ static void _actor01900Initialize(Enemy* enemy, Task* task)
     attackBody->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
     worldCollisionInitContacts(attackBody->context.contacts, 1, 0);
-    work->attackBody.key = damagePackEnemyAttackKey(enemy, 0);
+    work->attackBody.key = damagePackEnemyAttackKey(enemy, ACTOR_01900_STRIKE_ATTACK_INDEX);
 
     // Patrol between the placement and a point 2000 units ahead in parent space.
     work->patrolTarget      = 0;
@@ -1875,8 +1869,6 @@ static inline void _actor01900EnableCombatModel(Enemy* enemy, TmdObject* model)
 /// current endpoints; the task and loaded rig must remain live throughout.
 static void _actor01900StateStatusHold(Task* task)
 {
-    enum { ACTOR_01900_ANIM_STATUS_HOLD = 23 };
-
     _Actor01900Work* work;
     Enemy*           enemy;
     TmdObject*       model;
@@ -1951,7 +1943,6 @@ static __inline__ s32 _actor01900EngageBattleIfPlayerLevel(Task* task)
 static void _actor01900StateAlert(Task* task)
 {
     enum {
-        ACTOR_01900_ANIM_ALERT      = 9,
         ACTOR_01900_ALERT_TURN_STEP = ACTOR_TRANSFORM_ANGLE_TURN / 256
     };
 
@@ -2569,8 +2560,6 @@ static void _actor01900StateTurnAround(Task* task)
 static void _actor01900StateSidestep(Task* task)
 {
     enum {
-        ACTOR_01900_ANIM_SIDESTEP_NEGATIVE   = 20,
-        ACTOR_01900_ANIM_SIDESTEP_POSITIVE   = 21,
         ACTOR_01900_FIRST_SIDESTEP_EXTRA_YAW = 369,
         ACTOR_01900_SIDESTEP_DISTANCE        = 222,
         ACTOR_01900_SIDESTEP_MOVE_FIRST_TICK = 12,
@@ -2678,7 +2667,7 @@ static void _actor01900StateSidestep(Task* task)
 static void _actor01900StateStepBack(Task* task)
 {
     enum {
-        ACTOR_01900_STEP_BACK_CLIP      = 7,
+        ACTOR_01900_STEP_BACK_CLIP      = ACTOR_01900_ANIM_STEP_BACK,
         ACTOR_01900_STEP_BACK_FIRST_CUE = 16,
         ACTOR_01900_STEP_BACK_CUE_COUNT = 7,
         ACTOR_01900_STEP_BACK_DISTANCE  = -120
@@ -2913,7 +2902,6 @@ static void _actor01900StateDeathBurn(Task* task)
 static void _actor01900StateDormantScripted(Task* task)
 {
     enum {
-        ACTOR_01900_ANIM_DORMANT_SCRIPTED          = 16,
         ACTOR_01900_DORMANT_SOUND_CUE              = 15,
         ACTOR_01900_DORMANT_EFFECT_CUE             = 5,
         ACTOR_01900_DORMANT_EFFECT_ATTACK_KEY      = 0x1001,
@@ -2934,11 +2922,11 @@ static void _actor01900StateDormantScripted(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        model                                                = task->extra.tmd;
-        Actor01900_D17174[ACTOR_01900_ANIM_DORMANT_SCRIPTED] = &_gActor01900Actor101900Animation16960;
-        work->animId                                         = ACTOR_01900_ANIM_DORMANT_SCRIPTED;
-        work->animRequest                                    = ACTOR_01900_ANIM_REQUEST_RESET;
-        model->flags                                         = 0;
+        model                                                        = task->extra.tmd;
+        _gActor01900AnimationSets[ACTOR_01900_ANIM_DORMANT_SCRIPTED] = &_gActor01900Actor101900Animation16960;
+        work->animId                                                 = ACTOR_01900_ANIM_DORMANT_SCRIPTED;
+        work->animRequest                                            = ACTOR_01900_ANIM_REQUEST_RESET;
+        model->flags                                                 = 0;
         tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius          = ACTOR_01900_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3121,7 +3109,7 @@ static void _actor01900StatePatrol(Task* task)
 static void _actor01900StateSlide(Task* task)
 {
     enum {
-        ACTOR_01900_SLIDE_CLIP         = 18,
+        ACTOR_01900_SLIDE_CLIP         = ACTOR_01900_ANIM_SLIDE,
         ACTOR_01900_SLIDE_RATE         = 30,
         ACTOR_01900_SLIDE_TURN_STEP    = 64,
         ACTOR_01900_SLIDE_DECELERATION = 10
@@ -3191,7 +3179,7 @@ static void _actor01900StateBackOff(Task* task)
 {
     enum {
         ACTOR_01900_BACK_OFF_RATE       = 22,
-        ACTOR_01900_BACK_OFF_CLIP       = 17,
+        ACTOR_01900_BACK_OFF_CLIP       = ACTOR_01900_ANIM_BACK_OFF,
         ACTOR_01900_BACK_OFF_TURN_LIMIT = 128,
         ACTOR_01900_BACK_OFF_STEP       = -16,
         ACTOR_01900_BACK_OFF_TICKS      = 19,
@@ -3270,7 +3258,7 @@ static void _actor01900StateBackOff(Task* task)
 static void _actor01900StateAlertRepeat(Task* task)
 {
     enum {
-        ACTOR_01900_ALERT_REPEAT_CLIP = 9
+        ACTOR_01900_ALERT_REPEAT_CLIP = ACTOR_01900_ANIM_ALERT
     };
 
     _Actor01900Work*   work;
@@ -3349,7 +3337,7 @@ static inline void _actor01900EaseScriptedWatchLook(_Actor01900Work* work, s16 p
 static void _actor01900StateScriptedWatch(Task* task)
 {
     enum {
-        ACTOR_01900_SCRIPTED_WATCH_CLIP = 19
+        ACTOR_01900_SCRIPTED_WATCH_CLIP = ACTOR_01900_ANIM_SCRIPTED_WATCH
     };
 
     _Actor01900Work*   work;
@@ -3461,7 +3449,6 @@ static void _actor01900StateDeathBurst(Task* task)
 static void _actor01900StateDeathBurstWalk(Task* task)
 {
     enum {
-        ACTOR_01900_ANIM_DEATH_BURST             = 24,
         ACTOR_01900_DEATH_BURST_WALK_MIN_TICKS   = 16,
         ACTOR_01900_DEATH_BURST_WALK_STEP        = 10,
         ACTOR_01900_DEATH_BURST_WALK_BURN_DELAY  = 25,
@@ -3589,7 +3576,7 @@ static __inline__ s32 _actor01900HasPlayerBodyContact(const WorldCollisionContac
 static void _actor01900StateStrike(Task* task)
 {
     enum {
-        ACTOR_01900_STRIKE_CLIP              = 4,
+        ACTOR_01900_STRIKE_CLIP              = ACTOR_01900_ANIM_STRIKE,
         ACTOR_01900_STRIKE_FIRST_ATTACK_TICK = 22,
         ACTOR_01900_STRIKE_END_ATTACK_TICK   = 29,
         ACTOR_01900_STRIKE_AIM_TICKS         = 14,
@@ -4177,8 +4164,6 @@ static void _actor01900StateFlinch(Task* task)
 /// clip 8 at the initialized baseRate (sixteenths of a frame per tick).
 static void _actor01900StateRise(Task* task)
 {
-    enum { ACTOR_01900_ANIM_RISE = 8 };
-
     _Actor01900Work* work;
     Enemy*           enemy;
 

@@ -46,7 +46,7 @@ gRoomEventFade = 0x80185B6C; // size:0x8 defined:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
 gActor204600SucklercephTaskDesc = 0x8014F698; // absolute:True owner=actor_204600
 gActor204600SkullStalkerTaskDesc = 0x801502BC; // absolute:True owner=actor_204600

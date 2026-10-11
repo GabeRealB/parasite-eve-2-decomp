@@ -105,7 +105,7 @@ _gDryfieldNightMainStreetPassThroughSilentSurface = 0x80188B7C; // size:0x8 defi
 gDryfieldNightMainStreetSurfacePropertiesByClass = 0x80188B84; // size:0x20 defined:True
 gRoomEventFade = 0x80188BA4; // size:0x8 defined:True
 gActor136100SceneTaskDescriptors = 0x80140744; // absolute:True owner=actor_136100
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
 gMapDryfieldFullMainStreetVariant1Placements = 0x8017ADF8; // absolute:True owner=map_dryfield_full

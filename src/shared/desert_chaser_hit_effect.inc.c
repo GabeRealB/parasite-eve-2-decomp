@@ -4,8 +4,8 @@
 ///
 /// hitYaw is a signed bearing in 4096 units per turn, normally [-0x800, 0x800];
 /// hitKey is the damaging contact's packed attack key. The twelve carrier
-/// offsets store a part index in pad. The chosen offset and spawn record live
-/// in the armed work block after the temporary scratch vector is released.
+/// anchors pair part-local positions with model coordinate selectors. The chosen
+/// anchor and spawn record remain in the armed work after scratch is released.
 static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
 {
     // Signed spawn-argument halves retained by the hit-effect dispatcher.
@@ -13,11 +13,11 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
         DESERT_CHASER_HIT_EFFECT_ARGUMENT_LOW  = 0x100,
         DESERT_CHASER_HIT_EFFECT_ARGUMENT_HIGH = 2
     };
-    SVECTOR*          hitOffset;
+    ActorHitAnchor*   hitAnchor;
     s32               yawMagnitude;
     DesertChaserWork* work;
 
-    hitOffset    = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    hitAnchor    = SCRATCH_STACK_RESERVE_BLOCK(ActorHitAnchor);
     yawMagnitude = (hitYaw >= 0) ? hitYaw : -hitYaw;
     work         = task->work;
     // Front, rear and side bearings choose different attachment groups.
@@ -25,19 +25,19 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *hitOffset = gDesertChaserHitOffsets[0];
+                *hitAnchor = _gDesertChaserHitAnchors[0];
                 break;
             case 1:
-                *hitOffset = gDesertChaserHitOffsets[1];
+                *hitAnchor = _gDesertChaserHitAnchors[1];
                 break;
             case 2:
-                *hitOffset = gDesertChaserHitOffsets[2];
+                *hitAnchor = _gDesertChaserHitAnchors[2];
                 break;
             case 3:
-                *hitOffset = gDesertChaserHitOffsets[3];
+                *hitAnchor = _gDesertChaserHitAnchors[3];
                 break;
             default:
-                *hitOffset = gDesertChaserHitOffsets[4];
+                *hitAnchor = _gDesertChaserHitAnchors[4];
                 break;
         }
     } else if (yawMagnitude > 0x600) {
@@ -45,34 +45,34 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
         // The retained mask selects only 0 or 2; the case-1 offset is unreachable.
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *hitOffset = gDesertChaserHitOffsets[5];
+                *hitAnchor = _gDesertChaserHitAnchors[5];
                 break;
             case 1:
-                *hitOffset = gDesertChaserHitOffsets[6];
+                *hitAnchor = _gDesertChaserHitAnchors[6];
                 break;
             default:
-                *hitOffset = gDesertChaserHitOffsets[7];
+                *hitAnchor = _gDesertChaserHitAnchors[7];
                 break;
         }
     } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = gDesertChaserHitOffsets[8];
+            *hitAnchor = _gDesertChaserHitAnchors[8];
         } else {
-            *hitOffset = gDesertChaserHitOffsets[9];
+            *hitAnchor = _gDesertChaserHitAnchors[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = gDesertChaserHitOffsets[10];
+            *hitAnchor = _gDesertChaserHitAnchors[10];
         } else {
-            *hitOffset = gDesertChaserHitOffsets[11];
+            *hitAnchor = _gDesertChaserHitAnchors[11];
         }
     }
-    work->effectArg.coord      = &task->extra.tmd->coords[hitOffset->pad];
+    work->effectArg.coord      = &task->extra.tmd->coords[hitAnchor->anchor.partIndex];
     work->effectArg.spawnArgLo = DESERT_CHASER_HIT_EFFECT_ARGUMENT_LOW;
     work->effectArg.spawnArgHi = DESERT_CHASER_HIT_EFFECT_ARGUMENT_HIGH;
-    work->hitOffset            = *hitOffset;
-    effectSpawnHit(damageGetPlayerAttackEffectId(hitKey), &task->extra.tmd->coords[hitOffset->pad], &work->hitOffset, &work->effectArg);
-    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    work->hitAnchor            = *hitAnchor;
+    effectSpawnHit(damageGetPlayerAttackEffectId(hitKey), &task->extra.tmd->coords[hitAnchor->anchor.partIndex], &work->hitAnchor.position, &work->effectArg);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitAnchor);
 }

@@ -56,9 +56,9 @@ _gDryfieldMotelRoom1Class3SurfaceProperties = 0x80181574; // size:0x8 defined:Tr
 gDryfieldMotelRoom1SurfacePropertiesByClass = 0x8018157C; // size:0x20 defined:True
 _gDryfieldMotelRoom1OpeningEventTask = 0x8018159C; // size:0x4 defined:True
 gActor123200BoneSucklerTaskDesc = 0x80137234; // absolute:True owner=actor_123200
-gActor201200BoneSucklerTaskDesc = 0x80150E98; // absolute:True owner=actor_201200 shared=actors
+gActor201200BoneSucklerTaskDesc = 0x80150E98; // absolute:True owner=actor_201200
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
-gActor301200BoneSucklerTaskDesc = 0x80168E98; // absolute:True owner=actor_301200 shared=actors
+gActor301200BoneSucklerTaskDesc = 0x80168E98; // absolute:True owner=actor_301200
 gActor304000BloodSucklerTaskDesc = 0x8016E500; // absolute:True owner=actor_304000
 gMapDryfieldMotelRoom1Variant1Placements = 0x8017AF94; // absolute:True owner=map_dryfield
 gMapDryfieldMotelRoom1Variant2Placements = 0x8017AFA4; // absolute:True owner=map_dryfield

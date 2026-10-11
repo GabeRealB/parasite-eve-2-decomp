@@ -82,7 +82,7 @@ gActor107000SucklercephTaskDescs = 0x80139E60; // absolute:True owner=actor_1070
 gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor01100Tasks = 0x8015F400; // absolute:True owner=actor_204900
 gActor200400Tasks = 0x8015FE48; // absolute:True owner=actor_200400
 _gShelterB4UpperSewerExitDestination = 0x80188D24; // size:0x8 defined:True

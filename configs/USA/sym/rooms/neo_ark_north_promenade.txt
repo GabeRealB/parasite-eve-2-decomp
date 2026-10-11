@@ -36,7 +36,7 @@ _gNeoArkNorthPromenadeSolidFootstepSurface = 0x801832DC; // size:0x8 defined:Tru
 _gNeoArkNorthPromenadeProbePassSurface = 0x801832E4; // size:0x8 defined:True
 gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // size:0x20 defined:True
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 gMapNeoArkNorthPromenadeVariant2Placements = 0x8017B0F0; // absolute:True owner=map_neo_ark
 gMapNeoArkNorthPromenadeVariant3Placements = 0x8017B120; // absolute:True owner=map_neo_ark

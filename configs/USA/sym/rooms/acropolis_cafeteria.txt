@@ -23,7 +23,7 @@ _gAcropolisCafeteriaRookGolemResources = 0x80189DB4; // size:0x18 defined:True
 gAcropolisCafeteriaAreaVariants = 0x80189DCC; // size:0x58 defined:True
 gAcropolisCafeteriaPointLights = 0x80189E24; // size:0x5A0 defined:True
 gAcropolisCafeteriaSpotLightStorage = 0x8018A3C4; // size:0x654 defined:True
-gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_101200 shared=actors
+gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_101200
 gActor110600TaskDesc = 0x80148670; // absolute:True owner=actor_110600
 gActor05700RookGolemTasks = 0x801491F8; // absolute:True owner=actor_105700
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800

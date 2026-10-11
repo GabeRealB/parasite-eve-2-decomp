@@ -90,14 +90,14 @@ static const TaskFuncTable3 D_actor_120400_80131E30 = { {
     _actor120400ExitKyleMadiganWalker,
 } };
 
-/// Steps of the parent's walk sequence, indexed by
-/// `ActorWalkState::motionStep`: turn to face `target`, start walking
-/// forward, walk until arrival, then turn to the placement yaw.
-static const TaskFuncTable4 D_actor_120400_80131E3C = { {
-    _actorMotionFaceTarget,
-    _actor120400BeginKyleMadiganWalk,
-    _actorMotionArrive,
-    _actorMotionTurnToYaw,
+/// Kyle Madigan's four scripted-walk steps, copied before dispatch.
+///
+/// `walk.motionStep` must be in 0..3; the closing turn returns motion to idle.
+static const TaskFuncTable4 _gActor120400KyleMadiganWalkSteps = { {
+    _actorMotionFaceTarget,           // 0: face the destination
+    _actor120400BeginKyleMadiganWalk, // 1: begin forward motion
+    _actorMotionArrive,               // 2: stop on arrival
+    _actorMotionTurnToYaw,            // 3: face the destination yaw and return to idle
 } };
 
 enum { ACTOR_120400_KYLE_WALK_VELOCITY_ONE = 0x10000 };
@@ -1149,7 +1149,7 @@ static void _actor120400RunKyleMadiganWalkStep(Task* task)
     TaskFuncTable4               handlers;
 
     work     = task->work;
-    handlers = D_actor_120400_80131E3C;
+    handlers = _gActor120400KyleMadiganWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 

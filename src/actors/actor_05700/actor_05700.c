@@ -969,7 +969,11 @@ static s32 _gGolemPawnRookMotionCues[17] = {
     SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 18),
 };
 
-s32 gGolemPawnRookShotSound = 0x40390007;
+/// Character-bank script ID played when a grenade detaches from its launcher.
+///
+/// The stored instance byte is zero; the grenade inserts its placement index
+/// in bits 8..15 before requesting the spatialized sound.
+static s32 _gGolemPawnRookGrenadeLaunchCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 7);
 
 /// Sound id of the cue a grenade plays where its flight ends; the bullet ORs
 /// the firing enemy's place index into bits 8 and up before queueing it.
@@ -1274,8 +1278,6 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
 };
 
 extern s16 gGolemPawnRookBeamRibbonCorners[][4];
-
-extern s32 gGolemPawnRookShotSound;
 
 /// Animation bank the work block's animation context is started on.
 extern AnimationSet* gGolemPawnRookAnimSets[31];

@@ -228,3 +228,4 @@ _actor113100SpawnPierceCarradine = 0x80131e58; // type:func
 _actor113100UpdatePierceCarradine = 0x80132104; // type:func
 _gActor113100BillboardStates = 0x80131e24;
 _gActor113100AttachedModelStates = 0x80131e30;
+_gActor113100PierceCarradineWalkSteps = 0x80131e48;

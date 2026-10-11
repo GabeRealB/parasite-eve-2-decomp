@@ -86,7 +86,7 @@ _gActor105100Animation0F538Records = 0x80140F50; // size:0x3E0 defined:True
 _gActor105100Animation0F538Indices = 0x80141330; // size:0x28 defined:True
 _gActor105100Animation0F538 = 0x80141358; // size:0x28 defined:True
 _gActor105100Attacks = 0x80141380; // size:0x18 defined:True
-D_actor_105100_801414C8 = 0x801414C8; // size:0x18 defined:True
+_gActor105100AnimationBlendFrames = 0x801414C8; // size:0x18 defined:True
 D_actor_105100_801414E0 = 0x801414E0; // size:0x38 defined:True
 
 shelterB6TrainingRoomSpawnShieldArcs = 0x8018294C; // type:func absolute:True owner=shelter_b6_training_room

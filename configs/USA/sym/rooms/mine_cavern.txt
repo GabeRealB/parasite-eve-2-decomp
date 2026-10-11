@@ -83,7 +83,7 @@ _gMineCavernSurfaceClass1Properties = 0x8018E2FC; // size:0x8 defined:True
 _gMineCavernSurfaceClass2Properties = 0x8018E304; // size:0x8 defined:True
 gMineCavernSurfacePropertiesByClass = 0x8018E30C; // size:0x20 defined:True
 gMineCavernPostEventAreaUpdates = 0x8018E32C; // size:0x24 defined:True
-gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
+gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor403000TaskDesc = 0x80158D58; // absolute:True owner=actor_403000
