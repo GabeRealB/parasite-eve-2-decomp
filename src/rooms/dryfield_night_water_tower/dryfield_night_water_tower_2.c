@@ -48,11 +48,14 @@
 #include "../../shared/water_tower.h"
 
 /// Shaft endpoints and flare anchors in signed whole world-coordinate units.
+///
+/// Drawing borrows these fixed positions only for the call. Each `SVECTOR`
+/// includes the fourth halfword read alongside Z by the GTE.
 typedef struct {
-    SVECTOR shaftEndpoints[2];    // Consecutive endpoints of the shaft drawn in views 3 and 4.
-    SVECTOR views3And4FlarePoint; // Single flare drawn alongside the shaft in views 3 and 4.
-    SVECTOR view5FlarePoint;      // Single flare drawn in view 5.
-    SVECTOR views2And4FlarePoint; // Single flare drawn in views 2 and 4.
+    SVECTOR shaftEndpoints[2];    // Endpoint pair of the shaft in logical views 3 and 4
+    SVECTOR views3And4FlarePoint; // Flare centre in logical views 3 and 4
+    SVECTOR view5FlarePoint;      // Flare centre in logical view 5
+    SVECTOR views2And4FlarePoint; // Flare centre in logical views 2 and 4
 } _DryfieldNightWaterTowerGlowPoints;
 STATIC_ASSERT_SIZEOF(_DryfieldNightWaterTowerGlowPoints, 0x28);
 

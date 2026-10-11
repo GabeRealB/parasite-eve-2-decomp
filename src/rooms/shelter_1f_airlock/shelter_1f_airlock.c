@@ -46,10 +46,13 @@ enum {
 };
 
 /// World-space centres and endpoint pairs for the airlock's additive glows.
+///
+/// Positions use signed whole world-coordinate units and are borrowed only
+/// during drawing. Every vector includes the fourth halfword read by the GTE.
 typedef struct {
-    SVECTOR greyDiscCentres[3];          // Views 3 and 4 select overlapping pairs of centres
-    SVECTOR redDiscCentre;               // View 5's single disc centre
-    SVECTOR cyanCapsuleEndpoints[12][2]; // Endpoint pairs in world-coordinate units
+    SVECTOR greyDiscCentres[3];          // Mapped view 3 uses centres 1/2; view 4 uses 0/1
+    SVECTOR redDiscCentre;               // Single disc centre in mapped view 5
+    SVECTOR cyanCapsuleEndpoints[12][2]; // View 3 uses pairs 0..4 and 7; view 4 uses all twelve
 } _Shelter1fAirlockGlowWorldPoints;
 STATIC_ASSERT_SIZEOF(_Shelter1fAirlockGlowWorldPoints, 0xE0);
 

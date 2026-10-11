@@ -44,10 +44,13 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// Authored beam endpoint pairs and the two rows of glow positions in room space.
+/// Fixed beam endpoint pairs and two rows of positions for night room 8's glows.
+///
+/// Positions use signed whole world-coordinate units and are borrowed only
+/// during drawing. Every vector includes the fourth halfword read by the GTE.
 typedef struct {
-    SVECTOR beamEndpoints[5][2]; // Pairs 0..3 are green beams; pair 4 is red, in integer world units
-    SVECTOR flareRows[2][7];     // Rows 0/1 have negative/positive X; entries 3..6 are drawn flare centres
+    SVECTOR beamEndpoints[5][2]; // Four green beam pairs followed by one red beam pair
+    SVECTOR flareRows[2][7];     // Negative/positive-X rows; 3..6 are flares, 0..2 are unused with unproven role
 } _DryfieldNightR08GlowPlacements;
 STATIC_ASSERT_SIZEOF(_DryfieldNightR08GlowPlacements, 0xC0);
 

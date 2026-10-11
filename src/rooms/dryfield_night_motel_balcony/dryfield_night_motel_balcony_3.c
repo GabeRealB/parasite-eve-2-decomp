@@ -10,6 +10,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/sprites.h"
+#include "gameplay/sprite_visibility_types.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -22,22 +23,9 @@
 
 enum {
     DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER = 0xFF,
-    DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_BYTES  = 2,
     DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE        = 0,
     DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN         = 1,
 };
-
-/// One view-selection, batch-visibility or end command in a section stream.
-///
-/// A stream begins with a view selection, and each selection precedes at least
-/// one batch write. Indices are zero-based in the first sprite variant's area
-/// views and the selected view's batch list. A marker index ends the stream;
-/// its second byte and any stored trailing pairs are unread.
-typedef struct {
-    u8 index;  // View if hidden is 255, otherwise batch; 255 ends the stream
-    u8 hidden; // Exact hidden byte (0 visible, nonzero hidden); 255 selects a view
-} _DryfieldNightMotelBalconySpriteCommand;
-STATIC_ASSERT_SIZEOF(_DryfieldNightMotelBalconySpriteCommand, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_BYTES);
 
 /// Sets the five breakaway scenery batches in view 18 to the same hidden byte.
 ///
@@ -58,20 +46,20 @@ static inline void _dryfieldNightMotelBalconySetBreakawaySprites(SpriteBatch* ba
 /// a nonempty stream beginning with a view selection and valid indices; every
 /// view selection must be followed by a batch write. Borrows all data for this call.
 /// The initial view is read before the terminator test, so an empty stream is invalid.
-static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const SpriteView* areaViews, const _DryfieldNightMotelBalconySpriteCommand* command)
+static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const SpriteView* areaViews, const SpriteVisibilityCommand* command)
 {
     SpriteBatch* batches;
 
-    batches = areaViews[command->index].batches;
-    if (command->index != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
+    batches = areaViews[command->slotIndex].batches;
+    if (command->slotIndex != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
         do {
-            if (command->hidden == DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
-                batches = areaViews[command->index].batches;
+            if (command->operation == DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
+                batches = areaViews[command->slotIndex].batches;
                 command++;
             }
-            batches[command->index].hidden = command->hidden;
+            batches[command->slotIndex].hidden = command->operation;
             command++;
-        } while (command->index != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER);
+        } while (command->slotIndex != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER);
     }
 }
 
@@ -79,7 +67,7 @@ static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const Sp
 ///
 /// Applies 21 batch writes across 11 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection0IntactSpriteCommands[34] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection0IntactSpriteCommands[34] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -121,7 +109,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 21 batch writes across 11 zero-based views.
 /// Hides the first damaged subset while leaving the remaining batches visible.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection0DamagedSpriteCommands[34] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection0DamagedSpriteCommands[34] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -163,7 +151,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 21 batch writes across 11 zero-based views.
 /// Hides every listed batch after another impact on this section.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection0RepeatDamageSpriteCommands[34] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection0RepeatDamageSpriteCommands[34] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -203,7 +191,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 0's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact, 1 first damage and 2 repeated damage.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection0SpriteCommandsByState[3] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection0SpriteCommandsByState[3] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection0IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection0DamagedSpriteCommands,
     _gDryfieldNightMotelBalconySection0RepeatDamageSpriteCommands,
@@ -213,7 +201,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 12 batch writes across 6 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection1IntactSpriteCommands[20] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection1IntactSpriteCommands[20] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 13, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 17, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
@@ -241,7 +229,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 12 batch writes across 6 zero-based views.
 /// Hides the first damaged subset while leaving the remaining batches visible.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection1DamagedSpriteCommands[20] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection1DamagedSpriteCommands[20] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 13, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 17, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
@@ -269,7 +257,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 12 batch writes across 6 zero-based views.
 /// Hides every listed batch after another impact on this section.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection1RepeatDamageSpriteCommands[20] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection1RepeatDamageSpriteCommands[20] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 13, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 17, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
@@ -295,7 +283,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 1's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact, 1 first damage and 2 repeated damage.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection1SpriteCommandsByState[3] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection1SpriteCommandsByState[3] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection1IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection1DamagedSpriteCommands,
     _gDryfieldNightMotelBalconySection1RepeatDamageSpriteCommands,
@@ -305,7 +293,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 9 batch writes across 6 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection2IntactSpriteCommands[16] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection2IntactSpriteCommands[16] SECTION(".data") = {
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 3, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -328,7 +316,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 ///
 /// Applies 9 batch writes across 6 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection2DamagedSpriteCommands[16] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection2DamagedSpriteCommands[16] SECTION(".data") = {
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 3, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -350,7 +338,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 2's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection2SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection2SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection2IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection2DamagedSpriteCommands,
 };
@@ -359,7 +347,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 11 batch writes across 10 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection3IntactSpriteCommands[22] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection3IntactSpriteCommands[22] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 4, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -388,7 +376,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 ///
 /// Applies 11 batch writes across 10 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection3DamagedSpriteCommands[22] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection3DamagedSpriteCommands[22] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 4, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -416,7 +404,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 3's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection3SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection3SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection3IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection3DamagedSpriteCommands,
 };
@@ -425,7 +413,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 13 batch writes across 11 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection4IntactSpriteCommands[26] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection4IntactSpriteCommands[26] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 5, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -459,7 +447,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 13 batch writes across 11 zero-based views.
 /// View 30 batch 4 remains visible while the other listed batches are hidden.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection4DamagedSpriteCommands[26] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection4DamagedSpriteCommands[26] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 5, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -491,7 +479,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 4's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection4SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection4SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection4IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection4DamagedSpriteCommands,
 };
@@ -500,7 +488,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 15 batch writes across 12 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection5IntactSpriteCommands[28] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection5IntactSpriteCommands[28] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
@@ -535,7 +523,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 ///
 /// Applies 15 batch writes across 12 zero-based views.
 /// Ends at a marker index.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection5DamagedSpriteCommands[28] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection5DamagedSpriteCommands[28] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
@@ -569,7 +557,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 5's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection5SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection5SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection5IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection5DamagedSpriteCommands,
 };
@@ -578,7 +566,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 10 batch writes across 10 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection6IntactSpriteCommands[22] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection6IntactSpriteCommands[22] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -607,7 +595,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 ///
 /// Applies 10 batch writes across 10 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection6DamagedSpriteCommands[22] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection6DamagedSpriteCommands[22] SECTION(".data") = {
     { 8, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -635,7 +623,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 6's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection6SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection6SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection6IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection6DamagedSpriteCommands,
 };
@@ -644,7 +632,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 9 batch writes across 9 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection7IntactSpriteCommands[20] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection7IntactSpriteCommands[20] SECTION(".data") = {
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 1, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -671,7 +659,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 ///
 /// Applies 9 batch writes across 9 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection7DamagedSpriteCommands[20] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection7DamagedSpriteCommands[20] SECTION(".data") = {
     { 6, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 1, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -697,7 +685,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 7's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection7SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection7SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection7IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection7DamagedSpriteCommands,
 };
@@ -706,7 +694,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 ///
 /// Applies 6 batch writes across 6 zero-based views.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection8IntactSpriteCommands[14] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection8IntactSpriteCommands[14] SECTION(".data") = {
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_VISIBLE },
     { 13, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -728,7 +716,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Applies 6 batch writes across 6 zero-based views.
 /// View 28 batch 7 keeps the exact nonzero hidden byte 10.
 /// Ends at a marker index; the stored final zero pair is unread.
-static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalconySection8DamagedSpriteCommands[14] SECTION(".data") = {
+static const SpriteVisibilityCommand _gDryfieldNightMotelBalconySection8DamagedSpriteCommands[14] SECTION(".data") = {
     { 9, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
     { 7, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_HIDDEN },
     { 13, DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER },
@@ -748,7 +736,7 @@ static const _DryfieldNightMotelBalconySpriteCommand _gDryfieldNightMotelBalcony
 /// Section 8's scenery command streams indexed by its saved damage state.
 ///
 /// States are 0 intact and 1 damaged.
-static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotelBalconySection8SpriteCommandsByState[2] SECTION(".data") = {
+static const SpriteVisibilityCommand* const _gDryfieldNightMotelBalconySection8SpriteCommandsByState[2] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection8IntactSpriteCommands,
     _gDryfieldNightMotelBalconySection8DamagedSpriteCommands,
 };
@@ -759,7 +747,7 @@ static const _DryfieldNightMotelBalconySpriteCommand* const _gDryfieldNightMotel
 /// Sections 0 and 1 accept states 0..2; sections 2..8 accept 0..1. Streams
 /// begin with a zero-based view selection and end at a marker index. All
 /// pointers borrow room-owned read-only data for this overlay's lifetime.
-static const _DryfieldNightMotelBalconySpriteCommand* const* const _gDryfieldNightMotelBalconySectionSpriteCommands[9] SECTION(".data") = {
+static const SpriteVisibilityCommand* const* const _gDryfieldNightMotelBalconySectionSpriteCommands[9] SECTION(".data") = {
     _gDryfieldNightMotelBalconySection0SpriteCommandsByState,
     _gDryfieldNightMotelBalconySection1SpriteCommandsByState,
     _gDryfieldNightMotelBalconySection2SpriteCommandsByState,
@@ -843,9 +831,9 @@ void dryfieldNightMotelBalconyUpdateSceneSprites(u8 sceneStep)
 
 void dryfieldNightMotelBalconySetSectionState(s16 sectionIndex, s16 sectionState)
 {
-    const GameLocationKey*                         location;
-    const SpriteView*                              areaViews;
-    const _DryfieldNightMotelBalconySpriteCommand* command;
+    const GameLocationKey*         location;
+    const SpriteView*              areaViews;
+    const SpriteVisibilityCommand* command;
 
     command   = _gDryfieldNightMotelBalconySectionSpriteCommands[sectionIndex][sectionState];
     location  = &gGameSession->location.loc;

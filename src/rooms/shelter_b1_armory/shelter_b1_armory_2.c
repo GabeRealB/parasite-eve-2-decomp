@@ -41,12 +41,16 @@
 #include "../../shared/room_events.h"
 
 /// The armory's beam endpoint pairs and indicator centres in signed world units.
+///
+/// Fixed whole-coordinate positions are borrowed only during drawing. Every
+/// vector includes the fourth halfword read by the GTE. The saved armory-unlock
+/// flag selects the green or red indicator centre without changing either point.
 typedef struct {
     SVECTOR greenBeam[2];      // Green beam drawn in mapped view 2
     SVECTOR whiteBeams[3][2];  // White beam pairs: 0 in views 2/8, 1 in view 2, 2 in view 3
     SVECTOR cyanDisc;          // Cyan disc centre in mapped views 3 and 13
-    SVECTOR unlockedIndicator; // Green lock centre in mapped views 3 and 9
-    SVECTOR lockedIndicator;   // Red lock centre in mapped views 3 and 9
+    SVECTOR unlockedIndicator; // Green indicator centre when unlocked, in mapped views 3 and 9
+    SVECTOR lockedIndicator;   // Red indicator centre when locked, in mapped views 3 and 9
 } _ShelterB1ArmoryGlowWorldPoints;
 STATIC_ASSERT_SIZEOF(_ShelterB1ArmoryGlowWorldPoints, 0x58);
 

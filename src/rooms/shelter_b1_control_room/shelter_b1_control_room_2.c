@@ -57,6 +57,9 @@ TaskDesc gShelterB1ControlRoomMovieTaskDescs[2] = {
 };
 
 /// The control room's capsule endpoint pairs and disc centres in signed world units.
+///
+/// Positions are fixed whole world coordinates, borrowed only during drawing.
+/// Every vector includes the fourth halfword read by the GTE.
 typedef struct {
     SVECTOR capsules[6][2]; // Six endpoint pairs common to mapped views 2 and 3
     SVECTOR orangeDisc;     // Orange disc centre common to mapped views 2 and 3

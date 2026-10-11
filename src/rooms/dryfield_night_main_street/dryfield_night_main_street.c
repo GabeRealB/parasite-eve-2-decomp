@@ -32,6 +32,7 @@
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
+#include "gameplay/sprite_visibility_types.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
@@ -87,21 +88,15 @@ enum {
     DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END         = 0xFF,
 };
 
-/// One view-selection or batch-visibility command in a balcony-section stream.
+/// Fixed glow anchors and the reusable puff-emission point for the night main street.
 ///
-/// Each stream starts with a view selection followed by a batch command.
-/// Every view selection is followed by a batch; index 0xFF stops decoding.
+/// Glow positions use signed whole world-coordinate units. Puff emission uses
+/// the input space of `GsWSMATRIX`, snapshots XYZ during spawning and retains
+/// a borrowed pointer to the slot. GTE loads read each vector's fourth halfword.
 typedef struct {
-    u8 index;  // Zero-based view or batch slot; 0xFF ends the stream
-    u8 hidden; // Batch visibility (0 visible, 1 hidden), or 0xFF to select a view
-} _DryfieldNightMainStreetSpritePatch;
-STATIC_ASSERT_SIZEOF(_DryfieldNightMainStreetSpritePatch, 2);
-
-/// World-space positions used by this room's light shafts, flares and puffs.
-typedef struct {
-    SVECTOR shaftEndpoints[5][2]; // Five consecutive endpoint pairs in game-coordinate units
-    SVECTOR flareCenters[6];      // Six independent flare centres in game-coordinate units
-    SVECTOR puffSpawnPoint;       // Mutable spawn position; its fourth halfword is retained
+    SVECTOR shaftEndpoints[5][2]; // Five fixed shaft endpoint pairs, selected by mapped-view masks
+    SVECTOR flareCenters[6];      // Fixed flare centres, selected by masks 10..15
+    SVECTOR puffSpawnPoint;       // Rewritten XYZ for each puff; the fourth halfword stays zero
 } _DryfieldNightMainStreetAmbientEffectAnchors;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMainStreetAmbientEffectAnchors, 0x88);
 
@@ -120,31 +115,31 @@ enum {
 /// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
 /// other `(cmd, value)` stores `value` in that batch's `hidden` byte. The list
 /// starts on the view named by its first byte.
-#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)                      \
-    {                                                                                   \
-        GameLocationKey*                      sess;                                     \
-        SpriteView*                           rec;                                      \
-        SpriteBatch*                          batches;                                  \
-        _DryfieldNightMainStreetSpritePatch*  p;                                        \
-        s16                                   idx;                                      \
-        _DryfieldNightMainStreetSpritePatch** tbl;                                      \
-                                                                                        \
-        idx     = gameFlagGetNibble(nibble);                                            \
-        tbl     = table;                                                                \
-        p       = tbl[idx];                                                             \
-        sess    = &gGameSession->location.loc;                                          \
-        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];        \
-        batches = rec[p->index].batches;                                                \
-        if (p->index != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {                  \
-            do {                                                                        \
-                if (p->hidden == DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW) { \
-                    batches = rec[p->index].batches;                                    \
-                    p++;                                                                \
-                }                                                                       \
-                batches[p->index].hidden = p->hidden;                                   \
-                p++;                                                                    \
-            } while (p->index != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END);          \
-        }                                                                               \
+#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)                         \
+    {                                                                                      \
+        GameLocationKey*          sess;                                                    \
+        SpriteView*               rec;                                                     \
+        SpriteBatch*              batches;                                                 \
+        SpriteVisibilityCommand*  p;                                                       \
+        s16                       idx;                                                     \
+        SpriteVisibilityCommand** tbl;                                                     \
+                                                                                           \
+        idx     = gameFlagGetNibble(nibble);                                               \
+        tbl     = table;                                                                   \
+        p       = tbl[idx];                                                                \
+        sess    = &gGameSession->location.loc;                                             \
+        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];           \
+        batches = rec[p->slotIndex].batches;                                               \
+        if (p->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {                 \
+            do {                                                                           \
+                if (p->operation == DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW) { \
+                    batches = rec[p->slotIndex].batches;                                   \
+                    p++;                                                                   \
+                }                                                                          \
+                batches[p->slotIndex].hidden = p->operation;                               \
+                p++;                                                                       \
+            } while (p->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END);         \
+        }                                                                                  \
     }
 
 /// The room effect mode of each view, indexed by view - 1.
@@ -221,7 +216,7 @@ static const TaskMessageEntry _gDryfieldNightMainStreetMessageTable[6] SECTION("
 };
 
 /// Shows balcony section 3 in mapped views 14, 15 and 17 (batches 6, 3 and 5).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -233,7 +228,7 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Hides balcony section 3 in mapped views 14, 15 and 17 (batches 6, 3 and 5).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -245,13 +240,13 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Balcony section 3 patch lists indexed by its saved state (0 visible, 1 hidden).
-static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection3SpritePatchLists[2] = {
+static SpriteVisibilityCommand* _gDryfieldNightMainStreetBalconySection3SpritePatchLists[2] = {
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches,
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches,
 };
 
 /// Shows balcony section 4 in mapped views 14, 15 and 17 (batches 7, 4 and 6).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection4VisibleSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection4VisibleSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 7, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -263,7 +258,7 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Hides balcony section 4 in mapped views 14, 15 and 17 (batches 7, 4 and 6).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection4HiddenSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection4HiddenSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 7, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -275,13 +270,13 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Balcony section 4 patch lists indexed by its saved state (0 visible, 1 hidden).
-static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection4SpritePatchLists[2] = {
+static SpriteVisibilityCommand* _gDryfieldNightMainStreetBalconySection4SpritePatchLists[2] = {
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection4VisibleSpritePatches,
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection4HiddenSpritePatches,
 };
 
 /// Shows balcony section 5 in mapped views 14 and 15 (batches 8 and 5).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection5VisibleSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection5VisibleSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 8, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -291,7 +286,7 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Hides balcony section 5 in mapped views 14 and 15 (batches 8 and 5).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection5HiddenSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection5HiddenSpritePatches[] = {
     { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 8, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
     { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
@@ -301,13 +296,13 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Balcony section 5 patch lists indexed by its saved state (0 visible, 1 hidden).
-static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection5SpritePatchLists[2] = {
+static SpriteVisibilityCommand* _gDryfieldNightMainStreetBalconySection5SpritePatchLists[2] = {
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection5VisibleSpritePatches,
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection5HiddenSpritePatches,
 };
 
 /// Shows balcony section 7 in mapped view 13 (batch 4).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection7VisibleSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection7VisibleSpritePatches[] = {
     { 12, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
     { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
@@ -315,7 +310,7 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Hides balcony section 7 in mapped view 13 (batch 4).
-static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection7HiddenSpritePatches[] = {
+static SpriteVisibilityCommand _gDryfieldNightMainStreetBalconySection7HiddenSpritePatches[] = {
     { 12, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
     { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
     { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
@@ -323,22 +318,22 @@ static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySecti
 };
 
 /// Balcony section 7 patch lists indexed by its saved state (0 visible, 1 hidden).
-static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection7SpritePatchLists[2] = {
+static SpriteVisibilityCommand* _gDryfieldNightMainStreetBalconySection7SpritePatchLists[2] = {
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection7VisibleSpritePatches,
     [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection7HiddenSpritePatches,
 };
 
 /// Stored root of balcony section 3's borrowed two-state patch directory.
-static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection3SpritePatchTable = _gDryfieldNightMainStreetBalconySection3SpritePatchLists;
+static SpriteVisibilityCommand** _gDryfieldNightMainStreetBalconySection3SpritePatchTable = _gDryfieldNightMainStreetBalconySection3SpritePatchLists;
 
 /// Stored root of balcony section 4's borrowed two-state patch directory.
-static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection4SpritePatchTable = _gDryfieldNightMainStreetBalconySection4SpritePatchLists;
+static SpriteVisibilityCommand** _gDryfieldNightMainStreetBalconySection4SpritePatchTable = _gDryfieldNightMainStreetBalconySection4SpritePatchLists;
 
 /// Stored root of balcony section 5's borrowed two-state patch directory.
-static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection5SpritePatchTable = _gDryfieldNightMainStreetBalconySection5SpritePatchLists;
+static SpriteVisibilityCommand** _gDryfieldNightMainStreetBalconySection5SpritePatchTable = _gDryfieldNightMainStreetBalconySection5SpritePatchLists;
 
 /// Stored root of balcony section 7's borrowed two-state patch directory.
-static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection7SpritePatchTable = _gDryfieldNightMainStreetBalconySection7SpritePatchLists;
+static SpriteVisibilityCommand** _gDryfieldNightMainStreetBalconySection7SpritePatchTable = _gDryfieldNightMainStreetBalconySection7SpritePatchLists;
 
 /// Ambient-effect enable state for each of the 24 mapped street views.
 ///
