@@ -39,9 +39,12 @@ enum {
     STRIDE_WALK_TURN_PLAYER  = 1, // Turn the head toward the player
 };
 
-/// Full weight of the head turn, `StrideWalkWork::turnWeight`: the head aims
-/// straight at the player, within the turn's yaw and pitch limits.
-#define STRIDE_WALK_TURN_WEIGHT_FULL 0x1000
+/// Unit Q12 head-aim weight, selecting the full clamped turn toward the player.
+///
+/// `StrideWalkWork::turnWeight` ramps between zero (animation pose) and 4096
+/// (full aim). The frame helper changes it by one eighth of this per tick;
+/// the aim operation retains its independently supplied yaw and pitch limits.
+enum { STRIDE_WALK_TURN_WEIGHT_FULL = 0x1000 };
 
 /// Work block of a stride walker, allocated zeroed at its full size by the
 /// walker's spawn state and kept at `Task::work`.

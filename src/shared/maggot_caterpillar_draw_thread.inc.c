@@ -20,9 +20,15 @@ static void _maggotCaterpillarDrawThread(Task* actor)
     s32                           upperScreenPos;
     s32                           lowerScreenPos;
 
-    // Project one Y-axis endpoint into the reserved scratch block.
-    // Standalone statement sequence: scratch/work are stable locals, height
-    // is evaluated once. Call only where all nine statements belong.
+    /// Projects one thread endpoint on the saved composed frame's local Y axis.
+    ///
+    /// `scratch` is a live writable MaggotCaterpillarLineScratch pointer and
+    /// `work` supplies the saved world/view baseMatrix; both repeat and must
+    /// be stable and side-effect-free. Height is evaluated once in local game
+    /// units and narrows to s16. Writes position XYZ, packed screen XY and
+    /// projected Z/4 depth; changes GTE matrices and projection state, retaining
+    /// no pointers. A standalone statement list, used only in a braced scope
+    /// and undefined after this function's two calls; no projection-flag test.
 #define MAGGOT_CATERPILLAR_PROJECT_THREAD_END(scratch, work, height) \
     (scratch)->position.vx = 0;                                      \
     (scratch)->position.vy = (height);                               \

@@ -25,8 +25,15 @@ static void _maggotCaterpillarSquash(Task* actor)
     if (work->vertical.squashScale > MAGGOT_CATERPILLAR_SQUASH_MIN_SCALE) {
         work->vertical.squashScale -= MAGGOT_CATERPILLAR_SQUASH_SCALE_STEP;
     }
-    // Rebuild the root at one Q12 Y scale, then release the reserved block.
-    // Arguments are stable pointer locals and are evaluated repeatedly.
+    /// Rebuilds the corpse root from its saved local basis at the current Q12 Y scale.
+    ///
+    /// Requires disjoint writable GfxCoord/ActorScaleScratch storage and live
+    /// work containing the saved baseMatrix and squashScale. All pointers repeat
+    /// and must be stable and side-effect-free. X/Z remain ONE; restoring the
+    /// saved matrix prevents scale compounding and retains its translation.
+    /// Dirties composition and releases exactly one ActorScaleScratch block
+    /// through the captured scratch-stack cursor. Scratch is invalid afterward.
+    /// The do/while statement is undefined immediately after its sole call.
 #define MAGGOT_CATERPILLAR_REBUILD_CORPSE_SCALE(coord, work, scratch) \
     do {                                                              \
         (scratch)->scale.vx = ONE;                                    \

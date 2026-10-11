@@ -72,13 +72,21 @@
 /// Added through the effect's parent transform; positive Y points down.
 /// The carrier selects this encounter with GLUTTON_ROOM before this header.
 enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Y = 0x320 };
-#define GLUTTON_GROUP0_HIT_FX_Z 0x3E8
+/// Part-3-local forward displacement of the dumping-hole group-0 hit flash.
+///
+/// The critical-hit effect is placed 1000 game units along local +Z of the
+/// host's part 3. GLUTTON_ROOM selects this encounter before this header.
+enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Z = 1000 };
 #else
 /// Part-3-local Y displacement of the incinerator group-0 hit flash, in game units.
 ///
 /// Half the dumping-hole offset, selected at compilation by GLUTTON_ROOM.
 enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Y = 0x190 };
-#define GLUTTON_GROUP0_HIT_FX_Z 0x1F4
+/// Part-3-local forward displacement of the incinerator group-0 hit flash.
+///
+/// The same effect placement uses 500 game units along local +Z, half the
+/// dumping-hole displacement; GLUTTON_ROOM selects the compiled encounter.
+enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Z = 500 };
 #endif
 
 #include "types.h"

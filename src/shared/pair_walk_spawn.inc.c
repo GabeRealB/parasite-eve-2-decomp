@@ -12,8 +12,9 @@
 /// side-effect-free object/pointer lvalues: model, work and root are read
 /// repeatedly, and sample is a caller-owned VECTOR lvalue. XYZ
 /// retains the root cache's frame, with 800 units subtracted from Y; no compose.
-/// The model borrows work matrices until teardown. Captures only the lighting
-/// constants declared in the spawn function; no argument pointer is retained.
+/// The model borrows work's light/color matrices until teardown, so work must
+/// outlive its model. The sample is only borrowed during the lighting call.
+/// Captures only the lighting constants declared in the spawn function.
 #define PAIR_WALK_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, sample)              \
     (model)->lightMtx = &(work)->light;                                                  \
     (model)->colorMtx = &(work)->color;                                                  \

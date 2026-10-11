@@ -32,7 +32,7 @@ static s32 _factoryLiftRaise(Task* task)
                 work->yVelocity = -0x30000;
             }
             work->y.word += work->yVelocity;
-            if (work->y.word < FACTORY_LIFT_Y_RAISED) {
+            if (work->y.word < FACTORY_LIFT_Y_RAISED_Q16) {
                 work->yStep++;
             }
             break;
@@ -42,7 +42,7 @@ static s32 _factoryLiftRaise(Task* task)
                 work->yVelocity = 0xC000;
             }
             work->y.word += work->yVelocity;
-            if (work->y.word >= FACTORY_LIFT_Y_RAISED) {
+            if (work->y.word >= FACTORY_LIFT_Y_RAISED_Q16) {
                 // Keep the computed position; only the skip path assigns the exact target.
                 _factoryLiftFinishVertical(task, coord);
                 work->yStep++;
@@ -57,7 +57,7 @@ static s32 _factoryLiftRaise(Task* task)
     if ((u8)(work->yStep - FACTORY_LIFT_STEP_START_SOUND) < FACTORY_LIFT_STEP_REST - FACTORY_LIFT_STEP_START_SOUND && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
         _factoryLiftFinishVertical(task, coord);
         movementComplete = 1;
-        work->y.word     = FACTORY_LIFT_Y_RAISED;
+        work->y.word     = FACTORY_LIFT_Y_RAISED_Q16;
         work->yStep      = FACTORY_LIFT_STEP_REST;
     }
     coord->coord.t[1]   = work->y.halves.integer;

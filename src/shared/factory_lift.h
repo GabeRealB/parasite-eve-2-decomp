@@ -113,10 +113,13 @@ enum {
     FACTORY_LIFT_POSITION_RAISED = 1 << 1, // Raised
 };
 
-/// Rest positions of the lift's two movements, as words of
-/// `FactoryLiftWork::y` and `FactoryLiftWork::yaw`. The other end of each
-/// movement is 0. Y grows downwards, so the raised position is negative.
-#define FACTORY_LIFT_Y_RAISED (-570 * 0x10000)
+/// Raised lift endpoint as a signed 16.16 room-coordinate Y word.
+///
+/// The lowered endpoint is zero. Negative Y rises, so the raised height is
+/// -570 units. Store/compare the full word in `FactoryLiftWork::y`; model
+/// translation takes its signed integer half. Natural settling retains the
+/// computed endpoint, while setup and START skip assign this exact value.
+enum { FACTORY_LIFT_Y_RAISED_Q16 = -570 * 0x10000 };
 /// Turned endpoint as a signed 16.16 yaw word, one quarter of a revolution.
 ///
 /// The integer angle is 1024 in 4096 units per turn. Compare/store the full
@@ -142,7 +145,7 @@ enum { FACTORY_LIFT_SKIP_FRAMES = 11 };
 ///
 /// Every frame the task compares the nibble with `position`. A changed bit
 /// restarts that bit's movement from step 0 and restarts `moveFrames`. The
-/// vertical movement then runs towards `FACTORY_LIFT_Y_RAISED` or 0 and the
+/// vertical movement then runs towards `FACTORY_LIFT_Y_RAISED_Q16` or 0 and the
 /// turn towards `FACTORY_LIFT_YAW_TURNED_Q16` or 0, each by the same steps:
 ///
 /// - 0 brings the velocity to rest;
@@ -164,7 +167,7 @@ typedef struct {
     s32     position;    // Lift position nibble this task last saw, `FACTORY_LIFT_POSITION_` bits
     s32     yVelocity;   // Vertical speed, 16.16 world units per frame; negative rises
     s32     yawVelocity; // Turn rate, 16.16 angle units (0x1000 a turn) per frame
-    Fixed16 y;           // Model Y translation, 16.16 world units; 0 lowered, `FACTORY_LIFT_Y_RAISED` raised
+    Fixed16 y;           // Model Y translation, 16.16 world units; 0 lowered, `FACTORY_LIFT_Y_RAISED_Q16` raised
     Fixed16 yaw;         // Rotation about Y, 16.16 angle units; 0 home, `FACTORY_LIFT_YAW_TURNED_Q16` turned
     s16     moveFrames;  // Frames since a movement was last requested; gates the button skip
     s8      yawStep;     // Step of the turn (-1 at rest since set-up, 0-3 moving, 4 at rest)

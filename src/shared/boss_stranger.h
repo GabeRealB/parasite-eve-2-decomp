@@ -24,11 +24,12 @@
 
 #include "main/wipsys_types.h"
 
-/// Value of `bestDistSq` in `BossStrangerNodeNearestSelfScratch` and
-/// `BossStrangerNodeNearestPlayerScratch` before the scan has taken a node.
-/// A real squared distance equal to it still replaces it, so the first node
-/// tested always wins.
-#define BOSS_STRANGER_NODE_DISTANCE_NONE 0xFFFFFFFF
+/// Unsigned-word sentinel for a nearest-node scan with no selected node.
+///
+/// Both scans compare unsigned squared X/Z distances formed from signed
+/// halfword offsets. Their largest sum is 0x80000000, below this sentinel;
+/// the explicit sentinel test also guarantees selection of the first node.
+#define BOSS_STRANGER_NODE_DISTANCE_NONE 0xFFFFFFFFU
 
 /// Scratch-pad block of the scan for the nav node nearest the walker itself.
 ///
@@ -82,17 +83,24 @@ typedef struct {
 } BossStrangerGroundStepScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerGroundStepScratch, 0x18);
 
-/// Capacity of each slot list in `BossStrangerPlanTowardScratch`.
-#define BOSS_STRANGER_PLAN_SLOT_CAPACITY 8
+/// Number of order-slot bytes in each re-plan list, including marker storage.
+///
+/// Collection accepts eight occurrences, but then writes the end marker at
+/// the count. Valid orders therefore have at most seven occurrences per node;
+/// retain the full-list overrun described by `BossStrangerPlanTowardScratch`.
+enum { BOSS_STRANGER_PLAN_SLOT_CAPACITY = 8 };
 
-/// End marker of a slot list in `BossStrangerPlanTowardScratch`. No real slot
-/// has this value: the order's length is a byte, so its slots end at 0xFE.
-#define BOSS_STRANGER_PLAN_SLOT_END 0xFF
+/// Byte end marker for either collected list of navigation-order slots.
+///
+/// The byte order count limits valid indices to 0..254. The marker is stored
+/// at list[count], and pairing tests it before reading a pair's slot values.
+enum { BOSS_STRANGER_PLAN_SLOT_END = 0xFF };
 
-/// Value of `bestGap` in `BossStrangerPlanTowardScratch` before a pair has
-/// been taken. Every real gap is smaller, so the first pair tested always
-/// wins.
-#define BOSS_STRANGER_PLAN_GAP_NONE 0xFF
+/// Byte sentinel for a re-plan with no selected pair of order slots.
+///
+/// Valid slot indices are 0..254, so their absolute gap is at most 254.
+/// Pairing replaces this value on the first pair and retains the first tie.
+enum { BOSS_STRANGER_PLAN_GAP_NONE = 0xFF };
 
 /// Scratch-pad block of the walker's re-plan along its nav's node order.
 ///

@@ -41,15 +41,37 @@
 #if MAGGOT_CATERPILLAR_KIND == MAGGOT
 #define MAGGOT_CATERPILLAR_ID             0x1A
 #define MAGGOT_CATERPILLAR_IS_CATERPILLAR 0
-#define MAGGOT_CATERPILLAR_WAKE_RANGE     0x9C4
-#define MAGGOT_CATERPILLAR_AMBUSH_RANGE   0x7D0
-#define MAGGOT_CATERPILLAR_POUNCE_RANGE   0x9C4
+/// Strict horizontal wake radius in root-parent units for a dormant Maggot.
+///
+/// Selected by MAGGOT_CATERPILLAR_KIND before this header; a hit or scene
+/// alert can wake the enemy independently of this 2500-unit proximity test.
+enum { MAGGOT_CATERPILLAR_WAKE_RANGE = 2500 };
+/// Strict horizontal player radius triggering a hanging Maggot leader's drop.
+///
+/// The 2000-unit test uses the root-parent frame and ignores height. Followers
+/// use the shared scene trigger instead; hits and rewards can also release it.
+enum { MAGGOT_CATERPILLAR_AMBUSH_RANGE = 2000 };
+/// Strict horizontal pounce-selection radius in root-parent units for a Maggot.
+///
+/// Both aim and roam use 2500; their independent facing tests still apply.
+enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2500 };
 #else
 #define MAGGOT_CATERPILLAR_ID             0x37
 #define MAGGOT_CATERPILLAR_IS_CATERPILLAR 1
-#define MAGGOT_CATERPILLAR_WAKE_RANGE     0x7D0
-#define MAGGOT_CATERPILLAR_AMBUSH_RANGE   0x5DC
-#define MAGGOT_CATERPILLAR_POUNCE_RANGE   0x8FC
+/// Strict horizontal wake radius in root-parent units for a dormant Caterpillar.
+///
+/// Selected by MAGGOT_CATERPILLAR_KIND before this header; a hit or scene
+/// alert can wake the enemy independently of this 2000-unit proximity test.
+enum { MAGGOT_CATERPILLAR_WAKE_RANGE = 2000 };
+/// Strict horizontal player radius triggering a hanging Caterpillar leader's drop.
+///
+/// The 1500-unit test uses the root-parent frame and ignores height. Followers
+/// use the shared scene trigger instead; hits and rewards can also release it.
+enum { MAGGOT_CATERPILLAR_AMBUSH_RANGE = 1500 };
+/// Strict horizontal pounce-selection radius in root-parent units for a Caterpillar.
+///
+/// Both aim and roam use 2300; their independent facing tests still apply.
+enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2300 };
 #endif
 
 #include "types.h"
@@ -316,57 +338,79 @@ static void _maggotCaterpillarUpdateColor(Task* actor);
 
 static inline void _maggotCaterpillarTickAnimInline(Task* task);
 
-/// Stores the yaw that `coord`'s frame faces in `work->yaw`, then
-/// rebuilds the frame's rotation as a level turn half a revolution away from
-/// it, with `rot` holding the angles.
-#define MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rot)                              \
-    do {                                                                              \
-        (work)->yaw = ratan2((coord)->coord.m[0][2], (coord)->coord.m[2][2]) & 0xFFF; \
-        (rot)->vx   = 0;                                                              \
-        (rot)->vy   = (u16)(work)->yaw + 0x800;                                       \
-        (rot)->vz   = 0;                                                              \
-        RotMatrix((rot), &(coord)->coord);                                            \
+/// Saves the root's pre-reversal heading and rebuilds a level half-turn away.
+///
+/// Borrows a writable work block, local coordinate and disjoint SVECTOR angle
+/// workspace. All pointer arguments repeat and must be stable and free of side
+/// effects. Heading uses 4096 units per turn; the yaw addition narrows to s16.
+/// Replaces pitch, roll and scale, retaining translation. `work->yaw` remains
+/// the old heading for rebound motion; the caller invalidates composition.
+#define MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, angles)                                                 \
+    do {                                                                                                    \
+        (work)->yaw  = ratan2((coord)->coord.m[0][2], (coord)->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK; \
+        (angles)->vx = 0;                                                                                   \
+        (angles)->vy = (u16)(work)->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;                                  \
+        (angles)->vz = 0;                                                                                   \
+        RotMatrix((angles), &(coord)->coord);                                                               \
     } while (0)
 
-/// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
-/// zero, into `out`. `delta` receives the offset from the contact point to
-/// the origin.
-#define MAGGOT_CATERPILLAR_CONTACT_OVERLAP(out, coord, rec, delta)                                 \
-    do {                                                                                           \
-        s32 offX;                                                                                  \
-        s32 offY;                                                                                  \
-        s32 offZ;                                                                                  \
-        s32 clamped;                                                                               \
-        offX              = (coord)->workm.t[0] - (rec).point.vx;                                  \
-        (delta).vector.vx = offX;                                                                  \
-        offY              = (coord)->workm.t[1] - (rec).point.vy;                                  \
-        (delta).vector.vy = offY;                                                                  \
-        offZ              = (coord)->workm.t[2] - (rec).point.vz;                                  \
-        (delta).vector.vz = offZ;                                                                  \
-        (out)             = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
-        clamped           = (out);                                                                 \
-        if ((out) <= 0) {                                                                          \
-            clamped = 0;                                                                           \
-        }                                                                                          \
-        (out) = clamped;                                                                           \
+/// Measures positive body overlap and records separation in the composed frame.
+///
+/// `contact` is a WorldCollisionContact lvalue whose point and distance use
+/// the root cache's frame and whole coordinate units. `delta` is a writable,
+/// disjoint WorldCollisionDelta lvalue; its vector view receives root minus
+/// contact XYZ. `overlap` is a disjoint s32 lvalue receiving max(distance minus
+/// XYZ separation length, 0). Squared sums must fit s32. Arguments repeat and
+/// must be stable and side-effect-free, without referring to the block's local
+/// names offX, offY, offZ or clamped. The do/while statement captures no caller
+/// locals and retains no pointers; it neither composes nor consumes.
+#define MAGGOT_CATERPILLAR_CONTACT_OVERLAP(overlap, coord, contact, delta)                             \
+    do {                                                                                               \
+        s32 offX;                                                                                      \
+        s32 offY;                                                                                      \
+        s32 offZ;                                                                                      \
+        s32 clamped;                                                                                   \
+        offX              = (coord)->workm.t[0] - (contact).point.vx;                                  \
+        (delta).vector.vx = offX;                                                                      \
+        offY              = (coord)->workm.t[1] - (contact).point.vy;                                  \
+        (delta).vector.vy = offY;                                                                      \
+        offZ              = (coord)->workm.t[2] - (contact).point.vz;                                  \
+        (delta).vector.vz = offZ;                                                                      \
+        (overlap)         = (contact).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
+        clamped           = (overlap);                                                                 \
+        if ((overlap) <= 0) {                                                                          \
+            clamped = 0;                                                                               \
+        }                                                                                              \
+        (overlap) = clamped;                                                                           \
     } while (0)
 
-/// Normalises `delta` into `unit` and expresses the direction in the frame of
-/// the collision grid, into `out`.
-#define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unit, out)                                  \
-    do {                                                                                     \
-        VectorNormal(&(delta)->vector, (unit));                                              \
-        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, (unit), (out)); \
+/// Converts a composed-frame separation into a Q12 room-grid push direction.
+///
+/// Borrows a WorldCollisionDelta pointer whose vector view is in the active
+/// grid view's composed frame and two disjoint writable VECTOR pointers.
+/// VectorNormal writes the Q12 unit direction; the transpose of the live
+/// grid view basis writes the room-axis result. The grid/cache must already
+/// be initialized. `unitDirection` repeats; all arguments must be stable and
+/// free of side effects. Captures gWorldCollisionActiveGrid and changes GTE state.
+#define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unitDirection, gridDirection)                                  \
+    do {                                                                                                        \
+        VectorNormal(&(delta)->vector, (unitDirection));                                                        \
+        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, (unitDirection), (gridDirection)); \
     } while (0)
 
-/// Sets `work->blocked` when contact `rec` is a body, or a face of the
-/// collision grid whose normal has no vertical component.
-#define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, rec)                                                                \
-    do {                                                                                                                   \
-        if ((((rec).key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) ||                                          \
-            ((((rec).key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x100000) && ((rec).response.direction.vy == 0))) { \
-            (work)->blocked = 1;                                                                                           \
-        }                                                                                                                  \
+/// Latches a blocking player/companion body or a grid face with zero normal Y.
+///
+/// Borrows live writable work and an occupied WorldCollisionContact lvalue.
+/// Enemy bodies and other kinds do not block, and a miss leaves blocked intact.
+/// `contact` repeats with short-circuit evaluation; both arguments must be stable
+/// and free of side effects. One do/while statement, with no captured locals,
+/// pointer retention or contact consumption; the caller clears the table.
+#define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, contact)                                                                                        \
+    do {                                                                                                                                               \
+        if ((((contact).key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) ||                                      \
+            ((((contact).key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) && ((contact).response.direction.vy == 0))) { \
+            (work)->blocked = 1;                                                                                                                       \
+        }                                                                                                                                              \
     } while (0)
 
 #endif /* SRC_SHARED_MAGGOT_CATERPILLAR_H */

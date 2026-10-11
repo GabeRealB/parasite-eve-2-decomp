@@ -5,7 +5,7 @@
 /// Adds successive 0..63 and 0..15 draws and advances the shared LCG twice;
 /// storage narrows the sum to s16. Zebra accepts an s32 base. Ivory accepts
 /// an s16 base and zero stops the timer without consuming either random draw.
-static void _stalkerZebraIvorySeedTimer(Task* task, STALKER_ZEBRA_IVORY_TIMER_BASE baseFrames)
+static void _stalkerZebraIvorySeedTimer(Task* task, STALKER_ZEBRA_IVORY_TIMER_BASE_TYPE baseFrames)
 {
 #if STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS
     StalkerZebraIvoryWork* work;

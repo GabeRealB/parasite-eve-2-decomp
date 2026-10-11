@@ -81,10 +81,17 @@ static void _sucklercephSpawnState(Enemy* enemy, Task* task)
     work->hitEffectArg.spawnArgLo = SUCKLERCEPH_HIT_EFFECT_ARG_LO;
     work->hitEffectArg.spawnArgHi = SUCKLERCEPH_HIT_EFFECT_ARG_HI;
     // Sensing and ordinary contacts are live; the burst bodies wait.
-    // Shape setup only. member names a sphere field; pointers must be stable and
-    // side-effect-free. Scalars are evaluated once. This is a statement sequence:
-    // use only as a standalone statement in a braced body, never as an expression.
-    // Linking and pass enables follow separately.
+    /// Initializes a work-owned sphere's borrowed coordinate and contact storage.
+    ///
+    /// member is a literal WorldCollisionBody member name, substituted without
+    /// stringification or token pasting. work repeats and must be a stable,
+    /// side-effect-free SucklercephWork pointer; other arguments occur once.
+    /// The centre is local (0, centreY, 0); centreY narrows to s16 and radius
+    /// to u16 game units. contactKey is a packed collision word. Borrowed
+    /// root/contact storage must outlive registration; contact initialization,
+    /// linking and pass enables follow separately. Writes shape flags without
+    /// clearing list links. A standalone statement list for a braced scope,
+    /// undefined after its three calls; captures no caller locals.
 #define SUCKLERCEPH_INIT_SPHERE(work, member, root, contactTable, centreY, sphereRadius, contactKey) \
     (work)->member.coord            = (root);                                                        \
     (work)->member.context.contacts = (contactTable);                                                \

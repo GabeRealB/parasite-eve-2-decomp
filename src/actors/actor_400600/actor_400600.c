@@ -331,7 +331,7 @@ enum {
     ACTOR_400600_RATE_FRACTION_BITS      = 4,
     ACTOR_400600_SPAWN_ENTRANCE_MASK     = 0xF0,
     ACTOR_400600_SPAWN_WATER_ENTRANCE    = 0x10,
-    ACTOR_400600_SOUND_LANDING           = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 3,
+    ACTOR_400600_SOUND_LANDING           = STALKER_ZEBRA_IVORY_SOUND_BANK | 3,
     ACTOR_400600_SOUND_WATER_LANDING     = 0x404A0003,
 };
 
@@ -345,7 +345,7 @@ enum {
     ACTOR_400600_STRIKE_FACING_MARGIN      = 0x200,
     ACTOR_400600_STRIKE_REAR_ARC_END       = 0xC00,
     ACTOR_400600_STATE_LEAP_BACK           = 9,
-    ACTOR_400600_SOUND_STRIKE              = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 5,
+    ACTOR_400600_SOUND_STRIKE              = STALKER_ZEBRA_IVORY_SOUND_BANK | 5,
     ACTOR_400600_SOUND_WATER_STRIKE        = 0x404A0005
 };
 
@@ -358,7 +358,7 @@ enum {
 
 /// Body/water-bank cue 4 and the leap clip shared by these entrance and movement phases.
 enum {
-    ACTOR_400600_SOUND_BODY_CUE4   = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 4,
+    ACTOR_400600_SOUND_BODY_CUE4   = STALKER_ZEBRA_IVORY_SOUND_BANK | 4,
     ACTOR_400600_SOUND_WATER_CUE4  = 0x404A0004,
     ACTOR_400600_CLIP_LEAP         = 21,
     ACTOR_400600_LEAP_BLEND_FRAMES = 4
@@ -2958,7 +2958,7 @@ static void _actor400600TickGrabHold(Task* task)
            ACTOR_400600_HOLD_SECOND_BITE_FRAME    = 26,
            ACTOR_400600_HOLD_PLAYER_Y_OFFSET      = 900,
            ACTOR_400600_SOUND_HOLD                = 6,
-           ACTOR_400600_SOUND_BITE                = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 9,
+           ACTOR_400600_SOUND_BITE                = STALKER_ZEBRA_IVORY_SOUND_BANK | 9,
            ACTOR_400600_SOUND_WATER_BITE          = 0x404A0009,
            ACTOR_400600_PLAYER_CLIP_RELEASED      = 2,
            ACTOR_400600_PLAYER_BITE_PART          = 4,
@@ -3371,7 +3371,7 @@ static void _actor400600FinishCeilingFallLanding(Task* task)
         ACTOR_400600_STATE_STATUS_HOLD           = 5,
         ACTOR_400600_ON_BACK_COUNTDOWN_BASE      = 30,
         ACTOR_400600_ON_BACK_COUNTDOWN_MASK      = 127,
-        ACTOR_400600_SOUND_ON_BACK_LANDING       = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 6,
+        ACTOR_400600_SOUND_ON_BACK_LANDING       = STALKER_ZEBRA_IVORY_SOUND_BANK | 6,
         ACTOR_400600_SOUND_WATER_ON_BACK_LANDING = 0x404A0006,
     };
     _Actor400600ZebraStalkerWork* work;
@@ -3532,8 +3532,8 @@ static void _actor400600TickHorizontalWalk(Task* task, s16 nextLoopRate)
     enum {
         ACTOR_400600_WALK_RIPPLE_Y          = -420,
         ACTOR_400600_WALK_RIPPLE_SIZE       = 64, // Initial local half-side, in coordinate units
-        ACTOR_400600_SOUND_LEFT_STEP        = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 1,
-        ACTOR_400600_SOUND_RIGHT_STEP       = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 2,
+        ACTOR_400600_SOUND_LEFT_STEP        = STALKER_ZEBRA_IVORY_SOUND_BANK | 1,
+        ACTOR_400600_SOUND_RIGHT_STEP       = STALKER_ZEBRA_IVORY_SOUND_BANK | 2,
         ACTOR_400600_SOUND_WATER_LEFT_STEP  = 0x404A0001,
         ACTOR_400600_SOUND_WATER_RIGHT_STEP = 0x404A0002,
     };
@@ -5744,7 +5744,7 @@ static void _actor400600TickDeathCeilingFall(Task* task)
 /// including after selecting that entry; this does not free any resources.
 static void _actor400600FinishDeathCeilingFallLanding(Task* task)
 {
-    enum { ACTOR_400600_SOUND_ON_BACK_LANDING = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 6 };
+    enum { ACTOR_400600_SOUND_ON_BACK_LANDING = STALKER_ZEBRA_IVORY_SOUND_BANK | 6 };
     _Actor400600ZebraStalkerWork* work = task->work;
 
     if (work->stateFrames == 0) {

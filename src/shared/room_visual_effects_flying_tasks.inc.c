@@ -24,7 +24,12 @@ static inline void _roomVisualEffectsGlowDiscTask(Task* task)
     /// Brightens and enlarges the disc before applying its selected tint.
     ///
     /// Captures this task's `work`, `task` and three-byte `rgb` locals; the
-    /// tint index must be 0 or 1. Use as a standalone statement list in a block.
+    /// tint index must be 0 or 1. scale holds brightness (step 8, threshold 192)
+    /// and angle holds the radius (step 16, threshold 512) in local game units.
+    /// Tests precede addition without clamping overshoot. Channel shifts come
+    /// from the selected shade row and results narrow to u8. Captures its four
+    /// local ramp constants and the shade table; no pointers are retained.
+    /// Use as a standalone statement list in a braced block; undefined below.
 #define ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC()                                        \
     if (work->scale < GLOW_DISC_FULL_BRIGHTNESS) {                                           \
         work->scale += GLOW_DISC_BRIGHTEN_STEP;                                              \

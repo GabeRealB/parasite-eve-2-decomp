@@ -38,7 +38,7 @@ static void _factoryLiftInit(Task* task)
         RotMatrixY(FACTORY_LIFT_YAW_TURNED_Q16, &coord->coord);
     }
     if (work->position & FACTORY_LIFT_POSITION_RAISED) {
-        work->y.word = FACTORY_LIFT_Y_RAISED;
+        work->y.word = FACTORY_LIFT_Y_RAISED_Q16;
     } else {
         work->y.word = 0;
     }

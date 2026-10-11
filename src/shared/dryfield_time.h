@@ -30,8 +30,13 @@
 #error "DRYFIELD_TIME must be DRYFIELD_DAY or DRYFIELD_NIGHT"
 #endif
 
-/// A sound id in the build's own stage bank: 0x52 for the day town, 0x53 for
-/// the night town, in the id's top byte.
+/// Packs a room/script key into this compiled Dryfield instance's sound bank.
+///
+/// Requires DRYFIELD_TIME bound before this header: day selects bank 0x52,
+/// night bank 0x53, independently of the live runtime stage. `id` is evaluated
+/// once and must have a zero high byte; room occupies bits 16..23 and script
+/// occupies the low halfword. No masking or narrowing is performed. Retain
+/// the constant-expression form for sound IDs declared in carrier enums.
 #if DRYFIELD_TIME == DRYFIELD_DAY
 #define DRYFIELD_STAGE_SOUND(id) (0x52000000 | (id))
 #else

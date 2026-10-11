@@ -26,8 +26,16 @@ static void _sucklercephScalePart(Task* task, GfxCoord* coord)
     }
     matrix = &coord->coord;
 
-    // Column indices must be literal 0..2 for the GTE wrappers. Pointer arguments
-    // must be stable and side-effect-free: each is evaluated more than once.
+    /// Scales one local basis column by the Sucklerceph's unsigned Q12 swell factor.
+    ///
+    /// columnIndex must be an integer constant 0..2 for the GTE wrappers'
+    /// immediate halfword offsets. Requires a writable MATRIX, disjoint aligned
+    /// SVECTOR workspace and live work. matrix and column repeat, work occurs
+    /// once; all must be stable and side-effect-free. The caller clamps
+    /// swellScale to 4096..5096.
+    /// Products shift by 12 and saturate to s16; matrix translation and the
+    /// workspace's fourth halfword stay intact. Changes GTE state, captures no
+    /// locals and retains no pointers; undefined after the three column calls.
 #define SUCKLERCEPH_SCALE_COLUMN(matrix, columnIndex, column, work) \
     do {                                                            \
         gte_ReadMatrixColumn((matrix), (columnIndex), (column));    \

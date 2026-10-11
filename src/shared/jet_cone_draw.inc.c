@@ -27,7 +27,8 @@ static inline void _jetConeProjectSegment(EffectBandScratch* scratch, s32 segmen
 /// Statement macro: rotation is evaluated once and vertex twice, so both
 /// arguments must be stable, side-effect-free pointers valid for the whole
 /// sequence. Changes GTE rotation and narrows the result to s16; the caller
-/// adds translation afterward. Captures no locals and is undefined below.
+/// adds translation afterward. Expands to a compound statement; invoke in a
+/// braced scope. Captures no locals, retains no pointers and is undefined below.
 #define JET_CONE_ROTATE_VERTEX(rotation, vertex) \
     {                                            \
         gte_SetRotMatrix((rotation));            \
@@ -90,34 +91,36 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
     /// constants and writes segmentIndex, rimRadius, hubRadius, ringAngle,
     /// hubVertex and rotation. Inputs must be stable live values. Writes both
     /// rings and changes GTE matrices; coordinates/radii use game units and
-    /// all vertex stores narrow to s16. Undefined immediately after its call.
-#define JET_CONE_BUILD_RINGS()                                                                                                        \
-    {                                                                                                                                 \
-        gte_SetTransMatrix(&GsWSMATRIX);                                                                                              \
-        segmentIndex = 0;                                                                                                             \
-        rimRadius    = selectedRimRadius;                                                                                             \
-        rotation     = &coord->workm;                                                                                                 \
-        hubRadius    = selectedHubRadius;                                                                                             \
-        /* Rotate the rim and hub into the composed frame, preserving s16 narrowing. */                                               \
-        for (; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {                                                            \
-            ringAngle                             = segmentIndex << JET_CONE_RING_ANGLE_SHIFT;                                        \
-            coneScratch->topRing[segmentIndex].vx = (rsin(ringAngle) * rimRadius) >> JET_CONE_TRIG_FRACTION_BITS;                     \
-            coneScratch->topRing[segmentIndex].vy = (rcos(ringAngle) * rimRadius) >> JET_CONE_TRIG_FRACTION_BITS;                     \
-            coneScratch->topRing[segmentIndex].vz = -tailDistance;                                                                    \
-            JET_CONE_ROTATE_VERTEX(rotation, &coneScratch->topRing[segmentIndex]);                                                    \
-            coneScratch->topRing[segmentIndex].vx   += (u16)coord->workm.t[0];                                                        \
-            coneScratch->topRing[segmentIndex].vy   += (u16)coord->workm.t[1];                                                        \
-            coneScratch->topRing[segmentIndex].vz   += (u16)coord->workm.t[2];                                                        \
-            coneScratch->bottomRing[segmentIndex].vx = (rsin(ringAngle) * hubRadius) >> JET_CONE_TRIG_FRACTION_BITS;                  \
-            /* Keep the vertex address within the complete scratch object's byte view. */                                             \
-            hubVertex     = (SVECTOR*)((u8*)coneScratch + segmentIndex * sizeof(SVECTOR) + OFFSET_OF(EffectBandScratch, bottomRing)); \
-            hubVertex->vy = (rcos(ringAngle) * hubRadius) >> JET_CONE_TRIG_FRACTION_BITS;                                             \
-            hubVertex->vz = 0;                                                                                                        \
-            JET_CONE_ROTATE_VERTEX(rotation, &coneScratch->bottomRing[segmentIndex]);                                                 \
-            coneScratch->bottomRing[segmentIndex].vx += (u16)coord->workm.t[0];                                                       \
-            hubVertex->vy                            += (u16)coord->workm.t[1];                                                       \
-            hubVertex->vz                            += (u16)coord->workm.t[2];                                                       \
-        }                                                                                                                             \
+    /// all vertex stores narrow to s16. Each ring has sixteen SVECTORs. The
+    /// hub byte view covers bytes 128..255 of the complete 0x118-byte scratch
+    /// block, preserving halfword alignment and all eight bytes per vertex.
+    /// Undefined immediately after its call.
+#define JET_CONE_BUILD_RINGS()                                                                                                                                   \
+    {                                                                                                                                                            \
+        gte_SetTransMatrix(&GsWSMATRIX);                                                                                                                         \
+        segmentIndex = 0;                                                                                                                                        \
+        rimRadius    = selectedRimRadius;                                                                                                                        \
+        rotation     = &coord->workm;                                                                                                                            \
+        hubRadius    = selectedHubRadius;                                                                                                                        \
+        /* Rotate the rim and hub into the composed frame, preserving s16 narrowing. */                                                                          \
+        for (; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {                                                                                       \
+            ringAngle                             = segmentIndex << JET_CONE_RING_ANGLE_SHIFT;                                                                   \
+            coneScratch->topRing[segmentIndex].vx = (rsin(ringAngle) * rimRadius) >> JET_CONE_TRIG_FRACTION_BITS;                                                \
+            coneScratch->topRing[segmentIndex].vy = (rcos(ringAngle) * rimRadius) >> JET_CONE_TRIG_FRACTION_BITS;                                                \
+            coneScratch->topRing[segmentIndex].vz = -tailDistance;                                                                                               \
+            JET_CONE_ROTATE_VERTEX(rotation, &coneScratch->topRing[segmentIndex]);                                                                               \
+            coneScratch->topRing[segmentIndex].vx   += (u16)coord->workm.t[0];                                                                                   \
+            coneScratch->topRing[segmentIndex].vy   += (u16)coord->workm.t[1];                                                                                   \
+            coneScratch->topRing[segmentIndex].vz   += (u16)coord->workm.t[2];                                                                                   \
+            coneScratch->bottomRing[segmentIndex].vx = (rsin(ringAngle) * hubRadius) >> JET_CONE_TRIG_FRACTION_BITS;                                             \
+            hubVertex                                = (SVECTOR*)((u8*)coneScratch + segmentIndex * sizeof(SVECTOR) + OFFSET_OF(EffectBandScratch, bottomRing)); \
+            hubVertex->vy                            = (rcos(ringAngle) * hubRadius) >> JET_CONE_TRIG_FRACTION_BITS;                                             \
+            hubVertex->vz                            = 0;                                                                                                        \
+            JET_CONE_ROTATE_VERTEX(rotation, &coneScratch->bottomRing[segmentIndex]);                                                                            \
+            coneScratch->bottomRing[segmentIndex].vx += (u16)coord->workm.t[0];                                                                                  \
+            hubVertex->vy                            += (u16)coord->workm.t[1];                                                                                  \
+            hubVertex->vz                            += (u16)coord->workm.t[2];                                                                                  \
+        }                                                                                                                                                        \
     }
     JET_CONE_BUILD_RINGS();
 #undef JET_CONE_BUILD_RINGS

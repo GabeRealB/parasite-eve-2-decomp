@@ -30,7 +30,15 @@ typedef struct {
 } RedBeaconArg;
 STATIC_ASSERT_SIZEOF(RedBeaconArg, 0x4);
 
-/// Packs a `RedBeaconArg` into the argument word a spawner passes.
+/// Packs unsigned pulse-rate and size bytes into a red beacon's spawn word.
+///
+/// Both arguments must be integers in 0..255; each is evaluated once. The
+/// rate occupies bits 0..7 and size bits 8..15, with the high halfword zero.
+/// No masking or narrowing is performed, so out-of-range inputs can overlap.
+/// Rate multiplies the display-frame counter before an eight-bit triangle
+/// fold; size sets a half extent of size*512/(projected Z/4) screen pixels.
+/// Zero rate stays dark and zero size collapses the diamond. The expression
+/// is constant when its inputs are constant and captures no caller state.
 #define RED_BEACON_ARG(pulseRate, size) (((size) << 8) | (pulseRate))
 
 #endif /* SRC_SHARED_RED_BEACON_H */

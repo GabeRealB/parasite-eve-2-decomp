@@ -62,7 +62,7 @@ static void _gluttonHitGroup0(Task* task)
         if (scratch->damage != 0) {
             scratch->offset.vy = GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Y;
             scratch->offset.vx = 0;
-            scratch->offset.vz = GLUTTON_GROUP0_HIT_FX_Z;
+            scratch->offset.vz = GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Z;
             effectSpawn(EFFECT_CRITICAL_HIT, &host->task->extra.tmd->coords[3], 3, &scratch->offset);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
