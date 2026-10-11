@@ -905,136 +905,243 @@ static AnimationSet _gUnused86PlayerMidHealthIdleAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused86Animation09348Bank1[6] = {
+/// Scripted presentation entry translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerScriptedPresentationEnterAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_09348_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation09348Bank4[107] = {
+/// Scripted presentation entry Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerScriptedPresentationEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09348_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation09348Records[143] = {
+/// Scripted presentation entry keyframes and track stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerScriptedPresentationEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09348_records.inc"
 };
 
-static u16 _gUnused86Animation09348Indices[20] = {
+/// Absolute presentation entry record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerScriptedPresentationEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09348_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation09348 = {
-    _gUnused86Animation09348Records,
-    _gUnused86Animation09348Indices,
-    { NULL, _gUnused86Animation09348Bank1, NULL, NULL, _gUnused86Animation09348Bank4, NULL, NULL, NULL },
+/// Player presentation before a scripted weapon event in the unused weapon animation bank.
+///
+/// Native clip 32, also stored at entry 34. The zero presentation variant
+/// selects this clip before the event's command. All 19 tracks terminate:
+/// tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerScriptedPresentationEnterAnimation = {
+    .records           = _gUnused86PlayerScriptedPresentationEnterAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerScriptedPresentationEnterAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerScriptedPresentationEnterAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerScriptedPresentationEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation09520Bank1[3] = {
+/// Scripted presentation exit translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerScriptedPresentationExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_09520_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation09520Bank4[32] = {
+/// Scripted presentation exit Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerScriptedPresentationExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09520_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation09520Records[57] = {
+/// Scripted presentation exit keyframes and track stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerScriptedPresentationExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09520_records.inc"
 };
 
-static u16 _gUnused86Animation09520Indices[20] = {
+/// Absolute presentation exit record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerScriptedPresentationExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09520_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation09520 = {
-    _gUnused86Animation09520Records,
-    _gUnused86Animation09520Indices,
-    { NULL, _gUnused86Animation09520Bank1, NULL, NULL, _gUnused86Animation09520Bank4, NULL, NULL, NULL },
+/// Player presentation after a scripted weapon event in the unused weapon animation bank.
+///
+/// Native clip 33, also stored at entry 35. A nonzero presentation variant
+/// selects this clip after the event's command. All 19 tracks terminate:
+/// tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerScriptedPresentationExitAnimation = {
+    .records           = _gUnused86PlayerScriptedPresentationExitAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerScriptedPresentationExitAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerScriptedPresentationExitAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerScriptedPresentationExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation09A84Bank1[11] = {
+/// PE family 2 release translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerPeReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_09A84_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation09A84Bank4[125] = {
+/// PE family 2 release Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerPeReleaseFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09A84_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation09A84Records[167] = {
+/// PE family 2 release keyframes and track stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerPeReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09A84_records.inc"
 };
 
-static u16 _gUnused86Animation09A84Indices[20] = {
+/// Absolute PE family 2 release record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerPeReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09A84_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation09A84 = {
-    _gUnused86Animation09A84Records,
-    _gUnused86Animation09A84Indices,
-    { NULL, _gUnused86Animation09A84Bank1, NULL, NULL, _gUnused86Animation09A84Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy release for clip family 2 in the unused weapon animation bank.
+///
+/// Native clip 42 starts the release with a six-normal-frame blend. Family 2
+/// covers attachment IDs below 601 whose decimal tens digit is 3. All 19
+/// tracks terminate: 0..1 use translation/rotation, 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerPeReleaseFamily2Animation = {
+    .records           = _gUnused86PlayerPeReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gUnused86PlayerPeReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerPeReleaseFamily2AnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerPeReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation09C78Bank1[3] = {
+/// PE family 2 charge translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerPeChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_09C78_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation09C78Bank4[20] = {
+/// PE family 2 charge Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerPeChargeFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09C78_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation09C78Records[76] = {
+/// PE family 2 charge keyframes, track loop jumps and retained stops.
+///
+/// Durations count normal-rate frames, pose offsets four-byte words and jumps absolute record indices.
+static const AnimationRecord _gUnused86PlayerPeChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09C78_records.inc"
 };
 
-static u16 _gUnused86Animation09C78Indices[20] = {
+/// Absolute PE family 2 charge record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerPeChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_09C78_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation09C78 = {
-    _gUnused86Animation09C78Records,
-    _gUnused86Animation09C78Indices,
-    { NULL, _gUnused86Animation09C78Bank1, NULL, NULL, _gUnused86Animation09C78Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy charge loop for clip family 2 in the unused weapon animation bank.
+///
+/// Native clip 43 holds the charge until the attachment countdown reaches zero.
+/// Family 2 covers attachment IDs below 601 whose decimal tens digit is 3.
+/// All 19 tracks loop: 0..1 use translation/rotation, 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerPeChargeFamily2Animation = {
+    .records           = _gUnused86PlayerPeChargeFamily2AnimationRecords,
+    .trackStartIndices = _gUnused86PlayerPeChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerPeChargeFamily2AnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerPeChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation0A0F8Bank1[8] = {
+/// PE family 2 cast translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerPeCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_0A0F8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation0A0F8Bank4[105] = {
+/// PE family 2 cast Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerPeCastFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A0F8_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation0A0F8Records[139] = {
+/// PE family 2 cast keyframes and track stops.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gUnused86PlayerPeCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A0F8_records.inc"
 };
 
-static u16 _gUnused86Animation0A0F8Indices[20] = {
+/// Absolute PE family 2 cast record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerPeCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A0F8_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation0A0F8 = {
-    _gUnused86Animation0A0F8Records,
-    _gUnused86Animation0A0F8Indices,
-    { NULL, _gUnused86Animation0A0F8Bank1, NULL, NULL, _gUnused86Animation0A0F8Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy cast for clip family 2 in the unused weapon animation bank.
+///
+/// Native clip 44 starts after the attachment countdown reaches zero. Family 2
+/// covers attachment IDs below 601 whose decimal tens digit is 3. All 19
+/// tracks terminate: 0..1 use translation/rotation, 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerPeCastFamily2Animation = {
+    .records           = _gUnused86PlayerPeCastFamily2AnimationRecords,
+    .trackStartIndices = _gUnused86PlayerPeCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerPeCastFamily2AnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerPeCastFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused86Animation0A2D4Bank1[2] = {
+/// Aim idle translations in model units and Euler angles in 1/4096 turns for tracks 0..1.
+///
+/// Read-only clip payloads retain their serialized placement in .data.
+static const AnimationPackedPose _gUnused86PlayerAimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_86_animation_0A2D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused86Animation0A2D4Bank4[17] = {
+/// Aim idle Euler keyframes for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused86PlayerAimIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A2D4_bank4.inc"
 };
 
-static AnimationRecord _gUnused86Animation0A2D4Records[76] = {
+/// Aim idle keyframes, track loop jumps and retained stops.
+///
+/// Durations count normal-rate frames, pose offsets four-byte words and jumps absolute record indices.
+static const AnimationRecord _gUnused86PlayerAimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A2D4_records.inc"
 };
 
-static u16 _gUnused86Animation0A2D4Indices[20] = {
+/// Absolute aim idle record starts for tracks 0..18, followed by a retained serialized zero halfword.
+static const u16 _gUnused86PlayerAimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_86_animation_0A2D4_indices.inc"
 };
 
-static AnimationSet _gUnused86Animation0A2D4 = {
-    _gUnused86Animation0A2D4Records,
-    _gUnused86Animation0A2D4Indices,
-    { NULL, _gUnused86Animation0A2D4Bank1, NULL, NULL, _gUnused86Animation0A2D4Bank4, NULL, NULL, NULL },
+/// Player stationary aiming loop in the unused weapon animation bank.
+///
+/// Native clip 9 is selected while aiming without movement or turning.
+/// All 19 tracks loop: 0..1 use translation/rotation, 2..18 packed rotation.
+/// Keep the package loaded while a slot or cached record pointer refers to
+/// this descriptor or its arrays.
+static AnimationSet _gUnused86PlayerAimIdleAnimation = {
+    .records           = _gUnused86PlayerAimIdleAnimationRecords,
+    .trackStartIndices = _gUnused86PlayerAimIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_86_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused86PlayerAimIdleAnimationBank1,
+        [UNUSED_86_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused86PlayerAimIdleAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused86Animation0A9C4Bank1[12] = {
@@ -1179,7 +1286,7 @@ AnimationBank D_unused_86_8012A0D8 = { { {
     &_gUnused86PlayerTurnRightAnimation,
     &_gUnused86Animation0C924,
     &_gUnused86Animation0CEF0,
-    &_gUnused86Animation0A2D4,
+    &_gUnused86PlayerAimIdleAnimation,
     &_gUnused86Animation0C2A8,
     &_gUnused86Animation0C2A8,
     &_gUnused86Animation0B5B0,
@@ -1202,19 +1309,19 @@ AnimationBank D_unused_86_8012A0D8 = { { {
     &_gUnused86PlayerPeReleaseFamily1Animation,
     &_gUnused86PlayerPeChargeFamily1Animation,
     &_gUnused86PlayerPeCastFamily1Animation,
-    &_gUnused86Animation09348,
-    &_gUnused86Animation09520,
-    &_gUnused86Animation09348,
-    &_gUnused86Animation09520,
+    &_gUnused86PlayerScriptedPresentationEnterAnimation,
+    &_gUnused86PlayerScriptedPresentationExitAnimation,
+    &_gUnused86PlayerScriptedPresentationEnterAnimation,
+    &_gUnused86PlayerScriptedPresentationExitAnimation,
     &_gUnused86PlayerStairAscentAnimation,
     &_gUnused86PlayerStairDescentAnimation,
     &_gUnused86PlayerStairAscentFinishEvenAnimation,
     &_gUnused86PlayerStairAscentFinishOddAnimation,
     &_gUnused86PlayerItemUseAnimation,
     &_gUnused86PlayerIdleAnimation,
-    &_gUnused86Animation09A84,
-    &_gUnused86Animation09C78,
-    &_gUnused86Animation0A0F8,
+    &_gUnused86PlayerPeReleaseFamily2Animation,
+    &_gUnused86PlayerPeChargeFamily2Animation,
+    &_gUnused86PlayerPeCastFamily2Animation,
     NULL,
     NULL,
     NULL,
