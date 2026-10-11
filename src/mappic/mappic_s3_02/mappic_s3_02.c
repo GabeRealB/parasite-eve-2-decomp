@@ -686,32 +686,37 @@ TmdSource gMappicS302DrivewayShape = {
     .stream           = _gMappicS302DrivewayShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00DD0Skeleton[1] = {
+/// Identity transform and self-parented root for the Junk yard shape.
+static TmdBone _gMappicS302JunkYardShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00DD0_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00DD0PartVerts[1] = {
+/// Vertex count of the Junk yard shape's sole part (ten vertices).
+static u32 _gMappicS302JunkYardShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00DD0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00DD0Verts[10] = {
+/// Junk yard's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302JunkYardShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00DD0_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00DD0Stream[24] = {
+/// Packed command stream for the Junk yard shape's two unlit triangles and three unlit quads.
+///
+/// Vertex byte offsets and white colours are followed by two group ends and
+/// the stream end. The map reads only the first group and supplies its texture.
+static u32 _gMappicS302JunkYardShapeStream[] = {
 #include "assets/mappic_s2_02_model_00DD0_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012FD78 = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS302MappicS202Model00DD0PartVerts,
-    _gMappicS302MappicS202Model00DD0Verts,
-    &_gMappicS302MappicS202Model00DD0Verts[10],
-    _gMappicS302MappicS202Model00DD0Skeleton,
-    _gMappicS302MappicS202Model00DD0Stream,
+TmdSource gMappicS302JunkYardShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302JunkYardShapeSkeleton),
+    .partVertexCounts = _gMappicS302JunkYardShapePartVerts,
+    .verts            = _gMappicS302JunkYardShapeVerts,
+    .normals          = &_gMappicS302JunkYardShapeVerts[ARRAY_SIZE(_gMappicS302JunkYardShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302JunkYardShapeSkeleton,
+    .stream           = _gMappicS302JunkYardShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00C4800EC0Skeleton[1] = {
