@@ -5,7 +5,6 @@
 
 #include "types.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"

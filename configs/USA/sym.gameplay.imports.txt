@@ -443,7 +443,7 @@ D_tonfa_baton_8012BAB0 = 0x8012BAB0; // absolute:True owner=tonfa_baton
 gHypervelocityPlayerAnimationBank = 0x8012EDD0; // absolute:True owner=hypervelocity
 gGunbladePlayerAnimationBank = 0x8012E108; // absolute:True owner=gunblade
 gM4a1HammerPlayerAnimationBank = 0x8012D4F4; // absolute:True owner=m4a1_hammer
-D_m4a1_bayonet_8012D25C = 0x8012D25C; // absolute:True owner=m4a1_bayonet
+gM4a1BayonetPlayerAnimationBank = 0x8012D25C; // absolute:True owner=m4a1_bayonet
 D_m4a1_grenade_8012DF50 = 0x8012DF50; // absolute:True owner=m4a1_grenade
 gM4a1PykePlayerAnimationBank = 0x8012D500; // absolute:True owner=m4a1_pyke
 gM4a1JavelinPlayerAnimationBank = 0x8012EA20; // absolute:True owner=m4a1_javelin

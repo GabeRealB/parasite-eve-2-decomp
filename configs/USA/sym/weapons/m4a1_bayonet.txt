@@ -6,3 +6,4 @@ _bladeTrailDraw = 0x8011D69C; // type:func
 m4a1BayonetAttackState = 0x8011da34; // type:func
 _gM4a1BayonetTrailTipOffset = 0x8011dec8;
 _gM4a1BayonetTrailNearOffset = 0x8011ded0;
+gM4a1BayonetPlayerAnimationBank = 0x8012d25c;

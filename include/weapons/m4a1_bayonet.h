@@ -1,7 +1,19 @@
 #ifndef INCLUDE_WEAPONS_M4A1_BAYONET_H
 #define INCLUDE_WEAPONS_M4A1_BAYONET_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Player animation bank for the equipped M4A1 Bayonet.
+///
+/// Native slots 1..44 select 37 distinct clips, including forward walk (2),
+/// backward walk (3) and run (4); native slots 0, 45 and 46 are NULL.
+/// The 32 extension words begin zeroed and remain writable for borrowed clips
+/// and raw message payloads. Play an extension word only when it holds a clip
+/// pointer or NULL. Keep the Bayonet overlay and any copied clip resources
+/// loaded while playback borrows the bank, its descriptors or their data.
+extern AnimationBank gM4a1BayonetPlayerAnimationBank;
 
 /// Records the M4A1 bayonet's thrust and draws its fading blue-white ribbon.
 ///

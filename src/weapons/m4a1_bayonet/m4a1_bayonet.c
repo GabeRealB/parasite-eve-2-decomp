@@ -27,7 +27,6 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/blade_trail.h"
-#include "gameplay/animation.h"
 
 /// Far ribbon endpoint in integer weapon-part coordinates, `(0, 0x300, 0x40)`.
 ///
@@ -1389,153 +1388,164 @@ static AnimationSet _gM4a1BayonetAimExitAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0EF00Bank1[18] = {
+/// Forward-walk translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0EF00_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0EF00Bank4[201] = {
+/// Forward-walk packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0EF00_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0EF00Records[283] = {
+/// Forward-walk keyframes, paired footstep cues and loop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0EF00_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0EF00Indices[20] = {
+/// Nineteen forward-walk track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0EF00_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0EF00 = {
-    _gM4a1BayonetAnimation0EF00Records,
-    _gM4a1BayonetAnimation0EF00Indices,
-    { NULL, _gM4a1BayonetAnimation0EF00Bank1, NULL, NULL, _gM4a1BayonetAnimation0EF00Bank4, NULL, NULL, NULL },
+/// Forward walk with a held weapon, in M4A1 Bayonet player bank slot 2.
+///
+/// Normal locomotion and scripted walking select this clip while the weapon
+/// model is present. All nineteen tracks loop; track 1 supplies paired footstep
+/// cues. Native playback animates child slots 1..18, leaving the root unchanged;
+/// the movement controller supplies root displacement. Records, indices and
+/// word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetWalkAnimation = {
+    .records           = _gM4a1BayonetWalkAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetWalkAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0F6A0Bank1[16] = {
+/// Backward-walk translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetBackwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0F6A0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0F6A0Bank4[157] = {
+/// Backward-walk packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetBackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0F6A0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0F6A0Records[263] = {
+/// Backward-walk keyframes, paired footstep cues and loop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetBackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0F6A0_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0F6A0Indices[20] = {
+/// Nineteen backward-walk track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetBackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0F6A0_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0F6A0 = {
-    _gM4a1BayonetAnimation0F6A0Records,
-    _gM4a1BayonetAnimation0F6A0Indices,
-    { NULL, _gM4a1BayonetAnimation0F6A0Bank1, NULL, NULL, _gM4a1BayonetAnimation0F6A0Bank4, NULL, NULL, NULL },
+/// Backward walk outside aiming, in M4A1 Bayonet player bank slot 3.
+///
+/// Selected for backward normal locomotion, including with the run button held.
+/// All nineteen tracks loop; track 1 supplies paired footstep cues. Native
+/// playback animates child slots 1..18, leaving the root unchanged; the movement
+/// controller supplies root displacement. Records, indices and word-aligned
+/// poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetBackwardWalkAnimation = {
+    .records           = _gM4a1BayonetBackwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetBackwardWalkAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetBackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation10074Bank1[25] = {
+/// Running translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetRunAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_10074_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation10074Bank4[223] = {
+/// Running packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_10074_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation10074Records[311] = {
+/// Running keyframes, paired footstep cues and loop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_10074_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation10074Indices[20] = {
+/// Nineteen running track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_10074_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation10074 = {
-    _gM4a1BayonetAnimation10074Records,
-    _gM4a1BayonetAnimation10074Indices,
-    { NULL, _gM4a1BayonetAnimation10074Bank1, NULL, NULL, _gM4a1BayonetAnimation10074Bank4, NULL, NULL, NULL },
+/// Forward run in M4A1 Bayonet player bank slot 4.
+///
+/// Selected by normal locomotion's run mode and by scripted run-to movement.
+/// All nineteen tracks loop; track 1 supplies paired running footstep cues.
+/// Native playback animates child slots 1..18, leaving the root unchanged;
+/// the movement controller supplies root displacement. Records, indices and
+/// word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetRunAnimation = {
+    .records           = _gM4a1BayonetRunAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetRunAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetRunAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetRunAnimationBank4,
+    },
 };
 
-AnimationBank D_m4a1_bayonet_8012D25C = { { {
-    NULL,
-    &_gM4a1BayonetIdleAnimation,
-    &_gM4a1BayonetAnimation0EF00,
-    &_gM4a1BayonetAnimation0F6A0,
-    &_gM4a1BayonetAnimation10074,
-    &_gM4a1BayonetNegativeTurnAnimation,
-    &_gM4a1BayonetPositiveTurnAnimation,
-    &_gM4a1BayonetAimEntryAnimation,
-    &_gM4a1BayonetAimExitAnimation,
-    &_gM4a1BayonetAimIdleAnimation,
-    &_gM4a1BayonetRifleFireAnimation,
-    &_gM4a1BayonetSecondaryAttackAnimation,
-    &_gM4a1BayonetAimForwardAnimation,
-    &_gM4a1BayonetAimBackwardOrTurnAnimation,
-    &_gM4a1BayonetReloadAnimation,
-    &_gM4a1BayonetReloadAnimation,
-    &_gM4a1BayonetPart4HitReactionAnimation,
-    &_gM4a1BayonetOtherBodyHitReactionAnimation,
-    &_gM4a1BayonetDeathAnimation,
-    &_gM4a1BayonetUnarmedWalkAnimation,
-    &_gM4a1BayonetReloadAnimation,
-    &_gM4a1BayonetIdleAnimation,
-    &_gM4a1BayonetIdleAnimation,
-    &_gM4a1BayonetIdleHighHpAnimation,
-    &_gM4a1BayonetIdleMidHpAnimation,
-    &_gM4a1BayonetIdleLowHpAnimation,
-    &_gM4a1BayonetParasiteEnergyReleaseFamily0Animation,
-    &_gM4a1BayonetParasiteEnergyChargeFamily0Animation,
-    &_gM4a1BayonetParasiteEnergyCastFamily0Animation,
-    &_gM4a1BayonetParasiteEnergyReleaseFamily1Animation,
-    &_gM4a1BayonetParasiteEnergyChargeFamily1Animation,
-    &_gM4a1BayonetParasiteEnergyCastFamily1Animation,
-    &_gM4a1BayonetScriptedPresentationEntryAnimation,
-    &_gM4a1BayonetScriptedPresentationExitAnimation,
-    &_gM4a1BayonetScriptedPresentationEntryAnimation,
-    &_gM4a1BayonetScriptedPresentationExitAnimation,
-    &_gM4a1BayonetStairAscentAnimation,
-    &_gM4a1BayonetStairDescentAnimation,
-    &_gM4a1BayonetStairAscentFinishEvenAnimation,
-    &_gM4a1BayonetStairAscentFinishOddAnimation,
-    &_gM4a1BayonetItemUseAnimation,
-    &_gM4a1BayonetIdleAnimation,
-    &_gM4a1BayonetParasiteEnergyReleaseFamily2Animation,
-    &_gM4a1BayonetParasiteEnergyChargeFamily2Animation,
-    &_gM4a1BayonetParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gM4a1BayonetPlayerAnimationBank = {
+    .table = {
+        .sets = {
+            [1]  = &_gM4a1BayonetIdleAnimation,
+            [2]  = &_gM4a1BayonetWalkAnimation,
+            [3]  = &_gM4a1BayonetBackwardWalkAnimation,
+            [4]  = &_gM4a1BayonetRunAnimation,
+            [5]  = &_gM4a1BayonetNegativeTurnAnimation,
+            [6]  = &_gM4a1BayonetPositiveTurnAnimation,
+            [7]  = &_gM4a1BayonetAimEntryAnimation,
+            [8]  = &_gM4a1BayonetAimExitAnimation,
+            [9]  = &_gM4a1BayonetAimIdleAnimation,
+            [10] = &_gM4a1BayonetRifleFireAnimation,
+            [11] = &_gM4a1BayonetSecondaryAttackAnimation,
+            [12] = &_gM4a1BayonetAimForwardAnimation,
+            [13] = &_gM4a1BayonetAimBackwardOrTurnAnimation,
+            [14] = &_gM4a1BayonetReloadAnimation,
+            [15] = &_gM4a1BayonetReloadAnimation,
+            [16] = &_gM4a1BayonetPart4HitReactionAnimation,
+            [17] = &_gM4a1BayonetOtherBodyHitReactionAnimation,
+            [18] = &_gM4a1BayonetDeathAnimation,
+            [19] = &_gM4a1BayonetUnarmedWalkAnimation,
+            [20] = &_gM4a1BayonetReloadAnimation,
+            [21] = &_gM4a1BayonetIdleAnimation,
+            [22] = &_gM4a1BayonetIdleAnimation,
+            [23] = &_gM4a1BayonetIdleHighHpAnimation,
+            [24] = &_gM4a1BayonetIdleMidHpAnimation,
+            [25] = &_gM4a1BayonetIdleLowHpAnimation,
+            [26] = &_gM4a1BayonetParasiteEnergyReleaseFamily0Animation,
+            [27] = &_gM4a1BayonetParasiteEnergyChargeFamily0Animation,
+            [28] = &_gM4a1BayonetParasiteEnergyCastFamily0Animation,
+            [29] = &_gM4a1BayonetParasiteEnergyReleaseFamily1Animation,
+            [30] = &_gM4a1BayonetParasiteEnergyChargeFamily1Animation,
+            [31] = &_gM4a1BayonetParasiteEnergyCastFamily1Animation,
+            [32] = &_gM4a1BayonetScriptedPresentationEntryAnimation,
+            [33] = &_gM4a1BayonetScriptedPresentationExitAnimation,
+            [34] = &_gM4a1BayonetScriptedPresentationEntryAnimation,
+            [35] = &_gM4a1BayonetScriptedPresentationExitAnimation,
+            [36] = &_gM4a1BayonetStairAscentAnimation,
+            [37] = &_gM4a1BayonetStairDescentAnimation,
+            [38] = &_gM4a1BayonetStairAscentFinishEvenAnimation,
+            [39] = &_gM4a1BayonetStairAscentFinishOddAnimation,
+            [40] = &_gM4a1BayonetItemUseAnimation,
+            [41] = &_gM4a1BayonetIdleAnimation,
+            [42] = &_gM4a1BayonetParasiteEnergyReleaseFamily2Animation,
+            [43] = &_gM4a1BayonetParasiteEnergyChargeFamily2Animation,
+            [44] = &_gM4a1BayonetParasiteEnergyCastFamily2Animation,
+        },
+    },
+};
 
 GfxCoord gBladeTrailBase[8] = { 0 };
 GfxCoord gBladeTrailTip[8]  = { 0 };
