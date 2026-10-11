@@ -85,9 +85,17 @@ static const TaskMessageEntry _gDryfieldNightGeneralStoreMessageTable[6] SECTION
 
 /// Bind writable u8 latches for this carrier's singleton underpass prompt.
 /// Keep them live through prompt completion and bind both shared fragments alike.
-#define GENERAL_STORE_UNDERPASS_SAVED_VIEW   gGeneralStoreUnderpassSavedView
+#define GENERAL_STORE_UNDERPASS_SAVED_VIEW gGeneralStoreUnderpassSavedView
+
+/// Selects the night store's writable underpass arrival ID latch.
+///
+/// Bind the same `u8` lvalue for both departure and prompt fragments. Executing
+/// an unblocked departure latches the request's 1-based arrival ID without
+/// validation; prompt acceptance commits it to the live save. Keep the slot
+/// unchanged and loaded until the prompt ends; cancellation leaves it intact.
 #define GENERAL_STORE_UNDERPASS_ARRIVAL_WARP gGeneralStoreUnderpassArrivalWarp
-#define GENERAL_STORE_UNDERPASS_ROOM         gGeneralStoreUnderpassRoom
+
+#define GENERAL_STORE_UNDERPASS_ROOM gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
 /// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
