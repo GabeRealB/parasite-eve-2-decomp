@@ -2,7 +2,7 @@
 D_actor_143000_80131E64 = 0x80131E64;
 D_actor_143000_80131E74 = 0x80131E74;
 D_actor_143000_80134570 = 0x80134570; // size:0x10 defined:True
-D_actor_143000_80134580 = 0x80134580; // size:0x78 defined:True
+_gActor143000KeypadHotspots = 0x80134580; // size:0x78 defined:True
 _gActor143000CaptionCursorCalls = 0x80135C10; // size:0x4 defined:True
 _gActor143000TerminalQuestionIndex = 0x80135C14; // size:0x4 defined:True
 _gActor143000TerminalQuestionsAsked = 0x80135C18; // size:0x4 defined:True

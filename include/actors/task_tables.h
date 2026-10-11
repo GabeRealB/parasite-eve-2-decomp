@@ -36,8 +36,14 @@ extern TaskDesc gActor146000WaterHoleSceneTasks[2];
 /// use the corresponding slot alias and must keep that slot's resources loaded.
 extern TaskDesc gActor01200BoneSucklerTaskDesc;
 
-/// Bodyless motel-room placement placeholder, priority 192; ends its task on first dispatch.
-extern TaskDesc gActor120500EmptyPlacementTaskDesc;
+/// Motel scene spawn recipes: 0 empty placement, 1 Kyle Madigan's view-parented body.
+///
+/// Both run at priority 192 with unused spawn arguments and no terminator.
+/// Entry 0 has no body and ends on first dispatch. Entry 1 creates the
+/// twenty-part TMD with automatic buffers disabled; choreography allocates
+/// them when the double appears. Keep actor_120500 and the motel room/CAP
+/// resources loaded through the room wrapper's actor stop-request handshake.
+extern TaskDesc gActor120500EmptyPlacementTaskDesc[2];
 
 /// Dumping-hole spawn recipes: 0 encounter/blaze controller, 1 kill placeholder, 2 fade, 3 body fire, 4 fire emitter.
 ///
@@ -392,6 +398,14 @@ extern TaskDesc gActor160600PlacedActorTask;
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
 extern TaskDesc gActor04000BloodSucklerTaskDesc;
+
+/// Blood Suckler hanging-pool controller, with no body, at priority 96.
+///
+/// Spawn at index 0 with unused arguments. It borrows hanging actor tasks,
+/// keeps two drop slots filled during battle, and ends when candidates run out.
+/// Keep the selected actor slot loaded while the controller and pool are live;
+/// the night-toilet room imports the actor_104000 instance.
+extern TaskDesc gActor04000HangingPoolTaskDesc;
 
 /// Kyle Madigan spawn recipes: 0 walker body, 1 left hand, 2 right hand.
 ///

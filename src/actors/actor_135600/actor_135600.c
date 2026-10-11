@@ -107,9 +107,13 @@ static const TaskFuncTable4 D_actor_135600_80131E48 = { {
     _actorMotionTurnToYaw,
 } };
 
-/// The constant local-space offset `_actor135600BeginKyleMadiganWalk` rotates:
-/// straight ahead along the part's own +Z.
-static const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
+enum { ACTOR_135600_KYLE_WALK_VELOCITY_ONE = 0x10000 };
+
+/// Kyle Madigan's local +Z walk velocity: 32 coordinate units per update in signed 16.16.
+///
+/// The root's Q12 rotation converts XYZ to parent-space velocity without
+/// translation. The fourth VECTOR word is zero and is not part of the motion.
+static const VECTOR _gActor135600KyleMadiganForwardWalkVelocity = { 0, 0, 32 * ACTOR_135600_KYLE_WALK_VELOCITY_ONE, 0 };
 
 static AnimationSet _gActor135600Animation06F40;
 static AnimationSet _gActor135600Animation071F4;
@@ -1138,7 +1142,7 @@ static void _actor135600BeginKyleMadiganWalk(Task* task)
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
-    localVelocity = D_actor_135600_80131E58;
+    localVelocity = _gActor135600KyleMadiganForwardWalkVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;

@@ -2052,7 +2052,7 @@ enum {
 /// placement recipe at slot 0; the room separately spawns the adjacent scene
 /// recipe for the actor event. Resources and recipes are borrowed while loaded.
 static AreaResource _gDryfieldMotelRoom6Variant1Resources[2] = {
-    { DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_PLACEMENT, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_FILE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor120500EmptyPlacementTaskDesc },
+    { DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_PLACEMENT, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_FILE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor120500EmptyPlacementTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2300,7 +2300,7 @@ static void _dryfieldMotelRoom6RunActorEventTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_MOTEL_ROOM_6_EVENT_SPAWN:
-            _gDryfieldMotelRoom6SceneActorTask = taskSpawnFromTable(&gActor120500EmptyPlacementTaskDesc, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
+            _gDryfieldMotelRoom6SceneActorTask = taskSpawnFromTable(gActor120500EmptyPlacementTaskDesc, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
             task->state++;
             break;
         case DRYFIELD_MOTEL_ROOM_6_EVENT_WAIT:

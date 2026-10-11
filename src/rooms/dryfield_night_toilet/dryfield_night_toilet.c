@@ -40,7 +40,6 @@
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
-extern TaskDesc Actor04000_D0C6FC;
 
 /// Room-message ID carrying the inventory's key-item use request.
 enum { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -655,7 +654,7 @@ static void _dryfieldNightToiletInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_NIGHT_TOILET_EVENT_VARIANT) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
-        taskSpawnFromTable(&Actor04000_D0C6FC, 0, 0, 0);
+        taskSpawnFromTable(&gActor04000HangingPoolTaskDesc, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

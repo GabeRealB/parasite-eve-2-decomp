@@ -150,9 +150,6 @@ static s32 _actor310100StopOfficerController(Task* task, s32 messageId, s32 unus
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
 
-extern AnimationSet* D_actor_310100_80179754[16];
-extern AnimationSet* D_actor_310100_80179794[26];
-
 static TmdSource _gActor310100PoliceOfficer1Body;
 static TmdSource _gActor310100PoliceOfficer1CulledBody;
 static TmdSource _gActor310100PoliceOfficer2Body;
@@ -492,7 +489,12 @@ static AnimationSet _gActor310100Animation1790C = {
     { NULL, _gActor310100Animation1790CBank1, NULL, NULL, _gActor310100Animation1790CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_310100_80179754[16] = {
+/// Officer 1's animation bank for both ordinary and culled plaza body models.
+///
+/// Clips 1..14 are populated; 0 and 15 are NULL. Clips 1..5 borrow plaza
+/// resources, and 6..14 belong to this actor package. Both overlays must remain
+/// loaded while a body rig retains this table, its poses and its clip records.
+static AnimationSet* _gActor310100Officer1AnimationSets[16] = {
     NULL,
     &gAcropolisPlazaAnimation181CC,
     &gAcropolisPlazaAnimation183B8,
@@ -511,7 +513,12 @@ AnimationSet* D_actor_310100_80179754[16] = {
     NULL,
 };
 
-AnimationSet* D_actor_310100_80179794[26] = {
+/// Officer 2's animation bank for both ordinary and culled plaza body models.
+///
+/// Populated clips are 2, 4..10 and 14..24; 0, 1, 3, 11..13 and 25 are NULL.
+/// All clips borrow plaza resources. The plaza and this actor package must
+/// remain loaded while a body rig retains the table and its clip records.
+static AnimationSet* _gActor310100Officer2AnimationSets[26] = {
     NULL,
     NULL,
     &gAcropolisPlazaAnimation148BC,
@@ -1002,10 +1009,10 @@ static void _actor310100InitOfficerBodyModel(Task* task, s32 placementId)
     model->colorMtx = &work->color;
     model->flags    = 0;
     if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
-        animationInitContext(&work->rig.anim, D_actor_310100_80179754, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100Officer1AnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
-        animationInitContext(&work->rig.anim, D_actor_310100_80179794, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100Officer2AnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     }
     spawnAnimationId = task->spawnArg1.value;
@@ -1062,10 +1069,10 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     model->colorMtx = &work->color;
     model->flags    = 0;
     if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
-        animationInitContext(&work->rig.anim, D_actor_310100_80179754, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100Officer1AnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
-        animationInitContext(&work->rig.anim, D_actor_310100_80179794, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100Officer2AnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     }
     work->spawnAnimationId = task->spawnArg1.value;

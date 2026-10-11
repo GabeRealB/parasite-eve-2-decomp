@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_323300.
 D_actor_323300_8017259C = 0x8017259C; // size:0x18 defined:True
 D_actor_323300_801725B4 = 0x801725B4; // size:0x14 defined:True
-D_actor_323300_801725C8 = 0x801725C8; // size:0x14 defined:True
+_gActor323300WomanTurnAnimationRequest = 0x801725C8; // size:0x14 defined:True
 D_actor_323300_801725DC = 0x801725DC; // size:0x14 defined:True
 D_actor_323300_80172574 = 0x80172574; // size:0x28 defined:True
 gActor323300WomanStrangerTaskDescriptors = 0x8017255C; // size:0x18 defined:True

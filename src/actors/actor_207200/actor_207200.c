@@ -47,9 +47,14 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static TmdSource _gActor207200SkullStalkerBody;
 
-DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
+/// Skull Stalker's single zero-power, ordinary-reaction parameter row.
+///
+/// The enemy parameters borrow this row while the package is loaded. Its
+/// collision bodies do not pack an attack key from it; a stored zero row
+/// would still pack a category-4 key if passed to the damage API.
+static DamageAttack _gActor207200SkullStalkerAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
 
-EnemyParams gSkullStalkerParams = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
+EnemyParams gSkullStalkerParams = { _gActor207200SkullStalkerAttacks, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 static TmdBone _gActor207200SkullStalkerBodySkeleton[3] = {
 #include "assets/skull_stalker_body_skeleton.inc"
@@ -146,7 +151,10 @@ static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };
 /// Red death glow's offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSkullStalkerDeathGlowOffset = { 0, 0, 100, 0 };
 
-DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
+DamageAttack gActor207200CreepingStrangerAttacks[ACTOR_207200_CREEPING_STRANGER_ATTACK_COUNT] = {
+    [ACTOR_207200_CREEPING_STRANGER_ATTACK_FRONT] = { 25, GAME_ACTOR_REACTION_BERSERKER },
+    [ACTOR_207200_CREEPING_STRANGER_ATTACK_SIDE]  = { 10, GAME_ACTOR_REACTION_ORDINARY },
+};
 
 #include "../../shared/skull_stalker_spawn_state.inc.c"
 

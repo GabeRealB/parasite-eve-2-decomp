@@ -835,14 +835,19 @@ AnimationSet* Actor04000_D0C510[4] = {
     NULL,
 };
 
-AnimationSet* Actor04000_D0C520[4] = {
+/// Player clips for a Blood Suckler latched on the player's local +X side.
+///
+/// Clip 1 enters the hold and clip 2 releases it; entries 0 and 3 are NULL.
+/// The player borrows the table and its clips until its animation bank changes,
+/// so the selected actor-slot package must remain loaded through the hold.
+static AnimationSet* _gActor04000PlayerRightLatchAnimationSets[4] = {
     NULL,
     &_gActor04000Actor104000Animation0AECC,
     &_gActor04000Actor104000Animation0B374,
     NULL,
 };
 
-AnimationPlayRequest Actor04000_D0C530 = { { .sets = Actor04000_D0C520 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest Actor04000_D0C530 = { { .sets = _gActor04000PlayerRightLatchAnimationSets }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 u8 Actor04000_D0C544[364] = {
     0,
@@ -1233,7 +1238,7 @@ static TaskFunc _gActor04000HangingPoolPhases[4] = {
     taskKill,
 };
 
-TaskDesc Actor04000_D0C6FC = { { { TASK_BODY_NONE, 96 } }, _actor04000HangingPoolTask, { .value = 0 } };
+TaskDesc gActor04000HangingPoolTaskDesc = { { { TASK_BODY_NONE, 96 } }, _actor04000HangingPoolTask, { .value = 0 } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -1259,8 +1264,6 @@ extern PadScriptCmd Actor04000_D07094[3];
 extern PadScriptVibrationSegment Actor04000_D070A0[3];
 
 extern AnimationSet* Actor04000_D0C510[4];
-
-extern AnimationSet* Actor04000_D0C520[4];
 
 static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
 static void _actor04000SpawnEnemy(Enemy* enemy, Task* task);
@@ -1747,7 +1750,7 @@ static void _actor04000StateLunge(Enemy* enemy, Task* task)
                     if (scratch->turn < 0) {
                         Actor04000_D0C530.source.sets = Actor04000_D0C510;
                     } else {
-                        Actor04000_D0C530.source.sets = Actor04000_D0C520;
+                        Actor04000_D0C530.source.sets = _gActor04000PlayerRightLatchAnimationSets;
                     }
                     Actor04000_D0C530.animationId = ACTOR_04000_PLAYER_LATCH_ANIMATION;
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);

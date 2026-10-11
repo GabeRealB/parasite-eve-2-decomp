@@ -6,6 +6,7 @@
 #include "gameplay/animation.h"
 
 #include "main/tmd_types.h"
+#include "main/task_types.h"
 
 /// Commands carried by `ActorCommand::command` for the scrolling shaft.
 ///
@@ -60,5 +61,14 @@ extern AnimationSet gActor303600Animation07C30;
 extern AnimationSet gActor303600Animation07E5C;
 
 extern TmdSource gActor303600Model02DD0;
+
+/// Shaft cutscene recipes: 0 scene controller, 1 white flash, 2 fade to white, 3 black cover.
+///
+/// All four are bodyless tasks at priority 192, with no terminator. Controller
+/// and cover arguments are unused. Fade argument 1 supplies unsigned-halfword
+/// intensity units per update, normally 4 or 8; argument 2 is unused. The Eve
+/// package loads actor_303600 before spawning entry 0 after its death sequence.
+/// Keep actor_303600 and the scene's borrowed resources loaded until teardown.
+extern TaskDesc gActor303600CutsceneFadeTaskDescriptors[4];
 
 #endif // INCLUDE_ACTORS_ACTOR_303600_H

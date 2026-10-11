@@ -165,10 +165,9 @@ typedef struct {
 } _Actor143000KeypadWork;
 STATIC_ASSERT_SIZEOF(_Actor143000KeypadWork, 0x1C);
 
-extern TaskDesc            D_actor_143000_80134558;
-extern u8                  D_actor_143000_80134570[];
-extern ActionPromptHotspot D_actor_143000_80134580[];
-extern const char*         D_actor_143000_801345F8[3];
+extern TaskDesc    D_actor_143000_80134558;
+extern u8          D_actor_143000_80134570[];
+extern const char* D_actor_143000_801345F8[3];
 
 static void _actionPromptResetDefault(Task* task);
 static void _actor143000CheckKeypadCode(Task* task);
@@ -213,18 +212,23 @@ u8 D_actor_143000_80134570[16] = {
     1,
 };
 
-/// Action-cursor hotspots. `_actor143000HitTestKeypadHotspots` tests them; the last
-/// entry is the end marker.
-ActionPromptHotspot D_actor_143000_80134580[10] = {
-    { -128, 32, 208, 48, 5, 0, 0 },
-    { -133, 11, 266, 17, 4, 0, 0 },
-    { -160, -120, 27, 240, 2, 0, 0 },
-    { 133, -120, 27, 240, 2, 0, 0 },
-    { -160, -120, 320, 48, 2, 0, 0 },
-    { -160, -55, 320, 66, 2, 0, 0 },
-    { -160, 84, 320, 36, 2, 0, 0 },
-    { -120, -72, 266, 17, 1, 0, 0 },
-    { 88, 64, 40, 16, 3, 1, 0 },
+/// Laboratory keypad cursor rectangles and their latched hit flags.
+///
+/// Nine rectangles use center-origin screen pixels, followed by the end marker.
+/// Five surround rectangles share one choice ID. Enter selects prompt kind 1;
+/// all other choices select kind 0. The keypad hit test excludes the right and
+/// bottom edges, updates every hit flag, and confirms the first hit in table
+/// order. Initialization clears those flags; the sentinel remains untouched.
+static ActionPromptHotspot _gActor143000KeypadHotspots[10] = {
+    { -128, 32, 208, 48, ACTOR_143000_KEYPAD_HOTSPOT_KEYS, 0, 0 },
+    { -133, 11, 266, 17, ACTOR_143000_KEYPAD_HOTSPOT_ENTRY, 0, 0 },
+    { -160, -120, 27, 240, ACTOR_143000_KEYPAD_HOTSPOT_SURROUND, 0, 0 },
+    { 133, -120, 27, 240, ACTOR_143000_KEYPAD_HOTSPOT_SURROUND, 0, 0 },
+    { -160, -120, 320, 48, ACTOR_143000_KEYPAD_HOTSPOT_SURROUND, 0, 0 },
+    { -160, -55, 320, 66, ACTOR_143000_KEYPAD_HOTSPOT_SURROUND, 0, 0 },
+    { -160, 84, 320, 36, ACTOR_143000_KEYPAD_HOTSPOT_SURROUND, 0, 0 },
+    { -120, -72, 266, 17, ACTOR_143000_KEYPAD_HOTSPOT_STATUS, 0, 0 },
+    { 88, 64, 40, 16, ACTOR_143000_KEYPAD_HOTSPOT_ENTER, 1, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -384,7 +388,7 @@ static void _actor143000InitializeKeypad(Task* task)
     ActionPromptHotspot*    hotspot;
     u8                      previousView;
 
-    hotspot = D_actor_143000_80134580;
+    hotspot = _gActor143000KeypadHotspots;
     work    = memCalloc(sizeof(_Actor143000KeypadWork), false);
     if (work == NULL) {
         taskKill(task);
@@ -445,7 +449,7 @@ static void _actor143000HandleKeypadInput(Task* task)
     work                           = task->work;
     gGameSession->hideHud          = 1;
     gGameSession->eventState       = 1;
-    hotspot                        = D_actor_143000_80134580;
+    hotspot                        = _gActor143000KeypadHotspots;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
     prompt                         = gActionPromptSlots;
     if (capIsBusy() != 0) {
@@ -483,7 +487,7 @@ static void _actor143000HandleKeypadInput(Task* task)
             }
         }
         // Highlight the hovered key or Enter without changing the cursor position.
-        for (hotspot = D_actor_143000_80134580; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        for (hotspot = _gActor143000KeypadHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
             if (hotspot->hit != 0) {
                 if (hotspot->id != ACTOR_143000_KEYPAD_HOTSPOT_ENTER) {
                     if (hotspot->id == ACTOR_143000_KEYPAD_HOTSPOT_KEYS) {
@@ -1105,7 +1109,7 @@ static s32 _actor143000HitTestKeypadHotspots(ActionPromptHotspot* hotspots, s16 
 /// the loaded hotspot table and four free LINE_F2 packets per non-sentinel entry.
 static void _actor143000OutlineKeypadHotspots(void)
 {
-    ActionPromptHotspot* hotspot = D_actor_143000_80134580;
+    ActionPromptHotspot* hotspot = _gActor143000KeypadHotspots;
 
     if (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
         do {

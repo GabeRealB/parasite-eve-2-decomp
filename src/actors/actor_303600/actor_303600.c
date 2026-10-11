@@ -146,7 +146,6 @@ static Task* _gActor303600CutsceneControllerTask;
 /// spawn results are discarded. Conditional task kills retain the original
 /// behavior, although this package never publishes a live handle here.
 static Task*    _gActor303600FadeTaskSlot;
-extern TaskDesc D_actor_303600_80162E98[];
 extern TaskDesc D_actor_303600_8016E468[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -231,7 +230,7 @@ EvsCommand D_actor_303600_80162DD8[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_303600_80162E98[4] = {
+TaskDesc gActor303600CutsceneFadeTaskDescriptors[4] = {
     { { { TASK_BODY_NONE, 192 } }, _actor303600CutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor303600FadeFromWhiteTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor303600FadeToWhiteTask, { .value = 0 } },
@@ -509,24 +508,24 @@ static void _actor303600DispatchCutsceneCue(Task* task)
                 taskKill(_gActor303600FadeTaskSlot);
                 _gActor303600FadeTaskSlot = NULL;
             }
-            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
+            taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
         case ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE:
             ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE);
             break;
         case ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_FAST:
-            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_FAST_STEP, 0);
+            taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_FAST_STEP, 0);
             break;
         case ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_SLOW:
-            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
+            taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
         case ACTOR_303600_CUTSCENE_CUE_BLACK_COVER_AND_FLASH:
             if (_gActor303600FadeTaskSlot != NULL) {
                 taskKill(_gActor303600FadeTaskSlot);
                 _gActor303600FadeTaskSlot = NULL;
             }
-            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_BLACK_COVER_TASK, 0, 0);
-            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
+            taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_BLACK_COVER_TASK, 0, 0);
+            taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
     }
     work->command = ACTOR_303600_CUTSCENE_CUE_NONE;
@@ -752,7 +751,7 @@ static void _actor303600FinishSkippedCutscene(void)
     work = _gActor303600CutsceneControllerTask->work;
     ACTOR_303600_SEND_SKIPPED_END_COMMAND(work, endCommand);
 
-    taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_SKIP_BLACK_COVER_TASK, 0, NULL);
+    taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, ACTOR_303600_SKIP_BLACK_COVER_TASK, 0, NULL);
 }
 
 #undef ACTOR_303600_SEND_SKIPPED_END_COMMAND

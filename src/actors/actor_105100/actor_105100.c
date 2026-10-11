@@ -333,8 +333,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
-extern EnemyParams D_actor_105100_80141398;
-
 /// The animation data `animationInitContext` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
@@ -714,7 +712,15 @@ static DamageAttack _gActor105100Attacks[6] = {
     { 40, 6 },
 };
 
-EnemyParams D_actor_105100_80141398 = { _gActor105100Attacks, 4000, 1000, 500, 100, 200, 5, 100, 4 };
+/// Stinger combat parameters and reward amounts, shared by its live enemy records.
+///
+/// Starts at 4000 HP and caps partner healing at that value. The six attack
+/// rows cover fireball, burst, three beam patterns and the body strike.
+/// Rewards are 1000 experience, 500 BP and 100 MP. Critical base 200 percent,
+/// five 31-frame buildup steps, and four damage-over-time pulses at 100 percent
+/// retain the EnemyParams grade scaling. Enemy records borrow this writable
+/// record and its attack table for the actor package's loaded lifetime.
+static EnemyParams _gActor105100StingerParams = { _gActor105100Attacks, 4000, 1000, 500, 100, 200, 5, 100, 4 };
 
 u16 D_actor_105100_801413A8[16] = {
     1,
@@ -963,9 +969,9 @@ static void _actor105100Spawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0x64;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_105100_80141398;
+    enemy->param                  = &_gActor105100StingerParams;
     enemy->recs                   = work->hitContacts;
-    enemy->hp                     = D_actor_105100_80141398.hpMax;
+    enemy->hp                     = _gActor105100StingerParams.hpMax;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[ACTOR_105100_HIT_PART];
     work->hitEffectArg.spawnArgLo = 0x500;
     work->hitEffectArg.spawnArgHi = 3;
@@ -1283,7 +1289,7 @@ static void _actor105100TickActions(Task* task)
     action = work->action;
     switch (action) {
         case ACTOR_105100_ACTION_IDLE:
-            if (enemy->hp < (s32)D_actor_105100_80141398.hpMax) {
+            if (enemy->hp < _gActor105100StingerParams.hpMax) {
                 gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_HEAL_REQUEST;
             }
             _actor105100Idle(task, enemy);
@@ -2838,8 +2844,8 @@ static void _actor105100ApplyPartnerHealing(Task* task)
     gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_HEAL_READY);
     healedHp                              = enemy->hp + ACTOR_105100_PARTNER_HEAL_HP;
     enemy->hp                             = healedHp;
-    if (D_actor_105100_80141398.hpMax < (s16)healedHp) {
-        enemy->hp = D_actor_105100_80141398.hpMax;
+    if (_gActor105100StingerParams.hpMax < (s16)healedHp) {
+        enemy->hp = _gActor105100StingerParams.hpMax;
     }
     worldTargetAddReadoutAmount(&enemy->node, -ACTOR_105100_PARTNER_HEAL_HP, 0);
     effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL, NULL, 0, NULL);

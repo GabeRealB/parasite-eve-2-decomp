@@ -128,7 +128,6 @@ extern ActorTransform D_actor_323300_8017259C;
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `_actorMotionPlayAnim19`.
 extern AnimationPlayRequest D_actor_323300_801725B4;
-extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
 
 /// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
@@ -355,7 +354,16 @@ ActorTransform D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0
 
 AnimationPlayRequest D_actor_323300_801725B4 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_323300_801725C8 = { { .sets = NULL }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_323300_WOMAN_TURN_ANIMATION    = 2,
+       ACTOR_323300_WOMAN_TURN_BLEND_FRAMES = 10 };
+
+/// Toilet-event woman's bank-0 turn clip, blended over ten normal-rate frames.
+///
+/// The request is borrowed synchronously. Existing playback blends into clip 2;
+/// an unticked rig resets to it, and requesting the same clip preserves playback.
+/// These actor handlers ignore the world-collision field; the retained value
+/// disables it for handlers that interpret it.
+static AnimationPlayRequest _gActor323300WomanTurnAnimationRequest = { { .index = 0 }, ACTOR_323300_WOMAN_TURN_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_323300_WOMAN_TURN_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_323300_801725DC = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -799,7 +807,7 @@ static s32 _actor323300WomanApplyCommand(Task* task, s32 messageId, const ActorC
             work->walk.targetRot.vz = placement->rot.vz;
             work->model.nextAnimId  = ACTOR_323300_WOMAN_TURN_CLIP;
 
-            _actor323300WomanApplyAnimationRequest(task, &D_actor_323300_801725C8);
+            _actor323300WomanApplyAnimationRequest(task, &_gActor323300WomanTurnAnimationRequest);
             break;
         case ACTOR_323300_WOMAN_COMMAND_SPRAY:
             sprayOffset.vy = 60;
@@ -887,7 +895,7 @@ static void _actor323300WomanStartTurn(Task* task)
     s32                    slotIndex;
 
     work = task->work;
-    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
+    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300WomanTurnAnimationRequest, 0);
     for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
         work->rig.slots[slotIndex].rate = ACTOR_323300_WOMAN_TURN_RATE;
     }

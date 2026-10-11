@@ -349,7 +349,6 @@ static s32 _gActor01100SpitSoundPlacementIndex;
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor01100_D15660[2];
-extern DamageAttack     Actor01100_D074D0[];
 static TmdSource        _gActor01100BruteMossbackBurstArm;
 static TmdSource        _gActor01100BruteMossbackBurstHead;
 
@@ -413,18 +412,24 @@ static void _actor01100Task(Task* task);
 static void _actor01100SpitGlobTask(Task* task);
 static void _actor01100SpitCloudTask(Task* task);
 
-DamageAttack Actor01100_D074D0[6] = {
-    { 0, 0 },
-    { 8, 0 },
-    { 8, 0 },
-    { 20, 7 },
-    { 20, 7 },
-    { 10, 3 },
+enum { ACTOR_01100_PUNCH_PLAYER_REACTION = 7 };
+
+/// Standard-placement Mossback attack damage and player reactions.
+///
+/// Slots 1/2 are idle left/right hand contacts, 3/4 the punches, and 5 the
+/// poison spit glob. Slot 0 has zero power with an ordinary reaction.
+/// The enemy parameter record and spawned globs borrow these six rows while
+/// the actor package is loaded.
+static DamageAttack _gActor01100MossbackAttacks[6] = {
+    { 0, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_IDLE_LEFT]   = { 8, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_IDLE_RIGHT]  = { 8, GAME_ACTOR_REACTION_ORDINARY },
+    [ACTOR_01100_ATTACK_PUNCH_LEFT]  = { 20, ACTOR_01100_PUNCH_PLAYER_REACTION },
+    [ACTOR_01100_ATTACK_PUNCH_RIGHT] = { 20, ACTOR_01100_PUNCH_PLAYER_REACTION },
+    [ACTOR_01100_SPIT_ATTACK_INDEX]  = { 10, GAME_ACTOR_REACTION_POISON },
 };
 
-EnemyParams Actor01100_D074E8 = { Actor01100_D074D0, 280, 152, 102, 5, 200, 10, 100, 20 };
-
-enum { ACTOR_01100_PUNCH_PLAYER_REACTION = 7 };
+EnemyParams Actor01100_D074E8 = { _gActor01100MossbackAttacks, 280, 152, 102, 5, 200, 10, 100, 20 };
 
 /// Brute Mossback attack damage and player reactions.
 ///
@@ -3739,7 +3744,7 @@ static void _actor01100SpitGlobInit(Task* task)
     body->pos.vy          = 0;
     body->pos.vz          = 0;
     body->radius          = 0;
-    body->key             = damagePackAttackKey(&Actor01100_D074D0[0], ACTOR_01100_SPIT_ATTACK_INDEX);
+    body->key             = damagePackAttackKey(&_gActor01100MossbackAttacks[0], ACTOR_01100_SPIT_ATTACK_INDEX);
     body->flags           = WORLD_COLLISION_BODY_CAPSULE;
 
     capsule->contacts   = work->contacts;

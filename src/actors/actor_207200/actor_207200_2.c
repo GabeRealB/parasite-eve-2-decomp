@@ -46,7 +46,6 @@
 
 #include "overlay.h"
 
-extern EnemyParams   D_actor_207200_8014E7D4;
 extern AnimationSet* D_actor_207200_80153ED4[13];
 /// `forwardSpeed` for frames 20..39 of the crawl animation, indexed by frame - 20.
 extern s16 D_actor_207200_80153F20[];
@@ -260,7 +259,13 @@ static const EnemyTaskFuncTable3 D_actor_207200_80149E30 = {
 
 static void _actor207200CreepingStrangerTask(Task* task);
 
-EnemyParams D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0 };
+/// Creeping Stranger combat tuning and rewards, borrowed by its live Enemy records.
+///
+/// Starts at 250 HP; release credits 15 experience, 48 BP and 1 MP. Critical
+/// base is 50 percent and buildup lasts ten 31-frame steps before grade scaling.
+/// Damage-over-time chance and pulse count are zero. The front/side attack
+/// table and this writable record must remain loaded until enemy teardown.
+static EnemyParams _gActor207200CreepingStrangerParams = { gActor207200CreepingStrangerAttacks, 250, 15, 48, 1, 50, 10, 0, 0 };
 
 static TmdBone _gActor207200CreepingStrangerBodySkeleton[7] = {
 #include "assets/creeping_stranger_body_skeleton.inc"
@@ -745,9 +750,9 @@ static void _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_207200_8014E7D4;
+    enemy->param                  = &_gActor207200CreepingStrangerParams;
     enemy->recs                   = work->headContacts;
-    enemy->hp                     = D_actor_207200_8014E7D4.hpMax;
+    enemy->hp                     = _gActor207200CreepingStrangerParams.hpMax;
     work->rotation.vy             = rootCoord->param.rot.vy;
     animationInitContext(&work->rig.anim, D_actor_207200_80153ED4, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -805,7 +810,7 @@ static void _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task)
     work->frontAttackBody.pos.vy           = 0x50;
     work->frontAttackBody.pos.vz           = 0x8C;
     work->headBody.flags                  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->frontAttackBody.key              = damagePackAttackKey(D_actor_207200_8014E7CC, 0);
+    work->frontAttackBody.key              = damagePackAttackKey(gActor207200CreepingStrangerAttacks, ACTOR_207200_CREEPING_STRANGER_ATTACK_FRONT);
     work->frontAttackBody.radius           = 0x12C;
     work->frontAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->frontAttackBody);
@@ -817,7 +822,7 @@ static void _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task)
     work->sideAttackBody.pos.vy           = 0;
     work->sideAttackBody.pos.vz           = 0;
     work->frontAttackBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->sideAttackBody.key              = damagePackAttackKey(D_actor_207200_8014E7CC, 1);
+    work->sideAttackBody.key              = damagePackAttackKey(gActor207200CreepingStrangerAttacks, ACTOR_207200_CREEPING_STRANGER_ATTACK_SIDE);
     work->sideAttackBody.radius           = 0x12C;
     work->sideAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sideAttackBody);
@@ -1343,7 +1348,7 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
                 case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, ACTOR_207200_CREEPING_STRANGER_SHATTER_BURST_STYLE, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
+                    worldTargetAddReadoutAmount(&enemy->node, _gActor207200CreepingStrangerParams.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
                     _actor207200CreepingStrangerBurstRandomPart(task);
                     work->hasBurst = 1;
                     task->state++;

@@ -70,12 +70,8 @@
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// The attack a shot's sphere carries at `WorldCollisionBody.key`.
-/// `power` is 0x1A and `reaction` is 5.
-extern DamageAttack D_actor_206100_80155194;
-
 /// Enemy parameters `_actor206100InitEnemy` parks in `Enemy::param`.
-/// `attacks` is `D_actor_206100_80155194` above and `hpMax` is the actor's
+/// `attacks` is `_gActor206100SeaDiverShotAttack` and `hpMax` is the actor's
 /// maximum hit points (2000), seeded into `field_40` / `field_42` at spawn.
 extern EnemyParams D_actor_206100_80155198;
 
@@ -104,10 +100,6 @@ typedef struct {
     s32    summonCooldown; // frames before the empty slot summons again, counted down a frame while it is empty
 } _Actor206100BogDiverSlot;
 STATIC_ASSERT_SIZEOF(_Actor206100BogDiverSlot, 0x8);
-
-/// The two Bog Diver slots, emptied by the spawn state
-/// `_actor206100Spawn`.
-extern _Actor206100BogDiverSlot D_actor_206100_80158CBC[2];
 
 /// Farthest from the origin, in the XZ plane, that a step of the fight may
 /// leave the root.
@@ -630,9 +622,16 @@ AreaPlacement D_actor_206100_80155134[6] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-DamageAttack D_actor_206100_80155194 = { 26, 5 };
+enum { ACTOR_206100_SHOT_PLAYER_REACTION = 5 };
 
-EnemyParams D_actor_206100_80155198 = { &D_actor_206100_80155194, 2000, 400, 1000, 15, 200, 3, 100, 5 };
+/// Sea Diver shot's unscaled damage and player hit-presentation selector.
+///
+/// Entry zero packs 26 damage and reaction 5 (no status effect) into each
+/// shot's contact key. The enemy parameter record borrows this single row
+/// for the actor package's lifetime; collision keys copy its values.
+static DamageAttack _gActor206100SeaDiverShotAttack = { 26, ACTOR_206100_SHOT_PLAYER_REACTION };
+
+EnemyParams D_actor_206100_80155198 = { &_gActor206100SeaDiverShotAttack, 2000, 400, 1000, 15, 200, 3, 100, 5 };
 
 static AnimationPackedPose _gActor206100Animation0B8F8Bank1[8] = {
 #include "assets/actor_206100_animation_0B8F8_bank1.inc"
@@ -936,7 +935,13 @@ static ScreenWaveOscillator _gScreenWaveColumnWaves[13] = { 0 };
 /// entries beyond 29 are unaccessed; their role is unproven.
 static ScreenWaveOscillator _gScreenWaveRowWaves[32] = { 0 };
 
-_Actor206100BogDiverSlot D_actor_206100_80158CBC[2] = { 0 };
+/// Two live Bog Diver summon slots maintained by the Sea Diver's ring phase.
+///
+/// Spawn clears both records. Each slot borrows an Enemy until its HP reaches
+/// zero, then waits 180 active ticks before reuse. The two slots are shared by
+/// all Sea Diver instances in this loaded package and track at most two of the
+/// five divers summoned in total; they do not own the divers' tasks or work.
+static _Actor206100BogDiverSlot _gActor206100BogDiverSummonSlots[2] = { 0 };
 
 ScreenWaveCtx D_actor_206100_80158CCC = { 0 };
 
@@ -1541,9 +1546,9 @@ static void _actor206100Spawn(Task* task)
     }
     gNeoArkSubmarineGallerySeaDiverAwaitingArrival = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_AWAITING_ARRIVAL;
     work->waterLevel                               = gNeoArkSubmarineGalleryDiverWaterY;
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_actor_206100_80158CBC); slotIndex++) {
-        D_actor_206100_80158CBC[slotIndex].enemy          = NULL;
-        D_actor_206100_80158CBC[slotIndex].summonCooldown = 0;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gActor206100BogDiverSummonSlots); slotIndex++) {
+        _gActor206100BogDiverSummonSlots[slotIndex].enemy          = NULL;
+        _gActor206100BogDiverSummonSlots[slotIndex].summonCooldown = 0;
     }
     _actor206100InitEnemy(task);
     // Apply the initial swimming pose before entering the ring phase.
@@ -2486,28 +2491,28 @@ static void _actor206100SummonBogDiversTick(Task* task)
     // Fill empty slots before retiring this tick's dead enemies.
     summonSlotIndex = 0;
     do {
-        if (work->bogDiversSpawned < ACTOR_206100_BOG_DIVER_SUMMON_COUNT && D_actor_206100_80158CBC[summonSlotIndex].enemy == NULL) {
-            if (D_actor_206100_80158CBC[summonSlotIndex].summonCooldown == 0) {
+        if (work->bogDiversSpawned < ACTOR_206100_BOG_DIVER_SUMMON_COUNT && _gActor206100BogDiverSummonSlots[summonSlotIndex].enemy == NULL) {
+            if (_gActor206100BogDiverSummonSlots[summonSlotIndex].summonCooldown == 0) {
                 enemy = _actor206100SpawnBogDiver(work->bogDiversSpawned);
                 if (enemy != NULL) {
-                    D_actor_206100_80158CBC[summonSlotIndex].enemy = enemy;
-                    enemy->hp                                      = 1; // Liveness marker before the Bog Diver spawn callback initializes HP.
-                    work->bogDiversSpawned                         = work->bogDiversSpawned + 1;
+                    _gActor206100BogDiverSummonSlots[summonSlotIndex].enemy = enemy;
+                    enemy->hp                                               = 1; // Liveness marker before the Bog Diver spawn callback initializes HP.
+                    work->bogDiversSpawned                                  = work->bogDiversSpawned + 1;
                 }
             } else {
-                D_actor_206100_80158CBC[summonSlotIndex].summonCooldown = D_actor_206100_80158CBC[summonSlotIndex].summonCooldown - 1;
+                _gActor206100BogDiverSummonSlots[summonSlotIndex].summonCooldown = _gActor206100BogDiverSummonSlots[summonSlotIndex].summonCooldown - 1;
             }
         }
         summonSlotIndex++;
-    } while (summonSlotIndex < ARRAY_SIZE(D_actor_206100_80158CBC));
+    } while (summonSlotIndex < ARRAY_SIZE(_gActor206100BogDiverSummonSlots));
     retireSlotIndex = 0;
     do {
-        if (D_actor_206100_80158CBC[retireSlotIndex].enemy != NULL &&
-            D_actor_206100_80158CBC[retireSlotIndex].enemy->hp <= 0) {
-            D_actor_206100_80158CBC[retireSlotIndex].enemy          = NULL;
-            D_actor_206100_80158CBC[retireSlotIndex].summonCooldown = ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN;
-            killedCount                                             = work->bogDiversKilled + 1;
-            work->bogDiversKilled                                   = killedCount;
+        if (_gActor206100BogDiverSummonSlots[retireSlotIndex].enemy != NULL &&
+            _gActor206100BogDiverSummonSlots[retireSlotIndex].enemy->hp <= 0) {
+            _gActor206100BogDiverSummonSlots[retireSlotIndex].enemy          = NULL;
+            _gActor206100BogDiverSummonSlots[retireSlotIndex].summonCooldown = ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN;
+            killedCount                                                      = work->bogDiversKilled + 1;
+            work->bogDiversKilled                                            = killedCount;
             if (killedCount >= ACTOR_206100_BOG_DIVER_SUMMON_COUNT) {
                 transitionWork           = task->work;
                 task->state              = ACTOR_206100_TASK_STATE_FIGHT;
@@ -2516,7 +2521,7 @@ static void _actor206100SummonBogDiversTick(Task* task)
             }
         }
         retireSlotIndex++;
-    } while (retireSlotIndex < ARRAY_SIZE(D_actor_206100_80158CBC));
+    } while (retireSlotIndex < ARRAY_SIZE(_gActor206100BogDiverSummonSlots));
 }
 /// Steers and swims around the Sea Diver's eight-point waypoint ring.
 ///
@@ -2985,7 +2990,7 @@ static void _actor206100LaunchShot(Task* task)
     shotCoord->parent       = &gGfxViewCoord;
     shotCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     // Link the sphere before enabling grid and pair tests against its live contacts.
-    shot->strike.attackBody.key              = damagePackAttackKey(&D_actor_206100_80155194, 0);
+    shot->strike.attackBody.key              = damagePackAttackKey(&_gActor206100SeaDiverShotAttack, 0);
     shot->strike.attackBody.coord            = task->extra.tmd->coords;
     contacts                                 = shot->contacts;
     shot->strike.attackBody.context.contacts = contacts;

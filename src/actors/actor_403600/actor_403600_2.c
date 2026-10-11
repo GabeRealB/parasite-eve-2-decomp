@@ -11,6 +11,7 @@
 #include "gte.h"
 
 #include "actors/actor_403600.h"
+#include "actors/actor_303600.h"
 
 #include "actors/actor.h"
 
@@ -182,7 +183,6 @@ static s32  _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const
 static void _actor403600UpdateSceneFigure(struct Enemy* enemy, Task* task);
 static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale);
 
-extern TaskDesc D_actor_303600_80162E98[];
 extern TaskDesc D_actor_303600_8016E468[];
 /// Static storage for the cursor of the boss's record of its last two
 /// attacks.
@@ -1432,7 +1432,7 @@ static void _actor403600UpdateMode(Task* task)
                         if (_gActor403600DeathCleanupTask != 0) {
                             taskCallExit(_gActor403600DeathCleanupTask);
                         }
-                        taskSpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
+                        taskSpawnFromTable(gActor303600CutsceneFadeTaskDescriptors, 0, 0, 0);
                         padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
                         work->step = (s16)((u16)work->step + 1);
                     }

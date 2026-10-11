@@ -13,6 +13,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -104,43 +105,6 @@ typedef struct {
     u16            screenRequestStep; // Zeroed when `screenRequest` is posted; never read
 } _Actor120500Work;
 STATIC_ASSERT_SIZEOF(_Actor120500Work, 0x4CC);
-
-/// The actor's five-entry task table: 0 the streamed sequence
-/// (`_actor120500MovieTask`), 1 the fade from black, 2 the fade to black,
-/// 3 `taskKill`, 4 the actor itself.
-extern TaskDesc D_actor_120500_80138418[];
-
-/// Animation-set tables bound to the work block's context by `animationInitContext`.
-extern AnimationSet* D_actor_120500_80138088[2];
-
-/// Message table the actor answers with: 0x7D5 shows or hides the model, 0x7D4
-/// places it.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_120500_80138408[2];
-
-/// Equipped-weapon id and the flag that selects which block of animation sets
-/// it indexes (`+1` when set to 1, `+0x22` otherwise).
-
-/// Flags the tick checks before bringing the actor up (`gAttachmentState.mode` /
-/// `gDisplayState.pendingMode`), and the one it raises alongside the view tasks
-/// (`gDisplayState.control.flags.flipMode`).
-
-/// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
-/// `AnimationPlayRequest::source`; the messages select sets 0, 1 and 2 of it.
-extern AnimationSet* D_actor_120500_8013807C[];
-
-/// Placement records sent to that same task as message 0x3E9, passed by
-/// address.
-extern ActorTransform D_actor_120500_80138090;
-extern ActorTransform D_actor_120500_801380A8;
-
-/// Pair of blocks `_actor120500SceneTask` passes to `evsStartScriptWithSkip`.
-extern EvsCommand D_actor_120500_801380D8[];
-extern EvsCommand D_actor_120500_80138318[];
-
-/// The actor's own placement, sent to itself as message 0x7D4.
-extern ActorTransform D_actor_120500_801380C0;
 
 static void _actor120500PostPlayerRequest(s16 requestId);
 static void _actor120500PostBodyRequest(s16 requestId);
@@ -272,25 +236,66 @@ static AnimationSet _gActor120500Animation06234 = {
     { NULL, _gActor120500Animation06234Bank1, NULL, NULL, _gActor120500Animation06234Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_120500_8013807C[3] = {
+/// Player choreography clips for the motel room 6 movie scene, indexed 0..2.
+///
+/// Clip 0 is held at the movie placement, 1 starts after the movie, and 2
+/// finishes the scene or restores its skipped result. Install requests lend
+/// this table to the player until its weapon bank is restored. Keep this
+/// actor package loaded through that playback; there is no NULL terminator.
+static AnimationSet* _gActor120500PlayerSceneAnimationSets[3] = {
     &_gActor120500Animation05ECC,
     &_gActor120500Animation0607C,
     &_gActor120500Animation06234,
 };
 
-AnimationSet* D_actor_120500_80138088[2] = {
+/// Motel scene Kyle Madigan body clips: 0 unused, 1 the view-parented body pose.
+///
+/// Body contexts borrow this table and its clip for the model's lifetime;
+/// all nineteen non-root tracks start on clip 1.
+static AnimationSet* _gActor120500KyleMadiganAnimationSets[2] = {
     NULL,
     &_gActor120500Animation05BC8,
 };
 
-ActorTransform D_actor_120500_80138090 = { { 6330, -3200, -4900, 0 }, { 0, 3584, 0, 0 } };
+/// Player placement held during the motel scene's first animation, before the movie.
+///
+/// XYZ are room-coordinate units; yaw is seven eighths of a turn, in
+/// ACTOR_TRANSFORM_ANGLE_TURN units. Placement dispatch borrows this record
+/// synchronously and copies its transform into the player's root.
+static ActorTransform _gActor120500PlayerMoviePlacement = { { 6330, -3200, -4900, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN * 7 / 8, 0, 0 } };
 
-ActorTransform D_actor_120500_801380A8 = { { 787, 0, 7000, 0 }, { 0, 3584, 0, 0 } };
+/// Player placement after the motel movie, also used to complete a skipped scene.
+///
+/// XYZ are room-coordinate units; yaw is seven eighths of a turn, in
+/// ACTOR_TRANSFORM_ANGLE_TURN units. Placement dispatch borrows this record
+/// synchronously and copies its transform into the player's root.
+static ActorTransform _gActor120500PlayerAfterMoviePlacement = { { 787, 0, 7000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN * 7 / 8, 0, 0 } };
 
-ActorTransform D_actor_120500_801380C0 = { { 800, -0x2EE0, -2750, 0 }, { 0, 2048, 0, 0 } };
+/// Kyle Madigan double's view-space placement when the motel movie reveals his body.
+///
+/// XYZ are coordinate units relative to the view; yaw is a half turn.
+/// Placement dispatch borrows the record synchronously and reparents the root
+/// to the view before applying it. The body does not use room-space placement.
+static ActorTransform _gActor120500KyleMadiganViewPlacement = { { 800, -12000, -2750, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-EvsCommand D_actor_120500_801380D8[24] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+enum {
+    ACTOR_120500_MOTEL_CAP_COMMAND         = 8,
+    ACTOR_120500_SCENE_HANDOFF_WAIT_FRAMES = 3,
+    ACTOR_120500_SKIP_FINAL_VIEW           = 5,
+    ACTOR_120500_SKIP_FADE_WAIT_FRAMES     = 8,
+    ACTOR_120500_SKIP_VIEW_WAIT_FRAMES     = 2,
+    ACTOR_120500_SCENE_TASK_PRIORITY       = 192,
+};
+
+/// CAP-cued player, Kyle-body and movie choreography for motel room 6.
+///
+/// Starts CAP command 8, posts requests to the published body task around
+/// cue waits and the movie, restores the player's weapon animation, then ends
+/// scripted control. END terminates the 24 records. The event runner borrows
+/// this script and its callbacks; keep the actor, room and CAP assets loaded
+/// through completion or the paired skip script.
+static EvsCommand _gActor120500MotelSceneScript[24] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120500_MOTEL_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -298,7 +303,7 @@ EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostScreenRequest }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostScreenRequest }, { .value = ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_120500_SCENE_HANDOFF_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostBodyRequest }, { .value = ACTOR_120500_BODY_REQUEST_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -311,38 +316,57 @@ EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_120500_SCENE_HANDOFF_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120500_80138318[10] = {
+/// Motel scene's skip sequence, restoring the player and final view under a fade.
+///
+/// Waits eight frames after fade start, applies the skipped choreography result,
+/// selects view 5, waits two frames before scene cleanup, then returns the fade
+/// and scripted player control. END terminates the ten records. The runner
+/// borrows this script and the live body task until cleanup finishes.
+static EvsCommand _gActor120500MotelSceneSkipScript[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_120500_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120500SkipScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_120500_SKIP_FINAL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_120500_SKIP_VIEW_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_120500_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_actor_120500_80138408[2] = {
+/// Motel Kyle body's supported placement and draw-mode messages.
+///
+/// Dispatch only ACTOR_MESSAGE_SET_MODEL_DRAW or ACTOR_MESSAGE_PLACE: both
+/// entries are live callbacks, with no TASK_MESSAGE_TABLE_END. Placement borrows
+/// an ActorTransform during dispatch and interprets it in view coordinates.
+/// Draw mode takes ACTOR_MESSAGE_DRAW_*; neither message has a usable result.
+static TaskMessageEntry _gActor120500KyleMadiganMessages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120500SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
-TaskDesc D_actor_120500_80138418[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor120500MovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
+/// Bodyless motel scene recipes: 0 movie, 1 fade from black, 2 fade to black.
+///
+/// All run at priority 192; indices 0..2 have no terminator. Movie arguments
+/// are unused and playback requires the room's loaded view-100 stream. Fade
+/// argument 1 is an unsigned-halfword intensity step per update, normally 8;
+/// argument 2 is unused. Keep the actor package loaded until each task ends.
+static TaskDesc _gActor120500MovieFadeTaskDescriptors[3] = {
+    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500MovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _screenFadeOutTask, { .value = 0 } },
 };
 
-TaskDesc gActor120500EmptyPlacementTaskDesc = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
-
-TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } };
+TaskDesc gActor120500EmptyPlacementTaskDesc[2] = {
+    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, taskKill, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } },
+};
 
 /// Borrowed Kyle Madigan body task for the motel-room movie's request channels.
 ///
@@ -427,7 +451,7 @@ static void _actor120500MovieTask(Task* task)
             if ((streamPollGameRestore(false, true) & 0xFFFF) == 0) {
                 return;
             }
-            taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, ACTOR_120500_MOVIE_FADE_TASK, ACTOR_120500_MOVIE_FADE_STEP, 0);
+            taskSpawnFromTableOnDefaultList(_gActor120500MovieFadeTaskDescriptors, ACTOR_120500_MOVIE_FADE_TASK, ACTOR_120500_MOVIE_FADE_STEP, 0);
             memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);
             taskKill(task);
@@ -516,7 +540,7 @@ static void _actor120500RunPlayerRequest(Task* task)
                     firstAnimWork  = task->work;
                     requestPointer = &request;
                     if (firstAnimWork->playerTask != NULL) {
-                        request.source.sets                  = D_actor_120500_8013807C;
+                        request.source.sets                  = _gActor120500PlayerSceneAnimationSets;
                         request.animationId                  = ACTOR_120500_FIRST_ANIMATION;
                         request.blend                        = ANIMATION_BLEND_RESET;
                         request.blendFrames                  = 0;
@@ -527,20 +551,20 @@ static void _actor120500RunPlayerRequest(Task* task)
                     /* fallthrough */
                 case ACTOR_120500_FIRST_REQUEST_HOLD_PLACEMENT:
                     TASK_MESSAGE_DISPATCH_POINTER(((_Actor120500Work*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE,
-                                                  &D_actor_120500_80138090, 0);
+                                                  &_gActor120500PlayerMoviePlacement, 0);
                     return;
             }
             return;
         case ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION:
-            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_IN_TASK, ACTOR_120500_FADE_INTENSITY_STEP, 0);
+            taskSpawnFromTable(_gActor120500MovieFadeTaskDescriptors, ACTOR_120500_FADE_IN_TASK, ACTOR_120500_FADE_INTENSITY_STEP, 0);
             reloadedWork = task->work;
             worldCoordSetAmbientColorOverride(NULL);
             taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120500PlayerAfterMoviePlacement, 0);
             animWork       = task->work;
             requestPointer = &request;
             if (animWork->playerTask != NULL) {
-                request.source.sets                  = D_actor_120500_8013807C;
+                request.source.sets                  = _gActor120500PlayerSceneAnimationSets;
                 requestPointer->animationId          = ACTOR_120500_SECOND_ANIMATION;
                 request.blend                        = ANIMATION_BLEND_RESET;
                 request.blendFrames                  = 0;
@@ -552,7 +576,7 @@ static void _actor120500RunPlayerRequest(Task* task)
             animWork       = task->work;
             requestPointer = &request;
             if (animWork->playerTask != NULL) {
-                request.source.sets                  = D_actor_120500_8013807C;
+                request.source.sets                  = _gActor120500PlayerSceneAnimationSets;
                 requestPointer->animationId          = ACTOR_120500_THIRD_ANIMATION;
                 requestPointer->blend                = ANIMATION_BLEND_INTERPOLATE;
                 requestPointer->blendFrames          = ACTOR_120500_THIRD_ANIMATION_BLEND_FRAMES;
@@ -632,9 +656,9 @@ static void _actor120500InitBody(Task* task)
         entryId = place->entryId;
     }
     tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor120500KyleMadiganAnimationSets, tmd, work->rig.poses, work->rig.slots);
     slotsWork      = task->work;
-    task->msgTable = D_actor_120500_80138408;
+    task->msgTable = _gActor120500KyleMadiganMessages;
     _actor120500ResetBodyTracks(slotsWork);
 }
 
@@ -703,7 +727,7 @@ static void _actor120500SceneTask(Task* task)
                 _actor120500InitBody(task);
                 _actor120500BlendPlayerWeaponPose();
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_120500_SCENE_OBJECTIVE);
-                evsStartScriptWithSkip(D_actor_120500_801380D8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120500_80138318);
+                evsStartScriptWithSkip(_gActor120500MotelSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor120500MotelSceneSkipScript);
                 task->state += 1;
                 break;
             }
@@ -742,8 +766,8 @@ static void _actor120500SceneTask(Task* task)
     if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
         if (work->bodyRequest == ACTOR_120500_BODY_REQUEST_APPEAR) {
             tmdAllocPrimitiveBuffer(task->extra.tmd);
-            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_IN_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
+            taskSpawnFromTable(_gActor120500MovieFadeTaskDescriptors, ACTOR_120500_FADE_IN_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120500KyleMadiganViewPlacement, 0);
         }
     }
     work->bodyRequest = ACTOR_120500_BODY_REQUEST_NONE;
@@ -751,11 +775,11 @@ static void _actor120500SceneTask(Task* task)
     screenWork = task->work;
     switch (screenWork->screenRequest) {
         case ACTOR_120500_SCREEN_REQUEST_FADE_OUT:
-            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_OUT_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
+            taskSpawnFromTable(_gActor120500MovieFadeTaskDescriptors, ACTOR_120500_FADE_OUT_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
             break;
         case ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE:
             taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
-            displaySpawnTaskFromTable(D_actor_120500_80138418, 0, 0, 0);
+            displaySpawnTaskFromTable(_gActor120500MovieFadeTaskDescriptors, 0, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             break;
@@ -843,7 +867,7 @@ static void _actor120500SkipScene(void)
     {                                                                                                             \
         animWork = task->work;                                                                                    \
         if (animWork->playerTask != NULL) {                                                                       \
-            request.source.sets          = D_actor_120500_8013807C;                                               \
+            request.source.sets          = _gActor120500PlayerSceneAnimationSets;                                 \
             request.animationId          = (requestedAnimation);                                                  \
             request.blend                = ANIMATION_BLEND_RESET;                                                 \
             request.blendFrames          = 0;                                                                     \
@@ -871,7 +895,7 @@ static void _actor120500SkipScene(void)
     work = task->work;
     worldCoordSetAmbientColorOverride(NULL);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120500PlayerAfterMoviePlacement, 0);
 #undef ACTOR_120500_INSTALL_PLAYER_ANIMATION
 }
 

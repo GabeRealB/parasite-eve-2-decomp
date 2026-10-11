@@ -100162,24 +100162,19 @@ argument register with a late `move`.
 Retype the base to a struct of the target's stride and keep a single cursor:
 
 ```c
-typedef struct Actor143000Rect {
-    /* 0x0 */ s16 x;   /* 0x2 */ s16 y;   /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;   /* 0x8 */ s16 field_8;   /* 0xA */ s16 field_A;
-} Actor143000Rect;
-
-    Actor143000Rect* p = D_actor_143000_80134580;
-    if (p->field_8 != -1) {
+    ActionPromptHotspot* p = _gActor143000KeypadHotspots;
+    if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
-            func_actor_143000_80133334(p, 0, 0xFF, 0);
+            _actionPromptOutlineRectDefault(p, 0, 0xFF, 0);
             p++;
-        } while (p->field_8 != -1);
+        } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }
 ```
 
 100.000%, all penalties zero, on the first build — and the header-declared form
 (the struct and the callee prototype in the overlay's header, only the `extern`
 array left in the `.c`) reproduces it byte for byte. The source is the natural
-loop; `for (p = D_x; p->field_8 != -1; p++)` with the call inside is the same
+loop; `for (p = D_x; p->id != ACTION_PROMPT_HOTSPOT_END; p++)` with the call inside is the same
 RTL, and m2c's entry `if` plus `do`/`while` only mirrors where the target puts
 the preheader test.
 
@@ -102396,7 +102391,7 @@ target's `$v1`, and it is 100.000% with all penalties zero:
 ```c
     animWork = task->work;
     if (animWork->playerTask != NULL) {
-        request.source.sets = D_actor_120500_8013807C;
+        request.source.sets = _gActor120500PlayerSceneAnimationSets;
         ...
         taskMessageDispatch(animWork->playerTask, 0x3F4, (s32)&request, 0);
     }
@@ -117651,15 +117646,15 @@ is allocated for them and the field stays `4($s0)`:
 
 ```c
     do {
-        if (work->bogDiversSpawned < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
-            if (D_actor_206100_80158CBC[i].summonCooldown == 0) {
+        if (work->bogDiversSpawned < 5 && _gActor206100BogDiverSummonSlots[i].enemy == NULL) {
+            if (_gActor206100BogDiverSummonSlots[i].summonCooldown == 0) {
                 ...
             } else {
-                D_actor_206100_80158CBC[i].summonCooldown = D_actor_206100_80158CBC[i].summonCooldown - 1;
+                _gActor206100BogDiverSummonSlots[i].summonCooldown = _gActor206100BogDiverSummonSlots[i].summonCooldown - 1;
             }
         }
         i++;
-    } while (i < ARRAY_SIZE(D_actor_206100_80158CBC));
+    } while (i < ARRAY_SIZE(_gActor206100BogDiverSummonSlots));
 ```
 
 The indexed form's preheader order follows too: the address init is created by
@@ -117761,7 +117756,7 @@ in the predecessor), 100.000% `16d0c22ccd3db5de` (touch in the taken block).
 
 ## A write-only walked pointer still needs the indexed spelling -- for the LUID order
 
-"D_actor_206100_80158CBC": the spawn state `_actor206100Spawn` zeroes
+"_gActor206100BogDiverSummonSlots": the spawn state `_actor206100Spawn` zeroes
 the same two 8-byte Bog Diver slots the tick above walks, `enemy` at 0 and
 `summonCooldown` at 4.  Both accesses are *writes*, so no `DEST_ADDR` giv pair merges and
 no second induction variable appears -- the pointer form does produce the
@@ -117779,9 +117774,9 @@ INSN_LUID with the *higher* LUID first, so which of the two increments is picked
 when changes the emitted order.  Index the array:
 
 ```c
-    for (i = 0; i < ARRAY_SIZE(D_actor_206100_80158CBC); i++) {
-        D_actor_206100_80158CBC[i].enemy = NULL;
-        D_actor_206100_80158CBC[i].summonCooldown = 0;
+    for (i = 0; i < ARRAY_SIZE(_gActor206100BogDiverSummonSlots); i++) {
+        _gActor206100BogDiverSummonSlots[i].enemy = NULL;
+        _gActor206100BogDiverSummonSlots[i].summonCooldown = 0;
     }
 ```
 
