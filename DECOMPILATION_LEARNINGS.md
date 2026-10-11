@@ -7591,8 +7591,8 @@ comes out first and the argument setup after, which cost 5 `reorder` and a
 77.8% score:
 
 ```c
-SVECTOR vec = D_acropolis_sanctuary_8017D5D0;
-effectSpawn(0x60078, ((TmdObject*)task->extra)->coords, 0, &vec);
+SVECTOR vec = _gAcropolisSanctuaryMosaicOffset;
+effectSpawn(0x60078, task->extra.coordBody->coord, 0, &vec);
 ```
 
 The target loads `0x2C(a0)` and `0x8(v0)` *before* the `lwl`/`lwr` quad. GCC
@@ -7601,8 +7601,8 @@ schedule an argument load into the middle of it, so the pointer chase has to
 already be a separate statement ahead of the copy:
 
 ```c
-GfxCoord* coord = ((TmdObject*)task->extra)->coords;
-SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
+GfxCoord* coord = task->extra.coordBody->coord;
+SVECTOR        vec   = _gAcropolisSanctuaryMosaicOffset;
 
 effectSpawn(0x60078, coord, 0, &vec);
 ```

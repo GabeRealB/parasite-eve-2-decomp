@@ -15,6 +15,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
+#include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -206,16 +207,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryFlameGrey, 3);
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
 
-extern TaskMessageEntry   D_acropolis_sanctuary_8018081C[];
-extern EvsCommand         D_acropolis_sanctuary_80180B0C[];
-extern EvsCommand         D_acropolis_sanctuary_80181664[];
-extern EvsCommand         D_acropolis_sanctuary_80181814[];
-extern TaskDesc           D_acropolis_sanctuary_80182240;
-extern TaskMessageEntry   D_acropolis_sanctuary_80182310[];
-extern s16                D_acropolis_sanctuary_80182750[];
-extern SVECTOR            D_acropolis_sanctuary_80182774[];
 static WorldCollisionGrid _gAcropolisSanctuaryCollisionGrid;
-extern AreaApplyRec       D_acropolis_sanctuary_80186418[];
 
 /// Whole-unit X/Y/Z displacement left by the last call of
 /// `_actorContactApplyGridPushback`.
@@ -232,9 +224,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
-
-extern EvsCommand D_acropolis_sanctuary_801820F0[];
-extern EvsCommand D_acropolis_sanctuary_801821C8[];
 
 static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask);
 static void _acropolisSanctuaryInitRoomTask(Task* task);
@@ -277,14 +266,19 @@ static inline void _acropolisSanctuarySetFlameQuadBounds(POLY_FT4* flameQuad, co
     flameQuad->y2 = flameQuad->y3 = bottom;
 }
 
-/// State handlers of the room task: set-up, the per-frame entry fixup and
-/// `taskKill`.
-static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
-    { _acropolisSanctuaryInitRoomTask, _acropolisSanctuaryUpdateRoomProgress, taskKill },
+/// Sanctuary room-task states, copied as a complete table before dispatch.
+///
+/// Slots 0..2 are initialization, active progress updates and teardown.
+/// There is no terminator or bounds check; the overlay must stay loaded.
+static const TaskFuncTable3 _gAcropolisSanctuaryRoomTaskStates = {
+    .funcs = { _acropolisSanctuaryInitRoomTask, _acropolisSanctuaryUpdateRoomProgress, taskKill },
 };
 
-/// Offset the room task's model-coordinate effect is spawned with.
-static const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
+/// Mosaic breakup origin relative to the room-effect task's coordinate.
+///
+/// XYZ use whole coordinate units. Message dispatch copies all eight bytes
+/// locally, and spawning snapshots XYZ; no pointer to this record is retained.
+static const SVECTOR _gAcropolisSanctuaryMosaicOffset = { -10230, -6090, -7230, 0 };
 
 /// Resting flame grey for texture/palette variants 0..2.
 ///
@@ -294,7 +288,7 @@ static const _AcropolisSanctuaryFlameGrey _gAcropolisSanctuaryFlameBaseGrey = { 
 ///
 /// The drawer copies exactly three bytes; variant 3 has no table entry.
 static const _AcropolisSanctuaryFlameGrey _gAcropolisSanctuaryFlameFlickerGrey = { { 0x10, 0x10, 0x08 } };
-/// A non-zero padding byte the original toolchain left. Nothing refers to it.
+/// Unread byte after the two three-byte flame tables; its role is unproven.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
 static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -306,13 +300,8 @@ static void _acropolisSanctuaryRequestCutsceneCue(s32 cue);
 static WorldCollisionTrigger _gAcropolisSanctuaryViewBoundaryTriggers[18];
 static WorldCoordRoomLights  _gAcropolisSanctuaryRoomLights;
 
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A5C;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A70;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180A84;
-extern AnimationPlayRequest D_acropolis_sanctuary_80180AAC;
-extern EvsSceneKey          D_acropolis_sanctuary_80180AFC;
-static void                 _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection);
-static void                 _acropolisSanctuaryRestorePlayerWeaponAnimation(void);
+static void _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection);
+static void _acropolisSanctuaryRestorePlayerWeaponAnimation(void);
 
 static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -341,7 +330,12 @@ static AnimationSet _gAcropolisSanctuaryAnimation03234 = {
     { NULL, _gAcropolisSanctuaryAnimation03234Bank1, NULL, NULL, _gAcropolisSanctuaryAnimation03234Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
+/// Message routes borrowed by the sanctuary room task while it is live.
+///
+/// Resolve takes request/reply room events; command and key-item use take
+/// integer selectors; room action borrows a direction-action request. The
+/// terminal record makes unsupported IDs return zero.
+static const TaskMessageEntry _gAcropolisSanctuaryRoomMessages[] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSanctuaryResolvePromenadeExit },
     { ROOM_MESSAGE_COMMAND, _acropolisSanctuaryHandleRoomCommand },
     { ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM, _acropolisSanctuaryRejectKeyItem },
@@ -368,7 +362,8 @@ static ActorTransform _gAcropolisSanctuarySceneOriginPlacement = {
     .rot = { 0, 0, 0, 0 },
 };
 
-ActorTransform D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
+/// Unread placement-shaped record; its intended receiver and frame are unproven.
+static ActorTransform D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
 
 /// Player root placement before sanctuary scene clip 48.
 ///
@@ -653,11 +648,41 @@ static AnimationPlayRequest _gAcropolisSanctuaryNo9Clip3Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_sanctuary_80180A5C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts No. 9 GOLEM's body tracks on arrival-scene clip 4.
+///
+/// Dispatch borrows this record synchronously and consumes only animationId.
+/// The other words are retained payload data; loaded clips outlive playback.
+static const AnimationPlayRequest _gAcropolisSanctuaryNo9Clip4Request __attribute__((section(".data"))) = {
+    .source               = { .index = 0 },
+    .animationId          = 4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_sanctuary_80180A70 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects Rupert's bank-0 clip 1 without blending during the arrival scene.
+///
+/// Dispatch borrows the record synchronously. Changed clips reset slots 1..19;
+/// an already selected clip keeps playing. Duration and collision are ignored.
+static const AnimationPlayRequest _gAcropolisSanctuaryRupertClip1Request __attribute__((section(".data"))) = {
+    .source               = { .index = 0 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_sanctuary_80180A84 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects Rupert's bank-0 clip 2 without blending during the arrival scene.
+///
+/// Dispatch borrows the record synchronously. Changed clips reset slots 1..19;
+/// an already selected clip keeps playing. Duration and collision are ignored.
+static const AnimationPlayRequest _gAcropolisSanctuaryRupertClip2Request __attribute__((section(".data"))) = {
+    .source               = { .index = 0 },
+    .animationId          = 2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Requests Rupert's bank-0 clip 3 with interpolation.
 ///
@@ -672,7 +697,17 @@ static AnimationPlayRequest _gAcropolisSanctuaryRupertClip3Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_sanctuary_80180AAC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects Rupert's bank-0 clip 4 after restoring his arrival-scene placement.
+///
+/// Dispatch borrows the record synchronously. Changed clips reset slots 1..19;
+/// an already selected clip keeps playing. Duration and collision are ignored.
+static const AnimationPlayRequest _gAcropolisSanctuaryRupertClip4Request __attribute__((section(".data"))) = {
+    .source               = { .index = 0 },
+    .animationId          = 4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Requests Rupert's bank-0 clip 5 with interpolation.
 ///
@@ -713,70 +748,108 @@ static AnimationPlayRequest _gAcropolisSanctuaryRupertRestoredClip3Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-EvsSceneKey D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
+/// Scene/audio stream selected for the sanctuary's first warp-3 arrival.
+///
+/// Group 1, stream 7 and qualifier 11 select the sanctuary folder's audio.
+/// The event interpreter borrows this key until scene cleanup or script end.
+static const EvsSceneKey _gAcropolisSanctuaryArrivalSceneKey __attribute__((section(".data"))) = {
+    .group    = 1,
+    .streamId = 7,
+    .subId    = 11,
+};
 
-EvsSceneKey D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
+/// Unread scene-key-shaped record; no consumer establishes its event role.
+static EvsSceneKey D_acropolis_sanctuary_80180B04 = { .group = 1, .streamId = 7, .subId = 21 };
 
-EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
+/// Placed actors selected by the scene-message operand's placement index.
+enum {
+    ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9    = 0,
+    ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT = 1,
+};
+
+/// CAP command slots started by the room's three event sequences.
+enum {
+    ACROPOLIS_SANCTUARY_CAP_ARRIVAL   = 1,
+    ACROPOLIS_SANCTUARY_CAP_BLOCKER   = 2,
+    ACROPOLIS_SANCTUARY_CAP_DEPARTURE = 3,
+};
+
+/// Receiver-specific draw payloads; No. 9 uses flags and Rupert uses modes.
+enum {
+    ACROPOLIS_SANCTUARY_NO9_DRAW_SHOW             = 1 << 0,
+    ACROPOLIS_SANCTUARY_NO9_DRAW_HIDE_SKIP_AUTO   = 1 << 1,
+    ACROPOLIS_SANCTUARY_RUPERT_DRAW_SHOW_ALLOCATE = 1,
+    ACROPOLIS_SANCTUARY_RUPERT_DRAW_HIDE_RELEASE  = 2,
+};
+
+/// CAP-cued first-arrival scene with No. 9 GOLEM, Rupert and the mosaic breakup.
+///
+/// Starts once on warp 3 before bridge progress, installs the player's scene
+/// clips and restores the player's weapon pose and placement at the end.
+/// The interpreter borrows this END-terminated stream and all referenced room
+/// and actor resources through completion or the arrival skip stream.
+static EvsCommand _gAcropolisSanctuaryArrivalScript[] = {
+    // Prepare actor visibility and the player's temporary scene animation bank.
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuarySceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuarySceneOriginPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisSanctuaryPlayerSceneBankExtensionRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_sanctuary_80180AFC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisSanctuaryArrivalSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_SANCTUARY_CAP_ARRIVAL }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A70 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip1Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryPlayerSceneStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_RUPERT_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_HIDE_SKIP_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisSanctuaryRestorePlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A84 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_RUPERT_DRAW_SHOW_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip2Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryNo9Clip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A5C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryNo9Clip4Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuarySceneOriginPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = (1 << ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) | 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_RUPERT_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Reveal the alternate wall sprites before spawning the mosaic debris.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = (1 << ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) | 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = 3101 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_RUPERT_DRAW_SHOW_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_HIDE_SKIP_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryPlayerSceneClip48Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AAC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip4Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 73 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -787,11 +860,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip5Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip6Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -799,11 +872,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip5Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip6Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -811,11 +884,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip5Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip6Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 71 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -827,52 +900,63 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryPlayerSceneClosingPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 56 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerSceneClip54Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip6Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Restore weapon playback and release scripted control before the final placement.
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_sanctuary_80181664[18] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip completion for the sanctuary arrival scene.
+///
+/// Fades across player/Rupert restoration, hides No. 9, releases scene control
+/// and restarts area music. The interpreter borrows this END-terminated stream
+/// and its placement/animation payloads until cleanup completes.
+static EvsCommand _gAcropolisSanctuaryArrivalSkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisSanctuaryRupertRestoredClip3Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertRestoredClip3Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_NO9 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_NO9_DRAW_HIDE_SKIP_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_SANCTUARY_RUPERT_DRAW_SHOW_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_sanctuary_80181814[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+/// CAP-2 interaction with Rupert while the sanctuary blocker is uncleared.
+///
+/// Room command 0 starts this END-terminated stream. It selects no scene audio,
+/// cues Rupert's clips 5, 6 and 3, then releases player scripted control.
+/// Keep this stream and the borrowed actor requests loaded through completion.
+static EvsCommand _gAcropolisSanctuaryBlockerScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_SANCTUARY_CAP_BLOCKER }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip5Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip6Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_SANCTUARY_SCENE_ACTOR_RUPERT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .animation = &_gAcropolisSanctuaryRupertClip3Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -928,10 +1012,16 @@ static AnimationSet* _gAcropolisSanctuaryCutscenePlayerAnimationSets[] = {
     &_gAcropolisSanctuaryAnimation04708,
 };
 
-EvsSceneKey D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
+/// Unread scene-key-shaped record; the departure script selects a NULL key.
+static EvsSceneKey D_acropolis_sanctuary_801820E8 = { .group = 1, .streamId = 14, .subId = 11 };
 
-EvsCommand D_acropolis_sanctuary_801820F0[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+/// CAP-3 departure sequence arming player placement and the sound transition.
+///
+/// The bodyless cutscene task starts this END-terminated stream and handles the
+/// roof-garden transfer after event completion. CAP cues invoke its singleton
+/// work, which must remain live; the stream selects no scene/audio key.
+static EvsCommand _gAcropolisSanctuaryDepartureScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_SANCTUARY_CAP_DEPARTURE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -942,15 +1032,30 @@ EvsCommand D_acropolis_sanctuary_801820F0[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_sanctuary_801821C8[5] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip completion releasing the sanctuary departure scene under a primary fade.
+///
+/// This END-terminated stream leaves the roof-garden handoff to the cutscene
+/// task. The interpreter borrows it through cleanup; it does not replay cues.
+static EvsCommand _gAcropolisSanctuaryDepartureSkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_acropolis_sanctuary_80182240 = { { { TASK_BODY_NONE, 192 } }, _acropolisSanctuaryCutsceneTask, { .value = 0 } };
+enum { ACROPOLIS_SANCTUARY_CUTSCENE_TASK_PRIORITY = 192 };
+
+/// Bodyless task recipe for the first sanctuary room action 1.
+///
+/// Direct spawning reads this single entry synchronously with zero payloads.
+/// The task owns its separately allocated work. Keep the room loaded through
+/// the departure scene and roof-garden handoff; data is unused.
+static TaskDesc _gAcropolisSanctuaryCutsceneTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_SANCTUARY_CUTSCENE_TASK_PRIORITY } },
+    .callback = _acropolisSanctuaryCutsceneTask,
+    .data     = { .value = 0 },
+};
 
 /// Four blocker face normals, using 4096 for unit length.
 static SVECTOR _gAcropolisSanctuaryBlockerCollisionGridNormals[4] = {
@@ -1000,7 +1105,11 @@ static WorldCollisionGrid _gAcropolisSanctuaryBlockerCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gAcropolisSanctuaryBlockerCollisionGridFaces),
 };
 
-TaskMessageEntry D_acropolis_sanctuary_80182310[2] = {
+/// Mosaic-start route borrowed by the sanctuary room-effect task.
+///
+/// The start message ignores both payload words. The terminal record makes
+/// unsupported IDs return zero; this table and callback outlive the receiver.
+static const TaskMessageEntry _gAcropolisSanctuaryRoomEffectMessages[] __attribute__((section(".data"))) = {
     { ACROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START, _acropolisSanctuaryStartMosaic },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1110,7 +1219,11 @@ static SVECTOR _gAcropolisSanctuaryMosaicTileCorners[2][4] = {
     [ACROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE] = { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
 };
 
-s16 D_acropolis_sanctuary_80182750[16] = {
+/// Sixteen mosaic tile IDs receiving a second whole-tile effect.
+///
+/// Every ID is in 0..71 and indexes the authored mosaic tile table. The spawner
+/// visits the entire list after spawning all 72 tiles, retaining no list pointer.
+static const s16 _gAcropolisSanctuaryMosaicRepeatedTileIndices[] __attribute__((section(".data"))) = {
     20,
     22,
     25,
@@ -1142,7 +1255,12 @@ enum {
 /// the room's cleanup boundaries. Stored as a word (0 clear, 1 latched).
 static s32 _gAcropolisSanctuaryMosaicCleanupLatched = ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
 
-SVECTOR D_acropolis_sanctuary_80182774[12] = {
+/// Twelve flame origins in whole units of the room-effect coordinate frame.
+///
+/// IDs 0..5 spawn dim variant-2 flames at size 640; IDs 6..11 spawn variant-0
+/// flames at size 160. IDs also index the flame view masks. Spawning snapshots
+/// XYZ, so the child does not follow the borrowed placement pointer.
+static SVECTOR _gAcropolisSanctuaryFlamePositions[] = {
     { -0x2738, -2088, -6680, 0 },
     { -0x2738, -2088, -9280, 0 },
     { -2720, -2088, -6460, 0 },
@@ -2233,18 +2351,27 @@ WorldCollisionSurfaceProperties* gAcropolisSanctuarySurfacePropertiesByClass[8] 
     &_gAcropolisSanctuaryDefaultSurfaceProperties,
 };
 
-AreaApplyRec D_acropolis_sanctuary_80186418[11] = {
-    { 1, 3, 4, 1 },
-    { 1, 4, 4, 1 },
-    { 1, 7, 4, 1 },
-    { 1, 9, 3, 17 },
-    { 1, 9, 7, 33 },
-    { 1, 10, 2, 17 },
-    { 1, 10, 7, 33 },
-    { 1, 11, 2, 17 },
-    { 1, 11, 7, 33 },
-    { 1, 13, 7, 33 },
-    { 255, 0, 0, 0 },
+enum { ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK = 1 };
+
+/// Saved Acropolis layout and map-mark updates applied on the first warp-3 arrival.
+///
+/// Rows carry common layouts and mode-group policies for the forked road,
+/// observatory, promenade and roof garden. Applying a row discards that area's
+/// saved enemy poses. In save modes 0..3 the leading unconditional rows keep
+/// the update walk accepting later rows, so the last layout for each area wins.
+/// The list ends at AREA_APPLY_END and is borrowed only during the call.
+static const AreaApplyRec _gAcropolisSanctuaryArrivalAreaUpdates[] __attribute__((section(".data"))) = {
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4, AREA_APPLY_MODE_ALWAYS | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 4, AREA_APPLY_MODE_ALWAYS | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 4, AREA_APPLY_MODE_ALWAYS | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 static TmdBone _gAcropolisSanctuaryModel090F0Skeleton[3] = {
@@ -2311,7 +2438,8 @@ TmdSource gAcropolisSanctuaryModel09584 = {
     _gAcropolisSanctuaryModel09584Stream,
 };
 
-u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
+/// Unread word after the model records; its representation and role are unproven.
+static u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
 
 /// Borrowed sanctuary cutscene task published for its event-script cues.
 ///
@@ -2382,8 +2510,8 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
 
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED);
-        evsStartScriptWithSkip(D_acropolis_sanctuary_80180B0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_80181664);
-        areaApplySavedUpdates(D_acropolis_sanctuary_80186418);
+        evsStartScriptWithSkip(_gAcropolisSanctuaryArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSanctuaryArrivalSkipScript);
+        areaApplySavedUpdates(_gAcropolisSanctuaryArrivalAreaUpdates);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT;
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
@@ -2458,7 +2586,7 @@ static s32 _acropolisSanctuaryHandleRoomCommand(Task* task, s32 messageId, s32 c
     enum { ACROPOLIS_SANCTUARY_ROOM_COMMAND_BLOCKER = 0 };
 
     if (command == ACROPOLIS_SANCTUARY_ROOM_COMMAND_BLOCKER && gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
-        evsStartScript(D_acropolis_sanctuary_80181814, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gAcropolisSanctuaryBlockerScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -2477,7 +2605,7 @@ static s32 _acropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessa
     };
     if (request->actionId == ACROPOLIS_SANCTUARY_ROOM_ACTION_CUTSCENE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_SANCTUARY_EVENT_LATCH_CUTSCENE);
-        taskSpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
+        taskSpawnFromTable(&_gAcropolisSanctuaryCutsceneTaskDesc, 0, 0, 0);
     }
     return 0;
 }
@@ -2526,7 +2654,7 @@ static void _acropolisSanctuaryInitRoomTask(Task* task)
     };
     Task* placedActor;
 
-    task->msgTable = D_acropolis_sanctuary_8018081C;
+    task->msgTable = _gAcropolisSanctuaryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
     if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != ACROPOLIS_SANCTUARY_BLOCKER_CLEARED) {
@@ -2544,7 +2672,7 @@ void acropolisSanctuaryRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_acropolis_sanctuary_8017D5C4;
+    handlers = _gAcropolisSanctuaryRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -2670,7 +2798,7 @@ static void _acropolisSanctuaryCutsceneTask(Task* task)
                 // Keep the reloaded work alias separate for the animation dispatch.
                 TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
-                evsStartScriptWithSkip(D_acropolis_sanctuary_801820F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_801821C8);
+                evsStartScriptWithSkip(_gAcropolisSanctuaryDepartureScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSanctuaryDepartureSkipScript);
                 task->state = task->state + 1;
             }
             break;
@@ -2808,12 +2936,12 @@ void acropolisSanctuaryRoomEffectTask(Task* task)
     roomCoord = task->extra.coordBody->coord;
     if (task->state == ACROPOLIS_SANCTUARY_ROOM_EFFECT_INITIAL) {
         for (placementIndex = 0; placementIndex < ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT, &D_acropolis_sanctuary_80182774[placementIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT, &_gAcropolisSanctuaryFlamePositions[placementIndex]);
         }
-        for (placementIndex = ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex < ARRAY_SIZE(D_acropolis_sanctuary_80182774); placementIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT, &D_acropolis_sanctuary_80182774[placementIndex]);
+        for (placementIndex = ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex < ARRAY_SIZE(_gAcropolisSanctuaryFlamePositions); placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT, &_gAcropolisSanctuaryFlamePositions[placementIndex]);
         }
-        task->msgTable = D_acropolis_sanctuary_80182310;
+        task->msgTable = _gAcropolisSanctuaryRoomEffectMessages;
         gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         _gAcropolisSanctuaryMosaicCleanupLatched = ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
         task->state                              = task->state + 1;
@@ -2859,8 +2987,8 @@ void acropolisSanctuaryMosaicTask(Task* task)
         tile = &_gAcropolisSanctuaryMosaicTiles[spawnIndex];
         ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(spawnIndex);
     }
-    for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(D_acropolis_sanctuary_80182750); spawnIndex++) {
-        tileIndex = D_acropolis_sanctuary_80182750[spawnIndex];
+    for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(_gAcropolisSanctuaryMosaicRepeatedTileIndices); spawnIndex++) {
+        tileIndex = _gAcropolisSanctuaryMosaicRepeatedTileIndices[spawnIndex];
         tile      = &_gAcropolisSanctuaryMosaicTiles[tileIndex];
         ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex);
     }
@@ -3264,7 +3392,7 @@ void acropolisSanctuaryFlameTask(Task* task)
 static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     GfxCoord* mosaicCoord  = task->extra.coordBody->coord;
-    SVECTOR   mosaicOffset = D_acropolis_sanctuary_8017D5D0;
+    SVECTOR   mosaicOffset = _gAcropolisSanctuaryMosaicOffset;
 
     effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC, mosaicCoord, 0, &mosaicOffset);
     return 0;
