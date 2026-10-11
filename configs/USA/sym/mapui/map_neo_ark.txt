@@ -159,11 +159,11 @@ gNeoArkPowerPlant1ViewCameras = 0x801800B4; // absolute:True owner=neo_ark_power
 gNeoArkPowerPlant1SpriteViews = 0x801814F0; // absolute:True owner=neo_ark_power_plant_1
 gNeoArkPowerPlant1SurfacePropertiesByClass = 0x80181BE0; // absolute:True owner=neo_ark_power_plant_1
 neoArkSavannaZoneRoomTask = 0x8017D954; // type:func absolute:True owner=neo_ark_savanna_zone
-D_neo_ark_savanna_zone_8017F9E4 = 0x8017F9E4; // absolute:True owner=neo_ark_savanna_zone
+gNeoArkSavannaZoneRoomCollisionResources = 0x8017F9E4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneRoomLighting = 0x8017F9F4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneViewMaps = 0x8017F9FC; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneViewCounts = 0x8017FA00; // absolute:True owner=neo_ark_savanna_zone shared=rooms
-D_neo_ark_savanna_zone_8017FA04 = 0x8017FA04; // absolute:True owner=neo_ark_savanna_zone
+gNeoArkSavannaZoneWarpEntries = 0x8017FA04; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneViewCameras = 0x8017FBF4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneSpriteViews = 0x801803F4; // absolute:True owner=neo_ark_savanna_zone shared=rooms
 gNeoArkSavannaZoneSurfaceProperties = 0x80180968; // absolute:True owner=neo_ark_savanna_zone
@@ -238,8 +238,8 @@ gShelterB6TrainingRoomCollisionGrid = 0x80184734; // absolute:True owner=shelter
 gShelterB6TrainingRoomViewCameras = 0x80184758; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomSpriteViews = 0x80184D78; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomLights = 0x80185768; // absolute:True owner=shelter_b6_training_room
-D_shelter_b6_training_room_80185780 = 0x80185780; // absolute:True owner=shelter_b6_training_room
-D_shelter_b6_training_room_80185A44 = 0x80185A44; // absolute:True owner=shelter_b6_training_room
+gShelterB6TrainingRoomViewBoundaryTriggers = 0x80185780; // absolute:True owner=shelter_b6_training_room
+gShelterB6TrainingRoomActionTriggers = 0x80185A44; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomAmbientByView = 0x80185BC0; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomSurfaceProperties = 0x80185C38; // absolute:True owner=shelter_b6_training_room
 neoArkR26RoomTask = 0x8017D720; // type:func absolute:True owner=neo_ark_r26 shared=rooms
@@ -270,8 +270,8 @@ gShelter1fTentCollisionGrid = 0x801822F0; // absolute:True owner=shelter_1f_tent
 gShelter1fTentViewCameras = 0x80182314; // absolute:True owner=shelter_1f_tent
 gShelter1fTentSpriteViews = 0x801838E4; // absolute:True owner=shelter_1f_tent shared=rooms
 gShelter1fTentRoomLights = 0x80183A7C; // absolute:True owner=shelter_1f_tent
-D_shelter_1f_tent_80183A94 = 0x80183A94; // absolute:True owner=shelter_1f_tent
-D_shelter_1f_tent_80183CF4 = 0x80183CF4; // absolute:True owner=shelter_1f_tent
+gShelter1fTentViewBoundaryTriggers = 0x80183A94; // absolute:True owner=shelter_1f_tent
+gShelter1fTentActionTriggers = 0x80183CF4; // absolute:True owner=shelter_1f_tent
 gShelter1fTentSurfacePropertiesByClass = 0x801842B4; // absolute:True owner=shelter_1f_tent
 neoArkWoodlandPathRoomTask = 0x8017E9B0; // type:func absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathViewMaps = 0x80181694; // absolute:True owner=neo_ark_woodland_path

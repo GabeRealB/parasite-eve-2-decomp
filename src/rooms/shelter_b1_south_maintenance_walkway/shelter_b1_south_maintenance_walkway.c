@@ -33,6 +33,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -73,9 +74,9 @@ static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static WorldCollisionGrid     _gShelterB1SouthMaintenanceWalkwayCollisionGrid;
-extern WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
+static WorldCollisionOccluder _gShelterB1SouthMaintenanceWalkwaySightOccluders[1];
+static WorldCollisionTrigger  _gShelterB1SouthMaintenanceWalkwayViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gShelterB1SouthMaintenanceWalkwayActionTriggers[2];
 static WorldCoordRoomLights   _gShelterB1SouthMaintenanceWalkwayRoomLights;
 static s32                    _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                    _shelterB1SouthMaintenanceWalkwayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -126,7 +127,7 @@ WorldCoordRoomLighting gShelterB1SouthMaintenanceWalkwayRoomLighting[1] = {
 };
 
 WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
-    { &_gShelterB1SouthMaintenanceWalkwayCollisionGrid, D_shelter_b1_south_maintenance_walkway_801830AC, D_shelter_b1_south_maintenance_walkway_801832B0, D_shelter_b1_south_maintenance_walkway_80183274 },
+    { &_gShelterB1SouthMaintenanceWalkwayCollisionGrid, _gShelterB1SouthMaintenanceWalkwayViewBoundaryTriggers, _gShelterB1SouthMaintenanceWalkwayActionTriggers, _gShelterB1SouthMaintenanceWalkwaySightOccluders },
 };
 
 u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1] = {
@@ -334,22 +335,49 @@ static WorldCoordRoomLights _gShelterB1SouthMaintenanceWalkwayRoomLights = {
     NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6] = {
-    { NULL, NULL, NULL, { 2080, -1584, 2560, 0 }, { { -1380, -1904, -226, 0 }, { 1363, -1904, 207, 0 }, { -1380, 1904, -226, 0 }, { 1363, 1904, 207, 0 } }, { 639, 0, -4061, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2048, -1600, 2401, 0 }, { { 1408, -1904, 152, 0 }, { -1416, -1904, -160, 0 }, { 1408, 1904, 152, 0 }, { -1416, 1904, -160, 0 } }, { -453, 0, 4078, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2112, -1504, -1233, 0 }, { { 1717, -1904, 24, 0 }, { -1729, -1904, -41, 0 }, { 1717, 1904, 24, 0 }, { -1729, 1904, -41, 0 } }, { -79, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2176, -1505, -1072, 0 }, { { -1720, -1904, -82, 0 }, { 1700, -1904, 41, 0 }, { -1720, 1904, -82, 0 }, { 1700, 1904, 41, 0 } }, { 146, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1008, -1568, -4241, 0 }, { { 112, -1904, -1309, 0 }, { -114, -1904, 1306, 0 }, { 112, 1904, -1309, 0 }, { -114, 1904, 1306, 0 } }, { 4099, 0, 354, 0 }, { 0, 0, 4096, 0 }, 2304, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1120, -1600, -4176, 0 }, { { -100, -1904, 1323, 0 }, { 98, -1904, -1325, 0 }, { -100, 1904, 1323, 0 }, { 98, 1904, -1325, 0 } }, { -4084, 0, -307, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries for logical views 2<->3, 3<->4, 4<->5.
+///
+/// All 6 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+static WorldCollisionTrigger _gShelterB1SouthMaintenanceWalkwayViewBoundaryTriggers[6] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2080, -1584, 2560, 0 }, .vertices = { { -1380, -1904, -226, 0 }, { 1363, -1904, 207, 0 }, { -1380, 1904, -226, 0 }, { 1363, 1904, 207, 0 } }, .normal = { 639, 0, -4061, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2346, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2048, -1600, 2401, 0 }, .vertices = { { 1408, -1904, 152, 0 }, { -1416, -1904, -160, 0 }, { 1408, 1904, 152, 0 }, { -1416, 1904, -160, 0 } }, .normal = { -453, 0, 4078, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2374, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2112, -1504, -1233, 0 }, .vertices = { { 1717, -1904, 24, 0 }, { -1729, -1904, -41, 0 }, { 1717, 1904, 24, 0 }, { -1729, 1904, -41, 0 } }, .normal = { -79, 0, 4102, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2560, .control = 0, .parameter0 = 3, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2176, -1505, -1072, 0 }, .vertices = { { -1720, -1904, -82, 0 }, { 1700, -1904, 41, 0 }, { -1720, 1904, -82, 0 }, { 1700, 1904, 41, 0 } }, .normal = { 146, 0, -4100, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2547, .control = 0, .parameter0 = 4, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1008, -1568, -4241, 0 }, .vertices = { { 112, -1904, -1309, 0 }, { -114, -1904, 1306, 0 }, { 112, 1904, -1309, 0 }, { -114, 1904, 1306, 0 } }, .normal = { 4099, 0, 354, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2304, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1120, -1600, -4176, 0 }, .vertices = { { -100, -1904, 1323, 0 }, { 98, -1904, -1325, 0 }, { -100, 1904, 1323, 0 }, { 98, 1904, -1325, 0 } }, .normal = { -4084, 0, -307, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2318, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
-WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1] = {
-    { NULL, NULL, { -1504, -1344, -1424, 0 }, { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, { -2053, 0, -3558, 0 }, 3367, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// The sole LAST record is linked and enabled during room binding.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+static WorldCollisionOccluder _gShelterB1SouthMaintenanceWalkwaySightOccluders[1] = {
+    { .next = NULL, .prevLink = NULL, .origin = { -1504, -1344, -1424, 0 }, .vertices = { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, .normal = { -2053, 0, -3558, 0 }, .radius = 3367, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2] = {
-    { NULL, NULL, NULL, { -2512, -48, -4032, 0 }, { { -432, 0, -1024, 0 }, { 432, 0, -1024, 0 }, { -432, 0, 1024, 0 }, { 432, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1984, -48, 4480, 0 }, { { -1024, 0, 432, 0 }, { -1024, 0, -432, 0 }, { 1024, 0, 432, 0 }, { 1024, 0, -432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads: packed departure/arrival slots and room-local selectors.
+enum {
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B1_ELEVATOR_HALL = (1 << 4) | 4,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B1_STOREROOM     = (2 << 4) | 1,
+};
+
+/// Interaction and transition quads for this room.
+///
+/// Two facing-gated doors lead to the Elevator Hall and Storeroom,
+/// using departure slots 1 and 2 respectively.
+///
+/// All 2 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+static WorldCollisionTrigger _gShelterB1SouthMaintenanceWalkwayActionTriggers[2] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -2512, -48, -4032, 0 }, .vertices = { { -432, 0, -1024, 0 }, { 432, 0, -1024, 0 }, { -432, 0, 1024, 0 }, { 432, 0, 1024, 0 } }, .normal = { 0, 4097, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 1108, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_ELEVATOR_HALL, .parameter1 = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B1_ELEVATOR_HALL, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1984, -48, 4480, 0 }, .vertices = { { -1024, 0, 432, 0 }, { -1024, 0, -432, 0 }, { 1024, 0, 432, 0 }, { 1024, 0, -432, 0 } }, .normal = { 0, 4097, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 1108, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_STOREROOM, .parameter1 = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B1_STOREROOM, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 /// Room-local resource keys shared by recipes and actor placements.

@@ -68,11 +68,32 @@ extern SpriteView gShelterB2SouthMaintenanceWalkwaySpriteViews[5];
 /// composition and attenuation queries while the room overlay is loaded.
 extern WorldCoordRoomLights gShelterB2SouthMaintenanceWalkwayRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_801832AC[];
+/// Directed view boundaries for logical views 2<->3, 3<->4, 4<->5.
+///
+/// All 6 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB2SouthMaintenanceWalkwayViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_80183474[];
+/// Interaction and transition quads for this room.
+///
+/// Two facing-gated doors lead to the Elevator Hall and Operating Room,
+/// using departure slots 1 and 2 respectively.
+///
+/// All 2 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB2SouthMaintenanceWalkwayActionTriggers[2];
 
-extern WorldCollisionOccluder D_shelter_b2_south_maintenance_walkway_8018385C[];
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// The sole LAST record is linked and enabled during room binding.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+extern WorldCollisionOccluder gShelterB2SouthMaintenanceWalkwaySightOccluders[1];
 
 /// Collision and footstep policies indexed by room-local surface class 0..7.
 ///

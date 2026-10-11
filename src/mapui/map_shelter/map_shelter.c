@@ -1235,11 +1235,11 @@ static ViewCount* _gMapShelterAreaViewCounts[GAME_AREA_SHELTER_R49] = {
 ViewCountTable gMapShelterViewCountTable = { .viewCounts = _gMapShelterAreaViewCounts };
 
 static WorldCollisionRoomResources D_map_shelter_8017B114[1] = {
-    { &gShelterB1NorthMaintenanceWalkwayCollisionGrid, D_shelter_b1_north_maintenance_walkway_801855EC, D_shelter_b1_north_maintenance_walkway_80185A98, D_shelter_b1_north_maintenance_walkway_801857B4 },
+    { &gShelterB1NorthMaintenanceWalkwayCollisionGrid, gShelterB1NorthMaintenanceWalkwayViewBoundaryTriggers, gShelterB1NorthMaintenanceWalkwayActionTriggers, gShelterB1NorthMaintenanceWalkwaySightOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B124[1] = {
-    { &gShelterB1ArmoryCollisionGrid, D_shelter_b1_armory_80184B14, D_shelter_b1_armory_80184E0C, NULL },
+    { &gShelterB1ArmoryCollisionGrid, gShelterB1ArmoryViewBoundaryTriggers, gShelterB1ArmoryActionTriggers, NULL },
 };
 
 /// Collision-resource descriptors for Shelter B1 sleeping quarters.
@@ -1286,7 +1286,7 @@ static WorldCollisionRoomResources _gMapShelterB1PodAccessTunnelRoomCollisionRes
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
-    { &gShelterB1ControlRoomRoomCollision, D_shelter_b1_control_room_801834F4, D_shelter_b1_control_room_80183624, NULL },
+    { &gShelterB1ControlRoomRoomCollision, gShelterB1ControlRoomViewBoundaryTriggers, gShelterB1ControlRoomActionTriggers, NULL },
 };
 
 /// Collision-resource descriptors for Shelter B1 access tunnel.
@@ -1393,7 +1393,7 @@ static WorldCollisionRoomResources _gMapShelterB2ElevatorHallRoomCollisionResour
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
-    { &gShelterB2SouthMaintenanceWalkwayCollisionGrid, D_shelter_b2_south_maintenance_walkway_801832AC, D_shelter_b2_south_maintenance_walkway_80183474, D_shelter_b2_south_maintenance_walkway_8018385C },
+    { &gShelterB2SouthMaintenanceWalkwayCollisionGrid, gShelterB2SouthMaintenanceWalkwayViewBoundaryTriggers, gShelterB2SouthMaintenanceWalkwayActionTriggers, gShelterB2SouthMaintenanceWalkwaySightOccluders },
 };
 
 /// Collision-resource descriptors for Shelter B2 operating room.
@@ -1411,7 +1411,7 @@ static WorldCollisionRoomResources _gMapShelterB2OperatingRoomCollisionResources
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B204[1] = {
-    { &gShelterB2NorthMaintenanceWalkwayCollisionGrid, D_shelter_b2_north_maintenance_walkway_80185D5C, D_shelter_b2_north_maintenance_walkway_80185F24, D_shelter_b2_north_maintenance_walkway_80186308 },
+    { &gShelterB2NorthMaintenanceWalkwayCollisionGrid, gShelterB2NorthMaintenanceWalkwayViewBoundaryTriggers, gShelterB2NorthMaintenanceWalkwayActionTriggers, gShelterB2NorthMaintenanceWalkwaySightOccluders },
 };
 
 /// Collision-resource descriptors for Shelter B2 laboratory.

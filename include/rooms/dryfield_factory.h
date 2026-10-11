@@ -12,8 +12,13 @@
 
 #include "main/task_types.h"
 
-// dryfield_factory
-extern WorldCollisionRoomResources D_dryfield_factory_80186F10[];
+/// Collision resources shared by the factory's two daytime rooms.
+///
+/// Room IDs 1 and 2 select the same live lift grid, view boundaries and action
+/// triggers, with no occluders. The map directory borrows this room-indexed
+/// array; it has two entries and no terminator. Keep the room overlay loaded
+/// until the active grid and both mutable trigger lists are retired.
+extern WorldCollisionRoomResources gDryfieldFactoryRoomCollisionResources[2];
 
 /// Logical-view maps for the daytime factory's two room variants.
 ///

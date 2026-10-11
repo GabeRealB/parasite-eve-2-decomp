@@ -328,9 +328,9 @@ static SVECTOR _gFactoryLampFirstGlowPosition = { 5910, -1308, 5649, 0 };
 /// Alternate lamp-glow centre at lamp progress 2, in signed whole world-coordinate units.
 static SVECTOR _gFactoryLampSecondGlowPosition = { 5910, -1404, 5649, 0 };
 
-WorldCollisionRoomResources D_dryfield_factory_80186F10[2] = {
-    { &gDryfieldFactoryCollisionGrid, gDryfieldFactoryViewBoundaryTriggers, gDryfieldFactoryActionTriggers, NULL },
-    { &gDryfieldFactoryCollisionGrid, gDryfieldFactoryViewBoundaryTriggers, gDryfieldFactoryActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldFactoryRoomCollisionResources[2] = {
+    { .grid = &gDryfieldFactoryCollisionGrid, .viewBoundaryTriggers = gDryfieldFactoryViewBoundaryTriggers, .actionTriggers = gDryfieldFactoryActionTriggers, .occluders = NULL },
+    { .grid = &gDryfieldFactoryCollisionGrid, .viewBoundaryTriggers = gDryfieldFactoryViewBoundaryTriggers, .actionTriggers = gDryfieldFactoryActionTriggers, .occluders = NULL },
 };
 
 /// Room-2 logical-view map used after the barrier is cleared.

@@ -72,11 +72,33 @@ extern SpriteView gShelterB2NorthMaintenanceWalkwaySpriteViews[8];
 /// records are borrowed only while the walkway overlay remains loaded.
 extern WorldCoordRoomLights gShelterB2NorthMaintenanceWalkwayLights;
 
-extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185D5C[];
+/// Directed view boundaries for logical views 2<->3, 3<->4, 4<->5.
+///
+/// All 6 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB2NorthMaintenanceWalkwayViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[];
+/// Interaction and transition quads for this room.
+///
+/// Two facing-gated doors lead to the Operating Room and Breeding Room.
+/// The final quad automatically requests room action 1, which starts the
+/// entry scene only in variant 1 while its seen flag is clear.
+///
+/// All 3 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB2NorthMaintenanceWalkwayActionTriggers[3];
 
-extern WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[];
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// The sole LAST record is linked and enabled during room binding.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+extern WorldCollisionOccluder gShelterB2NorthMaintenanceWalkwaySightOccluders[1];
 
 /// Collision and footstep policies indexed by surface class 0..7.
 ///

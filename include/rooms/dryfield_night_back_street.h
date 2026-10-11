@@ -21,8 +21,13 @@
 /// this array; there is no terminator or bounds check.
 extern AreaVariant gDryfieldNightBackStreetAreaVariants[22];
 
-// dryfield_night_back_street
-extern WorldCollisionRoomResources D_dryfield_night_back_street_801803AC[];
+/// Collision resources for the night back street's single room.
+///
+/// Room ID 1 selects the grid, six view boundaries and ten action triggers,
+/// with no occluders. The night map directory borrows this array; there is no
+/// terminator. Trigger scans include each LAST record. Keep the room overlay
+/// loaded until the active grid and both mutable trigger lists are retired.
+extern WorldCollisionRoomResources gDryfieldNightBackStreetRoomCollisionResources[1];
 
 /// Night Back Street room 1's six point lights and ambient minima for five views.
 ///
@@ -44,7 +49,15 @@ extern u8* gDryfieldNightBackStreetViewMaps[1];
 /// the stage directory borrows this storage while the room overlay is loaded.
 extern ViewCount gDryfieldNightBackStreetRoomViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_back_street_801803CC[];
+/// Actor placements and transition options for this area's warp endpoints.
+///
+/// Slots 1..4 lead to the General Store, Souvenir Shop, Warehouse and
+/// Dilapidated House respectively; arrival views are 2, 2, 3 and 5.
+/// Each slot has a map-marker flag; slots 2..4 also have a refusal sound.
+/// Index by warp ID minus one (1..4), with no terminator. Positions use
+/// world game units and yaw uses 4096 per turn. The map overlay borrows this
+/// room array, so keep the owning room loaded for endpoint lookups.
+extern DirectionWarpEntry gDryfieldNightBackStreetWarpEntries[4];
 
 /// Night Back Street's five mapped-view cameras, indexed by view minus one.
 ///

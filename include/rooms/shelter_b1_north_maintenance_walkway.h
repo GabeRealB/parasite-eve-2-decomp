@@ -67,11 +67,32 @@ extern SpriteView gShelterB1NorthMaintenanceWalkwaySpriteViews[6];
 /// The borrowed lights are composed and shaded in place while this room is loaded.
 extern WorldCoordRoomLights gShelterB1NorthMaintenanceWalkwayRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[];
+/// Directed view boundaries for logical views 2<->3, 3<->4, 4<->5.
+///
+/// All 6 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1NorthMaintenanceWalkwayViewBoundaryTriggers[6];
 
-extern WorldCollisionOccluder D_shelter_b1_north_maintenance_walkway_801857B4[];
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// The sole LAST record is linked and enabled during room binding.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+extern WorldCollisionOccluder gShelterB1NorthMaintenanceWalkwaySightOccluders[1];
 
-extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[];
+/// Interaction and transition quads for this room.
+///
+/// Two facing-gated doors lead to Sleeping Quarters and the Storeroom,
+/// using departure slots 1 and 2 respectively.
+///
+/// All 2 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1NorthMaintenanceWalkwayActionTriggers[2];
 
 /// Collision policies indexed by the walkway's surface classes 0..7.
 ///

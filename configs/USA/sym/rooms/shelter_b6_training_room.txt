@@ -4,7 +4,7 @@ D_shelter_b6_training_room_80185C5C = 0x80185C5C; // size:0x4 defined:True
 _gShelterB6TrainingRoomBeamColorRamp = 0x801843FC; // size:0x8 defined:True
 
 gShelterB6TrainingRoomAreaVariants = 0x801859DC; // size:0x68 defined:True
-D_shelter_b6_training_room_80185A44 = 0x80185A44; // size:0x17C defined:True
+gShelterB6TrainingRoomActionTriggers = 0x80185A44; // size:0x17C defined:True
 gShelterB6TrainingRoomAmbientByView = 0x80185BC0; // size:0x48 defined:True
 _gShelterB6TrainingRoomSurface1FootstepSounds = 0x80185C08; // size:0xC defined:True
 _gShelterB6TrainingRoomSurface2FootstepSounds = 0x80185C14; // size:0xC defined:True
@@ -40,7 +40,7 @@ gShelterB6TrainingRoomSpriteViews = 0x80184D78; // size:0x60 defined:True
 _gShelterB6TrainingRoomPointLights = 0x80184DD8; // size:0x480 defined:True
 _gShelterB6TrainingRoomConeLights = 0x80185258; // size:0x510 defined:True
 gShelterB6TrainingRoomLights = 0x80185768; // size:0x18 defined:True
-D_shelter_b6_training_room_80185780 = 0x80185780; // size:0x214 defined:True
+gShelterB6TrainingRoomViewBoundaryTriggers = 0x80185780; // size:0x214 defined:True
 _gShelterB6TrainingRoomVariant1Resources = 0x80185994; // size:0x48 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor105100TaskDescriptors = 0x80141464; // absolute:True owner=actor_105100

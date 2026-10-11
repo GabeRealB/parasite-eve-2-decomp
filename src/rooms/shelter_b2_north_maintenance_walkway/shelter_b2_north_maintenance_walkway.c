@@ -31,6 +31,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -619,19 +620,26 @@ WorldCoordRoomLights gShelterB2NorthMaintenanceWalkwayLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185D5C[6] = {
-    { NULL, NULL, NULL, { 2032, -1424, -2016, 0 }, { { -1659, -1744, -7, 0 }, { 1652, -1744, -2, 0 }, { -1659, 1744, -7, 0 }, { 1652, 1744, -2, 0 } }, { 5, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 2401, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1984, -1408, -2145, 0 }, { { 1489, -1744, -20, 0 }, { -1504, -1744, 6, 0 }, { 1489, 1744, -20, 0 }, { -1504, 1744, 6, 0 } }, { 35, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2289, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2048, -1344, 2608, 0 }, { { 1488, -1744, 144, 0 }, { -1488, -1744, -144, 0 }, { 1488, 1744, 144, 0 }, { -1488, 1744, -144, 0 } }, { -398, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 2289, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2016, -1408, 2720, 0 }, { { -1648, -1744, -160, 0 }, { 1648, -1744, 160, 0 }, { -1648, 1744, -160, 0 }, { 1648, 1744, 160, 0 } }, { 395, 0, -4082, 0 }, { 0, 0, 4096, 0 }, 2401, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 735, -1376, 4320, 0 }, { { -48, -1744, 1440, 0 }, { 48, -1744, -1440, 0 }, { -48, 1744, 1440, 0 }, { 48, 1744, -1440, 0 } }, { -4115, 0, -138, 0 }, { 0, 0, 4096, 0 }, 2260, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 608, -1280, 4193, 0 }, { { 48, -1744, -1312, 0 }, { -48, -1744, 1312, 0 }, { 48, 1744, -1312, 0 }, { -48, 1744, 1312, 0 } }, { 4099, 0, 148, 0 }, { 0, 0, 4096, 0 }, 2172, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB2NorthMaintenanceWalkwayViewBoundaryTriggers[6] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2032, -1424, -2016, 0 }, .vertices = { { -1659, -1744, -7, 0 }, { 1652, -1744, -2, 0 }, { -1659, 1744, -7, 0 }, { 1652, 1744, -2, 0 } }, .normal = { 5, 0, -4101, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2401, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1984, -1408, -2145, 0 }, .vertices = { { 1489, -1744, -20, 0 }, { -1504, -1744, 6, 0 }, { 1489, 1744, -20, 0 }, { -1504, 1744, 6, 0 } }, .normal = { 35, 0, 4096, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2289, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2048, -1344, 2608, 0 }, .vertices = { { 1488, -1744, 144, 0 }, { -1488, -1744, -144, 0 }, { 1488, 1744, 144, 0 }, { -1488, 1744, -144, 0 } }, .normal = { -398, 0, 4095, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2289, .control = 0, .parameter0 = 4, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2016, -1408, 2720, 0 }, .vertices = { { -1648, -1744, -160, 0 }, { 1648, -1744, 160, 0 }, { -1648, 1744, -160, 0 }, { 1648, 1744, 160, 0 } }, .normal = { 395, 0, -4082, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2401, .control = 0, .parameter0 = 3, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 735, -1376, 4320, 0 }, .vertices = { { -48, -1744, 1440, 0 }, { 48, -1744, -1440, 0 }, { -48, 1744, 1440, 0 }, { 48, 1744, -1440, 0 } }, .normal = { -4115, 0, -138, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2260, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 608, -1280, 4193, 0 }, .vertices = { { 48, -1744, -1312, 0 }, { -48, -1744, 1312, 0 }, { 48, 1744, -1312, 0 }, { -48, 1744, 1312, 0 } }, .normal = { 4099, 0, 148, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2172, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
-WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
-    { NULL, NULL, NULL, { 2112, -48, -4480, 0 }, { { -1024, 0, -544, 0 }, { 1024, 0, -544, 0 }, { -1024, 0, 544, 0 }, { 1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1888, -48, 3456, 0 }, { { -1024, 0, -544, 0 }, { 1024, 0, -544, 0 }, { -1024, 0, 544, 0 }, { 1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2064, -64, 3055, 0 }, { { -1008, 0, -272, 0 }, { 1040, 0, -48, 0 }, { -1040, 0, 48, 0 }, { 1008, 0, 272, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads: packed departure/arrival slots and room-local selectors.
+enum {
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B2_OPERATING_ROOM = (1 << 4) | 2,
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B2_BREEDING_ROOM  = (2 << 4) | 2,
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_CAP_COMMAND_1             = 1,
+};
+
+WorldCollisionTrigger gShelterB2NorthMaintenanceWalkwayActionTriggers[3] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2112, -48, -4480, 0 }, .vertices = { { -1024, 0, -544, 0 }, { 1024, 0, -544, 0 }, { -1024, 0, 544, 0 }, { 1024, 0, 544, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1159, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B2_OPERATING_ROOM, .parameter1 = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B2_OPERATING_ROOM, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -1888, -48, 3456, 0 }, .vertices = { { -1024, 0, -544, 0 }, { 1024, 0, -544, 0 }, { -1024, 0, 544, 0 }, { 1024, 0, 544, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1159, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B2_BREEDING_ROOM, .parameter1 = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_WARP_TO_B2_BREEDING_ROOM, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2064, -64, 3055, 0 }, .vertices = { { -1008, 0, -272, 0 }, { 1040, 0, -48, 0 }, { -1040, 0, 48, 0 }, { 1008, 0, 272, 0 } }, .normal = { 0, 4100, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1039, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TRIGGER_CAP_COMMAND_1, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 enum {
@@ -780,8 +788,8 @@ AreaVariant gShelterB2NorthMaintenanceWalkwayAreaVariants[SHELTER_B2_NORTH_MAINT
     [21]                   = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant21Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant21Resources },
 };
 
-WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[1] = {
-    { NULL, NULL, { -1216, -1328, -1008, 0 }, { { -1824, 2576, -3632, 0 }, { 1824, 2576, 3632, 0 }, { -1824, -2576, -3632, 0 }, { 1824, -2576, 3632, 0 } }, { -3673, 0, 1844, 0 }, 4802, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+WorldCollisionOccluder gShelterB2NorthMaintenanceWalkwaySightOccluders[1] = {
+    { .next = NULL, .prevLink = NULL, .origin = { -1216, -1328, -1008, 0 }, .vertices = { { -1824, 2576, -3632, 0 }, { 1824, 2576, 3632, 0 }, { -1824, -2576, -3632, 0 }, { 1824, -2576, 3632, 0 } }, .normal = { -3673, 0, 1844, 0 }, .radius = 4802, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
 /// Cue-2 sound requests for the floor, resolved in the currently loaded type-1 bank.

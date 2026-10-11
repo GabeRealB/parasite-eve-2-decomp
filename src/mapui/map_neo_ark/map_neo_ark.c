@@ -868,7 +868,7 @@ DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
     gNeoArkGardenWarpEntries,
     gNeoArkPowerPlant2WarpEntries,
     gNeoArkPowerPlant1WarpEntries,
-    D_neo_ark_savanna_zone_8017FA04,
+    gNeoArkSavannaZoneWarpEntries,
     gNeoArkSouthPromenadeWarpEntries,
     D_neo_ark_altar_8017F0FC,
     gNeoArkShrineWarpEntries,
@@ -959,7 +959,7 @@ static WorldCollisionRoomResources _gMapNeoArkCorridorCollisionRooms[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABBC[1] = {
-    { &gShelterB6TrainingRoomCollisionGrid, D_shelter_b6_training_room_80185780, D_shelter_b6_training_room_80185A44, NULL },
+    { &gShelterB6TrainingRoomCollisionGrid, gShelterB6TrainingRoomViewBoundaryTriggers, gShelterB6TrainingRoomActionTriggers, NULL },
 };
 
 /// Room-1 collision resources for the Bridge area.
@@ -973,7 +973,7 @@ static WorldCollisionRoomResources _gMapNeoArkBridgeCollisionRooms[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
-    { &gShelter1fTentCollisionGrid, D_shelter_1f_tent_80183A94, D_shelter_1f_tent_80183CF4, NULL },
+    { &gShelter1fTentCollisionGrid, gShelter1fTentViewBoundaryTriggers, gShelter1fTentActionTriggers, NULL },
 };
 
 /// Room-1 collision resources for the Woodland Path area.
@@ -1022,7 +1022,7 @@ static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
     gNeoArkGardenCollisionRooms,
     gNeoArkPowerPlant2CollisionRooms,
     gNeoArkPowerPlant1CollisionRooms,
-    D_neo_ark_savanna_zone_8017F9E4,
+    gNeoArkSavannaZoneRoomCollisionResources,
     gNeoArkSouthPromenadeCollisionResources,
     D_neo_ark_altar_8017F094,
     gNeoArkShrineCollisionRooms,

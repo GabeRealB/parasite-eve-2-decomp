@@ -21,6 +21,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -59,9 +60,9 @@ static void _shelter1fAirlockIdle(Task* unusedTask);
 static void _shelter1fAirlockInitRoomTask(Task* task);
 
 static WorldCollisionGrid     _gShelter1fAirlockCollisionGrid;
-extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
+static WorldCollisionOccluder _gShelter1fAirlockSightOccluders[2];
 static WorldCollisionTrigger  _gShelter1fAirlockViewBoundaryTriggers[6];
-extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F5F8[4];
+static WorldCollisionTrigger  _gShelter1fAirlockActionTriggers[4];
 static WorldCoordRoomLights   _gShelter1fAirlockRoomLights;
 
 /// Room-message dispatch for Neo Ark transitions, key-item refusals and ignored room actions/commands.
@@ -141,7 +142,7 @@ static _Shelter1fAirlockGlowWorldPoints _gShelter1fAirlockGlowWorldPoints = {
 };
 
 WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[1] = {
-    { &_gShelter1fAirlockCollisionGrid, _gShelter1fAirlockViewBoundaryTriggers, D_shelter_1f_airlock_8017F5F8, D_shelter_1f_airlock_8017F7B8 },
+    { &_gShelter1fAirlockCollisionGrid, _gShelter1fAirlockViewBoundaryTriggers, _gShelter1fAirlockActionTriggers, _gShelter1fAirlockSightOccluders },
 };
 
 WorldCoordRoomLighting gShelter1fAirlockRoomLighting[1] = {
@@ -420,11 +421,28 @@ static WorldCollisionTrigger _gShelter1fAirlockViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { -5248, -1376, 4160, 0 }, { { -1571, -2080, 234, 0 }, { 1544, -2080, -281, 0 }, { -1571, 2080, 234, 0 }, { 1544, 2080, -281, 0 } }, { -672, 0, -4053, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_1f_airlock_8017F5F8[4] = {
-    { NULL, NULL, NULL, { 1984, -48, 2912, 0 }, { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4960, -48, 2912, 0 }, { { -608, 0, -384, 0 }, { 608, 0, -384, 0 }, { -608, 0, 384, 0 }, { 608, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 718, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5360, -64, 3280, 0 }, { { -336, 0, -560, 0 }, { 336, 0, -560, 0 }, { -336, 0, 560, 0 }, { 336, 0, 560, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 652, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1376, -64, 4192, 0 }, { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads: packed departure/arrival slots and room-local selectors.
+enum {
+    SHELTER_1F_AIRLOCK_TRIGGER_WARP_TO_1F_PARKING_GARAGE    = (1 << 4) | 2,
+    SHELTER_1F_AIRLOCK_TRIGGER_WARP_TO_1F_VEHICULAR_AIRLOCK = (2 << 4) | 1,
+    SHELTER_1F_AIRLOCK_TRIGGER_CAP_COMMAND_1                = 1,
+    SHELTER_1F_AIRLOCK_TRIGGER_CAP_COMMAND_2                = 2,
+};
+
+/// Interaction and transition quads for this room.
+///
+/// Doors lead to the Parking Garage and Vehicular Airlock; the other two
+/// quads request CAP commands 1 and 2 with no presentation flags.
+///
+/// All 4 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+static WorldCollisionTrigger _gShelter1fAirlockActionTriggers[4] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1984, -48, 2912, 0 }, .vertices = { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, .normal = { 0, 4103, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 701, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_1F_PARKING_GARAGE, .parameter1 = SHELTER_1F_AIRLOCK_TRIGGER_WARP_TO_1F_PARKING_GARAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -4960, -48, 2912, 0 }, .vertices = { { -608, 0, -384, 0 }, { 608, 0, -384, 0 }, { -608, 0, 384, 0 }, { 608, 0, 384, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 718, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, .parameter1 = SHELTER_1F_AIRLOCK_TRIGGER_WARP_TO_1F_VEHICULAR_AIRLOCK, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -5360, -64, 3280, 0 }, .vertices = { { -336, 0, -560, 0 }, { 336, 0, -560, 0 }, { -336, 0, 560, 0 }, { 336, 0, 560, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 652, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_1F_AIRLOCK_TRIGGER_CAP_COMMAND_1, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -1376, -64, 4192, 0 }, .vertices = { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, .normal = { 0, 4103, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 701, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_1F_AIRLOCK_TRIGGER_CAP_COMMAND_2, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 enum {
@@ -452,9 +470,15 @@ AreaVariant gShelter1fAirlockAreaVariants[SHELTER_1F_AIRLOCK_AREA_VARIANT_COUNT]
     [7]                    = { .placements = gMapNeoArkAirlockBishopPlacements, .resources = _gShelter1fAirlockBishopResources },
 };
 
-WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2] = {
-    { NULL, NULL, { -64, -1264, 3072, 0 }, { { -1216, 2480, -832, 0 }, { 1216, 2480, 832, 0 }, { -1216, -2480, -832, 0 }, { 1216, -2480, 832, 0 } }, { -2315, 0, 3382, 0 }, 2873, 1, 0 },
-    { NULL, NULL, { -2801, -1440, 3071, 0 }, { { -1433, 2480, 833, 0 }, { 1434, 2480, -832, 0 }, { -1433, -2480, 833, 0 }, { 1434, -2480, -832, 0 } }, { 2060, 0, 3547, 0 }, 2974, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// All 2 records are linked and enabled, including the final LAST entry.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+static WorldCollisionOccluder _gShelter1fAirlockSightOccluders[2] = {
+    { .next = NULL, .prevLink = NULL, .origin = { -64, -1264, 3072, 0 }, .vertices = { { -1216, 2480, -832, 0 }, { 1216, 2480, 832, 0 }, { -1216, -2480, -832, 0 }, { 1216, -2480, 832, 0 } }, .normal = { -2315, 0, 3382, 0 }, .radius = 2873, .flags = 1, .unknown_3B = 0 },
+    { .next = NULL, .prevLink = NULL, .origin = { -2801, -1440, 3071, 0 }, .vertices = { { -1433, 2480, 833, 0 }, { 1434, 2480, -832, 0 }, { -1433, -2480, 833, 0 }, { 1434, -2480, -832, 0 } }, .normal = { 2060, 0, 3547, 0 }, .radius = 2974, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
 enum {

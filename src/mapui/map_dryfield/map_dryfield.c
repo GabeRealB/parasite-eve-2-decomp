@@ -770,7 +770,7 @@ static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     gDryfieldWaterTowerRoomCollisionResources,
     gDryfieldWaterTankRoomCollisionResources,
     gDryfieldBreezewayRoomCollisionResources,
-    D_dryfield_factory_80186F10,
+    gDryfieldFactoryRoomCollisionResources,
     gDryfieldGarageRoomCollisionResources,
     gDryfieldDrivewayRoomCollisionResources,
     gDryfieldJunkYardRoomCollisionResources,

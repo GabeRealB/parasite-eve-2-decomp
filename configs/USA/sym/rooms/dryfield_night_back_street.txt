@@ -2,11 +2,11 @@
 _gDryfieldNightBackStreetGlowPoints = 0x8018034C; // size:0x50 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x8018039C; // size:0x10 defined:True
 _gDryfieldNightBackStreetMessageTable = 0x80180324; // size:0x28 defined:True
-D_dryfield_night_back_street_801803AC = 0x801803AC; // size:0x10 defined:True
+gDryfieldNightBackStreetRoomCollisionResources = 0x801803AC; // size:0x10 defined:True
 gDryfieldNightBackStreetRoomLighting = 0x801803BC; // size:0x8 defined:True
 gDryfieldNightBackStreetViewMaps = 0x801803C4; // size:0x4 defined:True
 gDryfieldNightBackStreetRoomViewCounts = 0x801803C8; // size:0x2 defined:True
-D_dryfield_night_back_street_801803CC = 0x801803CC; // size:0xE0 defined:True
+gDryfieldNightBackStreetWarpEntries = 0x801803CC; // size:0xE0 defined:True
 _gDryfieldNightBackStreetCollisionGridNormals = 0x801804AC; // size:0x98 defined:True
 _gDryfieldNightBackStreetCollisionGridVerts = 0x80180544; // size:0x240 defined:True
 _gDryfieldNightBackStreetCollisionGridFaces = 0x80180784; // size:0x180 defined:True

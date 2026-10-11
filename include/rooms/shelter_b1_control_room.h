@@ -80,9 +80,25 @@ extern SpriteView gShelterB1ControlRoomSpriteViews[8];
 /// and RGB intensities use 4096 for full strength.
 extern WorldCoordRoomLights gShelterB1ControlRoomRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_control_room_801834F4[];
+/// Directed view boundaries for logical views 2<->3, 3<->6.
+///
+/// All 4 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1ControlRoomViewBoundaryTriggers[4];
 
-extern WorldCollisionTrigger D_shelter_b1_control_room_80183624[];
+/// Interaction and transition quads for this room.
+///
+/// Two doors lead to the Control Room Access Tunnel and Access Tunnel.
+/// Two stair quads use surface class 2, three steps and yaw 3072/1024; the
+/// first selects descent. CAP selectors 3..5 and 9 route to the room handler.
+///
+/// All 8 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1ControlRoomActionTriggers[8];
 
 /// The control room's ambient-light minima: a count header and eight view colours.
 ///

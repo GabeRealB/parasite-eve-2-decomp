@@ -81,9 +81,25 @@ extern SpriteView gShelter1fTentSpriteViews[SHELTER_1F_TENT_VIEW_RESOURCE_COUNT]
 /// overlay loaded while the collection is in use.
 extern WorldCoordRoomLights gShelter1fTentRoomLights;
 
-extern WorldCollisionTrigger D_shelter_1f_tent_80183A94[];
+/// Directed view boundaries for logical views 2<->3, 2<->4.
+///
+/// All 8 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelter1fTentViewBoundaryTriggers[8];
 
-extern WorldCollisionTrigger D_shelter_1f_tent_80183CF4[];
+/// Interaction and transition quads for this room.
+///
+/// One door leads to the Heliport. CAP selector 1 routes to the first/replay
+/// scene; room actions 1 and 2 talk to soldiers C and A. Other CAP selectors
+/// index the loaded command table, with command 17 used by two quads.
+///
+/// All 17 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelter1fTentActionTriggers[17];
 
 /// Collision policies and footstep cues indexed by surface class (0..7).
 ///

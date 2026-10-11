@@ -56,19 +56,15 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 
-extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
 static RoomEventMsg     _gRoomEventStagedMsg;
-extern s8               D_neo_ark_savanna_zone_80180998;
+static s8               _gNeoArkSavannaZoneEventStartRequested;
 extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
 extern RoomFadeStorage gRoomEventFade;
 
-/// The room's message table, which the room setup task installs.
-extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
-
 static WorldCollisionGrid               _gNeoArkSavannaZoneCollisionGrid;
-extern WorldCollisionOccluder           D_neo_ark_savanna_zone_801808CC[1];
+static WorldCollisionOccluder           _gNeoArkSavannaZoneSightOccluders[1];
 static WorldCollisionTrigger            _gNeoArkSavannaZoneViewBoundaryTriggers[4];
 static WorldCollisionTrigger            _gNeoArkSavannaZoneActionTriggers[5];
 static const WorldCoordRoomAmbientEntry _gNeoArkSavannaZoneAmbientTable[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT + 1];
@@ -81,20 +77,32 @@ static s32                              _neoArkSavannaZoneIgnoreRoomAction(Task*
 /// Requests use of the selected collected key item; zero refuses the request.
 enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless staged-departure task recipe for the savanna room.
+///
+/// Spawns entry 0 at `ROOM_EVENT_TASK_PRIORITY` with zero metadata and payloads.
+/// The descriptor is read synchronously; the room-owned destination/event
+/// snapshots and callback code remain loaded through deferred scene reload.
+static TaskDesc _gNeoArkSavannaZoneStagedEventTaskDesc = { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ROOM_EVENT_TASK_PRIORITY } }, .callback = roomEventStagedTask, .data = { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSavannaZoneResolveRoomEvent },
-    { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM, _neoArkSavannaZoneRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSavannaZoneIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, _neoArkSavannaZoneIgnoreRoomCommand },
-    { TASK_MESSAGE_TABLE_END, NULL },
+/// Message routes borrowed by the savanna room controller.
+///
+/// Resolves departure requests, refuses key-item use and ignores direction
+/// actions and CAP room commands. Resolve requests borrow `RoomEventMsg`
+/// request/reply pointers; actions borrow a `DirectionActionRequest`, while
+/// item and CAP selectors are integers. Four routes precede the END record.
+/// Keep the table and its callback code loaded while the room task uses them.
+static TaskMessageEntry _gNeoArkSavannaZoneRoomMessages[5] = {
+    { .messageId = ROOM_EVENT_MESSAGE_RESOLVE, .handler = _neoArkSavannaZoneResolveRoomEvent },
+    { .messageId = NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM, .handler = _neoArkSavannaZoneRejectKeyItemUse },
+    { .messageId = DIRECTION_MESSAGE_ROOM_ACTION, .handler = _neoArkSavannaZoneIgnoreRoomAction },
+    { .messageId = ROOM_MESSAGE_COMMAND, .handler = _neoArkSavannaZoneIgnoreRoomCommand },
+    { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[1] = {
-    { &_gNeoArkSavannaZoneCollisionGrid, _gNeoArkSavannaZoneViewBoundaryTriggers, _gNeoArkSavannaZoneActionTriggers, D_neo_ark_savanna_zone_801808CC },
+WorldCollisionRoomResources gNeoArkSavannaZoneRoomCollisionResources[1] = {
+    { .grid = &_gNeoArkSavannaZoneCollisionGrid, .viewBoundaryTriggers = _gNeoArkSavannaZoneViewBoundaryTriggers, .actionTriggers = _gNeoArkSavannaZoneActionTriggers, .occluders = _gNeoArkSavannaZoneSightOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkSavannaZoneRoomLighting[1] = {
@@ -107,9 +115,9 @@ u8* gNeoArkSavannaZoneViewMaps[1] = {
 
 ViewCount gNeoArkSavannaZoneViewCounts[1] = { NEO_ARK_SAVANNA_ZONE_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[2] = {
-    { { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120002, 0x55120001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkSavannaZoneWarpEntries[2] = {
+    { .player = { { .word = 1024 }, 510, 0, 1500 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 1024 }, 510, 0, 1500 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 2), .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 1), .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 4, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player = { { .word = 3072 }, 0x34BC, 0, 1500 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 3072 }, 0x34BC, 0, 1500 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 4), .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 3), .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 /// Grid-local unit normals, scaled by 4096 and indexed by the grid's faces.
@@ -428,8 +436,14 @@ AreaVariant gNeoArkSavannaZoneAreaVariants[NEO_ARK_SAVANNA_ZONE_AREA_VARIANT_COU
     [11]                   = { .placements = gMapNeoArkSavannaZoneVariant11Placements, .resources = _gNeoArkSavannaZoneVariant11Resources },
 };
 
-WorldCollisionOccluder D_neo_ark_savanna_zone_801808CC[1] = {
-    { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, 8318, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Room-space sight-blocking quads borrowed by the active collision list.
+///
+/// The sole LAST record is linked and enabled during room binding.
+/// Origins and relative corners use game units; normals use 4096 per unit.
+/// Keep this mutable array loaded until the sight list is cleared. The stored
+/// low flag bit is retained; its role is unproven.
+static WorldCollisionOccluder _gNeoArkSavannaZoneSightOccluders[1] = {
+    { .next = NULL, .prevLink = NULL, .origin = { 6928, -3008, 1552, 0 }, .vertices = { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, .normal = { 0, 4103, 0, 0 }, .radius = 8318, .flags = 1 | WORLD_COLLISION_OCCLUDER_LAST, .unknown_3B = 0 },
 };
 
 /// Minimum ambient colours for views 1..4, preceded by their element count.
@@ -527,7 +541,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_neo_ark_savanna_zone_80180998 = 0;
+/// Whether the latest savanna event-start call requested a staged task.
+///
+/// Every call clears this byte to 0; the execute branch sets 1 after requesting
+/// a spawn, even if allocation fails. Queries and already-seen events leave 0.
+/// The staged task never clears it, and no current consumer reads it.
+static s8 _gNeoArkSavannaZoneEventStartRequested = 0;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
@@ -554,7 +573,7 @@ static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transitio
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_neo_ark_savanna_zone_80180998 = ROOM_EVENT_NOT_STARTED;
+    _gNeoArkSavannaZoneEventStartRequested = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *transition;
@@ -562,8 +581,8 @@ static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transitio
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
-            D_neo_ark_savanna_zone_80180998 = ROOM_EVENT_STARTED;
+            taskSpawnFromTable(&_gNeoArkSavannaZoneStagedEventTaskDesc, 0, 0, 0);
+            _gNeoArkSavannaZoneEventStartRequested = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }
@@ -644,7 +663,7 @@ static s32 _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const D
 /// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
 static void _neoArkSavannaZoneInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_savanna_zone_8017F9AC;
+    task->msgTable = _gNeoArkSavannaZoneRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -654,8 +673,12 @@ static void _neoArkSavannaZoneSetupIdleState(Task* task)
 {
 }
 
-/// State table of the room setup task, indexed by `Task::state`.
-static const TaskFuncTable3 D_neo_ark_savanna_zone_8017D5D8 = { {
+/// Savanna room-controller handlers in `Task::state` order.
+///
+/// States 0, 1 and 2 install the message receiver, idle and release the task.
+/// The dispatcher copies all three pointers by value before indexing; valid
+/// states are 0..2, with no sentinel or bounds check. Keep callback code loaded.
+static const TaskFuncTable3 _gNeoArkSavannaZoneRoomStateHandlers = { {
     _neoArkSavannaZoneInitializeRoom,
     _neoArkSavannaZoneSetupIdleState,
     taskKill,
@@ -665,7 +688,7 @@ void neoArkSavannaZoneRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_savanna_zone_8017D5D8;
+    stateHandlers = _gNeoArkSavannaZoneRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

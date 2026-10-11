@@ -79,9 +79,24 @@ extern SpriteView gShelterB6TrainingRoomSpriteViews[SHELTER_B6_TRAINING_ROOM_VIE
 /// transforms and attenuation while the room overlay remains loaded.
 extern WorldCoordRoomLights gShelterB6TrainingRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b6_training_room_80185780[];
+/// Directed view boundaries: 2->3, 3<->4 and two spatial pairs for 4<->5.
+///
+/// All 7 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB6TrainingRoomViewBoundaryTriggers[7];
 
-extern WorldCollisionTrigger D_shelter_b6_training_room_80185A44[];
+/// Interaction and transition quads for this room.
+///
+/// Two doors lead to the Corridor and Nursery. The other quads request
+/// CAP command 1 and room-command selectors 5 and 6 for parts 0 and 1.
+///
+/// All 5 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB6TrainingRoomActionTriggers[5];
 
 /// Minimum ambient RGB levels for logical training-room views 1..8.
 ///

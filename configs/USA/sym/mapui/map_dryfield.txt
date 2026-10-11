@@ -190,7 +190,7 @@ gDryfieldBreezewayViewCameras = 0x8018364C; // absolute:True owner=dryfield_bree
 gDryfieldBreezewaySpriteViews = 0x80183D9C; // absolute:True owner=dryfield_breezeway
 gDryfieldBreezewaySurfacePropertiesByClass = 0x8018437C; // absolute:True owner=dryfield_breezeway
 dryfieldFactoryEntryTask = 0x8017DF88; // type:func absolute:True owner=dryfield_factory
-D_dryfield_factory_80186F10 = 0x80186F10; // absolute:True owner=dryfield_factory
+gDryfieldFactoryRoomCollisionResources = 0x80186F10; // absolute:True owner=dryfield_factory
 gDryfieldFactoryRoomViewMaps = 0x80186F44; // absolute:True owner=dryfield_factory
 gDryfieldFactoryRoomLighting = 0x80186F4C; // absolute:True owner=dryfield_factory
 gDryfieldFactoryRoomViewCounts = 0x80186F5C; // absolute:True owner=dryfield_factory

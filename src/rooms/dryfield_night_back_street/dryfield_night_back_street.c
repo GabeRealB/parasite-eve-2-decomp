@@ -102,8 +102,8 @@ static SVECTOR _gDryfieldNightBackStreetGlowPoints[10] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_dryfield_night_back_street_801803AC[1] = {
-    { &_gDryfieldNightBackStreetCollisionGrid, _gDryfieldNightBackStreetViewBoundaries, _gDryfieldNightBackStreetActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldNightBackStreetRoomCollisionResources[1] = {
+    { .grid = &_gDryfieldNightBackStreetCollisionGrid, .viewBoundaryTriggers = _gDryfieldNightBackStreetViewBoundaries, .actionTriggers = _gDryfieldNightBackStreetActionTriggers, .occluders = NULL },
 };
 
 WorldCoordRoomLighting gDryfieldNightBackStreetRoomLighting[1] = {
@@ -116,11 +116,19 @@ u8* gDryfieldNightBackStreetViewMaps[1] = {
 
 ViewCount gDryfieldNightBackStreetRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldNightBackStreetViewCameras) };
 
-DirectionWarpEntry D_dryfield_night_back_street_801803CC[4] = {
-    { { { .word = 1024 }, -9597, 0, 4667 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8696, 0, 5479 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 470 },
-    { { { .word = 2048 }, -7539, 0, 5536 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8028, 0, 5175 }, { 0, 0, 0, 0 }, 0x53050004, 0x53050003, 0x53050005, 2, DIRECTION_WARP_FLAG_NONE, 469 },
-    { { { .word = 2048 }, -1423, 0, 5449 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2346, 0, 5223 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, 0x53050005, 3, DIRECTION_WARP_FLAG_NONE, 468 },
-    { { { .word = 2048 }, 9463, 2, 5532 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9800, 2, 4668 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, 0x53050005, 5, DIRECTION_WARP_FLAG_NONE, 467 },
+/// Map-marker nibble IDs for these warp endpoints.
+enum {
+    DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_GENERAL_STORE     = 470,
+    DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_SOUVENIR_SHOP     = 469,
+    DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_WAREHOUSE         = 468,
+    DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_DILAPIDATED_HOUSE = 467,
+};
+
+DirectionWarpEntry gDryfieldNightBackStreetWarpEntries[4] = {
+    { .player = { { .word = 1024 }, -9597, 0, 4667 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 1024 }, -8696, 0, 5479 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 2), .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 1), .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_GENERAL_STORE },
+    { .player = { { .word = 2048 }, -7539, 0, 5536 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 1024 }, -8028, 0, 5175 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 4), .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 3), .blockedSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 5), .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_SOUVENIR_SHOP },
+    { .player = { { .word = 2048 }, -1423, 0, 5449 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 2048 }, -2346, 0, 5223 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 2), .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 1), .blockedSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 5), .initialView = 3, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_WAREHOUSE },
+    { .player = { { .word = 2048 }, 9463, 2, 5532 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = 3072 }, 9800, 2, 4668 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 2), .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 1), .blockedSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, 5), .initialView = 5, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DRYFIELD_NIGHT_BACK_STREET_MAP_FLAG_DILAPIDATED_HOUSE },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.

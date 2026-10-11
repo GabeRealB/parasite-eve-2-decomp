@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/areas.h"
 #include "main/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
@@ -333,14 +334,14 @@ WorldCoordRoomLights gShelterB6TrainingRoomLights = {
     .coneLights            = _gShelterB6TrainingRoomConeLights,
 };
 
-WorldCollisionTrigger D_shelter_b6_training_room_80185780[7] = {
-    { NULL, NULL, NULL, { 2497, -2912, 4352, 0 }, { { 3360, -3312, 0, 0 }, { -3360, -3312, 0, 0 }, { 3360, 3312, 0, 0 }, { -3360, 3312, 0, 0 } }, { 0, 0, 4106, 0 }, { 0, 0, 4096, 0 }, 4692, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2480, -2929, 4480, 0 }, { { -3248, -3328, 0, 0 }, { 3248, -3328, 0, 0 }, { -3248, 3328, 0, 0 }, { 3248, 3328, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4753, -2401, 8944, 0 }, { { -2390, -3328, -575, 0 }, { 2384, -3328, 569, 0 }, { -2390, 3328, -575, 0 }, { 2384, 3328, 569, 0 } }, { 955, 0, -3989, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4800, -2240, 8785, 0 }, { { 2446, -3312, 610, 0 }, { -2448, -3312, -612, 0 }, { 2446, 3312, 610, 0 }, { -2448, 3312, -612, 0 } }, { -995, 0, 3980, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 173, -2304, 8607, 0 }, { { 2351, -3312, -432, 0 }, { -2352, -3312, 432, 0 }, { 2351, 3312, -432, 0 }, { -2352, 3312, 432, 0 } }, { 740, 0, 4029, 0 }, { 0, 0, 4096, 0 }, 4079, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 186, -2273, 8811, 0 }, { { -2336, -3328, 448, 0 }, { 2335, -3328, -449, 0 }, { -2336, 3328, 448, 0 }, { 2335, 3328, -449, 0 } }, { -774, 0, -4030, 0 }, { 0, 0, 4096, 0 }, 4087, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2479, -2144, 2047, 0 }, { { -4031, -3312, -3, 0 }, { 4031, -3312, 3, 0 }, { -4031, 3312, -3, 0 }, { 4031, 3312, 3, 0 } }, { 2, 0, -4097, 0 }, { 0, 0, 4096, 0 }, 5196, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB6TrainingRoomViewBoundaryTriggers[7] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2497, -2912, 4352, 0 }, .vertices = { { 3360, -3312, 0, 0 }, { -3360, -3312, 0, 0 }, { 3360, 3312, 0, 0 }, { -3360, 3312, 0, 0 } }, .normal = { 0, 0, 4106, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4692, .control = 0, .parameter0 = 4, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2480, -2929, 4480, 0 }, .vertices = { { -3248, -3328, 0, 0 }, { 3248, -3328, 0, 0 }, { -3248, 3328, 0, 0 }, { 3248, 3328, 0, 0 } }, .normal = { 0, 0, -4101, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4636, .control = 0, .parameter0 = 3, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 4753, -2401, 8944, 0 }, .vertices = { { -2390, -3328, -575, 0 }, { 2384, -3328, 569, 0 }, { -2390, 3328, -575, 0 }, { 2384, 3328, 569, 0 } }, .normal = { 955, 0, -3989, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4127, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 4800, -2240, 8785, 0 }, .vertices = { { 2446, -3312, 610, 0 }, { -2448, -3312, -612, 0 }, { 2446, 3312, 610, 0 }, { -2448, 3312, -612, 0 } }, .normal = { -995, 0, 3980, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4159, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 173, -2304, 8607, 0 }, .vertices = { { 2351, -3312, -432, 0 }, { -2352, -3312, 432, 0 }, { 2351, 3312, -432, 0 }, { -2352, 3312, 432, 0 } }, .normal = { 740, 0, 4029, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4079, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 186, -2273, 8811, 0 }, .vertices = { { -2336, -3328, 448, 0 }, { 2335, -3328, -449, 0 }, { -2336, 3328, 448, 0 }, { 2335, 3328, -449, 0 } }, .normal = { -774, 0, -4030, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4087, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2479, -2144, 2047, 0 }, .vertices = { { -4031, -3312, -3, 0 }, { 4031, -3312, 3, 0 }, { -4031, 3312, -3, 0 }, { 4031, 3312, 3, 0 } }, .normal = { 2, 0, -4097, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5196, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 /// Training-room variant-1 recipes for Masked Eve, Kyle, Stinger and Eve's controller/body.
@@ -364,12 +365,21 @@ AreaVariant gShelterB6TrainingRoomAreaVariants[SHELTER_B6_TRAINING_ROOM_AREA_VAR
     [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkTrainingRoomDefaultPlacements, .resources = _gShelterB6TrainingRoomVariant1Resources },
 };
 
-WorldCollisionTrigger D_shelter_b6_training_room_80185A44[5] = {
-    { NULL, NULL, NULL, { -1056, -48, 2416, 0 }, { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 686, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4608, -48, 9600, 0 }, { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 686, WORLD_COLLISION_TRIGGER_ACTION_WARP, 22, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 223, -64, 1825, 0 }, { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 686, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 224, -64, 4368, 0 }, { { -352, 0, -1088, 0 }, { 352, 0, -1088, 0 }, { -352, 0, 1088, 0 }, { 352, 0, 1088, 0 } }, { 0, 4103, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4671, -64, 4352, 0 }, { { -352, 0, -1088, 0 }, { 352, 0, -1088, 0 }, { -352, 0, 1088, 0 }, { 352, 0, 1088, 0 } }, { 0, 4103, 0, 0 }, { -4091, 0, 201, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads: packed departure/arrival slots and room-local selectors.
+enum {
+    SHELTER_B6_TRAINING_ROOM_TRIGGER_WARP_TO_B6_CORRIDOR = (1 << 4) | 2,
+    SHELTER_B6_TRAINING_ROOM_TRIGGER_WARP_TO_B6_NURSERY  = (2 << 4) | 1,
+    SHELTER_B6_TRAINING_ROOM_TRIGGER_CAP_COMMAND_1       = 1,
+    SHELTER_B6_TRAINING_ROOM_TRIGGER_COMMAND_PART_0      = 5,
+    SHELTER_B6_TRAINING_ROOM_TRIGGER_COMMAND_PART_1      = 6,
+};
+
+WorldCollisionTrigger gShelterB6TrainingRoomActionTriggers[5] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { -1056, -48, 2416, 0 }, .vertices = { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 686, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B6_CORRIDOR, .parameter1 = SHELTER_B6_TRAINING_ROOM_TRIGGER_WARP_TO_B6_CORRIDOR, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 4608, -48, 9600, 0 }, .vertices = { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 686, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B6_NURSERY, .parameter1 = SHELTER_B6_TRAINING_ROOM_TRIGGER_WARP_TO_B6_NURSERY, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 223, -64, 1825, 0 }, .vertices = { { -352, 0, -592, 0 }, { 352, 0, -592, 0 }, { -352, 0, 592, 0 }, { 352, 0, 592, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 686, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B6_TRAINING_ROOM_TRIGGER_CAP_COMMAND_1, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 224, -64, 4368, 0 }, .vertices = { { -352, 0, -1088, 0 }, { 352, 0, -1088, 0 }, { -352, 0, 1088, 0 }, { 352, 0, 1088, 0 } }, .normal = { 0, 4103, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 1137, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B6_TRAINING_ROOM_TRIGGER_COMMAND_PART_0, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 4671, -64, 4352, 0 }, .vertices = { { -352, 0, -1088, 0 }, { 352, 0, -1088, 0 }, { -352, 0, 1088, 0 }, { 352, 0, 1088, 0 } }, .normal = { 0, 4103, 0, 0 }, .facingNormal = { -4091, 0, 201, 0 }, .radius = 1137, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B6_TRAINING_ROOM_TRIGGER_COMMAND_PART_1, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 WorldCoordRoomAmbientEntry gShelterB6TrainingRoomAmbientByView[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT + 1] = {

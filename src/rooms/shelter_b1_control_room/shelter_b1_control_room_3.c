@@ -12,6 +12,7 @@
 
 #include "gte.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -438,22 +439,36 @@ WorldCoordRoomLights gShelterB1ControlRoomRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_control_room_801834F4[4] = {
-    { NULL, NULL, NULL, { 6251, -1536, -4211, 0 }, { { -2, -2016, -2627, 0 }, { 2, -2016, 2628, 0 }, { -2, 2016, -2627, 0 }, { 2, 2016, 2628, 0 } }, { 4096, 0, -4, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6331, -1504, -4308, 0 }, { { -5, -2016, 2589, 0 }, { 5, -2016, -2589, 0 }, { -5, 2016, 2589, 0 }, { 5, 2016, -2589, 0 } }, { -4099, 0, -9, 0 }, { 0, 0, 4096, 0 }, 3278, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2848, -1536, -4224, 0 }, { { 252, -2016, -2617, 0 }, { -258, -2016, 2612, 0 }, { 252, 2016, -2617, 0 }, { -258, 2016, 2612, 0 } }, { 4076, 0, 397, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2975, -1600, -4225, 0 }, { { -259, -2016, 2614, 0 }, { 258, -2016, -2616, 0 }, { -259, 2016, 2614, 0 }, { 258, 2016, -2616, 0 } }, { -4078, 0, -404, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1ControlRoomViewBoundaryTriggers[4] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 6251, -1536, -4211, 0 }, .vertices = { { -2, -2016, -2627, 0 }, { 2, -2016, 2628, 0 }, { -2, 2016, -2627, 0 }, { 2, 2016, 2628, 0 } }, .normal = { 4096, 0, -4, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 3308, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 6331, -1504, -4308, 0 }, .vertices = { { -5, -2016, 2589, 0 }, { 5, -2016, -2589, 0 }, { -5, 2016, 2589, 0 }, { 5, 2016, -2589, 0 } }, .normal = { -4099, 0, -9, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 3278, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2848, -1536, -4224, 0 }, .vertices = { { 252, -2016, -2617, 0 }, { -258, -2016, 2612, 0 }, { 252, 2016, -2617, 0 }, { -258, 2016, 2612, 0 } }, .normal = { 4076, 0, 397, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 3308, .control = 0, .parameter0 = 3, .parameter1 = 6, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2975, -1600, -4225, 0 }, .vertices = { { -259, -2016, 2614, 0 }, { 258, -2016, -2616, 0 }, { -259, 2016, 2614, 0 }, { 258, 2016, -2616, 0 } }, .normal = { -4078, 0, -404, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 3308, .control = 0, .parameter0 = 6, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_control_room_80183624[8] = {
-    { NULL, NULL, NULL, { 0x28A0, -640, -3712, 0 }, { { -448, 0, -1024, 0 }, { 448, 0, -1024, 0 }, { -448, 0, 1024, 0 }, { 448, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9248, -640, -3168, 0 }, { { -928, 0, 448, 0 }, { -928, 0, -448, 0 }, { 928, 0, 448, 0 }, { 928, 0, -448, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6720, -640, -4288, 0 }, { { -224, 0, -320, 0 }, { 224, 0, -320, 0 }, { -224, 0, 320, 0 }, { 224, 0, 320, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 390, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 35, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5760, -48, -4320, 0 }, { { -224, 0, -320, 0 }, { 224, 0, -320, 0 }, { -224, 0, 320, 0 }, { 224, 0, 320, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 390, WORLD_COLLISION_TRIGGER_ACTION_FACING, 35, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2624, -64, -2976, 0 }, { { -2176, 0, 320, 0 }, { -2176, 0, -320, 0 }, { 2176, 0, 320, 0 }, { 2176, 0, -320, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2560, -64, -5600, 0 }, { { -2176, 0, 320, 0 }, { -2176, 0, -320, 0 }, { 2176, 0, 320, 0 }, { 2176, 0, -320, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4096, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1504, -64, -4336, 0 }, { { -448, 0, -368, 0 }, { 448, 0, -368, 0 }, { -448, 0, 368, 0 }, { 448, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -4288, 0 }, { { -320, 0, -1696, 0 }, { 320, 0, -1696, 0 }, { -320, 0, 1696, 0 }, { 320, 0, 1696, 0 } }, { 0, 4112, 0, 0 }, { 4096, 0, 0, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action payloads: packed departure/arrival slots and room-local selectors.
+enum {
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_WARP_TO_B1_CONTROL_ROOM_ACCESS_TUNNEL = (1 << 4) | 2,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_WARP_TO_B1_ACCESS_TUNNEL              = (2 << 4) | 1,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_DESCEND                         = 0x100,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_SURFACE_2_THREE_STEPS           = (2 << 4) | 3,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_YAW_3072                        = 3072 / 16,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_YAW_1024                        = 1024 / 16,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_4                         = 4,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_5                         = 5,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_3                         = 3,
+    SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_9                         = 9,
+};
+
+WorldCollisionTrigger gShelterB1ControlRoomActionTriggers[8] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x28A0, -640, -3712, 0 }, .vertices = { { -448, 0, -1024, 0 }, { 448, 0, -1024, 0 }, { -448, 0, 1024, 0 }, { 448, 0, 1024, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 1115, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, .parameter1 = SHELTER_B1_CONTROL_ROOM_TRIGGER_WARP_TO_B1_CONTROL_ROOM_ACCESS_TUNNEL, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 9248, -640, -3168, 0 }, .vertices = { { -928, 0, 448, 0 }, { -928, 0, -448, 0 }, { 928, 0, 448, 0 }, { 928, 0, -448, 0 } }, .normal = { 0, 4107, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 1024, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, .parameter1 = SHELTER_B1_CONTROL_ROOM_TRIGGER_WARP_TO_B1_ACCESS_TUNNEL, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 6720, -640, -4288, 0 }, .vertices = { { -224, 0, -320, 0 }, { 224, 0, -320, 0 }, { -224, 0, 320, 0 }, { 224, 0, 320, 0 } }, .normal = { 0, 4110, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 390, .control = WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_DESCEND, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_SURFACE_2_THREE_STEPS, .parameter1 = SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_YAW_3072, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5760, -48, -4320, 0 }, .vertices = { { -224, 0, -320, 0 }, { 224, 0, -320, 0 }, { -224, 0, 320, 0 }, { 224, 0, 320, 0 } }, .normal = { 0, 4110, 0, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 390, .control = WORLD_COLLISION_TRIGGER_ACTION_FACING, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_SURFACE_2_THREE_STEPS, .parameter1 = SHELTER_B1_CONTROL_ROOM_TRIGGER_STAIR_YAW_1024, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2624, -64, -2976, 0 }, .vertices = { { -2176, 0, 320, 0 }, { -2176, 0, -320, 0 }, { 2176, 0, 320, 0 }, { 2176, 0, -320, 0 } }, .normal = { 0, 4111, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 2187, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_4, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 2560, -64, -5600, 0 }, .vertices = { { -2176, 0, 320, 0 }, { -2176, 0, -320, 0 }, { 2176, 0, 320, 0 }, { 2176, 0, -320, 0 } }, .normal = { 0, 4111, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 2187, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_5, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 1504, -64, -4336, 0 }, .vertices = { { -448, 0, -368, 0 }, { 448, 0, -368, 0 }, { -448, 0, 368, 0 }, { 448, 0, 368, 0 } }, .normal = { 0, 4100, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 579, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_3, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0, -64, -4288, 0 }, .vertices = { { -320, 0, -1696, 0 }, { 320, 0, -1696, 0 }, { -320, 0, 1696, 0 }, { 320, 0, 1696, 0 } }, .normal = { 0, 4112, 0, 0 }, .facingNormal = { 4096, 0, 0, 0 }, .radius = 1722, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_CONTROL_ROOM_TRIGGER_COMMAND_CAP_9, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
 /// Default placement layout's Watcher and amoeba files and spawn descriptors.

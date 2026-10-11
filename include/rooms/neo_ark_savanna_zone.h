@@ -30,8 +30,13 @@ enum { NEO_ARK_SAVANNA_ZONE_AREA_VARIANT_COUNT = 13 };
 /// be loaded for spawning and model-policy updates.
 extern AreaVariant gNeoArkSavannaZoneAreaVariants[NEO_ARK_SAVANNA_ZONE_AREA_VARIANT_COUNT];
 
-// neo_ark_savanna_zone
-extern WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[];
+/// Collision resources for the savanna zone's single room.
+///
+/// Room ID 1 selects the grid, four view boundaries, five action triggers and
+/// one sight occluder. The Neo Ark map directory borrows this array; there is
+/// no terminator. List scans include each LAST record. Keep the room overlay
+/// loaded until the active grid and all mutable collision lists are retired.
+extern WorldCollisionRoomResources gNeoArkSavannaZoneRoomCollisionResources[1];
 
 /// Lighting for the savanna zone's single room, borrowed while its overlay is loaded.
 ///
@@ -52,7 +57,15 @@ extern u8* gNeoArkSavannaZoneViewMaps[1];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gNeoArkSavannaZoneViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[];
+/// Actor placements and transition options for this area's warp endpoints.
+///
+/// Slots 1 and 2 lead to the Shrine and South Promenade respectively;
+/// arrival views are 4 and 2. Player and companion share each placement.
+/// There are no refusal sounds or map-marker flags.
+/// Index by warp ID minus one (1..2), with no terminator. Positions use
+/// world game units and yaw uses 4096 per turn. The map overlay borrows this
+/// room array, so keep the owning room loaded for endpoint lookups.
+extern DirectionWarpEntry gNeoArkSavannaZoneWarpEntries[2];
 
 /// Cameras selected by mapped view index 1..4, stored at index minus one.
 ///

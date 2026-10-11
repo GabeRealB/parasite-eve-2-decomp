@@ -80,9 +80,26 @@ extern SpriteView gShelterB1ArmorySpriteViews[13];
 /// The descriptor and its borrowed array remain valid while this overlay is loaded.
 extern WorldCoordRoomLights gShelterB1ArmoryRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_armory_80184B14[];
+/// Directed view boundaries for logical views 2<->3, 2<->8, 4<->5, 4<->6, 6<->7.
+///
+/// All 10 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1ArmoryViewBoundaryTriggers[10];
 
-extern WorldCollisionTrigger D_shelter_b1_armory_80184E0C[];
+/// Interaction and transition quads for this room.
+///
+/// Four door quads use departure slots 1..4; slots 3 and 4 both return to
+/// this area at the opposite endpoint. CAP selectors 10 and 12 route through
+/// the room command handler; room action 1 opens the shop. The two action-255
+/// quads are retained even though the room action handler ignores that ID.
+///
+/// All 23 records are live; the final one carries LAST, with no dummy
+/// terminator. Room binding supplies the current view coordinate and enables
+/// the quads. Origins, corner offsets and radii use room game units; normals
+/// use 4096 per unit. Keep this mutable storage loaded until its list is cleared.
+extern WorldCollisionTrigger gShelterB1ArmoryActionTriggers[23];
 
 /// The armory's collision and footstep policies, indexed by surface class 0..7.
 ///
