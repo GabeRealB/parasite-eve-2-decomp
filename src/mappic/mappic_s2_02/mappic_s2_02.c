@@ -455,32 +455,37 @@ TmdSource gMappicS202MotelLobbyShape = {
     .stream           = _gMappicS202MotelLobbyShapeStream,
 };
 
-static TmdBone _gMappicS202Model00910Skeleton[1] = {
+/// Identity transform and self-parented root for the Saloon G & R shape.
+static TmdBone _gMappicS202SaloonGRShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00910_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00910PartVerts[1] = {
+/// Vertex count of the Saloon G & R shape's sole part (eight vertices).
+static u32 _gMappicS202SaloonGRShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00910_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00910Verts[8] = {
+/// Saloon G & R's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202SaloonGRShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00910_verts.inc"
 };
 
-static u32 _gMappicS202Model00910Stream[21] = {
+/// Packed command stream for the Saloon G & R shape's two unlit triangles and two unlit quads.
+///
+/// Elements contain SVECTOR byte offsets and white colour; two group ends
+/// precede the stream end. The map reads only the first group.
+static u32 _gMappicS202SaloonGRShapeStream[] = {
 #include "assets/mappic_s2_02_model_00910_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F894 = {
-    0,
-    88,
-    0,
-    1,
-    _gMappicS202Model00910PartVerts,
-    _gMappicS202Model00910Verts,
-    &_gMappicS202Model00910Verts[8],
-    _gMappicS202Model00910Skeleton,
-    _gMappicS202Model00910Stream,
+TmdSource gMappicS202SaloonGRShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202SaloonGRShapeSkeleton),
+    .partVertexCounts = _gMappicS202SaloonGRShapePartVerts,
+    .verts            = _gMappicS202SaloonGRShapeVerts,
+    .normals          = &_gMappicS202SaloonGRShapeVerts[ARRAY_SIZE(_gMappicS202SaloonGRShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202SaloonGRShapeSkeleton,
+    .stream           = _gMappicS202SaloonGRShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C48009F4Skeleton[1] = {
