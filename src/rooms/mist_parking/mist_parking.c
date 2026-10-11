@@ -71,6 +71,11 @@ static const u16 _gShopStandardDefaultItemsStock[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xF2\xEF"
 #include "../../shared/telephone.h"
 
+/// Binds the shop's animated refill quantity to this room's writable s32 storage.
+///
+/// Defined in mist_parking_5.c and declared in the private header.
+/// Uses eight fractional bits; keep the binding through shop.inc.c and the
+/// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
 #define SHOP_REFILL_SUPPLY           gShopRefillSupply
 #define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xE2"

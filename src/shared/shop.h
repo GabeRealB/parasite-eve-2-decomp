@@ -23,12 +23,23 @@ enum {
     SHOP_ROW_END              = 0xFFFF  // End of the readable stock list.
 };
 
-/// Writable s32 lvalue holding the refill panel's displayed quantity, with eight fractional bits.
-///
-/// Defaults to TU-private storage. Mist Parking, night trailer coach, night
-/// garage and Shelter B1 armory bind their externally linked room-local copy
-/// before this header; keep the binding through shop.inc.c and undefine it after.
 #ifndef SHOP_REFILL_DISPLAY_QUANTITY
+/// Selects the signed 32-bit accumulator for the refill panel's animated supply quantity.
+///
+/// Expand to a single identifier naming a writable s32 object. The callback
+/// accesses it repeatedly; it must select the same storage without side effects.
+/// Each selected supply seeds it from the old whole-unit weapon load, then
+/// converts it to 256 units per supply unit. Drawing adds 64 per callback and
+/// clamps at the selected load's capacity in that scale. The number discards
+/// the fractional bits; the meter uses the scaled quantity and capacity.
+///
+/// Storage is shared by this carrier's refill callbacks, so only one refill
+/// panel may use it at a time. Keep it alive through panel closure, paired with
+/// `SHOP_REFILL_SUPPLY`; the callback initializes it for each selected supply.
+/// The default names TU-private storage declared by the carrier. Mist Parking,
+/// night trailer coach, night garage and Shelter B1 armory override it with
+/// storage defined in another room TU and declared in their private header.
+/// Bind before this header, retain through shop.inc.c, then undefine it.
 #define SHOP_REFILL_DISPLAY_QUANTITY _gShopRefillDisplayQuantityFixed
 #endif
 
