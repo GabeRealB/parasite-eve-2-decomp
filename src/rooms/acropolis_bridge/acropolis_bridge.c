@@ -3002,7 +3002,7 @@ static u8 _gAcropolisBridgeEnemyRoute0And1Nodes[16] = {
     9,
     11,
     4,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
 };
 
@@ -3012,7 +3012,7 @@ static u8 _gAcropolisBridgeEnemyRoute2Nodes[8] = {
     7,
     10,
     14,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
     0,
     0,
@@ -3025,7 +3025,7 @@ static u8 _gAcropolisBridgeEnemyRoute3Nodes[8] = {
     9,
     6,
     7,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
     0,
 };
@@ -3040,7 +3040,7 @@ static u8 _gAcropolisBridgeEnemyRoute4Nodes[12] = {
     12,
     13,
     18,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
     0,
     0,
@@ -3054,7 +3054,7 @@ static u8 _gAcropolisBridgeEnemyRoute5Nodes[8] = {
     12,
     5,
     10,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
 };
 
@@ -3065,7 +3065,7 @@ static u8 _gAcropolisBridgeEnemyRoute6Nodes[8] = {
     9,
     10,
     11,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
     0,
 };
@@ -3075,7 +3075,7 @@ static u8 _gAcropolisBridgeEnemyRoute7Nodes[4] = {
     14,
     13,
     6,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
 };
 
 /// Placement 8's six-node patrol; no current spawn selects it. The trailing zero is unread.
@@ -3086,13 +3086,13 @@ static u8 _gAcropolisBridgeEnemyRoute8Nodes[8] = {
     11,
     10,
     5,
-    OVERLAY_WALKER_ROUTE_END,
+    BOSS_STRANGER_ROUTE_END,
     0,
 };
 
 /// Patrol streams indexed by the enemy's placement index, which must be 0..8.
 ///
-/// Default placements use 0..5. Every stream ends at OVERLAY_WALKER_ROUTE_END
+/// Default placements use 0..5. Every stream ends at BOSS_STRANGER_ROUTE_END
 /// and names nodes 0..19; placements 0 and 1 share the first stream's suffix.
 /// Walker route records borrow these pointers while the room remains loaded.
 static u8* _gAcropolisBridgeEnemyRoutesByPlacement[9] = {

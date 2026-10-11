@@ -187,22 +187,36 @@ enum {
     OVERLAY_ENCOUNTER_SLOT_DONE    = 2  // its enemies are dead or were removed
 };
 
-/// The action an encounter slot's command asks of its enemy: come out of
-/// hiding at one of the room's `OverlayEncounterSpot` rows.
-#define OVERLAY_ENCOUNTER_COMMAND_APPEAR 1
+/// Shared encounter actions carried in `ActorCommand::command`.
+enum {
+    /// Reveals a hidden enemy at a room entry spot.
+    ///
+    /// The packed word also selects a spot and, for Mad Chasers, an entry move.
+    /// Slouch and Sucklerceph require the entire low byte to equal this action;
+    /// their entry-move bits must therefore be zero.
+    OVERLAY_ENCOUNTER_COMMAND_APPEAR = 1,
 
-/// The action that ends a scripted encounter before its table runs out. The
-/// room sends it to every actor at once: the encounter's controller stops
-/// starting rows, and each enemy reacts to the same action in its own way.
-#define OVERLAY_ENCOUNTER_COMMAND_STOP 4
+    /// Suspends an encounter controller's feeding and completion stages.
+    ///
+    /// Send the exact word 4, with no packed spot or entry move. The controller
+    /// keeps its task and battle hold; already started row spawners continue.
+    /// When also broadcast to enemies, Mad Chasers request drop death, Slouch
+    /// starts puffing, and Sucklerceph starts puffing only in active task state 1.
+    OVERLAY_ENCOUNTER_COMMAND_STOP = 4
+};
 
-/// Composes an `OverlayEncounterSlot::command` that brings the enemy out at
-/// row `spot` (0..15) of the room's `OverlayEncounterSpot` table.
+/// Packs an appearance command for an encounter slot or a direct actor request.
 ///
-/// `entryMove` (0..15) picks the move the enemy comes out with. Only the Mad
-/// Chaser decodes it; the other enemies compare the whole low byte with the
-/// action, so their slots need 0 here. A room whose controller picks the spot
-/// itself adds it to the command afterwards and passes 0 for `spot`.
+/// Action 1 occupies bits 0..3, `entryMove` bits 4..7 and `spot` bits 8..11.
+/// Supply nonnegative integer arguments in 0..15; each is evaluated once, in
+/// unspecified order, with ordinary integer promotions and no masking or cast.
+/// Constant arguments produce an integer constant expression for slot tables.
+///
+/// `spot` must name a loaded `OverlayEncounterSpot` row: 0..11 in the dumping
+/// hole or 0..15 in the incinerator. Slouch and Sucklerceph read the full high
+/// byte as the index, so bits 12..15 must stay zero. Mad Chaser entry moves are
+/// 0 backflip, 1 low backward arc, and 2..15 high arc; other enemies require 0.
+/// Pass spot 0 when OR-ing a separately selected, already shifted spot later.
 #define OVERLAY_ENCOUNTER_APPEAR_COMMAND(spot, entryMove) (((spot) << 8) | ((entryMove) << 4) | OVERLAY_ENCOUNTER_COMMAND_APPEAR)
 
 /// One row of a scripted encounter's table: a spawner task its controller
@@ -506,18 +520,21 @@ typedef struct {
 } BossStrangerNav;
 STATIC_ASSERT_SIZEOF(BossStrangerNav, 0xC);
 
-/// End of a Boss Stranger patrol route. The cursor returns to the first index
-/// when the entry it lands on has this value.
-#define OVERLAY_WALKER_ROUTE_END 0xFF
+/// Byte sentinel that wraps a Boss Stranger patrol route to its first node.
+///
+/// Reserved from navigation-node indices. A nonempty route starts with a real
+/// index; arrival advances its byte cursor and tests the following entry for
+/// this value before reading a node. The marker repeats the route, not a stop.
+#define BOSS_STRANGER_ROUTE_END 0xFF
 
 /// One Boss Stranger patrol route: the order of nav-node indices the walker
 /// follows, and the cursor into that order.
 ///
-/// `nodeIndices` runs until `OVERLAY_WALKER_ROUTE_END`. On the frame the
+/// `nodeIndices` runs until `BOSS_STRANGER_ROUTE_END`. On the frame the
 /// walker reaches the node it is heading for, `arrived` is raised and `cursor`
 /// advances, returning to the first index at the end marker.
 typedef struct {
-    u8*  nodeIndices; // Indices into the walker's nav node table, ended by OVERLAY_WALKER_ROUTE_END
+    u8*  nodeIndices; // Indices into the walker's nav node table, ended by BOSS_STRANGER_ROUTE_END
     u8   field_4;     // Role unproven. Actor spawn stores 2 and the route rebuild stores 0; nothing reads it
     u8   cursor;      // Index of the current entry. Wraps to 0 at the end marker
     u8   arrived;     // 1 on the frame the current node is reached, otherwise 0
@@ -525,12 +542,33 @@ typedef struct {
 } BossStrangerRoute;
 STATIC_ASSERT_SIZEOF(BossStrangerRoute, 0x8);
 
-/// Values of `BossStrangerWalker::state`. Close-in is implemented; neither
-/// carrier stores it.
-#define BOSS_STRANGER_WALKER_IDLE   0
-#define BOSS_STRANGER_WALKER_CHASE  1
-#define BOSS_STRANGER_WALKER_CLOSE  2
-#define BOSS_STRANGER_WALKER_PATROL 3
+/// Steering modes stored in the byte `BossStrangerWalker::state`.
+enum {
+    /// Skips goal selection while the speed ramp and movement still run.
+    ///
+    /// Turning still uses the unwritten tick goal. Idle callers disable turning
+    /// through turnLimit; this state alone does not stop the current speed.
+    BOSS_STRANGER_WALKER_IDLE = 0,
+
+    /// Steers directly toward the player selected by the walker's playerId.
+    ///
+    /// Copies the player's current translation into the signed-halfword goal.
+    /// playerId is one-based; only player 1 has established resident storage.
+    BOSS_STRANGER_WALKER_CHASE = 1,
+
+    /// Plans toward player 1 along the navigation node order.
+    ///
+    /// Neither known carrier selects this mode. It advances the order cursor on
+    /// arrival but leaves the tick goal unwritten. Its extra four scratch bytes
+    /// are released only on arrival; a non-arriving tick leaves the cursor lower.
+    BOSS_STRANGER_WALKER_CLOSE = 2,
+
+    /// Steers along the looping patrol route of navigation-node indices.
+    ///
+    /// Arrival selects the next index, wraps at `BOSS_STRANGER_ROUTE_END`, and
+    /// raises route->arrived for that tick before writing the new steering goal.
+    BOSS_STRANGER_WALKER_PATROL = 3
+};
 
 /// Movement record of the Boss Stranger walker.
 ///

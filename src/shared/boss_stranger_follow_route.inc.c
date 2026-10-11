@@ -4,7 +4,7 @@
 ///
 /// Requires a live, nonempty end-marked route whose byte cursor names its current
 /// node and whose following entry is readable. Advances the cursor with byte
-/// wrap, resetting it to zero at `OVERLAY_WALKER_ROUTE_END`. Clears both turn
+/// wrap, resetting it to zero at `BOSS_STRANGER_ROUTE_END`. Clears both turn
 /// counters and returns the new navigation-node index stored in `walker->node`.
 static inline u8 _bossStrangerAdvancePatrolNode(BossStrangerWalker* walker)
 {
@@ -22,7 +22,7 @@ static inline u8 _bossStrangerAdvancePatrolNode(BossStrangerWalker* walker)
     routeAdvance->cursor++;
 
     routeWrap = walker->route;
-    if (routeWrap->nodeIndices[routeWrap->cursor] == OVERLAY_WALKER_ROUTE_END) {
+    if (routeWrap->nodeIndices[routeWrap->cursor] == BOSS_STRANGER_ROUTE_END) {
         routeWrap->cursor = 0;
     }
 
@@ -35,7 +35,7 @@ static inline u8 _bossStrangerAdvancePatrolNode(BossStrangerWalker* walker)
 /// Selects the patrol route's current node and writes the next steering goal.
 ///
 /// On arrival, raises `route->arrived`, clears the turn counters and advances
-/// the route cursor, wrapping at `OVERLAY_WALKER_ROUTE_END`; the output then
+/// the route cursor, wrapping at `BOSS_STRANGER_ROUTE_END`; the output then
 /// names the new node. Otherwise clears `arrived` and writes the current node.
 /// Requires a nonempty, end-marked route with a valid cursor and node indices
 /// into `nav->nodes`, a live coordinate, and initialized scratch storage for

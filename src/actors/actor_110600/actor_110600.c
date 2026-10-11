@@ -1156,7 +1156,7 @@ static void _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s
     for (scratch->nodeIndex = 0; scratch->nodeIndex < walker->nav->nodeCount; scratch->nodeIndex++) {
         walker->route->nodeIndices[scratch->nodeIndex] = scratch->nodeIndex;
     }
-    walker->route->nodeIndices[scratch->nodeIndex] = OVERLAY_WALKER_ROUTE_END;
+    walker->route->nodeIndices[scratch->nodeIndex] = BOSS_STRANGER_ROUTE_END;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor110600PatrolLayoutScratch);
 }
 
