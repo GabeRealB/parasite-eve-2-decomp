@@ -62,7 +62,7 @@ static void _golemKnightBishopAimFromPart(Task* task)
         work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
     // Consume the previous collision pass, then project both world-space ends.
-    if (work->auxTimer < GOLEM_KNIGHT_BISHOP_AIM_TIME - 1) {
+    if (work->auxTimer < GOLEM_KNIGHT_BISHOP_AIM_FRAMES - 1) {
         scratch->ends[1].vx = GOLEM_KNIGHT_BISHOP_AIM_PART_X;
         scratch->ends[1].vy = GOLEM_KNIGHT_BISHOP_AIM_PART_Y;
         scratch->ends[1].vz = GOLEM_KNIGHT_BISHOP_AIM_PART_Z;

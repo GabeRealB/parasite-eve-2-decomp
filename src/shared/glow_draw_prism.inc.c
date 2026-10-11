@@ -49,10 +49,17 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
     red   = brightness * 3 / 4;
     green = brightness;
     blue  = brightness;
-    // Place one local corner with coord rotation already loaded. Captures coord and
-    // block; source is evaluated once. destinationIndex is repeated and must be
-    // a side-effect-free index 0..3. Use only as statements in braced bodies.
-    // This binding is confined to this function and is undefined before return.
+    /// Rotates a local prism corner and adds the composed coordinate's translation.
+    ///
+    /// Requires a readable, word-aligned `SVECTOR*` source and the coordinate's
+    /// Q12 rotation already loaded in the GTE. Captures the readable `GfxCoord*`
+    /// `coord` and writable `EffectQuadCornersScratch*` `block`. Stores signed
+    /// GTE IR components, then narrows each translated sum back to s16; the
+    /// vector's fourth halfword stays intact. An in-place source is permitted.
+    /// `source` is evaluated once and `destinationIndex` four times; the index
+    /// must be side-effect-free and in 0..3. Clobbers GTE V0, MAC/IR and FLAG;
+    /// leaves translation registers intact. Use this statement list only inside
+    /// a braced body. Undefined before leaving the drawer.
 #define GLOW_PRISM_TRANSFORM_CORNER(source, destinationIndex)  \
     gte_ldv0((source));                                        \
     gte_rtv0();                                                \

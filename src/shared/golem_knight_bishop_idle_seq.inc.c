@@ -84,7 +84,7 @@ static void _golemKnightBishopIdleSeq(Task* task)
                 work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;
                 work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;
-                if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
+                if (work->attackCount < GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT) {
                     work->attackCount++;
                 }
             } else {
@@ -102,7 +102,7 @@ static void _golemKnightBishopIdleSeq(Task* task)
                 work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE;
                 work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE;
-                if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
+                if (work->attackCount < GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT) {
                     work->attackCount++;
                 }
             } else {
@@ -119,7 +119,7 @@ static void _golemKnightBishopIdleSeq(Task* task)
             work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
             worldCollisionClearContacts(work->aimBeamContacts);
-            if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
+            if (work->attackCount < GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT) {
                 work->attackCount++;
             }
             break;

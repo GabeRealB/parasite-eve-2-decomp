@@ -12,9 +12,13 @@ static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, c
 {
     /// Initializes a star wedge with three black rim vertices and a centre tint.
     ///
-    /// `quad` must have no side effects because it occurs repeatedly; each
-    /// colour is evaluated once with its supplied expression type. Expand only
-    /// as a standalone statement list in a block, with a terminating semicolon.
+    /// `quad` addresses one writable `POLY_G4` and is evaluated fourteen times
+    /// through the SDK setters; it must be side-effect-free. Each colour is
+    /// evaluated once and narrowed to u8, so callers supply 0..255 expressions
+    /// independent of the packet being written. Captures no caller locals.
+    /// Initializes only length, code and RGB: positions, tag and frame-arena
+    /// ownership remain with the drawer. Use this statement list inside a braced
+    /// body with a terminating semicolon; undefined before leaving the drawer.
 #define ROOM_VISUAL_EFFECTS_INIT_STAR_WEDGE(quad, red, green, blue) \
     setPolyG4(quad);                                                \
     setRGB0(quad, 0, 0, 0);                                         \

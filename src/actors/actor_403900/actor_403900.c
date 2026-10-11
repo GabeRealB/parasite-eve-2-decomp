@@ -55,7 +55,7 @@
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
-#define GOLEM_KNIGHT_BISHOP_KIND GOLEM_BISHOP
+#define GOLEM_KNIGHT_BISHOP_KIND GOLEM_KNIGHT_BISHOP_KIND_BISHOP
 #include "../../shared/golem_knight_bishop.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy

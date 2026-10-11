@@ -30,7 +30,7 @@ static void _golemKnightBishopRecoverSeq(Task* task)
             work->step      = GOLEM_KNIGHT_BISHOP_RECOVER_WAIT;
             randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState = randomDraw;
-            work->timer     = ((randomDraw >> 16) & 0x1F) + GOLEM_KNIGHT_BISHOP_RECOVER_DELAY;
+            work->timer     = ((randomDraw >> 16) & 0x1F) + GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES;
             if (work->hitCooldown == 0) {
                 work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;

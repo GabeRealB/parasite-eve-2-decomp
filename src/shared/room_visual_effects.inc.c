@@ -44,14 +44,20 @@ typedef struct {
 } _RoomFxMoteArg;
 STATIC_ASSERT_SIZEOF(_RoomFxMoteArg, 0x4);
 
-/// Bit of the mote argument: steady, moving down.
-#define ROOM_VISUAL_EFFECTS_MOTE_STEADY 0x1
-/// Bit of the mote argument: steady, moving up.
-#define ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP 0x2
-/// `_RoomFxMoteArg::extentPalette` bits giving the sprite's half-extent.
-#define ROOM_VISUAL_EFFECTS_MOTE_EXTENT 0x0FFF
-/// `_RoomFxMoteArg::extentPalette` bits giving the sprite's palette.
-#define ROOM_VISUAL_EFFECTS_MOTE_PALETTE 0xF000
+/// Motion bits and packed halfword masks in a mote's spawn argument.
+///
+/// The motion bits also contribute to the half-extent; they are not removed
+/// before sizing. Either bit starts at full brightness without random speed.
+enum {
+    /// Selects steady downward motion unless `ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP` is also set.
+    ROOM_VISUAL_EFFECTS_MOTE_STEADY = 0x1,
+    /// Selects steady upward motion, taking precedence over the downward bit.
+    ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP = 0x2,
+    /// Low twelve bits: whole-coordinate half-extent, also used when unpacking texture-strip arguments.
+    ROOM_VISUAL_EFFECTS_MOTE_HALF_EXTENT_MASK = 0x0FFF,
+    /// High nibble: palette selector retained in bits 12..15 until drawing; zero selects the default CLUT.
+    ROOM_VISUAL_EFFECTS_MOTE_PALETTE_MASK = 0xF000
+};
 
 /// Moves a mote each active tick and queues its next sprite frame on odd ages.
 ///
@@ -126,8 +132,8 @@ static inline void _roomVisualEffectsMoteTask(Task* task)
                 // The byte view keeps speed unsigned and lifetime signed.
                 if (task->spawnArg1.value & (ROOM_VISUAL_EFFECTS_MOTE_STEADY | ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP)) {
                     work->scale   = MOTE_FULL_BRIGHTNESS;
-                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
-                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_HALF_EXTENT_MASK;
+                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE_MASK;
                     lifetime      = ((const _RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
@@ -139,8 +145,8 @@ static inline void _roomVisualEffectsMoteTask(Task* task)
                     task->state = MOTE_STEADY;
                 } else {
                     work->scale   = MOTE_INITIAL_BRIGHTNESS;
-                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
-                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    work->angle   = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_HALF_EXTENT_MASK;
+                    work->period  = ((const _RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE_MASK;
                     lifetime      = ((const _RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;

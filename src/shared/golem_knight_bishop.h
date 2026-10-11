@@ -14,7 +14,8 @@
  * inline animation, tint and shadow helpers from the inline fragment.
  *
  * Each package builds the library for its own type: it defines
- * GOLEM_KNIGHT_BISHOP_KIND as GOLEM_KNIGHT (actor_402200) or GOLEM_BISHOP
+ * GOLEM_KNIGHT_BISHOP_KIND as GOLEM_KNIGHT_BISHOP_KIND_KNIGHT (actor_402200)
+ * or GOLEM_KNIGHT_BISHOP_KIND_BISHOP
  * (actor_403900) before including this header, and the parameters below
  * follow from it.
  *
@@ -25,38 +26,55 @@
 #ifndef SRC_SHARED_GOLEM_KNIGHT_BISHOP_H
 #define SRC_SHARED_GOLEM_KNIGHT_BISHOP_H
 
-#define GOLEM_KNIGHT 1
-#define GOLEM_BISHOP 2
+/// Compile-time Knight tuning selector, separate from the runtime actor ID.
+///
+/// actor_402200 binds `GOLEM_KNIGHT_BISHOP_KIND` to this value before this header.
+#define GOLEM_KNIGHT_BISHOP_KIND_KNIGHT 1
+/// Compile-time Bishop tuning selector, separate from the runtime actor ID.
+///
+/// actor_403900 binds `GOLEM_KNIGHT_BISHOP_KIND` to this value before this header.
+#define GOLEM_KNIGHT_BISHOP_KIND_BISHOP 2
 #ifndef GOLEM_KNIGHT_BISHOP_KIND
-#error "define GOLEM_KNIGHT_BISHOP_KIND (GOLEM_KNIGHT or GOLEM_BISHOP) before including golem_knight_bishop.h"
+#error "define GOLEM_KNIGHT_BISHOP_KIND (GOLEM_KNIGHT_BISHOP_KIND_KNIGHT or GOLEM_KNIGHT_BISHOP_KIND_BISHOP) before including golem_knight_bishop.h"
 #endif
 
-/* Per type: its id (also in its collision keys, 0x30000 | id); how often a
- * hold re-decides whether it ends; what one hit adds to the hit load and the
- * load at which the box approach breaks off; the aim countdown, whose last
- * frames project the beam; the idle sequence's cap on its approach counter;
- * and the base of the random recovery delay. */
-#if GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT
+#if GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT_BISHOP_KIND_KNIGHT
 /// Knight actor-kind ID, also the low bits of its enemy-body collision keys.
 ///
 /// Selected at compilation by GOLEM_KNIGHT_BISHOP_KIND and stored as a signed
 /// halfword in work. The collision contact kind is ORed into separate high bits.
 enum { GOLEM_KNIGHT_BISHOP_ACTOR_ID = 0x16 };
-#define GOLEM_KNIGHT_BISHOP_GRAB_RECHECK  0x1E
-#define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xA0
-#define GOLEM_KNIGHT_BISHOP_AIM_TIME      0x14
-#define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    12
-#define GOLEM_KNIGHT_BISHOP_RECOVER_DELAY 0x4B
+/// Knight attack and recovery parameters; frame values count sequence updates.
+enum {
+    /// Updates between grab damage/kill checks after the initial grace period.
+    GOLEM_KNIGHT_BISHOP_GRAB_CHECK_INTERVAL_FRAMES = 30,
+    /// Accumulated damage that interrupts box wait/advance; reaction 9 also adds this amount.
+    GOLEM_KNIGHT_BISHOP_BOX_INTERRUPT_DAMAGE = 160,
+    /// Initial aim countdown; the first tick probes without drawing and the zero tick still draws.
+    GOLEM_KNIGHT_BISHOP_AIM_FRAMES = 20,
+    /// Saturating attack count used to shorten the hidden idle wait by count / 16.
+    GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT = 12,
+    /// Recovery wait before the random 0..31 extra sequence updates.
+    GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES = 75
+};
 #else
 /// Bishop actor-kind ID, also the low bits of its enemy-body collision keys.
 ///
 /// Selected at compilation by GOLEM_KNIGHT_BISHOP_KIND and stored in work.
 enum { GOLEM_KNIGHT_BISHOP_ACTOR_ID = 0x27 };
-#define GOLEM_KNIGHT_BISHOP_GRAB_RECHECK  0x14
-#define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xFA
-#define GOLEM_KNIGHT_BISHOP_AIM_TIME      0xA
-#define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    8
-#define GOLEM_KNIGHT_BISHOP_RECOVER_DELAY 0x2D
+/// Bishop attack and recovery parameters; frame values count sequence updates.
+enum {
+    /// Updates between grab damage/kill checks after the initial grace period.
+    GOLEM_KNIGHT_BISHOP_GRAB_CHECK_INTERVAL_FRAMES = 20,
+    /// Accumulated damage that interrupts box wait/advance; reaction 9 also adds this amount.
+    GOLEM_KNIGHT_BISHOP_BOX_INTERRUPT_DAMAGE = 250,
+    /// Initial aim countdown; the first tick probes without drawing and the zero tick still draws.
+    GOLEM_KNIGHT_BISHOP_AIM_FRAMES = 10,
+    /// Saturating attack count used to shorten the hidden idle wait by count / 16.
+    GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT = 8,
+    /// Recovery wait before the random 0..31 extra sequence updates.
+    GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES = 45
+};
 #endif
 
 #include "types.h"
@@ -225,7 +243,7 @@ typedef struct {
     s16                      beamDepth[2];           // their ordering depths, a quarter of the screen z
     s16                      boxRegion;              // index at `regions` of the box the player was last found in
     s16                      interruptDamage;        // damage taken since an attack or hold opened; enough of it breaks that off
-    s16                      attackCount;            // attacks started so far, up to `GOLEM_KNIGHT_BISHOP_IDLE_LIMIT`; each shortens the idle wait by a sixteenth
+    s16                      attackCount;            // attacks started so far, up to `GOLEM_KNIGHT_BISHOP_ATTACK_COUNT_LIMIT`; each shortens the idle wait by a sixteenth
     s16                      lastAttack;             // `GOLEM_KNIGHT_BISHOP_SEQUENCE_` value of the last attack started (grab, strike or box approach; 0 before the first)
     s16                      repeatCount;            // times running the idle pick has repeated `lastAttack`; each makes the other attack likelier
     s16                      soundSet;               // the room's sound variant (0 none): picks the animation cue sounds and the sound file loaded at spawn

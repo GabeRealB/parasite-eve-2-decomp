@@ -37,7 +37,7 @@ static void _roomVisualEffectsDrawMote(const GfxCoord* coord, u16 animationFrame
     // Unpack the sprite size and tint independently of their texture selectors.
     halfExtent                = packedHalfExtentRow;
     textureRow                = halfExtent >> MOTE_SELECTOR_SHIFT;
-    halfExtent               &= ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+    halfExtent               &= ROOM_VISUAL_EFFECTS_MOTE_HALF_EXTENT_MASK;
     brightness                = packedBrightnessPalette;
     paletteIndex              = brightness >> MOTE_SELECTOR_SHIFT;
     brightness               &= MOTE_BRIGHTNESS_MASK;
@@ -215,9 +215,14 @@ static inline void _roomVisualEffectsHaloTask(Task* task)
 {
     /// Sets three colour bytes from the halo work's brightness and selected tint row.
     ///
-    /// Both arguments are evaluated repeatedly and must have no side effects.
-    /// The three-byte destination must not overlap the work; use as a standalone
-    /// statement list with a terminating semicolon.
+    /// `rgb` addresses three writable bytes and `work` a readable `EffectWork`:
+    /// scale is signed brightness and index selects tint row 0..2. The carrier's
+    /// `_roomVisualEffectsGetHaloShades` must return those three live rows with
+    /// shift counts in 0..31. The getter runs once per channel. `rgb` is evaluated
+    /// three times and `work` six; both must be side-effect-free and disjoint.
+    /// Each arithmetic right shift promotes scale to int before narrowing to u8.
+    /// Captures no caller locals. Use this statement list inside a braced body
+    /// with a terminating semicolon; undefined after the task.
 #define ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work)                                     \
     (rgb)[0] = (work)->scale >> _roomVisualEffectsGetHaloShades()[(work)->index].rShift; \
     (rgb)[1] = (work)->scale >> _roomVisualEffectsGetHaloShades()[(work)->index].gShift; \
@@ -322,16 +327,6 @@ static inline void _roomVisualEffectsHaloTask(Task* task)
 /// Nonzero room effect control pauses the task; four or above cancels it.
 static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    /// Sets the burst's orange tint at full, half and quarter channel brightness.
-    ///
-    /// Both arguments are evaluated repeatedly and must have no side effects;
-    /// `level` must not alias the three-byte destination. Use only as a
-    /// standalone statement list with a terminating semicolon.
-#define ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, level) \
-    (rgb)[0] = (level);                                     \
-    (rgb)[1] = (level) >> 1;                                \
-    (rgb)[2] = (level) >> 2
-
     enum { BURST_INITIALIZE,
            BURST_EXPAND,
            BURST_INITIAL_LEVEL       = 0xE0,
@@ -368,14 +363,14 @@ static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task)
         task->state  = BURST_EXPAND;
     }
     actorRenderComposeCoord(coord);
-    ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->scale);
+    ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, work->scale);
     glowHalfExtent = work->angle + BURST_GLOW_EXTENT_STEP;
     work->angle    = glowHalfExtent;
     _roomVisualEffectsDrawHaloDisc(coord, (s16)(glowHalfExtent * 2), rgb);
     _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
     // Fade the expanding ring before reducing the central burst brightness.
     if (work->period > BURST_LEVEL_STEP) {
-        ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT(rgb, work->period);
+        ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, work->period);
         _roomVisualEffectsDrawHaloRing(coord, (s16)(work->step * 3 / 2), BURST_RING_TINT_DELTA, rgb);
         work->period -= BURST_LEVEL_STEP;
         work->step   += BURST_RING_BASE_STEP;
@@ -385,5 +380,4 @@ static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task)
     if (work->scale < BURST_LEVEL_STEP) {
         effectKillTask(work, task);
     }
-#undef ROOM_VISUAL_EFFECTS_SET_HALO_BURST_TINT
 }

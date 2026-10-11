@@ -14,6 +14,12 @@ typedef struct {
 } _GolemKnightBishopHitScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopHitScratch, 0x30);
 
+/// Facing value and model-coordinate index used by the impact-effect macro.
+enum {
+    GOLEM_KNIGHT_BISHOP_HIT_FROM_FRONT        = 1,
+    GOLEM_KNIGHT_BISHOP_HIT_EFFECT_PART_INDEX = 3
+};
+
 /// Resolves contacts, applies attack damage and updates the GOLEM's hit response.
 ///
 /// `task` owns a live GOLEM model/work block and Enemy spawn argument. Contact
@@ -101,21 +107,25 @@ static void _golemKnightBishopTakeHits(Task* task)
 
     /// Places the impact effect on part 3, on the side facing the hit.
     ///
-    /// Local to this handler. Captures task, work, scratch, contactIndex and
-    /// effectForwardOffset, all live locals of this handler. Use only inside a
-    /// braced statement block: it expands to multiple statements. It writes the
-    /// three effect-offset components and the signed-halfword temporary, then
-    /// performs one effect request. The contact key expression is read once.
-#define GOLEM_KNIGHT_BISHOP_SPAWN_HIT_EFFECT()                                                \
-    scratch->effectOffset.vx = 0;                                                             \
-    scratch->effectOffset.vy = 0;                                                             \
-    effectForwardOffset      = GOLEM_KNIGHT_BISHOP_HIT_EFFECT_BEHIND;                         \
-    if (work->hitFromFront == 1) {                                                            \
-        effectForwardOffset = GOLEM_KNIGHT_BISHOP_HIT_EFFECT_FRONT;                           \
-    }                                                                                         \
-    scratch->effectOffset.vz = effectForwardOffset;                                           \
-    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[contactIndex].key.value), \
-                   &task->extra.tmd->coords[3], &scratch->effectOffset,                       \
+    /// Captures live `Task* task`, `GolemKnightBishopWork* work`, writable hit
+    /// scratch, an in-range hurt-contact `contactIndex`, and writable s16
+    /// `effectForwardOffset`. The model must include coordinate 3; its local Z
+    /// offset is -150 behind or 200 in front, in whole coordinate units. Writes
+    /// only scratch XYZ and the temporary before reading the contact key once.
+    /// `hitEffectArg` must select that same live part; the effect spawner may
+    /// update it and borrow the part for spawned tasks. Scratch is consumed
+    /// synchronously. Use this statement list only inside a braced body;
+    /// undefined after this handler.
+#define GOLEM_KNIGHT_BISHOP_SPAWN_HIT_EFFECT()                                                                  \
+    scratch->effectOffset.vx = 0;                                                                               \
+    scratch->effectOffset.vy = 0;                                                                               \
+    effectForwardOffset      = GOLEM_KNIGHT_BISHOP_HIT_EFFECT_BEHIND;                                           \
+    if (work->hitFromFront == GOLEM_KNIGHT_BISHOP_HIT_FROM_FRONT) {                                             \
+        effectForwardOffset = GOLEM_KNIGHT_BISHOP_HIT_EFFECT_FRONT;                                             \
+    }                                                                                                           \
+    scratch->effectOffset.vz = effectForwardOffset;                                                             \
+    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[contactIndex].key.value),                   \
+                   &task->extra.tmd->coords[GOLEM_KNIGHT_BISHOP_HIT_EFFECT_PART_INDEX], &scratch->effectOffset, \
                    &work->hitEffectArg)
 
     // Process attack keys in table order; the shared cooldown can suppress later hits.
@@ -181,7 +191,7 @@ static void _golemKnightBishopTakeHits(Task* task)
                         }
                         break;
                     case GOLEM_KNIGHT_BISHOP_ATTACK_INTERRUPT:
-                        work->interruptDamage += GOLEM_KNIGHT_BISHOP_HIT_WEIGHT;
+                        work->interruptDamage += GOLEM_KNIGHT_BISHOP_BOX_INTERRUPT_DAMAGE;
                         break;
                 }
                 if (lastEffectKey != work->hurtContacts[contactIndex].key.value) {

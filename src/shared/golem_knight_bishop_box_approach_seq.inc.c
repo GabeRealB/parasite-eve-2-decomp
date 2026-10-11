@@ -81,7 +81,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                 work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
             }
-            work->auxTimer        = GOLEM_KNIGHT_BISHOP_AIM_TIME;
+            work->auxTimer        = GOLEM_KNIGHT_BISHOP_AIM_FRAMES;
             work->interruptDamage = 0;
             work->reactionLock    = GOLEM_KNIGHT_BISHOP_REACTION_ATTACKING;
             break;
@@ -96,7 +96,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                 work->auxTimer--;
                 _golemKnightBishopAimFromPart(task);
             }
-            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
+            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_BOX_INTERRUPT_DAMAGE) {
                 _golemKnightBishopInterruptBoxApproach(work);
             }
             break;
@@ -132,7 +132,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                     sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                 }
             }
-            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
+            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_BOX_INTERRUPT_DAMAGE) {
                 _golemKnightBishopInterruptBoxApproach(work);
             }
             break;

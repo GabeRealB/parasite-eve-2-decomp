@@ -78,7 +78,10 @@ static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, 
     /// Writes screen pixels and the complete FLAG word; a negative flag rejects
     /// the point. Leaves SZ3 available for the caller's depth read. Each pointer
     /// argument is evaluated once, in order, and no caller identifiers are
-    /// captured. The outputs must be writable word-aligned storage. Expands to
+    /// captured. `screenPoint` addresses a writable `DVECTOR` (four pixel bytes)
+    /// and `projectionFlags` a writable s32; both must be word-aligned and
+    /// disjoint. Overwrites GTE V0, MAC/IR, screen/depth FIFOs and FLAG, retaining
+    /// the matrix and projection settings. Expands to
     /// several statements: invoke only within a braced block, as below. It is
     /// defined only around this drawer and is undefined before it ends.
 #define BEAM_STRIP_PROJECT_POINT(worldPoint, screenPoint, projectionFlags) \

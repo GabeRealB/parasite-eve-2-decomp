@@ -43,7 +43,7 @@ static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* wor
 
 /// Adds one running update's velocity to a sprite's parent-space translation.
 ///
-/// `velocity` must be a readable `SVECTOR` lvalue; `coord` must point to a live,
+/// `velocity` must be a readable `SVECTOR` lvalue; `targetCoord` must point to a live,
 /// writable `GfxCoord` disjoint from it. Both expressions must be side-effect-free:
 /// the vector is evaluated three times and the pointer four times. Signed XYZ
 /// integer displacements are extended for the 32-bit additions; velocity and
@@ -51,12 +51,12 @@ static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* wor
 /// composition must run before using `workm`. The caller gates movement and
 /// applies acceleration afterwards. Expands to a compound statement, captures
 /// no locals and retains no pointer. Undefined after the task fragment.
-#define EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE(velocity, coord) \
-    {                                                        \
-        (coord)->coord.t[0]  += (velocity).vx;               \
-        (coord)->coord.t[1]  += (velocity).vy;               \
-        (coord)->coord.t[2]  += (velocity).vz;               \
-        (coord)->composeStamp = GRAPHICS_COORD_DIRTY;        \
+#define EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE(velocity, targetCoord) \
+    {                                                              \
+        (targetCoord)->coord.t[0]  += (velocity).vx;               \
+        (targetCoord)->coord.t[1]  += (velocity).vy;               \
+        (targetCoord)->coord.t[2]  += (velocity).vz;               \
+        (targetCoord)->composeStamp = GRAPHICS_COORD_DIRTY;        \
     }
 
 void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)

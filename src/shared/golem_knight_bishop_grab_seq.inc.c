@@ -189,7 +189,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                         work->step = GOLEM_KNIGHT_BISHOP_GRAB_KILL;
                         GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL);
                     } else {
-                        work->timer = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
+                        work->timer = GOLEM_KNIGHT_BISHOP_GRAB_CHECK_INTERVAL_FRAMES;
                         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(_gGolemKnightBishopAttacks, GOLEM_KNIGHT_BISHOP_ATTACK_GRAB), 0);
                         work->grabDamageTicks++;
                     }

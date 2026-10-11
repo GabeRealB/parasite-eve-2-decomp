@@ -29,9 +29,13 @@ static void _muzzleFlashDrawStreak(const GfxCoord* muzzleCoord, s16 directionAng
 
     /// Rotates one initialized local corner in place through the composed muzzle matrix.
     ///
-    /// Both pointer arguments must be side-effect-free: corner is evaluated twice,
-    /// matrix once. Captures no C locals and clobbers GTE working registers.
-    /// Expands to four statements; use only as a standalone statement sequence.
+    /// `corner` points to a writable, word-aligned `SVECTOR` and `matrix` to a
+    /// readable, word-aligned `MATRIX` with Q12 rotation. Stores the signed GTE
+    /// IR components in XYZ, leaving the fourth halfword intact. Translation
+    /// and projection remain the caller's work. Both pointer arguments must be
+    /// side-effect-free: corner is evaluated twice, matrix once. Captures no C
+    /// locals and overwrites GTE rotation, V0, MAC/IR and FLAG. Use this four-
+    /// statement sequence only inside a braced body; undefined after the drawer.
 #define MUZZLE_FLASH_ROTATE_STREAK_CORNER(corner, matrix) \
     gte_SetRotMatrix(matrix);                             \
     gte_ldv0(corner);                                     \
