@@ -94,6 +94,35 @@ static void _roomCutsceneSoundTask(Task* task);
 static void _actionPromptResetDefault(Task* task);
 static s32  _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
+/// Ascending execution priorities of this room's bodyless tasks.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY      = 32,
+    SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY = 192,
+};
+
+/// View, CAP and frame-count operands of the room's two event scenes.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_ROOM6_ARRIVAL_VIEW                 = 3,
+    SHELTER_B1_UNDERGROUND_PARKING_ROOM6_ARRIVAL_HOLD_FRAMES          = 60,
+    SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES                  = 30,
+    SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_CAP_SLOT              = 17,
+    SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_HIDE_FRAMES           = 1,
+    SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_DISPLAY_WAIT_FRAMES   = 2,
+    SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_SKIP_FADE_WAIT_FRAMES = 8,
+    SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_PLAYER_CLIP           = 1,
+};
+
+/// The panel's five buttons open the Push action in the hotspot command menu.
+enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH = 1 };
+
+/// Switch hotspot IDs are the bits toggled in the pending selector pattern.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED    = 8,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_GREEN  = 4,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_BLUE   = 2,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_YELLOW = 1,
+};
+
 /// `ActionPromptHotspot::id` of the selector panel's enter button, which
 /// commits the pending switch pattern. The four switch hotspots carry the bit
 /// each one toggles in that pattern instead (8, 4, 2, 1).
@@ -115,10 +144,12 @@ enum {
 enum {
     SHELTER_B1_UNDERGROUND_PARKING_TASK_PANEL_SESSION        = 0,
     SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM6_CHOICE         = 1,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE          = 2,
     SHELTER_B1_UNDERGROUND_PARKING_TASK_GARAGE_DEPARTURE     = 3,
     SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION = 4,
     SHELTER_B1_UNDERGROUND_PARKING_TASK_AMBIENCE             = 5,
     SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP        = 6,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_DESCRIPTOR_COUNT     = 7,
 };
 
 /// CAP command-table slots selected by this room; their text remains resource-owned.
@@ -136,6 +167,7 @@ enum {
     SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0E = 14,
     SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0F = 15,
     SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_10 = 16,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_17 = 23,
     SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_1E = 30,
 };
 
@@ -171,12 +203,17 @@ enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_COUNT = 16 };
 
 /// Interaction IDs shared by the room's action-trigger records and handlers.
 enum {
+    SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK   = 1,
     SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF      = 10,
+    SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP         = 11,
+    SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE    = 12,
     SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL           = 1,
-    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7      = 7,
-    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4      = 4,
     SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2 = 2,
+    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3 = 3,
+    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4      = 4,
+    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7      = 7,
     SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE           = 13,
+    SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP   = 22,
     SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4 = 48,
 };
 
@@ -244,30 +281,6 @@ static const EquipmentWeaponSupply* _gShopRefillSupply;
 /// The scene sub-task the cutscene runner spawned, while it runs.
 extern Task* gRoomCutsceneSoundTask;
 
-/// The area records applied when the scene hands the Dryfield story on.
-
-extern RoomCutsceneRecStorage D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc               D_shelter_b1_underground_parking_80187200;
-extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
-extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
-extern ScreenFade             D_shelter_b1_underground_parking_8018D750;
-
-extern EvsCommand D_shelter_b1_underground_parking_801872D8[];
-extern EvsCommand D_shelter_b1_underground_parking_801873DC[];
-extern EvsCommand D_shelter_b1_underground_parking_80187544[];
-
-/// The task spawned from `D_shelter_b1_underground_parking_80187670`, and its
-/// descriptor.
-extern Task*    D_shelter_b1_underground_parking_8018D74C;
-extern TaskDesc D_shelter_b1_underground_parking_80187670;
-
-extern TaskMessageEntry D_shelter_b1_underground_parking_80187230[];
-
-extern u8                  D_shelter_b1_underground_parking_8018D788;
-extern TaskDesc            D_shelter_b1_underground_parking_80187664[];
-extern ActionPromptHotspot D_shelter_b1_underground_parking_8018767C[];
-extern u8                  D_shelter_b1_underground_parking_801876C4[];
-
 static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask);
 static void _shelterB1UndergroundParkingRoomInitialize(Task* roomTask);
 static void _shelterB1UndergroundParkingPanelInitialize(Task* task);
@@ -301,12 +314,12 @@ static WorldCollisionTrigger      _gShelterB1UndergroundParkingRooms1Through7Vie
 static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom8ViewBoundaryTriggers[8];
 static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom1ActionTriggers[12];
 static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom2ActionTriggers[12];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018BD94[12];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018C124[12];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018C4B4[12];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018C844[20];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018CE34[16];
-extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018D2F4[11];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom3ActionTriggers[12];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom4ActionTriggers[12];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom5ActionTriggers[12];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom6ActionTriggers[20];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom7ActionTriggers[16];
+static WorldCollisionTrigger      _gShelterB1UndergroundParkingRoom8ActionTriggers[11];
 static WorldCoordRoomAmbientEntry _gShelterB1UndergroundParkingViewAmbientTable[SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT + 1];
 static WorldCoordRoomLights       _gShelterB1UndergroundParkingRoomLights;
 static s32                        _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32 messageId, const DirectionActionRequest* request, s32 unused);
@@ -332,9 +345,12 @@ static void                       _shelterB1UndergroundParkingPanelTask(Task* ta
 
 #include "../../shared/shop_panels.inc.c"
 
-ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } }, { 0 } };
+ShelterB1UndergroundParkingShopSessionTaskDescStorage gShelterB1UndergroundParkingShopSessionTaskDescStorage = { { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } }, { 0 } };
 
-TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
+/// Bodyless task recipe that carries the staged departure to the 1F garage.
+///
+/// Spawn only after publishing `gRoomDeparture`; arguments are unused.
+static TaskDesc _gShelterB1UndergroundParkingDepartureTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -348,7 +364,11 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
+/// Room-event, key-item, directed-action, command and sound-cue message handlers.
+///
+/// Borrowed by the registered room task while this overlay is loaded. The
+/// final entry makes other message IDs return zero; never dispatch its end ID.
+static TaskMessageEntry _gShelterB1UndergroundParkingRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1UndergroundParkingResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1UndergroundParkingUseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1UndergroundParkingHandleDirectionAction },
@@ -357,64 +377,97 @@ TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _capDialogueLoopTask, { .value = 0 } },
+/// Bodyless dialogue-loop recipe, with a loaded CAP command index in spawnArg1.
+///
+/// Command 22 starts this after holding player control. The room and CAP
+/// resources must remain loaded until the loop's exit choice resumes control.
+static TaskDesc _gShelterB1UndergroundParkingDialogueLoopTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _capDialogueLoopTask, { .value = 0 } };
+
+/// Seven indexed recipes for the room's auxiliary bodyless tasks.
+///
+/// Slots 0..6 run the panel session, room-6 choice, electric-car scene, garage
+/// departure, caption handoff, ambience and alternate CAP playback. There is
+/// no terminator. Alternate playback takes command 1..5 in spawnArg1; the
+/// other slots ignore spawn arguments. Callback code must remain loaded.
+static TaskDesc _gShelterB1UndergroundParkingTaskDescs[SHELTER_B1_UNDERGROUND_PARKING_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingPanelSessionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingResolveRoom6ChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingStartRoom7SceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingGarageDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingResumePlayerAfterCaptionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shelterB1UndergroundParkingAlternateCapTask, { .value = 0 } },
 };
 
-TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingPanelSessionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingResolveRoom6ChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingStartRoom7SceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingGarageDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingResumePlayerAfterCaptionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1UndergroundParkingAlternateCapTask, { .value = 0 } },
-};
+/// Player placement used when the accepted parking choice reveals room 6.
+///
+/// Position is in room game units; yaw is -1024 (4096 units per turn), with
+/// zero pitch and roll. The script's placement message copies both vectors.
+static ActorTransform _gShelterB1UndergroundParkingRoom6PlayerPlacement = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
 
-ActorTransform D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
-
-EvsCommand D_shelter_b1_underground_parking_801872D8[10] = {
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_underground_parking_801872C0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+/// Fades to black, places the player in room 6 and resumes player control.
+///
+/// Selects view 3 and the room-6 placement under the fade, waits 60 interpreter
+/// updates, then returns the 30-frame fade and resumes control. The command
+/// stream and placement remain borrowed until END; it has no skip path.
+static EvsCommand _gShelterB1UndergroundParkingRoom6ArrivalScript[10] = {
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x07) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHELTER_B1_UNDERGROUND_PARKING_ROOM6_ARRIVAL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB1UndergroundParkingRoom6PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_ROOM6_ARRIVAL_HOLD_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationPlayRequest D_shelter_b1_underground_parking_801873C8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 1 requested during the electric-car scene, without blending or collision.
+///
+/// EVS copies the full request and replaces source.index with the equipped weapon's
+/// bank before dispatch; its stored index 1 is not the playback bank selector.
+static AnimationPlayRequest _gShelterB1UndergroundParkingElectricCarPlayerAnimation = { { .index = 1 }, SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_PLAYER_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-EvsCommand D_shelter_b1_underground_parking_801873DC[15] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Electric-car CAP scene that switches the parking resources to room 7.
+///
+/// Starts CAP slot 17, releases the player tick while the display is hidden,
+/// enables drawing and plays the equipped-weapon clip. Two CAP cues bracket
+/// the room change before the 30-frame fade return resumes player control.
+/// Commands, callbacks and the animation request stay loaded until END.
+static EvsCommand _gShelterB1UndergroundParkingElectricCarSceneScript[15] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_CAP_SLOT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_HIDE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_DISPLAY_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetPlayerTickHold }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_underground_parking_801873C8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1UndergroundParkingElectricCarPlayerAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x03) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x09) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_underground_parking_80187544[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path that selects room 7 and cleans up the electric-car scene under a fade.
+///
+/// Uses the interpreter's default primary fade, waits 8 updates and then 1,
+/// selects room 7, cleans up CAP/HUD state and requests the fade's return.
+/// After 8 more updates it resumes player control. The stream and callbacks
+/// remain loaded until END.
+static EvsCommand _gShelterB1UndergroundParkingElectricCarSceneSkipScript[9] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -436,22 +489,38 @@ static RoomAmbienceEntry _gShelterB1UndergroundParkingAmbienceMixByView[9] = {
     { 8, 0, 76, 0 },
 };
 
-TaskDesc D_shelter_b1_underground_parking_80187664[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1UndergroundParkingActionPromptTask, { .value = 0 } },
-};
+/// Bodyless action-cursor child recipe used by the selector panel.
+///
+/// The panel passes spawnArg1 == 1 for port 0 and owns the child's lifetime.
+/// Priority 192 updates the cursor after the priority-32 panel each frame.
+static TaskDesc _gShelterB1UndergroundParkingActionPromptTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shelterB1UndergroundParkingActionPromptTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_underground_parking_80187670 = { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingPanelTask, { .value = 0 } };
+/// Bodyless selector-panel recipe, spawned and polled by the panel session.
+///
+/// Spawn arguments are unused; the panel owns allocated work and a cursor child.
+/// Its requested exit is completed by the session's poll. Keep this overlay loaded.
+static TaskDesc _gShelterB1UndergroundParkingPanelTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingPanelTask, { .value = 0 } };
 
-ActionPromptHotspot D_shelter_b1_underground_parking_8018767C[6] = {
-    { -78, 77, 16, 16, 8, 1, 0 },
-    { -48, 77, 16, 16, 4, 1, 0 },
-    { -21, 77, 16, 16, 2, 1, 0 },
-    { 3, 77, 16, 16, 1, 1, 0 },
-    { 34, 77, 40, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER, 1, 0 },
+/// Selector-panel switches and Enter button, followed by the hotspot terminator.
+///
+/// Rectangles use pixels from the screen centre with inclusive far edges. Switch
+/// IDs toggle the corresponding pending-pattern bit; Enter commits that pattern.
+/// All five choices open the Push command. Initialization clears their hits;
+/// each cursor scan updates them in place while the panel is open.
+static ActionPromptHotspot _gShelterB1UndergroundParkingPanelHotspots[6] = {
+    { -78, 77, 16, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED, SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH, 0 },
+    { -48, 77, 16, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_GREEN, SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH, 0 },
+    { -21, 77, 16, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_BLUE, SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH, 0 },
+    { 3, 77, 16, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_YELLOW, SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH, 0 },
+    { 34, 77, 40, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER, SHELTER_B1_UNDERGROUND_PARKING_PANEL_PROMPT_PUSH, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-u8 D_shelter_b1_underground_parking_801876C4[16] = {
+/// One-based room-resource variant selected by each committed switch pattern 0..15.
+///
+/// Values are rooms 2..5; the four switch bits index the complete table. Applying
+/// a selection updates both saved and live room selectors without loading an area.
+static u8 _gShelterB1UndergroundParkingPanelRoomsByPattern[SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_COUNT] = {
     3,
     3,
     2,
@@ -544,15 +613,15 @@ WorldCoordRoomLighting gShelterB1UndergroundParkingRoomLighting[SHELTER_B1_UNDER
     { &_gShelterB1UndergroundParkingRoomLights, _gShelterB1UndergroundParkingViewAmbientTable },
 };
 
-WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[8] = {
+WorldCollisionRoomResources gShelterB1UndergroundParkingRoomCollisionResources[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT] = {
     { &_gShelterB1UndergroundParkingRoom1CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom1ActionTriggers, NULL },
     { &_gShelterB1UndergroundParkingRooms2And4And5CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom2ActionTriggers, NULL },
-    { &_gShelterB1UndergroundParkingRoom3CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018BD94, NULL },
-    { &_gShelterB1UndergroundParkingRooms2And4And5CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018C124, NULL },
-    { &_gShelterB1UndergroundParkingRooms2And4And5CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018C4B4, NULL },
-    { &_gShelterB1UndergroundParkingRooms6And7CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018C844, NULL },
-    { &_gShelterB1UndergroundParkingRooms6And7CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018CE34, NULL },
-    { &_gShelterB1UndergroundParkingRoom8CollisionGrid, _gShelterB1UndergroundParkingRoom8ViewBoundaryTriggers, D_shelter_b1_underground_parking_8018D2F4, NULL },
+    { &_gShelterB1UndergroundParkingRoom3CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom3ActionTriggers, NULL },
+    { &_gShelterB1UndergroundParkingRooms2And4And5CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom4ActionTriggers, NULL },
+    { &_gShelterB1UndergroundParkingRooms2And4And5CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom5ActionTriggers, NULL },
+    { &_gShelterB1UndergroundParkingRooms6And7CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom6ActionTriggers, NULL },
+    { &_gShelterB1UndergroundParkingRooms6And7CollisionGrid, _gShelterB1UndergroundParkingRooms1Through7ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom7ActionTriggers, NULL },
+    { &_gShelterB1UndergroundParkingRoom8CollisionGrid, _gShelterB1UndergroundParkingRoom8ViewBoundaryTriggers, _gShelterB1UndergroundParkingRoom8ActionTriggers, NULL },
 };
 
 /// Logical-view map for underground parking room 2.
@@ -626,9 +695,9 @@ ViewCount gShelterB1UndergroundParkingRoomViewCounts[SHELTER_B1_UNDERGROUND_PARK
     SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT,
 };
 
-DirectionWarpEntry D_shelter_b1_underground_parking_8018794C[2] = {
-    { { { .word = 0 }, 1913, 0, -7180 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1980, 0, -6660 }, { 0, 0, 0, 0 }, 0x54140002, 0x54140001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 401, 0, -1200 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 401, 0, -1200 }, { 0, 0, 0, 0 }, 0x5414000A, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING },
+DirectionWarpEntry gShelterB1UndergroundParkingWarpEntries[SHELTER_B1_UNDERGROUND_PARKING_WARP_COUNT] = {
+    { { { .word = 0 }, 1913, 0, -7180 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1980, 0, -6660 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x02), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x01), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 401, 0, -1200 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 401, 0, -1200 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0A), DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING },
 };
 
 /// Room-space unit normals for the room-1 collision grid (4096 per unit).
@@ -993,12 +1062,20 @@ static SpriteBatch _gShelterB1UndergroundParkingView6SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_underground_parking_80189ED4[2] = {
+/// Retained empty sprite batch list with no installed view or other consumer.
+///
+/// A zero-count background-strip selector precedes SPRITE_BATCH_END. The list
+/// contributes no source sprites; a former view assignment is unproven.
+static SpriteBatch _gShelterB1UndergroundParkingUnusedEmptySpriteBatches1[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_underground_parking_80189EE4[2] = {
+/// Retained empty sprite batch list with no installed view or other consumer.
+///
+/// A zero-count background-strip selector precedes SPRITE_BATCH_END. The list
+/// contributes no source sprites; a former view assignment is unproven.
+static SpriteBatch _gShelterB1UndergroundParkingUnusedEmptySpriteBatches2[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1041,7 +1118,11 @@ static SpriteBatch _gShelterB1UndergroundParkingView10SpriteBatches[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_underground_parking_80189FF8[2] = {
+/// Retained empty sprite batch list with no installed view or other consumer.
+///
+/// A zero-count background-strip selector precedes SPRITE_BATCH_END. The list
+/// contributes no source sprites; a former view assignment is unproven.
+static SpriteBatch _gShelterB1UndergroundParkingUnusedEmptySpriteBatches3[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1194,7 +1275,11 @@ static SpriteBatch _gShelterB1UndergroundParkingView13SpriteBatches[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_underground_parking_8018A8AC[2] = {
+/// Retained empty sprite batch list with no installed view or other consumer.
+///
+/// A zero-count background-strip selector precedes SPRITE_BATCH_END. The list
+/// contributes no source sprites; a former view assignment is unproven.
+static SpriteBatch _gShelterB1UndergroundParkingUnusedEmptySpriteBatches4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1534,105 +1619,147 @@ static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom2ActionTriggers[12
     { NULL, NULL, NULL, { -3024, -64, 4640, 0 }, { { -560, 0, -912, 0 }, { 560, 0, -912, 0 }, { -560, 0, 912, 0 }, { 560, 0, 912, 0 } }, { 0, ONE, 0, 0 }, { 3973, 0, -996, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018BD94[12] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4091, 0, 201, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8000, -64, 32, 0 }, { { -3616, 0, -2928, 0 }, { 3616, 0, -2928, 0 }, { -3616, 0, 2928, 0 }, { 3616, 0, 2928, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, 4096, 0 }, 4636, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 601, 0, -4052, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3424, -64, -2816, 0 }, { { -1824, 0, -480, 0 }, { 1824, 0, -480, 0 }, { -1824, 0, 480, 0 }, { 1824, 0, 480, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1885, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1728, -64, -4176, 0 }, { { -480, 0, -1584, 0 }, { 480, 0, -1584, 0 }, { -480, 0, 1584, 0 }, { 480, 0, 1584, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1654, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1792, -64, 3232, 0 }, { { -2208, 0, -480, 0 }, { 2208, 0, -480, 0 }, { -2208, 0, 480, 0 }, { 2208, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -208, -64, 4384, 0 }, { { -496, 0, -1344, 0 }, { 496, 0, -1344, 0 }, { -496, 0, 1344, 0 }, { 496, 0, 1344, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -576, 0, -896, 0 }, { 576, 0, -896, 0 }, { -576, 0, 896, 0 }, { 576, 0, 896, 0 } }, { 0, 4095, 0, 0 }, { 4052, 0, -602, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 3.
+///
+/// The large CAP region uses an unconditional quad; other records require facing.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom3ActionTriggers[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4091, 0, 201, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8000, -64, 32, 0 }, { { -3616, 0, -2928, 0 }, { 3616, 0, -2928, 0 }, { -3616, 0, 2928, 0 }, { 3616, 0, 2928, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, ONE, 0 }, 4636, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 601, 0, -4052, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3424, -64, -2816, 0 }, { { -1824, 0, -480, 0 }, { 1824, 0, -480, 0 }, { -1824, 0, 480, 0 }, { 1824, 0, 480, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 1885, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1728, -64, -4176, 0 }, { { -480, 0, -1584, 0 }, { 480, 0, -1584, 0 }, { -480, 0, 1584, 0 }, { 480, 0, 1584, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 1654, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1792, -64, 3232, 0 }, { { -2208, 0, -480, 0 }, { 2208, 0, -480, 0 }, { -2208, 0, 480, 0 }, { 2208, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -ONE, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -208, -64, 4384, 0 }, { { -496, 0, -1344, 0 }, { 496, 0, -1344, 0 }, { -496, 0, 1344, 0 }, { 496, 0, 1344, 0 } }, { 0, 4104, 0, 0 }, { -ONE, 0, 0, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -576, 0, -896, 0 }, { 576, 0, -896, 0 }, { -576, 0, 896, 0 }, { 576, 0, 896, 0 } }, { 0, 4095, 0, 0 }, { 4052, 0, -602, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018C124[12] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4017, 0, -799, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4688, -64, 32, 0 }, { { -816, 0, -624, 0 }, { 816, 0, -624, 0 }, { -816, 0, 624, 0 }, { 816, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1380, 0, -3857, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3280, -64, -2752, 0 }, { { -1744, 0, -480, 0 }, { 1744, 0, -480, 0 }, { -1744, 0, 480, 0 }, { 1744, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1805, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1632, -64, -4240, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 1678, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1776, -64, 3072, 0 }, { { -2176, 0, -480, 0 }, { 2176, 0, -480, 0 }, { -2176, 0, 480, 0 }, { 2176, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 2217, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -160, -64, 4608, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 1678, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3040, -64, 4656, 0 }, { { -544, 0, -896, 0 }, { 544, 0, -896, 0 }, { -544, 0, 896, 0 }, { 544, 0, 896, 0 } }, { 0, 4098, 0, 0 }, { 3784, 0, -1568, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 4.
+///
+/// Every quad requires facing, including the room-dependent CAP regions.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom4ActionTriggers[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4017, 0, -799, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4688, -64, 32, 0 }, { { -816, 0, -624, 0 }, { 816, 0, -624, 0 }, { -816, 0, 624, 0 }, { 816, 0, 624, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1380, 0, -3857, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3280, -64, -2752, 0 }, { { -1744, 0, -480, 0 }, { 1744, 0, -480, 0 }, { -1744, 0, 480, 0 }, { 1744, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, ONE, 0 }, 1805, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1632, -64, -4240, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { ONE, 0, 0, 0 }, 1678, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1776, -64, 3072, 0 }, { { -2176, 0, -480, 0 }, { 2176, 0, -480, 0 }, { -2176, 0, 480, 0 }, { 2176, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 2217, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -160, -64, 4608, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { -ONE, 0, 0, 0 }, 1678, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3040, -64, 4656, 0 }, { { -544, 0, -896, 0 }, { 544, 0, -896, 0 }, { -544, 0, 896, 0 }, { 544, 0, 896, 0 } }, { 0, 4098, 0, 0 }, { 3784, 0, -1568, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018C4B4[12] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -3973, 0, -995, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3472, -64, 3936, 0 }, { { -688, 0, -720, 0 }, { 688, 0, -720, 0 }, { -688, 0, 720, 0 }, { 688, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { 995, 0, -3973, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4896, -64, 64, 0 }, { { -596, 0, -1135, 0 }, { 588, 0, -1138, 0 }, { -589, 0, 1137, 0 }, { 595, 0, 1134, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3408, -64, -2752, 0 }, { { -1840, 0, -480, 0 }, { 1840, 0, -480, 0 }, { -1840, 0, 480, 0 }, { 1840, 0, 480, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1898, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1792, -64, -4352, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1680, -64, 3168, 0 }, { { -2112, 0, -480, 0 }, { 2112, 0, -480, 0 }, { -2112, 0, 480, 0 }, { 2112, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 2157, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -192, -64, 4432, 0 }, { { 480, 0, -1360, 0 }, { 480, 0, 1360, 0 }, { -480, 0, -1360, 0 }, { -480, 0, 1360, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1752, 0, 3703, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -608, 0, -928, 0 }, { 608, 0, -928, 0 }, { -608, 0, 928, 0 }, { 608, 0, 928, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 5.
+///
+/// Includes the directed room-CAP choice that can reveal room 6. All quads require facing.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom5ActionTriggers[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -3973, 0, -995, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3472, -64, 3936, 0 }, { { -688, 0, -720, 0 }, { 688, 0, -720, 0 }, { -688, 0, 720, 0 }, { 688, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { 995, 0, -3973, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4896, -64, 64, 0 }, { { -596, 0, -1135, 0 }, { 588, 0, -1138, 0 }, { -589, 0, 1137, 0 }, { 595, 0, 1134, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3408, -64, -2752, 0 }, { { -1840, 0, -480, 0 }, { 1840, 0, -480, 0 }, { -1840, 0, 480, 0 }, { 1840, 0, 480, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, ONE, 0 }, 1898, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1792, -64, -4352, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1680, -64, 3168, 0 }, { { -2112, 0, -480, 0 }, { 2112, 0, -480, 0 }, { -2112, 0, 480, 0 }, { 2112, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -ONE, 0 }, 2157, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -192, -64, 4432, 0 }, { { 480, 0, -1360, 0 }, { 480, 0, 1360, 0 }, { -480, 0, -1360, 0 }, { -480, 0, 1360, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1752, 0, 3703, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -608, 0, -928, 0 }, { 608, 0, -928, 0 }, { -608, 0, 928, 0 }, { 608, 0, 928, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018C844[20] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4076, 0, -401, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3936, -64, 4832, 0 }, { { -1024, 0, -1648, 0 }, { 1728, 0, -1648, 0 }, { -1024, 0, 464, 0 }, { 1728, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 2387, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3808, -64, -368, 0 }, { { -368, 0, -2176, 0 }, { 368, 0, -2176, 0 }, { -368, 0, 2176, 0 }, { 368, 0, 2176, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3776, -64, 3776, 0 }, { { -1376, 0, -592, 0 }, { 1376, 0, -592, 0 }, { -1376, 0, 592, 0 }, { 1376, 0, 592, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2880, -64, 4480, 0 }, { { -672, 0, -1328, 0 }, { 672, 0, -1328, 0 }, { -672, 0, 1328, 0 }, { 672, 0, 1328, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3840, -64, 3696, 0 }, { { -1376, 0, -1216, 0 }, { 1376, 0, -768, 0 }, { -1376, 0, 992, 0 }, { 1376, 0, 992, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1832, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2576, -64, 4448, 0 }, { { -1008, 0, -1328, 0 }, { 1008, 0, -1328, 0 }, { -1008, 0, 1328, 0 }, { 1008, 0, 1328, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1664, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3937, -64, 4832, 0 }, { { -1024, 0, -1904, 0 }, { 2368, 0, -1904, 0 }, { -1024, 0, 848, 0 }, { 2368, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 3029, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1760, -64, -4512, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3840, -64, -2752, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -256, -64, 4384, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2112, -64, 3232, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1380, 0, 3856, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 6.
+///
+/// Includes garage choices, direct CAP command 14 and three access-card event regions.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom6ActionTriggers[20] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4076, 0, -401, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3936, -64, 4832, 0 }, { { -1024, 0, -1648, 0 }, { 1728, 0, -1648, 0 }, { -1024, 0, 464, 0 }, { 1728, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, ONE, 0 }, 2387, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3808, -64, -368, 0 }, { { -368, 0, -2176, 0 }, { 368, 0, -2176, 0 }, { -368, 0, 2176, 0 }, { 368, 0, 2176, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0E, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3776, -64, 3776, 0 }, { { -1376, 0, -592, 0 }, { 1376, 0, -592, 0 }, { -1376, 0, 592, 0 }, { 1376, 0, 592, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2880, -64, 4480, 0 }, { { -672, 0, -1328, 0 }, { 672, 0, -1328, 0 }, { -672, 0, 1328, 0 }, { 672, 0, 1328, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3840, -64, 3696, 0 }, { { -1376, 0, -1216, 0 }, { 1376, 0, -768, 0 }, { -1376, 0, 992, 0 }, { 1376, 0, 992, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1832, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2576, -64, 4448, 0 }, { { -1008, 0, -1328, 0 }, { 1008, 0, -1328, 0 }, { -1008, 0, 1328, 0 }, { 1008, 0, 1328, 0 } }, { 0, 4100, 0, 0 }, { ONE, 0, 0, 0 }, 1664, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3937, -64, 4832, 0 }, { { -1024, 0, -1904, 0 }, { 2368, 0, -1904, 0 }, { -1024, 0, 848, 0 }, { 2368, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 3029, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1760, -64, -4512, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3840, -64, -2752, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -256, -64, 4384, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2112, -64, 3232, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1380, 0, 3856, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018CE34[16] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4052, 0, -601, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1751, 0, -3703, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4096, -64, -2848, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2112, -64, 3168, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1728, -64, -4192, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -224, -64, 4480, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3776, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2106, 0, 3513, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3744, -64, -192, 0 }, { { -400, 0, -2608, 0 }, { 400, 0, -2608, 0 }, { -400, 0, 2608, 0 }, { 400, 0, 2608, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3008, -64, 4688, 0 }, { { -512, 0, -960, 0 }, { 512, 0, -960, 0 }, { -512, 0, 960, 0 }, { 512, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { 3856, 0, -1381, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 7.
+///
+/// Includes garage choices and room-command 3; no access-card event regions remain.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom7ActionTriggers[16] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4052, 0, -601, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1751, 0, -3703, 0 }, 962, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4096, -64, -2848, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2112, -64, 3168, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1728, -64, -4192, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1436, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -224, -64, 4480, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3776, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2106, 0, 3513, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -192, 0 }, { { -400, 0, -2608, 0 }, { 400, 0, -2608, 0 }, { -400, 0, 2608, 0 }, { 400, 0, 2608, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3008, -64, 4688, 0 }, { { -512, 0, -960, 0 }, { 512, 0, -960, 0 }, { -512, 0, 960, 0 }, { 512, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { 3856, 0, -1381, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_underground_parking_8018D2F4[11] = {
-    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -64, -240, 0 }, { { -608, 0, -848, 0 }, { 608, 0, -848, 0 }, { -608, 0, 848, 0 }, { 608, 0, 848, 0 } }, { 0, 4094, 0, 0 }, { 4076, 0, 401, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3808, -64, 3936, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1553, -64, -2208, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4096, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3503, -64, -688, 0 }, { { -624, 0, -432, 0 }, { 624, 0, -432, 0 }, { -624, 0, 432, 0 }, { 624, 0, 432, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -4096, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1632, -64, -4320, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4096, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2720, -64, 864, 0 }, { { -624, 0, -832, 0 }, { 624, 0, -832, 0 }, { -624, 0, 832, 0 }, { 624, 0, 832, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, -4091, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 48, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3936, -64, 416, 0 }, { { -1616, 0, -1568, 0 }, { 240, 0, -1568, 0 }, { -1616, 0, -160, 0 }, { 240, 0, -160, 0 } }, { 0, 4103, 0, 0 }, { -4091, 0, 201, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2848, -64, -288, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction regions selected by underground parking room 8.
+///
+/// Includes dialogue-loop command 22, direct CAP command 23 and Soldier B remark regions.
+/// Includes the access-tunnel warp and map handoff. Positions, relative corners
+/// and radii use room game units; normals use 4096 per unit. The final LAST
+/// record is active too. Setup binds coordinates, hit tests update these records,
+/// and pending actions link them; keep the storage loaded until unlinked.
+static WorldCollisionTrigger _gShelterB1UndergroundParkingRoom8ActionTriggers[11] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, SHELTER_B1_UNDERGROUND_PARKING_ACCESS_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -64, -240, 0 }, { { -608, 0, -848, 0 }, { 608, 0, -848, 0 }, { -608, 0, 848, 0 }, { 608, 0, 848, 0 } }, { 0, 4094, 0, 0 }, { 4076, 0, 401, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3808, -64, 3936, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, ONE, 0 }, 1247, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1553, -64, -2208, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { ONE, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3503, -64, -688, 0 }, { { -624, 0, -432, 0 }, { 624, 0, -432, 0 }, { -624, 0, 432, 0 }, { 624, 0, 432, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -ONE, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1632, -64, -4320, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { ONE, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2720, -64, 864, 0 }, { { -624, 0, -832, 0 }, { 624, 0, -832, 0 }, { -624, 0, 832, 0 }, { 624, 0, 832, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, -4091, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3936, -64, 416, 0 }, { { -1616, 0, -1568, 0 }, { 240, 0, -1568, 0 }, { -1616, 0, -160, 0 }, { 240, 0, -160, 0 } }, { 0, 4103, 0, 0 }, { -4091, 0, 201, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2848, -64, -288, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Minimum ambient RGB levels for the underground parking's 24 logical views.
@@ -1728,9 +1855,17 @@ static s32 _gShopRefillDisplayQuantityFixed = 0;
 /// closes; gameplay and its catalogue must remain loaded throughout the session.
 static const EquipmentWeaponSupply* _gShopRefillSupply = NULL;
 
-Task* D_shelter_b1_underground_parking_8018D74C = NULL;
+/// Borrowed selector-panel child handle, valid from successful spawn through exit polling.
+///
+/// The session overwrites it on each opening and does not clear it after polling
+/// releases the child. Allocation must succeed before the next poll uses it.
+static Task* _gShelterB1UndergroundParkingPanelTask = NULL;
 
-ScreenFade D_shelter_b1_underground_parking_8018D750 = { 0 };
+/// Fade handshake borrowed by the 30-frame fade to black before garage departure.
+///
+/// The departure sets subtract blend, running phase and ramp length, then lends
+/// the record to the resident fade task. Storage remains live with this overlay.
+static ScreenFade _gShelterB1UndergroundParkingDepartureFade = { 0 };
 
 Task* gRoomCutsceneSoundTask = NULL;
 
@@ -1741,11 +1876,21 @@ Task* gRoomCutsceneSoundTask = NULL;
 /// CAP path. It remains set if spawning fails; it is not a task-liveness test.
 static s32 _gShelterB1UndergroundParkingAmbienceEventActive = false;
 
-RoomCutsceneRecStorage D_shelter_b1_underground_parking_8018D75C = { { 0 }, { 0 } };
+/// Persistent scene record for room command 13, with eight trailing unproven bytes.
+///
+/// The command supplies view 20, four sound events and CAP/skip choices. The
+/// asynchronous cutscene runner borrows `rec`; leave it unchanged and keep the
+/// overlay loaded until the runner finishes. No access reaches the trailing bytes.
+static RoomCutsceneRecStorage _gShelterB1UndergroundParkingCutsceneRecStorage = { { 0 }, { 0 } };
 
 RoomDeparture gRoomDeparture = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
-u8 D_shelter_b1_underground_parking_8018D788 = 0;
+/// Committed selector-switch pattern (0..15), or 0xFF before any selection is applied.
+///
+/// Room initialization sets the sentinel so Enter applies even pending zero.
+/// Commit copies the pending pattern; cancellation retains this byte. Its low
+/// nibble indexes the pattern-to-room table. Stored for this overlay's lifetime.
+static u8 _gShelterB1UndergroundParkingPanelCommittedPattern = 0;
 
 /// Pending selector-switch pattern in 0..15 (red 8, green 4, blue 2, yellow 1).
 ///
@@ -1801,7 +1946,7 @@ static inline void _shelterB1UndergroundParkingStartCaptionHandoff(void)
 
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_IN_PLACE, SHELTER_B1_UNDERGROUND_PARKING_CAP_HANDOFF_BOUNDARY_VARIANT);
-    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION, 0, 0);
+    taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION, 0, 0);
 }
 
 /// Checks the late-room boundary for a held-direction caption request each frame.
@@ -1850,10 +1995,11 @@ static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask)
     }
 }
 
-/// The three states of the room's main task, run by
-/// `shelterB1UndergroundParkingRoomTask`: set-up, the per-frame
-/// handler, and the kill.
-static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
+/// Room-task state handlers: initialization, boundary-caption checks and teardown.
+///
+/// State must be 0..2. Dispatch copies all three callbacks into a local table;
+/// keep the table at its source position and the overlay loaded for the task.
+static const TaskFuncTable3 _gShelterB1UndergroundParkingRoomStates = {
     {
         _shelterB1UndergroundParkingRoomInitialize,
         _shelterB1UndergroundParkingCheckCaptionHandoff,
@@ -1870,12 +2016,6 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// unused; the reply is always zero.
 static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    enum {
-        SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK = 1,
-        SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP       = 11,
-        SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE  = 12,
-    };
-
     if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK && gGameSession->location.loc.variant == SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B) {
         actor161500StartSoldierBRemark();
     }
@@ -1899,7 +2039,7 @@ static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32
             case 5:
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0C);
-                taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM6_CHOICE, 0, 0);
+                taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM6_CHOICE, 0, 0);
                 break;
             case 6:
             case 7:
@@ -1919,7 +2059,7 @@ static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32
                 } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < SHELTER_B1_UNDERGROUND_PARKING_FINAL_CHAPTER) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 1);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_GARAGE_DEPARTURE, 0, 0);
+                    taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_GARAGE_DEPARTURE, 0, 0);
                 } else {
                     capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 2);
                 }
@@ -1942,7 +2082,7 @@ static inline void _shelterB1UndergroundParkingStartPanelSession(void)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_PANEL_SESSION, 0, 0);
+    taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_PANEL_SESSION, 0, 0);
 }
 
 /// Routes CAP room-command indices to playback, panel sessions and scenes.
@@ -1956,9 +2096,9 @@ static inline void _shelterB1UndergroundParkingStartPanelSession(void)
 static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 messageId, s32 commandId, s32 unused)
 {
     enum {
-        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3     = 3,
-        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5     = 5,
-        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP       = 22,
+
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5 = 5,
+
         SHELTER_B1_UNDERGROUND_PARKING_SCENE_VIEW                  = 20,
         SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_RESOURCE          = 1,
         SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_SLOT              = 1,
@@ -2033,11 +2173,11 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3:
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, commandId, 0);
+            taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, commandId, 0);
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE:
             // Prepare persistent scene storage before handing it to an asynchronous task.
-            scene                  = &D_shelter_b1_underground_parking_8018D75C.rec;
+            scene                  = &_gShelterB1UndergroundParkingCutsceneRecStorage.rec;
             scene->startSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0B);
             scene->endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0E);
             scene->sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0C);
@@ -2047,7 +2187,7 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
                 if (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_INTRO, 0);
+                    taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_INTRO, 0);
                 } else {
                     scene->capSlot   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_SLOT;
                     scene->capFile   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_RESOURCE;
@@ -2064,11 +2204,11 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, commandId, 0);
+            taskSpawnFromTable(&_gShelterB1UndergroundParkingDialogueLoopTaskDesc, 0, commandId, 0);
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_4, 0);
+            taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_4, 0);
             break;
     }
     return 0;
@@ -2131,10 +2271,10 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHECK_CHOICE:
             if (capGetVariantKey() == SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHOICE_ACCEPT) {
-                D_shelter_b1_underground_parking_8018D750.blend      = SCREEN_FADE_SUBTRACT;
-                D_shelter_b1_underground_parking_8018D750.phase      = SCREEN_FADE_RUNNING;
-                D_shelter_b1_underground_parking_8018D750.rampFrames = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
-                taskSpawn(SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK, SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE, 0, &D_shelter_b1_underground_parking_8018D750);
+                _gShelterB1UndergroundParkingDepartureFade.blend      = SCREEN_FADE_SUBTRACT;
+                _gShelterB1UndergroundParkingDepartureFade.phase      = SCREEN_FADE_RUNNING;
+                _gShelterB1UndergroundParkingDepartureFade.rampFrames = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
+                taskSpawn(SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK, SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE, 0, &_gShelterB1UndergroundParkingDepartureFade);
                 task->killCountdown = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {
@@ -2162,7 +2302,7 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 _roomVariantResolveDeparture(&departure, resolve);
                 gRoomDeparture = departure;
-                taskSpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
+                taskSpawnFromTable(&_gShelterB1UndergroundParkingDepartureTaskDesc, 0, 0, 0);
                 taskKill(task);
             }
             task->killCountdown--;
@@ -2254,10 +2394,12 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
 #include "../../shared/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
-/// The examine task's eight states, run by
-/// `_shelterB1UndergroundParkingPanelTask`, from set-up to the closing
-/// fade.
-static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
+/// Selector-panel state handlers from initialization through cancel or closing fade.
+///
+/// States 0..7 allocate, open, scan, open commands, handle a command, cancel,
+/// commit and fade out. Dispatch copies all eight callbacks into a local table;
+/// keep this table at its source position and the overlay loaded for the panel.
+static const TaskFuncTable8 _gShelterB1UndergroundParkingPanelStates = {
     {
         _shelterB1UndergroundParkingPanelInitialize,
         _shelterB1UndergroundParkingPanelOpen,
@@ -2301,13 +2443,12 @@ static s32 _shelterB1UndergroundParkingUseKeyItem(Task* roomTask, s32 messageId,
 {
     enum {
         SHELTER_B1_UNDERGROUND_PARKING_ITEM_YOSHIDAS_CARD = 0x122,
-        SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE   = 2,
     };
 
     if (itemId == INVENTORY_COLLECTION_ID_BOWMANS_CARD || itemId == SHELTER_B1_UNDERGROUND_PARKING_ITEM_YOSHIDAS_CARD) {
         if (gGameSession->location.loc.room == SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
             if (_shelterB1UndergroundParkingRoomTriggerHit()) {
-                taskSpawnFromTableOnDefaultList(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE, 0, 0);
+                taskSpawnFromTableOnDefaultList(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE, 0, 0);
                 gGameSession->hideHud    = 1;
                 gGameSession->eventState = 1;
                 return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
@@ -2371,11 +2512,11 @@ static void _shelterB1UndergroundParkingPanelSessionTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_START:
-            D_shelter_b1_underground_parking_8018D74C = taskSpawnFromTable(&D_shelter_b1_underground_parking_80187670, 0, 0, 0);
+            _gShelterB1UndergroundParkingPanelTask = taskSpawnFromTable(&_gShelterB1UndergroundParkingPanelTaskDesc, 0, 0, 0);
             task->state++;
             return;
         case SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_WAIT:
-            if (taskPollKill(D_shelter_b1_underground_parking_8018D74C, &childResult) != 0) {
+            if (taskPollKill(_gShelterB1UndergroundParkingPanelTask, &childResult) != 0) {
                 taskKill(task);
             }
             return;
@@ -2410,7 +2551,7 @@ static void _shelterB1UndergroundParkingResolveRoom6ChoiceTask(Task* task)
                 gGameSession->location.loc.room                            = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
                 gGameSession->roomObjsDirty                                = state;
-                evsStartScript(D_shelter_b1_underground_parking_801872D8, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gShelterB1UndergroundParkingRoom6ArrivalScript, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, SHELTER_B1_UNDERGROUND_PARKING_PROGRESS_ROOM6);
                 itemSetIdentified(SHELTER_B1_UNDERGROUND_PARKING_ITEM_ELECTRIC_CAR_KEY, 1);
             } else {
@@ -2440,7 +2581,7 @@ static void _shelterB1UndergroundParkingStartRoom7SceneTask(Task* task)
         SetDispMask(false);
         D_80115768            = 1;
         gGameSession->hideHud = 1;
-        evsStartScriptWithSkip(D_shelter_b1_underground_parking_801873DC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_underground_parking_80187544);
+        evsStartScriptWithSkip(_gShelterB1UndergroundParkingElectricCarSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB1UndergroundParkingElectricCarSceneSkipScript);
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, SHELTER_B1_UNDERGROUND_PARKING_PROGRESS_ROOM7);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 0);
         task->state += 1;
@@ -2526,7 +2667,7 @@ static void _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick)
 /// must remain loaded while the registered receiver is live.
 static void _shelterB1UndergroundParkingRoomInitialize(Task* roomTask)
 {
-    roomTask->msgTable = D_shelter_b1_underground_parking_80187230;
+    roomTask->msgTable = _gShelterB1UndergroundParkingRoomMessages;
     gameSetTaskSlot(roomTask, GAME_TASK_SLOT_ROOM);
     _shelterB1UndergroundParkingPanelResetSelection();
     if (gGameSession->location.loc.variant == SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B) {
@@ -2543,7 +2684,7 @@ void shelterB1UndergroundParkingRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b1_underground_parking_8017D7F4;
+    states = _gShelterB1UndergroundParkingRoomStates;
     states.funcs[task->state](task);
 }
 
@@ -2556,7 +2697,7 @@ static void _shelterB1UndergroundParkingStartAmbience(void)
     if (_gShelterB1UndergroundParkingAmbienceEventActive == false) {
         _gShelterB1UndergroundParkingAmbienceEventActive = true;
         _shelterB1UndergroundParkingSetFastLightPulse(SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_FAST);
-        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_AMBIENCE, 0, 0);
+        taskSpawnFromTable(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_AMBIENCE, 0, 0);
     }
 }
 
@@ -2589,13 +2730,6 @@ static inline void _shelterB1UndergroundParkingDrawPanelMapMarkers(void)
 /// pixel coordinates without view projection, borrowing packets until GPU completion.
 static void _shelterB1UndergroundParkingDrawPanelIndicators(void)
 {
-    enum {
-        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED    = 8,
-        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_GREEN  = 4,
-        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_BLUE   = 2,
-        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_YELLOW = 1,
-    };
-
     if (_gShelterB1UndergroundParkingPanelPendingPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED) {
         _shelterB1UndergroundParkingDrawPanelGlow(-0x46, 0x54, SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_RED);
     }
@@ -2640,7 +2774,7 @@ static void _shelterB1UndergroundParkingPanelTask(Task* task)
 {
     TaskFuncTable8 states;
 
-    states = D_shelter_b1_underground_parking_8017D9A4;
+    states = _gShelterB1UndergroundParkingPanelStates;
     states.funcs[task->state](task);
 }
 
@@ -2663,13 +2797,13 @@ static void _shelterB1UndergroundParkingPanelInitialize(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, SHELTER_B1_UNDERGROUND_PARKING_PANEL_CURSOR_PORT_0, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gShelterB1UndergroundParkingActionPromptTaskDesc, 0, SHELTER_B1_UNDERGROUND_PARKING_PANEL_CURSOR_PORT_0, 0);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B1_UNDERGROUND_PARKING_PANEL_VIEW;
     task->state++;
     work->field_0 = 0;
     displayAcquireMenuHold();
-    for (hotspot = D_shelter_b1_underground_parking_8018767C; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = _gShelterB1UndergroundParkingPanelHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
     gGameSession->cutsceneHold = 1;
@@ -2725,7 +2859,7 @@ static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task)
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_BUTTON_CANCEL  = 1,
     };
     ActionPrompt*                          prompt  = gActionPromptSlots;
-    ActionPromptHotspot*                   hotspot = D_shelter_b1_underground_parking_8018767C;
+    ActionPromptHotspot*                   hotspot = _gShelterB1UndergroundParkingPanelHotspots;
     _ShelterB1UndergroundParkingPanelWork* work    = task->work;
 
     _shelterB1UndergroundParkingDrawPanelIndicators();
@@ -2790,7 +2924,7 @@ static void _shelterB1UndergroundParkingPanelHandleCommand(Task* task)
         if (work->choice == SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER) {
             // Acknowledge Enter even when the pending pattern is already applied.
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
-            if (D_shelter_b1_underground_parking_8018D788 != _gShelterB1UndergroundParkingPanelPendingPattern) {
+            if (_gShelterB1UndergroundParkingPanelCommittedPattern != _gShelterB1UndergroundParkingPanelPendingPattern) {
                 if (gGameSession->location.loc.room == SHELTER_B1_UNDERGROUND_PARKING_PANEL_INITIAL_ROOM) {
                     sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_APPLY_R1, 0, 0);
                 } else {
@@ -2853,7 +2987,7 @@ static void _shelterB1UndergroundParkingPanelCancel(Task* task)
 /// its work remain alive to draw the fade on following frames.
 static void _shelterB1UndergroundParkingPanelCommitSelection(Task* task)
 {
-    D_shelter_b1_underground_parking_8018D788 = _gShelterB1UndergroundParkingPanelPendingPattern;
+    _gShelterB1UndergroundParkingPanelCommittedPattern = _gShelterB1UndergroundParkingPanelPendingPattern;
     _shelterB1UndergroundParkingDrawPanelIndicators();
     _shelterB1UndergroundParkingPanelApplySelection();
     task->killCountdown = 0;
@@ -2892,8 +3026,8 @@ static void _shelterB1UndergroundParkingPanelResetSelection(void)
 {
     enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_SELECTION_UNCOMMITTED = 0xFF };
 
-    D_shelter_b1_underground_parking_8018D788        = SHELTER_B1_UNDERGROUND_PARKING_PANEL_SELECTION_UNCOMMITTED;
-    _gShelterB1UndergroundParkingPanelPendingPattern = 0;
+    _gShelterB1UndergroundParkingPanelCommittedPattern = SHELTER_B1_UNDERGROUND_PARKING_PANEL_SELECTION_UNCOMMITTED;
+    _gShelterB1UndergroundParkingPanelPendingPattern   = 0;
 }
 
 #include "../../shared/action_prompt_reset.inc.c"
@@ -2907,8 +3041,8 @@ static void _shelterB1UndergroundParkingPanelApplySelection(void)
 {
     enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK = 0xF };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
-    gGameSession->location.loc.room                            = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
+    gGameSession->location.loc.room                            = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
     gGameSession->roomObjsDirty                                = 1;
 }
 

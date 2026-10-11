@@ -28,7 +28,14 @@ typedef struct {
 } ShelterB1UndergroundParkingShopSessionTaskDescStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingShopSessionTaskDescStorage, 16);
 
-extern ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0;
+/// Shop-session spawn recipe and four retained bytes of unproven role.
+///
+/// Gameplay borrows `desc` across the shop display transition. It starts a
+/// bodyless priority-192 session with a packed stock selector in spawnArg1;
+/// the session owns its root UI tree and stage primitive buffer until closing.
+/// Keep this room overlay loaded throughout. The trailing bytes are never
+/// accessed, and their object boundary is unproven.
+extern ShelterB1UndergroundParkingShopSessionTaskDescStorage gShelterB1UndergroundParkingShopSessionTaskDescStorage;
 
 /// Extents of the underground parking room directories and logical-view maps.
 enum {
@@ -53,7 +60,13 @@ extern AreaVariant gShelterB1UndergroundParkingAreaVariants[SHELTER_B1_UNDERGROU
 /// belong to this overlay and must remain loaded while gameplay uses them.
 extern WorldCoordRoomLighting gShelterB1UndergroundParkingRoomLighting[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
-extern WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[];
+/// Collision resources for underground parking rooms 1 through 8.
+///
+/// The Shelter area-20 directory indexes by room - 1. Rooms 2/4/5 share a grid,
+/// as do 6/7; each room selects its own mutable action-trigger list. Rooms 1..7
+/// share view boundaries; room 8 selects separate boundaries. All occluders are
+/// NULL. Keep the overlay loaded while its grid is active or triggers are linked.
+extern WorldCollisionRoomResources gShelterB1UndergroundParkingRoomCollisionResources[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
 /// Logical-view maps for underground parking rooms 1 through 8.
 ///
@@ -70,7 +83,17 @@ extern u8* gShelterB1UndergroundParkingRoomViewMaps[SHELTER_B1_UNDERGROUND_PARKI
 /// is no terminator. The map directory borrows this overlay's storage.
 extern ViewCount gShelterB1UndergroundParkingRoomViewCounts[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
-extern DirectionWarpEntry D_shelter_b1_underground_parking_8018794C[];
+/// Number of underground parking's warp endpoints; the array has no terminator.
+enum { SHELTER_B1_UNDERGROUND_PARKING_WARP_COUNT = 2 };
+
+/// Arrival placements and departure options for underground parking warps 1 and 2.
+///
+/// The Shelter area-20 directory indexes by warp - 1. Warp 1 connects to the
+/// access tunnel, selects view 2 and has arrival/departure sounds. Warp 2 selects
+/// view 3, plays its arrival sound and marks the parking area on the map. Positions
+/// use room game units and yaw uses 4096 units per turn. Neither endpoint sets
+/// scripted-player or departure-fade flags. Borrowed while this overlay is loaded.
+extern DirectionWarpEntry gShelterB1UndergroundParkingWarpEntries[SHELTER_B1_UNDERGROUND_PARKING_WARP_COUNT];
 
 /// Camera records for underground parking's 24 mapped views.
 ///

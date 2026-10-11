@@ -1567,7 +1567,7 @@ gNeoArkNorthPromenadeAreaVariants = 0x8018305C; // absolute:True owner=neo_ark_n
 
 gNeoArkObservatoryAreaVariants = 0x8018786C; // absolute:True owner=neo_ark_observatory
 
-gNeoArkPavilionAreaVariants = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
+gNeoArkPavilionAreaVariants = 0x801876C4; // absolute:True owner=neo_ark_pavilion
 
 gNeoArkPowerPlant1AreaVariants = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1
 
@@ -1747,7 +1747,7 @@ gDryfieldNightR08AreaVariants = 0x801818D8; // absolute:True owner=dryfield_nigh
 
 gShelter1fParkingGarageAreaVariants = 0x801818D8; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 
-D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking
+gShelterB1UndergroundParkingShopSessionTaskDescStorage = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking
 
 acropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 

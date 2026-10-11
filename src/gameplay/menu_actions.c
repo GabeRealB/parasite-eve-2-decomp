@@ -3609,7 +3609,7 @@ s32 shopOpenSession(s32 stockSelector)
             displayQueueModeTask(&gShelterB1ArmoryShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0, 0):
-            displayQueueModeTask(&D_shelter_b1_underground_parking_801871F0.desc, stockSelector, 0, STAGE_ENTRY_RELOAD);
+            displayQueueModeTask(&gShelterB1UndergroundParkingShopSessionTaskDescStorage.desc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_HELIPORT, 0, 0):
             displayQueueModeTask(&gShelter1fHeliportShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
