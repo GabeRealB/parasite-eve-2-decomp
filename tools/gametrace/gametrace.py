@@ -254,6 +254,7 @@ class Gdb:
         self.sock = socket.create_connection((host, port), timeout=10)
         self.sock.settimeout(None)
         self.buf = b""
+        self.set: set[int] = set()                    # the breakpoints in place
         self.sock.sendall(b"+")
 
     def _send(self, payload: str) -> None:
@@ -328,12 +329,12 @@ class Gdb:
         reply = self.ask(f"{'Z' if on else 'z'}1,{address:x},4")
         if reply != "OK":
             raise OSError(f"the GDB server refused a breakpoint at {address:#010x}: {reply!r}")
+        (self.set.add if on else self.set.discard)(address)
 
-    def resume(self) -> str:
-        """Continue, and wait for the next stop."""
+    def _go(self, command: str) -> str:
         while self._recv(0) is not None:              # nothing left over from the last stop may answer for this one
             pass
-        self._send("c")
+        self._send(command)
         while True:
             packet = self._recv()
             if self._is_stop(packet):
@@ -341,6 +342,20 @@ class Gdb:
         while self._recv(0.02) is not None:           # the same stop, reported again
             pass
         return packet
+
+    def resume(self, stopped_at: int | None = None) -> None:
+        """Continue, and wait for the next stop. `stopped_at` is where the target is now.
+
+        A server stops *before* the instruction under a breakpoint, and continuing from there stops at once on the
+        same breakpoint. So the instruction is stepped over with its breakpoint lifted, as a debugger does, and the
+        target continues from the next one - unless the step itself landed on another breakpoint."""
+        if stopped_at in self.set:
+            self.breakpoint(stopped_at, False)
+            self._go("s")
+            self.breakpoint(stopped_at)
+            if self.registers()[PC] in self.set:
+                return
+        self._go("c")
 
 
 # ---- a session
@@ -430,8 +445,9 @@ class Session:
         self.start()
         drain_at = self.cfg["blob"].get("drain") if self.patched else None
         every, frames = self.cfg["blob"].get("drain_every", 1), 0
+        pc = None
         while True:
-            self.gdb.resume()
+            self.gdb.resume(pc)
             regs = self.gdb.registers()
             pc = regs[PC]
             if pc in self.pending:                    # a watched function has returned
