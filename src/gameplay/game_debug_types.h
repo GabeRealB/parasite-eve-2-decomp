@@ -3,14 +3,17 @@
 
 #include "common.h"
 
-/// One native-halfword diagnostic replay record, after the serialized save prefix.
+/// One button hold in the diagnostic input replay stream.
 ///
-/// Records advance by four bytes; a 0xFFFF buttons halfword ends the stream.
-/// The buffer owner keeps the current pair and the next button readable during
-/// playback. Duration is counted in input-update calls with u16 wraparound.
+/// The stream follows the serialized saved state and stores native u16 pairs
+/// at a four-byte stride. Holds count running replay input updates: halted
+/// updates do not consume them, and zero lasts 65536 updates through u16 wrap.
+/// A trailing 0xFFFF button halfword ends playback without reading its hold
+/// count. The borrowed buffer must keep each current pair and the next button
+/// halfword readable throughout playback.
 typedef struct {
-    u16 buttons;        // Active-high pad buttons; 0xFFFF is the end marker.
-    u16 durationFrames; // Calls for which the button sample is held.
+    u16 buttons;     // Active-high pad mask; 0xFFFF marks the end of the stream.
+    u16 holdUpdates; // Running input updates to hold the mask (1..65535; 0 means 65536).
 } GameDebugReplayRecord;
 STATIC_ASSERT_SIZEOF(GameDebugReplayRecord, 4);
 

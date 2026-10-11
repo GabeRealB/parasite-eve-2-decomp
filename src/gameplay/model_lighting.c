@@ -2795,7 +2795,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         GAME_DEBUG_REPLAY_BUTTONS_INVALID    = 0xFFFF,
         GAME_DEBUG_REPLAY_BUTTONS_END        = GAME_DEBUG_REPLAY_BUTTONS_INVALID,
     };
-    u16 remainingFrames;
+    u16 remainingUpdates;
     u16 recordedButtons;
     s32 cursorOffsetBytes;
 
@@ -2817,7 +2817,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         recordedButtons = gGameDebugReplayCursor->buttons;
         if (recordedButtons != gGameDebugReplayButtons) {
             gGameDebugReplayButtons         = recordedButtons;
-            gGameDebugReplayFramesRemaining = gGameDebugReplayCursor->durationFrames;
+            gGameDebugReplayFramesRemaining = gGameDebugReplayCursor->holdUpdates;
         }
         if (*buttons & PAD_BUTTON_START) {
             *buttons                                = gGameDebugReplayButtons | PAD_BUTTON_START;
@@ -2825,9 +2825,9 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         } else {
             *buttons = gGameDebugReplayButtons;
         }
-        remainingFrames                 = gGameDebugReplayFramesRemaining - 1;
-        gGameDebugReplayFramesRemaining = remainingFrames;
-        if (remainingFrames == 0) {
+        remainingUpdates                = gGameDebugReplayFramesRemaining - 1;
+        gGameDebugReplayFramesRemaining = remainingUpdates;
+        if (remainingUpdates == 0) {
             const GameDebugReplayRecord* nextRecord  = gGameDebugReplayCursor + 1;
             const u16*                   nextButtons = &nextRecord->buttons;
 
