@@ -51,9 +51,6 @@ static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
 static DesertChaserEffectArgStorage _gDesertChaserEffectArg;
 
-/// Enemy parameters the spawn handler stores in `Enemy::param`.
-extern EnemyParams gRigParams;
-
 static void _actor323400PlayClip13State(Enemy* enemy, Task* task);
 static void _actor323400PlaySceneAnimation(Enemy* enemy, Task* task);
 static void _actor323400BlendClip2State(Enemy* enemy, Task* task);
@@ -98,25 +95,34 @@ static DamageAttack _gDesertChaserAttacks[5] = {
     { 0xFFFF, 0 },
 };
 
-EnemyParams gRigParams = { _gDesertChaserAttacks, 200, 75, 50, 4, 100, 10, 100, 0 };
+/// Enemy-kind parameters retained by the scripted Desert Chaser.
+///
+/// Spawn borrows this record in Enemy.param but makes the actor non-lockable
+/// with zero live HP and no combat contacts. Nominal HP, reward and reaction
+/// values remain authored data; the five attack records are not delivered by
+/// this build. Keep this carrier loaded until its enemy is destroyed.
+static EnemyParams _gDesertChaserParams = {
+    .attacks              = _gDesertChaserAttacks,
+    .hpMax                = 200,
+    .exp                  = 75,
+    .bp                   = 50,
+    .mp                   = 4,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-s16 D_actor_323400_80164D6C[16] = {
-    60,
-    36,
-    10,
-    150,
-    40,
-    26,
-    10,
-    120,
-    20,
-    18,
-    10,
-    120,
-    60,
-    60,
-    10,
-    150,
+/// Four armed Desert Chaser timing tunings retained by this scripted build.
+///
+/// Down time, windup, roam-look delay and pursuit holdoff are whole update
+/// counts. This noncombat build never selects a variant; the armed builds use
+/// the same four records. Preserve their original halfword order and extent.
+static DesertChaserVariant _gDesertChaserUnusedVariants[4] = {
+    { 60, 36, 10, 150 },
+    { 40, 26, 10, 120 },
+    { 20, 18, 10, 120 },
+    { 60, 60, 10, 150 },
 };
 
 static TmdBone _gActor323400DesertChaserBodySkeleton[18] = {

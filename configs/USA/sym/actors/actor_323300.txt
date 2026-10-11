@@ -52,7 +52,7 @@ _gActorMotionAnimBanks19 = 0x80172558; // size:0x4 defined:True
 _gActor323300StrangerAnimationSets = 0x80174A60; // size:0x10 defined:True
 _gActor323300StrangerAnimationBanks = 0x80174A70; // size:0x4 defined:True
 _gActor323300StrangerInitialAnimation = 0x80174A74; // size:0x14 defined:True
-D_actor_323300_80174A88 = 0x80174A88; // size:0x28 defined:True
+_gActor323300UnusedStrangerAnimations2To3 = 0x80174A88; // size:0x28 defined:True
 _gActor323300StrangerInitialPlacement = 0x80174AB0; // size:0x18 defined:True
 
 gDryfieldToiletLesserStrangerMorph = 0x801865D0; // absolute:True owner=dryfield_toilet

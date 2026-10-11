@@ -1241,7 +1241,15 @@ static u16 _gActor05700Stage5AreaSoundSets[34] = {
     0,
 };
 
-u16* gGolemPawnRookAreaParams[6] = {
+/// Launcher GOLEM sound-set selectors indexed first by stage, then by area.
+///
+/// Stage 0 is NULL and leaves the zero-filled work's soundSet at 0 (no bank or
+/// animation cues). Stages 1..5 borrow area-indexed halfwords containing 0..4;
+/// nonzero values select the sound file and its footstep/fall cue variant.
+/// Stages 1..5 have 22, 40, 40, 50 and 34 area entries, respectively; the spawn
+/// has no bounds check. Rows remain borrowed from this carrier until the body
+/// and its cue playback end.
+static u16* _gGolemPawnRookStageAreaSoundSets[6] = {
     NULL,
     _gActor05700Stage1AreaSoundSets,
     _gActor05700Stage2AreaSoundSets,
@@ -1333,9 +1341,6 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
 };
 
 /// Animation bank the work block's animation context is started on.
-
-/// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
-extern u16* gGolemPawnRookAreaParams[];
 
 /// Enemy parameter record the spawn hands to its `Enemy`.
 

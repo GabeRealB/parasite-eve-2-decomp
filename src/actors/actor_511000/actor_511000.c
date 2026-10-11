@@ -234,10 +234,6 @@ static const EnemyTaskFuncTable3 _gActor511000No9GolemStates = {
     enemyDestroy,
 };
 
-/// Message table and animation data `_actor511000SpawnNo9Golem` installs.
-extern TaskMessageEntry D_actor_511000_801550A0[4];
-extern AnimationSet*    D_actor_511000_801550C0[4];
-
 static TmdSource _gActor511000RupertBroderickBody2;
 static TmdSource _gActor511000RupertBroderickMongoose;
 static TmdSource _gActor511000Prop1;
@@ -1181,14 +1177,25 @@ TaskDesc gActor511000No9GolemTaskDescriptors[4] = {
     { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart12Task, { .model = &_gActor511000No9GolemAkropolisProp } },
 };
 
-TaskMessageEntry D_actor_511000_801550A0[4] = {
+/// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.
+///
+/// Installed on the initialized body. Playback borrows an `AnimationPlayRequest`
+/// selecting clip 1..3; placement borrows an `ActorTransform`, and draw takes
+/// show/skip-buffer flag bits. Unknown ids return zero. The task borrows this
+/// table and its callback code until teardown; keep this overlay loaded.
+static TaskMessageEntry _gActor511000No9GolemMessages[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor511000PlayNo9GolemAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor511000SetNo9GolemModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_actor_511000_801550C0[4] = {
+/// No. 9 GOLEM's fixed clip bank: zero is absent, clips 1..3 drive slots 1..18.
+///
+/// Spawn binds the context without playing clip zero. Messages reset clips
+/// 1..3; clip 3 also starts the body's fade and teardown. The context borrows
+/// this table and its descriptor/pose data for the initialized body's lifetime.
+static AnimationSet* _gActor511000No9GolemAnimationSets[4] = {
     NULL,
     &_gActor511000Animation208EC,
     &_gActor511000Animation21EBC,
@@ -2338,9 +2345,9 @@ static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task)
     model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
-    animationInitContext(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor511000No9GolemAnimationSets, model, work->rig.poses, work->rig.slots);
     work->animId           = ACTOR_511000_GOLEM_NO_CLIP;
-    task->msgTable         = D_actor_511000_801550A0;
+    task->msgTable         = _gActor511000No9GolemMessages;
     bodyRoot->composeStamp = GRAPHICS_COORD_DIRTY;
 
     childDescriptors = gActor511000No9GolemTaskDescriptors;

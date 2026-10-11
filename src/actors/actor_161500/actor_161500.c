@@ -1165,8 +1165,18 @@ static ActorTransform _gActor161500CompanionPendingRequestPlacement = { { 4224, 
 /// no script plays the NULL or the raw words following the table.
 static AnimationSet* _gActor161500RequestScenePlayerAnimationSets[7] = { &_gActor161500Animation04304, &_gActor161500Animation04518, &_gActor161500Animation047F8, &_gActor161500Animation04A88, &_gActor161500Animation04C60, &_gActor161500Animation04E94, NULL };
 
-// Request for extended id 47. Nothing references it; it repeats the first of the requests that follow.
-AnimationPlayRequest D_actor_161500_80136D7C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Spare player request-scene clip-47 reset record, never selected for playback.
+///
+/// The ten-word bank transfer reads this record's first three words after the
+/// seven set-table entries: bank seed, clip id and reset choice. Preserve this
+/// twenty-byte record's position; its final two words are outside that transfer.
+static AnimationPlayRequest _gActor161500UnusedRequestScenePlayerAnimation47Request = {
+    .source               = { .index = ACTOR_161500_PLAYER_BANK_SEED },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Starts player request-bank clip 47 before waiting for its end in every full request scene.
 static AnimationPlayRequest _gActor161500RequestScenePlayerAnimation47Request = {
@@ -1237,7 +1247,7 @@ static AnimationPlayRequest _gActor161500RequestScenePlayerAnimation52Request = 
 /// Installs request-scene clips and four other words into the equipped player bank.
 ///
 /// The retained ten-word transfer reads six set pointers, NULL, then the first
-/// three words of the neighbouring `D_actor_161500_80136D7C` play request
+/// three words of the neighbouring `_gActor161500UnusedRequestScenePlayerAnimation47Request` play request
 /// (bank index, animation id and blend choice). Those four other entries are
 /// never played. Keep this source order and the overlay loaded while the clip
 /// pointers are in use; the transfer length is neither the table's extent nor

@@ -134,11 +134,6 @@ typedef struct {
 } _Actor800100AimBeamQuadScratch;
 STATIC_ASSERT_SIZEOF(_Actor800100AimBeamQuadScratch, 0x44);
 
-/// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
-extern SVECTOR D_actor_800100_80167128;
-
-extern TaskMessageEntry D_actor_800100_80167130[26];
-
 static void _actor800100InitTask(Task* task);
 static void _actor800100Teardown(Task* task);
 static void _actor800100DecideIdleBehavior(Task* task);
@@ -258,13 +253,34 @@ static GpuImageUpload* _gActor800100BlinkFrames[6];
 static GpuImageUpload* _gActor800100MouthClosedFrames[2];
 static GpuImageUpload* _gActor800100MouthOpenFrames[2];
 
-SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
+/// Pyke emitter's initial translation relative to its borrowed parent coordinate.
+///
+/// Whole coordinate units: (0, 512, 64). Initialization copies XYZ into the
+/// nozzle coordinate before composition; the fourth halfword is not read.
+static SVECTOR _gActor800100PykeNozzleOffset = { 0, 512, 64, 0 };
 
-TaskMessageEntry D_actor_800100_80167130[26] = {
+/// Receiver-specific protocol aliases; playback aliases borrow an AnimationPlayRequest.
+enum {
+    ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1002 = 1002,
+    ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1003 = 1003,
+    ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1004 = 1004,
+    ACTOR_800100_MESSAGE_END_SCRIPTED_ALIAS_1024   = 1024,
+};
+
+/// Armed companion receiver table for exactly message ids 1000..1025.
+///
+/// There is no end marker: every caller must select an id in that domain.
+/// Ids 1002..1004, 1007/1008 and 1018..1020 borrow an `AnimationPlayRequest`
+/// and play it, even where the player uses motion, polling or presentation
+/// payloads; 1008 is not a motion query on this receiver. Ids 1023/1024 end
+/// scripted motion and ignore both payloads. Counted-walk id 1014 takes control
+/// in state 5 but only ticks animation, leaving its motion pending. The task
+/// borrows this table and its callback code while this overlay remains loaded.
+static TaskMessageEntry _gActor800100MessageTable[26] = {
     { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
-    { 1002, companionPlayScriptedAnimation },
-    { 1003, companionPlayScriptedAnimation },
-    { 1004, companionPlayScriptedAnimation },
+    { ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1002, companionPlayScriptedAnimation },
+    { ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1003, companionPlayScriptedAnimation },
+    { ACTOR_800100_MESSAGE_PLAY_ANIMATION_ALIAS_1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
@@ -279,13 +295,13 @@ TaskMessageEntry D_actor_800100_80167130[26] = {
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionAwaitButtonPresses },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionApplyDamage },
-    { 1018, companionPlayScriptedAnimation },
+    { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_RUN_TO, companionPlayScriptedAnimation },
-    { 1020, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, companionMoveBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
-    { 1024, companionEndScriptedMotion },
+    { ACTOR_800100_MESSAGE_END_SCRIPTED_ALIAS_1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
 };
 
@@ -810,9 +826,9 @@ void actor800100PykeEmitterTask(Task* task)
         case ACTOR_800100_PYKE_STATE_INIT:
             nozzleCoord->parent = effectWork->parent;
             gfxSetRotIdentity(&nozzleCoord->coord);
-            nozzleCoord->coord.t[0]   = D_actor_800100_80167128.vx;
-            nozzleCoord->coord.t[1]   = D_actor_800100_80167128.vy;
-            nozzleCoord->coord.t[2]   = D_actor_800100_80167128.vz;
+            nozzleCoord->coord.t[0]   = _gActor800100PykeNozzleOffset.vx;
+            nozzleCoord->coord.t[1]   = _gActor800100PykeNozzleOffset.vy;
+            nozzleCoord->coord.t[2]   = _gActor800100PykeNozzleOffset.vz;
             nozzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(nozzleCoord);
             task->state = ACTOR_800100_PYKE_STATE_UPDATE;
@@ -949,7 +965,7 @@ static void _actor800100InitTask(Task* task)
     model             = task->extra.tmd;
     rootCoord         = model->coords;
     task->state++;
-    task->msgTable                                 = D_actor_800100_80167130;
+    task->msgTable                                 = _gActor800100MessageTable;
     task->exitCallback                             = _actor800100Teardown;
     actor->animationSlotCount                      = GAME_ACTOR_ARMED_COMPANION_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
@@ -1322,8 +1338,12 @@ static void _actor800100Teardown(Task* task)
     taskKill(task);
 }
 
-/// State handlers of the actor's main task, indexed by its state.
-static const TaskFuncTable4 D_actor_800100_80161E3C = { {
+/// Armed companion task lifecycle handlers indexed by `Task::state` in 0..3.
+///
+/// Initialization, movement update, deferred teardown and final release. The
+/// dispatcher copies all four callbacks before its unchecked lookup; task
+/// creation starts at 0, initialization advances to 1, and teardown selects 3.
+static const TaskFuncTable4 _gActor800100TaskStates = { {
     _actor800100InitTask,
     _actor800100UpdateMove,
     _actor800100ScheduleTeardown,
@@ -1334,7 +1354,7 @@ void actor800100Task(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_800100_80161E3C;
+    handlers = _gActor800100TaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1418,8 +1438,13 @@ static const TaskFuncTable3 _gActor800100ModeHandlers = { {
     _actor800100TickScriptedMode,
 } };
 
-/// Handlers `_actor800100TickNativeMode` runs, indexed by `state`.
-static const TaskFuncTable12 D_actor_800100_80161E58 = { {
+/// Armed companion native behavior handlers indexed by `GameActor::state` in 0..11.
+///
+/// Idle, follow, turn, combat entry/decision/attack, retreat, approach, combat
+/// exit, reload, obstacle scan and wander. Native transitions select these
+/// twelve slots; scripted and damage modes use separate tables. Each update
+/// copies the full value before its unchecked lookup, borrowing callback code.
+static const TaskFuncTable12 _gActor800100NativeStates = { {
     _actor800100IdleState,
     _actor800100FollowPlayerState,
     _actor800100TurnToTargetState,
@@ -1479,7 +1504,7 @@ static void _actor800100TickNativeMode(Task* task)
     s16             dripRemainder;
     s32             audioPan;
 
-    states    = D_actor_800100_80161E58;
+    states    = _gActor800100NativeStates;
     actor     = task->work;
     rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
@@ -2673,9 +2698,14 @@ static void _actor800100StoppedDamageState(Task* unusedTask)
 {
 }
 
-/// Gameplay's player-mode handlers `_actor800100TickScriptedMode` runs,
-/// indexed by `state`.
-static const TaskFuncTable7 D_actor_800100_80161E98 = { {
+/// Companion scripted-control handlers indexed by `GameActor::state` in 0..6.
+///
+/// Slots 0/1 play animation, 2 turns, 4 walks to a target and 6 counts button
+/// presses. Slots 3/5 also tick animation: counted-walk state 5 stays motion
+/// pending without walking. Installed messages select states 1/2/4/5/6; run,
+/// stairs and presentation ids use playback rather than the player's states
+/// 3/7/8. The dispatcher copies all seven callbacks; there is no bounds check.
+static const TaskFuncTable7 _gActor800100ScriptedStates = { {
     playerActorScriptedState0,
     playerActorTickScriptedAnimation,
     playerActorMode2State2,
@@ -2696,7 +2726,7 @@ static void _actor800100TickScriptedMode(Task* task)
     GameActor*     actor;
     TaskFuncTable7 handlers;
 
-    handlers = D_actor_800100_80161E98;
+    handlers = _gActor800100ScriptedStates;
     actor    = task->work;
     handlers.funcs[(u16)actor->state](task);
     playerActorUpdateFacing(task);

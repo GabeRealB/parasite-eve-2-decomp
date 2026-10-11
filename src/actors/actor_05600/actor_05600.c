@@ -59,10 +59,6 @@
 /// Character script bank used by this carrier's cue tables.
 enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x38 };
 
-/// Per-stage tables of streaming cue ids, indexed by `GameSession::location.loc.stage`
-/// and then `GameSession::location.loc.area`.
-extern u16* gGolemPawnRookAreaParams[];
-
 static AnimationSet _gActor05600Actor105600Animation0B3CC;
 static AnimationSet _gActor05600Actor105600Animation0BD34;
 static AnimationSet _gActor05600Actor105600Animation0C35C;
@@ -1167,7 +1163,15 @@ static u16 _gActor05600ShelterNeoArkSoundSets[34] = {
     0,
 };
 
-u16* gGolemPawnRookAreaParams[6] = {
+/// Launcher GOLEM sound-set selectors indexed first by stage, then by area.
+///
+/// Stage 0 is NULL and leaves the zero-filled work's soundSet at 0 (no bank or
+/// animation cues). Stages 1..5 borrow area-indexed halfwords containing 0..4;
+/// nonzero values select the sound file and its footstep/fall cue variant.
+/// Stages 1..5 have 22, 40, 40, 50 and 34 area entries, respectively; the spawn
+/// has no bounds check. Rows remain borrowed from this carrier until the body
+/// and its cue playback end.
+static u16* _gGolemPawnRookStageAreaSoundSets[6] = {
     NULL,
     _gActor05600AcropolisSoundSets,
     _gActor05600DryfieldSoundSets,

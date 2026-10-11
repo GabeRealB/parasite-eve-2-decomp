@@ -92804,7 +92804,7 @@ streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + 0x20000);
 Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
 
 - **The `reorder` penalty was in a different block.** The swap was `move a1,zero`
-  vs `lui a2,%hi(D_801341E0)` inside the *following* `if` body, which has no
+  vs `lui a2,%hi(gActor535700PawnGolemEncounterSkipScript)` inside the *following* `if` body, which has no
   dependence on `gameSetTaskSlot`'s arguments at all. Fixing the argument count
   cleared it anyway: sched1 ranks by `INSN_PRIORITY`, which is a whole-function
   quantity, so a register-allocation change anywhere can re-rank two independent
@@ -110148,13 +110148,13 @@ and reads as a plausible match until the delay slot is compared.
 
 See "Migrated `D_*` tables have no `D_*.s` after a re-split" above. Matching
 `_actor800100TickNativeMode` dropped the `INCLUDE_ASM` whose `.s` carried
-`D_actor_800100_80161E58` (a 12-entry `TaskFuncTable12` folded to the top of
+`_gActor800100NativeStates` (a 12-entry `TaskFuncTable12` folded to the top of
 that file), and the unscoped build then failed at link with `undefined
-reference to 'D_actor_800100_80161E58'`. splat's re-split had written the table
+reference to '_gActor800100NativeStates'`. splat's re-split had written the table
 to `asm/USA/actors/data/actor_800100/actor_800100_2.rodata.s`, which the
 generated `.ld` does not reference - so the bytes were on disk and unlinked.
 
-Re-emit with the guarded file-scope asm block (the `D_actor_800100_80161E98`
+Re-emit with the guarded file-scope asm block (the `_gActor800100ScriptedStates`
 pattern already in the same file), placed between the neighbouring
 `INCLUDE_RODATA` line and the unit's later tables so the object's `.rodata`
 stays in address order. Point the words at the overlay's own symbols:

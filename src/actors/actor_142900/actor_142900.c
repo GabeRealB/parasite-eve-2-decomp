@@ -639,8 +639,18 @@ static AnimationSet* _gActor142900CompanionAnimationBankExtension[] = {
     &_gActor142900Animation01370,
 };
 
-// The companion's play requests start here: one per clip, with id 47 stored twice, not in id order. This one is not referenced.
-AnimationPlayRequest D_actor_142900_8013764C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Spare companion scene-clip 47 reset record included in the raw bank copy.
+///
+/// No playback instruction selects this request. All five words are read after
+/// the thirteen clip pointers by the retained 32-word extension transfer.
+/// Preserve its position; bank seed 1 and enabled collision remain stored data.
+static AnimationPlayRequest _gActor142900UnusedCompanionPlayAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_142900_SCENE_ANIMATION_47,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Resets companion scene clip 47 with world collision enabled.
 static AnimationPlayRequest _gActor142900CompanionPlayAnimation47 = {
@@ -696,10 +706,13 @@ static AnimationPlayRequest _gActor142900CompanionPlayAnimation50 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Not referenced.
-AnimationPlayRequest D_actor_142900_801376D8[2] = {
-    { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Unplayed companion scene-clip 51/52 resets outside the bank-copy span.
+///
+/// Both retain bank seed 1, enabled world collision and an ignored zero blend
+/// duration. No script or other recovered consumer reads either record.
+static AnimationPlayRequest _gActor142900UnusedCompanionPlayAnimations51To52[2] = {
+    { { .index = 1 }, ACTOR_142900_SCENE_ANIMATION_51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 1 }, ACTOR_142900_SCENE_ANIMATION_52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 /// Resets companion scene clip 53 with world collision enabled.
@@ -769,8 +782,18 @@ static AnimationSet* _gActor142900PlayerAnimationBankExtension[] = {
     &_gActor142900Animation057B8,
 };
 
-// The player's play requests start here: ids 47-56 with 47 stored twice, and two for base id 1 after the fifth. This one is not referenced.
-AnimationPlayRequest D_actor_142900_8013778C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Spare player scene-clip 47 reset record included in the raw bank copy.
+///
+/// No playback instruction selects this request. All five words follow the ten
+/// clip pointers in the retained 32-word extension transfer. Preserve its
+/// position, bank seed 1 and enabled world-collision word.
+static AnimationPlayRequest _gActor142900UnusedPlayerPlayAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_142900_SCENE_ANIMATION_47,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Resets player scene clip 47 with world collision enabled.
 static AnimationPlayRequest _gActor142900PlayerPlayAnimation47 = {

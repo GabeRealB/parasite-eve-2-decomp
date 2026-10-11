@@ -45,9 +45,6 @@
 
 static DesertChaserEffectArgStorage _gDesertChaserEffectArg;
 
-/// Enemy parameters the spawn handler stores in `Enemy::param`.
-extern EnemyParams gRigParams;
-
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
@@ -97,7 +94,23 @@ static DamageAttack _gDesertChaserAttacks[5] = {
     { 0xFFFF, 0 },
 };
 
-EnemyParams gRigParams = { _gDesertChaserAttacks, 200, 75, 50, 4, 100, 10, 100, 0 };
+/// Enemy-kind parameters retained by the scripted Desert Chaser.
+///
+/// Spawn borrows this record in Enemy.param but makes the actor non-lockable
+/// with zero live HP and no combat contacts. Nominal HP, reward and reaction
+/// values remain authored data; the five attack records are not delivered by
+/// this build. Keep this carrier loaded until its enemy is destroyed.
+static EnemyParams _gDesertChaserParams = {
+    .attacks              = _gDesertChaserAttacks,
+    .hpMax                = 200,
+    .exp                  = 75,
+    .bp                   = 50,
+    .mp                   = 4,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 /// Unused copies of the four armed Desert Chaser timing variants.
 ///

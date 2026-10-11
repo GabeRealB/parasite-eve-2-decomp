@@ -48,7 +48,7 @@ static void _desertChaserSpawn(Enemy* enemy, Task* task)
     enemy->coord            = &task->extra.tmd->coords[2];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    enemy->param                  = &gRigParams;
+    enemy->param                  = &_gDesertChaserParams;
     enemy->reactionFlags          = 0;
     enemy->hp                     = 0;
     enemy->recs                   = 0;

@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include "actors/actor_535700.h"
+
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -14,9 +16,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/task_types.h"
-
-extern EvsCommand D_actor_535700_80133898[];
-extern EvsCommand D_actor_535700_801341E0[];
 
 static s32 _dryfieldNightR08RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightR08ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -97,7 +96,7 @@ static void _dryfieldNightR08InitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DRYFIELD_NIGHT_R08_DEMO_SCENE) {
-        evsStartScriptWithSkip(D_actor_535700_80133898, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_535700_801341E0);
+        evsStartScriptWithSkip(gActor535700PawnGolemEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor535700PawnGolemEncounterSkipScript);
     }
     task->state = task->state + 1;
 }

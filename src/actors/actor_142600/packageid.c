@@ -579,8 +579,17 @@ static AnimationPlayRequest _gActor142600PlayerAnimation57 = { { .index = 1 }, A
 /// Resets player scene clip 58 with world collision disabled.
 static AnimationPlayRequest _gActor142600PlayerAnimation58 = { { .index = 1 }, ACTOR_142600_SCENE_ANIMATION_58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-// Not referenced.
-AnimationPlayRequest D_actor_142600_80136060 = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained player scene-clip 59 reset request, with no playback consumer.
+///
+/// Bank selector 1 is the player seed; collision is disabled and the reset
+/// ignores blend duration. This record is outside the scene bank-copy span.
+static AnimationPlayRequest _gActor142600UnusedPlayerAnimation59 = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 12,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Installs 32 words from the player's scene table, including its documented overread.
 ///

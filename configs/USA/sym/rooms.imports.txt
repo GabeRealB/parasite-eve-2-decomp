@@ -509,10 +509,10 @@ D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
 gActor151000GardenArrivalScript = 0x801334EC; // absolute:True owner=actor_151000
 gActor143900ObservatoryEntryScript = 0x80133560; // absolute:True owner=actor_143900
 gActor143900ObservatoryEntrySkipScript = 0x80133860; // absolute:True owner=actor_143900
-D_actor_535700_80133898 = 0x80133898; // absolute:True owner=actor_535700
+gActor535700PawnGolemEncounterScript = 0x80133898; // absolute:True owner=actor_535700
 gActor151000GardenArrivalSkipScript = 0x80133954; // absolute:True owner=actor_151000
 gActor461800NeoArkSceneScript = 0x80133F90; // absolute:True owner=actor_461800
-D_actor_535700_801341E0 = 0x801341E0; // absolute:True owner=actor_535700
+gActor535700PawnGolemEncounterSkipScript = 0x801341E0; // absolute:True owner=actor_535700
 gActor461800NeoArkSceneSkipScript = 0x80134470; // absolute:True owner=actor_461800
 gActor143000KeypadTaskDesc = 0x80134564; // absolute:True owner=actor_143000
 gActor141000FlightTasks = 0x801348D8; // absolute:True owner=actor_141000
@@ -589,7 +589,7 @@ gActor503500BossDefeatScript = 0x8014C540; // absolute:True owner=actor_503500
 actor215100SelectCaptionResource = 0x8014C5E0; // type:func absolute:True owner=actor_215100
 D_actor_503500_8014CAF8 = 0x8014CAF8; // absolute:True owner=actor_503500
 gActor215100GalleryTrainingActive = 0x8014D038; // absolute:True owner=actor_215100
-D_actor_503500_8014D158 = 0x8014D158; // absolute:True owner=actor_503500
+gActor503500BossPhaseTransitionScript = 0x8014D158; // absolute:True owner=actor_503500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor215100GalleryTaskDescs = 0x8014E13C; // absolute:True owner=actor_215100
 gActor207000SucklercephTaskDescs = 0x80151E60; // absolute:True owner=actor_207000

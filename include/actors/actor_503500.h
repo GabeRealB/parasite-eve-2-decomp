@@ -50,6 +50,16 @@ extern EvsCommand gActor503500BossIntroSkipScript[29];
 /// their scene resources loaded through completion, including vibration tasks.
 extern EvsCommand gActor503500BossDefeatScript[61];
 
+/// Boss phase-transition interruption started by Shelter R48's first boss event.
+///
+/// Installs player scene clips, saves the player pose and starts the boss's
+/// root-saving transition. CAP command 5 supplies two synchronization cues;
+/// afterward both roots and the room view are restored and scripted player
+/// control ends. All 17 commands and referenced records/callbacks are borrowed.
+/// Keep both overlays and their scene resources loaded until the script ends;
+/// the room starts this with `EVENT_SCRIPT_HUD_HIDE_RESTORE` and no skip target.
+extern EvsCommand gActor503500BossPhaseTransitionScript[17];
+
 /// Scene-effect spawn recipes borrowed synchronously by the actor scripts and R48.
 ///
 /// Drift emitter 0 owns a coordinate body; spawn argument 1 selects room position

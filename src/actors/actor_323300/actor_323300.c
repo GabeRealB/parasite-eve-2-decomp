@@ -462,7 +462,11 @@ static AnimationSet** _gActor323300StrangerAnimationBanks[1] = {
 /// Read synchronously by the spawn handler; the request owns no playback storage.
 static AnimationPlayRequest _gActor323300StrangerInitialAnimation = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_323300_80174A88[2] = {
+/// Retained Lesser Stranger clip-2/3 requests with no playback consumer.
+///
+/// Both select bank 0 with a twenty-frame blend and disabled world collision.
+/// The local three-clip bank supplies these ids; only clip 1 is requested.
+static AnimationPlayRequest _gActor323300UnusedStrangerAnimations2To3[2] = {
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };

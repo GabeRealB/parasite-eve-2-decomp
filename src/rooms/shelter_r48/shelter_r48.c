@@ -83,7 +83,6 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern EvsCommand D_actor_503500_8014CAF8[];
-extern EvsCommand D_actor_503500_8014D158[];
 
 /// The room's message table, installed on the room task.
 extern TaskMessageEntry D_shelter_r48_80182FB8[];
@@ -2483,7 +2482,7 @@ static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId,
         SHELTER_R48_SCENE_DEFEATED    = 3
     };
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == SHELTER_R48_SCENE_BATTLE) {
-        evsStartScript(D_actor_503500_8014D158, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gActor503500BossPhaseTransitionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_INTERRUPTED);
     } else {
         // Queue the scene before the drift emitters at its three fixed positions.

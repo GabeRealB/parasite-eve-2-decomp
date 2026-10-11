@@ -434,7 +434,16 @@ static AnimationSet* _gActor503500PlayerSceneAnimationSets[] = {
 /// The request is borrowed during dispatch; copied sets remain borrowed afterward.
 static AnimationBankCopyRequest _gActor503500PlayerSceneAnimationBankCopy = { { .sets = _gActor503500PlayerSceneAnimationSets }, ARRAY_SIZE(_gActor503500PlayerSceneAnimationSets) };
 
-AnimationPlayRequest D_actor_503500_8014B9D4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained player bank-seed-1 clip-1 reset request with no script consumer.
+///
+/// World collision is disabled and reset ignores the zero blend duration.
+static AnimationPlayRequest _gActor503500UnusedPlayerAnimation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Player playback request used when the defeat, card-use and phase scenes start.
 ///
@@ -551,7 +560,16 @@ static ActorCommand _gActor503500BossPhaseTransitionCommand = { { .loc = { GAME_
 /// completion so the boss can finish the transition. The R48 context is ignored.
 static ActorCommand _gActor503500BossRestoreRootCommand = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48 } }, ACTOR_503500_BOSS_COMMAND_RESTORE_ROOT };
 
-AnimationPlayRequest D_actor_503500_8014BC2C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-0 reset matching the tentacle's move clip, with no consumer.
+///
+/// World collision is disabled and reset ignores the zero blend duration.
+static AnimationPlayRequest _gActor503500UnusedTentacleAnimation1Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_503500_TENTACLE_ANIMATION_MOVE,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Tentacle bank-0 clip played during its defeat-scene translation.
 ///
@@ -571,9 +589,13 @@ static AnimationPlayRequest _gActor503500TentacleCollapseAnimation = { { .index 
 /// The placement message borrows the record synchronously.
 static ActorTransform _gActor503500TentacleDefeatStartTransform = { { 5190, 3920, 7820, 0 }, { 0, 1024, 0, 0 } };
 
-ActorTransform D_actor_503500_8014BC80[2] = {
-    { { 0x2B5C, 560, 7970, 0 }, { 0, 1024, 0, 0 } },
-    { { 0x3232, 1610, 7970, 0 }, { 0, 1024, 0, 0 } },
+/// Two unused placements retained beside the tentacle's defeat-scene start pose.
+///
+/// Positions use whole room-coordinate units; both yaws are a quarter turn.
+/// No script places a task from these records, so their scene beats are unproven.
+static ActorTransform _gActor503500UnusedTentaclePlacements[2] = {
+    { { 11100, 560, 7970, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
+    { { 12850, 1610, 7970, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
 /// Stops the scripted tentacle after either defeat-scene movement leg.
@@ -887,23 +909,25 @@ EvsCommand D_actor_503500_8014D098[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_503500_8014D158[17] = {
+enum { ACTOR_503500_PHASE_TRANSITION_CAP_COMMAND = 5 };
+
+EvsCommand gActor503500BossPhaseTransitionScript[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor503500PlayerSceneAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor503500PlayerSceneStartAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor503500PlayerSceneStartAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ResetPlayerWeaponAttack }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500LockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500SavePlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor503500PlayerPhaseTransitionTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor503500BossPhaseTransitionCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor503500BossPhaseTransitionTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_503500_PHASE_TRANSITION_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500RestorePlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_503500_SCENE_ACTOR_BOSS }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor503500BossRestoreRootCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 

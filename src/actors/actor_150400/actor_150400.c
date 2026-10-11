@@ -113,7 +113,17 @@ static TaskDesc _gActor150400SlidingModelTaskDesc = {
     .data     = { .model = &_gActor150400Model00C44 },
 };
 
-AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-0 clip-1 reset request with no recovered consumer.
+///
+/// Collision is disabled and reset ignores the zero blend duration. No receiver
+/// is established, so this is not assigned to the player or scene walker.
+static AnimationPlayRequest _gActor150400UnusedAnimation1Request = {
+    .source               = { .index = 0 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     ACTOR_150400_FREEZER_WALK_BLEND_FRAMES = 10,

@@ -216,16 +216,33 @@ static EnemyParams _gActor223600EnemyParams = {
     .damageOverTimeTicks  = 0,
 };
 
-PadScriptCmd D_actor_223600_8014CFDC[3] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+enum {
+    ACTOR_223600_UNUSED_VIBRATION_HOLD  = 0,
+    ACTOR_223600_UNUSED_VIBRATION_FULL  = 1,
+    ACTOR_223600_UNUSED_VIBRATION_TAPER = 2,
+};
+
+/// Retained two-lane vibration sequence with no recovered spawn consumer.
+///
+/// The binary lane holds for nine eligible frames, then stops. The variable
+/// lane holds full intensity for twelve frames and tapers over six, then stops.
+/// Command and segment indices stay in 0..2. A spawn would borrow both arrays
+/// until vibration-task teardown; this staged actor never starts the sequence.
+static PadScriptCmd _gActor223600UnusedVibrationCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_223600_UNUSED_VIBRATION_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_223600_UNUSED_VIBRATION_FULL) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_223600_UNUSED_VIBRATION_TAPER) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_223600_8014CFE8[3] = {
-    { 0, 0, 9, 0 },
-    { 255, 255, 12, 1 },
-    { 100, 50, 6, 1 },
+/// Retained nine-frame binary hold, twelve-frame full level and six-frame taper.
+///
+/// Intensities are bytes before attenuation. The variable taper starts at 100
+/// and approaches 50; the interpreter posts no extra final endpoint. The last
+/// byte of each record is preserved with no established interpreter meaning.
+static PadScriptVibrationSegment _gActor223600UnusedVibrationSegments[3] = {
+    [ACTOR_223600_UNUSED_VIBRATION_HOLD]  = { .startIntensity = 0, .endIntensity = 0, .durationFrames = 9, .field_3 = 0 },
+    [ACTOR_223600_UNUSED_VIBRATION_FULL]  = { .startIntensity = 255, .endIntensity = 255, .durationFrames = 12, .field_3 = 1 },
+    [ACTOR_223600_UNUSED_VIBRATION_TAPER] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
 static TmdBone _gActor223600BloodSucklerBodySkeleton[6] = {
@@ -624,6 +641,10 @@ static AnimationSet* _gActor223600AnimationSets[26] = {
     NULL,
 };
 
+/// Retained image bytes with no recovered access or established record layout.
+///
+/// The 256-byte span contains sparse values 6 and 9 among zero bytes. Its
+/// original object boundaries and purpose are unproven; preserve it in place.
 u8 D_actor_223600_80150A28[256] = {
     0,
     0,

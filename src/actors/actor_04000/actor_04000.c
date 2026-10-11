@@ -910,6 +910,10 @@ enum {
 /// loaded through that playback. Reset ignores the retained three-frame duration.
 static AnimationPlayRequest _gActor04000PlayerHoldAnimationRequest = { { .sets = _gActor04000PlayerRightLatchAnimationSets }, ACTOR_04000_PLAYER_LATCH_ANIMATION, ANIMATION_BLEND_RESET, ACTOR_04000_PLAYER_HOLD_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
+/// Retained image bytes with no recovered access or established record layout.
+///
+/// The 364-byte span contains sparse values 6 and 9 among zero bytes. Its
+/// original object boundaries and purpose are unproven; preserve it in place.
 u8 Actor04000_D0C544[364] = {
     0,
     0,
