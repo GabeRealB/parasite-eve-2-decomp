@@ -67,13 +67,6 @@
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-extern EvsCommand D_actor_450200_80137EE4[];
-extern EvsCommand D_actor_450200_80138694[];
-extern EvsCommand D_actor_450200_8013C72C[];
-extern EvsCommand D_actor_450200_8013CAEC[];
-extern EvsCommand D_actor_450200_8013FC58[];
-extern EvsCommand D_actor_450200_80140078[];
-
 static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid;
 
 extern RoomDeparture gRoomDeparture;
@@ -1974,11 +1967,11 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
         gameFlagSetNibble(GAME_FLAG_0D7, true);
         if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_FIRST_BRANCH_OBJECTIVE);
-            evsStartScriptWithSkip(D_actor_450200_8013C72C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_8013CAEC);
+            evsStartScriptWithSkip(gActor450200SoloSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200SoloSceneSkipScript);
         } else {
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_SECOND_BRANCH_OBJECTIVE);
             gameFlagSetNibble(GAME_FLAG_0D1, COMPANION_ROUTE_AT_OBSERVATORY);
-            evsStartScriptWithSkip(D_actor_450200_80137EE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80138694);
+            evsStartScriptWithSkip(gActor450200CompanionSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200CompanionSceneSkipScript);
         }
     }
     if (actionRequest->actionId == ACTION_COMPANION_SECOND_SCENE) {
@@ -1987,7 +1980,7 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SECOND_SCENE_DIALOGUE_INDEX);
             gameFlagSetNibble(GAME_FLAG_0E1, true);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SECOND_SCENE_EVENT;
-            evsStartScriptWithSkip(D_actor_450200_8013FC58, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80140078);
+            evsStartScriptWithSkip(gActor450200RoomVariantSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200RoomVariantSceneSkipScript);
         }
     }
     if (actionRequest->actionId == ACTION_COMPANION_TALK && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == COMPANION_TALK_VIEW) {
