@@ -459,7 +459,7 @@ void bootReloadTitleTask(Task* task)
             if (cdCmdIsIdle() != 0) {
                 SetDispMask(1);
                 memConfigureImageMemory(GAME_STAGE_NONE, 0);
-                taskSpawnFromTable(Title_TaskDescs, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gTitleStartupTaskDescriptors, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
                 taskKill(task);
                 gDisplayState.debugMode = 0;
             }

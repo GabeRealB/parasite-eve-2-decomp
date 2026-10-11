@@ -23438,8 +23438,8 @@ Treat title as a normal global segment in `title.yaml` and keep main-exe
 imports `absolute:True` (plus `global_vram_*` ending at the load address
 `0x80093800`).
 
-`Title_Padding = 0xE122` must follow `Title_DemoCardRestoreMsg` (retail is not
-zero-pad after the string NUL).
+The trailing `0xE122` bytes in `_gTitleAttractDemoRestoreFormat` must follow its
+format-string NUL (retail is not zero-pad after the string NUL).
 
 ## Overlay rodata file splits from jumptable 8-align remainder
 
@@ -23494,7 +23494,7 @@ delay slots:
 register s32 mask asm("a0");
 mask = 0;
 asm("" : "+r"(mask));
-Title_SkipFadeFlag = 0;       /* sh fills jal delay */
+_gTitleScreenSkipFade = 0;       /* sh fills jal delay */
 SetDispMask(mask);    /* beqz delay already has move a0, zero */
 
 /* After streamFindMovieSlot: */
@@ -41969,7 +41969,7 @@ A new name that is taken *while its old name is still live* aborts the pass.
 When no old name survives and every new one is present, the pass already ran
 and exits 0, which keeps re-running it harmless.
 
-Cross-overlay reuse is not a clash: `0x80093830` is `Title_DemoCardRestoreMsg`
+Cross-overlay reuse is not a clash: `0x80093830` is `_gTitleAttractDemoRestoreFormat`
 in `sym.title.txt` and `Gp_PlayClockStates` in `sym.gameplay.txt`, because
 each overlay carries its own map.
 

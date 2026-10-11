@@ -1555,7 +1555,7 @@ static void _bootStartTitleTask(Task* task)
     textUploadPalettes();
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
     gameClearSession();
-    taskSpawnFromTable(Title_TaskDescs, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
+    taskSpawnFromTable(gTitleStartupTaskDescriptors, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
     taskKill(task);
 }
 

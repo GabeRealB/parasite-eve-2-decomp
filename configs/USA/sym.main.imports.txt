@@ -4,7 +4,7 @@
 
 titleRestoreAttractDemoState = 0x8009407C; // type:func absolute:True owner=title
 titleEnqueueAttractDemoFile = 0x80094B90; // type:func absolute:True owner=title
-Title_TaskDescs = 0x80094C8C; // absolute:True owner=title
+gTitleStartupTaskDescriptors = 0x80094C8C; // absolute:True owner=title
 
 actorRenderComposeAndDrawFlaggedModels = 0x80097AC0; // type:func absolute:True
 actorRenderComposeAndDrawActiveModels = 0x8009850C; // type:func absolute:True

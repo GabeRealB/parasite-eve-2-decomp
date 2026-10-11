@@ -5,15 +5,15 @@
 // ordinary (non-overlay) symbols. Main-exe imports live in
 // sym.title.imports.txt (absolute:True).
 //
-// titleRestoreAttractDemoState / titleEnqueueAttractDemoFile / Title_TaskDescs are also
+// titleRestoreAttractDemoState / titleEnqueueAttractDemoFile / gTitleStartupTaskDescriptors are also
 // imported by main through sym.main.imports.txt with owner=title.
 
 // ---------------------------------------------------------------------------
 // Read-only data (src/title/title.c, after the package id)
 // ---------------------------------------------------------------------------
-Title_PhaseTable = 0x80093804; // size:0x14
-Title_DemoStartMsg = 0x80093818;
-Title_DemoCardRestoreMsg = 0x80093830; // size:0x2C
+_gTitleScreenStateHandlers = 0x80093804; // size:0x14
+_gTitleAttractDemoStartMessage = 0x80093818;
+_gTitleAttractDemoRestoreFormat = 0x80093830; // size:0x2C
 
 // Switch jtables in title.c .rodata (overlay 0x5C / 0x7C).
 jtbl_8009385C = 0x8009385C; // type:jtbl size:0x20
@@ -36,17 +36,17 @@ titleEnqueueAttractDemoFile = 0x80094B90; // type:func
 // ---------------------------------------------------------------------------
 // Menu data (src/title/title.c)
 // ---------------------------------------------------------------------------
-Title_StrNewGame = 0x80094C0C;
-Title_StrLoadGame = 0x80094C18;
-Title_StrConfiguration = 0x80094C24;
-Title_StrDebugOption = 0x80094C34;
-Title_StrExtraGame = 0x80094C44;
-Title_StrSurvival = 0x80094C50;
-Title_MenuLabels = 0x80094C5C; // size:0x18
-// Task spawn ids for menu selection indices (New Game / Load / Config / …).
-Title_MenuSpawnIds = 0x80094C74; // size:0x18
-Title_TaskDescs = 0x80094C8C; // size:0x18
-Title_LastRand = 0x80094CA4;
-// When set, _titleStartupTask spawns with arg 0x80000000 (skip fade TILE).
+_gTitleMenuNewGameLabel = 0x80094C0C;
+_gTitleMenuLoadGameLabel = 0x80094C18;
+_gTitleMenuConfigurationLabel = 0x80094C24;
+_gTitleMenuDebugOptionLabel = 0x80094C34;
+_gTitleMenuExtraGameLabel = 0x80094C44;
+_gTitleMenuSurvivalLabel = 0x80094C50;
+_gTitleMenuTextLabels = 0x80094C5C; // size:0x18
+// Bank-0 task slots in full title-menu entry order (including skipped entries).
+_gTitleMenuTaskSlots = 0x80094C74; // size:0x18
+gTitleStartupTaskDescriptors = 0x80094C8C; // size:0x18
+_gTitleScreenRandomSample = 0x80094CA4;
+// Suppresses the next title screen's black fade after an uninterrupted intro.
 // C owns the final halfword, which splat's word scan does not emit.
-Title_SkipFadeFlag = 0x80094CA8; // type:u16 size:0x2 defined:True
+_gTitleScreenSkipFade = 0x80094CA8; // type:u16 size:0x2 defined:True

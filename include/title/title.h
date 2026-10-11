@@ -5,8 +5,14 @@
 
 #include "main/task_types.h"
 
-/// TaskDesc table: [0]=_titleStartupTask, [1]=_titleIntroMovieTask.
-extern TaskDesc Title_TaskDescs[];
+/// Two bodyless spawn recipes for title startup (0) and intro playback (1).
+///
+/// Both run at priority 0xC0 and ignore their spawn payloads. There is no
+/// terminator. The resident boot flow spawns entry 0 on the normal task list;
+/// startup spawns entry 1 on the display-owned list while the movie controls
+/// presentation. Requires the title overlay to remain loaded while either
+/// task runs. Descriptor metadata is zero and unused for these bodyless tasks.
+extern TaskDesc gTitleStartupTaskDescriptors[2];
 
 /// Restores the live save, player image and flag banks for an attract demo.
 ///

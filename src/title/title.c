@@ -110,28 +110,6 @@ typedef struct {
 } _TitleScreenWork;
 STATIC_ASSERT_SIZEOF(_TitleScreenWork, 0x18);
 
-/// Retained text labels for the title menu (src/title/title.c).
-extern char Title_StrNewGame[];
-
-extern char Title_StrLoadGame[];
-
-extern char Title_StrConfiguration[];
-
-extern char Title_StrDebugOption[];
-
-extern char Title_StrExtraGame[];
-
-extern char Title_StrSurvival[];
-
-/// Task spawn ids for menu selection indices.
-extern s32 Title_MenuSpawnIds[];
-
-/// Last rand() from titleScreenTask.
-extern s32 Title_LastRand;
-
-/// When set, _titleStartupTask spawns phase task with arg 0x80000000 (skip fade TILE).
-extern u16 Title_SkipFadeFlag;
-
 static void _titleIntroMovieTask(Task* task);
 
 static void _titleStartupTask(Task* startupTask);
@@ -142,38 +120,79 @@ static void _titleShowBackgroundTask(Task* task);
 static void _titleInitializeScreenTask(Task* task);
 static void _titleUpdateScreenTask(Task* task);
 
-char Title_StrNewGame[]       = "New Game";
-char Title_StrLoadGame[]      = "Load Game";
-char Title_StrConfiguration[] = "Configuration";
-char Title_StrDebugOption[]   = "Debug Option";
-char Title_StrExtraGame[]     = "Extra Game";
-char Title_StrSurvival[]      = "Survival";
+/// Retained NUL-terminated text for New Game; the retail menu uses atlas text.
+///
+/// The label block's word alignment and .data placement retain the loaded image layout.
+static const char _gTitleMenuNewGameLabel[] __attribute__((section(".data"), aligned(4))) = "New Game";
+/// Retained NUL-terminated text for Load Game; the retail menu uses atlas text.
+static const char _gTitleMenuLoadGameLabel[] __attribute__((section(".data"), aligned(4))) = "Load Game";
+/// Retained NUL-terminated text for Configuration; the retail menu uses atlas text.
+static const char _gTitleMenuConfigurationLabel[] __attribute__((section(".data"), aligned(4))) = "Configuration";
+/// Retained NUL-terminated text for the unreachable Debug Option menu entry.
+static const char _gTitleMenuDebugOptionLabel[] __attribute__((section(".data"), aligned(4))) = "Debug Option";
+/// Retained NUL-terminated text for the skipped Extra Game menu entry.
+static const char _gTitleMenuExtraGameLabel[] __attribute__((section(".data"), aligned(4))) = "Extra Game";
+/// Retained NUL-terminated text for the skipped Survival menu entry.
+static const char _gTitleMenuSurvivalLabel[] __attribute__((section(".data"), aligned(4))) = "Survival";
 
-/// Retained menu labels in selection order. The retail menu draws its labels
-/// from the texture atlas instead of reading this table.
-static char* Title_MenuLabels[] = {
-    Title_StrSurvival,
-    Title_StrExtraGame,
-    Title_StrNewGame,
-    Title_StrLoadGame,
-    Title_StrConfiguration,
-    Title_StrDebugOption,
+/// Retained text-label pointers indexed by TITLE_MENU_ entry; there is no terminator.
+///
+/// All six labels remain in the loaded image, but the retail menu draws its
+/// three reachable entries from the texture atlas and never reads this table.
+/// Explicit .data placement retains the table beside its labels.
+static const char* const _gTitleMenuTextLabels[TITLE_MENU_DEBUG_OPTION + 1] __attribute__((section(".data"))) = {
+    [TITLE_MENU_SURVIVAL]      = _gTitleMenuSurvivalLabel,
+    [TITLE_MENU_EXTRA_GAME]    = _gTitleMenuExtraGameLabel,
+    [TITLE_MENU_NEW_GAME]      = _gTitleMenuNewGameLabel,
+    [TITLE_MENU_LOAD_GAME]     = _gTitleMenuLoadGameLabel,
+    [TITLE_MENU_CONFIGURATION] = _gTitleMenuConfigurationLabel,
+    [TITLE_MENU_DEBUG_OPTION]  = _gTitleMenuDebugOptionLabel,
 };
 
-s32 Title_MenuSpawnIds[] = { 6, 6, 3, 4, 5, 6 };
-
-TaskDesc Title_TaskDescs[] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, _titleStartupTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, _titleIntroMovieTask },
+enum {
+    TITLE_MENU_LOAD_GAME_TASK_SLOT     = 4,
+    TITLE_MENU_CONFIGURATION_TASK_SLOT = 5,
+    TITLE_MENU_EXIT_TASK_SLOT          = 6,
+    TITLE_STARTUP_TASK_PRIORITY        = 0xC0,
 };
 
-/// Overlay state is stored in the loaded image; the loader does not clear BSS.
-s32 Title_LastRand     = 0;
-u16 Title_SkipFadeFlag = 0;
+/// Resident bank-0 task slots indexed by TITLE_MENU_ entry, without a terminator.
+///
+/// Confirmation passes zero for both spawn payloads. Only New Game, Load Game
+/// and Configuration are reachable; the other entries dispatch the exit task.
+/// Explicit .data placement retains its position in the loaded image.
+static const s32 _gTitleMenuTaskSlots[TITLE_MENU_DEBUG_OPTION + 1] __attribute__((section(".data"))) = {
+    [TITLE_MENU_SURVIVAL]      = TITLE_MENU_EXIT_TASK_SLOT,
+    [TITLE_MENU_EXTRA_GAME]    = TITLE_MENU_EXIT_TASK_SLOT,
+    [TITLE_MENU_NEW_GAME]      = TITLE_START_SESSION_TASK_SLOT,
+    [TITLE_MENU_LOAD_GAME]     = TITLE_MENU_LOAD_GAME_TASK_SLOT,
+    [TITLE_MENU_CONFIGURATION] = TITLE_MENU_CONFIGURATION_TASK_SLOT,
+    [TITLE_MENU_DEBUG_OPTION]  = TITLE_MENU_EXIT_TASK_SLOT,
+};
 
-/// The title task's states, which `titleScreenTask` copies and indexes by
-/// `Task::state`: set-up, the flag advance, the menu in two states and the kill.
-static const TaskFuncTable5 Title_PhaseTable = {
+TaskDesc gTitleStartupTaskDescriptors[2] = {
+    { .header = { .fields = { TASK_BODY_NONE, TITLE_STARTUP_TASK_PRIORITY } }, .callback = _titleStartupTask },
+    { .header = { .fields = { TASK_BODY_NONE, TITLE_STARTUP_TASK_PRIORITY } }, .callback = _titleIntroMovieTask },
+};
+
+/// Most recent SDK rand() result sampled before a title-screen state runs.
+///
+/// Initialized when the overlay loads and overwritten on every screen callback;
+/// no retail code reads the sample. The call advances the SDK random sequence.
+static s32 _gTitleScreenRandomSample = 0;
+
+/// Whether the next title screen suppresses its black fade (0 fade, 1 skip).
+///
+/// Startup sets this before the intro; direct entry and START cancellation clear
+/// it. Natural movie completion leaves it set for the screen's spawn request.
+/// It is an initialized halfword in the loaded overlay, rather than cleared BSS.
+static u16 _gTitleScreenSkipFade = false;
+
+/// Title-screen state handlers: initialize, show background, prompt, menu and release.
+///
+/// Copied by value before dispatch; Task::state must be in 0..4. Both prompt
+/// and menu use the same updater. The release handler can destroy the task.
+static const TaskFuncTable5 _gTitleScreenStateHandlers = {
     .funcs = {
         _titleInitializeScreenTask,
         _titleShowBackgroundTask,
@@ -183,13 +202,16 @@ static const TaskFuncTable5 Title_PhaseTable = {
     },
 };
 
-/// Debug line printed when the title screen hands over to the attract demo.
-static const char Title_DemoStartMsg[] = "##########DEMO START\n";
+/// NUL-terminated diagnostic printed when a disc-1 title timeout starts an attract demo.
+static const char _gTitleAttractDemoStartMessage[] = "##########DEMO START\n";
 
-/// Debug line printed before and after a demo restores its save data, with
-/// the stage and scene it names. The two bytes after the terminator are never
-/// read.
-static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n\0\x22\xE1";
+/// Diagnostic format for the live save's stage and area before and after demo restore.
+///
+/// Both arguments are promoted integer location bytes; the retained text calls
+/// the area a scene. The two bytes after the first NUL are not part of the
+/// format and their role is unproven. The 44-byte extent retains them without
+/// adding the C literal's final, implicit NUL.
+static const char _gTitleAttractDemoRestoreFormat[44] = "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n\0\x22\xE1";
 
 static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness);
 
@@ -378,7 +400,7 @@ static void _titleUpdateScreenTask(Task* task)
                 taskCallExit(task);
                 gDisplayState.demoScene = gameMainGetInitializationCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % TITLE_ATTRACT_DEMO_COUNT + 1;
-                printf(Title_DemoStartMsg);
+                printf(_gTitleAttractDemoStartMessage);
                 taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_START_SESSION_TASK_SLOT, TITLE_START_SESSION_DEMO_ARG, 0);
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
@@ -456,7 +478,7 @@ static void _titleUpdateScreenTask(Task* task)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            taskSpawn(TITLE_RESIDENT_TASK_BANK, Title_MenuSpawnIds[work->selection], 0, 0);
+            taskSpawn(TITLE_RESIDENT_TASK_BANK, _gTitleMenuTaskSlots[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskCallExit(task);
         }
@@ -492,7 +514,7 @@ void titleRestoreAttractDemoState(void)
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         stateBytes = FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
-    printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
+    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 
     // Consume one live record of each kind in the demo file's serialized order.
     memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], stateBytes, sizeof(gMcSaveData[MEMORY_CARD_SAVE_LIVE]));
@@ -528,7 +550,7 @@ void titleRestoreAttractDemoState(void)
     if (fsIsStageCdfAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != true) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
-    printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
+    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 }
 
 /// Enables the title background strips and advances to the prompt state.
@@ -542,8 +564,8 @@ void titleScreenTask(Task* task)
 {
     TaskFuncTable5 phases;
 
-    phases         = Title_PhaseTable;
-    Title_LastRand = rand();
+    phases                    = _gTitleScreenStateHandlers;
+    _gTitleScreenRandomSample = rand();
     phases.funcs[task->state](task);
 }
 
@@ -628,7 +650,7 @@ static void _titleIntroMovieTask(Task* task)
             if (cdCmdIsIdle()) {
                 task->state++;
             } else if (padIsStartPressed()) {
-                Title_SkipFadeFlag = 0;
+                _gTitleScreenSkipFade = false;
                 SetDispMask(0);
                 cdCmdRequestCancel();
                 task->state++;
@@ -693,12 +715,12 @@ static void _titleStartupTask(Task* startupTask)
         case TITLE_STARTUP_PREPARE:
             // Normal boot gives the movie exclusive presentation ownership.
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            Title_SkipFadeFlag                      = 1;
+            _gTitleScreenSkipFade                   = true;
             if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.skipTitleIntro != 0)) {
-                nextState          = TITLE_STARTUP_QUEUE_BACKGROUND;
-                Title_SkipFadeFlag = 0;
+                nextState             = TITLE_STARTUP_QUEUE_BACKGROUND;
+                _gTitleScreenSkipFade = false;
             } else {
-                displaySpawnTaskFromTable(Title_TaskDescs, TITLE_STARTUP_INTRO_TASK_INDEX, 0, 0);
+                displaySpawnTaskFromTable(gTitleStartupTaskDescriptors, TITLE_STARTUP_INTRO_TASK_INDEX, 0, 0);
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                 nextState                            = task->state + 1;
             }
@@ -709,7 +731,7 @@ static void _titleStartupTask(Task* startupTask)
             task->state = task->state + 1;
             return;
         case TITLE_STARTUP_SPAWN_SCREEN:
-            if (Title_SkipFadeFlag != 0) {
+            if (_gTitleScreenSkipFade != 0) {
                 taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, TITLE_SCREEN_SKIP_FADE, 0);
             } else {
                 taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, 0, 0);
