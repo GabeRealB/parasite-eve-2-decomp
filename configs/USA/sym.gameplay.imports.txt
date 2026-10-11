@@ -383,8 +383,8 @@ gMapDryfieldFullViewCameraTable = 0x8017AA74; // absolute:True owner=map_dryfiel
 gMapShelterViewCameraTable = 0x8017B480; // absolute:True owner=map_shelter
 gMapNeoArkViewCameraTable = 0x8017AD28; // absolute:True owner=map_neo_ark
 gMapAkropolisViewCountTable = 0x8017ABC0; // absolute:True owner=map_akropolis
-D_map_dryfield_8017AA28 = 0x8017AA28; // absolute:True owner=map_dryfield shared=mapui
-D_map_dryfield_full_8017A93C = 0x8017A93C; // absolute:True owner=map_dryfield_full
+gMapDryfieldViewCountTable = 0x8017AA28; // absolute:True owner=map_dryfield shared=mapui
+gMapDryfieldFullViewCountTable = 0x8017A93C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B110 = 0x8017B110; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AB88 = 0x8017AB88; // absolute:True owner=map_neo_ark
 gMapAkropolisViewIndexTable = 0x8017AC68; // absolute:True owner=map_akropolis
@@ -397,12 +397,12 @@ gMapDryfieldSpriteAreaTable = 0x8017AC98; // absolute:True owner=map_dryfield
 gMapDryfieldFullSpriteAreaTable = 0x8017ABAC; // absolute:True owner=map_dryfield_full
 gMapShelterSpriteAreaTable = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
 gMapNeoArkSpriteAreaTable = 0x8017AE38; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017AAC8 = 0x8017AAC8; // absolute:True owner=map_akropolis
+gMapAkropolisWorldCollisionResources = 0x8017AAC8; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AAC4 = 0x8017AAC4; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A9D8 = 0x8017A9D8; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B3B8 = 0x8017B3B8; // absolute:True owner=map_shelter
 D_map_neo_ark_8017ACA0 = 0x8017ACA0; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017AB20 = 0x8017AB20; // absolute:True owner=map_akropolis
+gMapAkropolisAreaWarpEntries = 0x8017AB20; // absolute:True owner=map_akropolis
 D_map_dryfield_8017A8F8 = 0x8017A8F8; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A80C = 0x8017A80C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017AF88 = 0x8017AF88; // absolute:True owner=map_shelter

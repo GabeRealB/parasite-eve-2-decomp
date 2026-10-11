@@ -162,7 +162,13 @@ extern u16 gMapAkropolisMarkerFlags[MAP_AKROPOLIS_MARKER_COUNT];
 /// map overlay owns only this area directory.
 extern WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY];
 
-extern WorldCollisionStageResources D_map_akropolis_8017AAC8;
+/// Collision room-resource directory for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1, then room - 1 within that area's own extent. There
+/// is no terminator or area-21 entry. The map owns the area directory and
+/// borrows room-overlay grid, trigger and occluder descriptors. Keep this map
+/// loaded during lookup and each selected room's resources loaded until unbound.
+extern WorldCollisionStageResources gMapAkropolisWorldCollisionResources;
 
 /// Sprite-view directory for Acropolis and MIST areas 1..20.
 ///
@@ -173,7 +179,13 @@ extern WorldCollisionStageResources D_map_akropolis_8017AAC8;
 /// must remain loaded during lookup.
 extern SpriteAreaTable gMapAkropolisSpriteAreaTable;
 
-extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
+/// Warp-endpoint arrays for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1, then warp - 1 within that area's own extent; room
+/// variants share the area's endpoints. There is no terminator or area-21
+/// entry. Endpoints supply departure facing/sounds and arrival placements/view.
+/// Keep this map and the selected room overlay loaded while copying an entry.
+extern DirectionWarpEntry* gMapAkropolisAreaWarpEntries[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 /// Logical-view search counts for Acropolis and MIST areas 1..20.
 ///

@@ -395,3 +395,5 @@ gMapDryfieldMotelRoom6Variant1Placements = 0x8017bb54;
 gMapDryfieldMotelRoom6Variant2Placements = 0x8017bb74;
 gMapDryfieldWaterHoleBatPlacements = 0x8017bb84;
 gMapDryfieldCellarVariant1Placements = 0x8017bc14;
+_gMapDryfieldRoomViewCountsByArea = 0x8017a990;
+gMapDryfieldViewCountTable = 0x8017aa28;

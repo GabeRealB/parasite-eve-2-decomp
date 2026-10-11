@@ -1024,30 +1024,35 @@ WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOT
     [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryRoomLightingTable,
 };
 
-static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
-    gAcropolisSquareRoomCollisionResources,
-    gAcropolisEastElevatorHallRoomCollisionResources,
-    gAcropolisPatioRoomCollisionResources,
-    gAcropolisCafeteriaCollisionRooms,
-    gAcropolisPlazaRoomCollisionResources,
-    gAcropolisSecurityRoomRoomCollisionResources,
-    gAcropolisHallwayRoomCollisionResources,
-    gAcropolisFountainRoomCollisionResources,
-    gAcropolisForkedRoadRoomCollisionResources,
-    gAcropolisObservatoryRoomCollisionResources,
-    gAcropolisPromenadeRoomCollisionResources,
-    gAcropolisSanctuaryRoomCollisionResources,
-    gAcropolisRoofGardenCollisionRoomResources,
-    gAcropolisBridgeRoomCollisionResources,
-    gAcropolisFireEscapeCollisionRoomResources,
-    gAcropolisHelicopterLandingPadCollisionRoomResources,
-    gAcropolisWestElevatorHallCollisionRoomResources,
-    gMistR18CollisionRoomResources,
-    gMistParkingRoomCollisionResources,
-    gMistShootingGalleryRoomCollisionResources,
+/// Borrowed per-room collision-resource arrays for Acropolis and MIST.
+///
+/// Indexed by area - 1 for areas 1..20, then room - 1 in each room-owned
+/// array. All area slots are populated; neither level has a terminator.
+/// The selected room overlay must stay loaded while its resources are active.
+static WorldCollisionRoomResources* _gMapAkropolisWorldCollisionAreaRooms[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaCollisionRooms,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwayRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatoryRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuaryRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenCollisionRoomResources,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeRoomCollisionResources,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeCollisionRoomResources,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadCollisionRoomResources,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallCollisionRoomResources,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18CollisionRoomResources,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingRoomCollisionResources,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryRoomCollisionResources,
 };
 
-WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
+WorldCollisionStageResources gMapAkropolisWorldCollisionResources = { .areaRooms = _gMapAkropolisWorldCollisionAreaRooms };
 
 /// Area directory of borrowed sprite-view arrays for Acropolis and MIST.
 ///
@@ -1079,27 +1084,27 @@ static SpriteView* _gMapAkropolisAreaSpriteViews[GAME_AREA_MIST_SHOOTING_GALLERY
 
 SpriteAreaTable gMapAkropolisSpriteAreaTable = { .areaViews = _gMapAkropolisAreaSpriteViews };
 
-DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
-    gAcropolisSquareWarpEntries,
-    gAcropolisEastElevatorHallWarpEntries,
-    gAcropolisPatioWarpEntries,
-    gAcropolisCafeteriaWarps,
-    gAcropolisPlazaWarpEntries,
-    gAcropolisSecurityRoomWarpEntries,
-    gAcropolisHallwayWarpEntries,
-    gAcropolisFountainWarpEntries,
-    gAcropolisForkedRoadWarpEntries,
-    gAcropolisObservatoryWarpEntries,
-    gAcropolisPromenadeWarpEntries,
-    gAcropolisSanctuaryWarpEntries,
-    gAcropolisRoofGardenWarpEntries,
-    gAcropolisBridgeWarpEntries,
-    gAcropolisFireEscapeWarpEntries,
-    gAcropolisHelicopterLandingPadWarps,
-    gAcropolisWestElevatorHallWarpEntries,
-    gMistR18WarpEntries,
-    gMistParkingWarpEntries,
-    gMistShootingGalleryWarpEntries,
+DirectionWarpEntry* gMapAkropolisAreaWarpEntries[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareWarpEntries,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallWarpEntries,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioWarpEntries,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaWarps,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaWarpEntries,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomWarpEntries,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwayWarpEntries,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainWarpEntries,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadWarpEntries,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatoryWarpEntries,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeWarpEntries,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuaryWarpEntries,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenWarpEntries,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeWarpEntries,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeWarpEntries,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadWarps,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallWarpEntries,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18WarpEntries,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingWarpEntries,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryWarpEntries,
 };
 
 /// Borrowed room-count arrays for Acropolis and MIST areas 1..20.

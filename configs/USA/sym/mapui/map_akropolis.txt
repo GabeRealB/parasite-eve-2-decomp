@@ -327,3 +327,6 @@ gMapAkropolisHelicopterLandingPadVariant2Placements = 0x8017bd4c;
 gMapAkropolisMistR18Placements = 0x8017bd8c;
 gMapAkropolisMistParkingPlacements = 0x8017bdbc;
 gMapAkropolisMistShootingGalleryPlacements = 0x8017bdec;
+_gMapAkropolisWorldCollisionAreaRooms = 0x8017aa78;
+gMapAkropolisWorldCollisionResources = 0x8017aac8;
+gMapAkropolisAreaWarpEntries = 0x8017ab20;

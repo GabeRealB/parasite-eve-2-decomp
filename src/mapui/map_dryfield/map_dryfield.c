@@ -698,48 +698,54 @@ DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
     gDryfieldUnderpassWarpEntries,
 };
 
-static ViewCount* D_map_dryfield_8017A990[38] = {
-    gDryfieldGasStationRoomViewCounts,
-    gDryfieldMainStreetRoomViewCounts,
-    gDryfieldGeneralStoreRoomViewCounts,
-    gDryfieldR04RoomViewCounts,
-    gDryfieldBackStreetRoomViewCounts,
-    gDryfieldSouvenirShopRoomViewCounts,
-    gDryfieldWarehouseRoomViewCounts,
-    gDryfieldR08RoomViewCounts,
-    gDryfieldDilapidatedHouseRoomViewCounts,
-    NULL,
-    gDryfieldMotelRoom1RoomViewCounts,
-    gDryfieldMotelRoom2RoomViewCounts,
-    gDryfieldMotelRoom3RoomViewCounts,
-    gDryfieldMotelRoom4RoomViewCounts,
-    gDryfieldParkingLotRoomViewCounts,
-    gDryfieldToiletRoomViewCounts,
-    gDryfieldMotelLobbyRoomViewCounts,
-    gDryfieldSaloonGRRoomViewCounts,
-    gDryfieldGRKitchenViewCounts,
-    gDryfieldWaterTowerRoomViewCounts,
-    gDryfieldWaterTankRoomViewCounts,
-    gDryfieldBreezewayViewCounts,
-    gDryfieldFactoryRoomViewCounts,
-    gDryfieldGarageRoomViewCounts,
-    gDryfieldDrivewayRoomViewCounts,
-    gDryfieldJunkYardRoomViewCounts,
-    gDryfieldTrailerCoachViewCounts,
-    gDryfieldMotelRoom5RoomViewCounts,
-    gDryfieldMotelBalconyRoomViewCounts,
-    gDryfieldMotelRoom6RoomViewCounts,
-    gDryfieldMotelLoftRoomViewCounts,
-    gDryfieldWaterHoleRoomViewCounts,
-    NULL,
-    gDryfieldCellarRoomViewCounts,
-    NULL,
-    NULL,
-    NULL,
-    gDryfieldUnderpassRoomViewCounts,
+/// Borrowed per-room logical-view counts for daytime Dryfield.
+///
+/// Indexed by area - 1 for areas 1..38; areas 10, 33 and 35..37 are NULL.
+/// Populated arrays use room - 1 and their own extents, without a terminator.
+/// The selected room overlay owns the signed-halfword element counts and must
+/// remain loaded during lookup; counts do not measure mapped resource capacity.
+static ViewCount* _gMapDryfieldRoomViewCountsByArea[GAME_AREA_DRYFIELD_UNDERPASS] = {
+    [GAME_AREA_DRYFIELD_GAS_STATION - 1]       = gDryfieldGasStationRoomViewCounts,
+    [GAME_AREA_DRYFIELD_MAIN_STREET - 1]       = gDryfieldMainStreetRoomViewCounts,
+    [GAME_AREA_DRYFIELD_GENERAL_STORE - 1]     = gDryfieldGeneralStoreRoomViewCounts,
+    [GAME_AREA_DRYFIELD_R04 - 1]               = gDryfieldR04RoomViewCounts,
+    [GAME_AREA_DRYFIELD_BACK_STREET - 1]       = gDryfieldBackStreetRoomViewCounts,
+    [GAME_AREA_DRYFIELD_SOUVENIR_SHOP - 1]     = gDryfieldSouvenirShopRoomViewCounts,
+    [GAME_AREA_DRYFIELD_WAREHOUSE - 1]         = gDryfieldWarehouseRoomViewCounts,
+    [GAME_AREA_DRYFIELD_R08 - 1]               = gDryfieldR08RoomViewCounts,
+    [GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE - 1] = gDryfieldDilapidatedHouseRoomViewCounts,
+    [10 - 1]                                   = NULL,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_1 - 1]      = gDryfieldMotelRoom1RoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_2 - 1]      = gDryfieldMotelRoom2RoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_3 - 1]      = gDryfieldMotelRoom3RoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_4 - 1]      = gDryfieldMotelRoom4RoomViewCounts,
+    [GAME_AREA_DRYFIELD_PARKING_LOT - 1]       = gDryfieldParkingLotRoomViewCounts,
+    [GAME_AREA_DRYFIELD_TOILET - 1]            = gDryfieldToiletRoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_LOBBY - 1]       = gDryfieldMotelLobbyRoomViewCounts,
+    [GAME_AREA_DRYFIELD_SALOON_G_R - 1]        = gDryfieldSaloonGRRoomViewCounts,
+    [GAME_AREA_DRYFIELD_G_R_KITCHEN - 1]       = gDryfieldGRKitchenViewCounts,
+    [GAME_AREA_DRYFIELD_WATER_TOWER - 1]       = gDryfieldWaterTowerRoomViewCounts,
+    [GAME_AREA_DRYFIELD_WATER_TANK - 1]        = gDryfieldWaterTankRoomViewCounts,
+    [GAME_AREA_DRYFIELD_BREEZEWAY - 1]         = gDryfieldBreezewayViewCounts,
+    [GAME_AREA_DRYFIELD_FACTORY - 1]           = gDryfieldFactoryRoomViewCounts,
+    [GAME_AREA_DRYFIELD_GARAGE - 1]            = gDryfieldGarageRoomViewCounts,
+    [GAME_AREA_DRYFIELD_DRIVEWAY - 1]          = gDryfieldDrivewayRoomViewCounts,
+    [GAME_AREA_DRYFIELD_JUNK_YARD - 1]         = gDryfieldJunkYardRoomViewCounts,
+    [GAME_AREA_DRYFIELD_TRAILER_COACH - 1]     = gDryfieldTrailerCoachViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_5 - 1]      = gDryfieldMotelRoom5RoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_BALCONY - 1]     = gDryfieldMotelBalconyRoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_6 - 1]      = gDryfieldMotelRoom6RoomViewCounts,
+    [GAME_AREA_DRYFIELD_MOTEL_LOFT - 1]        = gDryfieldMotelLoftRoomViewCounts,
+    [GAME_AREA_DRYFIELD_WATER_HOLE - 1]        = gDryfieldWaterHoleRoomViewCounts,
+    [33 - 1]                                   = NULL,
+    [GAME_AREA_DRYFIELD_CELLAR - 1]            = gDryfieldCellarRoomViewCounts,
+    [35 - 1]                                   = NULL,
+    [36 - 1]                                   = NULL,
+    [37 - 1]                                   = NULL,
+    [GAME_AREA_DRYFIELD_UNDERPASS - 1]         = gDryfieldUnderpassRoomViewCounts,
 };
 
-ViewCountTable D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
+ViewCountTable gMapDryfieldViewCountTable = { .viewCounts = _gMapDryfieldRoomViewCountsByArea };
 
 static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     gDryfieldGasStationRoomCollisionResources,
@@ -1742,7 +1748,8 @@ StageMusicEntry gMapDryfieldCountdownMusicEntries[20] = {
     { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
 };
 
-/// The two nonzero bytes after the countdown table at the end of the package.
+/// Uninterpreted final two bytes of the daytime Dryfield package.
 ///
-/// Their role is unproven; they are not a valid StageMusicEntry.
+/// Retained verbatim after the countdown table. No reader establishes a record
+/// type or role for these bytes; their meaning is unproven.
 static u8 _gMapDryfieldTrailingBytes[2] = { 0x20, 0x26 };

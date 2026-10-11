@@ -131,7 +131,14 @@ extern WorldCoordRoomLighting* gMapDryfieldFullRoomLightingTables[MAP_DRYFIELD_F
 
 extern DirectionWarpEntry* D_map_dryfield_full_8017A80C[];
 
-extern ViewCountTable D_map_dryfield_full_8017A93C;
+/// Logical-view search counts for Dryfield-at-night areas 1..38.
+///
+/// Indexed by area - 1, then room - 1 in that area's borrowed room array.
+/// Areas 4, 10, 33 and 35..37 are NULL and cannot be selected. Counts are
+/// signed halfword element counts, independent of view-map and camera/image/
+/// sprite capacities. Neither level has a terminator. Require in-range
+/// populated slots and keep this map and the selected room loaded during lookup.
+extern ViewCountTable gMapDryfieldFullViewCountTable;
 
 extern WorldCollisionStageResources D_map_dryfield_full_8017A9D8;
 

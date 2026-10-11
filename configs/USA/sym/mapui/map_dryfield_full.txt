@@ -430,3 +430,5 @@ gMapDryfieldFullMotelBalconyVariant3Placements = 0x8017cac8;
 gMapDryfieldFullMotelBalconyVariant11Placements = 0x8017caf8;
 gMapDryfieldFullMotelLoftVariant1Placements = 0x8017cb58;
 gMapDryfieldFullMotelLoftVariant3Placements = 0x8017cb98;
+_gMapDryfieldFullRoomViewCountsByArea = 0x8017a8a4;
+gMapDryfieldFullViewCountTable = 0x8017a93c;
