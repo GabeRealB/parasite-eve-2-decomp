@@ -1011,7 +1011,16 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     }
 }
 
-#define FOLLOW_COLLISION_ROOM_GRID       _gShelter1fHeliportCollisionGrid
+#define FOLLOW_COLLISION_ROOM_GRID _gShelter1fHeliportCollisionGrid
+
+/// Selects the heliport's model-local companion-obstacle template.
+///
+/// Binds a `WorldCollisionGrid` object lvalue, whose address the fragment takes
+/// once per rebuild. Its four quad faces, four normals and eight vertices are
+/// read without modifying the source. Normals use 4096 for unit length; vertices
+/// use signed game-coordinate units. The mesh pools live with the overlay and
+/// must be disjoint from the room grid's pools. Cell metadata is unused.
+/// Define before the rebuild fragment include and undefine immediately after it.
 #define FOLLOW_COLLISION_OBSTACLE_SOURCE _gShelter1fHeliportCompanionObstacleTemplate
 #include "../../shared/follow_collision_rebuild.inc.c"
 #undef FOLLOW_COLLISION_OBSTACLE_SOURCE

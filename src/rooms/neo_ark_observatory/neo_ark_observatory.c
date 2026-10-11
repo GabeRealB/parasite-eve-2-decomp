@@ -2174,7 +2174,16 @@ void neoArkObservatoryRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#define FOLLOW_COLLISION_ROOM_GRID       _gNeoArkObservatoryCollisionGrid
+#define FOLLOW_COLLISION_ROOM_GRID _gNeoArkObservatoryCollisionGrid
+
+/// Selects the observatory's model-local companion-obstacle template.
+///
+/// Binds a `WorldCollisionGrid` object lvalue, whose address the fragment takes
+/// once per rebuild. Its four quad faces, four normals and eight vertices are
+/// read without modifying the source. Normals use 4096 for unit length; vertices
+/// use signed game-coordinate units. The mesh pools live with the overlay and
+/// must be disjoint from the room grid's pools. Cell metadata is unused.
+/// Define before the rebuild fragment include and undefine immediately after it.
 #define FOLLOW_COLLISION_OBSTACLE_SOURCE _gNeoArkObservatoryCompanionObstacleTemplate
 #include "../../shared/follow_collision_rebuild.inc.c"
 #undef FOLLOW_COLLISION_OBSTACLE_SOURCE
