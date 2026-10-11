@@ -149,3 +149,4 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
 }
 
 #undef JET_CONE_ROTATE_VERTEX
+#undef JET_CONE_CLUT

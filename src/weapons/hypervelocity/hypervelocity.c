@@ -566,7 +566,11 @@ void hypervelocityRoundTask(Task* task)
     }
 }
 
-#define JET_CONE_CLUT         0x42C1
+/// GPU CLUT selector for Hypervelocity's sixteen-colour jet-cone texture.
+///
+/// Palette at VRAM X=16 words, Y=267 rows. The next jet drawer inclusion
+/// consumes this integer constant and undefines the binding.
+#define JET_CONE_CLUT         getClut(16, 267)
 #define JET_CONE_RIM_SHORT    0x600
 #define JET_CONE_RIM_LONG     0x800
 #define JET_CONE_FRAME_JITTER _gHypervelocityConeTextureFrameOffsets

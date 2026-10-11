@@ -747,7 +747,11 @@ void pyrokinesisFlameRingTask(Task* task)
 
 #include "../../shared/glow_draw_flame_ring.inc.c"
 
-#define JET_CONE_CLUT         0x4282
+/// GPU CLUT selector for Pyrokinesis's sixteen-colour jet-cone texture.
+///
+/// Palette at VRAM X=32 words, Y=266 rows. The next jet drawer inclusion
+/// consumes this integer constant and undefines the binding.
+#define JET_CONE_CLUT         getClut(32, 266)
 #define JET_CONE_RIM_SHORT    0x200
 #define JET_CONE_RIM_LONG     0x480
 #define JET_CONE_FRAME_JITTER _gPyrokinesisConeFrameOffsets
