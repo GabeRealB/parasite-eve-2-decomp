@@ -28,7 +28,13 @@ extern AreaVariant gDryfieldNightDilapidatedHouseAreaVariants[22];
 /// this descriptor and its resources are valid while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightDilapidatedHouseRoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[];
+/// Collision resources for the nighttime house's single room selector.
+///
+/// Indexed by room ID minus one (room 1 only). Borrows the mutable room grid,
+/// eight view boundaries, twelve action triggers and one sight occluder.
+/// Gameplay binds these to the active view and links through each LAST marker;
+/// keep this overlay loaded until the grid is retired and all lists unlinked.
+extern WorldCollisionRoomResources gDryfieldNightDilapidatedHouseRoomCollisionResources[1];
 
 /// Logical-view maps for the house's single room selector.
 ///

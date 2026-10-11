@@ -300,8 +300,8 @@ static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
 
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_UNSEEN) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-            evsStartScriptWithSkip(D_dryfield_night_dilapidated_house_801868F4, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                   D_dryfield_night_dilapidated_house_80187134);
+            evsStartScriptWithSkip(gDryfieldNightDilapidatedHouseFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                   gDryfieldNightDilapidatedHouseFirstVisitSkipScript);
         }
         // Progress advances even when the companion is absent and no scene starts.
         gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN);
@@ -313,7 +313,7 @@ static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
 /// Registers the room's message receiver and enters idle before first-visit scene setup.
 static void _dryfieldNightDilapidatedHouseSetupRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_dilapidated_house_8017E700;
+    task->msgTable = gDryfieldNightDilapidatedHouseRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     _dryfieldNightDilapidatedHouseStartFirstVisitEvent();
@@ -371,5 +371,5 @@ void dryfieldNightDilapidatedHouseStartMovie(void)
 {
     enum { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_LAUNCHER = 0 };
 
-    taskSpawnFromTable(D_dryfield_night_dilapidated_house_801872B4, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_LAUNCHER, 0, 0);
+    taskSpawnFromTable(gDryfieldNightDilapidatedHouseMovieTaskDescriptors, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_LAUNCHER, 0, 0);
 }

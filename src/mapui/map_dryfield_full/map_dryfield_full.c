@@ -770,7 +770,7 @@ static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
     gDryfieldNightSouvenirShopRoomCollisionResources,
     D_dryfield_night_warehouse_8017E900,
     gDryfieldNightR08RoomCollisionResources,
-    D_dryfield_night_dilapidated_house_80187394,
+    gDryfieldNightDilapidatedHouseRoomCollisionResources,
     NULL,
     gDryfieldNightMotelRoom1RoomCollisionResources,
     gDryfieldNightMotelRoom2RoomCollisionResources,

@@ -12,9 +12,12 @@
 
 #include "main/task_types.h"
 
-/// The room's two-entry task descriptor table: entry 0 starts the streamed
-/// sequence, entry 1 is the task that plays it.
-extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
+/// Bodyless movie launcher and display-controller recipes, in slots 0 and 1.
+///
+/// Both run at priority 192 with zero spawn payloads. The launcher hands display
+/// ownership to the controller; the controller plays the disc-selected movie
+/// and restores game presentation. Keep this overlay loaded through restoration.
+extern TaskDesc gDryfieldNightDilapidatedHouseMovieTaskDescriptors[2];
 
 /// The house's eight point lights and one cone light, with no directional lights.
 ///
@@ -53,11 +56,34 @@ extern WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5];
+/// Message routes borrowed by the registered nighttime house room task.
+///
+/// Gates the back-street departure, refuses key-item use, and ignores direction
+/// actions and CAP room commands. The fifth entry terminates unsupported-ID
+/// lookup with a zero reply. Keep this table and its callbacks loaded while the
+/// room task can receive messages; never dispatch `TASK_MESSAGE_TABLE_END`.
+extern TaskMessageEntry gDryfieldNightDilapidatedHouseRoomMessages[5];
 
-extern EvsCommand D_dryfield_night_dilapidated_house_801868F4[88];
+/// Normal first-visit movie and companion-dialogue script, paired with the skip script.
+///
+/// Borrows 88 commands through END and starts CAP command 11. Hides both actor
+/// models for the movie, selects the scene/audio stream, installs the player
+/// and companion animation extensions, and stages their dialogue with CAP cues
+/// and frame waits. The authored weapon selector affects only the companion.
+/// Frame waits count active interpreter updates; even zero yields an update.
+/// Finishes at view 5 with scripted control released. Keep this overlay, both
+/// actors and their animation resources loaded through playback and cleanup.
+extern EvsCommand gDryfieldNightDilapidatedHouseFirstVisitScript[88];
 
-extern EvsCommand D_dryfield_night_dilapidated_house_80187134[16];
+/// First-visit skip path restoring final actor placements and view 5.
+///
+/// Borrows 16 commands through END. Fades across the placement and control
+/// restoration, cancels scene streaming, and releases CAP/HUD scene control.
+/// The interpreter's initial skip delay lets the normal path select its scene
+/// before skipping is enabled. That key must match a loaded scene/audio slot
+/// before cancellation restores saved random state. Keep this overlay and actor
+/// resources loaded through cleanup.
+extern EvsCommand gDryfieldNightDilapidatedHouseFirstVisitSkipScript[16];
 
 /// Eight authored point lights contributing in every house view.
 ///

@@ -68,7 +68,7 @@ gDryfieldNightR08SpriteViews = 0x80181728; // absolute:True owner=dryfield_night
 gDryfieldNightR08SurfacePropertiesByClass = 0x8018195C; // absolute:True owner=dryfield_night_r08
 dryfieldNightDilapidatedHouseRoomTask = 0x8017DA18; // type:func absolute:True owner=dryfield_night_dilapidated_house shared=rooms
 gDryfieldNightDilapidatedHouseRoomLighting = 0x8018738C; // absolute:True owner=dryfield_night_dilapidated_house
-D_dryfield_night_dilapidated_house_80187394 = 0x80187394; // absolute:True owner=dryfield_night_dilapidated_house
+gDryfieldNightDilapidatedHouseRoomCollisionResources = 0x80187394; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseViewMaps = 0x801873A4; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseViewCounts = 0x801873A8; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseWarpEntries = 0x801873AC; // absolute:True owner=dryfield_night_dilapidated_house
