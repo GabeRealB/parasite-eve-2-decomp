@@ -29,6 +29,7 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -64,17 +65,7 @@
 #include "../../shared/actor_contacts.h"
 #include "../../shared/glow_draw.h"
 
-/// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_acropolis_roof_garden_80183BDC[];
-static Task*            _gAcropolisRoofGardenCutsceneSoundTask;
-extern EvsCommand       D_acropolis_roof_garden_80183D74[];
-extern EvsCommand       D_acropolis_roof_garden_80184194[];
-extern s32              D_acropolis_roof_garden_8018432C;
-extern EvsCommand       D_acropolis_roof_garden_80184B08[];
-
-/// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by
-/// the effect task's first-frame burst.
-extern SVECTOR D_acropolis_roof_garden_80184BF8[10];
+static Task* _gAcropolisRoofGardenCutsceneSoundTask;
 
 static s32 _gAcropolisRoofGardenRequestedAmbiencePercent;
 
@@ -108,8 +99,10 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 static void _acropolisRoofGardenInitRoomTask(Task* task);
 static void _acropolisRoofGardenTickRoom(Task* task);
 
-/// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
+/// Room-task lifecycle: register the receiver, start the arrival scene, release.
+///
+/// Copied by value for unchecked state 0..2 dispatch; callbacks require this overlay loaded.
+static const TaskFuncTable3 _gAcropolisRoofGardenRoomTaskStates = {
     { _acropolisRoofGardenInitRoomTask, _acropolisRoofGardenTickRoom, taskKill },
 };
 
@@ -210,7 +203,12 @@ static AnimationSet _gAcropolisRoofGardenAnimation065F4 = {
 
 enum { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
+/// Room-transition, action, command, key-item and sound-cue dispatch.
+///
+/// The room task borrows this six-record list while the overlay is loaded.
+/// The final TASK_MESSAGE_TABLE_END record terminates lookup; payload types
+/// are determined by each message, and unsupported IDs return zero.
+static TaskMessageEntry _gAcropolisRoofGardenRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisRoofGardenResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisRoofGardenHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _acropolisRoofGardenHandleCommandMessage },
@@ -400,74 +398,110 @@ static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation5 = {
 
 EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
-EvsCommand D_acropolis_roof_garden_80183D74[44] = {
+// Arrival waits count interpreter ticks; sound cues use type-3 bank 0x108.
+enum {
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_CAP_COMMAND               = 1,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE               = 0,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_SHOW               = 1,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_OPENING_WAIT_FRAMES       = 154,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_WAIT_FRAMES        = 180,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_CLIP4_FRAMES       = 79,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_CLOSING_WAIT_FRAMES       = 115,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_FADE_TICKS          = 120,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_FADE_FRAMES          = 8,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_VIEW                 = 3,
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_1               = SOUND_ID(3, 0x108, 1),
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_2               = SOUND_ID(3, 0x108, 2),
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_3               = SOUND_ID(3, 0x108, 3),
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_4               = SOUND_ID(3, 0x108, 4),
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_5               = SOUND_ID(3, 0x108, 5),
+    ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_ALL_TYPE_3          = SOUND_ID(3, 0, 0),
+    ACROPOLIS_ROOF_GARDEN_ENTRANCE_SECOND_CLIP_DELAY_FRAMES = 30,
+    ACROPOLIS_ROOF_GARDEN_ENTRANCE_BATTLE_DELAY_FRAMES      = 40,
+};
+
+/// Arrival presentation: CAP dialogue, player/figure clips and synchronized sound cues.
+///
+/// Started once at warp 2 with HUD hide/restore. NULL scene selection leaves
+/// the stream unchanged. END terminates the 44-command sequence; frame waits
+/// count interpreter ticks. Commands and referenced actor resources stay
+/// borrowed through playback, including the alternate skip completion.
+static EvsCommand _gAcropolisRoofGardenArrivalScript[44] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisRoofGardenArrivalPlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalStartPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalOpeningPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_OPENING_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalDialoguePlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalFigurePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation2 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation3 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 79 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_CLIP4_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation5 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalClosingPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 115 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_CLOSING_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalFinalPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalEndPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_roof_garden_80184194[17] = {
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x30000000 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip completion for the arrival, restoring player placement, view and ambience.
+///
+/// Stops type-3 sounds and the pending sound task, resets the figure, cleans
+/// up CAP under the default fade and resumes player control. END terminates
+/// all 17 commands; keep this script and its payloads loaded until completion.
+static EvsCommand _gAcropolisRoofGardenArrivalSkipScript[17] = {
+    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_ALL_TYPE_3 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalEndPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalFinalPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation1 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_acropolis_roof_garden_8018432C = 0;
+/// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
+///
+/// Set before starting the warp-2 script; a failed start is not retried.
+static s32 _gAcropolisRoofGardenArrivalSceneStarted = 0;
 
 static AnimationPackedPose _gAcropolisRoofGardenAnimation0704CBank1[6] = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
@@ -567,20 +601,32 @@ static AnimationPlayRequest _gAcropolisRoofGardenEntranceEndPlayerAnimation = {
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-EvsCommand D_acropolis_roof_garden_80184B08[10] = {
+/// Releases the Maggot/Caterpillar entrance, stages the player and engages battle.
+///
+/// Triggered by room action 2 while entrance progress is armed. Copies the
+/// player's animation extension, releases the enemy after the first clip,
+/// waits 30 then 40 interpreter ticks and resumes with its root offset kept.
+/// END terminates ten commands; script and actor resources remain borrowed.
+static EvsCommand _gAcropolisRoofGardenMaggotCaterpillarEntranceScript[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisRoofGardenEntrancePlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenEntranceStartPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisRoofGardenReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ENTRANCE_SECOND_CLIP_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenEntranceEndPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ENTRANCE_BATTLE_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_acropolis_roof_garden_80184BF8[10] = {
+/// Ten light-glow spawn offsets in the ambient emitter's coordinate frame.
+///
+/// Signed halfword game units, transformed at spawning; indices 0/1 select
+/// large glows, 2 the upper glow and 3..9 small glows. The same indices select
+/// visibility masks. Spawning copies XYZ but retains the offset pointer, so
+/// keep the room loaded through glow teardown. There is no terminator.
+static SVECTOR _gAcropolisRoofGardenLightOffsets[10] = {
     { -6750, -1970, -0x2896, 0 },
     { -8220, -1970, -0x2896, 0 },
     { -2680, -6600, -1240, 0 },
@@ -1616,7 +1662,7 @@ static s32 _acropolisRoofGardenHandleRoomAction(Task* task, s32 messageId, const
             break;
         case ACROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE:
             if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED)) {
-                evsStartScript(D_acropolis_roof_garden_80184B08, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gAcropolisRoofGardenMaggotCaterpillarEntranceScript, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED);
             }
             break;
@@ -1787,7 +1833,7 @@ static void _acropolisRoofGardenInitRoomTask(Task* task)
         ACROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT    = 5,
         ACROPOLIS_ROOF_GARDEN_AMBIENCE_TASK_INDEX = 0,
     };
-    task->msgTable = D_acropolis_roof_garden_80183BDC;
+    task->msgTable = _gAcropolisRoofGardenRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_EVENT) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT;
@@ -1812,9 +1858,9 @@ static void _acropolisRoofGardenTickRoom(Task* task)
     };
     GameLocationKey sanctuary;
 
-    if ((gGameSession->location.loc.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (D_acropolis_roof_garden_8018432C == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
-        D_acropolis_roof_garden_8018432C = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
-        evsStartScriptWithSkip(D_acropolis_roof_garden_80183D74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_roof_garden_80184194);
+    if ((gGameSession->location.loc.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (_gAcropolisRoofGardenArrivalSceneStarted == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
+        _gAcropolisRoofGardenArrivalSceneStarted = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
+        evsStartScriptWithSkip(_gAcropolisRoofGardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisRoofGardenArrivalSkipScript);
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
         sanctuary.stage = GAME_STAGE_ACROPOLIS;
         sanctuary.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
@@ -1826,7 +1872,7 @@ void acropolisRoofGardenRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_acropolis_roof_garden_8017D5C4;
+    states = _gAcropolisRoofGardenRoomTaskStates;
     states.funcs[task->state](task);
 }
 
@@ -1885,11 +1931,11 @@ void acropolisRoofGardenAmbientEffectsTask(Task* task)
     if (task->state == ACROPOLIS_ROOF_GARDEN_EFFECT_INITIALIZE) {
         // Place ten persistent glows, keeping one index across both table walks.
         for (lightIndex = 0; lightIndex < ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_COUNT; lightIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE << ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT), &D_acropolis_roof_garden_80184BF8[lightIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE << ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT), &_gAcropolisRoofGardenLightOffsets[lightIndex]);
         }
-        lightOffsets = D_acropolis_roof_garden_80184BF8;
+        lightOffsets = _gAcropolisRoofGardenLightOffsets;
         effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, (ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_SCALE << ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT) | (ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_CELL << ACROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT) | ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX, &lightOffsets[ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX]);
-        for (lightIndex = ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST; lightIndex < ARRAY_SIZE(D_acropolis_roof_garden_80184BF8); lightIndex++) {
+        for (lightIndex = ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST; lightIndex < ARRAY_SIZE(_gAcropolisRoofGardenLightOffsets); lightIndex++) {
             effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_CELL << ACROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT), &lightOffsets[lightIndex]);
         }
         task->state = task->state + 1;

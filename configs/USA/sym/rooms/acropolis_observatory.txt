@@ -1,7 +1,7 @@
 // Overlay-local symbols for acropolis_observatory.
-D_acropolis_observatory_8017E7D8 = 0x8017E7D8; // size:0x4 defined:True
-D_acropolis_observatory_8017E80C = 0x8017E80C; // size:0x960 defined:True
-D_acropolis_observatory_8017F16C = 0x8017F16C; // size:0x960 defined:True
+_gAcropolisObservatoryArrivalSceneStarted = 0x8017E7D8; // size:0x4 defined:True
+_gAcropolisObservatoryForkedRoadArrivalPlayerPath = 0x8017E80C; // size:0x960 defined:True
+_gAcropolisObservatoryPromenadeArrivalPlayerPath = 0x8017F16C; // size:0x960 defined:True
 _gAcropolisObservatoryLensFlareAnchors = 0x8017FE78; // size:0x40 defined:True
 D_acropolis_observatory_8017E7B8 = 0x8017E7B8; // size:0x20 defined:True
 _gAcropolisObservatoryLensFlareViewMasks = 0x8017FEB8; // size:0x10 defined:True
@@ -104,3 +104,4 @@ _acropolisObservatoryHandleRoomAction = 0x8017d7c4; // type:func
 _acropolisObservatoryStartArrivalScene = 0x8017d8ac; // type:func
 _acropolisObservatoryForkedRoadArrivalMoviePathTask = 0x8017d9a8; // type:func
 _acropolisObservatoryPromenadeArrivalMoviePathTask = 0x8017dd3c; // type:func
+_gAcropolisObservatoryRoomTaskStates = 0x8017d5c4;

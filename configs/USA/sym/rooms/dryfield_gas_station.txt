@@ -98,8 +98,8 @@ gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_40010
 gMapDryfieldGasStationVariant1Placements = 0x8017AD34; // absolute:True owner=map_dryfield
 gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 _gRoomCutsceneTaskDescs = 0x80181E18; // size:0x24 defined:True
-D_dryfield_gas_station_80181E3C = 0x80181E3C; // size:0x18 defined:True
-D_dryfield_gas_station_80181E54 = 0x80181E54; // size:0x28 defined:True
+_gDryfieldGasStationArrivalSupervisorTaskDescs = 0x80181E3C; // size:0x18 defined:True
+_gDryfieldGasStationRoomMessages = 0x80181E54; // size:0x28 defined:True
 _gDryfieldGasStationAnimation04A70Bank1 = 0x80181EA0; // size:0x18 defined:True
 _gDryfieldGasStationAnimation04A70Bank4 = 0x80181EB8; // size:0x20 defined:True
 _gDryfieldGasStationAnimation04A70Records = 0x80181ED8; // size:0x130 defined:True
@@ -166,3 +166,4 @@ dryfieldGasStationArrivalMovieTask = 0x8017ffe4; // type:func
 dryfieldGasStationArrivalTask = 0x801802c0; // type:func
 _dryfieldGasStationArrivalCutsceneTask = 0x801807e0; // type:func
 _dryfieldGasStationRestorePlayerAndShow = 0x80180a60; // type:func
+_gDryfieldGasStationRoomTaskStates = 0x8017d6a4;

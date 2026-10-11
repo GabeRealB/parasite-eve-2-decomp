@@ -59,15 +59,11 @@
 
 static Task* _gAcropolisHelicopterLandingPadPlayerPitchTask;
 
-/// Vibration programs paired with the departure timeline's screen shakes.
-extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D68[4];
-extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2];
-
 static void _acropolisHelicopterLandingPadSpawnScreenShake(s32 halfDurationFrames, s32 amplitudePixels);
 static void _acropolisHelicopterLandingPadInitRoom(Task* task);
 
-/// A debug format string nothing in the room reads.
-static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
+/// Unused format for a label followed by three signed, minimum-five-column integers.
+static const char _gAcropolisHelicopterLandingPadUnusedLabelTripleFormat[] = "%s (%5d,%5d,%5d)";
 
 /// Room-task lifecycle: initialize, update the encounter phase, release.
 ///
@@ -1216,9 +1212,13 @@ static SpriteBatch _gAcropolisHelicopterLandingPadView26SpriteBatches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
-    { { 2, 1, 149, 238 }, 1125 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Stored clipping list that no landing-pad sprite view selects.
+///
+/// The rectangle uses draw-buffer pixels and the restore depth is an unscaled
+/// sorting value. The second record ends the list; no view assignment is proven.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadUnselectedDrawAreas[2] = {
+    { .clipRect = { 2, 1, 149, 238 }, .restoreDepth = 1125 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
 SpriteView gAcropolisHelicopterLandingPadSpriteViews[27] = {
@@ -1328,16 +1328,27 @@ static const PadScriptVibrationSegment _gAcropolisHelicopterLandingPadDepartureS
     { .startIntensity = 220, .endIntensity = 180, .durationFrames = 25, .field_3 = 1 },
 };
 
-PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
+enum { ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FIRST_VIBRATION_LOOP_COUNT = 10 };
+
+/// Departure vibration at ticks 7 and 207: binary pulses alongside one variable ramp.
+///
+/// The binary lane loops steps 0..2 with counter 10, then stops at step 3.
+/// The variable lane plays segment 1 and stops at step 1. Both tables stay
+/// borrowed until the script task ends; there is no separate list terminator.
+static const PadScriptCmd _gAcropolisHelicopterLandingPadDepartureFirstVibrationCommands[4] SECTION(".data") = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FIRST_VIBRATION_LOOP_COUNT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2] = {
-    { 0, 0, 1, 0 },
-    { 150, 100, 25, 1 },
+/// First departure cue's one-frame binary pulse and 25-frame variable ramp from 150 to 100.
+///
+/// Intensities are unsigned motor units before attenuation. The final byte is
+/// retained but unconsumed by the interpreter. Borrowed through script teardown.
+static const PadScriptVibrationSegment _gAcropolisHelicopterLandingPadDepartureFirstVibrationSegments[2] SECTION(".data") = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 1, .field_3 = 0 },
+    { .startIntensity = 150, .endIntensity = 100, .durationFrames = 25, .field_3 = 1 },
 };
 
 /// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
@@ -1726,7 +1737,7 @@ void acropolisHelicopterLandingPadDepartureShakeTimelineTask(Task* task)
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_FIRST_FRAME:
         case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_REPEAT_FRAME:
-            padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D68, D_acropolis_helicopter_landing_pad_80187D78);
+            padScriptSpawn(_gAcropolisHelicopterLandingPadDepartureFirstVibrationCommands, _gAcropolisHelicopterLandingPadDepartureFirstVibrationSegments);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_SECOND_FRAME:
             _acropolisHelicopterLandingPadSpawnScreenShake(22, 3);

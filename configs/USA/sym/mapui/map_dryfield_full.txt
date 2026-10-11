@@ -72,7 +72,7 @@ D_dryfield_night_dilapidated_house_80187394 = 0x80187394; // absolute:True owner
 gDryfieldNightDilapidatedHouseViewMaps = 0x801873A4; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseViewCounts = 0x801873A8; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseWarpEntries = 0x801873AC; // absolute:True owner=dryfield_night_dilapidated_house
-gDryfieldNightDilapidatedHouseViewCameras = 0x80187D68; // absolute:True owner=dryfield_night_dilapidated_house shared=rooms
+gDryfieldNightDilapidatedHouseViewCameras = 0x80187D68; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseSpriteViews = 0x8018921C; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseSurfacePropertiesByClass = 0x8018A0E4; // absolute:True owner=dryfield_night_dilapidated_house
 dryfieldNightMotelRoom1RoomTask = 0x8017D6DC; // type:func absolute:True owner=dryfield_night_motel_room_1

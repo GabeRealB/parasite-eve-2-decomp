@@ -69,9 +69,7 @@ static u8 _gGeneralStoreUnderpassRoom;
 /// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
 #define GENERAL_STORE_UNDERPASS_FADE _gGeneralStoreUnderpassFade
 
-extern TaskMessageEntry D_dryfield_general_store_8017E188[];
-extern s32              D_dryfield_general_store_8017E1B8;
-extern s32              D_dryfield_general_store_8017E564;
+extern s32 D_dryfield_general_store_8017E564;
 
 static void _dryfieldGeneralStoreInitRoomTask(Task* task);
 static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
@@ -98,8 +96,9 @@ enum {
 
 /// Room actor commands in the Dryfield/General Store namespace.
 enum {
-    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE = 0,
-    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER        = 1,
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE      = 0,
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER             = 1,
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_HIDE_BEFORE_SCENE = 9,
 };
 
 /// Player clip IDs used by the encounter; the custom clip occupies extension slot 1.
@@ -142,7 +141,12 @@ static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
+/// General Store transition, key-item, command, sound-cue and action dispatch.
+///
+/// The room task borrows six records, including TASK_MESSAGE_TABLE_END,
+/// while the overlay is loaded. Transitions borrow request/reply records,
+/// actions borrow DirectionActionRequest, and the other payloads are integers.
+static TaskMessageEntry _gDryfieldGeneralStoreRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGeneralStoreMsg },
     { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _generalStoreCommandMsg },
@@ -151,7 +155,16 @@ TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 D_dryfield_general_store_8017E1B8 = 0x90302;
+/// Hides ordinary and staged Blood Sucklers before the General Store scene starts.
+///
+/// Command 9 is in the Dryfield/General Store namespace. The room initializer
+/// broadcasts this complete record synchronously while scene progress is zero;
+/// receivers copy its selector and retain no record pointer. Keep its stored
+/// four-byte alignment as well as the four-byte ActorCommand representation.
+static ActorCommand _gDryfieldGeneralStoreHideBeforeSceneActorCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE } },
+    .command = DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_HIDE_BEFORE_SCENE,
+};
 
 static AnimationPackedPose _gDryfieldGeneralStoreAnimation00ED8Bank1[6] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank1.inc"
@@ -1852,11 +1865,10 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 #undef GENERAL_STORE_UNDERPASS_ROOM
 #undef GENERAL_STORE_UNDERPASS_FADE
 
-/// The room task's three-state table, run from a stack copy by
-/// `dryfieldGeneralStoreRoomTask`: the entry state
-/// `_dryfieldGeneralStoreInitRoomTask`, the idle state
-/// `_dryfieldGeneralStoreIdleRoomTask`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
+/// Room-task lifecycle: register the receiver and reconcile scene progress, idle, release.
+///
+/// Copied by value for unchecked state 0..2 dispatch; callbacks require this overlay loaded.
+static const TaskFuncTable3 _gDryfieldGeneralStoreRoomTaskStates = {
     { _dryfieldGeneralStoreInitRoomTask, _dryfieldGeneralStoreIdleRoomTask, taskKill },
 };
 
@@ -1922,10 +1934,10 @@ static void _dryfieldGeneralStoreInitRoomTask(Task* task)
         DRYFIELD_GENERAL_STORE_POST_CAP_SOUND_ENABLED = 1,
     };
 
-    task->msgTable = D_dryfield_general_store_8017E188;
+    task->msgTable = _gDryfieldGeneralStoreRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_CUTSCENE_NOT_STARTED) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldGeneralStoreHideBeforeSceneActorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     } else if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_CUTSCENE_STARTED) {
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_CUTSCENE_COMPLETE);
     }
@@ -1944,7 +1956,7 @@ void dryfieldGeneralStoreRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_general_store_8017D5F4;
+    stateHandlers = _gDryfieldGeneralStoreRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

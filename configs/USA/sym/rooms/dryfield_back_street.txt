@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_back_street.
-D_dryfield_back_street_8017F964 = 0x8017F964; // size:0x28 defined:True
-D_dryfield_back_street_8017F98C = 0x8017F98C; // size:0x18 defined:True
+_gDryfieldBackStreetRoomMessages = 0x8017F964; // size:0x28 defined:True
+_gDryfieldBackStreetAmbienceTaskDescs = 0x8017F98C; // size:0x18 defined:True
 gDryfieldBackStreetRoomCollisionResources = 0x8017F9B4; // size:0x10 defined:True
 gDryfieldBackStreetViewMaps = 0x8017F9C4; // size:0x4 defined:True
 gDryfieldBackStreetRoomViewCounts = 0x8017F9C8; // size:0x2 defined:True
@@ -63,3 +63,4 @@ _dryfieldBackStreetIdleState = 0x8017d910; // type:func
 dryfieldBackStreetRoomTask = 0x8017d918; // type:func
 _dryfieldBackStreetAmbienceTask = 0x8017d5d0; // type:func
 _dryfieldBackStreetInitializeRoomTask = 0x8017d8b4; // type:func
+_gDryfieldBackStreetRoomTaskStates = 0x8017d5c4;

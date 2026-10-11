@@ -9673,7 +9673,7 @@ the later unit") assumes the first such symbol *is* the table. When the later
 unit owns a non-table symbol ahead of it, starting the cut there puts that
 symbol at offset 0 of the new object's `.rodata` and the compiler's table behind
 it, where GCC's `.align 3` becomes real padding. `dryfield_gas_station` has
-`D_dryfield_gas_station_8017D6A4` at `0xE4` (0xC bytes, referenced by
+`_gDryfieldGasStationRoomTaskStates` at `0xE4` (0xC bytes, referenced by
 `func_..._8017FF8C`) immediately ahead of `jtbl_..._8017D6B0` at `0xF0`, and both
 functions live in unit `_6`. Cutting at `0xE4` links cleanly and silently builds
 the wrong binary: the table lands at `0x8017D6B4` and every later rodata symbol
@@ -54107,13 +54107,13 @@ decided by the first `&sym[k]` expression the pass sees, and that is visible in
 the object dump.
 
 `acropolisRoofGardenAmbientEffectsTask` spawns one effect from
-`D_acropolis_roof_garden_80184BF8[2]` and then loops over `[3]`..`[9]`. Writing
+`_gAcropolisRoofGardenLightOffsets[2]` and then loops over `[3]`..`[9]`. Writing
 both references against the symbol,
 
 ```c
-effectSpawn(0x6008A, coord, 0x4000102, &D_acropolis_roof_garden_80184BF8[2]);
+effectSpawn(0x6008A, coord, 0x4000102, &_gAcropolisRoofGardenLightOffsets[2]);
 for (lightIndex = 3; lightIndex < 10; lightIndex++) {
-    effectSpawn(0x6008A, coord, lightIndex + 0x200, &D_acropolis_roof_garden_80184BF8[lightIndex]);
+    effectSpawn(0x6008A, coord, lightIndex + 0x200, &_gAcropolisRoofGardenLightOffsets[lightIndex]);
 }
 ```
 
@@ -54143,7 +54143,7 @@ To get that, give the base its own local and assign it the *plain* symbol right
 before the first use, so `&sym` is what CSE sees first:
 
 ```c
-lightOffsets = D_acropolis_roof_garden_80184BF8;
+lightOffsets = _gAcropolisRoofGardenLightOffsets;
 effectSpawn(0x6008A, coord, 0x4000102, &lightOffsets[2]);
 for (lightIndex = 3; lightIndex < 10; lightIndex++) {
     effectSpawn(0x6008A, coord, lightIndex + 0x200, &lightOffsets[lightIndex]);
@@ -91946,7 +91946,7 @@ and the constant landed in `$a0` instead of `$a1`. Writing the call the way
 every matched sibling does -
 
 ```c
-    task->msgTable = D_dryfield_general_store_8017E188;
+    task->msgTable = _gDryfieldGeneralStoreRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
 ```
 

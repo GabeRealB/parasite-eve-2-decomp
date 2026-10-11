@@ -1,5 +1,5 @@
 // Overlay-local symbols for acropolis_roof_garden.
-D_acropolis_roof_garden_80184BF8 = 0x80184BF8; // size:0x50 defined:True
+_gAcropolisRoofGardenLightOffsets = 0x80184BF8; // size:0x50 defined:True
 _gAcropolisRoofGardenLightViewMasks = 0x80184C48; // size:0x14 defined:True
 _gAcropolisRoofGardenFlareSineSamples = 0x80184C5C; // size:0x30 defined:True
 gAcropolisRoofGardenCollisionRoomResources = 0x80184C8C; // size:0x10 defined:True
@@ -51,7 +51,7 @@ gMapAkropolisRoofGardenVariant1Placements = 0x8017BABC; // absolute:True owner=m
 gMapAkropolisRoofGardenVariant2Placements = 0x8017BB1C; // absolute:True owner=map_akropolis
 gMapAkropolisRoofGardenVariant7Placements = 0x8017BB9C; // absolute:True owner=map_akropolis
 gMapAkropolisRoofGardenVariant8Placements = 0x8017BBFC; // absolute:True owner=map_akropolis
-D_acropolis_roof_garden_80184B08 = 0x80184B08; // size:0xF0 defined:True
+_gAcropolisRoofGardenMaggotCaterpillarEntranceScript = 0x80184B08; // size:0xF0 defined:True
 _gAcropolisRoofGardenEntranceStartPlayerAnimation = 0x80184ACC; // size:0x14 defined:True
 _gAcropolisRoofGardenEntranceEndPlayerAnimation = 0x80184AE0; // size:0x14 defined:True
 D_acropolis_roof_garden_80184AF4 = 0x80184AF4; // size:0x14 defined:True
@@ -63,9 +63,9 @@ _gAcropolisRoofGardenModel09868Stream = 0x80186E28; // size:0x48 defined:True
 gAcropolisRoofGardenModel09868 = 0x80186E70; // size:0x24 defined:True
 _gAcropolisRoofGardenRequestedAmbiencePercent = 0x80186E94; // size:0x4 defined:True
 ActorContact_ScratchPosition = 0x80186E98; // size:0x8 defined:True
-D_acropolis_roof_garden_80183D74 = 0x80183D74; // size:0x420 defined:True
-D_acropolis_roof_garden_80184194 = 0x80184194; // size:0x198 defined:True
-D_acropolis_roof_garden_8018432C = 0x8018432C; // size:0x4 defined:True
+_gAcropolisRoofGardenArrivalScript = 0x80183D74; // size:0x420 defined:True
+_gAcropolisRoofGardenArrivalSkipScript = 0x80184194; // size:0x198 defined:True
+_gAcropolisRoofGardenArrivalSceneStarted = 0x8018432C; // size:0x4 defined:True
 _gAcropolisRoofGardenAnimation0704CBank1 = 0x80184330; // size:0x48 defined:True
 _gAcropolisRoofGardenAnimation0704CBank4 = 0x80184378; // size:0xB8 defined:True
 _gAcropolisRoofGardenAnimation0704CRecords = 0x80184430; // size:0x1B4 defined:True
@@ -110,7 +110,7 @@ _gAcropolisRoofGardenAnimation065F4Bank4 = 0x8018372C; // size:0x15C defined:Tru
 _gAcropolisRoofGardenAnimation065F4Records = 0x80183888; // size:0x304 defined:True
 _gAcropolisRoofGardenAnimation065F4Indices = 0x80183B8C; // size:0x28 defined:True
 _gAcropolisRoofGardenAnimation065F4 = 0x80183BB4; // size:0x28 defined:True
-D_acropolis_roof_garden_80183BDC = 0x80183BDC; // size:0x30 defined:True
+_gAcropolisRoofGardenRoomMessages = 0x80183BDC; // size:0x30 defined:True
 _gAcropolisRoofGardenCutsceneSoundTask = 0x80183C0C; // size:0x4 defined:True
 _gAcropolisRoofGardenSoundTaskDescriptors = 0x80183C10; // size:0x30 defined:True
 D_acropolis_roof_garden_80183C40 = 0x80183C40; // size:0x4 defined:True
@@ -139,3 +139,4 @@ acropolisRoofGardenPickupModelTask = 0x80180160; // type:func
 _acropolisRoofGardenHandleCommandMessage = 0x8017d8ac; // type:func
 _acropolisRoofGardenControlCutsceneSound = 0x8017dad4; // type:func
 _acropolisRoofGardenInitRoomTask = 0x8017db74; // type:func
+_gAcropolisRoofGardenRoomTaskStates = 0x8017d5c4;

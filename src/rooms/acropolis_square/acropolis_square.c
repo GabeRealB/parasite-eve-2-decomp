@@ -76,8 +76,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern Task* D_acropolis_square_8018889C;
-
 /// The scene sub-task while it runs, NULL otherwise.
 extern Task* gRoomCutsceneSoundTask;
 
@@ -1569,7 +1567,12 @@ AreaApplyRec gAcropolisSquarePostCutsceneAreaUpdates[4] = {
 /// sounds another blast at 121. Startup and repeated blasts reset it to zero.
 static s32 _gAcropolisSquareSirenRepeatFrames = 0;
 
-Task* D_acropolis_square_8018889C = NULL;
+/// Borrowed singleton handle of the arrival scene's scrolling backdrop.
+///
+/// Start replaces this handle, assuming spawning succeeds. Stop requires a
+/// live task; both explicit stop and the backdrop's self-teardown leave the
+/// pointer unchanged. The next start overwrites it; overlay load supplies NULL.
+static Task* _gAcropolisSquareBackdropTask = NULL;
 
 /// Singleton backdrop's horizontal strip anchor in pixels, panning from -320 to zero.
 static s32 _gAcropolisSquareBackdropScrollX = 0;
@@ -2089,10 +2092,10 @@ static void _acropolisSquareControlScrollingBackdrop(s32 action)
     };
     switch (action) {
         case ACROPOLIS_SQUARE_BACKDROP_ACTION_START:
-            D_acropolis_square_8018889C = taskSpawnFromTable(_gAcropolisSquareSequenceTaskDescs, ACROPOLIS_SQUARE_BACKDROP_TASK_INDEX, 0, 0);
+            _gAcropolisSquareBackdropTask = taskSpawnFromTable(_gAcropolisSquareSequenceTaskDescs, ACROPOLIS_SQUARE_BACKDROP_TASK_INDEX, 0, 0);
             return;
         case ACROPOLIS_SQUARE_BACKDROP_ACTION_STOP:
-            taskKill(D_acropolis_square_8018889C);
+            taskKill(_gAcropolisSquareBackdropTask);
             return;
     }
 }

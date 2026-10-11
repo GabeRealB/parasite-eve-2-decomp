@@ -29,13 +29,6 @@
 
 #include "rooms/room.h"
 
-/// Per-frame paths the two streamed scenes walk the player's matrix along,
-/// indexed by `gCdCmdQueue.movieFrame + 0xA8`, each with the script pair its
-/// scene runs.
-extern SVECTOR D_acropolis_observatory_8017E80C[];
-
-extern SVECTOR D_acropolis_observatory_8017F16C[];
-
 static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task);
 static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);
 static void _acropolisObservatorySkipFadeOutTask(Task* task);
@@ -48,11 +41,23 @@ TaskDesc D_acropolis_observatory_8017E7DC[4] = {
     { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeInTask, { .value = 0 } },
 };
 
-SVECTOR D_acropolis_observatory_8017E80C[300] = {
+/// Player-root XYZ samples for the movie arrival from the forked road.
+///
+/// Signed halfword room-coordinate units, indexed by encoded movie frame + 168.
+/// The 300 samples have no terminator; every read requires movieFrame <= 131.
+/// The controller samples before testing its handoff at index 230, so that test
+/// does not clamp a late first frame. Keep the room loaded through sampling.
+static SVECTOR _gAcropolisObservatoryForkedRoadArrivalPlayerPath[300] = {
 #include "assets/acropolis_observatory_path_0124C.inc"
 };
 
-SVECTOR D_acropolis_observatory_8017F16C[300] = {
+/// Player-root XYZ samples for the movie arrival from the promenade.
+///
+/// Signed halfword room-coordinate units, indexed by encoded movie frame + 168;
+/// the controller adds 200 to Z. The 300 samples have no terminator and every
+/// read requires movieFrame <= 131. Sampling precedes the index-230 handoff
+/// test, which does not clamp a late first frame. Keep the room loaded through sampling.
+static SVECTOR _gAcropolisObservatoryPromenadeArrivalPlayerPath[300] = {
 #include "assets/acropolis_observatory_path_01BAC.inc"
 };
 
@@ -165,7 +170,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
 
         case ACROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
             // Movie samples change only the player root translation, in room units.
-            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, D_acropolis_observatory_8017E80C, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, 0);
+            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAcropolisObservatoryForkedRoadArrivalPlayerPath, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, 0);
             if (work->skipFadeStarted != 0) {
                 if (taskPollKill(work->skipFadeTask, &fadeResult) != 0) {
                     exitPlacement.pos.vx = -0x968;
@@ -266,7 +271,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
 
         case ACROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
             // Movie samples change only the player root translation, in room units.
-            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, D_acropolis_observatory_8017F16C, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, ACROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET);
+            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAcropolisObservatoryPromenadeArrivalPlayerPath, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, ACROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET);
             if (work->skipFadeStarted != 0) {
                 if (taskPollKill(work->skipFadeTask, &fadeResult) != 0) {
                     exitPlacement.pos.vx = -0x8F8;

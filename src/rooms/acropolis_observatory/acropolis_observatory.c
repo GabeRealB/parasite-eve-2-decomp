@@ -21,8 +21,11 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_acropolis_observatory_8017E7B8[];
 
-/// Set once the room task has spawned the streamed scene for this visit.
-extern s32 D_acropolis_observatory_8017E7D8;
+/// Arrival-scene latch (0 unstarted, 1 attempted), zeroed when the overlay loads.
+///
+/// Set before either arrival controller is spawned, so allocation failure is
+/// not retried. Both arrival warps share this latch for the room visit.
+static s32 _gAcropolisObservatoryArrivalSceneStarted;
 
 static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
@@ -34,8 +37,6 @@ TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisObservatoryHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-s32 D_acropolis_observatory_8017E7D8;
 
 static void _acropolisObservatoryInitializeRoomTask(Task* task);
 static void _acropolisObservatoryStartArrivalScene(Task* unusedTask);
@@ -174,23 +175,25 @@ static void _acropolisObservatoryStartArrivalScene(Task* unusedTask)
         ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK      = 1,
     };
 
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_ARRIVAL)) {
-        D_acropolis_observatory_8017E7D8 = 1;
+    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_ARRIVAL)) {
+        _gAcropolisObservatoryArrivalSceneStarted = 1;
         taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK, 0, 0);
     }
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_ARRIVAL)) {
-        D_acropolis_observatory_8017E7D8 = 1;
+    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_ARRIVAL)) {
+        _gAcropolisObservatoryArrivalSceneStarted = 1;
         taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_TASK, 0, 0);
     }
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_acropolis_observatory_8017D5C4 = {
+/// Room-task lifecycle: register the receiver, start the arrival scene, release.
+///
+/// Copied by value for unchecked state 0..2 dispatch; callbacks require this overlay loaded.
+static const TaskFuncTable3 _gAcropolisObservatoryRoomTaskStates = {
     { _acropolisObservatoryInitializeRoomTask, _acropolisObservatoryStartArrivalScene, taskKill },
 };
 
 void acropolisObservatoryRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_acropolis_observatory_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gAcropolisObservatoryRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

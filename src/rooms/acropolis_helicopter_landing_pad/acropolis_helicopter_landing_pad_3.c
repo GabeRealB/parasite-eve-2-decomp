@@ -356,7 +356,16 @@ static AnimationBankCopyRequest _gAcropolisHelicopterLandingPadDeparturePlayerBa
     .wordCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets),
 };
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced stored request for bank 1, clip 47, with a five-frame blend.
+///
+/// World collision is disabled; the receiver and scene role are unproven.
+static AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = {
+    .source               = { .index = 1 },
+    .animationId          = 47,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 5,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets the player's departure clip 48 alongside Rupert's clip 2.
 ///
@@ -408,7 +417,16 @@ static AnimationPlayRequest _gAcropolisHelicopterLandingPadPlayerClip9Request = 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced stored request for bank 1, clip 9, with a ten-frame blend.
+///
+/// World collision is disabled; the receiver and scene role are unproven.
+static AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Scene/audio selector 1/9/11 for the encounter introduction.
 ///
@@ -476,7 +494,13 @@ static AnimationPlayRequest _gAcropolisHelicopterLandingPadDepartureActorClip3Re
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = { { .loc = { 1, 16 } }, 0 };
+/// Unreferenced command 0 in the landing pad's stage/area namespace.
+///
+/// No receiver or script uses the record, so its intended action is unproven.
+static ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = {
+    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD } },
+    .command = 0,
+};
 
 /// Shows Rupert's second prop while hiding his revolver for the departure scene.
 ///
@@ -762,7 +786,8 @@ TaskDesc gAcropolisHelicopterLandingPadScriptTasks[ACROPOLIS_HELICOPTER_LANDING_
 
 s32 gAcropolisHelicopterLandingPadEncounterReady = 0;
 
-s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
+/// Six unreferenced stored words; their meaning and subdivision are unproven.
+static s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
     0,
     1,
     0,

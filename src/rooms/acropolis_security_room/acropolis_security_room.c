@@ -280,8 +280,12 @@ typedef struct {
 } _AcropolisSecurityRoomSweepLineScratch;
 STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomSweepLineScratch, 0x14);
 
-/// The task `_acropolisSecurityRoomOpenMonitorTask` spawns and polls until it ends.
-extern Task* D_acropolis_security_room_801855A8;
+/// Borrowed singleton monitor-panel task awaiting its result handoff.
+///
+/// The opener stores the spawn result and polls it to release the panel before
+/// restoring player control. Spawning must succeed; completion leaves this
+/// pointer stale until the next start. Loading the overlay supplies NULL.
+static Task* _gAcropolisSecurityRoomMonitorPanelTask;
 static Task* _gAcropolisSecurityRoomPowerSupplyTask;
 
 /// The whole-unit world displacement the last `_actorContactApplyGridPushback`
@@ -299,11 +303,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
-
-/// Spawn position and effect id of the flash each newly lit feed plays,
-/// indexed by feed.
-extern SVECTOR D_acropolis_security_room_80183998[];
-extern s16     D_acropolis_security_room_801839B8[];
 
 static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
 
@@ -727,18 +726,33 @@ static _AcropolisSecurityRoomMonitorFeedQuad _gAcropolisSecurityRoomLockIndicato
     { 264, 128, 128, 100, -15 },
 };
 
-SVECTOR D_acropolis_security_room_80183998[4] = {
+/// Glow offsets for left locked/released and right locked/released indicators.
+///
+/// Signed halfword game units in the emitter coordinate's frame, transformed
+/// into each glow's coordinate during spawning. Indices 0..3 agree with the
+/// lamp-enable bits and colour masks; keep the room loaded through drawing.
+static SVECTOR _gAcropolisSecurityRoomLockIndicatorGlowOffsets[4] = {
     { 720, -2450, 420, 0 },
     { 720, -2450, 280, 0 },
     { 720, -2450, 350, 0 },
     { 720, -2450, 210, 0 },
 };
 
-s16 D_acropolis_security_room_801839B8[4] = {
-    3,
-    1,
-    3,
-    2,
+enum {
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN = 1 << 0,
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_RED   = 1 << 1,
+};
+
+/// Red/green glow-channel bits in left locked/released, right locked/released order.
+///
+/// Locked lamps are yellow; released lamps are green on the left and red on
+/// the right. Entries remain signed halfwords and promote to the effect's
+/// integer argument. Index 0..3 follows the matching glow-offset table.
+static s16 _gAcropolisSecurityRoomLockIndicatorGlowColorMasks[4] = {
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_RED | ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN,
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN,
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_RED | ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN,
+    ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_RED,
 };
 
 /// Unit XZ corners of the falling square, in quad-strip order.
@@ -1367,8 +1381,6 @@ TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = {
     _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Stream,
 };
 
-Task* D_acropolis_security_room_801855A8;
-
 /// Borrowed live power-supply panel handle used to forward room key-item messages.
 ///
 /// NULL while absent. The opener publishes the spawn result, polls completion
@@ -1469,13 +1481,13 @@ static void _acropolisSecurityRoomOpenMonitorTask(Task* task)
     switch (task->state) {
         case ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_STATE_START:
             printf("monitor\n");
-            D_acropolis_security_room_801855A8 = taskSpawn(ACROPOLIS_SECURITY_ROOM_PANEL_TASK_BANK, ACROPOLIS_SECURITY_ROOM_MONITOR_TASK, 0, 0);
+            _gAcropolisSecurityRoomMonitorPanelTask = taskSpawn(ACROPOLIS_SECURITY_ROOM_PANEL_TASK_BANK, ACROPOLIS_SECURITY_ROOM_MONITOR_TASK, 0, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             task->state = task->state + 1;
             return;
         case ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_STATE_WAIT:
-            if (taskPollKill(D_acropolis_security_room_801855A8, &panelResult) != 0) {
+            if (taskPollKill(_gAcropolisSecurityRoomMonitorPanelTask, &panelResult) != 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskKill(task);
@@ -2809,10 +2821,10 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
                     effectSpawn(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, feedIndex, NULL);
                 }
             } else if (((viewGetMappedIndex() & 0xFF) != ACROPOLIS_SECURITY_ROOM_FEEDS_GLOW_SKIP_VIEW) && ((viewGetMappedIndex() & 0xFF) != ACROPOLIS_SECURITY_ROOM_FEEDS_RIGHT_UNLOCK_VIEW)) {
-                for (feedIndex = 0; feedIndex < ARRAY_SIZE(D_acropolis_security_room_80183998); feedIndex++) {
+                for (feedIndex = 0; feedIndex < ARRAY_SIZE(_gAcropolisSecurityRoomLockIndicatorGlowOffsets); feedIndex++) {
                     if ((work->index >> feedIndex) & 1) {
-                        effectSpawn(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(D_acropolis_security_room_801839B8[feedIndex]),
-                                    &D_acropolis_security_room_80183998[feedIndex]);
+                        effectSpawn(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(_gAcropolisSecurityRoomLockIndicatorGlowColorMasks[feedIndex]),
+                                    &_gAcropolisSecurityRoomLockIndicatorGlowOffsets[feedIndex]);
                     }
                 }
             }

@@ -57,9 +57,6 @@ static void _roomCutsceneSoundTask(Task* task);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
 
-extern TaskDesc         D_dryfield_gas_station_80181E3C[];
-extern TaskMessageEntry D_dryfield_gas_station_80181E54[5];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0\x12"
 #include "../../shared/telephone.h"
 
@@ -79,15 +76,26 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc D_dryfield_gas_station_80181E3C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldGasStationArrivalSupervisorTask, { .value = 0 } },
+enum { DRYFIELD_GAS_STATION_ARRIVAL_SUPERVISOR_TASK_PRIORITY = 32 };
+
+/// Bodyless arrival-supervisor recipe at slot 0, followed by TASK_DESC_END.
+///
+/// Spawned with zero payloads on saved warp 1. Spawning consumes the recipe;
+/// callback code must remain loaded until it collects the arrival task's result.
+static TaskDesc _gDryfieldGasStationArrivalSupervisorTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_SUPERVISOR_TASK_PRIORITY } }, _dryfieldGasStationArrivalSupervisorTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 static s32 _dryfieldGasStationRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 
-TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
+/// Gas-station transition, key-item, command and sound-cue message dispatch.
+///
+/// The room task borrows five records, including TASK_MESSAGE_TABLE_END,
+/// while the overlay is loaded. Transition messages borrow request/reply
+/// records; the other handlers consume integer arguments synchronously.
+static TaskMessageEntry _gDryfieldGasStationRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGasStationRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _dryfieldGasStationHandleRoomCommand },
@@ -205,10 +213,10 @@ static void _dryfieldGasStationInitRoomTask(Task* task)
     enum { ARRIVAL_WARP           = 1,
            ARRIVAL_STORY_CHAPTER  = 2,
            AREA_MUSIC_START_TICKS = 1 };
-    task->msgTable = D_dryfield_gas_station_80181E54;
+    task->msgTable = _gDryfieldGasStationRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_WARP) {
-        taskSpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
+        taskSpawnFromTable(_gDryfieldGasStationArrivalSupervisorTaskDescs, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
@@ -226,10 +234,10 @@ static void _dryfieldGasStationIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The three states of the room's main task, run by
-/// `dryfieldGasStationRoomTask`: set-up, the per-frame handler and the
-/// kill.
-static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
+/// Room-task lifecycle: register the receiver and arrival/music, idle, release.
+///
+/// Copied by value for unchecked state 0..2 dispatch; callbacks require this overlay loaded.
+static const TaskFuncTable3 _gDryfieldGasStationRoomTaskStates = {
     { _dryfieldGasStationInitRoomTask, _dryfieldGasStationIdleRoomTask, taskKill },
 };
 
@@ -237,6 +245,6 @@ void dryfieldGasStationRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_gas_station_8017D6A4;
+    stateHandlers = _gDryfieldGasStationRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

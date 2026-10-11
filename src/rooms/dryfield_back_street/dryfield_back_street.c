@@ -51,10 +51,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/back_street.h"
 
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_dryfield_back_street_8017F964[];
-extern TaskDesc         D_dryfield_back_street_8017F98C[];
-
 /// Volume last asked of the back street's ambience, or 0 when none is playing.
 /// Written by `_dryfieldBackStreetAmbienceTask` and cleared by state 0 of the
 /// same task.
@@ -72,7 +68,12 @@ static WorldCollisionTrigger _gDryfieldBackStreetViewBoundaries[6];
 static WorldCollisionTrigger _gDryfieldBackStreetActionTriggers[11];
 static WorldCoordRoomLights  _gDryfieldBackStreetRoomLights;
 
-TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
+/// Back Street's transition, key-item, action and command message dispatch.
+///
+/// The room task borrows five records, including TASK_MESSAGE_TABLE_END,
+/// while the overlay is loaded. Transition payloads are request/reply records;
+/// actions borrow DirectionActionRequest, and the other messages carry integers.
+static TaskMessageEntry _gDryfieldBackStreetRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
     { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldBackStreetIgnoreRoomActionMessage },
@@ -80,8 +81,14 @@ TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_back_street_8017F98C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldBackStreetAmbienceTask, { .value = 0 } },
+enum { DRYFIELD_BACK_STREET_AMBIENCE_TASK_PRIORITY = 32 };
+
+/// Bodyless view-dependent ambience recipe at slot 0, followed by TASK_DESC_END.
+///
+/// The room initializer spawns slot 0 with zero payloads. Spawning consumes the
+/// descriptor; callback code stays loaded while the independent ambience runs.
+static TaskDesc _gDryfieldBackStreetAmbienceTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_BACK_STREET_AMBIENCE_TASK_PRIORITY } }, _dryfieldBackStreetAmbienceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -813,9 +820,9 @@ static s32 _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId,
 /// task can be dispatched.
 static void _dryfieldBackStreetInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_back_street_8017F964;
+    task->msgTable = _gDryfieldBackStreetRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
+    taskSpawnFromTable(_gDryfieldBackStreetAmbienceTaskDescs, 0, 0, 0);
     task->state = task->state + 1;
 }
 
@@ -824,14 +831,16 @@ static void _dryfieldBackStreetIdleState(Task* task)
 {
 }
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
+/// Room-task lifecycle: register the receiver and ambience, idle, release.
+///
+/// Copied by value for unchecked state 0..2 dispatch; callbacks require this overlay loaded.
+static const TaskFuncTable3 _gDryfieldBackStreetRoomTaskStates = {
     { _dryfieldBackStreetInitializeRoomTask, _dryfieldBackStreetIdleState, taskKill },
 };
 
 void dryfieldBackStreetRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_dryfield_back_street_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gDryfieldBackStreetRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

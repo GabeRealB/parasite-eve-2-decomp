@@ -73,8 +73,8 @@ gActor223600BloodSucklerTaskDesc = 0x80150B48; // absolute:True owner=actor_2236
 gMapDryfieldGeneralStoreVariant1Placements = 0x8017AE44; // absolute:True owner=map_dryfield
 _gRoomEventTaskDesc = 0x8017E158; // size:0xC defined:True
 _gGeneralStoreTaskDescriptors = 0x8017E164; // size:0x24 defined:True
-D_dryfield_general_store_8017E188 = 0x8017E188; // size:0x30 defined:True
-D_dryfield_general_store_8017E1B8 = 0x8017E1B8; // size:0x4 defined:True
+_gDryfieldGeneralStoreRoomMessages = 0x8017E188; // size:0x30 defined:True
+_gDryfieldGeneralStoreHideBeforeSceneActorCommand = 0x8017E1B8; // size:0x4 defined:True
 _gDryfieldGeneralStoreAnimation00ED8Bank1 = 0x8017E1BC; // size:0x48 defined:True
 _gDryfieldGeneralStoreAnimation00ED8Bank4 = 0x8017E204; // size:0xB8 defined:True
 _gDryfieldGeneralStoreAnimation00ED8Records = 0x8017E2BC; // size:0x1B4 defined:True
@@ -107,3 +107,4 @@ _dryfieldGeneralStoreInitRoomTask = 0x8017deac; // type:func
 dryfieldGeneralStoreRoomTask = 0x8017df5c; // type:func
 _dryfieldGeneralStoreDropInActorsTask = 0x8017e064; // type:func
 _dryfieldGeneralStoreHandleRoomAction = 0x8017ddfc; // type:func
+_gDryfieldGeneralStoreRoomTaskStates = 0x8017d5f4;
