@@ -59,11 +59,23 @@ typedef struct {
 } _MtsHeader;
 STATIC_ASSERT_SIZEOF(_MtsHeader, 0x10);
 
+/// Playback-service and received-boundary bits in `CdStreamState::flags0`.
+enum {
+    /// Enables playback service and playhead advancement, even before voice key-on.
+    ///
+    /// Opening a stream leaves this clear. Queued disc jobs are serviced independently.
+    CD_STREAM_ACTIVE = 1,
+
+    /// A received SPU ring-boundary interrupt awaiting playback service.
+    ///
+    /// Boundary service uses it to rebase the vsync playhead to the received chunk.
+    /// It does not track whether the hardware interrupt is armed.
+    CD_STREAM_SPU_IRQ = 8,
+};
+
 /// `CdStreamState::flags0`. Bit 7 is unread.
-#define CD_STREAM_ACTIVE      1    // the vsync tick services the stream
 #define CD_STREAM_ENGAGED     2    // the opening read finished; the voices are not keyed yet
 #define CD_STREAM_CHUNK_READY 4    // the queued chunk read has completed
-#define CD_STREAM_SPU_IRQ     8    // the SPU interrupt snapped the playhead to this chunk
 #define CD_STREAM_VOICES_ON   0x10 // the voices are keyed on
 #define CD_STREAM_KEY_ON      0x20 // key the voices on at the next tick
 #define CD_STREAM_STOP        0x40 // stop was requested
@@ -85,19 +97,56 @@ STATIC_ASSERT_SIZEOF(_MtsHeader, 0x10);
 #define CD_STREAM_CLEAR_KEY_ON      0xDF
 #define CD_STREAM_CLEAR_STOP        0xBF
 
+/// Voice updates, drive setup and MTS header policies in `CdStreamState::flags1`.
+enum {
+    /// Both channel attribute records have pending edits to copy into the SPU voice queue.
+    ///
+    /// An additional volume edit preserves the records' existing update masks.
+    /// Copying both records consumes this flag.
+    CD_STREAM_VOICE_COPY = 1,
+
+    /// Software latch allowing subsequent chunk reads to skip drive-mode setup.
+    ///
+    /// Set after a non-error mode-sync result or completed drive recovery.
+    /// Mode-sync does not require `CdlComplete` before setting this latch.
+    CD_STREAM_MODE_SET = 2,
+
+    /// Zero-based bit index of the signed disc-gap policy in `flags1`.
+    CD_STREAM_APPLY_GAP_BIT = 2,
+
+    /// Adds the signed gap-sector count to the next read position and consumes gap sectors.
+    ///
+    /// The first chunk's header can enable this with a zero count; later headers
+    /// require both the MTS gap flag and a nonzero count.
+    CD_STREAM_APPLY_GAP = 1 << CD_STREAM_APPLY_GAP_BIT,
+
+    /// Eight-bit AND mask disabling the gap policy while preserving the other flags.
+    CD_STREAM_CLEAR_APPLY_GAP = 0xFF & ~CD_STREAM_APPLY_GAP,
+
+    /// Stops playback on entering the final chunk, taking precedence over play-through.
+    ///
+    /// Recorded from the first chunk's MTS header when bit 5 is set and bit 6 is clear.
+    CD_STREAM_END_ON_ENTRY = 0x10,
+
+    /// Records the first chunk's MTS halfway-end policy; this bit itself is never read.
+    ///
+    /// Header bit 6 selects it even when bit 5 is also set. Playback stops halfway
+    /// when both `CD_STREAM_END_ON_ENTRY` and `CD_STREAM_END_THROUGH` are clear.
+    CD_STREAM_END_HALFWAY = 0x20,
+
+    /// Plays the final chunk through unless the stop-on-entry flag is also set.
+    ///
+    /// Recorded when neither end-policy bit is set in the first chunk's MTS header.
+    /// End-policy flags accumulate across that chunk's channel headers.
+    CD_STREAM_END_THROUGH = 0x40,
+};
+
 /// `CdStreamState::flags1`.
-#define CD_STREAM_VOICE_COPY   1    // voice attributes need copying
-#define CD_STREAM_MODE_SET     2    // the CD streaming mode is already latched
-#define CD_STREAM_APPLY_GAP    4    // add `gapSectors` to the disc cursor and skip that gap
 #define CD_STREAM_SEEK         8    // a requested playhead is waiting to be applied
-#define CD_STREAM_END_ON_ENTRY 0x10 // stop on entering the final chunk
-#define CD_STREAM_END_HALFWAY  0x20 // stored for a halfway stop; the tick tests `END_THROUGH` instead
-#define CD_STREAM_END_THROUGH  0x40 // play the final chunk through
 #define CD_STREAM_SEEK_ENABLED 0x80 // a playhead request may be accepted
 
 /// Shift index of a `flags1` test.
 #define CD_STREAM_MODE_SET_BIT     1
-#define CD_STREAM_APPLY_GAP_BIT    2
 #define CD_STREAM_SEEK_BIT         3
 #define CD_STREAM_END_ON_ENTRY_BIT 4
 #define CD_STREAM_END_THROUGH_BIT  6
@@ -105,12 +154,19 @@ STATIC_ASSERT_SIZEOF(_MtsHeader, 0x10);
 
 /// Byte mask that clears one `flags1` bit.
 #define CD_STREAM_CLEAR_VOICE_COPY 0xFE
-#define CD_STREAM_CLEAR_APPLY_GAP  0xFB
 #define CD_STREAM_CLEAR_SEEK       0xF7
+
+/// Playback recovery request in `CdStreamState::flags2`.
+enum {
+    /// A read or callback failure requiring playback to report the error and queue recovery.
+    ///
+    /// Consumed only while playback is active. Opening and restart completions
+    /// clear it before notifying the caller or retrying the read.
+    CD_STREAM_FAULT = 2,
+};
 
 /// `CdStreamState::flags2`. Bits 4–7 are unread. Bits 1 and 2 are independent flags.
 #define CD_STREAM_REQUEUE       1 // arm another opening read
-#define CD_STREAM_FAULT         2 // abort playback and report the error
 #define CD_STREAM_CHUNK_ADVANCE 4 // the tick should advance to the next chunk
 #define CD_STREAM_HALT          8 // a stream error has raised the game halt
 
@@ -125,24 +181,55 @@ STATIC_ASSERT_SIZEOF(_MtsHeader, 0x10);
 #define CD_STREAM_CLEAR_CHUNK_ADVANCE 0xFB
 #define CD_STREAM_CLEAR_HALT          0xF7
 
-/// `CdStreamState::flags`. Bits 2–7 are unread.
-#define CD_STREAM_DISC_FAULT 1 // the shell opened or the disc failed; reinit the drive
-#define CD_STREAM_MONO       2 // mix both voices to the centre
+/// Drive-recovery and output-selection bits in `CdStreamState::flags`.
+enum {
+    /// A shell-open failure requiring drive recovery before the next chunk read.
+    ///
+    /// Other disk errors may retry without setting this flag. Successful recovery
+    /// clears it; playback's separate fault flag requests reporting and restart.
+    CD_STREAM_DISC_FAULT = 1,
 
-#define CD_STREAM_CLEAR_DISC_FAULT 0xFE
-#define CD_STREAM_CLEAR_MONO       0xFD
+    /// Selects 181/256 gain on both outputs of each voice during setup and volume updates.
+    ///
+    /// Clearing selects full gain on each channel's own output. Changing this flag
+    /// alone does not update voice gains.
+    CD_STREAM_MONO = 2,
 
-/// Vsyncs one chunk occupies, and the byte size of one SPU ring half.
-/// A header period of 5 uses the short pair (24/20 vsyncs, NTSC then PAL).
-#define CD_STREAM_CHUNK_VSYNCS_NTSC       0x30
-#define CD_STREAM_CHUNK_VSYNCS_PAL        0x28
-#define CD_STREAM_CHUNK_VSYNCS_SHORT_NTSC 0x18
-#define CD_STREAM_CHUNK_VSYNCS_SHORT_PAL  0x14
-#define CD_STREAM_RING_HALF               0x4ED0
-#define CD_STREAM_RING_HALF_SHORT         0x2770
+    /// Eight-bit AND mask clearing the drive-recovery request, preserving output selection.
+    CD_STREAM_CLEAR_DISC_FAULT = 0xFF & ~CD_STREAM_DISC_FAULT,
+
+    /// Eight-bit AND mask selecting stereo for later gain updates, preserving recovery state.
+    CD_STREAM_CLEAR_MONO = 0xFF & ~CD_STREAM_MONO,
+};
+
+/// Chunk durations in vsyncs, selected by video region and the first MTS header's period.
+enum {
+    /// NTSC chunk duration when the MTS header period is not five sectors.
+    CD_STREAM_CHUNK_VSYNCS_NTSC = 48,
+
+    /// PAL chunk duration when the MTS header period is not five sectors.
+    CD_STREAM_CHUNK_VSYNCS_PAL = 40,
+
+    /// NTSC chunk duration for a five-sector period, also used provisionally before its header.
+    CD_STREAM_CHUNK_VSYNCS_SHORT_NTSC = 24,
+
+    /// PAL chunk duration for a five-sector period, also used provisionally before its header.
+    CD_STREAM_CHUNK_VSYNCS_SHORT_PAL = 20,
+};
+
+/// Byte size of one SPU ring half.
+#define CD_STREAM_RING_HALF       0x4ED0
+#define CD_STREAM_RING_HALF_SHORT 0x2770
+
+/// Inactive sector intake in `CdStreamState::readPhase`.
+enum {
+    /// No audio or gap sectors are being accepted; queued drive or SPU work may remain.
+    ///
+    /// Set before normal pause/transfer completion, on error and on cancellation.
+    CD_STREAM_READ_IDLE = 0,
+};
 
 /// `CdStreamState::readPhase`.
-#define CD_STREAM_READ_IDLE     0 // no sector read is in progress
 #define CD_STREAM_READ_AUDIO    1 // accepting audio sectors
 #define CD_STREAM_READ_GAP      2 // skipping the disc gap
 #define CD_STREAM_READ_FAULT    3 // the read failed
@@ -241,23 +328,68 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(CdStreamRuntime, 0xD8);
 STATIC_ASSERT(OFFSET_OF(CdStreamRuntime, channels) == 0x58, cd_stream_channels_offset);
 
-/// `_CdReadyEntry::phase` while a chunk read owns the entry, in the order a
-/// read passes through them.
+/// Normal chunk-read steps stored in the eight-bit `_CdReadyEntry::phase`.
 ///
-/// Zero is an entry that has not been polled. The two cancel steps are entered
-/// only when a read is cancelled with the drive or the SPU still busy.
-#define CD_STREAM_STEP_SETMODE         1  // issue the streaming drive mode
-#define CD_STREAM_STEP_SETMODE_SYNC    2  // wait for the mode command
-#define CD_STREAM_STEP_SPEED_SETTLE    3  // count down the polls after a speed change
-#define CD_STREAM_STEP_SETLOC          4  // target the entry's sector
-#define CD_STREAM_STEP_SETLOC_SYNC     5  // wait for the setloc
-#define CD_STREAM_STEP_READ            6  // install the data callback and start the read
-#define CD_STREAM_STEP_READ_SYNC       7  // wait for the read command
-#define CD_STREAM_STEP_SECTORS         8  // wait for the chunk's sectors
-#define CD_STREAM_STEP_PAUSE           9  // pause the drive
-#define CD_STREAM_STEP_PAUSE_SYNC      11 // wait for the pause
-#define CD_STREAM_STEP_TRANSFER        12 // wait for the SPU transfer
-#define CD_STREAM_STEP_IDLE_SYNC       10 // wait for the drive to go idle, which finishes the read
+/// Zero means unpolled. Values also identify the step above a timeout's low
+/// error nibble. The execution order after sectors is 9, 11, 12, 10; these
+/// numeric identities are retained independently of that order.
+enum {
+    /// Issues double-speed, sector-header drive mode when its software latch is clear.
+    CD_STREAM_STEP_SETMODE = 1,
+
+    /// Samples mode-command synchronization, retrying disk errors without an open shell.
+    ///
+    /// Any result other than `CdlDiskError` advances and sets the mode latch,
+    /// including `CdlNoIntr`; this step does not wait specifically for completion.
+    CD_STREAM_STEP_SETMODE_SYNC = 2,
+
+    /// Consumes three countdown steps after changing drive speed, rather than elapsed time.
+    ///
+    /// The mode-sync poll consumes the first step immediately on entry.
+    CD_STREAM_STEP_SPEED_SETTLE = 3,
+
+    /// Converts the queued absolute sector to BCD position and issues `CdlSetloc`.
+    ///
+    /// Also marks sector intake as setloc-in-flight and establishes the next expected sector.
+    CD_STREAM_STEP_SETLOC = 4,
+
+    /// Waits for `CdlComplete` from setloc, retrying disk errors without an open shell.
+    ///
+    /// Other pending responses consume progress polls and can time out.
+    CD_STREAM_STEP_SETLOC_SYNC = 5,
+
+    /// Installs the sector-ready callback, enables audio intake and issues `CdlReadN`.
+    CD_STREAM_STEP_READ = 6,
+
+    /// Samples read-command synchronization, retrying disk errors without an open shell.
+    ///
+    /// Any result other than `CdlDiskError` advances to sector intake, including `CdlNoIntr`.
+    CD_STREAM_STEP_READ_SYNC = 7,
+
+    /// Waits for audio and enabled gap intake, then records chunk readiness or failure.
+    ///
+    /// Received audio configures its ring-boundary IRQ or deferred key-on before pausing.
+    CD_STREAM_STEP_SECTORS = 8,
+
+    /// Issues `CdlPause` after sector intake has ended.
+    CD_STREAM_STEP_PAUSE = 9,
+
+    /// Samples pause synchronization, retrying disk errors without an open shell.
+    ///
+    /// Any result other than `CdlDiskError` advances to the SPU-transfer wait, including `CdlNoIntr`.
+    CD_STREAM_STEP_PAUSE_SYNC = 11,
+
+    /// Waits for the final SPU DMA to complete before final CD synchronization.
+    CD_STREAM_STEP_TRANSFER = 12,
+
+    /// Waits for a CD synchronization response before retiring the read job.
+    ///
+    /// Only `CdlNoIntr` keeps waiting. Every other result retires the job,
+    /// including a disk error; no drive-idle status is tested.
+    CD_STREAM_STEP_FINAL_SYNC = 10,
+};
+
+/// Cancellation steps entered while a chunk read still has drive or SPU work outstanding.
 #define CD_STREAM_STEP_CANCEL_TRANSFER 13 // cancelled: wait for the SPU transfer
 #define CD_STREAM_STEP_CANCEL_PAUSE    14 // cancelled among the sectors: the pause is issued, the flush is not
 
@@ -2171,8 +2303,8 @@ static s32 _cdStreamPollChunkRead(_CdReadyEntry* entry)
             if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
                 goto wait_for_progress;
             }
-            entry->phase = CD_STREAM_STEP_IDLE_SYNC;
-        case CD_STREAM_STEP_IDLE_SYNC:
+            entry->phase = CD_STREAM_STEP_FINAL_SYNC;
+        case CD_STREAM_STEP_FINAL_SYNC:
             if (CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]) == CdlNoIntr) {
                 goto wait_for_progress;
             }
@@ -2332,7 +2464,7 @@ static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
                             _gCdStreamRuntime.state.mtsPeriod   = (s8)_gCdStreamRuntime.state.sector->period;
                             _gCdStreamRuntime.state.sectorsLeft = (s16)_gCdStreamRuntime.state.mtsPeriod;
                             _gCdStreamRuntime.state.gapSectors  = _gCdStreamRuntime.state.sector->gapSectors;
-                            /* Header bit 7 records the disc gap. The count is sign-extended later, and a zero count still sets the apply-gap bit on this first header. */
+                            // The first header enables gap handling even for a zero signed count.
                             if (_gCdStreamRuntime.state.sector->flags & CD_STREAM_MTS_FLAG_GAP) {
                                 _gCdStreamRuntime.state.flags1 |= CD_STREAM_APPLY_GAP;
                             } else {
@@ -2364,7 +2496,7 @@ static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
                             channels->voiceAttr[1].mask  = channels->voiceAttr[0].mask;
                             channelState->chunkIndex     = channelState->sector->chunkIndex;
                             channelState->chunkCount     = channelState->sector->chunkCount;
-                            /* Header bits 5 and 6 select how the final chunk ends and are copied into flags1. */
+                            // Translate the header's end policy; flags accumulate across chunk-zero headers.
                             if (!((u8)channelState->sector->flags & CD_STREAM_MTS_FLAG_END_MASK)) {
                                 channelState->flags1 = (u8)(channelState->flags1 | CD_STREAM_END_THROUGH);
                             } else if ((u8)channelState->sector->flags & CD_STREAM_MTS_FLAG_END_HALF) {
@@ -2739,7 +2871,7 @@ static void _cdStreamCancelChunkRead(_CdReadyEntry* entry)
         case CD_STREAM_STEP_SPEED_SETTLE:
         case CD_STREAM_STEP_SETLOC:
         case CD_STREAM_STEP_SETLOC_SYNC:
-        case CD_STREAM_STEP_IDLE_SYNC:
+        case CD_STREAM_STEP_FINAL_SYNC:
             CdFlush();
             break;
     }
