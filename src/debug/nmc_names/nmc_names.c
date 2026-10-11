@@ -323,8 +323,10 @@ const char* const gNmcNamesEnemyNameTable[NMC_NAMES_ENEMY_NAME_COUNT] __attribut
     _gNmcNamesChocoboName,
 };
 
-/// The values 1 to 62 in order, then 0xFF. Nothing decompiled reads it.
-static u8 D_nmc_names_801D6580[63] = {
+/// Serialized byte sequence 1..62 followed by 0xFF; its purpose is unproven.
+///
+/// No known consumer establishes the values' meaning or whether 0xFF is a sentinel.
+static u8 D_nmc_names_801D6580[] = {
     0x01,
     0x02,
     0x03,
