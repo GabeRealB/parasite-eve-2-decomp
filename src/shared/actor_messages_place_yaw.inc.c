@@ -1,5 +1,16 @@
 /* Part of the actor messages library; see actor_messages.h. */
 
+/// Required allocated work type for this fragment's placement-heading store.
+///
+/// Define `ACTOR_MESSAGE_YAW_WORK_TYPE` around this fragment include as the
+/// complete struct type allocated at `Task::work`, then undefine it. It must
+/// provide a writable `s16 placedYaw` member. The fragment borrows the live
+/// work through dispatch and writes the matrix-derived heading in 4096 units
+/// per turn; it neither reads other members nor retains the work pointer.
+#ifndef ACTOR_MESSAGE_YAW_WORK_TYPE
+#error "Define ACTOR_MESSAGE_YAW_WORK_TYPE as the task's allocated work type."
+#endif
+
 /// Replaces the model root's local transform with an XYZ placement.
 ///
 /// Requires a live TMD task with a writable root coordinate and a readable,

@@ -52,11 +52,10 @@ typedef struct {
     s16 state; // index of the state handler the actor's tick runs; the handlers store `ACTOR_MESSAGE_STATE_*` values
 } ActorMsgStateWork;
 
-/// The start of an actor's work block as `actorMsgPlaceRecordYaw` and
-/// `actorMsgPlaceYawFirst` see it.
+/// The start of an actor's work block as `actorMsgPlaceYawFirst` sees it.
 ///
-/// Each package's work block is a type of its own; these handlers are shared
-/// between packages and know only where it keeps the heading of the last
+/// Each package's work block is a type of its own; this handler is shared
+/// between packages and knows only where it keeps the heading of the last
 /// placement. The rest of the block is the package's.
 typedef struct {
     byte packageFields[0x16]; // the package's own members ahead of the heading; the handlers touch none of them
@@ -82,19 +81,12 @@ s32 actorMsgPlace(Task* task, s32 msgId, const ActorTransform* placement, s32 un
 #define ACTOR_MESSAGE_PLACE_RECORD_YAW actorMsgPlaceRecordYaw
 #endif
 
-/// Work type used by the XYZ-placement fragment's `placedYaw` store.
-///
-/// Bind through the fragment include to a type with a writable signed-halfword
-/// placedYaw member. The default handlers use `ActorMsgYawWork`; a carrier whose
-/// heading lives elsewhere selects its actual allocated work type.
-#ifndef ACTOR_MESSAGE_YAW_WORK_TYPE
-#define ACTOR_MESSAGE_YAW_WORK_TYPE ActorMsgYawWork
-#endif
-
 /// Places the model root with Rx * Ry * Rz and records its resulting heading.
 ///
-/// Has `actorMsgPlace`'s placement contract and requires writable work of
-/// `ACTOR_MESSAGE_YAW_WORK_TYPE`. Stores ratan2(-m[2][0], m[2][2]) in `placedYaw`, in
+/// Has `actorMsgPlace`'s placement contract and requires live allocated task work
+/// with a writable signed-halfword `placedYaw` member. The carrier selects that
+/// work type when including the XYZ-placement fragment. Stores
+/// ratan2(-m[2][0], m[2][2]) in `placedYaw`, in
 /// 4096 units per turn; this is derived from the matrix rather than copied from
 /// the requested Y angle. The message ID and second payload are ignored. Returns 1.
 s32 ACTOR_MESSAGE_PLACE_RECORD_YAW(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);

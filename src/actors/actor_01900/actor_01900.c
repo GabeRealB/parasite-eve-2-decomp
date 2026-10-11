@@ -3954,7 +3954,9 @@ static s32 _actor01900HandleAnimationRequest(Task* task, s32 messageId, const An
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+#define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor01900Work
 #include "../../shared/actor_messages_place_yaw.inc.c"
+#undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
 /// Acknowledges `ACTOR_MESSAGE_RELEASE_HOLD` by returning 1.
 ///

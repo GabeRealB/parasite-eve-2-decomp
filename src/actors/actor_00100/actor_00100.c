@@ -3421,7 +3421,9 @@ static s16 _actor00100WallProbeTouchesGrid(Task* task)
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+#define ACTOR_MESSAGE_YAW_WORK_TYPE DesertChaserWork
 #include "../../shared/actor_messages_place_yaw.inc.c"
+#undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
 #include "../../shared/desert_chaser_exit.inc.c"
 

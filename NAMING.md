@@ -547,9 +547,10 @@ instance of a placement fragment separately from its ordinary shared entry.
 the matrix-derived heading. A private carrier declares its selected instance
 static before including the header, binds the identifier through the fragment
 include and then undefines it; other carriers retain `actorMsgPlaceRecordYaw`.
-`ACTOR_MESSAGE_YAW_WORK_TYPE` selects the work type whose signed-halfword
-`placedYaw` member the XYZ fragment stores. The default is `ActorMsgYawWork`;
-a carrier with a different member position binds its actual allocated type.
+`ACTOR_MESSAGE_YAW_WORK_TYPE` selects the actual allocated work type whose
+signed-halfword `placedYaw` member the XYZ fragment stores. Every carrier
+binds it around that fragment include and then undefines it; the fragment
+requires this binding independently of the function-identifier binding.
 
 `modelPlacement` owns the included TMD coordinate placement helpers and child
 model attachment states. Its private implementation interface is

@@ -2334,7 +2334,9 @@ static const EnemyTaskFuncTable3 _gActor401000TaskStates = { {
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+#define ACTOR_MESSAGE_YAW_WORK_TYPE OddStrangerWork
 #include "../../shared/actor_messages_place_yaw.inc.c"
+#undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
 #include "../../shared/actor_messages_release_hold.inc.c"
 

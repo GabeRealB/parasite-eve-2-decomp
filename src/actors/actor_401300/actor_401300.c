@@ -56,7 +56,6 @@
 #include "../../shared/player_detection.h"
 static s32 _actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 #define ACTOR_MESSAGE_PLACE_RECORD_YAW _actorMsgPlaceRecordYaw
-#define ACTOR_MESSAGE_YAW_WORK_TYPE    _Actor401300Work
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
 
@@ -6816,6 +6815,9 @@ static s32 _actor401300PlayMessageAnimation(Task* task, s32 msgId, const Animati
 #include "../../shared/actor_messages_visibility.inc.c"
 
 #include "../../shared/actor_messages_is_present.inc.c"
+
+/// Allocated Horned Stranger work type for recording the placement heading.
+#define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor401300Work
 
 /// Places this actor's root with XYZ rotation and records its matrix-derived yaw.
 ///
