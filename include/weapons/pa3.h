@@ -1,8 +1,21 @@
 #ifndef INCLUDE_WEAPONS_PA3_H
 #define INCLUDE_WEAPONS_PA3_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Player animation bank used while the PA3 shotgun is equipped.
+///
+/// Gameplay selects bank index 14 for character 1 with equipped weapon 13.
+/// Base slots 1..44 reference 36 distinct native clips; slots 0, 45 and 46
+/// are NULL. The 32 extension words at indices 47..78 start cleared and stay
+/// writable for scripted copies, which may include non-pointer payloads.
+/// Play an extension entry only after installing a valid clip pointer there.
+/// Keep PA3 loaded while playback borrows the bank or its native clips;
+/// copied clips also require their source overlays to remain loaded.
+extern AnimationBank gPa3PlayerAnimationBank;
 
 /// Single-part held PA3 shotgun model attached to the player's weapon hand.
 ///
