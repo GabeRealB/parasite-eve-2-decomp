@@ -727,13 +727,35 @@ extern TmdSource gMappicS403B1AccessTunnelShape;
 /// vertices and first stream group; keep mappic_s4_03 loaded during use.
 extern TmdSource gMappicS403B1UndergroundParkingShape;
 
-extern TmdSource D_mappic_s4_03_8012F8D0;
+/// B1 GOLEM freezer 1's area-fill mesh on page 3 of the Mine/Shelter map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1GolemFreezer1Shape;
 
-extern TmdSource D_mappic_s4_03_8012F960;
+/// B1 transfer tunnel's area-fill quad on page 3 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1TransferTunnelShape;
 
-extern TmdSource D_mappic_s4_03_8012F9F0;
+/// B1 control room access tunnel's area-fill quad on page 3 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1ControlRoomAccessTunnelShape;
 
-extern TmdSource D_mappic_s4_03_8012FAEC;
+/// B1 pod deck's area-fill mesh on page 3 of the Mine/Shelter map.
+///
+/// Ten vertices in the model X/Z plane form two triangles and three quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_03 loaded during use.
+extern TmdSource gMappicS403B1PodDeckShape;
 
 // mappic_s4_04
 /// Area fill for the B2 elevator hall on page 4 of the Shelter map.

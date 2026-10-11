@@ -11,3 +11,7 @@ gMappicS403B1PodAccessTunnelShape = 0x8012F584;
 gMappicS403B1ControlRoomShape = 0x8012F664;
 gMappicS403B1AccessTunnelShape = 0x8012F710;
 gMappicS403B1UndergroundParkingShape = 0x8012F7F0;
+gMappicS403B1GolemFreezer1Shape = 0x8012F8D0;
+gMappicS403B1TransferTunnelShape = 0x8012F960;
+gMappicS403B1ControlRoomAccessTunnelShape = 0x8012F9F0;
+gMappicS403B1PodDeckShape = 0x8012FAEC;

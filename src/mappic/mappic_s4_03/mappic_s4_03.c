@@ -364,114 +364,122 @@ TmdSource gMappicS403B1UndergroundParkingShape = {
     .stream           = _gMappicS403B1UndergroundParkingShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS406Model00214009A0Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 GOLEM freezer 1 shape.
+static TmdBone _gMappicS403B1GolemFreezer1ShapeSkeleton[] = {
 #include "assets/mappic_s4_06_model_00214_009A0_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS406Model00214009A0PartVerts[1] = {
+/// Vertex count of the B1 GOLEM freezer 1 shape's sole part (eight vertices).
+static u32 _gMappicS403B1GolemFreezer1ShapePartVerts[] = {
 #include "assets/mappic_s4_06_model_00214_009A0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS406Model00214009A0Verts[8] = {
+/// B1 GOLEM freezer 1's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1GolemFreezer1ShapeVerts[] = {
 #include "assets/mappic_s4_06_model_00214_009A0_verts.inc"
 };
 
-static u32 _gMappicS403MappicS406Model00214009A0Stream[21] = {
+/// Two unlit triangles and two quads, with packed vertex byte offsets and white colour, then two group ends and the stream end.
+static u32 _gMappicS403B1GolemFreezer1ShapeStream[] = {
 #include "assets/mappic_s4_06_model_00214_009A0_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F8D0 = {
-    0,
-    88,
-    0,
-    1,
-    _gMappicS403MappicS406Model00214009A0PartVerts,
-    _gMappicS403MappicS406Model00214009A0Verts,
-    &_gMappicS403MappicS406Model00214009A0Verts[8],
-    _gMappicS403MappicS406Model00214009A0Skeleton,
-    _gMappicS403MappicS406Model00214009A0Stream,
+TmdSource gMappicS403B1GolemFreezer1Shape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1GolemFreezer1ShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1GolemFreezer1ShapePartVerts,
+    .verts            = _gMappicS403B1GolemFreezer1ShapeVerts,
+    .normals          = &_gMappicS403B1GolemFreezer1ShapeVerts[ARRAY_SIZE(_gMappicS403B1GolemFreezer1ShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1GolemFreezer1ShapeSkeleton,
+    .stream           = _gMappicS403B1GolemFreezer1ShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS202Model00C4800A30Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 transfer tunnel shape.
+static TmdBone _gMappicS403B1TransferTunnelShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00A30_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C4800A30PartVerts[1] = {
+/// Vertex count of the B1 transfer tunnel shape's sole part (four vertices).
+static u32 _gMappicS403B1TransferTunnelShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00A30_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS202Model00C4800A30Verts[4] = {
+/// B1 transfer tunnel's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1TransferTunnelShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00A30_verts.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C4800A30Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1TransferTunnelShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00A30_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F960 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS403MappicS202Model00C4800A30PartVerts,
-    _gMappicS403MappicS202Model00C4800A30Verts,
-    &_gMappicS403MappicS202Model00C4800A30Verts[4],
-    _gMappicS403MappicS202Model00C4800A30Skeleton,
-    _gMappicS403MappicS202Model00C4800A30Stream,
+TmdSource gMappicS403B1TransferTunnelShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1TransferTunnelShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1TransferTunnelShapePartVerts,
+    .verts            = _gMappicS403B1TransferTunnelShapeVerts,
+    .normals          = &_gMappicS403B1TransferTunnelShapeVerts[ARRAY_SIZE(_gMappicS403B1TransferTunnelShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1TransferTunnelShapeSkeleton,
+    .stream           = _gMappicS403B1TransferTunnelShapeStream,
 };
 
-static TmdBone _gMappicS403MappicS202Model00C4800AC0Skeleton[1] = {
+/// Identity transform and self-parented root for the B1 control room access tunnel shape.
+static TmdBone _gMappicS403B1ControlRoomAccessTunnelShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00AC0_skeleton.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C4800AC0PartVerts[1] = {
+/// Vertex count of the B1 control room access tunnel shape's sole part (four vertices).
+static u32 _gMappicS403B1ControlRoomAccessTunnelShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00AC0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403MappicS202Model00C4800AC0Verts[4] = {
+/// B1 control room access tunnel's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1ControlRoomAccessTunnelShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00AC0_verts.inc"
 };
 
-static u32 _gMappicS403MappicS202Model00C4800AC0Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS403B1ControlRoomAccessTunnelShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00AC0_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012F9F0 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS403MappicS202Model00C4800AC0PartVerts,
-    _gMappicS403MappicS202Model00C4800AC0Verts,
-    &_gMappicS403MappicS202Model00C4800AC0Verts[4],
-    _gMappicS403MappicS202Model00C4800AC0Skeleton,
-    _gMappicS403MappicS202Model00C4800AC0Stream,
+TmdSource gMappicS403B1ControlRoomAccessTunnelShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1ControlRoomAccessTunnelShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1ControlRoomAccessTunnelShapePartVerts,
+    .verts            = _gMappicS403B1ControlRoomAccessTunnelShapeVerts,
+    .normals          = &_gMappicS403B1ControlRoomAccessTunnelShapeVerts[ARRAY_SIZE(_gMappicS403B1ControlRoomAccessTunnelShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1ControlRoomAccessTunnelShapeSkeleton,
+    .stream           = _gMappicS403B1ControlRoomAccessTunnelShapeStream,
 };
 
-static TmdBone _gMappicS403Model00B5CSkeleton[1] = {
+/// Identity transform and self-parented root for the B1 pod deck shape.
+static TmdBone _gMappicS403B1PodDeckShapeSkeleton[] = {
 #include "assets/mappic_s4_03_model_00B5C_skeleton.inc"
 };
 
-static u32 _gMappicS403Model00B5CPartVerts[1] = {
+/// Vertex count of the B1 pod deck shape's sole part (ten vertices).
+static u32 _gMappicS403B1PodDeckShapePartVerts[] = {
 #include "assets/mappic_s4_03_model_00B5C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS403Model00B5CVerts[10] = {
+/// B1 pod deck's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS403B1PodDeckShapeVerts[] = {
 #include "assets/mappic_s4_03_model_00B5C_verts.inc"
 };
 
-static u32 _gMappicS403Model00B5CStream[24] = {
+/// Two unlit triangles and three quads, with packed vertex byte offsets and white colour, then two group ends and the stream end.
+static u32 _gMappicS403B1PodDeckShapeStream[] = {
 #include "assets/mappic_s4_03_model_00B5C_stream.inc"
 };
 
-TmdSource D_mappic_s4_03_8012FAEC = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS403Model00B5CPartVerts,
-    _gMappicS403Model00B5CVerts,
-    &_gMappicS403Model00B5CVerts[10],
-    _gMappicS403Model00B5CSkeleton,
-    _gMappicS403Model00B5CStream,
+TmdSource gMappicS403B1PodDeckShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS403B1PodDeckShapeSkeleton),
+    .partVertexCounts = _gMappicS403B1PodDeckShapePartVerts,
+    .verts            = _gMappicS403B1PodDeckShapeVerts,
+    .normals          = &_gMappicS403B1PodDeckShapeVerts[ARRAY_SIZE(_gMappicS403B1PodDeckShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS403B1PodDeckShapeSkeleton,
+    .stream           = _gMappicS403B1PodDeckShapeStream,
 };
