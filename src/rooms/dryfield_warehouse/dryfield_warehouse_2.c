@@ -212,7 +212,7 @@ EvsCommand D_dryfield_warehouse_8017FA00[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_warehouse_8017FB08[3] = {
+TaskDesc gDryfieldWarehouseCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
@@ -757,7 +757,7 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             switch (work->commandStep) {
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
                     SetDispMask(1);
-                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
+                    taskSpawnFromTable(gDryfieldWarehouseCutsceneTaskDescs, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
                     playerActorRemoveEquipment();
                     work->playerEffectsSuppressed = 1;
                     animationWork                 = task->work;
@@ -782,7 +782,7 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             work->soundLoopFrames++;
             return;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT:
-            gDryfieldWarehouseFadeOutTask = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_OUT, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
+            gDryfieldWarehouseFadeOutTask = taskSpawnFromTable(gDryfieldWarehouseCutsceneTaskDescs, DRYFIELD_WAREHOUSE_TASK_FADE_OUT, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN:
             // The restore goes through the published cutscene task's block.
@@ -790,7 +790,7 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER(publishedWork, scratch.animation, weaponSlot, animationBankIndex);
             switch (work->commandStep) {
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
-                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
+                    taskSpawnFromTable(gDryfieldWarehouseCutsceneTaskDescs, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
                     work->commandFrames = 0;
                     work->commandStep++;
                     return;

@@ -20,7 +20,19 @@
 /// use 4096 units per turn. The table is borrowed while this room overlay is loaded.
 extern OverlayEncounterSpot gShelterB3GarbageIncineratorEncounterSpots[16];
 
-extern u16 D_shelter_b3_garbage_incinerator_801855DE;
+/// Values stored in the room-owned door-event suspension latch.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_RUNNING   = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_SUSPENDED = 1,
+};
+
+/// Suspends the incinerator door-event controller (0 running, 1 suspended).
+///
+/// Room actor event 2 sets this before spawning the later Glutton sequence;
+/// that sequence clears it after its event script ends. While nonzero, the
+/// actor-342000 controller returns before setup, door movement and player
+/// updates. The loaded room owns this unsigned halfword, initially zero.
+extern u16 gShelterB3GarbageIncineratorDoorEventSuspended;
 
 /// Slots of the incinerator countdown and burn-scene spawn table.
 enum {

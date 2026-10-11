@@ -51,11 +51,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/back_street.h"
 
-/// Volume last asked of the back street's ambience, or 0 when none is playing.
-/// Written by `_dryfieldBackStreetAmbienceTask` and cleared by state 0 of the
-/// same task.
-extern s32 D_dryfield_back_street_80181054;
-
 static void _dryfieldBackStreetAmbienceTask(Task* task);
 static s32  _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32  _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
@@ -721,7 +716,12 @@ WorldCollisionSurfaceProperties* gDryfieldBackStreetSurfaceProperties[8] = {
     &_gDryfieldBackStreetBlockingSilentSurface,
 };
 
-s32 D_dryfield_back_street_80181054 = 0;
+/// Last requested Back Street ambience volume, in percent (0, 30, 50 or 100).
+///
+/// Reset to zero at ambience-task initialization; subsequent changes are
+/// cached even when sound admission fails. Zero denotes a silence request,
+/// not confirmed playback state. Retained for the loaded room's lifetime.
+static s32 _gDryfieldBackStreetRequestedAmbienceVolumePercent = 0;
 
 static void _dryfieldBackStreetInitializeRoomTask(Task* task);
 
@@ -745,8 +745,8 @@ static void _dryfieldBackStreetAmbienceTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_BACK_STREET_AMBIENCE_INITIALIZE:
-            D_dryfield_back_street_80181054 = 0;
-            task->state                     = task->state + 1;
+            _gDryfieldBackStreetRequestedAmbienceVolumePercent = 0;
+            task->state                                        = task->state + 1;
             return;
         case DRYFIELD_BACK_STREET_AMBIENCE_UPDATE:
             break;
@@ -773,17 +773,17 @@ static void _dryfieldBackStreetAmbienceTask(Task* task)
             break;
     }
 
-    if (volumePercent == D_dryfield_back_street_80181054) {
+    if (volumePercent == _gDryfieldBackStreetRequestedAmbienceVolumePercent) {
         return;
     }
-    if (D_dryfield_back_street_80181054 == 0) {
+    if (_gDryfieldBackStreetRequestedAmbienceVolumePercent == 0) {
         sndEvtRequestScriptStart(SOUND_BACK_STREET_AMBIENCE, panOffset, (s8)(((DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL - volumePercent) * DRYFIELD_BACK_STREET_AMBIENCE_ATTENUATION_FULL) / DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL));
     } else if (volumePercent == 0) {
         sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, DRYFIELD_BACK_STREET_AMBIENCE_FADE_TICKS);
     } else {
         sndEvtRequestScriptMix(SOUND_BACK_STREET_AMBIENCE, panOffset, (s8)(((DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL - volumePercent) * DRYFIELD_BACK_STREET_AMBIENCE_ATTENUATION_FULL) / DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL));
     }
-    D_dryfield_back_street_80181054 = volumePercent;
+    _gDryfieldBackStreetRequestedAmbienceVolumePercent = volumePercent;
 }
 
 #include "../../shared/back_street_event_msg.inc.c"

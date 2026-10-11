@@ -4,7 +4,12 @@
 #include "main/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-s32 D_shelter_b6_training_room_80185C58;
+/// Defeat/departure phase (0 waiting, 1 defeat scene running, 2 departure started).
+///
+/// Initialization resets it; the defeat message sets 1. In placement variant
+/// 1, an idle event interpreter permits departure and changes it to 2, preventing
+/// another start. Preserve signed-word storage and this first BSS declaration.
+static s32 _gShelterB6TrainingRoomDefeatDeparturePhase;
 
 /// Borrowed player head-aim controller task, or NULL when no controller is tracked.
 ///
@@ -561,7 +566,7 @@ s32 shelterB6TrainingRoomStartDefeatScene(Task* unusedTask, s32 unusedMessageId,
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     evsStartScriptWithSkip(gShelterB6TrainingRoomDefeatScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gShelterB6TrainingRoomDefeatSkipScript);
     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_ACTOR_INDEX), ACTOR_COMMAND_MESSAGE_APPLY, &gShelterB6TrainingRoomControllerStopCommand, 0);
-    D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_RUNNING;
+    _gShelterB6TrainingRoomDefeatDeparturePhase = SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_RUNNING;
     return 0;
 }
 
@@ -583,7 +588,7 @@ static void _shelterB6TrainingRoomInitializeRoom(Task* task)
     gStageCountdownMusicEntry = SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY;
     _shelterB6TrainingRoomClearPlayerHeadAimTask(0);
     task->state++;
-    D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_WAITING_FOR_DEFEAT;
+    _gShelterB6TrainingRoomDefeatDeparturePhase = SHELTER_B6_TRAINING_ROOM_WAITING_FOR_DEFEAT;
 }
 
 /// Keeps RGB16 mask-bit decoding selected and starts departure after the defeat scene.
@@ -599,9 +604,9 @@ static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask)
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     variant                   = gGameSession->location.loc.variant;
     // In the default variant, the variant byte also equals the running-scene latch.
-    if (variant == SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == variant) {
+    if (variant == SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT && gGameSession->eventState == 0 && _gShelterB6TrainingRoomDefeatDeparturePhase == variant) {
         evsStartScript(gShelterB6TrainingRoomDepartureScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEPARTURE_STARTED;
+        _gShelterB6TrainingRoomDefeatDeparturePhase = SHELTER_B6_TRAINING_ROOM_DEPARTURE_STARTED;
     }
 }
 

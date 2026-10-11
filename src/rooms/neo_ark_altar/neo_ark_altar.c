@@ -167,9 +167,9 @@ static void _neoArkAltarSwitchSceneTask(Task* task)
             break;
         case NEO_ARK_ALTAR_SWITCH_START_MOVIE:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) != 0) {
-                taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, NEO_ARK_ALTAR_SWITCH_MOVIE_SET, 0);
+                taskSpawnFromTable(gNeoArkAltarMovieTaskDescs, 0, NEO_ARK_ALTAR_SWITCH_MOVIE_SET, 0);
             } else {
-                taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, NEO_ARK_ALTAR_SWITCH_MOVIE_CLEAR, 0);
+                taskSpawnFromTable(gNeoArkAltarMovieTaskDescs, 0, NEO_ARK_ALTAR_SWITCH_MOVIE_CLEAR, 0);
             }
             task->state++;
             break;

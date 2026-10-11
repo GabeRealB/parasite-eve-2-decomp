@@ -522,7 +522,7 @@ gNeoArkWoodlandPathWaterRefractionTaskDesc = 0x80181638; // absolute:True owner=
 
 gShelterB1ControlRoomMirrorTaskDesc = 0x80181B88; // absolute:True owner=shelter_b1_control_room
 
-D_shelter_r48_80182FAC = 0x80182FAC; // absolute:True owner=shelter_r48 shared=rooms
+gShelterR48WaterRefractionTaskDesc = 0x80182FAC; // absolute:True owner=shelter_r48 shared=rooms
 
 
 acropolisBridgeAmbientEffectsTask = 0x8017F868; // type:func absolute:True owner=acropolis_bridge

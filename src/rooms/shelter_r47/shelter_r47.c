@@ -109,7 +109,6 @@ static TaskDesc             _gShelterR47AuxiliaryTaskDescs[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  _gShelterR47ConsoleHotspots[9];
 static TaskDesc             D_shelter_r47_80187020;
-static TaskDesc             D_shelter_r47_801872F0;
 static s32                  _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32                  _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
 static void                 _shelterR47AmbienceTask(Task* task);
@@ -417,7 +416,14 @@ static _ShelterR47SpritePart* _gShelterR47ConsoleSpriteParts[21] = {
     _gShelterR47ConsoleMarkerParts,
 };
 
-static TaskDesc D_shelter_r47_801872F0 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsolePromptTask, { .value = 0 } };
+enum { SHELTER_R47_CONSOLE_PROMPT_PORT_0 = 1 };
+
+/// Bodyless priority-192 recipe for the console's port-0 action-prompt child.
+///
+/// Console setup spawns the sole entry with spawnArg1 = 1 and spawnArg2 = 0,
+/// retains the child in its second payload word and releases it on console
+/// exit. Spawning copies the recipe; keep console code/resources loaded.
+static TaskDesc _gShelterR47ConsolePromptTaskDesc = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsolePromptTask, { .value = 0 } };
 
 /// Byte offsets of the ten status starts in the console's reveal-stop storage.
 ///
@@ -1392,7 +1398,7 @@ void shelterR47ConsoleInitializeTask(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gShelterR47ConsolePromptTaskDesc, 0, SHELTER_R47_CONSOLE_PROMPT_PORT_0, 0);
     task->work                                                 = work;
     work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_ENTRY_VIEW;

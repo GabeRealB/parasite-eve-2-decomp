@@ -1,6 +1,6 @@
 // Overlay-local symbols for mine_tunnel.
 _gMineTunnelFlareWorldPoints = 0x8017E12C; // size:0x28 defined:True
-D_mine_tunnel_8017DFC4 = 0x8017DFC4; // size:0x28 defined:True
+_gMineTunnelRoomMessages = 0x8017DFC4; // size:0x28 defined:True
 gMineTunnelRoomLighting = 0x8017E154; // size:0x8 defined:True
 gMineTunnelRoomCollisionResources = 0x8017E15C; // size:0x10 defined:True
 gMineTunnelRoomViewMaps = 0x8017E16C; // size:0x4 defined:True
@@ -48,11 +48,11 @@ gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor203700BatTaskDesc = 0x80151DAC; // absolute:True owner=actor_203700
 gActor01500MindSucklerTaskDesc = 0x80153E28; // absolute:True owner=actor_201500
-D_mine_tunnel_8017DFEC = 0x8017DFEC; // size:0x8 defined:True
-D_mine_tunnel_8017DFF4 = 0x8017DFF4; // size:0x8 defined:True
-D_mine_tunnel_8017DFFC = 0x8017DFFC; // size:0x14 defined:True
+_gMineTunnelEncounterAnimationSets = 0x8017DFEC; // size:0x8 defined:True
+_gMineTunnelEncounterAnimationBankCopy = 0x8017DFF4; // size:0x8 defined:True
+_gMineTunnelEncounterAnimationPlay = 0x8017DFFC; // size:0x14 defined:True
 D_mine_tunnel_8017E010 = 0x8017E010; // size:0x14 defined:True
-D_mine_tunnel_8017E024 = 0x8017E024; // size:0x108 defined:True
+_gMineTunnelEntranceEncounterScript = 0x8017E024; // size:0x108 defined:True
 _gMineTunnelAnimation009DCBank1 = 0x8017DB54; // size:0x78 defined:True
 _gMineTunnelAnimation009DCBank4 = 0x8017DBCC; // size:0x17C defined:True
 _gMineTunnelAnimation009DCRecords = 0x8017DD48; // size:0x22C defined:True
@@ -69,3 +69,4 @@ _mineTunnelHandleCommand = 0x8017d630; // type:func
 _mineTunnelHandleDirectionAction = 0x8017d670; // type:func
 _mineTunnelInitializeRoomTask = 0x8017d6ec; // type:func
 mineTunnelRoomTask = 0x8017d77c; // type:func
+_gMineTunnelRoomTaskStates = 0x8017d5c4;

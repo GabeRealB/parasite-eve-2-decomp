@@ -48,7 +48,12 @@ typedef struct {
 } NeoArkShrinePuzzleWork;
 STATIC_ASSERT_SIZEOF(NeoArkShrinePuzzleWork, 0x10);
 
-extern TaskDesc D_neo_ark_shrine_80182508[];
+/// Shrine puzzle controller and its two falling-prop recipes, all at priority 192.
+///
+/// Entry 0 is bodyless; 1/2 own TMD bodies for the first/second prop and borrow
+/// the room's model sources. Each spawn passes zero payloads. The three-entry
+/// indexed table has no terminator; keep room resources loaded through teardown.
+extern TaskDesc gNeoArkShrinePuzzleTaskDescs[3];
 
 /// Whether the puzzle has latched its active room layout (0 base, 1 active).
 ///

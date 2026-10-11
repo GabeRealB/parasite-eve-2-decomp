@@ -117,7 +117,7 @@ gDryfieldNightParkingLotRoomCollisionResources = 0x8017EE24; // absolute:True ow
 gDryfieldNightParkingLotViewMaps = 0x8017EE4C; // absolute:True owner=dryfield_night_parking_lot shared=rooms
 gDryfieldNightParkingLotViewCounts = 0x8017EE54; // absolute:True owner=dryfield_night_parking_lot
 gDryfieldNightParkingLotWarpEntries = 0x8017EE58; // absolute:True owner=dryfield_night_parking_lot shared=rooms
-gDryfieldNightParkingLotViewCameras = 0x8017FAF4; // absolute:True owner=dryfield_night_parking_lot shared=rooms
+gDryfieldNightParkingLotViewCameras = 0x8017FAF4; // absolute:True owner=dryfield_night_parking_lot
 gDryfieldNightParkingLotSpriteViews = 0x801805AC; // absolute:True owner=dryfield_night_parking_lot
 gDryfieldNightParkingLotSurfacePropertiesByClass = 0x8018153C; // absolute:True owner=dryfield_night_parking_lot
 dryfieldNightToiletRoomTask = 0x8017D724; // type:func absolute:True owner=dryfield_night_toilet

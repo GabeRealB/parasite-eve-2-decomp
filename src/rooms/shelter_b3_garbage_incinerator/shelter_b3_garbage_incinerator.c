@@ -78,7 +78,7 @@ TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
 
 TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { { { TASK_BODY_NONE, 32 } }, _shelterB3GarbageIncineratorExitToControlRoomTask, { .value = 0 } };
 
-u16 D_shelter_b3_garbage_incinerator_801855DE;
+u16 gShelterB3GarbageIncineratorDoorEventSuspended;
 
 /// Commits the deferred control-room destination and schedules a captured-frame reload.
 ///
@@ -266,8 +266,8 @@ static s32 _shelterB3GarbageIncineratorHandleActorEvent(Task* task, s32 messageI
             taskSpawnFromTable(&D_actor_444000_801449F4, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_NORMAL_SPAWN, 0);
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_EVENT_REPLACE_LATE_GLUTTON:
-            gGameSession->skipEventIntro              = 1;
-            D_shelter_b3_garbage_incinerator_801855DE = 1;
+            gGameSession->skipEventIntro                   = 1;
+            gShelterB3GarbageIncineratorDoorEventSuspended = SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_SUSPENDED;
             taskSpawnFromTable(&D_actor_444000_801449F4, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_LATE_SPAWN, 0);
             break;
     }

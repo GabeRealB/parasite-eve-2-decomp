@@ -2240,7 +2240,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&gActor361100StreamWaterTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0):
-            taskSpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
+            taskSpawnFromTable(&gShelterR48WaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0):
             mistShootingGalleryOpenCarryoverModeMenu();

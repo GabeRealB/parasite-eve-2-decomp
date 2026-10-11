@@ -256,7 +256,7 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// The room-owned table `gShelterB3GarbageIncineratorBlazeTaskDescs` starts the
 /// countdown controller after the boss scene. The hand-off also copies
 /// `gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock` into
-/// `GameSession::sceneClock` and clears the counter `D_shelter_b3_garbage_incinerator_801855DE`.
+/// `GameSession::sceneClock` and clears `gShelterB3GarbageIncineratorDoorEventSuspended`.
 
 /// Spawn tables `evsStartScriptWithSkip` forwards to `taskSpawn`, taken as raw
 /// addresses: the first pair is used by the `spawnArg1` fast path in state 0
@@ -3200,8 +3200,8 @@ static void _actor444000IncineratorEventTask(Task* task)
         case ACTOR_444000_EVENT_WAIT_SCRIPT:
             // Hand the settled room back to its incinerator controller.
             if (gGameSession->eventState == 0) {
-                D_shelter_b3_garbage_incinerator_801855DE = 0;
-                gGameSession->sceneClock                  = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
+                gShelterB3GarbageIncineratorDoorEventSuspended = SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_RUNNING;
+                gGameSession->sceneClock                       = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
                 taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SKIP_ALERT, 0);
                 taskKill(task);
                 return;

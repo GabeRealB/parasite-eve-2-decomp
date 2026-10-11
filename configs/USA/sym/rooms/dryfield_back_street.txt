@@ -35,7 +35,7 @@ _gDryfieldBackStreetBlockingSilentSurface = 0x8018101C; // size:0x8 defined:True
 _gDryfieldBackStreetBlockingFootstepSurface = 0x80181024; // size:0x8 defined:True
 _gDryfieldBackStreetPassThroughFootstepSurface = 0x8018102C; // size:0x8 defined:True
 gDryfieldBackStreetSurfaceProperties = 0x80181034; // size:0x20 defined:True
-D_dryfield_back_street_80181054 = 0x80181054; // size:0x4 defined:True
+_gDryfieldBackStreetRequestedAmbienceVolumePercent = 0x80181054; // size:0x4 defined:True
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100

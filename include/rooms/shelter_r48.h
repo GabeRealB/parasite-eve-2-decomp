@@ -30,7 +30,13 @@ enum {
 /// stay loaded while their resources are used.
 extern WorldCollisionGrid gShelterR48CollisionGrid;
 
-extern TaskDesc D_shelter_r48_80182FAC;
+/// Priority-192 water-refraction model recipe exported to room-task startup.
+///
+/// Entry 0 takes zero payloads and attaches a synthetic one-part TMD body,
+/// skipping automatic model-buffer allocation. The callback owns its explicit
+/// two-half packet buffer; the room's writable source and stream remain borrowed
+/// until teardown. Requires shelter_r48 resources to remain loaded.
+extern TaskDesc gShelterR48WaterRefractionTaskDesc;
 
 /// Area layouts indexed directly by the saved placement variant, 0..12.
 ///

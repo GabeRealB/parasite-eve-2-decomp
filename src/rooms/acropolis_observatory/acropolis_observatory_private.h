@@ -8,7 +8,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_acropolis_observatory_8017E7DC[4];
+/// Four bodyless priority-192 recipes for the observatory arrival movies.
+///
+/// Entries 0/1 run forked-road/promenade arrival paths; 2/3 fade out/in on
+/// movie skip. All spawns pass zero payloads. This is an indexed table without
+/// a terminator; keep the room code and movie resources loaded through teardown.
+extern TaskDesc gAcropolisObservatoryArrivalTaskDescs[4];
 
 extern AnimationSet gAcropolisObservatoryAnimation02878;
 

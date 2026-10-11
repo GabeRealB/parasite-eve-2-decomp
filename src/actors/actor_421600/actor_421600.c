@@ -4209,11 +4209,11 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
         catchCommand = work->lastCommand.fields.command;
         work->lastCommand.fields.catchFrames++;
         if (catchCommand == DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN) {
-            if (D_dryfield_water_tower_801876AA == (D_dryfield_water_tower_801876A8 + 1)) {
+            if (gDryfieldWaterTowerRunTimeLimitFrames == (gDryfieldWaterTowerRunElapsedFrames + 1)) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_DEFAULT, 0);
                 work->playerHeld = 0;
             }
-            if ((work->lastCommand.fields.command == catchCommand) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
+            if ((work->lastCommand.fields.command == catchCommand) && (gDryfieldWaterTowerRunTimeLimitFrames < (gDryfieldWaterTowerRunElapsedFrames + 3))) {
                 work->playerMove.displacement.vx = 0;
                 work->playerMove.displacement.vy = 0;
                 work->playerMove.displacement.vz = 0;

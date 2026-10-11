@@ -82,7 +82,12 @@ extern WorldCoordRoomLights gAcropolisHelicopterLandingPadRoomLights;
 
 extern SVECTOR ActorContact_ScratchPosition;
 
-extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
+/// Persistent fire-escape transition request and resolved reply for the stair exit.
+///
+/// Resolved in place before the player's turn and descent; its area, warp and
+/// room are committed afterward. Keep this singleton unchanged through the
+/// exit sequence. The loaded room owns all eight bytes, initially zero.
+extern RoomEventMsg gAcropolisHelicopterLandingPadExitRequest;
 
 /// Four room-message handlers followed by the task-message end marker.
 ///

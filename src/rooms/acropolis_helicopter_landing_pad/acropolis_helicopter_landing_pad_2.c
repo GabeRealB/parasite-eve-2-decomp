@@ -1526,7 +1526,7 @@ s32 gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
-RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
+RoomEventMsg gAcropolisHelicopterLandingPadExitRequest = { 0, 0, 0, 0, 0, 0 };
 
 /// Composes one weighted pitch pulse into the player's borrowed model coordinate.
 ///

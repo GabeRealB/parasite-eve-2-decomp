@@ -23,9 +23,19 @@ enum {
     DRYFIELD_WATER_TOWER_CHASER_COMMAND_HIDE               = 9, // Hide both chasers while the mechanism's opening script runs
 };
 
-extern u16 D_dryfield_water_tower_801876A8;
+/// Elapsed timed-run updates, wrapping as an unsigned sixteen-bit frame count.
+///
+/// Reset when the chasers receive START_RUN and incremented in that same
+/// update. Active direction actions allow the count to advance but suppress
+/// timeout testing. Chasers use it to release a held player near the limit.
+extern u16 gDryfieldWaterTowerRunElapsedFrames;
 
-extern u16 D_dryfield_water_tower_801876AA;
+/// Current mechanism run's timeout threshold, in frame updates.
+///
+/// Selected from the retry-duration table before the opening sequence and
+/// narrowed to u16. Timeout requires elapsed frames strictly above this limit;
+/// chasers also read it during the run. Keep the water-tower overlay loaded.
+extern u16 gDryfieldWaterTowerRunTimeLimitFrames;
 
 /// Placement/resource variants of the daytime water-tower area, indexed by variant 0..12.
 ///

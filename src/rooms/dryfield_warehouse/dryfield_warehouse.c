@@ -371,7 +371,7 @@ void dryfieldWarehouseEventTask(Task* task)
     switch (task->state) {
         case EVENT_START:
             SetDispMask(0);
-            _gDryfieldWarehouseEventCutsceneTask = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, CUTSCENE_TASK, 0, 0);
+            _gDryfieldWarehouseEventCutsceneTask = taskSpawnFromTable(gDryfieldWarehouseCutsceneTaskDescs, CUTSCENE_TASK, 0, 0);
             task->state                         += 1;
             return;
         case EVENT_WAIT:

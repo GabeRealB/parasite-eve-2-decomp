@@ -2,7 +2,7 @@
 _gScreenWaveAmplitude = 0x80181A4C; // size:0x4 defined:True
 D_neo_ark_submarine_tunnel_80181A50 = 0x80181A50; // size:0x28 defined:True
 _gScreenWaveTaskDescs = 0x80181A34; // size:0x18 defined:True
-D_neo_ark_submarine_tunnel_80181A78 = 0x80181A78; // size:0x8 defined:True
+_gNeoArkSubmarineTunnelEncounterAnimationSets = 0x80181A78; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A80 = 0x80181A80; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A88 = 0x80181A88; // size:0x14 defined:True
 D_neo_ark_submarine_tunnel_80181A9C = 0x80181A9C; // size:0x14 defined:True

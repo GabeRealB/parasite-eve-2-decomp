@@ -145,7 +145,7 @@ static TmdSource _gShelterR48WaterRefractionSource = {
     .stream              = _gShelterR48WaterRefractionStream,
 };
 
-TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = &_gShelterR48WaterRefractionSource } };
+TaskDesc gShelterR48WaterRefractionTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = &_gShelterR48WaterRefractionSource } };
 
 /// Room-task handlers for transitions, staff cards, actions, commands and boss events.
 ///

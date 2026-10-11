@@ -436,7 +436,7 @@ _gActor444000GluttonGrabHold = 0x80161928; // size:0x20 defined:True
 _gActor444000GluttonDebrisCoords = 0x80161948; // size:0x208 defined:True
 _gActor444000GluttonEscort6ModelSource = 0x80161B50; // size:0x24 defined:True
 
-D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorDoorEventSuspended = 0x801855DE; // absolute:True owner=shelter_b3_garbage_incinerator
 
 shelterB3GarbageIncineratorSetLiftCollisionWalls = 0x80185220; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 

@@ -90550,7 +90550,7 @@ The target is the three-argument call with the store written *before* it:
 ```c
 savedView                = gMcSaveData.location.loc.view;   /* lbu a3,4(v0) */
 gMcSaveData.location.loc.view = 6;
-D_mine_refuge_80182ADC[0] = savedView;
+_gMineRefugePromptViewStorage.restoreView = savedView;
 sndEvtRequestScriptStart(0x54060003, 0, 0);
 ```
 

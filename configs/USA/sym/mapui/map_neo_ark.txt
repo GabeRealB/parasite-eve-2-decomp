@@ -58,7 +58,7 @@ gShelter1fGuardroomRoomViewCounts = 0x8017DA94; // absolute:True owner=shelter_1
 gShelter1fGuardroomWarpEntries = 0x8017DA98; // absolute:True owner=shelter_1f_guardroom shared=rooms
 gShelter1fGuardroomViewCameras = 0x8017DC14; // absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomSpriteViews = 0x8017DCE0; // absolute:True owner=shelter_1f_guardroom
-gShelter1fGuardroomSurfaceProperties = 0x8017DFF4; // absolute:True owner=shelter_1f_guardroom shared=rooms
+gShelter1fGuardroomSurfaceProperties = 0x8017DFF4; // absolute:True owner=shelter_1f_guardroom
 neoArkObservatoryRoomTask = 0x8017FDDC; // type:func absolute:True owner=neo_ark_observatory shared=rooms
 gNeoArkObservatoryRoomCollisionResources = 0x80181594; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatoryRoomLighting = 0x801815B4; // absolute:True owner=neo_ark_observatory

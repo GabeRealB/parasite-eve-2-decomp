@@ -7,10 +7,13 @@
 
 #include "main/task_types.h"
 
-/// Two-entry spawn table: entry 0 is `_neoArkAltarLaunchMovieTask`, which
-/// starts entry 1, the streaming task `_neoArkAltarPlayMovieTask`, on the
-/// display list. The altar's cutscene driver and its task both spawn entry 0.
-extern TaskDesc D_neo_ark_altar_8017EFC0[];
+/// Two bodyless priority-192 recipes for altar movie launch and playback.
+///
+/// Entry 0 transfers presentation to entry 1 on the display-task list.
+/// spawnArg1 selects movie 0 (set switch), 1 (clear switch) or 2 (second tile
+/// sequence); spawnArg2 is unused. No terminator; keep movie resources and
+/// room code loaded until playback restores game presentation.
+extern TaskDesc gNeoArkAltarMovieTaskDescs[2];
 
 extern TaskDesc D_neo_ark_altar_8017F088[1];
 

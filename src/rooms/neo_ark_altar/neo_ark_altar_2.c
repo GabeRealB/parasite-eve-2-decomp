@@ -122,7 +122,7 @@ static void                  _neoArkAltarTileSequenceTask(Task* task);
 static void _neoArkAltarPlayMovieTask(Task* task);
 static void _neoArkAltarLaunchMovieTask(Task* task);
 
-TaskDesc D_neo_ark_altar_8017EFC0[2] = {
+TaskDesc gNeoArkAltarMovieTaskDescs[2] = {
     { { { TASK_BODY_NONE, 192 } }, _neoArkAltarLaunchMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _neoArkAltarPlayMovieTask, { .value = 0 } },
 };
@@ -775,7 +775,7 @@ static void _neoArkAltarLaunchMovieTask(Task* task)
 {
     enum { NEO_ARK_ALTAR_MOVIE_PLAYBACK_ENTRY = 1 };
 
-    displaySpawnTaskFromTable(D_neo_ark_altar_8017EFC0, NEO_ARK_ALTAR_MOVIE_PLAYBACK_ENTRY, task->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(gNeoArkAltarMovieTaskDescs, NEO_ARK_ALTAR_MOVIE_PLAYBACK_ENTRY, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
@@ -1314,7 +1314,7 @@ static s16 _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z)
 /// State handlers of the altar task, dispatched by
 /// `_neoArkAltarTileSequenceTask` off `Task::state`: allocation and set-up,
 /// a short wait, the tile sequence (`_neoArkAltarTrackTileSequence`), then, once
-/// the sequence completes, a fade-out, a spawn from `D_neo_ark_altar_8017EFC0`
+/// the sequence completes, a fade-out, a spawn from `gNeoArkAltarMovieTaskDescs`
 /// and a view change before control returns to the tile sequence.
 static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
     _neoArkAltarInitializeTileSequence,
@@ -1424,7 +1424,7 @@ static void _neoArkAltarStartSequenceMovie(Task* task)
     work = task->work;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     gGameSession->hideHud = 1;
-    work->movieLauncher   = taskSpawnFromTable(D_neo_ark_altar_8017EFC0, NEO_ARK_ALTAR_MOVIE_LAUNCHER_ENTRY, NEO_ARK_ALTAR_MOVIE_SECOND_SEQUENCE, 0);
+    work->movieLauncher   = taskSpawnFromTable(gNeoArkAltarMovieTaskDescs, NEO_ARK_ALTAR_MOVIE_LAUNCHER_ENTRY, NEO_ARK_ALTAR_MOVIE_SECOND_SEQUENCE, 0);
     task->state           = task->state + 1;
 }
 

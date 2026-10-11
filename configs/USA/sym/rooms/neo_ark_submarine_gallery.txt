@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_submarine_gallery.
-D_neo_ark_submarine_gallery_80185924 = 0x80185924; // size:0x8 defined:True
+_gNeoArkSubmarineGalleryIslandDestination = 0x80185924; // size:0x8 defined:True
 _gNeoArkSubmarineGalleryLightGeometry = 0x801818C8; // size:0x140 defined:True
 gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // size:0x4 defined:True
 gNeoArkSubmarineGalleryViewCounts = 0x80181A0C; // size:0x2 defined:True

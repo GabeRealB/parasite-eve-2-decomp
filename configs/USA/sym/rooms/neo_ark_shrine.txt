@@ -118,7 +118,7 @@ _gNeoArkShrineModel04C6C = 0x801823E0; // size:0x24 defined:True
 gNeoArkShrinePuzzleCursorTaskDescs = 0x80182404; // size:0xC defined:True
 D_neo_ark_shrine_80182410 = 0x80182410; // size:0x20 defined:True
 gNeoArkShrinePuzzleHotspots = 0x80182430; // size:0xD8 defined:True
-D_neo_ark_shrine_80182508 = 0x80182508; // size:0x24 defined:True
+gNeoArkShrinePuzzleTaskDescs = 0x80182508; // size:0x24 defined:True
 
 neoArkShrineFlareTask = 0x8017F8DC; // type:func
 

@@ -160,12 +160,17 @@ TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
+/// Two player encounter clips copied into weapon-bank extension slots 47/48.
+///
+/// This is a fixed two-word transfer, not a terminated table. The scene plays
+/// the second clip before the first; the copied pointers and clip data remain
+/// borrowed until the player returns to its ordinary animation bank.
+static AnimationSet* _gNeoArkSubmarineTunnelEncounterAnimationSets[2] = {
     &_gNeoArkSubmarineTunnelAnimation0444C,
     &_gNeoArkSubmarineTunnelAnimation03EE0,
 };
 
-AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, ARRAY_SIZE(D_neo_ark_submarine_tunnel_80181A78) };
+AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80 = { { .sets = _gNeoArkSubmarineTunnelEncounterAnimationSets }, ARRAY_SIZE(_gNeoArkSubmarineTunnelEncounterAnimationSets) };
 
 AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 

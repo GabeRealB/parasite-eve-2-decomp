@@ -2787,7 +2787,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
                 WorldCollisionTrigger* runActionTrigger = &_gDryfieldWaterTowerActionTriggers[DRYFIELD_WATER_TOWER_RUN_ACTION_TRIGGER];
                 runActionTrigger->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
             }
-            D_dryfield_water_tower_801876AA = _dryfieldWaterTowerGetRunTimeLimitFrames(task);
+            gDryfieldWaterTowerRunTimeLimitFrames = _dryfieldWaterTowerGetRunTimeLimitFrames(task);
             memCopyBytes(_gDryfieldWaterTowerCollision04608, _gDryfieldWaterTowerRoomCollisionGridVerts, sizeof(_gDryfieldWaterTowerCollision04608));
             memCopyBytes(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerRoomCollisionGridNormals, sizeof(_gDryfieldWaterTowerCollision045F8));
             memCopyBytes(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerRoomCollisionGridFaces, sizeof(_gDryfieldWaterTowerCollision04688));
@@ -2805,8 +2805,8 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             startRunCommand.context.loc.area  = gGameSession->location.loc.area;
             startRunCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &startRunCommand, ACTOR_COMMAND_MESSAGE_APPLY);
-            D_dryfield_water_tower_801876A8 = 0;
-            work->mechanismState            = GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED;
+            gDryfieldWaterTowerRunElapsedFrames = 0;
+            work->mechanismState                = GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED;
             gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED);
             work->phase++;
 
@@ -2822,11 +2822,11 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
                 work->phase++;
                 break;
             }
-            D_dryfield_water_tower_801876A8++;
+            gDryfieldWaterTowerRunElapsedFrames++;
             if (gDirectionActionActive != 0) {
                 break;
             }
-            if (D_dryfield_water_tower_801876AA < D_dryfield_water_tower_801876A8) {
+            if (gDryfieldWaterTowerRunTimeLimitFrames < gDryfieldWaterTowerRunElapsedFrames) {
                 work->timeouts++;
                 work->nextView = gGameSession->location.loc.view;
                 evsStartScriptWithSkip(_gDryfieldWaterTowerRunEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldWaterTowerRunEndingSkipScript);

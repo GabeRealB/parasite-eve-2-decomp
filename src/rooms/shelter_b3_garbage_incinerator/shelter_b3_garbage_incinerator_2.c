@@ -131,8 +131,6 @@ typedef struct {
 } _ShelterB3GarbageIncineratorLiftWork;
 STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftWork, 0x68);
 
-extern ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2];
-
 extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
 extern ActorTransform   D_shelter_b3_garbage_incinerator_80185B88;
 
@@ -205,14 +203,6 @@ typedef struct {
 } _ShelterB3GarbageIncineratorBlazeWork;
 STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorBlazeWork, 0x40);
 
-/// Null-terminated table counted and sent with message 0x3F7 on arming.
-extern AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4];
-
-/// Table indexed by `animationId - ANIMATION_BANK_BASE_SET_COUNT`: each entry
-/// is the following clip less that base, and a negative entry means there is
-/// none.
-extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
-
 /// Event script started with `evsStartScript` on arming.
 extern EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[];
 
@@ -281,7 +271,19 @@ TaskMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
     { ROOM_MESSAGE_ACTOR_EVENT, _shelterB3GarbageIncineratorHandleLiftActorEvent },
 };
 
-ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
+/// Indices of the lift's two rest placements, in increasing parent-space Y.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_LOWER = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER = 1,
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_COUNT = 2,
+};
+
+/// Lift rest poses at Y = 0 and 2000 in parent-coordinate game units, with zero rotation.
+///
+/// Lower rest is the initial placement for an already-descended lift and the
+/// descent clamp. Upper rest clamps the carried-actor move. The separate
+/// pre-descent placement is not in this two-record table; no terminator.
+static ActorTransform _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_COUNT] = {
     { { 0x36B0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } },
     { { 0x36B0, 2000, -0x4650, 0 }, { 0, 0, 0, 0 } },
 };
@@ -384,18 +386,29 @@ static TaskMessageEntry _gBlazeFadeMessages[1] = {
     { BLAZE_FADE_MESSAGE_SET_STATE, _shelterB3GarbageIncineratorHandleBlazeFadeState },
 };
 
-AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4] = {
+/// Three player burn-scene extension clips, followed by a NULL count terminator.
+///
+/// Scanning excludes NULL when copying to weapon-bank slots 47..49. The event
+/// selects clip indices 0..2 in order. Copied pointers and their pose data stay
+/// room-owned and must remain loaded until the ordinary bank is restored.
+static AnimationSet* _gShelterB3GarbageIncineratorBlazeAnimationSets[4] = {
     &_gShelterB3GarbageIncineratorAnimation088E4,
     &_gShelterB3GarbageIncineratorAnimation09988,
     &_gShelterB3GarbageIncineratorAnimation09320,
     NULL,
 };
 
-s16 D_shelter_b3_garbage_incinerator_80186F88[4] = {
-    -1,
-    -1,
-    -1,
-    0,
+enum { SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_NO_SUCCESSOR = -1 };
+
+/// Successor extension-clip indices for burn-scene clips 0..2; negative means none.
+///
+/// Indexed by animationId minus ANIMATION_BANK_BASE_SET_COUNT after playback
+/// ends. All three installed clips have no successor. The script supplies only
+/// these indices; the two bytes before the following word are compiler alignment.
+static s16 _gShelterB3GarbageIncineratorBlazeAnimationSuccessors[3] = {
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_NO_SUCCESSOR,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_NO_SUCCESSOR,
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_NO_SUCCESSOR,
 };
 
 /// Reusable blast-effect arguments for fire on one live player-model part.
@@ -933,10 +946,10 @@ static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task)
         case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_MOVING:
             liftCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             liftCoord->coord.t[1]  += 15;
-            if (D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy < liftCoord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
+            if (_gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER].pos.vy < liftCoord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
                 sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_JOLT, 0, 0);
-                liftCoord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy;
+                liftCoord->coord.t[1] = _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER].pos.vy;
                 // Arrival skips the jolt state; preserve both increments.
                 work->carryState++;
                 work->joltFrames = 0;
@@ -993,10 +1006,10 @@ static inline s16 _shelterB3GarbageIncineratorLowerLift(Task* task, s32 descentS
     movingCoord               = task->extra.tmd->coords;
     movingCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     movingCoord->coord.t[1]  -= descentStep;
-    if (movingCoord->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
+    if (movingCoord->coord.t[1] < _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_LOWER].pos.vy) {
         sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_STOP, 0, 0);
-        movingCoord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy;
+        movingCoord->coord.t[1] = _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_LOWER].pos.vy;
         arrived                 = 1;
     } else {
         arrived = 0;
@@ -1096,7 +1109,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_shelter_b3_garbage_incinerator_80185B58, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_LOWER], 0);
                     task->state = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTOR_EVENT;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
@@ -1237,10 +1250,10 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task)
     if (work->animationId < ANIMATION_BANK_BASE_SET_COUNT) {
         goto idleReturn;
     }
-    if (D_shelter_b3_garbage_incinerator_80186F88[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
+    if (_gShelterB3GarbageIncineratorBlazeAnimationSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
         goto idleReturn;
     }
-    nextAnimationId = D_shelter_b3_garbage_incinerator_80186F88[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+    nextAnimationId = _gShelterB3GarbageIncineratorBlazeAnimationSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
     _shelterB3GarbageIncineratorPlayBlazeAnimation(task, nextAnimationId, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CHAIN_BLEND_FRAMES);
     goto idleReturn;
 }
@@ -1263,10 +1276,10 @@ static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
 
     // The terminated table counts playable extension pointers, excluding NULL.
     extensionCount = 0;
-    while (D_shelter_b3_garbage_incinerator_80186F78[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != NULL) {
+    while (_gShelterB3GarbageIncineratorBlazeAnimationSets[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != NULL) {
         extensionCount += 1;
     }
-    bankRequest.source.sets = D_shelter_b3_garbage_incinerator_80186F78;
+    bankRequest.source.sets = _gShelterB3GarbageIncineratorBlazeAnimationSets;
     bankRequest.wordCount   = extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(clipWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankRequest, 0);
 }

@@ -45,7 +45,7 @@ gNeoArkAltarSurfaceProperties = 0x8018005C; // size:0x20 defined:True
 D_neo_ark_altar_8018007C = 0x8018007C; // size:0x24 defined:True
 D_neo_ark_altar_801800A0 = 0x801800A0; // size:0xC defined:True
 _gNeoArkAltarEnteredTileCount = 0x801800AC; // size:0x2 defined:True
-D_neo_ark_altar_8017EFC0 = 0x8017EFC0; // size:0x18 defined:True
+gNeoArkAltarMovieTaskDescs = 0x8017EFC0; // size:0x18 defined:True
 _gNeoArkAltarEnteredTiles = 0x801800B0; // size:0x20 defined:True
 
 neoArkAltarEffectNoopTask = 0x8017EF84; // type:func

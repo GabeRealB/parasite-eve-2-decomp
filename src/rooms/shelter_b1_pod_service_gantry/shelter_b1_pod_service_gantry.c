@@ -66,9 +66,6 @@ typedef struct {
 } _ShelterB1PodServiceGantryWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
-/// The room's message table, published in `Task::msgTable`.
-extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
-
 static void _shelterB1PodServiceGantryRunSceneSequence(Task* task);
 static void _shelterB1PodServiceGantryInitRoomState(Task* task);
 
@@ -85,7 +82,12 @@ static s32 _shelterB1PodServiceGantryResolveRoomVariant(Task* task, s32 messageI
 static s32 _shelterB1PodServiceGantryIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
 static s32 _shelterB1PodServiceGantryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
+/// Gantry transition, key-item, direction-action and room-command handlers, then END.
+///
+/// Borrowed by the room task while the overlay is loaded. Transition payloads
+/// are request/reply records; key items carry an integer ID and actions borrow
+/// a DirectionActionRequest. Command and action handlers ignore their payloads.
+static TaskMessageEntry _gShelterB1PodServiceGantryRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodServiceGantryResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1PodServiceGantryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1PodServiceGantryIgnoreRoomAction },
@@ -2045,7 +2047,7 @@ static void _shelterB1PodServiceGantryInitRoomState(Task* task)
 {
     _ShelterB1PodServiceGantryWork* work;
 
-    task->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
+    task->msgTable = _gShelterB1PodServiceGantryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     work       = memMalloc(sizeof(*work), false);
     task->work = work;

@@ -3612,7 +3612,7 @@ s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void)
     if (gGameSession->location.loc.room == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
         return 0;
     }
-    return D_shelter_b3_dumping_hole_8018809C;
+    return gShelterB3DumpingHoleIncineratorExitBlocked;
 }
 
 /// Fades the debris event's subtractive black overlay away at its spawn-selected rate.
@@ -4391,7 +4391,7 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
             task->state++;
             break;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_START_SCRIPT:
-            D_shelter_b3_dumping_hole_8018809C = 0;
+            gShelterB3DumpingHoleIncineratorExitBlocked = SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_OPEN;
             evsStartScriptWithSkip(_gShelterB3DumpingHoleCollapseEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB3DumpingHoleCollapseEventSkipScript);
             task->state++;
             break;

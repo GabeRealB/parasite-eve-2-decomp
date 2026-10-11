@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b6_training_room.
-D_shelter_b6_training_room_80185C58 = 0x80185C58; // size:0x4 defined:True
+_gShelterB6TrainingRoomDefeatDeparturePhase = 0x80185C58; // size:0x4 defined:True
 _gShelterB6TrainingRoomPlayerHeadAimTask = 0x80185C5C; // size:0x4 defined:True
 _gShelterB6TrainingRoomBeamColorRamp = 0x801843FC; // size:0x8 defined:True
 

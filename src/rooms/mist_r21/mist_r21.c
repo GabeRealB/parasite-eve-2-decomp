@@ -23,8 +23,12 @@ static s32  _mistR21IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32
 static s32  _mistR21IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _mistR21IdleAuxiliaryTask(Task* unusedTask);
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-TaskMessageEntry D_mist_r21_8017D770[] = {
+/// M.I.S.T. room transition, key-item, direction-action and command handlers, then END.
+///
+/// The room task borrows five records while loaded. Transitions copy a complete
+/// request into its reply; the other handlers ignore their integer or action
+/// payloads. The final marker makes unsupported IDs return zero.
+static TaskMessageEntry _gMistR21RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistR21ResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mistR21RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistR21IgnoreRoomAction },
@@ -32,10 +36,12 @@ TaskMessageEntry D_mist_r21_8017D770[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// The one task the room task spawns on entry; its callback is the empty
-/// `_mistR21IdleAuxiliaryTask`.
-TaskDesc D_mist_r21_8017D798[] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, _mistR21IdleAuxiliaryTask, { .value = 0 } },
+/// Bodyless priority-192 recipe for the persistent idle task started on room entry.
+///
+/// The sole entry takes zero payloads, performs no frame work and allocates no
+/// work block. Spawning copies the recipe; its callback remains room-owned.
+static TaskDesc _gMistR21IdleTaskDesc = {
+    { { TASK_BODY_NONE, 192 } }, _mistR21IdleAuxiliaryTask, { .value = 0 }
 };
 
 static void _mistR21InitializeRoomTask(Task* task);
@@ -88,9 +94,9 @@ static void _mistR21InitializeRoomTask(Task* task)
 {
     enum { MIST_R21_AUXILIARY_TASK_INDEX = 0 };
 
-    task->msgTable = D_mist_r21_8017D770;
+    task->msgTable = _gMistR21RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_mist_r21_8017D798, MIST_R21_AUXILIARY_TASK_INDEX, 0, NULL);
+    taskSpawnFromTable(&_gMistR21IdleTaskDesc, MIST_R21_AUXILIARY_TASK_INDEX, 0, NULL);
     task->state = task->state + 1;
 }
 

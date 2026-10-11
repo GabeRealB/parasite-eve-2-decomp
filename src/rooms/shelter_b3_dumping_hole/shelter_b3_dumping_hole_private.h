@@ -15,7 +15,18 @@ extern TmdSource gShelterB3DumpingHoleModel0A348;
 
 extern TmdSource gShelterB3DumpingHoleModel0A5EC;
 
-extern s16 D_shelter_b3_dumping_hole_8018809C;
+/// Values stored in the incinerator-exit block latch.
+enum {
+    SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_OPEN    = 0,
+    SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BLOCKED = 1,
+};
+
+/// Incinerator-exit block latch (0 open, 1 blocked), stored as a signed halfword.
+///
+/// Starts blocked on overlay load and clears when the collapse script starts.
+/// The exit query bypasses this latch in room 2. Shared by the room's source
+/// files; the room overlay owns its lifetime.
+extern s16 gShelterB3DumpingHoleIncineratorExitBlocked;
 
 extern AnimationSet* D_shelter_b3_dumping_hole_801880A0[6];
 

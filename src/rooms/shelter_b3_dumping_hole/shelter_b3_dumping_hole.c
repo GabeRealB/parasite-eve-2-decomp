@@ -201,7 +201,7 @@ static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4 = {
     { NULL, _gShelterB3DumpingHoleAnimation0AAB4Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0AAB4Bank4, NULL, NULL, NULL },
 };
 
-s16 D_shelter_b3_dumping_hole_8018809C = 1;
+s16 gShelterB3DumpingHoleIncineratorExitBlocked = SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BLOCKED;
 
 AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
     &_gShelterB3DumpingHoleAnimation0AAB4,

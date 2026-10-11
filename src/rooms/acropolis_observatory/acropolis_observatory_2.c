@@ -34,7 +34,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);
 static void _acropolisObservatorySkipFadeOutTask(Task* task);
 static void _acropolisObservatorySkipFadeInTask(Task* task);
 
-TaskDesc D_acropolis_observatory_8017E7DC[4] = {
+TaskDesc gAcropolisObservatoryArrivalTaskDescs[4] = {
     { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryForkedRoadArrivalMoviePathTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryPromenadeArrivalMoviePathTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeOutTask, { .value = 0 } },
@@ -180,12 +180,12 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
                     exitPlacement.rot.vx = 0;
                     exitPlacement.rot.vy = ACROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPlacement, 0);
-                    taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
+                    taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
             // The normal handoff reads XYZ only; skip placement also reads angles.
@@ -281,12 +281,12 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
                     exitPlacement.rot.vx = 0;
                     exitPlacement.rot.vy = ACROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPlacement, 0);
-                    taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
+                    taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
             // The normal handoff reads XYZ only; skip placement also reads angles.

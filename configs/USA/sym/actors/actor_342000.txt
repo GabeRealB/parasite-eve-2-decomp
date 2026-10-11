@@ -47,7 +47,7 @@ _gActor342000Animation029A0Indices = 0x80164798; // size:0x28 defined:True
 _gActor342000Animation029A0 = 0x801647C0; // size:0x28 defined:True
 _gActor342000PlayerAnimationSets = 0x801647E8; // size:0x10 defined:True
 
-D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorDoorEventSuspended = 0x801855DE; // absolute:True owner=shelter_b3_garbage_incinerator
 
 shelterB3GarbageIncineratorShowTimedCaption = 0x80180FE4; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 

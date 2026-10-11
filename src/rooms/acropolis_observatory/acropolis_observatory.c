@@ -18,9 +18,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_acropolis_observatory_8017E7B8[];
-
 /// Arrival-scene latch (0 unstarted, 1 attempted), zeroed when the overlay loads.
 ///
 /// Set before either arrival controller is spawned, so allocation failure is
@@ -31,7 +28,12 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
 static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
+/// Observatory transition, key-item and direction-action handlers, followed by END.
+///
+/// The room task borrows these four records while the overlay is loaded.
+/// Transition messages borrow request/reply records; actions borrow a
+/// DirectionActionRequest; key-item messages carry the collected-item ID.
+static TaskMessageEntry _gAcropolisObservatoryRoomMessages[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisObservatoryResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisObservatoryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisObservatoryHandleRoomAction },
@@ -152,7 +154,7 @@ static void _acropolisObservatoryInitializeRoomTask(Task* task)
         ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED = 1
     };
 
-    task->msgTable = D_acropolis_observatory_8017E7B8;
+    task->msgTable = _gAcropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
@@ -177,11 +179,11 @@ static void _acropolisObservatoryStartArrivalScene(Task* unusedTask)
 
     if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_ARRIVAL)) {
         _gAcropolisObservatoryArrivalSceneStarted = 1;
-        taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK, 0, 0);
+        taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK, 0, 0);
     }
     if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_ARRIVAL)) {
         _gAcropolisObservatoryArrivalSceneStarted = 1;
-        taskSpawnFromTable(D_acropolis_observatory_8017E7DC, ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_TASK, 0, 0);
+        taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_TASK, 0, 0);
     }
 }
 

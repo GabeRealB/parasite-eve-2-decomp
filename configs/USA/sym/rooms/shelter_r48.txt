@@ -69,7 +69,7 @@ _gShelterR48PointLights = 0x8018A08C; // size:0x1560 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 _gShelterR48WaterRefractionStream = 0x80182F7C; // size:0xC defined:True
 _gShelterR48WaterRefractionSource = 0x80182F88; // size:0x24 defined:True
-D_shelter_r48_80182FAC = 0x80182FAC; // size:0xC defined:True
+gShelterR48WaterRefractionTaskDesc = 0x80182FAC; // size:0xC defined:True
 _gShelterR48WaterRefractionSkeleton = 0x8018BE30; // size:0x24 defined:True
 
 shelterR48SetBackgroundSpritesVisible = 0x8017E27C; // type:func

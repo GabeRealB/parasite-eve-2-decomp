@@ -78,9 +78,9 @@ static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-u16 D_dryfield_water_tower_801876A8;
+u16 gDryfieldWaterTowerRunElapsedFrames;
 
-u16 D_dryfield_water_tower_801876AA;
+u16 gDryfieldWaterTowerRunTimeLimitFrames;
 
 Task* gDryfieldWaterTowerActorSceneTask;
 

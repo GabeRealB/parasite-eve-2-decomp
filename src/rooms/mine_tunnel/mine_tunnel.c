@@ -9,6 +9,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
@@ -23,14 +24,6 @@
 
 #include "../../shared/room_variants.h"
 
-/// Event script started with `evsStartScript`.
-extern EvsCommand D_mine_tunnel_8017E024[];
-
-/// The room's message table: 0x13EE is handled by `_mineTunnelResolveRoomTransition`,
-/// 0x13F1 by `_mineTunnelRejectKeyItemUse`, 0x13EF by `_mineTunnelHandleDirectionAction`
-/// and 0x13F0 by `_mineTunnelHandleCommand`.
-extern TaskMessageEntry D_mine_tunnel_8017DFC4[];
-
 static s32 _mineTunnelRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _mineTunnelResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _mineTunnelHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
@@ -38,9 +31,7 @@ static s32 _mineTunnelHandleDirectionAction(Task* task, s32 messageId, const Dir
 
 static AnimationSet _gMineTunnelAnimation009DC;
 
-extern AnimationPlayRequest     D_mine_tunnel_8017DFFC;
-extern AnimationBankCopyRequest D_mine_tunnel_8017DFF4;
-static void                     _mineTunnelSetEnemyWave(s32 wavePhase);
+static void _mineTunnelSetEnemyWave(s32 wavePhase);
 
 /// Scripted enemy activation phases selected by this room.
 enum {
@@ -70,7 +61,12 @@ static AnimationSet _gMineTunnelAnimation009DC = {
     { NULL, _gMineTunnelAnimation009DCBank1, NULL, NULL, _gMineTunnelAnimation009DCBank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
+/// Tunnel transition, key-item, direction-action and CAP-command handlers, then END.
+///
+/// The room task borrows five records through its lifetime. Transitions use
+/// request/reply records, direction actions borrow a DirectionActionRequest,
+/// and key-item/command payloads are integers; dispatch retains no payloads.
+static TaskMessageEntry _gMineTunnelRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mineTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelHandleDirectionAction },
@@ -78,28 +74,54 @@ TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_mine_tunnel_8017DFEC[2] = {
+/// Player encounter clip and null slot copied into the weapon-bank extension.
+///
+/// Both pointer words are copied to indices 47/48: NULL explicitly clears the
+/// second slot rather than terminating the transfer. Playback borrows the
+/// first clip's data until the player returns to an ordinary animation bank.
+static AnimationSet* _gMineTunnelEncounterAnimationSets[2] = {
     &_gMineTunnelAnimation009DC,
     NULL,
 };
 
-AnimationBankCopyRequest D_mine_tunnel_8017DFF4 = { { .sets = D_mine_tunnel_8017DFEC }, ARRAY_SIZE(D_mine_tunnel_8017DFEC) };
+/// Two-word extension-bank copy request borrowed by the entrance event script.
+///
+/// Synchronous dispatch copies the clip pointer and NULL slot; copied clip
+/// data remains room-owned through playback. The count includes the null word.
+static AnimationBankCopyRequest _gMineTunnelEncounterAnimationBankCopy = { { .sets = _gMineTunnelEncounterAnimationSets }, ARRAY_SIZE(_gMineTunnelEncounterAnimationSets) };
 
-AnimationPlayRequest D_mine_tunnel_8017DFFC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entrance encounter's first extension clip, with reset and world collision enabled.
+///
+/// The event interpreter copies this record and replaces source.index with
+/// the equipped-weapon bank before dispatch. Reset ignores the zero blend
+/// duration; playback borrows the previously installed room clip data.
+static AnimationPlayRequest _gMineTunnelEncounterAnimationPlay = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_mine_tunnel_8017E010 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced twenty-byte record with an animation-play-request-compatible layout.
+///
+/// Its five words are 1, 7, 1, 10 and 0, but no code, script or import uses it.
+/// The declared request type and any intended playback role remain unproven;
+/// retain the original bytes without assigning a scene meaning.
+static AnimationPlayRequest D_mine_tunnel_8017E010 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-EvsCommand D_mine_tunnel_8017E024[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_tunnel_8017DFF4 } }, { .value = 0 } },
+enum { MINE_TUNNEL_ENTRANCE_CAP_COMMAND = 1 };
+
+/// Eleven-command entrance encounter stream ending at EVENT_SCRIPT_OPCODE_END.
+///
+/// Starts CAP command 1, installs the extension clip, activates the entrance
+/// wave, plays that clip at a CAP cue and engages battle at the next cue.
+/// Ends player scripted control while preserving the animated root offset.
+/// Borrowed by the singleton interpreter with HUD unchanged; keep targets loaded.
+static EvsCommand _gMineTunnelEntranceEncounterScript[11] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MINE_TUNNEL_ENTRANCE_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gMineTunnelEncounterAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineTunnelSetEnemyWave }, { .value = MINE_TUNNEL_ENEMY_WAVE_ENTRANCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_tunnel_8017DFFC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineTunnelEncounterAnimationPlay }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -169,7 +191,7 @@ static s32 _mineTunnelHandleDirectionAction(Task* task, s32 messageId, const Dir
     if ((actionId == MINE_TUNNEL_ACTION_ENTRANCE_ENCOUNTER) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_UNSEEN)) {
         gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, MINE_TUNNEL_EVENT_SEEN);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        evsStartScript(D_mine_tunnel_8017E024, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(_gMineTunnelEntranceEncounterScript, EVENT_SCRIPT_HUD_KEEP);
     }
     return 0;
 }
@@ -197,7 +219,7 @@ static void _mineTunnelInitializeRoomTask(Task* task)
         MINE_TUNNEL_COUNTDOWN_MUSIC_ENTRY = 1
     };
 
-    task->msgTable = D_mine_tunnel_8017DFC4;
+    task->msgTable = _gMineTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == MINE_TUNNEL_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_STARTED)) {
         _mineTunnelSetEnemyWave(MINE_TUNNEL_ENEMY_WAVE_ENGAGE);
@@ -211,9 +233,11 @@ static void _mineTunnelIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room event task's three states: install the message table, idle, and
-/// kill.
-static const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
+/// Room-controller states 0 initialize messages/wave, 1 idle, 2 release.
+///
+/// Copied by value before unchecked Task::state dispatch. No terminator;
+/// the room and callbacks must remain loaded through dispatch.
+static const TaskFuncTable3 _gMineTunnelRoomTaskStates = {
     {
         _mineTunnelInitializeRoomTask,
         _mineTunnelIdleRoomTask,
@@ -225,6 +249,6 @@ void mineTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mine_tunnel_8017D5C4;
+    stateHandlers = _gMineTunnelRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

@@ -68,9 +68,15 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_mine_refuge_80182ADC[4];
+/// Saved prompt view and the three retained bytes following it.
+///
+/// Only restoreView is accessed. The trailing nonzero bytes have no recovered
+/// use; their role and membership in this object remain unproven.
+typedef struct {
+    u8 restoreView;  // Logical view restored on refusal or passed to the accepted cutscene
+    u8 unknown_1[3]; // Retained bytes; role and object boundary unproven
+} _MineRefugePromptViewStorage;
+STATIC_ASSERT_SIZEOF(_MineRefugePromptViewStorage, 4);
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -80,18 +86,16 @@ extern u8 D_mine_refuge_80182ADC[4];
 /// Message table of the room's message task.
 extern TaskMessageEntry D_mine_refuge_80181884[];
 
-/// Task table of the room's two scripted sequences,
-/// `_mineRefugeCircuitPanelTask` and `_mineRefugeCutscenePromptTask`.
-extern TaskDesc D_mine_refuge_801818B4[];
-
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// View saved when `_mineRefugeRoomCommandMsg` forces view 6 for its scene,
-/// restored when the scene ends.
-
-/// Parameters of the cutscene `_mineRefugeStartCutscene` starts.
-extern RoomCutsceneRec D_mine_refuge_80182AE0;
+/// Mutable singleton script, view and sound record for the refuge cutscene.
+///
+/// The scene runner borrows this record through completion; a second scene
+/// must not overwrite it. A negative view restores the prompt's saved view,
+/// while view 6 snapshots the current view. Unwritten texture-page fields
+/// retain their zero defaults for the loaded room's lifetime.
+static RoomCutsceneRec _gMineRefugeCutscene;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x1A\x1C"
 #include "../../shared/telephone.h"
@@ -154,7 +158,12 @@ TaskMessageEntry D_mine_refuge_80181884[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_mine_refuge_801818B4[3] = {
+/// Circuit-panel and confirmation-prompt recipes, followed by TASK_DESC_END.
+///
+/// Live entries 0/1 are bodyless at priorities 32/31 and take zero payloads.
+/// Direct spawns must exclude entry 2. Callback code and the prompt's saved
+/// view remain room-owned until those tasks finish.
+static TaskDesc _gMineRefugeSceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, _mineRefugeCircuitPanelTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 31 } }, _mineRefugeCutscenePromptTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
@@ -585,14 +594,15 @@ Task* gRoomCutsceneSoundTask = NULL;
 /// polling releases it; room initialization also clears it.
 static Task* _gMineRefugeCircuitPanelTask = NULL;
 
-u8 D_mine_refuge_80182ADC[4] = {
-    0,
-    47,
-    36,
-    50,
+/// Original logical view held while the refuge confirmation prompt is active.
+///
+/// Replaced before each prompt; refusal restores it and acceptance passes it
+/// to the scene runner. At most one prompt may use this snapshot at a time.
+/// Preserve the three following nonzero bytes, whose meaning is unproven.
+static _MineRefugePromptViewStorage _gMineRefugePromptViewStorage = {
+    .restoreView = 0,
+    .unknown_1   = { 47, 36, 50 },
 };
-
-RoomCutsceneRec D_mine_refuge_80182AE0;
 
 static void _mineRefugeDrawPulsingCyanStar(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _mineRefugeDrawPulsingCyanBurst(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -727,10 +737,10 @@ static inline void _mineRefugeStartCutscenePrompt(void)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = MINE_REFUGE_CUTSCENE_VIEW;
-    D_mine_refuge_80182ADC[0]                                  = savedView;
+    _gMineRefugePromptViewStorage.restoreView                  = savedView;
     sndEvtRequestScriptStart(MINE_REFUGE_PROMPT_START_SOUND, 0, 0);
     capRunCommand(MINE_REFUGE_CAP_PROMPT, CAP_PLAYBACK_IN_PLACE);
-    taskSpawnFromTable(D_mine_refuge_801818B4, MINE_REFUGE_TASK_PROMPT, 0, 0);
+    taskSpawnFromTable(_gMineRefugeSceneTaskDescs, MINE_REFUGE_TASK_PROMPT, 0, 0);
 }
 
 /// Starts the refuge cutscene, asking for confirmation until it has been accepted.
@@ -773,7 +783,7 @@ static s32 _mineRefugeCircuitPanelActionMsg(Task* task, s32 messageId, const Dir
         if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
             gameFlagSetNibble(GAME_FLAG_0C4, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_mine_refuge_801818B4, MINE_REFUGE_TASK_CIRCUIT_PANEL, 0, 0);
+            taskSpawnFromTable(_gMineRefugeSceneTaskDescs, MINE_REFUGE_TASK_CIRCUIT_PANEL, 0, 0);
         } else {
             capRunCommandWithTransition(MINE_REFUGE_CAP_PANEL_UNAVAILABLE);
         }
@@ -829,13 +839,13 @@ static void _mineRefugeCutscenePromptTask(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_mine_refuge_80182ADC[0];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gMineRefugePromptViewStorage.restoreView;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
         case MINE_REFUGE_PROMPT_ACCEPT:
             gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);
-            _mineRefugeStartCutscene(D_mine_refuge_80182ADC[0]);
+            _mineRefugeStartCutscene(_gMineRefugePromptViewStorage.restoreView);
             break;
         default:
             return;
@@ -866,27 +876,27 @@ static void _mineRefugeStartCutscene(s32 restoreView)
     s32 followupCommandIndex;
 
     if (restoreView != 0) {
-        D_mine_refuge_80182AE0.startSound = 0;
-        D_mine_refuge_80182AE0.view       = -restoreView;
+        _gMineRefugeCutscene.startSound = 0;
+        _gMineRefugeCutscene.view       = -restoreView;
     } else {
-        D_mine_refuge_80182AE0.view       = MINE_REFUGE_CUTSCENE_VIEW;
-        D_mine_refuge_80182AE0.startSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3);
+        _gMineRefugeCutscene.view       = MINE_REFUGE_CUTSCENE_VIEW;
+        _gMineRefugeCutscene.startSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3);
     }
     if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == MINE_REFUGE_DIALOGUE_FINAL) {
-        followupCommandIndex           = MINE_REFUGE_CAP_FOLLOWUP_FINAL;
-        D_mine_refuge_80182AE0.capSlot = MINE_REFUGE_CAP_SLOT_FINAL;
-        D_mine_refuge_80182AE0.capFile = MINE_REFUGE_CAP_FILE_CURRENT;
+        followupCommandIndex         = MINE_REFUGE_CAP_FOLLOWUP_FINAL;
+        _gMineRefugeCutscene.capSlot = MINE_REFUGE_CAP_SLOT_FINAL;
+        _gMineRefugeCutscene.capFile = MINE_REFUGE_CAP_FILE_CURRENT;
     } else {
-        followupCommandIndex           = MINE_REFUGE_CAP_FOLLOWUP_STORY;
-        D_mine_refuge_80182AE0.capSlot = MINE_REFUGE_CAP_SLOT_STORY;
-        D_mine_refuge_80182AE0.capFile = MINE_REFUGE_CAP_FILE_STORY;
+        followupCommandIndex         = MINE_REFUGE_CAP_FOLLOWUP_STORY;
+        _gMineRefugeCutscene.capSlot = MINE_REFUGE_CAP_SLOT_STORY;
+        _gMineRefugeCutscene.capFile = MINE_REFUGE_CAP_FILE_STORY;
     }
     // Keep the room-owned record live while the runner and its sound task use it.
-    D_mine_refuge_80182AE0.skipScene       = 0;
-    D_mine_refuge_80182AE0.endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 6);
-    D_mine_refuge_80182AE0.sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 4);
-    D_mine_refuge_80182AE0.afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 5);
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MINE_REFUGE_TASK_CUTSCENE, followupCommandIndex, &D_mine_refuge_80182AE0);
+    _gMineRefugeCutscene.skipScene       = 0;
+    _gMineRefugeCutscene.endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 6);
+    _gMineRefugeCutscene.sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 4);
+    _gMineRefugeCutscene.afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 5);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MINE_REFUGE_TASK_CUTSCENE, followupCommandIndex, &_gMineRefugeCutscene);
 }
 
 /// Installs the room handlers and enables CAP completion sound cues.

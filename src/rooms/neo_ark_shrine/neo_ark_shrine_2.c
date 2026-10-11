@@ -1658,7 +1658,7 @@ static void _neoArkShrineWaitToSpawnFirstFallingProp(Task* task)
     elapsedFrames = work->timer + 1;
     work->timer   = elapsedFrames;
     if (elapsedFrames >= (u32)NEO_ARK_SHRINE_FIRST_PROP_DELAY_FRAMES) {
-        taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_FIRST_FALLING_PROP_ENTRY, 0, 0);
+        taskSpawnFromTable(gNeoArkShrinePuzzleTaskDescs, NEO_ARK_SHRINE_FIRST_FALLING_PROP_ENTRY, 0, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_FIRST_PROP_VIEW;
         // Reset the following delay before advancing to its state.
         work->timer = 0;
@@ -1690,7 +1690,7 @@ static void _neoArkShrineWaitToSpawnSecondFallingProp(Task* task)
         work->timer = 0;
         // The second prop and enemy reveal occur only on the first release.
         if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_SECOND_FALLING_PROP_ENTRY, 0, 0);
+            taskSpawnFromTable(gNeoArkShrinePuzzleTaskDescs, NEO_ARK_SHRINE_SECOND_FALLING_PROP_ENTRY, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_SECOND_PROP_VIEW;
             gameFlagSetNibble(GAME_FLAG_0E9, 1);
             nextState = task->state + 1;

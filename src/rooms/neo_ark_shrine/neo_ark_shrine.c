@@ -209,7 +209,7 @@ ActionPromptHotspot gNeoArkShrinePuzzleHotspots[NEO_ARK_SHRINE_PUZZLE_HOTSPOT_CO
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_neo_ark_shrine_80182508[3] = {
+TaskDesc gNeoArkShrinePuzzleTaskDescs[3] = {
     { { { TASK_BODY_NONE, 192 } }, neoArkShrinePuzzleTask, { .value = 0 } },
     { { { TASK_BODY_TMD, 192 } }, neoArkShrineFirstFallingPropTask, { .model = &_gNeoArkShrineModel049E8 } },
     { { { TASK_BODY_TMD, 192 } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
@@ -418,7 +418,7 @@ static void _neoArkShrinePuzzleSessionTask(Task* task)
         case NEO_ARK_SHRINE_PUZZLE_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            gNeoArkShrinePuzzleControllerTask = taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY, 0, 0);
+            gNeoArkShrinePuzzleControllerTask = taskSpawnFromTable(gNeoArkShrinePuzzleTaskDescs, NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY, 0, 0);
             task->state++;
             return;
         case NEO_ARK_SHRINE_PUZZLE_SESSION_WAIT:

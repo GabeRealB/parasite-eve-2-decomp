@@ -3,7 +3,7 @@ _gAcropolisObservatoryArrivalSceneStarted = 0x8017E7D8; // size:0x4 defined:True
 _gAcropolisObservatoryForkedRoadArrivalPlayerPath = 0x8017E80C; // size:0x960 defined:True
 _gAcropolisObservatoryPromenadeArrivalPlayerPath = 0x8017F16C; // size:0x960 defined:True
 _gAcropolisObservatoryLensFlareAnchors = 0x8017FE78; // size:0x40 defined:True
-D_acropolis_observatory_8017E7B8 = 0x8017E7B8; // size:0x20 defined:True
+_gAcropolisObservatoryRoomMessages = 0x8017E7B8; // size:0x20 defined:True
 _gAcropolisObservatoryLensFlareViewMasks = 0x8017FEB8; // size:0x10 defined:True
 gAcropolisObservatoryRoomCollisionResources = 0x8017FEC8; // size:0x20 defined:True
 _gAcropolisObservatoryRoom2ViewMap = 0x8017FEE8; // size:0x8 defined:True
@@ -62,7 +62,7 @@ gMapAkropolisObservatoryVariant7Placements = 0x8017B7DC; // absolute:True owner=
 gMapAkropolisObservatoryVariant10Placements = 0x8017B80C; // absolute:True owner=map_akropolis
 _gAcropolisObservatorySceneFollowUpClips = 0x8017FE68; // size:0x4 defined:True
 gAcropolisObservatoryScriptedBattleTaskDesc = 0x8017FE6C; // size:0xC defined:True
-D_acropolis_observatory_8017E7DC = 0x8017E7DC; // size:0x30 defined:True
+gAcropolisObservatoryArrivalTaskDescs = 0x8017E7DC; // size:0x30 defined:True
 _gAcropolisObservatoryAnimation02878Bank1 = 0x8017FACC; // size:0x54 defined:True
 _gAcropolisObservatoryAnimation02878Bank4 = 0x8017FB20; // size:0x104 defined:True
 _gAcropolisObservatoryAnimation02878Records = 0x8017FC24; // size:0x1EC defined:True

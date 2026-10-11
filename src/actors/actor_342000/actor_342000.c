@@ -1313,7 +1313,7 @@ static void _actor342000IncineratorEventTask(Task* task)
     s16                    elapsedTicks;
 
     work = task->work;
-    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gShelterB3GarbageIncineratorDoorEventSuspended != SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_RUNNING || gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {

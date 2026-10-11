@@ -10,10 +10,12 @@
 
 #include "main/task_types.h"
 
-/// The descriptors of the warehouse's cutscene tasks, spawned by index: the
-/// cutscene task itself, the screen fade that ramps its channels up from 0, and
-/// the one that ramps them down from 0xFF.
-extern TaskDesc D_dryfield_warehouse_8017FB08[];
+/// Three bodyless priority-192 recipes for the warehouse cutscene and its fades.
+///
+/// Entry 0 runs the cutscene with zero payloads; entries 1/2 fade out/in with
+/// the intensity step in spawnArg1 and zero spawnArg2. Direct spawns index
+/// these entries without a terminator. Keep the room loaded through completion.
+extern TaskDesc gDryfieldWarehouseCutsceneTaskDescs[3];
 
 /// Four logical-view boundaries shared by warehouse rooms 1..3.
 ///
