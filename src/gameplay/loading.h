@@ -80,9 +80,26 @@ u16 loadingPollAreaPlacementFiles(void);
 /// the next resource is visited only after the entire CD queue becomes idle.
 u16 loadingPollAreaBaseResources(void);
 
-extern const TaskFuncTable3 Gp_SessionStates;
+/// State selectors for the session-loading handler table.
+enum {
+    LOADING_SESSION_STATE_PREPARE_CHARACTER  = 0,
+    LOADING_SESSION_STATE_ENQUEUE_STAGE      = 1,
+    LOADING_SESSION_STATE_INITIALIZE_AREA    = 2,
+    LOADING_SESSION_STATE_ENQUEUE_AREA       = 3,
+    LOADING_SESSION_STATE_PREPARE_AREA       = 4,
+    LOADING_SESSION_STATE_POLL_AREA          = 5,
+    LOADING_SESSION_STATE_RELEASE_BOOT_IMAGE = 6,
+    LOADING_SESSION_STATE_START_ROOM         = 7,
+};
 
-extern const TaskFuncTable8 Gp_LoadStateFns;
+/// Eight phase handlers copied by value by `loadingSessionLoadTask`.
+///
+/// Task states 0..7 select character preparation, stage requests, area memory
+/// and audio, area/companion requests, saved-area preparation, area-resource
+/// polling, held-fade release and room startup. There is no bounds check or
+/// terminator. The final handler releases the task after boot presentation;
+/// gameplay and all resources required by each selected phase must stay live.
+extern const TaskFuncTable8 gLoadingSessionStateHandlers;
 
 /// Waits for boot presentation to finish, then starts the loaded room and reveal fade.
 ///
@@ -94,7 +111,20 @@ extern const TaskFuncTable8 Gp_LoadStateFns;
 /// spawned session-resume fade releases it; task-allocation failures are ignored.
 void loadingFinishSessionLoadTask(Task* task);
 
-extern const TaskFuncTable3 Gp_RoomObjStates;
+/// State selectors for the persistent room-resource handler table.
+enum {
+    LOADING_ROOM_RESOURCE_STATE_INITIALIZE = 0,
+    LOADING_ROOM_RESOURCE_STATE_UPDATE     = 1,
+    LOADING_ROOM_RESOURCE_STATE_TEARDOWN   = 2,
+};
+
+/// Room-resource handlers copied by value by `loadingRoomResourcesTask`.
+///
+/// Task states 0..2 select collision/sprite-child initialization, persistent
+/// room/view maintenance and task teardown. Room-object freeze suppresses every
+/// state, including teardown. There is no bounds check or terminator; gameplay
+/// and the room/view resources must remain loaded through dispatch.
+extern const TaskFuncTable3 gLoadingRoomResourceStateHandlers;
 
 /// Queues the current mapped view's resources once the CD queue is idle.
 ///

@@ -612,7 +612,7 @@ void loadingRoomResourcesTask(Task* task)
     TaskFuncTable3 stateHandlers;
 
     // Snapshot all three handlers before testing whether room updates are frozen.
-    stateHandlers = Gp_RoomObjStates;
+    stateHandlers = gLoadingRoomResourceStateHandlers;
     if (gGameSession->freezeRoomObjs == 0) {
         stateHandlers.funcs[task->state](task);
     } else {

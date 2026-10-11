@@ -48,7 +48,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
     """(package, model) -> the stage-zero files a room loads for the entry that spawns that model.
 
     This is read from the game's own tables, in the packages' bytes, by the
-    route gameplay takes (room_scene.py): `Gp_AreaTables[stage][area]` leads to
+    route gameplay takes (room_scene.py): `gAreaRecordsByStage[stage][area]` leads to
     a room's `AreaVariant` table, and each variant to its `AreaPlacement` and
     `AreaResource` lists. A resource row names a file (`fileNumber`,
     `fileGroupIndex`) and the actor it is for: `taskTable[taskIndex]`, a

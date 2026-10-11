@@ -351,50 +351,33 @@ enum {
     LOADING_VIEW_SEEK_PENDING  = 1,
 };
 
-/// View-load completion markers and the bank-0 task's presentation policies.
+/// View-load state slots, completion markers and the bank-0 task's presentation policies.
 enum {
-    LOADING_VIEW_FINISH_READY      = -1,
-    LOADING_VIEW_FINISH_CD_IDLE    = -2,
-    LOADING_VIEW_MOVIE_READY_TICKS = 3,
-    LOADING_VIEW_INPUT_PORT        = 0,
-    LOADING_VIEW_TASK_BANK         = 0,
-    LOADING_VIEW_TASK_TYPE         = 0x1E,
-    LOADING_VIEW_SPRITE_TASK_TYPE  = 0x17,
-    LOADING_VIEW_RESUME_GAME_LOOP  = 0,
-    LOADING_VIEW_RESUME_TASK_FLIPS = 1,
-    LOADING_VIEW_NOT_READY         = 0,
-    LOADING_VIEW_READY             = 1,
-    LOADING_VIEW_RELOAD_CLEAR      = 0,
+    LOADING_VIEW_STATE_BEGIN             = 0,
+    LOADING_VIEW_STATE_ENQUEUE_RESOURCES = 1,
+    LOADING_VIEW_STATE_UPLOAD_IMAGE      = 2,
+    LOADING_VIEW_STATE_WAIT_MOVIE_READY  = 3,
+    LOADING_VIEW_STATE_WAIT_CD_IDLE      = 4,
+    LOADING_VIEW_STATE_WAIT_SCENE_IMAGE  = 5,
+    LOADING_VIEW_FINISH_READY            = -1,
+    LOADING_VIEW_FINISH_CD_IDLE          = -2,
+    LOADING_VIEW_MOVIE_READY_TICKS       = 3,
+    LOADING_VIEW_INPUT_PORT              = 0,
+    LOADING_VIEW_TASK_BANK               = 0,
+    LOADING_VIEW_TASK_TYPE               = 0x1E,
+    LOADING_VIEW_SPRITE_TASK_TYPE        = 0x17,
+    LOADING_VIEW_RESUME_GAME_LOOP        = 0,
+    LOADING_VIEW_RESUME_TASK_FLIPS       = 1,
+    LOADING_VIEW_NOT_READY               = 0,
+    LOADING_VIEW_READY                   = 1,
+    LOADING_VIEW_RELOAD_CLEAR            = 0,
 };
 
-extern AreaRecord D_8010CBE4[21];
-
-/// End marker following the stage 1 room table.
-extern u32 D_8010CC8C[2];
-
-extern AreaRecord D_8010CC94[39];
-
-/// End marker following the stage 2 room table.
-extern u32 D_8010CDCC[2];
-
-extern AreaRecord D_8010CDD4[39];
-
-/// End marker following the stage 3 room table.
-extern u32 D_8010CF0C[2];
-
-extern AreaRecord D_8010CF14[50];
-
-/// End marker following the stage 4 room table.
-extern u32 D_8010D0A4[2];
-
-extern AreaRecord D_8010D0AC[34];
-
-/// End marker following the stage 5 room table.
-extern u32 D_8010D1BC[2];
-
-static const TaskFuncTable6 Gp_LoadWaitFns;
-
-static const _LoadingConfigFileHundreds Gp_ConfigCdTable;
+static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
+static const AreaRecord _gAreaDryfieldRecords[GAME_AREA_DRYFIELD_UNDERPASS + 1];
+static const AreaRecord _gAreaDryfieldNightRecords[GAME_AREA_DRYFIELD_NIGHT_UNDERPASS + 1];
+static const AreaRecord _gAreaMineShelterRecords[GAME_AREA_SHELTER_R49 + 1];
+static const AreaRecord _gAreaShelterNeoArkRecords[GAME_AREA_NEO_ARK_SUBSTATION + 1];
 
 static void _loadingEnqueueWeaponAmmoResources(void);
 
@@ -408,225 +391,254 @@ static void _loadingReloadSavedView(void);
 
 static void _loadingReloadView(s32 logicalViewIndex);
 
-AreaRecord* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
-AreaRecord  D_8010CBE4[21]   = {
-    { NULL, NULL },
-    { gAcropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { gAcropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { gAcropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-    { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    { gAcropolisFountainAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    { gAcropolisForkedRoadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
-    { gAcropolisObservatoryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { gAcropolisPromenadeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    { gAcropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    { gAcropolisRoofGardenAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    { gAcropolisBridgePlacementVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    { gAcropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { gAcropolisHelicopterLandingPadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    { NULL, NULL },
-    { gMistR18AreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
-    { gMistParkingAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
-    { gMistShootingGalleryAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
+// The overlay stores its immutable area records in the fixed data segment.
+const AreaRecord* gAreaRecordsByStage[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
+    [GAME_STAGE_NONE]            = NULL,
+    [GAME_STAGE_ACROPOLIS]       = _gAreaAcropolisRecords,
+    [GAME_STAGE_DRYFIELD]        = _gAreaDryfieldRecords,
+    [GAME_STAGE_DRYFIELD_NIGHT]  = _gAreaDryfieldNightRecords,
+    [GAME_STAGE_MINE_SHELTER]    = _gAreaMineShelterRecords,
+    [GAME_STAGE_SHELTER_NEO_ARK] = _gAreaShelterNeoArkRecords,
 };
-/// End marker following the stage 1 room table.
-u32        D_8010CC8C[2]  = { 0xFFFF, 0 };
-AreaRecord D_8010CC94[39] = {
-    { NULL, NULL },
-    { gDryfieldGasStationPlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { gDryfieldMainStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { gDryfieldGeneralStorePlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { NULL, NULL },
-    { gDryfieldBackStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { gDryfieldSouvenirShopAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    { gDryfieldWarehousePlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-    { gDryfieldR08AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
-    { gDryfieldDilapidatedHouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    { NULL, NULL },
-    { gDryfieldMotelRoom1PlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    { gDryfieldMotelRoom2AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gDryfieldParkingLotAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    { gDryfieldToiletAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    { NULL, NULL },
-    { gDryfieldSaloonGRAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    { gDryfieldGRKitchenAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { gDryfieldWaterTowerAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    { gDryfieldWaterTankAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
-    { gDryfieldBreezewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
-    { NULL, NULL },
-    { gDryfieldGarageAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
-    { gDryfieldDrivewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
-    { gDryfieldJunkYardAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
-    { gDryfieldTrailerCoachAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
-    { NULL, NULL },
-    { gDryfieldMotelBalconyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
-    { gDryfieldMotelRoom6AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
-    { NULL, NULL },
-    { gDryfieldWaterHoleAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
-    { NULL, NULL },
-    { gDryfieldCellarAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gDryfieldUnderpassAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
-};
-/// End marker following the stage 2 room table.
-u32        D_8010CDCC[2]  = { 0xFFFF, 0 };
-AreaRecord D_8010CDD4[39] = {
-    { NULL, NULL },
-    { gDryfieldNightGasStationAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { gDryfieldNightMainStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { gDryfieldNightGeneralStoreAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { NULL, NULL },
-    { gDryfieldNightBackStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { gDryfieldNightSouvenirShopAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    { gDryfieldNightWarehouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-    { gDryfieldNightR08AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
-    { gDryfieldNightDilapidatedHouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    { NULL, NULL },
-    { gDryfieldNightMotelRoom1AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    { gDryfieldNightMotelRoom2AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
-    { gDryfieldNightMotelRoom3AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { gDryfieldNightMotelRoom4AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    { gDryfieldNightParkingLotAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    { gDryfieldNightToiletAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    { gDryfieldNightMotelLobbyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },
-    { gDryfieldNightSaloonGRAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    { gDryfieldNightGRKitchenAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { gDryfieldNightWaterTowerAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    { gDryfieldNightWaterTankAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
-    { gDryfieldNightBreezewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
-    { gDryfieldNightFactoryAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
-    { gDryfieldNightGarageAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
-    { gDryfieldNightDrivewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
-    { gDryfieldNightJunkYardAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
-    { gDryfieldNightTrailerCoachAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
-    { gDryfieldNightMotelRoom5AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[22].state },
-    { gDryfieldNightMotelBalconyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
-    { gDryfieldNightMotelRoom6AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
-    { gDryfieldNightMotelLoftAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
-    { gDryfieldNightWaterHoleAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
-    { NULL, NULL },
-    { gDryfieldNightCellarAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gDryfieldNightUnderpassAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
-};
-/// End marker following the stage 3 room table.
-u32        D_8010CF0C[2]  = { 0xFFFF, 0 };
-AreaRecord D_8010CF14[50] = {
-    { NULL, NULL },
-    { gMineMesaAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { gMineCavernAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { gMineTunnelEntranceAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { gMineTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { gMineGorgeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    { gMineRefugeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-    { gMineForkedTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    { gMineSecretPassageAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    { gShelterB1ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
-    { gShelterB1SouthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { gShelterB1StoreroomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    { gShelterB1NorthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    { gShelterB1ArmoryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    { gShelterB1SleepingQuartersAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    { gShelterB1MainCorridorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { gShelterB1SterilizationRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    { gShelterB1PodAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
-    { gShelterB1ControlRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
-    { gShelterB1AccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
-    { gShelterB1UndergroundParkingAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
-    { gShelterB1GolemFreezer1AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
-    { gShelterB2PodBottomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
-    { gShelterB1PodServiceGantryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[22].state },
-    { gShelterB1TransferTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
-    { gShelterB1ControlRoomAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
-    { gShelterB2ElevatorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
-    { gShelterB2ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
-    { gShelterB2SouthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
-    { gShelterB2OperatingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
-    { gShelterB2NorthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
-    { gShelterB2LaboratoryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
-    { gShelterB2BreedingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
-    { gShelterB2MainCorridorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[32].state },
-    { gShelterB2SepticTankAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
-    { gShelterB2PodAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },
-    { gShelterR36AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gShelterB3DumpingHoleAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[38].state },
-    { gShelterB3GarbageIncineratorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[39].state },
-    { gShelterB3IncineratorControlRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[40].state },
-    { gShelterB3ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[41].state },
-    { gShelterB4LowerSewerAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[42].state },
-    { gShelterB4UpperSewerAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[43].state },
-    { gShelterB4ReservoirAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[44].state },
-    { gShelterB4WaterSupplyPlacementVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[45].state },
-    { gShelterR47AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
-    { gShelterR48AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[47].state },
-    { gShelterR49AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-};
-/// End marker following the stage 4 room table.
-u32        D_8010D0A4[2]  = { 0xFFFF, 0 };
-AreaRecord D_8010D0AC[34] = {
-    { NULL, NULL },
-    { gShelter1fParkingGarageAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { gShelter1fVehicularAirlockAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { gShelter1fBulwarkAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { gShelter1fHeliportAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    { gShelter1fAirlockAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    { NULL, NULL },
-    { gNeoArkObservatoryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    { gNeoArkEveAccessTunnelAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    { NULL, NULL },
-    { gNeoArkNorthPromenadeAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { gNeoArkForestZoneAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    { gNeoArkSubmarineTunnelAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    { gNeoArkPavilionAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    { gNeoArkIslandAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    { gNeoArkGardenAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    { gNeoArkPowerPlant2AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    { gNeoArkPowerPlant1AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
-    { gNeoArkSavannaZoneAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
-    { gNeoArkSouthPromenadeAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
-    { NULL, NULL },
-    { gNeoArkShrineAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
-    { gShelterB6NurseryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
-    { gShelterB6GrowthRoomAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
-    { gShelterB6CorridorAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
-    { gShelterB6TrainingRoomAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
-    { gNeoArkR26AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
-    { gNeoArkBridgePlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
-    { gShelter1fTentAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
-    { gNeoArkWoodlandPathAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
-    { gNeoArkSubmarineGalleryPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
-    { gNeoArkR31AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
-    { gNeoArkPyramidPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
-    { NULL, NULL },
-};
-/// End marker following the stage 5 room table.
-u32 D_8010D1BC[2] = { 0xFFFF, 0 };
 
-const TaskFuncTable3 Gp_SessionStates;
-const TaskFuncTable8 Gp_LoadStateFns;
-const TaskFuncTable3 Gp_RoomObjStates;
+/// Immutable area-ID directory for Akropolis Tower and MIST layouts and live saved state.
+///
+/// IDs 0..20 index this table directly; zero and unpublished areas are empty.
+/// Room layout pointers require the selected room overlay to remain loaded.
+/// Save slots are explicit: the shooting gallery uses the live Dryfield bank.
+static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY + 1] SECTION(".data") = {
+    [GAME_AREA_ACROPOLIS_SQUARE]                 = { gAcropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL]     = { gAcropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_ACROPOLIS_PATIO]                  = { gAcropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_ACROPOLIS_CAFETERIA]              = { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_ACROPOLIS_PLAZA]                  = { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_ACROPOLIS_HALLWAY]                = { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_ACROPOLIS_FOUNTAIN]               = { gAcropolisFountainAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD]            = { gAcropolisForkedRoadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
+    [GAME_AREA_ACROPOLIS_OBSERVATORY]            = { gAcropolisObservatoryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
+    [GAME_AREA_ACROPOLIS_PROMENADE]              = { gAcropolisPromenadeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    [GAME_AREA_ACROPOLIS_SANCTUARY]              = { gAcropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN]            = { gAcropolisRoofGardenAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_ACROPOLIS_BRIDGE]                 = { gAcropolisBridgePlacementVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE]            = { gAcropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD] = { gAcropolisHelicopterLandingPadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL]     = { NULL, NULL },
+    [GAME_AREA_MIST_R18]                         = { gMistR18AreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    [GAME_AREA_MIST_PARKING]                     = { gMistParkingAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
+    [GAME_AREA_MIST_SHOOTING_GALLERY]            = { gMistShootingGalleryAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
+};
+/// Two words after the Akropolis/MIST directory; their purpose is unproven.
+static u32 D_8010CC8C[2] = { 0xFFFF, 0 };
 
-static const TaskFuncTable6 Gp_LoadWaitFns = { {
-    loadingBeginViewLoadTask,
-    loadingEnqueueViewResourcesTask,
-    loadingUploadViewImageTask,
-    _loadingWaitForMovieReadyTask,
-    _loadingWaitForViewCdIdleTask,
-    _loadingWaitForSceneImageTask,
+/// Immutable area-ID directory for daytime Dryfield layouts and live saved state.
+///
+/// IDs 0..38 index this table directly; zero and unpublished areas are empty.
+/// Layouts borrow the loaded room overlays; save slots refer to the live
+/// Dryfield bank shared with nighttime Dryfield and are independent of area ID.
+static const AreaRecord _gAreaDryfieldRecords[GAME_AREA_DRYFIELD_UNDERPASS + 1] SECTION(".data") = {
+    [GAME_AREA_DRYFIELD_GAS_STATION]       = { gDryfieldGasStationPlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_DRYFIELD_MAIN_STREET]       = { gDryfieldMainStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_DRYFIELD_GENERAL_STORE]     = { gDryfieldGeneralStorePlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_DRYFIELD_R04]               = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_BACK_STREET]       = { gDryfieldBackStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_DRYFIELD_SOUVENIR_SHOP]     = { gDryfieldSouvenirShopAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_DRYFIELD_WAREHOUSE]         = { gDryfieldWarehousePlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_DRYFIELD_R08]               = { gDryfieldR08AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
+    [GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE] = { gDryfieldDilapidatedHouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_1]      = { gDryfieldMotelRoom1PlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_2]      = { gDryfieldMotelRoom2AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_3]      = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_4]      = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_PARKING_LOT]       = { gDryfieldParkingLotAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_DRYFIELD_TOILET]            = { gDryfieldToiletAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_DRYFIELD_MOTEL_LOBBY]       = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_SALOON_G_R]        = { gDryfieldSaloonGRAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_DRYFIELD_G_R_KITCHEN]       = { gDryfieldGRKitchenAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_DRYFIELD_WATER_TOWER]       = { gDryfieldWaterTowerAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_DRYFIELD_WATER_TANK]        = { gDryfieldWaterTankAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    [GAME_AREA_DRYFIELD_BREEZEWAY]         = { gDryfieldBreezewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
+    [GAME_AREA_DRYFIELD_FACTORY]           = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_GARAGE]            = { gDryfieldGarageAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
+    [GAME_AREA_DRYFIELD_DRIVEWAY]          = { gDryfieldDrivewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
+    [GAME_AREA_DRYFIELD_JUNK_YARD]         = { gDryfieldJunkYardAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
+    [GAME_AREA_DRYFIELD_TRAILER_COACH]     = { gDryfieldTrailerCoachAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_5]      = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_MOTEL_BALCONY]     = { gDryfieldMotelBalconyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_6]      = { gDryfieldMotelRoom6AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
+    [GAME_AREA_DRYFIELD_MOTEL_LOFT]        = { NULL, NULL },
+    [GAME_AREA_DRYFIELD_WATER_HOLE]        = { gDryfieldWaterHoleAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
+    [GAME_AREA_DRYFIELD_CELLAR]            = { gDryfieldCellarAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
+    [GAME_AREA_DRYFIELD_UNDERPASS]         = { gDryfieldUnderpassAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
+};
+/// Two words after the daytime Dryfield directory; their purpose is unproven.
+static u32 D_8010CDCC[2] = { 0xFFFF, 0 };
+
+/// Immutable area-ID directory for nighttime Dryfield layouts and live saved state.
+///
+/// IDs 0..38 index this table directly; zero and unpublished areas are empty.
+/// Layouts borrow the loaded room overlays. Saved placement state is shared
+/// with the daytime directory through explicit live Dryfield bank slots.
+static const AreaRecord _gAreaDryfieldNightRecords[GAME_AREA_DRYFIELD_NIGHT_UNDERPASS + 1] SECTION(".data") = {
+    [GAME_AREA_DRYFIELD_NIGHT_GAS_STATION]       = { gDryfieldNightGasStationAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET]       = { gDryfieldNightMainStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE]     = { gDryfieldNightGeneralStoreAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_DRYFIELD_NIGHT_BACK_STREET]       = { gDryfieldNightBackStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP]     = { gDryfieldNightSouvenirShopAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE]         = { gDryfieldNightWarehouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_DRYFIELD_NIGHT_R08]               = { gDryfieldNightR08AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
+    [GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE] = { gDryfieldNightDilapidatedHouseAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_1]      = { gDryfieldNightMotelRoom1AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2]      = { gDryfieldNightMotelRoom2AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_3]      = { gDryfieldNightMotelRoom3AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_4]      = { gDryfieldNightMotelRoom4AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    [GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT]       = { gDryfieldNightParkingLotAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_DRYFIELD_NIGHT_TOILET]            = { gDryfieldNightToiletAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY]       = { gDryfieldNightMotelLobbyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },
+    [GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R]        = { gDryfieldNightSaloonGRAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN]       = { gDryfieldNightGRKitchenAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER]       = { gDryfieldNightWaterTowerAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TANK]        = { gDryfieldNightWaterTankAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    [GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY]         = { gDryfieldNightBreezewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
+    [GAME_AREA_DRYFIELD_NIGHT_FACTORY]           = { gDryfieldNightFactoryAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
+    [GAME_AREA_DRYFIELD_NIGHT_GARAGE]            = { gDryfieldNightGarageAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
+    [GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY]          = { gDryfieldNightDrivewayAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
+    [GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD]         = { gDryfieldNightJunkYardAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
+    [GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH]     = { gDryfieldNightTrailerCoachAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_5]      = { gDryfieldNightMotelRoom5AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[22].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY]     = { gDryfieldNightMotelBalconyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6]      = { gDryfieldNightMotelRoom6AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT]        = { gDryfieldNightMotelLoftAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE]        = { gDryfieldNightWaterHoleAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
+    [GAME_AREA_DRYFIELD_NIGHT_CELLAR]            = { gDryfieldNightCellarAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
+    [GAME_AREA_DRYFIELD_NIGHT_UNDERPASS]         = { gDryfieldNightUnderpassAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
+};
+/// Two words after the nighttime Dryfield directory; their purpose is unproven.
+static u32 D_8010CF0C[2] = { 0xFFFF, 0 };
+
+/// Immutable area-ID directory for the mine and Shelter B1..B4 layouts and live saved state.
+///
+/// IDs 0..49 index this table directly; zero and unpublished areas are empty.
+/// Layouts borrow loaded room overlays. Save-bank slots are explicit; Shelter
+/// R49 and the mine refuge share live saved placement state in slot 5.
+static const AreaRecord _gAreaMineShelterRecords[GAME_AREA_SHELTER_R49 + 1] SECTION(".data") = {
+    [GAME_AREA_MINE_MESA]                             = { gMineMesaAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_MINE_CAVERN]                           = { gMineCavernAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE]                  = { gMineTunnelEntranceAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_MINE_TUNNEL]                           = { gMineTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_MINE_GORGE]                            = { gMineGorgeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_MINE_REFUGE]                           = { gMineRefugeAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_MINE_FORKED_TUNNEL]                    = { gMineForkedTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_MINE_SECRET_PASSAGE]                   = { gMineSecretPassageAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL]              = { gShelterB1ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY]  = { gShelterB1SouthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
+    [GAME_AREA_SHELTER_B1_STOREROOM]                  = { gShelterB1StoreroomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY]  = { gShelterB1NorthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_SHELTER_B1_ARMORY]                     = { gShelterB1ArmoryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS]          = { gShelterB1SleepingQuartersAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR]              = { gShelterB1MainCorridorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM]         = { gShelterB1SterilizationRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL]          = { gShelterB1PodAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM]               = { gShelterB1ControlRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL]              = { gShelterB1AccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING]        = { gShelterB1UndergroundParkingAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[19].state },
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1]            = { gShelterB1GolemFreezer1AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM]                 = { gShelterB2PodBottomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY]         = { gShelterB1PodServiceGantryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[22].state },
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL]            = { gShelterB1TransferTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL] = { gShelterB1ControlRoomAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
+    [GAME_AREA_SHELTER_B2_ELEVATOR]                   = { gShelterB2ElevatorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL]              = { gShelterB2ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY]  = { gShelterB2SouthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM]             = { gShelterB2OperatingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY]  = { gShelterB2NorthMaintenanceWalkwayAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
+    [GAME_AREA_SHELTER_B2_LABORATORY]                 = { gShelterB2LaboratoryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM]              = { gShelterB2BreedingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR]              = { gShelterB2MainCorridorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[32].state },
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK]                = { gShelterB2SepticTankAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL]          = { gShelterB2PodAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },
+    [GAME_AREA_SHELTER_R36]                           = { gShelterR36AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
+    [GAME_AREA_SHELTER_R37]                           = { NULL, NULL },
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4]                = { NULL, NULL },
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE]               = { gShelterB3DumpingHoleAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[38].state },
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR]        = { gShelterB3GarbageIncineratorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[39].state },
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM]   = { gShelterB3IncineratorControlRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[40].state },
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL]              = { gShelterB3ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[41].state },
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER]                = { gShelterB4LowerSewerAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[42].state },
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER]                = { gShelterB4UpperSewerAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[43].state },
+    [GAME_AREA_SHELTER_B4_RESERVOIR]                  = { gShelterB4ReservoirAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[44].state },
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY]               = { gShelterB4WaterSupplyPlacementVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[45].state },
+    [GAME_AREA_SHELTER_R47]                           = { gShelterR47AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
+    [GAME_AREA_SHELTER_R48]                           = { gShelterR48AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[47].state },
+    [GAME_AREA_SHELTER_R49]                           = { gShelterR49AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+};
+/// Two words after the mine/Shelter directory; their purpose is unproven.
+static u32 D_8010D0A4[2] = { 0xFFFF, 0 };
+
+/// Immutable area-ID directory for Shelter 1F/B6 and Neo Ark layouts and live saved state.
+///
+/// IDs 0..33 index this table directly; zero and unpublished areas are empty.
+/// Layouts borrow loaded room overlays. Save-bank slots are explicit; the B6
+/// nursery and growth room share live saved placement state in slot 21.
+static const AreaRecord _gAreaShelterNeoArkRecords[GAME_AREA_NEO_ARK_SUBSTATION + 1] SECTION(".data") = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE]    = { gShelter1fParkingGarageAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK] = { gShelter1fVehicularAirlockAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_SHELTER_1F_BULWARK]           = { gShelter1fBulwarkAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_SHELTER_1F_HELIPORT]          = { gShelter1fHeliportAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_SHELTER_1F_AIRLOCK]           = { gShelter1fAirlockAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_SHELTER_1F_GUARDROOM]         = { NULL, NULL },
+    [GAME_AREA_NEO_ARK_OBSERVATORY]          = { gNeoArkObservatoryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL]    = { gNeoArkEveAccessTunnelAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR]         = { NULL, NULL },
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE]      = { gNeoArkNorthPromenadeAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
+    [GAME_AREA_NEO_ARK_FOREST_ZONE]          = { gNeoArkForestZoneAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL]     = { gNeoArkSubmarineTunnelAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_NEO_ARK_PAVILION]             = { gNeoArkPavilionAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_NEO_ARK_ISLAND]               = { gNeoArkIslandAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_NEO_ARK_GARDEN]               = { gNeoArkGardenAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2]        = { gNeoArkPowerPlant2AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1]        = { gNeoArkPowerPlant1AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE]         = { gNeoArkSavannaZoneAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE]      = { gNeoArkSouthPromenadeAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[18].state },
+    [GAME_AREA_NEO_ARK_ALTAR]                = { NULL, NULL },
+    [GAME_AREA_NEO_ARK_SHRINE]               = { gNeoArkShrineAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[20].state },
+    [GAME_AREA_SHELTER_B6_NURSERY]           = { gShelterB6NurseryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM]       = { gShelterB6GrowthRoomAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[21].state },
+    [GAME_AREA_SHELTER_B6_CORRIDOR]          = { gShelterB6CorridorAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[23].state },
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM]     = { gShelterB6TrainingRoomAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[24].state },
+    [GAME_AREA_NEO_ARK_R26]                  = { gNeoArkR26AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[25].state },
+    [GAME_AREA_NEO_ARK_BRIDGE]               = { gNeoArkBridgePlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
+    [GAME_AREA_SHELTER_1F_TENT]              = { gShelter1fTentAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH]        = { gNeoArkWoodlandPathAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY]    = { gNeoArkSubmarineGalleryPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
+    [GAME_AREA_NEO_ARK_R31]                  = { gNeoArkR31AreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
+    [GAME_AREA_NEO_ARK_PYRAMID]              = { gNeoArkPyramidPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
+    [GAME_AREA_NEO_ARK_SUBSTATION]           = { NULL, NULL },
+};
+/// Two words after the Shelter/Neo Ark directory; their purpose is unproven.
+static u32 D_8010D1BC[2] = { 0xFFFF, 0 };
+
+/// Six phase handlers copied by value before each current-view loading update.
+///
+/// Task states 0..5 select begin, enqueue, upload/movie selection, movie-ready
+/// wait, CD-idle wait and scene-image wait. Negative finish markers are handled
+/// before indexing. There is no upper-bound check or terminator; callbacks
+/// borrow live gameplay resources and may release the task on completion.
+static const TaskFuncTable6 _gLoadingViewStateHandlers = { {
+    [LOADING_VIEW_STATE_BEGIN]             = loadingBeginViewLoadTask,
+    [LOADING_VIEW_STATE_ENQUEUE_RESOURCES] = loadingEnqueueViewResourcesTask,
+    [LOADING_VIEW_STATE_UPLOAD_IMAGE]      = loadingUploadViewImageTask,
+    [LOADING_VIEW_STATE_WAIT_MOVIE_READY]  = _loadingWaitForMovieReadyTask,
+    [LOADING_VIEW_STATE_WAIT_CD_IDLE]      = _loadingWaitForViewCdIdleTask,
+    [LOADING_VIEW_STATE_WAIT_SCENE_IMAGE]  = _loadingWaitForSceneImageTask,
 } };
 
-static const _LoadingConfigFileHundreds Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
+/// Global-library file-ID hundreds components for player resource variants 1..5.
+///
+/// Copied as a five-byte value before selecting variant minus one. With group
+/// 1 and low index 0, selects files 10400, 10300, 10200, 10500 and 10600.
+/// The variant must be in range; the table contains no terminator.
+static const _LoadingConfigFileHundreds _gLoadingCharacterFileHundreds = { { 4, 3, 2, 5, 6 } };
 
 /// Restores discarded model storage and initializes the current view's cached sprite packets.
 ///
@@ -911,7 +923,7 @@ void loadingViewLoadTask(Task* viewLoadTask)
 {
     TaskFuncTable6 stateHandlers;
 
-    stateHandlers = Gp_LoadWaitFns;
+    stateHandlers = _gLoadingViewStateHandlers;
     padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     // Finish markers must be intercepted before indexing the six handlers.
     if (viewLoadTask->state < 0) {
@@ -1058,7 +1070,7 @@ void loadingEnqueueCharacterResources(s32 imagesOnly)
     _LoadingFileArgs           loadArgs;
     _LoadingConfigFileHundreds fileHundredsByVariant;
 
-    fileHundredsByVariant = Gp_ConfigCdTable;
+    fileHundredsByVariant = _gLoadingCharacterFileHundreds;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId != 0) {
         fileKey.stage           = LOADING_GLOBAL_CDF;
         fileKey.fileGroup       = LOADING_PLAYER_FILE_GROUP;
@@ -1188,23 +1200,23 @@ void companionRelocateModelTextures(Task* companionTask)
     }
 }
 
-const TaskFuncTable3 Gp_SessionStates = { {
-    gameFlowPrepareSessionReloadTask,
-    gameFlowHoldSessionDisplayTask,
-    gameFlowRebuildSessionTask,
+const TaskFuncTable3 gGameFlowReloadStateHandlers      = { {
+    [GAME_FLOW_RELOAD_STATE_PREPARE]      = gameFlowPrepareSessionReloadTask,
+    [GAME_FLOW_RELOAD_STATE_HOLD_DISPLAY] = gameFlowHoldSessionDisplayTask,
+    [GAME_FLOW_RELOAD_STATE_REBUILD]      = gameFlowRebuildSessionTask,
 } };
-const TaskFuncTable8 Gp_LoadStateFns  = { {
-    loadingPrepareCharacterResourcesTask,
-    loadingEnqueueStageResourcesTask,
-    loadingInitializeAreaMemoryAndAudioTask,
-    loadingEnqueueAreaAndCompanionResourcesTask,
-    loadingPrepareAreaStateTask,
-    loadingPollAreaResourcesTask,
-    loadingHoldFadeAndReleaseBootImageTask,
-    loadingFinishSessionLoadTask,
+const TaskFuncTable8 gLoadingSessionStateHandlers      = { {
+    [LOADING_SESSION_STATE_PREPARE_CHARACTER]  = loadingPrepareCharacterResourcesTask,
+    [LOADING_SESSION_STATE_ENQUEUE_STAGE]      = loadingEnqueueStageResourcesTask,
+    [LOADING_SESSION_STATE_INITIALIZE_AREA]    = loadingInitializeAreaMemoryAndAudioTask,
+    [LOADING_SESSION_STATE_ENQUEUE_AREA]       = loadingEnqueueAreaAndCompanionResourcesTask,
+    [LOADING_SESSION_STATE_PREPARE_AREA]       = loadingPrepareAreaStateTask,
+    [LOADING_SESSION_STATE_POLL_AREA]          = loadingPollAreaResourcesTask,
+    [LOADING_SESSION_STATE_RELEASE_BOOT_IMAGE] = loadingHoldFadeAndReleaseBootImageTask,
+    [LOADING_SESSION_STATE_START_ROOM]         = loadingFinishSessionLoadTask,
 } };
-const TaskFuncTable3 Gp_RoomObjStates = { {
-    loadingInitRoomResourcesTask,
-    loadingUpdateRoomResourcesTask,
-    taskKill,
+const TaskFuncTable3 gLoadingRoomResourceStateHandlers = { {
+    [LOADING_ROOM_RESOURCE_STATE_INITIALIZE] = loadingInitRoomResourcesTask,
+    [LOADING_ROOM_RESOURCE_STATE_UPDATE]     = loadingUpdateRoomResourcesTask,
+    [LOADING_ROOM_RESOURCE_STATE_TEARDOWN]   = taskKill,
 } };

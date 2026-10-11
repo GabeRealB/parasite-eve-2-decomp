@@ -32,9 +32,6 @@ enum {
 /// Resource owners and GPU/heap storage must satisfy the selected phase's lifetime.
 void loadingSessionLoadTask(Task* task);
 
-/// Per-area pointer table. Index is `GameLocationKey.stage`.
-extern AreaRecord* Gp_AreaTables[];
-
 /// Requests an asynchronous restoration of the current view's graphics.
 ///
 /// Spawns `loadingRestoreViewGraphicsTask` on the display list. Requires the

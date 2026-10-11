@@ -279,7 +279,7 @@ original sources.
 
 **A room's index is its folder's disc id divided by 100.** Room folders have
 ids `index * 100 + 1` (`asset_data.TREE`), and the game's per-stage tables -
-`Gp_AreaTables[stage][room]`, `gAreaObjectStages`, the map overlays' room tables -
+`gAreaRecordsByStage[stage][room]`, `gAreaObjectStages`, the map overlays' room tables -
 are indexed by that number. It is *not* the order folders appear under
 `stageN.folders`: a stage that skips an index (Dryfield has no room 10, the
 night stage no room 4 either) shifts every later room. Those tables point

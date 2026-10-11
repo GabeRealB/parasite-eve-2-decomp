@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(AreaVariant, 8);
 
 /// One area in a stage table: its layout variants and its saved placement state.
 ///
-/// `Gp_AreaTables[stage]` is an array of these, indexed by area id. Index 0 is
+/// `gAreaRecordsByStage[stage]` is an array of these, indexed by area id. Index 0 is
 /// empty, and an area the stage does not publish stores both pointers as NULL.
 /// `variants` is borrowed from the loaded room and indexed by placement variant.
 /// `savedState` addresses that area's saved placement variant and spawn flags
@@ -78,6 +78,18 @@ typedef struct {
     AreaSavedState* savedState; // Saved placement variant and spawn flags in the stage bank, or NULL
 } AreaRecord;
 STATIC_ASSERT_SIZEOF(AreaRecord, 8);
+
+/// Stage-indexed pointers to immutable area-layout and live saved-state directories.
+///
+/// `GameLocationKey.stage` indexes directly: 0 has no directory; stages 1..5
+/// have 21, 39, 39, 50 and 34 entries including an empty area-zero slot.
+/// `GameLocationKey.area` must fit the selected directory; an unpublished
+/// area has both pointers NULL. Save slots need not equal area minus one and
+/// can be shared by several areas or stages. Saved-state pointers remain in
+/// resident live save banks; variant tables borrow room-overlay storage, which
+/// must stay loaded throughout use. The directories have no runtime terminator
+/// or bounds checks and are not rewritten by their consumers.
+extern const AreaRecord* gAreaRecordsByStage[6];
 
 /// Returns a borrowed area-placement pointer unchanged.
 ///

@@ -1327,11 +1327,11 @@ static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row)
 /// the saved map-mark bit as 0 or 1. Does not change the saved state.
 static inline s32 _areaIsSavedMapMarkEnabled(const GameLocationKey* location)
 {
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
-    s16             mapMarkFlag;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
+    s16               mapMarkFlag;
 
-    areaRecords = Gp_AreaTables[location->stage];
+    areaRecords = gAreaRecordsByStage[location->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[location->area].savedState;
         if (areaState != NULL) {

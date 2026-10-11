@@ -140,7 +140,7 @@ def unread(scene, blocks: tuple[str, ...]) -> list[str]:
 def room_variants(project=None, problems: list[str] | None = None) -> dict[str, dict]:
     """room package -> its `AreaVariant` table, decoded from the bytes.
 
-    The route is gameplay's: `Gp_AreaTables[stage][area].variants` leads into the room's package, each slot to an
+    The route is gameplay's: `gAreaRecordsByStage[stage][area].variants` leads into the room's package, each slot to an
     `AreaPlacement` and an `AreaResource` table, both ended by `AREA_PLACEMENT_END` in `entryId`. A resource row
     gains `file` (its base file's stage-zero id, None when its group selector is outside `GROUP_BASE`) and `owner`,
     the package its task table is in: the image mapped at that address while the room runs - gameplay, the stage's

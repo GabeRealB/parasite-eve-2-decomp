@@ -122,7 +122,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
 /// `AREA_MAP_MARK_END`-terminated `_AreaMapMarkRec` lists applied by `areaApplyNewGameMapMarks` to
-/// `Gp_AreaTables[1]`, `[2]`, `[4]` and `[5]`.
+/// `gAreaRecordsByStage[1]`, `[2]`, `[4]` and `[5]`.
 extern _AreaMapMarkRec Gp_NewGameFlagsStg1[];
 
 extern _AreaMapMarkRec Gp_NewGameFlagsStg2[];
@@ -182,7 +182,7 @@ static inline s32 _areaHasMapMark(const GameLocationKey* key)
     const AreaSavedState* areaState;
     s32                   mapMarkFlag;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -341,7 +341,7 @@ static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMap
     const AreaRecord* areaRecords;
     AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[stageId];
+    areaRecords = gAreaRecordsByStage[stageId];
     if (areaRecords != NULL) {
         for (; entry->area != AREA_MAP_MARK_END; entry++) {
             if (entry->setMapMark != 0) {
@@ -518,7 +518,7 @@ void areaClearMapMark(const GameLocationKey* key)
     const AreaRecord* areaRecords;
     AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -803,7 +803,7 @@ void areaSetCurrentMapMark(void)
     AreaSavedState*        areaState;
 
     key         = &gGameSession->location.loc;
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -822,7 +822,7 @@ static void _areaApplyMapMarkList(s16 stageId, const _AreaMapMarkRec* entry)
     const AreaRecord* areaRecords;
     AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[stageId];
+    areaRecords = gAreaRecordsByStage[stageId];
     if (areaRecords != NULL) {
         for (; entry->area != AREA_MAP_MARK_END; entry++) {
             if (entry->setMapMark != 0) {

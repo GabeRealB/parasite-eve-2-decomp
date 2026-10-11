@@ -27271,7 +27271,7 @@ u8 table[5] = { 4, 3, 2, 5, 6 };
 
 matches the body (scratch score ~99.8%) but emits *new* `.rodata` in the
 C TU. On the gameplay overlay that data already lives in
-`header.rodata.s` (`Gp_ConfigCdTable`); extra bytes from `D4.c.o(.rodata)`
+`header.rodata.s` (`_gLoadingCharacterFileHundreds`); extra bytes from `D4.c.o(.rodata)`
 land after the pre-split rodata and shift `.text`.
 
 Type the existing symbol and assign it:
@@ -27281,10 +27281,10 @@ typedef struct {
     u8 fileIdHundreds[5];
 } _LoadingConfigFileHundreds;
 
-extern _LoadingConfigFileHundreds Gp_ConfigCdTable;
+static const _LoadingConfigFileHundreds _gLoadingCharacterFileHundreds;
 _LoadingConfigFileHundreds        fileHundredsByVariant;
 
-fileHundredsByVariant = Gp_ConfigCdTable; /* lwl/lwr/lb of Gp_ConfigCdTable */
+fileHundredsByVariant = _gLoadingCharacterFileHundreds; /* lwl/lwr/lb of _gLoadingCharacterFileHundreds */
 ```
 
 `loadingEnqueueCharacterResources` is the example.

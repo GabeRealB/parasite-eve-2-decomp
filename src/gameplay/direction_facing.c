@@ -220,7 +220,7 @@ void areaApplySavedUpdates(const AreaApplyRec* records)
         AREA_APPLY_DEFAULT_ROOM            = 1
     };
     GameLocationKey        location;
-    AreaRecord*            areaRecords;
+    const AreaRecord*      areaRecords;
     AreaSavedState*        savedState;
     const GameLocationKey* currentLocation;
     s32                    recordIndex;
@@ -233,7 +233,7 @@ void areaApplySavedUpdates(const AreaApplyRec* records)
     currentLocation = &gGameSession->location.loc;
     for (recordIndex = 0; records[recordIndex].stage != AREA_APPLY_END; recordIndex++) {
         stageId        = records[recordIndex].stage;
-        areaRecords    = Gp_AreaTables[stageId];
+        areaRecords    = gAreaRecordsByStage[stageId];
         location.stage = stageId;
         location.area  = records[recordIndex].area;
         location.room  = AREA_APPLY_DEFAULT_ROOM;

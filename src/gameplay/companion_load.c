@@ -524,13 +524,13 @@ void gameFlowPrepareSessionReloadTask(Task* task)
 
 void gameFlowReloadSessionTask(Task* task)
 {
-    TaskFuncTable3 states;
+    TaskFuncTable3 stateHandlers;
 
-    states = Gp_SessionStates;
+    stateHandlers = gGameFlowReloadStateHandlers;
     padStartInputBlock(0);
     // Keep the pause store before the state read that selects the next phase.
     *(volatile u8*)&gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-    states.funcs[((volatile Task*)task)->state](task);
+    stateHandlers.funcs[((volatile Task*)task)->state](task);
 }
 
 void loadingFinishSessionLoadTask(Task* task)
@@ -565,10 +565,10 @@ void loadingFinishSessionLoadTask(Task* task)
 
 void loadingSessionLoadTask(Task* task)
 {
-    TaskFuncTable8 states;
+    TaskFuncTable8 stateHandlers;
     DisplayState*  displayState;
 
-    states = Gp_LoadStateFns;
+    stateHandlers = gLoadingSessionStateHandlers;
     padStartInputBlock(0);
     displayState = &gDisplayState;
     if (displayState->demoScene != DISPLAY_DEMO_NONE) {
@@ -580,7 +580,7 @@ void loadingSessionLoadTask(Task* task)
             }
         }
     }
-    states.funcs[task->state](task);
+    stateHandlers.funcs[task->state](task);
 }
 
 void fadeResumeSessionTask(Task* task)

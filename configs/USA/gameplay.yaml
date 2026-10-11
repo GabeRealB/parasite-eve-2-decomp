@@ -83,7 +83,7 @@ segments:
       - [0x78, .rodata, attachment_stats] # jtbl from attachmentDispatchTargetArea, then the prompt labels
       - [0x9C, .rodata, linked_actors] # status-icon mask initializer of hudDrawStatusBlock
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
-      - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from _loadingEnqueueWeaponAmmoResources, then the session, load and room-object tables
+      - [0xB4, .rodata, cd_loading] # _gLoadingViewStateHandlers and _gLoadingCharacterFileHundreds, the jtbl from _loadingEnqueueWeaponAmmoResources, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and cdCmdHandleSceneAudio, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2

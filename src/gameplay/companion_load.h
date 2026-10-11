@@ -47,6 +47,22 @@ void companionSpawnScheduledActor(const ActorSpawnTransform* spawnTransform, Act
 /// stage's visit bit is first set. Does not modify the location or clear a bank.
 void areaMarkVisited(const GameLocationKey* location);
 
+/// State selectors for the session-reload handler table.
+enum {
+    GAME_FLOW_RELOAD_STATE_PREPARE      = 0,
+    GAME_FLOW_RELOAD_STATE_HOLD_DISPLAY = 1,
+    GAME_FLOW_RELOAD_STATE_REBUILD      = 2,
+};
+
+/// Session-reload handlers copied by value by `gameFlowReloadSessionTask`.
+///
+/// Task states 0..2 select battle/death preparation, display hold and resource
+/// rebuild from the live save. There is no bounds check or terminator; gameplay
+/// must remain loaded through dispatch. Preparation can kill the task, and the
+/// rebuild discards its storage before spawning the session-loading task, so
+/// the dispatcher must not access the task after the selected callback.
+extern const TaskFuncTable3 gGameFlowReloadStateHandlers;
+
 /// Holds drawing for session-reload phase 1, then advances to the rebuild phase.
 ///
 /// Requires the live reload task. Sets the active display hold and skips

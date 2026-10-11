@@ -3517,20 +3517,20 @@ static inline void _areaRestoreSavedEnemyPose(Enemy* enemy, GfxCoord* root, cons
 
 void areaSpawnPlacements(const GameLocationKey* location)
 {
-    AreaRecord*     areaRecords;
-    AreaVariant*    variants;
-    AreaSavedState* areaState;
-    AreaPlacement*  placement;
-    AreaResource*   resource;
-    Enemy*          enemy;
-    Task*           task;
-    TmdObject*      model;
-    GfxCoord*       coord;
-    u16             resourceId;
-    s8              placementIndex;
-    s32             poseIndex;
+    const AreaRecord* areaRecords;
+    AreaVariant*      variants;
+    AreaSavedState*   areaState;
+    AreaPlacement*    placement;
+    AreaResource*     resource;
+    Enemy*            enemy;
+    Task*             task;
+    TmdObject*        model;
+    GfxCoord*         coord;
+    u16               resourceId;
+    s8                placementIndex;
+    s32               poseIndex;
 
-    areaRecords = Gp_AreaTables[location->stage];
+    areaRecords = gAreaRecordsByStage[location->stage];
     worldTargetResetAreaTracking();
     if (areaRecords == NULL) {
         return;
@@ -3880,7 +3880,7 @@ void areaRestoreModelBufferPolicy(void)
                 location    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
                 stage       = location->stage;
                 model       = child->extra.tmd;
-                areaRecords = Gp_AreaTables[stage];
+                areaRecords = gAreaRecordsByStage[stage];
                 placement   = enemy->place;
                 resources   = NULL;
                 if (areaRecords != NULL) {
@@ -3970,12 +3970,12 @@ void tmdSetTextureOffsets(TmdObject* model, s32 texturePageOffset, s32 clutRowOf
 /// The live save's stage/area indexes must be valid; no key or pose is changed.
 static void _areaSetLiveSavePoseRestoreEnabled(s32 useSavedPoses)
 {
-    AreaRecord*      areaRecords;
-    AreaSavedState*  areaState;
-    GameLocationKey* key;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
+    GameLocationKey*  key;
 
     key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -3992,11 +3992,11 @@ static void _areaSetLiveSavePoseRestoreEnabled(s32 useSavedPoses)
 
 s32 areaIsSavedPoseRestoreEnabled(const GameLocationKey* key)
 {
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
-    s32             savedPoseFlag;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
+    s32               savedPoseFlag;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -4013,10 +4013,10 @@ s32 areaIsSavedPoseRestoreEnabled(const GameLocationKey* key)
 /// writable state is resident save-bank storage, whose contents loading may replace.
 static AreaSavedState* _areaGetSavedState(const GameLocationKey* key)
 {
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords == NULL) {
         areaState = NULL;
     } else {
@@ -4078,10 +4078,10 @@ static void _areaPrepareSpawnState(const GameLocationKey* key, AreaSavedState* a
 
 void areaSetPlacementVariant(const GameLocationKey* key, s32 variant, s32 resetMode)
 {
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -4107,10 +4107,10 @@ void areaSetPlacementVariant(const GameLocationKey* key, s32 variant, s32 resetM
 
 void areaSetSavedPoseRestoreEnabled(s32 useSavedPoses, const GameLocationKey* key)
 {
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
@@ -4132,11 +4132,11 @@ void areaSetSavedPoseRestoreEnabled(s32 useSavedPoses, const GameLocationKey* ke
 /// Keep the loaded room storage live while using the returned table.
 static AreaResource* _areaGetVariantResources(const GameLocationKey* key)
 {
-    AreaRecord*   areaRecords;
-    AreaVariant*  variants;
-    AreaResource* resources;
+    const AreaRecord* areaRecords;
+    AreaVariant*      variants;
+    AreaResource*     resources;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     resources   = NULL;
     if (areaRecords != NULL) {
         variants = areaRecords[key->area].variants;
@@ -4149,10 +4149,10 @@ static AreaResource* _areaGetVariantResources(const GameLocationKey* key)
 
 AreaVariant* areaGetVariant(const GameLocationKey* key)
 {
-    AreaRecord*  areaRecords;
-    AreaVariant* variants;
+    const AreaRecord* areaRecords;
+    AreaVariant*      variants;
 
-    areaRecords = Gp_AreaTables[key->stage];
+    areaRecords = gAreaRecordsByStage[key->stage];
     variants    = NULL;
     if (areaRecords != NULL) {
         variants = areaRecords[key->area].variants;
@@ -4165,12 +4165,12 @@ AreaVariant* areaGetVariant(const GameLocationKey* key)
 
 void areaRequestSavedPoseReset(const GameLocationKey* location)
 {
-    u32             stageAreaKey;
-    AreaRecord*     areaRecords;
-    AreaSavedState* areaState;
+    u32               stageAreaKey;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
     stageAreaKey = GAME_LOCATION_WORD(*location) & GAME_LOCATION_STAGE_AREA_MASK;
-    areaRecords  = Gp_AreaTables[location->stage];
+    areaRecords  = gAreaRecordsByStage[location->stage];
     if (stageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 0, 0)) {
         if (areaRecords != NULL) {
             areaState = areaRecords[location->area].savedState;
@@ -4342,11 +4342,11 @@ static void func_800B6014(void)
 
 void areaSyncLocationVariant(GameLocationKey* key)
 {
-    AreaRecord*     areaRecords;
-    AreaVariant*    variants;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaVariant*      variants;
+    AreaSavedState*   areaState;
 
-    areaRecords  = Gp_AreaTables[key->stage];
+    areaRecords  = gAreaRecordsByStage[key->stage];
     key->variant = AREA_DEFAULT_VARIANT;
     if (areaRecords == NULL) {
         return;

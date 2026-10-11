@@ -8,7 +8,7 @@ Everything is read from the extracted packages, nothing is guessed and no C
 initialiser is parsed. The route to each table is the one gameplay takes:
 gameplay holds, per stage, a pointer to each of the stage map overlay's
 directories, every directory is indexed by area (a room folder's disc id /
-100), and `Gp_AreaTables` holds the placement variants. Those roots are pinned
+100), and `gAreaRecordsByStage` holds the placement variants. Those roots are pinned
 by ADDRESS (`GAMEPLAY_ROOTS`, `STAGE_DIRECTORIES`); from them the tool follows
 pointers with the images mapped at their load addresses - gameplay, the
 stage's map overlay and the room - and decodes each record with the layouts
@@ -108,7 +108,7 @@ STAGE_MAP_ID_BASE = 279
 # entry 0, whether the pointer leads to a one-word wrapper in the map overlay holding the directory's address).
 # Established from src/gameplay (load_screen.c, view_image.c, scene_runtime.c, cd_loading.c) at commit 2b2fe57e4a,
 # where they are gViewCameraTables, Gp_ViewCountTables, gViewIndexTables, gSpriteAreaTables, Gp_RoomObjTables,
-# Gp_WarpTables, gWorldCollisionSurfacePropertiesTables, gAreaObjectStages and Gp_AreaTables, and from sym.gameplay.txt for the addresses.
+# Gp_WarpTables, gWorldCollisionSurfacePropertiesTables, gAreaObjectStages and gAreaRecordsByStage, and from sym.gameplay.txt for the addresses.
 GAMEPLAY_ROOTS = {
     "cameras":   (0x8010CB2C, 4, 0, 1, True),    # ViewCameraTable* [5]            -> { ViewCamera** }
     "counts":    (0x8010CB40, 4, 0, 1, True),    # ViewCountTable* [5]             -> { ViewCount** }
@@ -118,7 +118,7 @@ GAMEPLAY_ROOTS = {
     "warps":     (0x8010CB90, 4, 0, 1, False),   # DirectionWarpEntry** [5]
     "surfaces":  (0x8010CBB8, 4, 0, 1, False),   # WorldCollisionSurfaceProperties*** [5]
     "objects":   (0x8010D230, 8, 0, 0, False),   # AreaObjectStage [6]: { AreaObjectRoom*, object states }
-    "areas":     (0x8010CBCC, 4, 0, 0, False),   # AreaRecord* [6] (Gp_AreaTables), in gameplay itself
+    "areas":     (0x8010CBCC, 4, 0, 0, False),   # const AreaRecord* [6] (gAreaRecordsByStage), in gameplay itself
 }
 
 # The per-stage directories in the five map overlays (and the stage's AreaRecord array in gameplay). Established by
@@ -1198,7 +1198,7 @@ class Scene:
         if record is None:
             return out
         if not record["variants"]:
-            self.notes.append(f"placements: Gp_AreaTables[{self.stage}][{self.area}] has no variant table")
+            self.notes.append(f"placements: gAreaRecordsByStage[{self.stage}][{self.area}] has no variant table")
             return out
         variants, info = self.table("placements", record["variants"], VARIANT)
         out["table"], out["source"] = self.ref(record["variants"]), info["where"] if info else None
