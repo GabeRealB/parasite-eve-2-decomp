@@ -34,6 +34,10 @@ files = ["renderers/pe2.py"]
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
 bytes = 0x100000         # the buffer. The game stops only when it is full, for as long as reading it takes
+# Words every stub writes before it touches the blob's memory. This game calls SetMem(2) at start, which sets the
+# console's memory-size register (0x1F801060) to a 2 MB window and makes any read above it fault; 0xB88 is the
+# value the console starts with, the whole 8 MB window.
+poke = [[0x1F801060, 0x00000B88]]
 
 [[event]]
 id = 1

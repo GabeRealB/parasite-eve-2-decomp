@@ -47,6 +47,10 @@ or a jump there (see `movable`).
 The blob needs memory of its own (`blob.address`); by default just above 2 MB, which a target has only with more
 than the console's 2 MB. The tool refuses to write where that memory is a mirror of lower memory.
 
+Memory being there is not the same as the game being allowed to reach it: a program can tell the machine how
+much memory it has, after which anything above faults. `blob.poke` lists words, `[address, value]`, that every
+stub writes before it touches the blob's memory - such as the register that says how much memory there is.
+
 The buffer is read when it is full, when the tracer detaches (Ctrl-C: what is left is read, the hooks are taken
 out and the game runs on), and after every event marked `drain = true` - at its returns where the config gives
 them, otherwise straight after its entry. A rare event, such as a room load, makes a good one: the log then
@@ -116,6 +120,7 @@ def load(path: Path) -> dict:
     gdb.setdefault("port", 2345)
     blob.setdefault("address", 0x80200000)
     blob.setdefault("bytes", 0x100000)
+    blob.setdefault("poke", [])
     at = cfg.get("install_at", [])
     cfg["install_at"] = [at] if isinstance(at, int) else list(at)
     problems, seen = [], {}
@@ -277,9 +282,14 @@ def capture_code(captures: list[dict], tag: str) -> list[str]:
     return lines
 
 
-def record_code(event: dict, phase: int, captures: list[dict], tag: str, largest: int) -> list[str]:
+def record_code(event: dict, phase: int, captures: list[dict], tag: str, largest: int, pokes: list) -> list[str]:
     """A stub's middle: save what it uses, make room, write the record, restore."""
     size = record_size(captures)
+    unlock = []
+    for address, value in pokes:                       # see `blob.poke`: what has to hold before the blob's memory is touched
+        high = ((address + 0x8000) >> 16) & 0xFFFF
+        low = (address & 0xFFFF) - (0x10000 if address & 0x8000 else 0)
+        unlock += [f"    li    $t0, {value:#010x}", f"    lui   $t2, {high:#06x}", f"    sw    $t0, {low}($t2)"]
     return [
         f"    addiu $sp, $sp, -{FRAME}",
         "    sw    $ra, 0($sp)",
@@ -293,6 +303,7 @@ def record_code(event: dict, phase: int, captures: list[dict], tag: str, largest
         "    and   $t0, $t0, $t2",
         "    mtc0  $t0, $12",
         "    nop",
+        *unlock,
         "    lui   $t0, %hi(gt_cursor)",
         "    lw    $t1, %lo(gt_cursor)($t0)",
         "    lui   $t2, %hi(gt_end)",
@@ -354,7 +365,7 @@ def stub_source(cfg: dict, sites: dict) -> str:
     for event in events:
         first, second = sites[(event["id"], "enter")]
         lines += [f"# event {event['id']}: {event['name']} at {event['address']:#010x}", f"gt_enter_{event['id']}:"]
-        lines += record_code(event, 0, event["_enter"], f"e{event['id']}", largest)
+        lines += record_code(event, 0, event["_enter"], f"e{event['id']}", largest, blob["poke"])
         lines += [f"    .word {first:#010x}          # the function's own first instruction", f"    .word {second:#010x}          # and its second",
                   f"gt_enter_{event['id']}_done:",
                   f"    j     {event['address'] + 8:#010x}", "    nop", ""]
@@ -362,7 +373,7 @@ def stub_source(cfg: dict, sites: dict) -> str:
             _jr, delay = sites[(event["id"], "exit", offset)]
             lines += [f"# event {event['id']}: {event['name']} returns at +{offset:#x}", f"gt_exit_{event['id']}_{k}:",
                       f"    .word {delay:#010x}          # the return's delay-slot instruction, which ran before the return did"]
-            lines += record_code(event, 1, event["_exit"], f"x{event['id']}_{k}", largest)
+            lines += record_code(event, 1, event["_exit"], f"x{event['id']}_{k}", largest, blob["poke"])
             lines += [f"gt_exit_{event['id']}_{k}_done:", "    jr    $ra", "    nop", ""]
     lines += ["    .balign 4", "gt_buffer:", f"    .space {blob['bytes']}", "gt_end:", ""]
     return "\n".join(lines)
