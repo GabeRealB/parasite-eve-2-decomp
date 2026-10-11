@@ -220,10 +220,10 @@ void itemMenuInitializeCaptionTask(UiObject* object, Task* task)
         task->work = workAllocation;
         if (gGameSession->cutsceneHold == true) {
             itemMenuClearPreviewItems();
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_CAPTION_KEY_ITEMS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_CAPTION_KEY_ITEMS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
             rowCount = 2;
         } else {
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_CAPTION_STATUS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_CAPTION_STATUS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
             rowCount = 1;
         }
         // Fit the prompt rows while keeping the outer bottom at a fixed screen Y.

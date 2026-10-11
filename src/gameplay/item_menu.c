@@ -649,7 +649,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
                 }
             } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (itemId != INVENTORY_ITEM_NONE)) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_TRANSFER_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_TRANSFER_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_TRANSFER_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_TRANSFER_OPEN_DELAY_TICKS, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {

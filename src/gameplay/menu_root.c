@@ -36,31 +36,19 @@
 
 const u8** D_80114D80;
 
-u16 Gp_ItemCountShow;
+u16 gItemMenuEquipmentDetailOpen;
 
 s32 gItemMenuRoomRestorePending;
 
-s32 Gp_ItemOrderMode;
+s32 gItemMenuDestinationSelectionMode;
 
-s32 Gp_ReloadMode;
+s32 gItemMenuWeaponLoadSelection;
 
 UiObject* D_80114D98[2];
 
 s32 Gp_AttachListIds[6];
 
 static char D_8010E548[];
-
-extern u8 Gp_StrResSilence[];
-
-extern u8 Gp_StrResParalysis[];
-
-extern u8 Gp_StrResPoison[];
-
-extern u8 Gp_StrResImpact[];
-
-extern TaskDesc D_8010E7E8;
-
-extern AnimationPlayRequest D_8010E7F4;
 
 extern UiListRowCallback Gp_MainMenuCmds[6];
 
@@ -76,54 +64,59 @@ extern UiListRowCallback D_8010E934[1];
 
 extern UiListRowCallback D_8010E95C[1];
 
-extern UiListRowCallback D_8010E9A0[1];
-
-extern UiListRowCallback D_8010E9C8[1];
-
-extern UiListRowCallback D_8010E9F0[1];
+/// Menu task priorities and the equipped-bank stationary aiming clip.
+enum {
+    MENU_PENDING_ITEM_USE_TASK_PRIORITY = 32,
+    MENU_GALLERY_WEAPON_HOLD_ANIMATION  = 9,
+    ITEM_MENU_PANEL_TASK_PRIORITY       = 192
+};
 
 static s32 D_8010EA54[];
 
 static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
 
-char        Gp_StrUsedDot[]        = "used.";
-char        Gp_StrCreatedDot[]     = "created.";
-char        Gp_StrNoUseNow[]       = "No use for this now.";
-char        Gp_StrUsed[]           = "Used";
-char        Gp_StrSelectDest[]     = "Select destination.";
-char        Gp_StrEquipped[]       = "Equipped";
-char        Gp_StrObtained[]       = "Obtained";
-char        Gp_StrLoaded[]         = "Loaded";
-char        Gp_StrRemoved[]        = "Removed";
-char        Gp_StrRemovedAmmo[]    = "Removed ammunition.";
-char        Gp_StrInvoked[]        = "Invoked";
-char        Gp_StrAmmoNone[]       = "Ammunition: None";
-char        Gp_StrAttachNone[]     = "Attachments: None";
-char        Gp_StrUse[]            = "Use";
-char        Gp_StrMove[]           = "Move";
-char        Gp_StrRemoveAmmo[]     = "Remove ammunition";
-char        Gp_StrLoad[]           = "Load";
-char        Gp_StrExchange[]       = "Exchange";
-char        Gp_StrRemoveArmor[]    = "Remove from armor";
-static char D_8010E548[]           = "Equip";
-u8          gItemMenuYesText[4]    = "Yes";
-u8          gItemMenuNoText[3]     = "No";
-u8          gItemMenuOkText[3]     = "OK";
-u8          gItemMenuCancelText[7] = "Cancel";
-char        Gp_StrPickupAsk[]      = "Pick up this item?";
-char        Gp_StrInvFull[]        = "Inventory full.";
-char        D_8010E588[]           = "";
-char        Gp_StrSort[]           = "Sort";
-char        Gp_StrAmmoCaps[]       = "AMMO";
-u8          gItemMenuPeriodText[2] = ".";
+u8          gItemMenuAddonUsedText[6]                 = "used.";
+u8          gItemMenuAddonCreatedText[9]              = "created.";
+char        Gp_StrNoUseNow[]                          = "No use for this now.";
+char        Gp_StrUsed[]                              = "Used";
+char        Gp_StrSelectDest[]                        = "Select destination.";
+u8          gItemMenuEquippedText[9]                  = "Equipped";
+u8          gItemPickupObtainedText[9]                = "Obtained";
+u8          gItemMenuLoadedText[7]                    = "Loaded";
+u8          gItemMenuRemovedText[8]                   = "Removed";
+u8          gItemMenuRemovedAmmunitionText[20]        = "Removed ammunition.";
+u8          gItemMenuInvokedText[8]                   = "Invoked";
+char        Gp_StrAmmoNone[]                          = "Ammunition: None";
+char        Gp_StrAttachNone[]                        = "Attachments: None";
+char        Gp_StrUse[]                               = "Use";
+char        Gp_StrMove[]                              = "Move";
+char        Gp_StrRemoveAmmo[]                        = "Remove ammunition";
+char        Gp_StrLoad[]                              = "Load";
+char        Gp_StrExchange[]                          = "Exchange";
+char        Gp_StrRemoveArmor[]                       = "Remove from armor";
+static char D_8010E548[]                              = "Equip";
+u8          gItemMenuYesText[4]                       = "Yes";
+u8          gItemMenuNoText[3]                        = "No";
+u8          gItemMenuOkText[3]                        = "OK";
+u8          gItemMenuCancelText[7]                    = "Cancel";
+u8          gItemPickupQuestionText[19]               = "Pick up this item?";
+u8          gItemPickupInventoryFullText[16]          = "Inventory full.";
+u8          gItemPickupInventoryFullSecondLineText[1] = "";
+char        Gp_StrSort[]                              = "Sort";
+u8          gItemMenuAmmoLabelText[5]                 = "AMMO";
+u8          gItemMenuPeriodText[2]                    = ".";
 /// NUL-only text for properties with no displayed label in the specifications panel.
 static u8 _gItemMenuEmptyPropertyText[] = "";
-u8        Gp_StrResSilence[]            = "RESIST \\CoSILENCE";
-u8        Gp_StrResParalysis[]          = "RESIST \\CoPARALYSIS";
-u8        Gp_StrResPoison[]             = "RESIST \\CoPOISON";
+/// Armor-feature label with the status name colored orange by an inline text command.
+static u8 _gItemMenuResistSilenceText[] = "RESIST \\CoSILENCE";
+/// Armor-feature label with the status name colored orange by an inline text command.
+static u8 _gItemMenuResistParalysisText[] = "RESIST \\CoPARALYSIS";
+/// Armor-feature label with the status name colored orange by an inline text command.
+static u8 _gItemMenuResistPoisonText[] = "RESIST \\CoPOISON";
 /// Armor-feature label with the status name colored orange by an inline text command.
 static u8 _gItemMenuResistConfusionText[] = "RESIST \\CoCONFUSION";
-u8        Gp_StrResImpact[]               = "RESIST \\CoIMPACT";
+/// Armor-feature label with the status name colored orange by an inline text command.
+static u8 _gItemMenuResistImpactText[] = "RESIST \\CoIMPACT";
 /// NUL-terminated specifications label for the armor's motion-detector feature.
 static u8 _gItemMenuMotionDetectorText[] = "MOTION DETECTOR";
 /// NUL-terminated specifications label for the armor's MP-generation feature.
@@ -135,21 +128,21 @@ static u8 _gItemMenuQuickFireText[] = "QUICK FIRE";
 /// NUL-terminated specifications label for the armor's medical-inspection feature.
 static u8 _gItemMenuMedicalInspectionText[] = "MEDICAL INSPECTION";
 /// NUL-terminated specifications label for the armor's MP-recovery feature.
-static u8 _gItemMenuMpRecoveryText[] = "MP RECOVERY";
-u8*       Gp_FeatNameTbl[]           = {
+static u8 _gItemMenuMpRecoveryText[]     = "MP RECOVERY";
+const u8* gItemMenuArmorFeatureTexts[13] = {
     _gItemMenuMotionDetectorText,
-    Gp_StrResPoison,
+    _gItemMenuResistPoisonText,
     _gItemMenuMpGenerationText,
     _gItemMenuQuickFireText,
-    Gp_StrResImpact,
-    Gp_StrResSilence,
+    _gItemMenuResistImpactText,
+    _gItemMenuResistSilenceText,
     _gItemMenuMedicalInspectionText,
     _gItemMenuMpRecoveryText,
     _gItemMenuHpRecoveryText,
     _gItemMenuResistConfusionText,
     _gItemMenuEmptyPropertyText,
     _gItemMenuEmptyPropertyText,
-    Gp_StrResParalysis,
+    _gItemMenuResistParalysisText,
 };
 
 /// 9mm specifications caption with inline column, font, Y-offset and outline commands.
@@ -164,7 +157,7 @@ static u8 _gItemMenuCaliber40mmText[] = "CALIBER \\B9\\Sm\\D2\\W0 40mm";
 static u8 _gItemMenuGauge12Text[] = "GAUGE \\B9\\Sm\\D2\\W0 12ga.";
 /// 5.56mm specifications caption with inline column, font, Y-offset and outline commands.
 static u8 _gItemMenuCaliber556mmText[] = "CALIBER \\B9\\Sm\\D2\\W0 5.56mm";
-u8*       Gp_CaliberNameTbl[]          = {
+const u8* gItemMenuCaliberTexts[16]    = {
     _gItemMenuEmptyPropertyText,
     _gItemMenuCaliber9mmText,
     _gItemMenuCaliber40MagnumText,
@@ -194,8 +187,8 @@ static u8 _gItemMenuBurstText[] = "BURST";
 /// NUL-terminated ammunition specifications label for the flash special attribute.
 static u8 _gItemMenuFlashText[] = "FLASH";
 /// NUL-terminated ammunition specifications label for the explosion special attribute.
-static u8 _gItemMenuExplosionText[] = "EXPLOSION";
-u8*       D_8010E7C0[]              = {
+static u8 _gItemMenuExplosionText[]              = "EXPLOSION";
+const u8* gItemMenuAmmoSpecialAttributeTexts[10] = {
     _gItemMenuEmptyPropertyText,
     _gItemMenuEmptyPropertyText,
     _gItemMenuEmptyPropertyText,
@@ -208,19 +201,36 @@ u8*       D_8010E7C0[]              = {
     _gItemMenuFlashText,
 };
 
-TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, menuApplyPendingItemUseTask, { NULL } };
+/// Bodyless task that resumes deferred item actions after menu resource restoration.
+///
+/// Menu exit acquires a display hold only when spawning succeeds; the task
+/// releases that hold after consuming the pending actions, then exits.
+static TaskDesc _gMenuPendingItemUseTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = MENU_PENDING_ITEM_USE_TASK_PRIORITY } },
+    .callback = menuApplyPendingItemUseTask,
+};
 
-AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the equipped weapon's holding pose after gallery-menu equipment changes.
+///
+/// The bank seed is overwritten with the current character/weapon bank before
+/// synchronous dispatch. Clip 9 resets playback and disables world collision;
+/// the receiver consumes this mutable request synchronously.
+static AnimationPlayRequest _gMenuGalleryWeaponHoldAnimationRequest = {
+    .source               = { .index = 1 },
+    .animationId          = MENU_GALLERY_WEAPON_HOLD_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, itemMenuDrawPeCommandRow, itemMenuDrawMapCommandRow, itemMenuDrawOptionsCommandRow, itemMenuDrawExitCommandRow };
 
 UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-MenuParasiteEnergyCaption D_8010E844[4] = {
-    { 16, 88, 0 },
-    { 40, 88, 0 },
-    { 72, 88, 0 },
-    { 120, 80, 0 },
+MenuParasiteEnergyCaption gItemMenuParasiteEnergyCaptions[4] = {
+    { .u = 16, .v = 88, .xOffset = 0 },
+    { .u = 40, .v = 88, .xOffset = 0 },
+    { .u = 72, .v = 88, .xOffset = 0 },
+    { .u = 120, .v = 80, .xOffset = 0 },
 };
 
 UiListRowCallback D_8010E850[1] = { itemMenuDrawReorderableItemRow };
@@ -253,7 +263,12 @@ s32 gItemMenuPreviewItemIds[ITEM_MENU_PREVIEW_SLOT_COUNT] = {
 /// description setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`.
 static UiListRowCallback _gItemMenuDescriptionRowCallbacks[1] = { itemMenuDrawDescriptionRow };
 
-UiList D_8010E910 = { _gItemMenuDescriptionRowCallbacks, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuDescriptionList = {
+    .rowCallbacks    = _gItemMenuDescriptionRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
 UiListRowCallback D_8010E934[1] = { itemMenuDrawKeyItemUseRow };
 
@@ -279,17 +294,39 @@ const u8* D_8010E994[3] = {
     gItemMenuArmorAttachmentCountLabel,
 };
 
-UiListRowCallback D_8010E9A0[1] = { itemMenuDrawWeaponChoiceRow };
+/// Single row drawer borrowed by the weapon choice list.
+///
+/// Setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK` before drawing;
+/// entry zero handles every item for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuWeaponChoiceRowCallbacks[1] = { itemMenuDrawWeaponChoiceRow };
 
-UiList D_8010E9A4 = { D_8010E9A0, 25, { 25 }, 0, 14, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuWeaponChoiceList = {
+    .rowCallbacks    = _gItemMenuWeaponChoiceRowCallbacks,
+    .itemCount       = 25,
+    .visibleRowCount = { .unsignedValue = 25 },
+    .rowHeight       = 14,
+};
 
-UiListRowCallback D_8010E9C8[1] = { itemMenuDrawConsumableChoiceRow };
+/// Single row drawer borrowed by the consumable choice list.
+///
+/// Setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK` before drawing;
+/// entry zero handles every item for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuConsumableChoiceRowCallbacks[1] = { itemMenuDrawConsumableChoiceRow };
 
-UiList D_8010E9CC = { D_8010E9C8, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuConsumableChoiceList = {
+    .rowCallbacks    = _gItemMenuConsumableChoiceRowCallbacks,
+    .itemCount       = 3,
+    .visibleRowCount = { .unsignedValue = 3 },
+    .rowHeight       = 15,
+};
 
-UiListRowCallback D_8010E9F0[1] = { itemMenuDrawArmorChoiceRow };
+/// Single row drawer borrowed by the armor choice list.
+///
+/// Setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK` before drawing;
+/// entry zero handles every item for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuArmorChoiceRowCallbacks[1] = { itemMenuDrawArmorChoiceRow };
 
-UiList D_8010E9F4 = { D_8010E9F0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList D_8010E9F4 = { _gItemMenuArmorChoiceRowCallbacks, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
 UiListRowCallback Gp_ItemCmdFns[6] = {
     itemMenuDrawUseRow,
@@ -326,58 +363,242 @@ UiObjectDesc gItemMenuDialogDesc = {
     .contentCallback = itemMenuDialogTask,
 };
 
-/// Indexed by menu command ID; empty rows reserve unused commands.
-UiObjectDesc D_8010EAB4[50] = {
-    { 3, { -144, 64, 288, 40 }, 768, 0, TASK_BODY_NONE, 192, itemMenuCaptionTask, 0 },
-    { 3, { -144, -104, 72, 64 }, 28, 0, TASK_BODY_NONE, 192, itemMenuMainPanelTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 3, { -72, -104, 216, 65 }, 40, 0, TASK_BODY_NONE, 192, itemMenuPlayerSummaryTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -39, 144, 72 }, 36, 0, TASK_BODY_NONE, 192, itemMenuWeaponSummaryTask, 0 },
-    { 0, { 0, 0, 144, 20 }, 48, 0, TASK_BODY_NONE, 192, itemMenuInventoryCountTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 165 }, 40, 0, TASK_BODY_NONE, 192, itemMenuInventoryPanelTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 120 }, 40, 0, TASK_BODY_NONE, 192, itemMenuCollectedItemsTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -39, 144, 120 }, 512, 0, TASK_BODY_NONE, 192, itemMenuArmorSummaryTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 33, 144, 48 }, 516, 0, TASK_BODY_NONE, 192, itemMenuParasiteEnergySummaryTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 200, 24 }, 40, 0, TASK_BODY_NONE, 192, itemMenuParasiteEnergyListTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -152, -104, 144, 104 }, 816, 0, TASK_BODY_NONE, 192, itemMenuEquipmentDetailTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuArmorSelectionTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuAmmoSelectionTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuWeaponSelectionTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuAttachmentItemPickerTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, -40, 144, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuAttachNoticeTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 48, 1 }, 16, 0, TASK_BODY_NONE, 192, itemMenuCommandTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -80, 198, 158 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseItemTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 144 }, 56, 0, TASK_BODY_NONE, 192, uiUpdateOptionsAfterLoadTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { -100, -80, 144, 78 }, 12, 0, TASK_BODY_NONE, 192, itemMenuWeaponChoiceListTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -40, 144, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuReloadNoticeTask, 0 },
-    { 0, { -100, -80, 144, 78 }, 12, 0, TASK_BODY_NONE, 192, itemMenuConsumableChoiceListTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, -40, 144, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuEquipNoticeTask, 0 },
-    { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 48, 32 }, 16, 0, TASK_BODY_NONE, 192, itemMenuKeyItemCommandTask, 0 },
-    { (s32)(USER_INTERFACE_PANEL_NO_FRAME | USER_INTERFACE_PANEL_TITLE_STYLE), { -90, -40, 178, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseKeyItemTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuInfoTask, 0 },
-    { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, itemMenuCaptionTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 72 }, 960, 0, TASK_BODY_NONE, 192, itemMenuWeaponPanelTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -32, 144, 91 }, 976, 0, TASK_BODY_NONE, 192, itemMenuArmorPanelTask, 0 },
-    { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, itemPickupPanelTask, 0 },
+UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
+    [ITEM_MENU_DESCRIPTOR_CAPTION] = {
+        .style           = 3,
+        .bounds          = { -144, 64, 288, 40 },
+        .otIndexSeed     = 768,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuCaptionTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_MAIN_COMMANDS] = {
+        .style           = 3,
+        .bounds          = { -144, -104, 72, 64 },
+        .otIndexSeed     = 28,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuMainPanelTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_PLAYER_SUMMARY] = {
+        .style           = 3,
+        .bounds          = { -72, -104, 216, 65 },
+        .otIndexSeed     = 40,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuPlayerSummaryTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_WEAPON_SUMMARY] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -39, 144, 72 },
+        .otIndexSeed     = 36,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuWeaponSummaryTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_INVENTORY_COUNT] = {
+        .bounds          = { 0, 0, 144, 20 },
+        .otIndexSeed     = 48,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuInventoryCountTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_INVENTORY] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { 0, -104, 144, 165 },
+        .otIndexSeed     = 40,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuInventoryPanelTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_COLLECTED_ITEMS] = {
+        .style           = 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -104, 144, 120 },
+        .otIndexSeed     = 40,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuCollectedItemsTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ARMOR_SUMMARY] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { 0, -39, 144, 120 },
+        .otIndexSeed     = 512,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuArmorSummaryTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_SUMMARY] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, 33, 144, 48 },
+        .otIndexSeed     = 516,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuParasiteEnergySummaryTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_LIST] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -104, 200, 24 },
+        .otIndexSeed     = 40,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuParasiteEnergyListTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_EQUIPMENT_DETAIL] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -152, -104, 144, 104 },
+        .otIndexSeed     = 816,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuEquipmentDetailTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ARMOR_SELECTION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -8, 0, 144, 8 },
+        .otIndexSeed     = 32,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuArmorSelectionTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_AMMO_SELECTION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -8, 0, 144, 8 },
+        .otIndexSeed     = 32,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuAmmoSelectionTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_WEAPON_SELECTION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -8, 0, 144, 8 },
+        .otIndexSeed     = 32,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuWeaponSelectionTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ATTACHMENT_PICKER] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -8, 0, 144, 8 },
+        .otIndexSeed     = 32,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuAttachmentItemPickerTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ATTACH_NOTICE] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -60, -40, 144, 78 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuAttachNoticeTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ITEM_COMMANDS] = {
+        .bounds          = { 0, 0, 48, 1 },
+        .otIndexSeed     = 16,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuCommandTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ITEM_USE] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -100, -80, 198, 158 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuUseItemTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_OPTIONS] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -104, 288, 144 },
+        .otIndexSeed     = 56,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = uiUpdateOptionsAfterLoadTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_WEAPON_CHOICES] = {
+        .bounds          = { -100, -80, 144, 78 },
+        .otIndexSeed     = 12,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuWeaponChoiceListTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_RELOAD_NOTICE] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -72, -40, 144, 78 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuReloadNoticeTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_CONSUMABLE_CHOICES] = {
+        .bounds          = { -100, -80, 144, 78 },
+        .otIndexSeed     = 12,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuConsumableChoiceListTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_EQUIP_NOTICE] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -60, -40, 144, 78 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuEquipNoticeTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_KEY_ITEM_COMMANDS] = {
+        .bounds          = { 0, 0, 48, 32 },
+        .otIndexSeed     = 16,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuKeyItemCommandTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_KEY_ITEM_USE] = {
+        .style           = (s32)(USER_INTERFACE_PANEL_NO_FRAME | USER_INTERFACE_PANEL_TITLE_STYLE),
+        .bounds          = { -90, -40, 178, 78 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuUseKeyItemTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_INFORMATION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -104, 288, 208 },
+        .otIndexSeed     = 8,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuInfoTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_HOTSPOT_ITEM_CAPTION] = {
+        .style           = 3,
+        .bounds          = { -144, 64, 288, 40 },
+        .otIndexSeed     = 56,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuCaptionTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_WEAPON_DESTINATION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -104, 144, 72 },
+        .otIndexSeed     = 960,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuWeaponPanelTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_ARMOR_DESTINATION] = {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -32, 144, 91 },
+        .otIndexSeed     = 976,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemMenuArmorPanelTask,
+    },
+    [ITEM_MENU_DESCRIPTOR_PICKUP] = {
+        .style           = (s32)USER_INTERFACE_PANEL_NO_FRAME,
+        .bounds          = { -150, -80, 120, 70 },
+        .otIndexSeed     = 60,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .contentCallback = itemPickupPanelTask,
+    },
 };
 
 /// Clears and synchronizes the 320x240 VRAM region opposite the task framebuffer selector.
@@ -501,7 +722,7 @@ void menuRootTask(Task* task)
             if (menuRequest == ITEM_MENU_ROOT_REQUEST_OPTIONS) {
                 gUiPromptObject = NULL;
                 cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
-                rootObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR], 1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS, NULL);
+                rootObject = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR], 1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
                 rootObject = uiSpawnObject(&gMistShootingGalleryWeaponSelectPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == DISPLAY_MODE_MAP) {
@@ -511,7 +732,7 @@ void menuRootTask(Task* task)
                 rootObject            = uiSpawnObject(&gItemMenuArmorAttachmentPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else {
                 display->keepGraphics = 1;
-                rootObject            = uiSpawnObject(D_8010EAB4, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_ROOT_INVENTORY_OPEN_DELAY_TICKS, NULL);
+                rootObject            = uiSpawnObject(gItemMenuPanelDescriptors, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_ROOT_INVENTORY_OPEN_DELAY_TICKS, NULL);
             }
             if (rootObject == NULL) {
                 break;
@@ -627,8 +848,8 @@ void menuRootTask(Task* task)
                     playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ITEM_MENU_ROOT_WEAPON_AIM_BLEND_FRAMES);
                 }
                 if (task->spawnArg1.value == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
-                    playerActorWriteWeaponAnimationBankIndex(&D_8010E7F4.source.index);
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
+                    playerActorWriteWeaponAnimationBankIndex(&_gMenuGalleryWeaponHoldAnimationRequest.source.index);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gMenuGalleryWeaponHoldAnimationRequest, 0);
                 }
                 gTaskDeferModelBufferAllocation = false;
                 taskSetActiveList(previousList);
@@ -644,7 +865,7 @@ void menuRootTask(Task* task)
                 stageRequestViewTransitionAndModeExit(gGameSession->location.loc.view);
             }
             taskSpawnOnDefaultList(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
-            if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
+            if (taskSpawnFromTableOnDefaultList(&_gMenuPendingItemUseTaskDesc, 0, 0, 0) != NULL) {
                 displayAcquireMenuHold();
             }
             Gp_MenuLockDelay = ITEM_MENU_ROOT_INPUT_DELAY_UPDATES;

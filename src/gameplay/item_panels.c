@@ -929,7 +929,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
         ITEM_MENU_DRAW_UNMARKED_ROW_CONTENTS(object, scratch.textRequest, x, y, itemId, itemColorRgb, textBaseY, energyLevelIndex);
     }
     y += 0xF;
-    textDrawUiLine(object, x, y, (const u8*)Gp_StrUsedDot, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, x, y, gItemMenuAddonUsedText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     itemId      = work->createdWeaponItemId;
     y          += 0xF;
@@ -951,7 +951,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
             }
         }
     }
-    textDrawUiLine(object, x, y + 0xF, (const u8*)Gp_StrCreatedDot, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, x, y + 0xF, gItemMenuAddonCreatedText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         remainingUpdates    = task->killCountdown - 1;
         task->killCountdown = remainingUpdates;
@@ -987,7 +987,7 @@ static inline void _itemMenuSizeInvocationPanel(UiPanel* panel, const u8* itemNa
     s32 invokedTextWidth;
 
     contentWidth     = textMeasureLineWidth(itemName) + ITEM_MENU_INVOCATION_SUFFIX_ALLOWANCE_PIXELS;
-    invokedTextWidth = textMeasureLineWidth((const u8*)Gp_StrInvoked);
+    invokedTextWidth = textMeasureLineWidth(gItemMenuInvokedText);
     if (contentWidth < invokedTextWidth) {
         contentWidth = invokedTextWidth;
     }
@@ -1034,7 +1034,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
     }
 
     uiDrawPanelLabel(&(object)->panel, Gp_StrInvoke);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvoked, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuInvokedText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_MENU_RESULT_ITEM_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     // Invocation notices advance their timeout even while the panel is inactive.
@@ -1286,9 +1286,9 @@ void itemMenuInventoryCountTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    if ((Gp_ItemCountShow == ITEM_MENU_INVENTORY_COUNT_HIDE) && (uiIsPanelHidingOrHidden(object) == 0)) {
+    if ((gItemMenuEquipmentDetailOpen == ITEM_MENU_INVENTORY_COUNT_HIDE) && (uiIsPanelHidingOrHidden(object) == 0)) {
         uiStartPanelHiding(object, object->owner);
-    } else if ((Gp_ItemCountShow == ITEM_MENU_INVENTORY_COUNT_SHOW) && (uiIsPanelHidingOrHidden(object) == 1)) {
+    } else if ((gItemMenuEquipmentDetailOpen == ITEM_MENU_INVENTORY_COUNT_SHOW) && (uiIsPanelHidingOrHidden(object) == 1)) {
         uiLimitHiddenDelayOrOpen(&(object)->panel, object->owner, ITEM_MENU_INVENTORY_COUNT_OPEN_DELAY);
     }
     rowY         = object->panel.contentTop.signedValue + 0xD;
@@ -1583,7 +1583,7 @@ static void _itemPickupAskTask(Task* task)
     uiDrawPanelLabelWithChildFocus(&object->panel, Gp_StrMessage);
     textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
     drawMode     = TEXT_DRAW_OUTLINED;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrPickupAsk, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemPickupQuestionText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     childTask = task->firstChild;
     if (childTask != NULL) {
         childObject = childTask->spawnArg2.pointer;
@@ -1643,8 +1643,8 @@ static void _itemPickupInventoryFullTask(Task* task)
     }
     textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
     drawMode     = TEXT_DRAW_OUTLINED;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvFull, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, (const u8*)D_8010E588, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemPickupInventoryFullText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, gItemPickupInventoryFullSecondLineText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     childTask = task->firstChild;
     if (childTask != NULL) {
         childObject = childTask->spawnArg2.pointer;
@@ -1684,7 +1684,7 @@ static void _itemPickupObtainedNoticeTask(Task* task)
     if (task->state == ITEM_PICKUP_OBTAINED_STATE_INIT) {
         task->killCountdown = ITEM_PICKUP_OBTAINED_NOTICE_UPDATES;
         contentWidth        = textMeasureLineWidth(itemGetText(itemId, ITEM_TEXT_NAME, 0)) + 0xB;
-        noticeTextWidth     = textMeasureLineWidth((const u8*)Gp_StrObtained);
+        noticeTextWidth     = textMeasureLineWidth(gItemPickupObtainedText);
         if (contentWidth < noticeTextWidth) {
             contentWidth = noticeTextWidth;
         }
@@ -1694,7 +1694,7 @@ static void _itemPickupObtainedNoticeTask(Task* task)
     }
     textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
     drawMode     = TEXT_DRAW_OUTLINED;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemPickupObtainedText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     itemName = itemGetText(itemId, ITEM_TEXT_NAME, 0);
     nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_PICKUP_OBTAINED_ITEM_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
@@ -1887,7 +1887,7 @@ static inline void _itemMenuOpenSelectedInfoChild(UiObject* parentObject)
            ITEM_MENU_INFO_OPEN_DELAY_TICKS = 1 };
 
     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-    uiSpawnObject(&D_8010EAB4[ITEM_MENU_INFO_PANEL_DESCRIPTOR], (s32)Gp_SelItemRec->itemId,
+    uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_INFO_PANEL_DESCRIPTOR], (s32)Gp_SelItemRec->itemId,
                   USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_INFO_OPEN_DELAY_TICKS, parentObject);
     parentObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
 }
@@ -1909,7 +1909,7 @@ void itemPickupOpenPromptTask(Task* task)
         switch (Gp_PubItemLoc >> 8) {
             case ITEM_PICKUP_PLACE_BANK_ITEM:
             case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
-                descriptor = &D_8010EAB4[ITEM_PICKUP_PANEL_DESCRIPTOR];
+                descriptor = &gItemMenuPanelDescriptors[ITEM_PICKUP_PANEL_DESCRIPTOR];
                 break;
             case ITEM_PICKUP_PLACE_BANK_SAVE_POINT:
                 playerCaptureSaveState();

@@ -272,7 +272,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
                 object->result         = USER_INTERFACE_RESULT_DISMISS;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_INFO_DESCRIPTOR], itemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_INFO_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ATTACHMENT_INFO_DESCRIPTOR], itemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_INFO_OPEN_DELAY_TICKS, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
@@ -385,7 +385,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
         candidateList->firstVisibleItemIndex.unsignedValue = 0;
         parentTask                                         = task->parent;
         uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
-        uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PANEL], ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_KIND, previewItemId, ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_DELAY, object);
+        uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PANEL], ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_KIND, previewItemId, ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_DELAY, object);
         task->state = task->state + 1;
     }
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_ATTACHMENT_PICKER_SEPARATOR_Y);

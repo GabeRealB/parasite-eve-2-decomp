@@ -1036,7 +1036,7 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL], weaponItemId, 1, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL], weaponItemId, 1, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

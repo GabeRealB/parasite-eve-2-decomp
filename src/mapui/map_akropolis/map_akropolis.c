@@ -332,7 +332,7 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object)
     if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (itemId == INVENTORY_COLLECTION_ID_DRYFIELD_MAP) {
                 _gMapAkropolisDryfieldMapOpened = inputEnabled;

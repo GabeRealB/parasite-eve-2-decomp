@@ -7015,14 +7015,14 @@ so `table[id]` is `sll v1, s4, 1` and `&actor->weaponContacts` is `addiu v0, s1,
 
 ## Split `la` into `$s0` so `%hi` lands in `$v0` and `%lo` is a C `addiu`
 
-`menu = &D_8010E9CC` with `menu` pinned to `$s0` emits `lui s0` / `addiu s0, s0`.
+`menu = &gItemMenuConsumableChoiceList` with `menu` pinned to `$s0` emits `lui s0` / `addiu s0, s0`.
 The target wants the two-register form so the `lui` can sit between
 `lhu val` and `sh result = 0`, and the `addiu` can fill the `bnez state`
 delay slot:
 
 ```
 lhu    s2, spawnArg1
-lui    v0, 0x8011          # adjusted %hi(D_8010E9CC)
+lui    v0, 0x8011          # adjusted %hi(gItemMenuConsumableChoiceList)
 sh     zero, result(s1)
 lw     v1, state
 nop
@@ -29784,7 +29784,7 @@ register UiObject* obj asm("s1");
 register s32       val asm("s2");
 PlayerStatus*      cfg;
 
-menu = &D_8010E9A4;
+menu = &gItemMenuWeaponChoiceList;
 obj  = arg0->spawnArg2;
 cfg  = &gPlayerStatus;
 ```
@@ -32133,7 +32133,7 @@ on the draw path:
 
 ```c
 contentWidth = textMeasureLineWidth(itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
-verbWidth = textMeasureLineWidth((const u8*)Gp_StrEquipped);
+verbWidth = textMeasureLineWidth(gItemMenuEquippedText);
 if (contentWidth < verbWidth) {
     contentWidth = verbWidth;
 }
@@ -68444,7 +68444,7 @@ which costs an extra `move`.
 
 ## `&Global` halves its own allocation priority; the fix is on the *other* pseudo
 
-Writing `menu = &D_8010E9CC;` where a hand-built `asm("lui")` used to stand can
+Writing `menu = &gItemMenuConsumableChoiceList;` where a hand-built `asm("lui")` used to stand can
 reproduce the schedule exactly and still lose the register. The `lo_sum` insn
 that expand emits for a symbol address carries `REG_EQUIV (symbol_ref …)`, and
 `update_equiv_regs` (local-alloc.c) reacts to any REG_EQUIV with

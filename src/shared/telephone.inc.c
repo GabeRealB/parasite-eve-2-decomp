@@ -460,7 +460,7 @@ static void _telephoneDrawUsageRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[TELEPHONE_USAGE_DETAIL_TEMPLATE], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[TELEPHONE_USAGE_DETAIL_TEMPLATE], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

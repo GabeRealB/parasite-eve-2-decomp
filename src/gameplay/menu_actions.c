@@ -457,7 +457,7 @@ void itemMenuWeaponSummaryTask(Task* task)
     object = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         // Armor and P. Energy summaries share the weapon panel's lifetime.
-        summaryDescriptor = &D_8010EAB4[ITEM_MENU_ARMOR_SUMMARY_DESCRIPTOR];
+        summaryDescriptor = &gItemMenuPanelDescriptors[ITEM_MENU_ARMOR_SUMMARY_DESCRIPTOR];
         uiSpawnObject(summaryDescriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         uiSpawnObject(summaryDescriptor + 1, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         task->state = task->state + 1;
@@ -559,7 +559,7 @@ static UiObject* _itemMenuOpenCommandPopup(UiList* list, UiObject* parent, Inven
     Gp_SelItemRec = selectedRow;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        popup = uiSpawnObject(&D_8010EAB4[ITEM_MENU_COMMAND_POPUP_DESCRIPTOR], commandMode, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS, parent);
+        popup = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COMMAND_POPUP_DESCRIPTOR], commandMode, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS, parent);
         if (popup != NULL) {
             uiPositionRowDialog(&popup->panel, list, &parent->panel);
             parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -623,8 +623,8 @@ static void _itemMenuApplyReorderChildResults(UiObject* object)
                     break;
                 case USER_INTERFACE_LIST_ACTION_MOVE:
                     _itemMenuCloseChildAndRestoreFocus(object, childObject, activeMode);
-                    Gp_ItemOrderMode     = activeMode;
-                    object->panel.style &= undimMask;
+                    gItemMenuDestinationSelectionMode = activeMode;
+                    object->panel.style              &= undimMask;
                     break;
             }
             childHead = ownerTask->firstChild;
@@ -645,14 +645,14 @@ void itemMenuDrawSortRow(UiList* list, UiObject* object)
     s32 activeMode;
 
     activeMode = USER_INTERFACE_PANEL_ACTIVE;
-    if (Gp_ItemOrderMode == ITEM_MENU_REORDER_SELECT_DESTINATION) {
+    if (gItemMenuDestinationSelectionMode == ITEM_MENU_REORDER_SELECT_DESTINATION) {
         list->colorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrSort, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     panelControl = object->panel.control.word;
     if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            if (Gp_ItemOrderMode == ITEM_MENU_REORDER_SELECT_DESTINATION) {
+            if (gItemMenuDestinationSelectionMode == ITEM_MENU_REORDER_SELECT_DESTINATION) {
                 list->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
                 list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             } else {
@@ -789,7 +789,7 @@ void itemMenuDrawKeyItemUseRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_KEY_ITEM_USE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_KEY_ITEM_USE_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_KEY_ITEM_USE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_KEY_ITEM_USE_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -837,7 +837,7 @@ void equipmentEquipCarriedWeapon(s32 weaponItemId)
 /// Selects the nth accepted consumable with positive unloaded stock in a range.
 ///
 /// `choiceOrdinal` is zero-based and nonnegative; `weaponItemId` is 0x80..0x9F.
-/// `Gp_ReloadMode` selects primary (1), secondary (2), or both for any other value.
+/// `gItemMenuWeaponLoadSelection` selects primary (1), secondary (2), or both for any other value.
 /// The borrowed range must fit its backing table; weapon loads come from the
 /// live save. Searches all three choices per selected load, primary first,
 /// retaining duplicate occurrences. Returns item id 0 if no choice remains.
@@ -855,7 +855,7 @@ static s32 _itemMenuGetNthUnloadedConsumable(const InventoryItemRange* range, s3
     const u8* secondaryOptionBytes;
 
     selectedItemId = INVENTORY_ITEM_NONE;
-    loadSelection  = Gp_ReloadMode;
+    loadSelection  = gItemMenuWeaponLoadSelection;
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
         choiceIndex = 0;
         // Keep the row byte offset separate from the consumable-choice index.
@@ -911,7 +911,7 @@ void itemMenuSizeEquippedNotice(UiPanel* panel, s32 itemId)
     s32 equippedTextWidth;
 
     contentWidth      = textMeasureLineWidth(itemGetText(itemId, ITEM_TEXT_NAME, 0)) + ITEM_MENU_EQUIPPED_SUFFIX_ALLOWANCE_PIXELS;
-    equippedTextWidth = textMeasureLineWidth((const u8*)Gp_StrEquipped);
+    equippedTextWidth = textMeasureLineWidth(gItemMenuEquippedText);
     if (contentWidth < equippedTextWidth) {
         contentWidth = equippedTextWidth;
     }
@@ -934,7 +934,7 @@ void itemMenuDrawEquippedNotice(const UiObject* object, s32 itemId)
     itemName     = itemGetText(itemId, ITEM_TEXT_NAME, 0);
     textColorRgb = ITEM_MENU_TEXT_COLOR_RGB;
     drawMode     = TEXT_DRAW_OUTLINED;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_FIRST_LINE_Y_PIXELS, (const u8*)Gp_StrEquipped, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_FIRST_LINE_Y_PIXELS, gItemMenuEquippedText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_SECOND_LINE_Y_PIXELS, itemName, ITEM_MENU_EQUIPPED_ITEM_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(object, textEndX, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_SECOND_LINE_Y_PIXELS, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
 }
@@ -993,7 +993,7 @@ void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            attachmentPicker = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_PICKER_DESCRIPTOR], ITEM_MENU_ATTACHMENT_PICKER_KEEP_DISMISS, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_PICKER_OPEN_DELAY_TICKS, object);
+            attachmentPicker = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ATTACHMENT_PICKER_DESCRIPTOR], ITEM_MENU_ATTACHMENT_PICKER_KEEP_DISMISS, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_PICKER_OPEN_DELAY_TICKS, object);
             if (attachmentPicker != NULL) {
                 attachmentPicker->panel.bounds.rect.y = -92;
                 attachmentPicker->panel.bounds.rect.x = -8;
@@ -1128,7 +1128,7 @@ static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent)
     useHandlerSlot = &D_8010D3A0[itemId];
     if (*useHandlerSlot != NULL) {
         activeMode = USER_INTERFACE_PANEL_ACTIVE;
-        if (uiSpawnObject(&D_8010EAB4[ITEM_MENU_USE_PANEL_DESCRIPTOR_INDEX], itemId, activeMode, activeMode, parent) != NULL) {
+        if (uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_USE_PANEL_DESCRIPTOR_INDEX], itemId, activeMode, activeMode, parent) != NULL) {
             itemSetIdentified(itemId, 1);
         }
         parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -3949,7 +3949,7 @@ void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object)
     textDrawString(&request, (const u8*)Gp_StrItem2);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiStartPanelHiding(object, object->owner);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;

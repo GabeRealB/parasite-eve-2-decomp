@@ -441,7 +441,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[SHOP_ROW_DETAIL_TEMPLATE], rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[SHOP_ROW_DETAIL_TEMPLATE], rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

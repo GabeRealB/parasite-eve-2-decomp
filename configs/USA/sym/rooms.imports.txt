@@ -622,7 +622,7 @@ Gp_RelatedQty0 = 0x8010E238; // absolute:True
 
 D_8010D6F4 = 0x8010D6F4; // absolute:True size:0x134
 
-D_8010EAB4 = 0x8010EAB4; // absolute:True size:0x578
+gItemMenuPanelDescriptors = 0x8010EAB4; // absolute:True size:0x578
 
 gFsActorBufferWrittenBytes = 0x8006D860; // absolute:True size:0xC
 

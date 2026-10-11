@@ -88,7 +88,7 @@ void itemPickupActionPromptTask(Task* task)
         switch (Gp_PubItemLoc >> 8) {
             case ITEM_PICKUP_PLACE_BANK_ITEM:
             case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
-                descriptor = &D_8010EAB4[ITEM_PICKUP_PANEL_DESCRIPTOR];
+                descriptor = &gItemMenuPanelDescriptors[ITEM_PICKUP_PANEL_DESCRIPTOR];
                 break;
             case ITEM_PICKUP_PLACE_BANK_SAVE_POINT:
                 // Capture the root transform before presenting the save prompt.

@@ -359,7 +359,7 @@ void itemMenuParasiteEnergyListTask(Task* task);
 
 /// Draws occupied carried rows against capacity in the inventory's Total header.
 ///
-/// spawnArg2 borrows the live task-owned UiObject. `Gp_ItemCountShow` values
+/// spawnArg2 borrows the live task-owned UiObject. `gItemMenuEquipmentDetailOpen` values
 /// 1/0 request hiding/reopening, with a sixteen-tick reopening delay. Counts
 /// are inventory rows, including equipment rows, rather than item quantities.
 /// Resets result to NONE and draws the header independently of its visibility.
@@ -512,7 +512,7 @@ void itemMenuNoticeTask(Task* task);
 /// id (0x80..0x9F); other bits are ignored. A nonzero consumable (0xA0..0xBF)
 /// is identified and loaded to capacity from the live carried range. The range
 /// must fit its table and contain the weapon; the load result is not checked.
-/// Zero removes the loads selected by `Gp_ReloadMode` (1 primary, 2 secondary,
+/// Zero removes the loads selected by `gItemMenuWeaponLoadSelection` (1 primary, 2 secondary,
 /// other values both), preserving built-in supplies. A single selected item's
 /// id is copied into the argument's low byte before clearing for later drawing.
 /// Starts a 188-tick counter, including opening/inactive callbacks. An active
@@ -1116,29 +1116,58 @@ void itemMenuArmorPanelTask(Task* task);
 /// Three-entry dispatcher table: `itemMenuInitializeCaptionTask`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
-extern char Gp_StrUsedDot[];
+/// Past-tense suffix after the consumed weapon and add-on rows, including its period.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuAddonUsedText[6];
 
-extern char Gp_StrCreatedDot[];
-
-/// Column caption table drawn across the top of the P.Energy attach panel.
-extern MenuParasiteEnergyCaption D_8010E844[4];
+/// Past-tense suffix after the replacement weapon and returned add-on rows, including its period.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuAddonCreatedText[9];
 
 /// Holder text for a weapon slot with no ammunition loaded.
 extern char Gp_StrAmmoNone[];
 
 extern char Gp_StrAttachNone[];
 
-extern UiList D_8010E910;
+/// Shared mutable scrolling viewport for the item-information description.
+///
+/// Initialization replaces both row counts with the loaded description length,
+/// caps visible rows at six, resets selection/scrolling and enables the single
+/// shared row callback. Row counts must fit 0..127; the seed is one 15-pixel row.
+/// Drawing suspends row input; panel input scrolls the retained viewport.
+/// Only one information panel uses this gameplay-owned list at a time.
+extern UiList gItemMenuDescriptionList;
 
-extern u8* D_8010E7C0[];
+/// Ammunition SPECIAL labels indexed by `WeaponAttackRow.hitReaction` in 0..9.
+///
+/// Entries 3/4/5/6/7/9 are poison/burst/piercing/explosion/incendiary/flash;
+/// 0/1/2/8 are empty. Borrows NUL-terminated byte text for gameplay's lifetime.
+extern const u8* gItemMenuAmmoSpecialAttributeTexts[10];
 
-extern u8* Gp_CaliberNameTbl[];
+/// Specifications captions indexed by the consumable classification's low nibble.
+///
+/// Entries 1..6 label 9mm, .40 Magnum, .44 Magnum, 40mm, 12 gauge and 5.56mm;
+/// the others are empty. Text embeds column/font/Y-offset/outline commands and
+/// is borrowed read-only for the gameplay overlay's lifetime.
+extern const u8* gItemMenuCaliberTexts[16];
 
-extern u8* Gp_FeatNameTbl[];
+/// Armor SPECIAL labels in feature-bit order, from bit zero through bit twelve.
+///
+/// Bits 10/11 have empty labels. The specifications panel scans in ascending
+/// bit order and displays at most two set bits. Borrows NUL-terminated byte
+/// text for gameplay's lifetime; resistance labels include an orange command.
+extern const u8* gItemMenuArmorFeatureTexts[13];
 
 extern const u8** D_80114D80;
 
-extern u16 Gp_ItemCountShow;
+/// Equipment or attachment details are open (0 normal panes, 1 hide them).
+///
+/// Inventory-panel initialization clears this halfword. Detail initialization
+/// sets 1; its closing updates restore 0. Inventory, weapon, armor and count
+/// panes respond to those exact values. Teardown alone does not clear it.
+extern u16 gItemMenuEquipmentDetailOpen;
 
 /// Values written by menu flow to its room/view restoration latch.
 enum {
@@ -1153,9 +1182,21 @@ enum {
 /// without normalizing or consuming them, so other nonzero values do not restore.
 extern s32 gItemMenuRoomRestorePending;
 
-extern s32 Gp_ItemOrderMode;
+/// Carried-item destination protocol (0 browse commands, 1 choose a destination).
+///
+/// Inventory initialization resets it; an accepted Move/Switch command sets 1.
+/// `Gp_SelItemRec` must then retain the live saved source row while inventory,
+/// equipment or attachment rows select its destination. Completion or Cancel
+/// restores 0. The global owns no row; leaving the menu adds no separate reset.
+extern s32 gItemMenuDestinationSelectionMode;
 
-extern s32 Gp_ReloadMode;
+/// Weapon-load selector for menu choices (0 both, 1 primary, 2 secondary).
+///
+/// Equip/general-load commands write BOTH; active load rows publish their
+/// one-based row index. Consumers borrow it through choice and notice tasks.
+/// Some selectors treat other values as both; producers publish only 0..2.
+/// BSS starts at BOTH; menu entry/teardown does not independently reset it.
+extern s32 gItemMenuWeaponLoadSelection;
 
 extern UiObject* D_80114D98[2];
 
@@ -1167,17 +1208,35 @@ extern char Gp_StrUsed[];
 
 extern char Gp_StrSelectDest[];
 
-extern char Gp_StrEquipped[];
+/// First-line verb in equipment and armor-attachment confirmation notices.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuEquippedText[9];
 
-extern char Gp_StrObtained[];
+/// First-line verb above the collected item name in pickup notices.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemPickupObtainedText[9];
 
-extern char Gp_StrLoaded[];
+/// First-line verb above the newly loaded consumable name.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuLoadedText[7];
 
-extern char Gp_StrRemoved[];
+/// First-line verb above a named consumable removed from a weapon load.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuRemovedText[8];
 
-extern char Gp_StrRemovedAmmo[];
+/// Complete one-line notice when ammunition removal has no single item name.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuRemovedAmmunitionText[20];
 
-extern char Gp_StrInvoked[];
+/// First-line verb above the Parasite Energy item name after invocation.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuInvokedText[8];
 
 extern char Gp_StrUse[];
 
@@ -1203,15 +1262,27 @@ extern u8 gItemMenuOkText[3];
 /// NUL-terminated byte text for the item-menu dialog's Cancel answer.
 extern u8 gItemMenuCancelText[7];
 
-extern char Gp_StrPickupAsk[];
+/// Question offered before collecting the published pickup item.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemPickupQuestionText[19];
 
-extern char Gp_StrInvFull[];
+/// Warning shown when the carried inventory cannot accept the pickup.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemPickupInventoryFullText[16];
 
-extern char D_8010E588[];
+/// NUL-only second line of the inventory-full pickup warning.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemPickupInventoryFullSecondLineText[1];
 
 extern char Gp_StrSort[];
 
-extern char Gp_StrAmmoCaps[];
+/// Uppercase ammunition heading shared by weapon summaries and the load-detail pane.
+///
+/// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
+extern u8 gItemMenuAmmoLabelText[5];
 
 /// NUL-terminated period appended after an item name in menu action notices.
 extern u8 gItemMenuPeriodText[2];
@@ -1252,9 +1323,24 @@ extern const u8* D_8010E990[1];
 
 extern const u8* D_8010E994[3];
 
-extern UiList D_8010E9A4;
+/// Shared mutable list for carried weapons, optionally filtered by a consumable.
+///
+/// Setup replaces the 25-row seed with the current choice count, sets 15-pixel
+/// spacing and enables its single row callback; unfiltered choices show four
+/// rows. Filtered choices retain primary/secondary duplicates. The list task
+/// resets selection and first-visible row on initialization; the outer weapon
+/// selection task can read the retained selection before that reset.
+/// One live choice session may use this gameplay-owned list at a time.
+extern UiList gItemMenuWeaponChoiceList;
 
-extern UiList D_8010E9CC;
+/// Shared mutable list for a weapon's compatible consumables and removal choice.
+///
+/// Setup replaces the three-row seed, enables its single callback and resets
+/// selection/scrolling. BOTH selects at most six primary/secondary occurrences;
+/// a single load selects at most three plus a removal row when nonempty.
+/// Rows index `Gp_AttachListIds`; entries are item ids, with zero for removal.
+/// One live choice session may use this gameplay-owned list at a time.
+extern UiList gItemMenuConsumableChoiceList;
 
 extern UiList D_8010E9F4;
 

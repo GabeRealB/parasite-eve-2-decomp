@@ -320,7 +320,7 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
 
     object         = choiceTask->spawnArg2.pointer;
     weaponItemId   = (u16)choiceTask->spawnArg1.value;
-    list           = &D_8010E9CC;
+    list           = &gItemMenuConsumableChoiceList;
     object->result = USER_INTERFACE_RESULT_NONE;
     currentState   = choiceTask->state;
     // Build once; an empty list becomes a timed notice rather than an input list.
@@ -420,7 +420,7 @@ void itemMenuAmmoSelectionTask(Task* task)
     s32       previewFlags;
     Task*     parentTask;
 
-    list          = &D_8010E9CC;
+    list          = &gItemMenuConsumableChoiceList;
     object        = task->spawnArg2.pointer;
     previousState = task->state;
     itemMenuConsumableChoiceListTask(task);
@@ -437,7 +437,7 @@ void itemMenuAmmoSelectionTask(Task* task)
             parentTask                           = task->parent;
             D_80114DD8                           = -1;
             uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_CONSUMABLE, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_CONSUMABLE, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
         }
         uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS);
         consumableItemId = Gp_AttachListIds[list->selectedItemIndex];
@@ -533,11 +533,11 @@ void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object)
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_ARMOR_EQUIP_NOTICE_PANEL], armorItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ARMOR_EQUIP_NOTICE_PANEL], armorItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_ARMOR_INFO_PANEL], armorItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ARMOR_INFO_PANEL], armorItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -575,7 +575,7 @@ void itemMenuArmorSelectionTask(Task* task)
         list->firstVisibleItemIndex.unsignedValue = 0;
         parentTask                                = task->parent;
         uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
-        uiSpawnObject(&D_8010EAB4[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_ARMOR, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
+        uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_ARMOR, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
         task->state++;
     }
 
@@ -648,33 +648,33 @@ void itemMenuReloadNoticeTask(Task* task)
             // Preserve the selected item's name before clearing its load record.
             weaponLoad  = equipmentGetWeaponLoad(weaponItemId);
             task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM;
-            if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_PRIMARY) {
+            if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_PRIMARY) {
                 if (weaponLoad->primaryItemId != INVENTORY_ITEM_NONE) {
                     task->spawnArg1.value |= weaponLoad->primaryItemId;
                     itemText               = itemGetText(weaponLoad->primaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
                     task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
-                    itemText    = (const u8*)Gp_StrRemovedAmmo;
+                    itemText    = gItemMenuRemovedAmmunitionText;
                 }
-            } else if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+            } else if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
                 if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE) {
                     task->spawnArg1.value |= weaponLoad->secondaryItemId;
                     itemText               = itemGetText(weaponLoad->secondaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
                     task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
-                    itemText    = (const u8*)Gp_StrRemovedAmmo;
+                    itemText    = gItemMenuRemovedAmmunitionText;
                 }
             } else {
                 task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
-                itemText    = (const u8*)Gp_StrRemovedAmmo;
+                itemText    = gItemMenuRemovedAmmunitionText;
             }
-            equipmentClearSelectedRemovableLoads(weaponItemId, Gp_ReloadMode);
-            verbWidth = textMeasureLineWidth((const u8*)Gp_StrRemoved);
+            equipmentClearSelectedRemovableLoads(weaponItemId, gItemMenuWeaponLoadSelection);
+            verbWidth = textMeasureLineWidth(gItemMenuRemovedText);
         } else {
             itemSetIdentified(consumableItemId, 1);
             itemText = itemGetText(consumableItemId, ITEM_TEXT_NAME, 0);
             equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, consumableItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
-            verbWidth   = textMeasureLineWidth((const u8*)Gp_StrLoaded);
+            verbWidth   = textMeasureLineWidth(gItemMenuLoadedText);
             task->state = ITEM_MENU_RELOAD_NOTICE_LOADED;
         }
         if (task->state != ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS) {
@@ -702,16 +702,16 @@ void itemMenuReloadNoticeTask(Task* task)
     } else if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS) {
         itemText = itemGetText(consumableItemId, ITEM_TEXT_NAME, 0);
         if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM) {
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrLoaded, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, gItemMenuLoadedText, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemoved, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, gItemMenuRemovedText, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         }
         drawMode     = TEXT_DRAW_OUTLINED;
         textEndX     = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
         textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
         textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemovedAmmo, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, gItemMenuRemovedAmmunitionText, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     _itemMenuUpdateNoticeResult(obj, task);
 }
@@ -745,7 +745,7 @@ void itemMenuAttachNoticeTask(Task* task)
     }
     uiDrawPanelLabel(&obj->panel, (const char*)gItemMenuAttachTitle);
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, gItemMenuEquippedText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(obj, textEndX, 0xE, gItemMenuPeriodText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     _itemMenuUpdateNoticeResult(obj, task);
@@ -776,7 +776,7 @@ void itemMenuEquipNoticeTask(Task* task)
             equipmentEquipCarriedArmor(itemId);
         }
         contentWidth = textMeasureLineWidth(itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
-        verbWidth    = textMeasureLineWidth((const u8*)Gp_StrEquipped);
+        verbWidth    = textMeasureLineWidth(gItemMenuEquippedText);
         if (contentWidth < verbWidth) {
             contentWidth = verbWidth;
         }
@@ -797,7 +797,7 @@ void itemMenuEquipNoticeTask(Task* task)
     uiDrawPanelLabel(&obj->panel, (const char*)gItemMenuEquipTitle);
     itemText     = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, gItemMenuEquippedText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     _itemMenuUpdateNoticeResult(obj, task);
@@ -841,10 +841,10 @@ void itemMenuDrawLoadRow(UiList* list, UiObject* object)
             selectedItemId = Gp_SelItemRec->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if ((u32)(selectedItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
-                Gp_ReloadMode = EQUIPMENT_CLEAR_LOAD_BOTH;
-                loadDialog    = uiSpawnObject(&D_8010EAB4[ITEM_MENU_LOAD_SLOT_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+                gItemMenuWeaponLoadSelection = EQUIPMENT_CLEAR_LOAD_BOTH;
+                loadDialog                   = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_LOAD_SLOT_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             } else if ((u32)(selectedItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
-                loadDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_LOAD_WEAPON_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+                loadDialog = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_LOAD_WEAPON_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             } else {
                 return;
             }
@@ -879,11 +879,11 @@ void itemMenuDrawExchangeRow(UiList* list, UiObject* object)
             }
             // An empty or consumable slot chooses ammunition for the equipped weapon.
             if (((u32)(selectedItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) || (selectedItemId == INVENTORY_ITEM_NONE)) {
-                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_AMMO_CHOICE_PANEL], gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
+                exchangeDialog = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EXCHANGE_AMMO_CHOICE_PANEL], gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
             } else if ((u32)(selectedItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
-                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_WEAPON_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
+                exchangeDialog = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EXCHANGE_WEAPON_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
             } else if ((u32)(selectedItemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
-                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_ARMOR_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
+                exchangeDialog = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EXCHANGE_ARMOR_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
             } else {
                 return;
             }

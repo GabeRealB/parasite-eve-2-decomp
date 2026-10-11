@@ -250,7 +250,7 @@ void itemMenuInfoTask(Task* task)
     SPRT*                  buttonGlyph;
     s32                    savedPanelControl;
     const ArmorStats*      armorStats;
-    u8**                   featureName;
+    const u8**             featureName;
     const WeaponAttackRow* attack;
     const WeaponAttackRow* attackTable;
     s32                    consumableIndex;
@@ -266,7 +266,7 @@ void itemMenuInfoTask(Task* task)
 
     resourcesReady  = 0;
     previewFlags    = resourcesReady;
-    descriptionList = &D_8010E910;
+    descriptionList = &gItemMenuDescriptionList;
     infoArgument    = task->spawnArg1.value;
     object          = task->spawnArg2.pointer;
     itemId          = infoArgument & ITEM_MENU_INFO_ITEM_ID_MASK;
@@ -551,7 +551,7 @@ void itemMenuInfoTask(Task* task)
                 featureLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 featureLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
                 textDrawString(&featureLabelRequest, gItemMenuArmorFeaturesLabel);
-                featureName = Gp_FeatNameTbl;
+                featureName = gItemMenuArmorFeatureTexts;
                 do {
                     if (armorFeatures & 1) {
                         featureNameRequest.x          = object->panel.contentOriginX.unsignedValue + 8 + rowX;
@@ -571,7 +571,7 @@ void itemMenuInfoTask(Task* task)
                     armorFeatures >>= 1;
                     featureIndex++;
                     featureName++;
-                } while (featureIndex < ITEM_MENU_INFO_FEATURE_BIT_COUNT);
+                } while (featureIndex < (s32)ARRAY_SIZE(gItemMenuArmorFeatureTexts));
                 rowX                       = object->panel.contentLeft.signedValue + 2;
                 categoryRequest.x          = object->panel.contentOriginX.unsignedValue + rowX;
                 categoryRequest.y          = object->panel.contentOriginY.unsignedValue + 0x40;
@@ -595,7 +595,7 @@ void itemMenuInfoTask(Task* task)
                     categoryRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                     categoryRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                     categoryRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                    textDrawString(&categoryRequest, Gp_CaliberNameTbl[caliberIndex]);
+                    textDrawString(&categoryRequest, gItemMenuCaliberTexts[caliberIndex]);
                     attackTable = Gp_IdParamLo;
                     attackIndex = itemId - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1);
                     attack      = attackTable + attackIndex;
@@ -655,7 +655,7 @@ void itemMenuInfoTask(Task* task)
                         specialValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                         specialValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                         specialValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                        textDrawString(&specialValueRequest, D_8010E7C0[attack->hitReaction]);
+                        textDrawString(&specialValueRequest, gItemMenuAmmoSpecialAttributeTexts[attack->hitReaction]);
                     }
                     rowX                         = object->panel.contentLeft.signedValue + 2;
                     extraLabelRequest.x          = object->panel.contentOriginX.unsignedValue + rowX;
@@ -903,10 +903,10 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (gGameSession->cutsceneHold == rowInputEnabled) {
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_USE_NOTICE_PANEL], 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COLLECTED_USE_NOTICE_PANEL], 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                commandPanel = uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_USE_COMMAND_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                commandPanel = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COLLECTED_USE_COMMAND_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 if (commandPanel != NULL) {
                     uiPositionRowDialog(&commandPanel->panel, list, &object->panel);
                     object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -914,7 +914,7 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COLLECTED_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }

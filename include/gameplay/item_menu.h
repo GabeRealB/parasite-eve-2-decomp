@@ -277,8 +277,51 @@ extern char Gp_StrEmpty[];
 /// Requires resident menu textures and writable OT/primitive storage.
 void itemMenuDrawMeter(const UiPanel* panel, s32 left, s32 right, s32 centerY, s32 maximum, s32 value, u32 colorRgb);
 
-/// Command-indexed menu descriptors. Zero rows reserve unused command IDs.
-extern UiObjectDesc D_8010EAB4[50];
+/// Panel recipe slots; command results also select these indices.
+enum {
+    ITEM_MENU_DESCRIPTOR_CAPTION                 = 0,
+    ITEM_MENU_DESCRIPTOR_MAIN_COMMANDS           = 1,
+    ITEM_MENU_DESCRIPTOR_PLAYER_SUMMARY          = 3,
+    ITEM_MENU_DESCRIPTOR_WEAPON_SUMMARY          = 4,
+    ITEM_MENU_DESCRIPTOR_INVENTORY_COUNT         = 5,
+    ITEM_MENU_DESCRIPTOR_INVENTORY               = 6,
+    ITEM_MENU_DESCRIPTOR_COLLECTED_ITEMS         = 8,
+    ITEM_MENU_DESCRIPTOR_ARMOR_SUMMARY           = 10,
+    ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_SUMMARY = 11,
+    ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_LIST    = 12,
+    ITEM_MENU_DESCRIPTOR_EQUIPMENT_DETAIL        = 14,
+    ITEM_MENU_DESCRIPTOR_ARMOR_SELECTION         = 18,
+    ITEM_MENU_DESCRIPTOR_AMMO_SELECTION          = 19,
+    ITEM_MENU_DESCRIPTOR_WEAPON_SELECTION        = 20,
+    ITEM_MENU_DESCRIPTOR_ATTACHMENT_PICKER       = 21,
+    ITEM_MENU_DESCRIPTOR_ATTACH_NOTICE           = 25,
+    ITEM_MENU_DESCRIPTOR_ITEM_COMMANDS           = 34,
+    ITEM_MENU_DESCRIPTOR_ITEM_USE                = 35,
+    ITEM_MENU_DESCRIPTOR_OPTIONS                 = 36,
+    ITEM_MENU_DESCRIPTOR_WEAPON_CHOICES          = 38,
+    ITEM_MENU_DESCRIPTOR_RELOAD_NOTICE           = 39,
+    ITEM_MENU_DESCRIPTOR_CONSUMABLE_CHOICES      = 40,
+    ITEM_MENU_DESCRIPTOR_EQUIP_NOTICE            = 41,
+    ITEM_MENU_DESCRIPTOR_KEY_ITEM_COMMANDS       = 43,
+    ITEM_MENU_DESCRIPTOR_KEY_ITEM_USE            = 44,
+    ITEM_MENU_DESCRIPTOR_INFORMATION             = 45,
+    ITEM_MENU_DESCRIPTOR_HOTSPOT_ITEM_CAPTION    = 46,
+    ITEM_MENU_DESCRIPTOR_WEAPON_DESTINATION      = 47,
+    ITEM_MENU_DESCRIPTOR_ARMOR_DESTINATION       = 48,
+    ITEM_MENU_DESCRIPTOR_PICKUP                  = 49,
+    ITEM_MENU_DESCRIPTOR_COUNT                   = 50
+};
+
+/// Panel recipes shared by inventory menus, pickups and item-information callers.
+///
+/// Indices below COUNT with a non-NULL callback are spawnable; omitted slots
+/// are all-zero reserved recipes. Map (0x100) and return-from-map (0x101)
+/// commands are handled separately and are not table indices. Bounds are signed
+/// screen-centered pixels, and ordering seeds count tags. `uiSpawnObject`
+/// consumes a recipe synchronously; content handlers/resources remain live for
+/// the resulting task. Gameplay owns the table; room and map overlays import it.
+/// The hotspot Item command uses its own caption recipe at a lower ordering depth.
+extern UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT];
 
 /// Runs a modal menu from display capture through room and equipment restoration.
 ///

@@ -203,16 +203,16 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
         firstStatY = contentTop + 0x1C;
     }
     if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
-        statList       = &D_8010E9A4;
+        statList       = &gItemMenuWeaponChoiceList;
         candidateStats = _itemMenuGetWeaponStats(itemId);
         statCount      = 3;
         D_80114D80     = D_8010E984;
         equippedStats  = Gp_WeaponStats[player->weapon];
     } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
         weaponLoad     = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
-        statList       = &D_8010E9CC;
+        statList       = &gItemMenuConsumableChoiceList;
         candidateStats = _itemMenuGetConsumablePower(itemId);
-        if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+        if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
             if (weaponLoad->secondaryItemId == INVENTORY_ITEM_NONE) {
                 equippedStats = _itemMenuGetConsumablePower(ITEM_MENU_CONSUMABLE_POWER_NONE);
             } else {
@@ -268,7 +268,7 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
             lowerIsBetter = 0;
             // Weight is column two, the same numeric value as right alignment.
             if (statIndex == rightAlignment) {
-                lowerIsBetter = statList == &D_8010E9A4;
+                lowerIsBetter = statList == &gItemMenuWeaponChoiceList;
             }
             if (displayMode == ITEM_MENU_EQUIPMENT_STATS_COMPARE) {
                 equippedValue  = *equippedStat;
@@ -335,7 +335,7 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
             do {
                 lowerIsBetter = 0;
                 if (statIndex == weightStatIndex) {
-                    lowerIsBetter = statList == &D_8010E9A4;
+                    lowerIsBetter = statList == &gItemMenuWeaponChoiceList;
                 }
                 comparisonSprite     = gGpuPrimCursor;
                 comparisonSprite->x0 = object->panel.contentOriginX.unsignedValue + statX;
@@ -456,10 +456,10 @@ void itemMenuEquipmentDetailTask(Task* task)
             itemId = INVENTORY_ITEM_NONE;
         }
     } else if (detailKind == ITEM_MENU_DETAIL_CONSUMABLE) {
-        uiDrawPanelLabel(&object->panel, Gp_StrAmmoCaps);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuAmmoLabelText);
         weaponLoad = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
         itemId     = weaponLoad->primaryItemId;
-        if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+        if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
             itemId = weaponLoad->secondaryItemId;
         }
     } else if (detailKind == ITEM_MENU_DETAIL_ARMOR) {
@@ -474,11 +474,11 @@ void itemMenuEquipmentDetailTask(Task* task)
     }
 
     if (task->state == ITEM_MENU_DETAIL_INITIAL) {
-        previousItemId   = memCalloc(sizeof(*previousItemId), false);
-        Gp_ItemCountShow = true;
-        task->work       = previousItemId;
-        *previousItemId  = itemId;
-        task->state      = ITEM_MENU_DETAIL_WAITING_FOR_LOAD;
+        previousItemId               = memCalloc(sizeof(*previousItemId), false);
+        gItemMenuEquipmentDetailOpen = true;
+        task->work                   = previousItemId;
+        *previousItemId              = itemId;
+        task->state                  = ITEM_MENU_DETAIL_WAITING_FOR_LOAD;
     }
 
     // The initial item uses the existing menu preview; only changes request a load.
@@ -511,7 +511,7 @@ void itemMenuEquipmentDetailTask(Task* task)
     }
 
     if (object->panel.state == USER_INTERFACE_PANEL_CLOSING) {
-        Gp_ItemCountShow = false;
+        gItemMenuEquipmentDetailOpen = false;
     }
 }
 
@@ -584,23 +584,23 @@ void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object)
             if (object->owner->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
                 equipmentEquipCarriedWeapon(weaponItemId);
-                Gp_ReloadMode = EQUIPMENT_CLEAR_LOAD_BOTH;
-                loadDialog    = uiSpawnObject(&D_8010EAB4[ITEM_MENU_LOAD_SLOT_CHOICE_PANEL], weaponItemId | ITEM_MENU_LOAD_AFTER_EQUIP, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                gItemMenuWeaponLoadSelection = EQUIPMENT_CLEAR_LOAD_BOTH;
+                loadDialog                   = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_LOAD_SLOT_CHOICE_PANEL], weaponItemId | ITEM_MENU_LOAD_AFTER_EQUIP, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
                 if (loadDialog != NULL) {
                     uiPositionRowDialog(&(loadDialog)->panel, list, &(object)->panel);
                 }
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_RELOAD_NOTICE_PANEL], (weaponItemId << ITEM_MENU_RELOAD_WEAPON_SHIFT) | consumableItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_RELOAD_NOTICE_PANEL], (weaponItemId << ITEM_MENU_RELOAD_WEAPON_SHIFT) | consumableItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (consumableItemId != 0) {
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_INFO_PANEL], weaponItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EQUIPMENT_INFO_PANEL], weaponItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             } else {
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_INFO_PANEL], weaponItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EQUIPMENT_INFO_PANEL], weaponItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             }
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -650,7 +650,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
     object           = task->spawnArg2.pointer;
     consumableItemId = task->spawnArg1.value;
     object->result   = USER_INTERFACE_RESULT_NONE;
-    list             = &D_8010E9A4;
+    list             = &gItemMenuWeaponChoiceList;
     if (task->state == ITEM_MENU_WEAPON_CHOICE_INITIAL) {
         itemMenuSetWeaponChoiceRows(list, consumableItemId);
         uiFitPanelToList(list, &(object)->panel);
@@ -742,7 +742,7 @@ void itemMenuWeaponSelectionTask(Task* task)
     s32                 previewFlags;
     Task*               parentTask;
 
-    weaponChoices = &D_8010E9A4;
+    weaponChoices = &gItemMenuWeaponChoiceList;
     object        = task->spawnArg2.pointer;
     player        = &gPlayerStatus;
     uiDrawPanelLabel(&object->panel, Gp_StrSelectWeapon);
@@ -751,7 +751,7 @@ void itemMenuWeaponSelectionTask(Task* task)
         parentTask = task->parent;
         D_80114DD8 = -1;
         uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
-        uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_DETAIL_PANEL], ITEM_MENU_DETAIL_WEAPON, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_DETAIL_OPEN_DELAY_TICKS, object);
+        uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EQUIPMENT_DETAIL_PANEL], ITEM_MENU_DETAIL_WEAPON, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_DETAIL_OPEN_DELAY_TICKS, object);
     }
     weaponItemId = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponChoices->selectedItemIndex, INVENTORY_ITEM_NONE);
     // Opening, hiding and hidden panels carry suspended input in the high half.
@@ -809,7 +809,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
                 uiSetPromptText((const u8*)Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(consumableItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
-                if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_BOTH) {
+                if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_BOTH) {
                     _gpSetPreviewItem(consumableItemId, 2);
                 }
             }
@@ -820,7 +820,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
         // Inventory totals include loaded units; return this weapon's load in BOTH mode.
         carriedRow        = inventoryFindLastCarriedItemRow(consumableItemId);
         availableQuantity = carriedRow->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, consumableItemId);
-        if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_BOTH) {
+        if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_BOTH) {
             weaponLoad = equipmentGetWeaponLoad(weaponItemId);
             if (weaponLoad->primaryItemId == consumableItemId) {
                 availableQuantity += weaponLoad->primaryQty;
@@ -888,15 +888,15 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-            uiSpawnObject(&D_8010EAB4[ITEM_MENU_RELOAD_NOTICE_PANEL], (weaponItemId << ITEM_MENU_RELOAD_WEAPON_SHIFT) | consumableItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_RELOAD_NOTICE_PANEL], (weaponItemId << ITEM_MENU_RELOAD_WEAPON_SHIFT) | consumableItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (consumableItemId != 0)) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             // Both branches open the same specifications panel.
             if (weaponItemId != 0) {
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_INFO_PANEL], consumableItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EQUIPMENT_INFO_PANEL], consumableItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             } else {
-                uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_INFO_PANEL], consumableItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
+                uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_EQUIPMENT_INFO_PANEL], consumableItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             }
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -943,7 +943,7 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
     s32                        availableQuantity;
 
     carriedItems  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    loadSelection = Gp_ReloadMode;
+    loadSelection = gItemMenuWeaponLoadSelection;
     weaponLoad    = equipmentGetWeaponLoad(weaponItemId);
     rowCount      = 0;
     // Keep catalogue order, including separate occurrences in the two loads.

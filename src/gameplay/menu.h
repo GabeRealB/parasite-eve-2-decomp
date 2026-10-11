@@ -49,4 +49,11 @@ typedef struct {
 } MenuParasiteEnergyCaption;
 STATIC_ASSERT_SIZEOF(MenuParasiteEnergyCaption, 3);
 
+/// Caption sprites over the Parasite Energy summary's fire, wind, water and earth columns.
+///
+/// Four entries follow the saved ability-level element order; texel coordinates
+/// refer to the loaded menu sheet and xOffset is in pixels. The panel derives
+/// widths/palettes from the column. Storage belongs to the gameplay overlay.
+extern MenuParasiteEnergyCaption gItemMenuParasiteEnergyCaptions[4];
+
 #endif // GAMEPLAY_PRIVATE_MENU_H
