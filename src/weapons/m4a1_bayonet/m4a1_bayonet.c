@@ -1175,136 +1175,218 @@ static AnimationSet _gM4a1BayonetAimBackwardOrTurnAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0B468Bank1[19] = {
+/// Forward-aiming translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetAimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0B468_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0B468Bank4[269] = {
+/// Forward-aiming packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetAimForwardAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0B468_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0B468Records[336] = {
+/// Forward-aiming keyframes, paired footstep cues and loop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetAimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0B468_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0B468Indices[20] = {
+/// Nineteen forward-aiming track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetAimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0B468_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0B468 = {
-    _gM4a1BayonetAnimation0B468Records,
-    _gM4a1BayonetAnimation0B468Indices,
-    { NULL, _gM4a1BayonetAnimation0B468Bank1, NULL, NULL, _gM4a1BayonetAnimation0B468Bank4, NULL, NULL, NULL },
+/// Forward movement while aiming, in M4A1 Bayonet player bank slot 12.
+///
+/// Native playback animates child slots 1..18 and leaves the root unchanged.
+/// All nineteen tracks loop; track 1 marks the two footsteps with separate
+/// cue bits. Records, indices and word-aligned poses must stay loaded while
+/// borrowed.
+static AnimationSet _gM4a1BayonetAimForwardAnimation = {
+    .records           = _gM4a1BayonetAimForwardAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetAimForwardAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetAimForwardAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetAimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0C3CCBank1[26] = {
+/// Rifle-reload translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0C3CC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0C3CCBank4[416] = {
+/// Rifle-reload packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C3CC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0C3CCRecords[471] = {
+/// Rifle-reload keyframes, reload cues and stop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C3CC_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0C3CCIndices[20] = {
+/// Nineteen rifle-reload track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C3CC_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0C3CC = {
-    _gM4a1BayonetAnimation0C3CCRecords,
-    _gM4a1BayonetAnimation0C3CCIndices,
-    { NULL, _gM4a1BayonetAnimation0C3CCBank1, NULL, NULL, _gM4a1BayonetAnimation0C3CCBank4, NULL, NULL, NULL },
+/// Rifle reload shared by M4A1 Bayonet player bank slots 14, 15 and 20.
+///
+/// Normal reload selects 14 plus the load selection; battle-end reload
+/// selects 20. All nineteen tracks stop at their final poses. Track 1 has
+/// two combined cue-bit markers; the reload handler loads ammunition on
+/// the second marker. Native playback animates child slots 1..18, leaving
+/// the root unchanged. Records, indices and word-aligned poses must stay
+/// loaded while borrowed.
+static AnimationSet _gM4a1BayonetReloadAnimation = {
+    .records           = _gM4a1BayonetReloadAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetReloadAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetReloadAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0C798Bank1[6] = {
+/// Rifle-shot translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetRifleFireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0C798_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0C798Bank4[80] = {
+/// Rifle-shot packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetRifleFireAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C798_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0C798Records[125] = {
+/// Rifle-shot keyframes and stop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetRifleFireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C798_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0C798Indices[20] = {
+/// Nineteen rifle-shot track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetRifleFireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0C798_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0C798 = {
-    _gM4a1BayonetAnimation0C798Records,
-    _gM4a1BayonetAnimation0C798Indices,
-    { NULL, _gM4a1BayonetAnimation0C798Bank1, NULL, NULL, _gM4a1BayonetAnimation0C798Bank4, NULL, NULL, NULL },
+/// Rifle-shot animation in M4A1 Bayonet player bank slot 10.
+///
+/// Each round of the primary burst restarts this clip with a two-frame
+/// blend. Its nineteen tracks stop at their final poses and contain no
+/// action cues; the attack state schedules the shots and impacts.
+/// Native playback animates child slots 1..18 and leaves the root unchanged.
+/// Records, indices and word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetRifleFireAnimation = {
+    .records           = _gM4a1BayonetRifleFireAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetRifleFireAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetRifleFireAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetRifleFireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0D4D8Bank1[23] = {
+/// Secondary-attack translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetSecondaryAttackAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0D4D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0D4D8Bank4[346] = {
+/// Secondary-attack packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetSecondaryAttackAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0D4D8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0D4D8Records[413] = {
+/// Secondary-attack keyframes and stop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetSecondaryAttackAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0D4D8_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0D4D8Indices[20] = {
+/// Nineteen secondary-attack track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetSecondaryAttackAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0D4D8_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0D4D8 = {
-    _gM4a1BayonetAnimation0D4D8Records,
-    _gM4a1BayonetAnimation0D4D8Indices,
-    { NULL, _gM4a1BayonetAnimation0D4D8Bank1, NULL, NULL, _gM4a1BayonetAnimation0D4D8Bank4, NULL, NULL, NULL },
+/// Secondary bayonet attack in M4A1 Bayonet player bank slot 11.
+///
+/// The secondary attack starts this clip with a three-frame blend before
+/// its timed windup and contact window. All nineteen tracks stop at their
+/// final poses; collision and trail timing come from the attack state.
+/// Native playback animates child slots 1..18 and leaves the root unchanged.
+/// Records, indices and word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetSecondaryAttackAnimation = {
+    .records           = _gM4a1BayonetSecondaryAttackAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetSecondaryAttackAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetSecondaryAttackAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetSecondaryAttackAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0DC18Bank1[13] = {
+/// Aim-entry translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetAimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0DC18_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0DC18Bank4[182] = {
+/// Aim-entry packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetAimEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0DC18_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0DC18Records[223] = {
+/// Aim-entry keyframes and stop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetAimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0DC18_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0DC18Indices[20] = {
+/// Nineteen aim-entry track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetAimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0DC18_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0DC18 = {
-    _gM4a1BayonetAnimation0DC18Records,
-    _gM4a1BayonetAnimation0DC18Indices,
-    { NULL, _gM4a1BayonetAnimation0DC18Bank1, NULL, NULL, _gM4a1BayonetAnimation0DC18Bank4, NULL, NULL, NULL },
+/// Transition into aiming in M4A1 Bayonet player bank slot 7.
+///
+/// Native aim entry plays child slots 1..18, leaving the root unchanged.
+/// Enemy hold and hit-recovery sequences also borrow this clip for their
+/// player animation tables. All nineteen tracks stop at their final poses.
+/// Records, indices and word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetAimEntryAnimation = {
+    .records           = _gM4a1BayonetAimEntryAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetAimEntryAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetAimEntryAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetAimEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0E648Bank1[18] = {
+/// Aim-exit translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetAimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_bayonet_animation_0E648_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0E648Bank4[266] = {
+/// Aim-exit packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetAimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0E648_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0E648Records[312] = {
+/// Aim-exit keyframes and stop controls; durations count normal-rate frames and pose offsets count words.
+static const AnimationRecord _gM4a1BayonetAimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0E648_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0E648Indices[20] = {
+/// Nineteen aim-exit track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetAimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0E648_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0E648 = {
-    _gM4a1BayonetAnimation0E648Records,
-    _gM4a1BayonetAnimation0E648Indices,
-    { NULL, _gM4a1BayonetAnimation0E648Bank1, NULL, NULL, _gM4a1BayonetAnimation0E648Bank4, NULL, NULL, NULL },
+/// Transition out of aiming in M4A1 Bayonet player bank slot 8.
+///
+/// Normal aim exit and scripted attack recovery play this clip on child
+/// slots 1..18 with a six-frame blend, leaving the root unchanged.
+/// All nineteen tracks stop at their final poses. Records, indices and
+/// word-aligned poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetAimExitAnimation = {
+    .records           = _gM4a1BayonetAimExitAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetAimExitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetAimExitAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetAimExitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1BayonetAnimation0EF00Bank1[18] = {
@@ -1381,20 +1463,20 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation10074,
     &_gM4a1BayonetNegativeTurnAnimation,
     &_gM4a1BayonetPositiveTurnAnimation,
-    &_gM4a1BayonetAnimation0DC18,
-    &_gM4a1BayonetAnimation0E648,
+    &_gM4a1BayonetAimEntryAnimation,
+    &_gM4a1BayonetAimExitAnimation,
     &_gM4a1BayonetAimIdleAnimation,
-    &_gM4a1BayonetAnimation0C798,
-    &_gM4a1BayonetAnimation0D4D8,
-    &_gM4a1BayonetAnimation0B468,
+    &_gM4a1BayonetRifleFireAnimation,
+    &_gM4a1BayonetSecondaryAttackAnimation,
+    &_gM4a1BayonetAimForwardAnimation,
     &_gM4a1BayonetAimBackwardOrTurnAnimation,
-    &_gM4a1BayonetAnimation0C3CC,
-    &_gM4a1BayonetAnimation0C3CC,
+    &_gM4a1BayonetReloadAnimation,
+    &_gM4a1BayonetReloadAnimation,
     &_gM4a1BayonetPart4HitReactionAnimation,
     &_gM4a1BayonetOtherBodyHitReactionAnimation,
     &_gM4a1BayonetDeathAnimation,
     &_gM4a1BayonetUnarmedWalkAnimation,
-    &_gM4a1BayonetAnimation0C3CC,
+    &_gM4a1BayonetReloadAnimation,
     &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetIdleHighHpAnimation,
