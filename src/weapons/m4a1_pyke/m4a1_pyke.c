@@ -1558,136 +1558,250 @@ static AnimationSet _gM4a1PykeAimForwardAnimation = {
     .poseBanks         = { NULL, _gM4a1PykeAimForwardAnimationBank1, NULL, NULL, _gM4a1PykeAimForwardAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0CEC8Bank1[24] = {
+/// Translation and full-angle keyframes for rifle reload.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykePrimaryReloadAnimationBank1[24] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0CEC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0CEC8Bank4[390] = {
+/// Packed rotation keyframes for rifle reload.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykePrimaryReloadAnimationBank4[390] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0CEC8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0CEC8Records[453] = {
+/// Keyframe durations, reload cues and stop controls for rifle reload.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Track 1 has two full-cue records: both sound the reload, the second loads it.
+static const AnimationRecord _gM4a1PykePrimaryReloadAnimationRecords[453] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0CEC8_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0CEC8Indices[20] = {
+/// Absolute track-start record indices for rifle reload.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykePrimaryReloadAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0CEC8_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0CEC8 = {
-    _gM4a1PykeAnimation0CEC8Records,
-    _gM4a1PykeAnimation0CEC8Indices,
-    { NULL, _gM4a1PykeAnimation0CEC8Bank1, NULL, NULL, _gM4a1PykeAnimation0CEC8Bank4, NULL, NULL, NULL },
+/// Player rifle reload clip in the Pyke bank.
+///
+/// Native-bank sets 14 and 20 share this clip for primary and battle-end reloads.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykePrimaryReloadAnimation = {
+    .records           = _gM4a1PykePrimaryReloadAnimationRecords,
+    .trackStartIndices = _gM4a1PykePrimaryReloadAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykePrimaryReloadAnimationBank1, NULL, NULL, _gM4a1PykePrimaryReloadAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0D36CBank1[8] = {
+/// Translation and full-angle keyframes for rifle firing.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeRifleFireAnimationBank1[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D36C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0D36CBank4[102] = {
+/// Packed rotation keyframes for rifle firing.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeRifleFireAnimationBank4[102] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D36C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0D36CRecords[151] = {
+/// Keyframe durations and stop controls for rifle firing.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// The attack state starts the shot's sound and muzzle flash separately.
+static const AnimationRecord _gM4a1PykeRifleFireAnimationRecords[151] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D36C_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0D36CIndices[20] = {
+/// Absolute track-start record indices for rifle firing.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeRifleFireAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D36C_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0D36C = {
-    _gM4a1PykeAnimation0D36CRecords,
-    _gM4a1PykeAnimation0D36CIndices,
-    { NULL, _gM4a1PykeAnimation0D36CBank1, NULL, NULL, _gM4a1PykeAnimation0D36CBank4, NULL, NULL, NULL },
+/// Player rifle firing clip in the Pyke bank.
+///
+/// Native-bank set 10 restarts for each round of the primary burst.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykeRifleFireAnimation = {
+    .records           = _gM4a1PykeRifleFireAnimationRecords,
+    .trackStartIndices = _gM4a1PykeRifleFireAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeRifleFireAnimationBank1, NULL, NULL, _gM4a1PykeRifleFireAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0D7F4Bank1[7] = {
+/// Translation and full-angle keyframes for sustained flame firing.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeFlameFireAnimationBank1[7] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D7F4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0D7F4Bank4[91] = {
+/// Packed rotation keyframes for sustained flame firing.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeFlameFireAnimationBank4[91] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D7F4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0D7F4Records[158] = {
+/// Keyframe durations and final-pose loops for sustained flame firing.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track jumps to its last keyframe, before a stored stop record.
+static const AnimationRecord _gM4a1PykeFlameFireAnimationRecords[158] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D7F4_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0D7F4Indices[20] = {
+/// Absolute track-start record indices for sustained flame firing.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeFlameFireAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0D7F4_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0D7F4 = {
-    _gM4a1PykeAnimation0D7F4Records,
-    _gM4a1PykeAnimation0D7F4Indices,
-    { NULL, _gM4a1PykeAnimation0D7F4Bank1, NULL, NULL, _gM4a1PykeAnimation0D7F4Bank4, NULL, NULL, NULL },
+/// Player sustained flame firing clip in the Pyke bank.
+///
+/// Native-bank set 11 enters the firing pose and repeats each track's last
+/// keyframe until the attack selects its release clip.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykeFlameFireAnimation = {
+    .records           = _gM4a1PykeFlameFireAnimationRecords,
+    .trackStartIndices = _gM4a1PykeFlameFireAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeFlameFireAnimationBank1, NULL, NULL, _gM4a1PykeFlameFireAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0DC68Bank1[8] = {
+/// Translation and full-angle keyframes for flame release.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeFlameReleaseAnimationBank1[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0DC68_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0DC68Bank4[104] = {
+/// Packed rotation keyframes for flame release.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeFlameReleaseAnimationBank4[104] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0DC68_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0DC68Records[137] = {
+/// Keyframe durations and stop controls for flame release.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Also selected for secondary reload requests; this clip carries no cue bits.
+static const AnimationRecord _gM4a1PykeFlameReleaseAnimationRecords[137] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0DC68_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0DC68Indices[20] = {
+/// Absolute track-start record indices for flame release.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeFlameReleaseAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0DC68_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0DC68 = {
-    _gM4a1PykeAnimation0DC68Records,
-    _gM4a1PykeAnimation0DC68Indices,
-    { NULL, _gM4a1PykeAnimation0DC68Bank1, NULL, NULL, _gM4a1PykeAnimation0DC68Bank4, NULL, NULL, NULL },
+/// Player flame release clip in the Pyke bank.
+///
+/// Native-bank set 15 is selected when firing ends and for secondary reload
+/// requests. Its tracks stop without reload cues.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykeFlameReleaseAnimation = {
+    .records           = _gM4a1PykeFlameReleaseAnimationRecords,
+    .trackStartIndices = _gM4a1PykeFlameReleaseAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeFlameReleaseAnimationBank1, NULL, NULL, _gM4a1PykeFlameReleaseAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0E374Bank1[13] = {
+/// Translation and full-angle keyframes for entering aim.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeAimEntryAnimationBank1[13] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E374_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0E374Bank4[175] = {
+/// Packed rotation keyframes for entering aim.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeAimEntryAnimationBank4[175] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E374_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0E374Records[217] = {
+/// Keyframe durations and stop controls for entering aim.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeAimEntryAnimationRecords[217] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E374_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0E374Indices[20] = {
+/// Absolute track-start record indices for entering aim.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeAimEntryAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E374_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0E374 = {
-    _gM4a1PykeAnimation0E374Records,
-    _gM4a1PykeAnimation0E374Indices,
-    { NULL, _gM4a1PykeAnimation0E374Bank1, NULL, NULL, _gM4a1PykeAnimation0E374Bank4, NULL, NULL, NULL },
+/// Player aim-entry clip in the Pyke bank.
+///
+/// Native-bank set 7 enters aim; enemy-held player recovery also borrows it.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykeAimEntryAnimation = {
+    .records           = _gM4a1PykeAimEntryAnimationRecords,
+    .trackStartIndices = _gM4a1PykeAimEntryAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeAimEntryAnimationBank1, NULL, NULL, _gM4a1PykeAimEntryAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0E8ECBank1[10] = {
+/// Translation and full-angle keyframes for leaving aim.
+///
+/// Tracks 0 and 1 store model-unit translation and 4096-unit-turn Euler angles.
+/// Read-only clip tables retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeAimExitAnimationBank1[10] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E8EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0E8ECBank4[131] = {
+/// Packed rotation keyframes for leaving aim.
+///
+/// Tracks 2..18 store signed 11/10/11-bit angles in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeAimExitAnimationBank4[131] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E8EC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0E8ECRecords[169] = {
+/// Keyframe durations and stop controls for leaving aim.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeAimExitAnimationRecords[169] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E8EC_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0E8ECIndices[20] = {
+/// Absolute track-start record indices for leaving aim.
+///
+/// Tracks 0..18 are followed by a retained, unused zero halfword.
+static const u16 _gM4a1PykeAimExitAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0E8EC_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0E8EC = {
-    _gM4a1PykeAnimation0E8ECRecords,
-    _gM4a1PykeAnimation0E8ECIndices,
-    { NULL, _gM4a1PykeAnimation0E8ECBank1, NULL, NULL, _gM4a1PykeAnimation0E8ECBank4, NULL, NULL, NULL },
+/// Player aim-exit clip in the Pyke bank.
+///
+/// Native-bank set 8 leaves aim after normal or scripted attacks.
+/// Borrows nineteen part tracks and their word-aligned pose banks; keep this
+/// package loaded while any slot or cached record refers to the clip.
+static AnimationSet _gM4a1PykeAimExitAnimation = {
+    .records           = _gM4a1PykeAimExitAnimationRecords,
+    .trackStartIndices = _gM4a1PykeAimExitAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeAimExitAnimationBank1, NULL, NULL, _gM4a1PykeAimExitAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1PykeAnimation0F1A4Bank1[18] = {
@@ -1764,20 +1878,20 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation10318,
     &_gM4a1PykeTurnLeftAnimation,
     &_gM4a1PykeTurnRightAnimation,
-    &_gM4a1PykeAnimation0E374,
-    &_gM4a1PykeAnimation0E8EC,
+    &_gM4a1PykeAimEntryAnimation,
+    &_gM4a1PykeAimExitAnimation,
     &_gM4a1PykeAimIdleAnimation,
-    &_gM4a1PykeAnimation0D36C,
-    &_gM4a1PykeAnimation0D7F4,
+    &_gM4a1PykeRifleFireAnimation,
+    &_gM4a1PykeFlameFireAnimation,
     &_gM4a1PykeAimForwardAnimation,
     &_gM4a1PykeAimBackwardOrTurnAnimation,
-    &_gM4a1PykeAnimation0CEC8,
-    &_gM4a1PykeAnimation0DC68,
+    &_gM4a1PykePrimaryReloadAnimation,
+    &_gM4a1PykeFlameReleaseAnimation,
     &_gM4a1PykeHitPart4Animation,
     &_gM4a1PykeHitOtherBodyAnimation,
     &_gM4a1PykeDeathAnimation,
     &_gM4a1PykeUnarmedWalkAnimation,
-    &_gM4a1PykeAnimation0CEC8,
+    &_gM4a1PykePrimaryReloadAnimation,
     &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeHighHealthIdleAnimation,
