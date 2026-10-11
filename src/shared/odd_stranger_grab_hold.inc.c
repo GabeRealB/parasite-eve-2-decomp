@@ -60,7 +60,7 @@ static void _oddStrangerGrabStrike(Task* task)
         work->state = ODD_STRANGER_STATE_GRAB_RELEASE;
 #endif
         work->effectArg.coord      = task->extra.tmd->coords + 1;
-        work->effectArg.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
+        work->effectArg.spawnArgLo = ODD_STRANGER_PUFF_UNUSED_LOW_ARG;
         work->effectArg.spawnArgHi = ODD_STRANGER_GRAB_EXTRA_PUFF_COUNT;
         effectSpawnHit(damageGetPlayerAttackEffectId(ODD_STRANGER_GRAB_HIT_EFFECT_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);
 #if ODD_STRANGER_VARIANT == 1

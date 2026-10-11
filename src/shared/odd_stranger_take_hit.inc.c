@@ -244,7 +244,7 @@ static void _oddStrangerTakeHit(Task* task)
                             work->blendAnimId = ODD_STRANGER_ANIM_REFALL_FRONT;
                         }
                         work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
-                    } else if (work->recentDamage >= ODD_STRANGER_STAGGER_DAMAGE || hitScratch->critical == 1) {
+                    } else if (work->recentDamage >= ODD_STRANGER_KNOCKDOWN_DAMAGE_THRESHOLD || hitScratch->critical == 1) {
                         if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < ODD_STRANGER_HIT_RISE_FRONT_REFALL_FRAMES) {
                             work->state = ODD_STRANGER_STATE_REFALL_FRONT;
                         } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < ODD_STRANGER_HIT_RISE_BACK_REFALL_FRAMES) {
@@ -445,7 +445,7 @@ static void _oddStrangerTakeHit(Task* task)
                 }
             } else {
                 if (work->playerHeld == 1) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, ODD_STRANGER_DEATH_RELEASE_ARG, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, ODD_STRANGER_DEATH_PLAYER_RESUME_MODE, 0);
                     work->playerHeld = 0;
                 }
                 state = work->state;

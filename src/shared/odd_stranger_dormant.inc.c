@@ -43,7 +43,7 @@ static void _oddStrangerDormantScripted(Task* task)
     _oddStrangerDriveAnimation(task);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4 && work->lastCueFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
         work->effectArg.coord      = task->extra.tmd->coords + 1;
-        work->effectArg.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
+        work->effectArg.spawnArgLo = ODD_STRANGER_PUFF_UNUSED_LOW_ARG;
         work->effectArg.spawnArgHi = 2;
         effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 5, NULL, &work->effectArg);
     }

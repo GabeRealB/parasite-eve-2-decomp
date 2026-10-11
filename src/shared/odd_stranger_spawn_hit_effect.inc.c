@@ -69,7 +69,7 @@ static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
     work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
-#if ODD_STRANGER_HIT_FX_OFFSET
+#if ODD_STRANGER_HAS_EFFECT_OFFSET
     work->effectOffset = *hitOffset;
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitOffset->pad], &work->effectOffset, &work->effectArg);
 #else

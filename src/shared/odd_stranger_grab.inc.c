@@ -95,7 +95,7 @@ static void _oddStrangerGrabPull(Task* task)
 #if ODD_STRANGER_VARIANT == 2
         work->state = ODD_STRANGER_STATE_GRAB_STRIKE;
 #endif
-        work->effectArg.coord      = task->extra.tmd->coords + ODD_STRANGER_GRAB_FX_PART;
+        work->effectArg.coord      = task->extra.tmd->coords + ODD_STRANGER_GRAB_PULL_EFFECT_RECORD_PART;
         work->effectArg.spawnArgLo = ODD_STRANGER_GRAB_PULL_EFFECT_ARG_LOW;
         work->effectArg.spawnArgHi = ODD_STRANGER_GRAB_EXTRA_PUFF_COUNT;
         effectSpawnHit(damageGetPlayerAttackEffectId(ODD_STRANGER_GRAB_HIT_EFFECT_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);

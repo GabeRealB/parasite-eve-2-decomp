@@ -2,10 +2,15 @@
 
 /// Limits the alert turn, replaces root yaw and restores normal model scale.
 ///
-/// Requires a live `Task*` and reserved `ActorChaseScratch*` as side-effect-free
-/// pointer expressions, and a positive limit in 4096ths of a turn. Arguments
-/// occur repeatedly; the scratch angle becomes the absolute root heading.
-/// Translation stays intact. Expands to a block; invoke inside a braced block.
+/// Requires a live TMD `Task*`, reserved `ActorChaseScratch*` and a nonnegative
+/// signed-int limit that fits s16, in 4096ths of a turn. Arguments are evaluated
+/// repeatedly and must be stable, side-effect-free and independent of the
+/// block-local `headingRoot`. The ordered clamps overwrite `turn`; adding the
+/// matrix heading then narrows it to s16 without wrapping to a half turn.
+/// Replaces pitch, roll and prior scale with yaw at `ODD_STRANGER_ROOT_SCALE`;
+/// translation stays intact and composition becomes dirty. The callees release
+/// their matrix scratch and clobber GTE state; chase scratch stays reserved.
+/// Invoke as a standalone braced statement.
 #define ODD_STRANGER_TURN_ALERT_ROOT(task, alert, turnLimit)                                        \
     {                                                                                               \
         GfxCoord* headingRoot;                                                                      \

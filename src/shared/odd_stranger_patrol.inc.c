@@ -2,10 +2,14 @@
 
 /// Limits the waypoint turn, replaces root yaw and restores normal model scale.
 ///
-/// Requires a live `Task*` and reserved `ActorTurnScratch*` as side-effect-free
-/// pointer expressions, and a positive limit in 4096ths of a turn. Arguments
-/// occur repeatedly; the scratch angle becomes the absolute root heading.
-/// Translation stays intact. Expands to a block; invoke inside a braced block.
+/// Requires a live TMD `Task*`, reserved `ActorTurnScratch*` and a nonnegative
+/// signed-int limit that fits s16, in 4096ths of a turn. Arguments are evaluated
+/// repeatedly and must be stable and side-effect-free. The ordered clamps
+/// overwrite `angle`; adding the matrix heading then narrows it to s16 without
+/// wrapping to a half turn. Replaces pitch, roll and prior scale with yaw at
+/// `ODD_STRANGER_ROOT_SCALE`; translation stays intact and composition becomes
+/// dirty. The callees release their matrix scratch and clobber GTE state;
+/// turn scratch stays reserved. Invoke as a standalone braced statement.
 #define ODD_STRANGER_TURN_PATROL_ROOT(task, turn, turnLimit)                                                          \
     {                                                                                                                 \
         if ((turn)->angle > (turnLimit)) {                                                                            \

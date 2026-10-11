@@ -64,7 +64,7 @@ static void _oddStrangerCircleDash(Task* task)
         ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
         model->flags                                              = 0;
         tmdAllocPrimitiveBuffer(model);
-        work->hitBody.radius    = ODD_STRANGER_SWING_RADIUS;
+        work->hitBody.radius    = ODD_STRANGER_EVASION_BODY_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animId            = ODD_STRANGER_ANIM_RUN;
         work->blendActive       = 0;
@@ -153,7 +153,7 @@ static void _oddStrangerCircleDash(Task* task)
                 playerBearingDifference = -playerBearingDifference;
             }
             if (playerBearingDifference > ODD_STRANGER_CIRCLE_DASH_BACK_TURN_LIMIT
-#if ODD_STRANGER_SIGHT_TEST
+#if ODD_STRANGER_DASH_GRAB_REQUIRES_SIGHT
                 && _playerDetectionSightBlocked(task) != 1
 #endif
                 && work->grabCooldown == 0) {

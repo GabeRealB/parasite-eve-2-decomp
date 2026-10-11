@@ -18,45 +18,118 @@
  * ODD_STRANGER_VARIANT before including this header; the differences between
  * the builds follow from it. */
 #if ODD_STRANGER_VARIANT == 1
-#define ODD_STRANGER_HIT_FX_OFFSET     1                             /* the work block keeps the hit effect offset */
-#define ODD_STRANGER_CLIP2_STEP_A      0x11                          /* first footstep cue frame of clip 2 */
-#define ODD_STRANGER_CLIP2_STEP_B      0x1B                          /* second footstep cue frame of clip 2 */
-#define ODD_STRANGER_BODY_RADIUS       0x1AE                         /* body collision sphere radius */
-#define ODD_STRANGER_SWING_RADIUS      0xD7                          /* body sphere radius in the chase and sidestep states */
-#define ODD_STRANGER_BODY2_GRID        1                             /* whether some states enable (1) or disable (0) the second body's grid collision */
-#define ODD_STRANGER_SIGHT_TEST        0                             /* whether turning and chasing test the line of sight */
-#define ODD_STRANGER_WALK_STEP         0xA                           /* forward step while walking */
-#define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                          /* per-frame turn clamp toward the patrol waypoint */
-#define ODD_STRANGER_STALK_RATE        0x24                          /* body slot rate the stalk state starts with */
-#define ODD_STRANGER_STALK_TURN_BIAS   0x300                         /* turn bias of the stalk state */
-#define ODD_STRANGER_STALK_STEP        0x16                          /* forward step of the stalk state */
-#define ODD_STRANGER_HOLD_AIM_CLIP     0x13                          /* clip of the hold-aim state */
-#define ODD_STRANGER_PART1_FX_SCALE    0x100                         /* scale of the effect at part 1 when dormant */
-#define ODD_STRANGER_GRAB_FX_PART      5                             /* model part of the effect at the end of the grab */
-#define ODD_STRANGER_IDLE_JITTER_MASK  0xF                           /* mask on the random idle countdown */
-#define ODD_STRANGER_STAGGER_DAMAGE    0x4C                          /* accumulated damage that forces a stagger */
-#define ODD_STRANGER_DEATH_RELEASE_ARG 2                             /* argument of the 0x3F1 message on death */
-#define ODD_STRANGER_BURST_MODEL_5     &_gActor401000BurstPart1Model /* model of the frame-5 burst of the walking death */
+/// Whether the work block contains `effectOffset` (1 in variant 1, 0 in variant 2).
+#define ODD_STRANGER_HAS_EFFECT_OFFSET 1
+
+/// First WALK sound cue: pose-record index 17 or 16, returning character sound 2.
+///
+/// Cue indices are the primary slot's low ten record-index bits, not elapsed frames.
+#define ODD_STRANGER_WALK_FIRST_SOUND_CUE 0x11
+
+/// Second WALK sound cue: pose-record index 27 or 22, returning character sound 1.
+#define ODD_STRANGER_WALK_SECOND_SOUND_CUE 0x1B
+
+/// Normal body-sphere radius, 430 or 300 game-coordinate units.
+///
+/// Variant 2 also uses it for the root grid sphere and chase/fall movement clearance.
+#define ODD_STRANGER_BODY_RADIUS 0x1AE
+
+/// Hit-body radius during circling dash and sidestep, 215 or 150 game-coordinate units.
+#define ODD_STRANGER_EVASION_BODY_RADIUS 0xD7
+
+/// Root-grid enable choice for WATCH, DEATH_BURN, PLAY_WALK/RUN/DOWN and FLINCH.
+///
+/// These in-place handlers enable the grid test in variant 1 and disable it in
+/// variant 2. Other states select their own policy; this does not unlink the body.
+#define ODD_STRANGER_IN_PLACE_GRID_ENABLED 1
+
+/// Whether circling-dash and turn-around exits require sight before grabbing.
+///
+/// Zero in variant 1, one in variant 2; ordinary chase, stalk and patrol sight
+/// checks are independent of this choice.
+#define ODD_STRANGER_DASH_GRAB_REQUIRES_SIGHT 0
+
+/// Patrol and burst-death forward step, 10 or 7 parent-coordinate units per tick.
+///
+/// Patrol steps only without secondary blending; walking death also steps while blended.
+#define ODD_STRANGER_WALK_STEP 0xA
+
+/// Patrol root-turn limit per tick, 32 or 24 angle units (4096 per turn).
+///
+/// The look target retains the full waypoint bearing before this clamp.
+#define ODD_STRANGER_PATROL_TURN_CLAMP 0x20
+
+/// Initial STALK primary-animation rate, 36 or 48 sixteenths of a frame per tick.
+#define ODD_STRANGER_STALK_RATE 0x24
+
+/// Blocked-sight stalking veer, 768 or 1024 angle units (4096 per turn).
+///
+/// Added or subtracted by side before limiting the root turn; the look stays unbiased.
+#define ODD_STRANGER_STALK_TURN_BIAS 0x300
+
+/// Unblended STALK forward step, 22 or 21 parent-coordinate units per tick.
+///
+/// Secondary blending selects a separate five-unit step.
+#define ODD_STRANGER_STALK_STEP 0x16
+
+/// WATCH animation-bank index, 19 in variant 1 or the alert animation in variant 2.
+#define ODD_STRANGER_ANIM_WATCH 0x13
+
+/// Retained low argument of scripted-dormant and grab-strike weapon puffs.
+///
+/// Stored in signed-halfword `spawnArgLo` as 0x100 or 0x200. The selected puff
+/// recipe ignores this half; it is not an effect scale.
+#define ODD_STRANGER_PUFF_UNUSED_LOW_ARG 0x100
+
+/// Grab-pull puff record's coordinate index, 5 in variant 1 or 1 in variant 2.
+///
+/// Both models contain this part. The selected puff recipe uses the separate
+/// call coordinate 5; this binding changes only the retained record coordinate.
+#define ODD_STRANGER_GRAB_PULL_EFFECT_RECORD_PART 5
+
+/// Mask selecting extra DOWN ticks from the LCG high word (0..15 or 0..7).
+///
+/// Added to `downFramesBase` before the signed-halfword countdown is stored.
+#define ODD_STRANGER_DOWN_JITTER_MASK 0xF
+
+/// Recent standard-hit damage selecting knockdown, 76 or 56 HP damage.
+///
+/// Outside downed/status poses, reaching this threshold selects a directional
+/// fall instead of a flinch overlay; a critical hit also selects the fall.
+#define ODD_STRANGER_KNOCKDOWN_DAMAGE_THRESHOLD 0x4C
+
+/// Player resume mode when death releases a hold on the no-new-hit path.
+///
+/// Variant 1 preserves part 1's horizontal offset; variant 2 bakes it into the
+/// root. The receiver must still be under scripted control for either to act.
+#define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET
+
+/// Borrowed model source for walking death's second debris spawn, at state tick 5.
+///
+/// A `TmdSource*` published into the burst descriptor before spawning at part 1.
+/// Each carrier must declare its selected model before expanding this binding,
+/// and keep the source loaded through the debris task's lifetime.
+#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gActor401000BurstPart1Model)
 #elif ODD_STRANGER_VARIANT == 2
-#define ODD_STRANGER_HIT_FX_OFFSET     0
-#define ODD_STRANGER_CLIP2_STEP_A      0x10
-#define ODD_STRANGER_CLIP2_STEP_B      0x16
-#define ODD_STRANGER_BODY_RADIUS       0x12C
-#define ODD_STRANGER_SWING_RADIUS      0x96
-#define ODD_STRANGER_BODY2_GRID        0
-#define ODD_STRANGER_SIGHT_TEST        1
-#define ODD_STRANGER_WALK_STEP         7
-#define ODD_STRANGER_PATROL_TURN_CLAMP 0x18
-#define ODD_STRANGER_STALK_RATE        0x30
-#define ODD_STRANGER_STALK_TURN_BIAS   0x400
-#define ODD_STRANGER_STALK_STEP        0x15
-#define ODD_STRANGER_HOLD_AIM_CLIP     9
-#define ODD_STRANGER_PART1_FX_SCALE    0x200
-#define ODD_STRANGER_GRAB_FX_PART      1
-#define ODD_STRANGER_IDLE_JITTER_MASK  7
-#define ODD_STRANGER_STAGGER_DAMAGE    0x38
-#define ODD_STRANGER_DEATH_RELEASE_ARG 0
-#define ODD_STRANGER_BURST_MODEL_5     &_gOddStrangerBurstPart9Model
+#define ODD_STRANGER_HAS_EFFECT_OFFSET              0
+#define ODD_STRANGER_WALK_FIRST_SOUND_CUE           0x10
+#define ODD_STRANGER_WALK_SECOND_SOUND_CUE          0x16
+#define ODD_STRANGER_BODY_RADIUS                    0x12C
+#define ODD_STRANGER_EVASION_BODY_RADIUS            0x96
+#define ODD_STRANGER_IN_PLACE_GRID_ENABLED          0
+#define ODD_STRANGER_DASH_GRAB_REQUIRES_SIGHT       1
+#define ODD_STRANGER_WALK_STEP                      7
+#define ODD_STRANGER_PATROL_TURN_CLAMP              0x18
+#define ODD_STRANGER_STALK_RATE                     0x30
+#define ODD_STRANGER_STALK_TURN_BIAS                0x400
+#define ODD_STRANGER_STALK_STEP                     0x15
+#define ODD_STRANGER_ANIM_WATCH                     ODD_STRANGER_ANIM_ALERT
+#define ODD_STRANGER_PUFF_UNUSED_LOW_ARG            0x200
+#define ODD_STRANGER_GRAB_PULL_EFFECT_RECORD_PART   1
+#define ODD_STRANGER_DOWN_JITTER_MASK               7
+#define ODD_STRANGER_KNOCKDOWN_DAMAGE_THRESHOLD     0x38
+#define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE       PLAYER_ACTOR_END_SCRIPTED_DEFAULT
+#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gOddStrangerBurstPart9Model)
 #else
 #error "ODD_STRANGER_VARIANT must be 1 or 2"
 #endif
@@ -66,6 +139,7 @@
 #include "actors/actor.h"
 
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "overlay.h"
 
 /// Uniform model-root scale for yaw rebuilds in both variants, with 12 fractional bits.
@@ -225,7 +299,7 @@ typedef struct {
     byte             field_8B2[0x2];  // never accessed
     s32              lastCueFrame;    // slot 1's frame when a cue last fired, so a held frame fires once; 0 off a cue frame
     EffectSpawnArg   effectArg;       // argument record of the hit and grab effects, hung off a model part
-#if ODD_STRANGER_HIT_FX_OFFSET
+#if ODD_STRANGER_HAS_EFFECT_OFFSET
     SVECTOR effectOffset;             // offset of the last hit effect from its part, or the direction a burst part was thrown in
 #endif
     byte field_8C8[0x2];              // never accessed
@@ -245,7 +319,7 @@ typedef struct {
     MATRIX                colorMtx;          // storage for the model's `TmdObject::colorMtx`
     MATRIX                savedColorMtx;     // `colorMtx` as `DORMANT` found it; never read
     s16                   hitCooldown;       // ticks before another hit is taken; set from the hit's id parameter 2
-    s16                   recentDamage;      // damage taken since the hits last paused; `ODD_STRANGER_STAGGER_DAMAGE` of it knocks the actor down
+    s16                   recentDamage;      // damage taken since the hits last paused; `ODD_STRANGER_KNOCKDOWN_DAMAGE_THRESHOLD` of it knocks the actor down
     s16                   recentDamageTimer; // ticks before `recentDamage` is forgotten, 5 from each hit; a hit landing while it runs pushes the root back a quarter as far
     byte                  field_BEE[0x2];    // never accessed
     SVECTOR               sidestepDir;       // unit direction of the sidestep, to one side of the bearing to the player
@@ -278,7 +352,7 @@ typedef struct {
     byte    field_C64[0x18];   // never accessed
     s16     bodyPosCursor;     // index of the next entry of `bodyPosHistory` to write
 } OddStrangerWork;
-STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HIT_FX_OFFSET ? 0xC80 : 0xC78);
+STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HAS_EFFECT_OFFSET ? 0xC80 : 0xC78);
 
 /// The Odd Stranger's state handlers, indexed by `OddStrangerWork::state`.
 ///

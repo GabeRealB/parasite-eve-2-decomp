@@ -1,11 +1,15 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Limits the slide turn and replaces the root yaw without rescaling it.
+/// Clamps the slide turn and replaces the root rotation with a unit-scale yaw.
 ///
-/// Requires a live `Task*` and reserved `ActorTurnScratch*` as side-effect-free
-/// pointer expressions, and a positive limit in 4096ths of a turn. Arguments
-/// occur repeatedly; the scratch angle becomes the absolute root heading.
-/// Translation stays intact. Expands to a block; invoke inside a braced block.
+/// Requires a live TMD `Task*`, reserved `ActorTurnScratch*` and a nonnegative
+/// signed-int limit that fits s16, in 4096ths of a turn. Arguments are evaluated
+/// repeatedly and must be stable, side-effect-free and independent of the
+/// block-local `headingRoot`. The ordered clamps overwrite `angle`; adding the
+/// matrix heading then narrows it to s16 without wrapping to a half turn.
+/// Replaces pitch, roll and prior scale; translation stays intact. Rotation
+/// scratch is released by the callee; the caller retains its turn scratch.
+/// Does not invalidate composition here. Invoke as a standalone braced statement.
 #define ODD_STRANGER_TURN_SLIDE_ROOT(task, turn, turnLimit)                                         \
     {                                                                                               \
         GfxCoord* headingRoot;                                                                      \

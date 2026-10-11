@@ -46,7 +46,7 @@ static void _oddStrangerSidestep(Task* task)
         ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
         model->flags                                              = 0;
         tmdAllocPrimitiveBuffer(model);
-        work->hitBody.radius    = ODD_STRANGER_SWING_RADIUS;
+        work->hitBody.radius    = ODD_STRANGER_EVASION_BODY_RADIUS;
         work->stateTimer        = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;

@@ -21,7 +21,7 @@ static void _oddStrangerFlinch(Task* task)
         work->animId            = ODD_STRANGER_ANIM_FLINCH;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-#if ODD_STRANGER_BODY2_GRID
+#if ODD_STRANGER_IN_PLACE_GRID_ENABLED
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #else
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

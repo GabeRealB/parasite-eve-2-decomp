@@ -1,21 +1,29 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Writable effect offset selected by the carrier's `ODD_STRANGER_HIT_FX_OFFSET`.
+/// Writable placement-vector storage for the walking burst-death effects.
 ///
-/// Variant 1 borrows the work vector; variant 2 uses this handler's stack vector.
-/// This member/lvalue binding captures work or effectOffset, has no side effects
-/// and is undefined after the handler. Effect spawning copies XYZ synchronously.
-#if ODD_STRANGER_HIT_FX_OFFSET
-#define ODD_STRANGER_FX_OFFSET work->effectOffset
+/// `ODD_STRANGER_HAS_EFFECT_OFFSET` selects the live work member in variant 1
+/// or the caller's local SVECTOR lvalue in variant 2. Arguments must be stable
+/// and side-effect-free; only the selected argument is evaluated, once per
+/// expansion. Captures no locals. XYZ are part-local game-coordinate offsets;
+/// the fourth halfword remains untouched. Spawning copies XYZ and retains the
+/// address, but these particle/debris callbacks never dereference that address.
+/// The binding is undefined after the handler.
+#if ODD_STRANGER_HAS_EFFECT_OFFSET
+#define ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(actorWork, localOffset) ((actorWork)->effectOffset)
 #else
-#define ODD_STRANGER_FX_OFFSET effectOffset
+#define ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(actorWork, localOffset) (localOffset)
 #endif
 
 /// Collapses parts 2..10 after animation has placed the burst's remaining body.
 ///
-/// A braced statement macro: actorTask is a stable live Task pointer, evaluated
-/// once per part. Each coordinate needs the collapse helper's scratch space;
-/// translation/heading remain intact and Q12 scale becomes 1. Undefined below.
+/// actorTask is a stable live TMD Task pointer with coordinates through index 10,
+/// evaluated once per part in ascending order. Each call samples its part's yaw
+/// before replacing pitch, roll and scale with a yaw matrix at Q12 factor 1
+/// (1/4096); coefficient quantization can alter the resulting heading.
+/// Translation, parent and stored Euler angles stay intact; composition becomes
+/// dirty. Each call releases its matrix scratch and clobbers GTE state. Captures
+/// no locals. Invoke as a standalone braced statement; undefined below.
 #define ODD_STRANGER_COLLAPSE_BURST_PARTS(actorTask)                          \
     {                                                                         \
         _actorRenderCollapseYawRotation((actorTask)->extra.tmd->coords + 2);  \
@@ -63,7 +71,7 @@ static void _oddStrangerWalkingDeath(Task* task)
         ODD_STRANGER_WALK_DEATH_REWARD_ARG          = 10,
         ODD_STRANGER_WALK_DEATH_BURN_ARG            = 2
     };
-#if !ODD_STRANGER_HIT_FX_OFFSET
+#if !ODD_STRANGER_HAS_EFFECT_OFFSET
     SVECTOR effectOffset;
 #endif
     OddStrangerWork* work;
@@ -74,18 +82,18 @@ static void _oddStrangerWalkingDeath(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
-        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->lookYawTarget           = 0;
-        work->stateTimer              = 0;
-        ODD_STRANGER_FX_OFFSET.vx     = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
-        ODD_STRANGER_FX_OFFSET.vz     = 0;
-        ODD_STRANGER_FX_OFFSET.vy     = 0;
-        work->animId                  = ODD_STRANGER_ANIM_WALK;
-        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animRate                = ANIMATION_RATE_ONE;
-        effectSpawn(EFFECT_030, task->extra.tmd->coords + 1, ODD_STRANGER_WALK_DEATH_PARTICLE_ARG, &ODD_STRANGER_FX_OFFSET);
+        work->hitBody.radius                                          = ODD_STRANGER_BODY_RADIUS;
+        work->gridBody.flags                                         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags                                 = WORLD_TARGET_NOT_LOCKABLE;
+        work->lookYawTarget                                           = 0;
+        work->stateTimer                                              = 0;
+        ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vx = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
+        ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vz = 0;
+        ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vy = 0;
+        work->animId                                                  = ODD_STRANGER_ANIM_WALK;
+        work->animRequest                                             = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animRate                                                = ANIMATION_RATE_ONE;
+        effectSpawn(EFFECT_030, task->extra.tmd->coords + 1, ODD_STRANGER_WALK_DEATH_PARTICLE_ARG, &ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset));
         work->stateTimer = 0;
     }
     nextFrame        = work->stateTimer + 1;
@@ -104,13 +112,13 @@ static void _oddStrangerWalkingDeath(Task* task)
             _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_FIRST_DEBRIS_FRAME) {
                 gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = &_gOddStrangerBurstPart9Model;
-                ODD_STRANGER_FX_OFFSET.vz                                                   = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
-                ODD_STRANGER_FX_OFFSET.vy                                                   = 0;
-                ODD_STRANGER_FX_OFFSET.vx                                                   = 0;
-                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, &ODD_STRANGER_FX_OFFSET), enemy);
+                ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vz               = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
+                ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vy               = 0;
+                ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset).vx               = 0;
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, &ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE(work, effectOffset)), enemy);
             }
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_FRAME) {
-                gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = ODD_STRANGER_BURST_MODEL_5;
+                gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, NULL), enemy);
             }
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_THIRD_DEBRIS_FRAME) {
@@ -152,6 +160,6 @@ static void _oddStrangerWalkingDeath(Task* task)
     ODD_STRANGER_COLLAPSE_BURST_PARTS(task);
 }
 
-#undef ODD_STRANGER_FX_OFFSET
+#undef ODD_STRANGER_WALK_DEATH_OFFSET_STORAGE
 
 #undef ODD_STRANGER_COLLAPSE_BURST_PARTS

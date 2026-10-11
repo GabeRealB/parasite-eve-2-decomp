@@ -47,10 +47,10 @@ static void _oddStrangerWatch(Task* task)
         work->hitBody.radius    = ODD_STRANGER_BODY_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate          = ANIMATION_RATE_ONE;
-        work->animId            = ODD_STRANGER_HOLD_AIM_CLIP;
+        work->animId            = ODD_STRANGER_ANIM_WATCH;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-#if ODD_STRANGER_BODY2_GRID
+#if ODD_STRANGER_IN_PLACE_GRID_ENABLED
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #else
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

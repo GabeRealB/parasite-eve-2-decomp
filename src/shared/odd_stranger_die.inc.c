@@ -38,7 +38,7 @@ static void _oddStrangerDeathBurn(Task* task)
     if (work->stateEntered != 0) {
         model->flags            = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-#if ODD_STRANGER_BODY2_GRID
+#if ODD_STRANGER_IN_PLACE_GRID_ENABLED
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #else
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

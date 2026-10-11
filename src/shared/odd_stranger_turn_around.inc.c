@@ -64,7 +64,7 @@ static void _oddStrangerTurnAround(Task* task)
     _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &turnScratch->delta);
     if (work->turnYaw == work->turnYawTarget) {
         if (work->dashCount < ODD_STRANGER_TURN_AROUND_GRAB_DASH_COUNT || _oddStrangerOutOfRange(&turnScratch->delta, ODD_STRANGER_TURN_AROUND_GRAB_RADIUS)
-#if ODD_STRANGER_SIGHT_TEST
+#if ODD_STRANGER_DASH_GRAB_REQUIRES_SIGHT
             || _playerDetectionSightBlocked(task) == 1
 #endif
             || work->grabCooldown != 0) {
