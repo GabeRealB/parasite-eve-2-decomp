@@ -39,6 +39,8 @@ bytes = 0x100000         # the buffer. The game stops only when it is full, for 
 # value the console starts with, the whole 8 MB window.
 poke = [[0x1F801060, 0x00000B88]]
 
+# ---- files
+
 [[event]]
 id = 1
 name = "file_load"
@@ -46,6 +48,50 @@ address = 0x8002265C     # fsLoadFile(key, mode, page offset, row offset)
 capture = ["a0:4", "a1", "a2", "a3", "ra"]
 drain = true             # a load pauses the game anyway: the log is brought up to date at each one
 render = "file_load"
+
+[[event]]
+id = 6
+name = "cd_command"
+address = 0x8001D2B0     # cdCmdEnqueue(command, fileKey, commandArgs)
+capture = ["a0", "a1:4", "a2", "ra"]
+
+# ---- where the player is
+
+[[event]]
+id = 4
+name = "variant_set"
+address = 0x800B5B30     # areaSetPlacementVariant(key, variant, resetMode)
+capture = ["a0:8", "a1", "a2", "ra"]
+render = "variant_set"
+
+[[event]]
+id = 7
+name = "view_load"
+address = 0x800A9010     # loadingBeginViewLoadTask(task): the live location (view, room, area, stage, warp, variant) says which
+capture = ["0x800714C4:8", "ra"]
+render = "location"
+
+[[event]]
+id = 8
+name = "flag_nibble"
+address = 0x8004AC58     # gameFlagSetNibble(flagId, value): story flags and the companion schedule
+capture = ["a0", "a1", "ra"]
+
+[[event]]
+id = 9
+name = "flag_byte"
+address = 0x800E3FAC     # gameFlagSetPackedByte(nibbleIndex, packedValue)
+capture = ["a0", "a1", "ra"]
+
+[[event]]
+id = 10
+name = "companion_select"
+address = 0x800ABA4C     # companionSelectForArea(): v0 is the companion family, 0 for none
+capture = ["0x800714C4:8", "ra"]
+exits = [0x274]
+render = "location"
+
+# ---- sound
 
 [[event]]
 id = 2
@@ -56,20 +102,111 @@ exits = [0x17C]          # its one return: v0 is the id when the request was tak
 render = "sound_request"
 
 [[event]]
-id = 3
-name = "sound_bank_find"
-address = 0x8004D150     # sndBankFind(bankId)
-capture = ["a0", "ra"]
+id = 11
+name = "sound_stop"
+address = 0x800542D0     # sndEvtRequestScriptStop(selector, stopControl)
+capture = ["a0", "a1", "ra"]
+render = "sound"
 
 [[event]]
-id = 4
-name = "variant_set"
-address = 0x800B5B30     # areaSetPlacementVariant(key, variant, resetMode)
-capture = ["a0:8", "a1", "a2", "ra"]
-render = "variant_set"
+id = 12
+name = "stage_sound_request"
+address = 0x800E3DD8     # sndEvtRequestStageScriptStart(id, pan, attenuation)
+capture = ["a0", "a1", "a2", "ra"]
+render = "sound"
+
+[[event]]
+id = 13
+name = "music_start"
+exits = [0x68]           # v0: whether the sequence was started
+address = 0x800512BC     # sndEvtRequestMidiStart(sequenceId, fadeTicks)
+capture = ["a0", "a1", "ra"]
+
+[[event]]
+id = 14
+name = "sound_reset_for_area"
+address = 0x800537FC     # sndScriptResetForArea(stage, area): which banks survive a room change is decided here
+capture = ["a0", "a1", "ra"]
+
+[[event]]
+id = 15
+name = "sound_bank_load"
+address = 0x8004CE28     # sndBankAllocTables(payload): the payload's header names the bank; v0 is the descriptor, or 0
+capture = ["a0:20", "ra"]
+exits = [0x198]
+render = "sound_bank_load"
+
+[[event]]
+id = 16
+name = "sound_bank_free"
+address = 0x8004D0F0     # sndBankFree(bank)
+capture = ["a0:16", "ra"]
+render = "sound_bank_free"
+
+[[event]]
+id = 3
+name = "sound_bank_find"
+address = 0x8004D150     # sndBankFind(bankId): a note that names another bank
+capture = ["a0", "ra"]
+
+# ---- captions
 
 [[event]]
 id = 5
 name = "caption_command"
 address = 0x800E34D8     # capRunCommand(command)
 capture = ["a0", "ra"]
+
+[[event]]
+id = 17
+name = "caption_command_transition"
+address = 0x800E3B60     # capRunCommandWithTransition(command)
+capture = ["a0", "ra"]
+
+[[event]]
+id = 18
+name = "caption_file"
+address = 0x800E6D60     # capSelectLoadedFile(dataResourceOrdinal)
+capture = ["a0", "ra"]
+
+[[event]]
+id = 19
+name = "caption_sequence"
+address = 0x800E6C70     # capStartSequenceSlot(commandIndex, playbackMode, variantKey)
+capture = ["a0", "a1", "a2", "ra"]
+
+# ---- what goes into video memory
+
+[[event]]
+id = 20
+name = "image_upload"
+address = 0x80017F44     # LoadImage(rect, pixels): the rectangle is x, y, w, h
+capture = ["a0:8", "a1", "ra"]
+render = "rect"
+
+[[event]]
+id = 21
+name = "image_move"
+address = 0x80018004     # MoveImage(rect, x, y)
+capture = ["a0:8", "a1", "a2", "ra"]
+render = "rect"
+
+# ---- movies, and messages between tasks
+
+[[event]]
+id = 22
+name = "stream_scene"
+address = 0x800AF89C     # streamSelectScene(group, id, subId, subId2)
+capture = ["a0", "a1", "a2", "a3", "ra"]
+
+[[event]]
+id = 23
+name = "movie_start"
+address = 0x8001F180     # streamPrepareMoviePlayback(slotIndex)
+capture = ["a0", "ra"]
+
+[[event]]
+id = 24
+name = "task_message"
+address = 0x800AC464     # taskMessageDispatch(receiver, messageId, firstArg, secondArg)
+capture = ["a0", "a1", "a2", "a3", "ra"]

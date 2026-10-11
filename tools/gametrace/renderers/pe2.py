@@ -49,3 +49,54 @@ def variant_set(record, trace):
     view, room, area, stage, warp, current = struct.unpack_from("<6B", record["a0:8"])
     return {"event": "variant_set", "stage": stage, "area": area, "room": room, "view": view, "warp": warp, "was": current,
             "variant": record["a1"], "reset_mode": signed(record["a2"]), "from": trace.symbol(record["ra"])}
+
+
+def location(data: bytes) -> dict:
+    view, room, area, stage, warp, variant = struct.unpack_from("<6B", data)
+    return {"stage": stage, "area": area, "room": room, "view": view, "warp": warp, "variant": variant}
+
+
+@renderer("location")
+def at_location(record, trace):
+    """An event whose only capture of interest is the live location (GameLocationKey at 0x800714C4)."""
+    out = {"event": record["name"], "phase": record["phase"]}
+    if "0x800714C4:8" in record:
+        out.update(location(record["0x800714C4:8"]))
+    if "ra" in record:
+        out["from"] = trace.symbol(record["ra"])
+    if "v0" in record:
+        out["v0"] = record["v0"]
+    return out
+
+
+@renderer("sound")
+def any_sound(record, trace):
+    """A sound call whose first argument is a sound id."""
+    rest = {key: signed(value) for key, value in record.items() if key in ("a1", "a2", "a3")}
+    return {"event": record["name"], **sound(record["a0"]), **rest, "from": trace.symbol(record["ra"])}
+
+
+@renderer("sound_bank_load")
+def sound_bank_load(record, trace):
+    if record["phase"] == "exit":
+        return {"event": "sound_bank_load", "phase": "exit", "descriptor": f"{record['v0']:#010x}", "loaded": record["v0"] != 0}
+    tag, bank, kind, groups, layers, _u9, wave_block, _sectors, _ud, image_bytes, wave_bytes = struct.unpack_from("<IHBBBBHBBHi", record["a0:20"])
+    return {"event": "sound_bank_load", "phase": "enter", "bank": f"{bank:#06x}", "type": SOUND_TYPES.get(bank >> 12, bank >> 12),
+            "groups": groups, "layers": layers, "wave_bytes": wave_bytes, "tag_ok": tag == 0x4B505368, "from": trace.symbol(record["ra"])}
+
+
+@renderer("sound_bank_free")
+def sound_bank_free(record, trace):
+    bank = struct.unpack_from("<H", record["a0:16"], 8)[0]          # SndBank.bankId
+    return {"event": "sound_bank_free", "bank": f"{bank:#06x}", "type": SOUND_TYPES.get(bank >> 12, bank >> 12), "from": trace.symbol(record["ra"])}
+
+
+@renderer("rect")
+def rect(record, trace):
+    """LoadImage / MoveImage: where in video memory, and how much."""
+    x, y, w, h = struct.unpack_from("<4h", record["a0:8"])
+    out = {"event": record["name"], "x": x, "y": y, "w": w, "h": h}
+    if record["name"] == "image_move":
+        out["to_x"], out["to_y"] = signed(record["a1"]), signed(record["a2"])
+    out["from"] = trace.symbol(record["ra"])
+    return out

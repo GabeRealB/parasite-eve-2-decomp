@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Record what the running game does, through a GDB server.
 
-    gametrace.py run   [--config tools/gametrace/events.toml] [--out local/gametrace/trace.jsonl]
+    gametrace.py run   [--config tools/gametrace/events.toml] [--out FILE]   (default: a new file per run)
                        [--host HOST] [--port PORT]      (these override the config's [gdb] section)
                        [--now]                          (attach to a game already running: no install_at wait)
     gametrace.py check [--config ...]     resolve the events, build the blob, show both; no connection
@@ -586,6 +586,16 @@ def sites_of(cfg: dict) -> dict:
             if movable(word):
                 problems.append(f"{name}: instruction {n + 1} at its entry ({word:#010x}) is {movable(word)} and cannot be displaced")
         out[(event["id"], "enter")] = words
+        # A hook replaces two instructions with a jump and a no-op. Code that branches to the second of them would
+        # land on the no-op and skip the instruction that used to be there.
+        body = image_words(event["address"], 0x1000, image) or image_words(event["address"], 0x100, image) or ()
+        ends = {event["address"] + 4} | {event["address"] + o + 4 for o in event["exits"]}
+        for n, word in enumerate(body):
+            op, rt = word >> 26, (word >> 16) & 0x1F
+            if op in (4, 5, 6, 7) or (op == 1 and rt in (0, 1, 16, 17)):
+                target = event["address"] + 4 * n + 4 + ((word & 0xFFFF) - (0x10000 if word & 0x8000 else 0)) * 4
+                if target in ends:
+                    problems.append(f"{name}: a branch at +{4 * n:#x} goes to {target:#010x}, the second instruction of a hook; that place cannot be hooked")
         for offset in event["exits"]:
             pair = image_words(event["address"] + offset, 2, image)
             if pair is None or pair[0] != JR_RA:
@@ -963,7 +973,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["run", "check", "blob"])
     ap.add_argument("--config", type=Path, default=Path(__file__).with_name("events.toml"))
-    ap.add_argument("--out", type=Path, default=OUT / "trace.jsonl")
+    ap.add_argument("--out", type=Path, help="the log; by default a new file per run, local/gametrace/trace-<date>-<time>.jsonl")
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
@@ -1002,7 +1012,11 @@ def main() -> int:
             if agree:
                 print(agree)
         return 0
+    if args.out is None:
+        import datetime
+        args.out = OUT / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    print(f"writing {args.out}", file=sys.stderr)
     try:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
     except OSError as error:
