@@ -26,6 +26,7 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -107,22 +108,6 @@ STATIC_ASSERT_SIZEOF(_Actor450800KyleMadiganWork, 0x504);
 /// `effectSpawn` as the effect's position.
 static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 
-/// Message table `_actor450800SpawnKyleMadigan` hangs off `Task::msgTable`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_450800_8014AC58[];
-
-/// Animation-set table bound to the work block's context by `animationInitContext`.
-extern u8 D_actor_450800_8014ACC4[];
-
-extern EvsCommand D_actor_450800_8013A564[];
-extern EvsCommand D_actor_450800_8013A684[];
-extern EvsCommand D_actor_450800_8013A774[];
-extern EvsCommand D_actor_450800_8013A984[];
-extern EvsCommand D_actor_450800_8013AB7C[];
-extern EvsCommand D_actor_450800_8013ACFC[];
-
 static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* actor);
 static void        _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task);
 static void        _actor450800UpdateKyleMadigan(Task* task);
@@ -153,16 +138,8 @@ static void      _actor450800PawnGolemWalkerTask(Task* task);
 static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions);
 static void _actor450800EnterGrowthRoom(void);
 
-extern AnimationPlayRequest D_actor_450800_8013ADEC;
-extern AnimationPlayRequest D_actor_450800_8013AE00;
-extern AnimationPlayRequest D_actor_450800_8013AE14;
-extern ActorCommand         D_actor_450800_801398E0;
-extern ActorCommand         D_actor_450800_801398E4;
-extern ActorTransform       D_actor_450800_8013AE30;
-extern ActorTransform       D_actor_450800_8013AE48;
-extern ActorTransform       D_actor_450800_8013AE60;
-static void                 _actor450800SetNurseryView13SpriteHidden(s32 hidden);
-static void                 _actor450800SpawnNurseryImpactSpark(void);
+static void _actor450800SetNurseryView13SpriteHidden(s32 hidden);
+static void _actor450800SpawnNurseryImpactSpark(void);
 
 static void _actor450800SetNurseryEffectCues(u32 packedCues);
 // Packed high/low halfwords: fast glint pulse on, spark shower scale zero.
@@ -1573,7 +1550,19 @@ static AnimationPlayRequest _gActor450800NurseryPlayerClip1Blend = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_actor_450800_801398BC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_450800_NURSERY_COMPANION_BASE_CLIP = 1 };
+
+/// Restarts the companion's base clip for the initial nursery scene.
+///
+/// Script playback resolves the companion bank in a copy. The request disables
+/// world-grid collision and is borrowed through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryCompanionClip1Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_COMPANION_BASE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Installs the nursery's clips in the companion's current bank extension.
 ///
@@ -1595,11 +1584,37 @@ static AnimationBankCopyRequest _gActor450800NurseryPlayerBankCopy = {
     .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
-ActorCommand D_actor_450800_801398E0 = { { .loc = { 5, 22 } }, 0 };
+/// Commands of the nursery bodies' gun; their stage/area tags are ignored.
+enum {
+    ACTOR_450800_GUN_FIRE = 0,
+    ACTOR_450800_GUN_SHOW = 1,
+    ACTOR_450800_GUN_HIDE = 2,
+};
 
-ActorCommand D_actor_450800_801398E4 = { { .loc = { 5, 22 } }, 1 };
+/// Gun command that emits Kyle's muzzle flash during the nursery shooting scene.
+///
+/// The nursery stage/area tag is carried but ignored. Borrowed through dispatch.
+static ActorCommand _gActor450800NurseryGunFireCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY } },
+    .command = ACTOR_450800_GUN_FIRE,
+};
 
-ActorCommand D_actor_450800_801398E8 = { { .loc = { 5, 22 } }, 2 };
+/// Gun command that shows either nursery body's gun with that body's draw flags.
+///
+/// Sets the gun-visible latch; the stage/area tag is ignored. Borrowed through dispatch.
+static ActorCommand _gActor450800NurseryGunShowCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY } },
+    .command = ACTOR_450800_GUN_SHOW,
+};
+
+/// Gun command that hides Kyle's gun for the initial nursery scene.
+///
+/// Clears the gun-visible latch and excludes drawing and automatic buffers.
+/// The stage/area tag is ignored; the record is borrowed through dispatch.
+static ActorCommand _gActor450800NurseryGunHideCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY } },
+    .command = ACTOR_450800_GUN_HIDE,
+};
 
 /// Kyle's nursery placement used by scene setup and companion-dialogue reset.
 ///
@@ -1609,7 +1624,13 @@ static ActorTransform _gActor450800NurseryKylePlacement = {
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
-ActorTransform D_actor_450800_80139904 = { { 6080, 0, 900, 0 }, { 0, 853, 0, 0 } };
+/// Player placement at the start of the initial nursery scene.
+///
+/// XYZ is in whole world units; yaw is 853/4096 turns. Borrowed through placement.
+static ActorTransform _gActor450800NurseryPlayerScenePlacement = {
+    .pos = { 6080, 0, 900, 0 },
+    .rot = { 0, 853, 0, 0 },
+};
 
 /// Player placement restored when the nursery scene finishes or is skipped.
 ///
@@ -1619,7 +1640,13 @@ static ActorTransform _gActor450800NurseryPlayerReturnPlacement = {
     .rot = { 0, 853, 0, 0 },
 };
 
-ActorTransform D_actor_450800_80139934 = { { 6770, 0, 900, 0 }, { 0, -1137, 0, 0 } };
+/// Companion placement at the start of the initial nursery scene.
+///
+/// XYZ is in whole world units; yaw is -1137/4096 turns. Borrowed through placement.
+static ActorTransform _gActor450800NurseryCompanionScenePlacement = {
+    .pos = { 6770, 0, 900, 0 },
+    .rot = { 0, -1137, 0, 0 },
+};
 
 /// Companion placement restored after scenes and used for nursery dialogue.
 ///
@@ -1636,13 +1663,13 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunHideCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Reset }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398BC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip1Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_80139904 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_80139934 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerScenePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionScenePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
@@ -1763,9 +1790,23 @@ EvsCommand D_actor_450800_8013A33C[23] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013A564[12] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+/// Nursery CAP slots and selectors used by the private dialogue scripts.
+enum {
+    ACTOR_450800_NURSERY_COMPANION_CAP_SEQUENCE         = 2,
+    ACTOR_450800_NURSERY_FIRST_VISIT_CAP_SEQUENCE_6     = 6,
+    ACTOR_450800_NURSERY_FIRST_VISIT_CAP_SEQUENCE_7     = 7,
+    ACTOR_450800_NURSERY_DIALOGUE_USE_INTERACTION_COUNT = 1,
+    ACTOR_450800_NURSERY_DIALOGUE_USE_SCENE_COUNT       = 2,
+};
+
+/// Nursery companion dialogue with the player in a scripted base pose.
+///
+/// Starts CAP sequence 2, installs companion clips and plays clips 53 then 52
+/// around CAP cues. Releases player control and restores default captions.
+/// Requires the nursery resources and both actors live through playback.
+static EvsCommand _gActor450800NurseryCompanionDialogueScript[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_450800_NURSERY_COMPANION_CAP_SEQUENCE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1773,33 +1814,46 @@ EvsCommand D_actor_450800_8013A564[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013A684[10] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Kyle's first two repeat nursery interactions while progress is 1.
+///
+/// The interaction count selects CAP sequence 3 or 4. Blends Kyle through clips
+/// 9/10 around a CAP cue, then releases player control and restores captions.
+/// Requires live nursery resources and player/Kyle tasks until the script ends.
+static EvsCommand _gActor450800NurseryKyleRepeatDialogueScript[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = ACTOR_450800_NURSERY_DIALOGUE_USE_INTERACTION_COUNT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip9Blend } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip10Blend } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013A774[9] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Kyle's capped repeat nursery interaction while progress is 1.
+///
+/// Count 3 selects CAP sequence 5 and restarts Kyle's clip 19. Waits for a CAP
+/// cue, then releases player control and restores captions. Requires live
+/// nursery resources and player/Kyle tasks until the script ends.
+static EvsCommand _gActor450800NurseryKyleFinalRepeatDialogueScript[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = ACTOR_450800_NURSERY_DIALOGUE_USE_INTERACTION_COUNT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip19Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1822,10 +1876,15 @@ EvsCommand D_actor_450800_8013A8DC[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013A984[21] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// CAP sequence 6 for the first saved nursery visit when flag 083 is 1.
+///
+/// Installs player clips, alternates Kyle's clips 11/12 and ends on clips 13/20;
+/// CAP cues coordinate player clips 58/57. Releases player control and restores
+/// captions. Requires live nursery resources and player/Kyle tasks throughout.
+static EvsCommand _gActor450800NurseryFirstVisitDialogue6Script[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_450800_NURSERY_FIRST_VISIT_CAP_SEQUENCE_6 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1841,15 +1900,21 @@ EvsCommand D_actor_450800_8013A984[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip20Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013AB7C[16] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// CAP sequence 7 for the first saved nursery visit when flag 083 is not 1.
+///
+/// Installs player clips and coordinates Kyle's clips 11/12 with player clip 58
+/// through CAP cues. Releases player control and restores default captions.
+/// Requires live nursery resources and player/Kyle tasks throughout.
+static EvsCommand _gActor450800NurseryFirstVisitDialogue7Script[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_450800_NURSERY_FIRST_VISIT_CAP_SEQUENCE_7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1860,76 +1925,215 @@ EvsCommand D_actor_450800_8013AB7C[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_450800_8013ACFC[10] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Nursery dialogue for saved visits after the first.
+///
+/// Saved count 2 selects CAP sequence 8; count 3 selects sequence 9. Coordinates
+/// Kyle's clips 11/12 around a CAP cue, then releases player control and restores
+/// captions. Requires live nursery resources and player/Kyle tasks throughout.
+static EvsCommand _gActor450800NurseryLaterVisitDialogueScript[] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = ACTOR_450800_NURSERY_DIALOGUE_USE_SCENE_COUNT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Release scripted player control and restore the default caption resource.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationPlayRequest D_actor_450800_8013ADEC = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { ACTOR_450800_NURSERY_PAWN_GOLEM_FINAL_CLIP = 5 };
 
-AnimationPlayRequest D_actor_450800_8013AE00 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the first nursery Pawn GOLEM into its travel clip over ten frames.
+///
+/// Uses fixed-bank clip 4 on tracks 1..18. The bank selector and collision word
+/// are ignored; the request is borrowed through dispatch and the clips through playback.
+static AnimationPlayRequest _gActor450800NurseryPawnGolemClip4Blend = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_WALK,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_8013AE14 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts clip 5 on the second nursery Pawn GOLEM near the scene's end.
+///
+/// Uses fixed-bank tracks 1..18; the bank selector and collision word are ignored.
+/// The request is borrowed through dispatch and the clip data through playback.
+static AnimationPlayRequest _gActor450800NurseryPawnGolemClip5Reset = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_450800_NURSERY_PAWN_GOLEM_FINAL_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Restarts both nursery Pawn GOLEMs at their fixed-bank idle clip.
+///
+/// Uses tracks 1..18; the bank selector and collision word are ignored.
+/// The request is borrowed through dispatch and the clip data through playback.
+static AnimationPlayRequest _gActor450800NurseryPawnGolemClip1Reset = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_IDLE,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 GameActorMoveAnim D_actor_450800_8013AE28 = { 19, 1 };
 
-ActorTransform D_actor_450800_8013AE30 = { { 6280, 0, 960, 0 }, { 0, 1024, 0, 0 } };
+/// Kyle's placement for the nursery gunfire sequence.
+///
+/// Scene actor 0 receives parent-frame XYZ and quarter-turn yaw through dispatch.
+static ActorTransform _gActor450800NurseryKyleShootingPlacement = {
+    .pos = { 6280, 0, 960, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-ActorTransform D_actor_450800_8013AE48 = { { 6400, 0, 960, 0 }, { 0, 1024, 0, 0 } };
+/// Kyle's placement for clip 22 after the nursery gunfire sequence.
+///
+/// Scene actor 0 receives parent-frame XYZ and quarter-turn yaw through dispatch.
+static ActorTransform _gActor450800NurseryKylePostShootingPlacement = {
+    .pos = { 6400, 0, 960, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-ActorTransform D_actor_450800_8013AE60 = { { 5350, 0, -20, 0 }, { 0, -1024, 0, 0 } };
+/// Final placement of the nursery's second Kyle-handler body.
+///
+/// Scene actor 3 receives parent-frame XYZ and negative quarter-turn yaw before clips
+/// 23/24 finish. The record is borrowed through placement dispatch.
+static ActorTransform _gActor450800NurserySecondBodyFinalPlacement = {
+    .pos = { 5350, 0, -20, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
 ActorTransform D_actor_450800_8013AE78 = { { 5320, 0, 2900, 0 }, { 0, 2048, 0, 0 } };
 
-ActorTransform D_actor_450800_8013AE90 = { { 5320, 0, 1180, 0 }, { 0, 2048, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AEA8 = { { 5320, 0, 540, 0 }, { 0, -1877, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AEC0 = { { 5280, 0, -290, 0 }, { 0, 455, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AED8 = { { 6500, 0, 1000, 0 }, { 0, 1024, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AEF0 = { { 5710, 0, -290, 0 }, { 0, -455, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AF08 = { { 7000, 0, 1200, 0 }, { 0, 1024, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AF20 = { { -1200, 0, -220, 0 }, { 0, 807, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AF38 = { { 800, 0, 450, 0 }, { 0, 1024, 0, 0 } };
-
-ActorTransform D_actor_450800_8013AF50 = { { 0, 0, 0, 0 }, { 0, 853, 0, 0 } };
-
-EvsSceneKey D_actor_450800_8013AF68 = { 5, 9, 11 };
-
-PadScriptCmd D_actor_450800_8013AF70[5] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+/// Player placement after the nursery shooting scene's opening flashes.
+///
+/// XYZ is in whole world units; yaw is half a turn. Borrowed through placement.
+static ActorTransform _gActor450800NurseryPlayerShootingSceneStartPlacement = {
+    .pos = { 5320, 0, 1180, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
 };
 
-PadScriptVibrationSegment D_actor_450800_8013AF84[2] = {
-    { 210, 63, 9, 1 },
-    { 0, 0, 2, 0 },
+/// Player placement for nursery shooting-scene clip 59.
+///
+/// XYZ is in whole world units; yaw is -1877/4096 turns. Borrowed through placement.
+static ActorTransform _gActor450800NurseryPlayerClip59Placement = {
+    .pos = { 5320, 0, 540, 0 },
+    .rot = { 0, -1877, 0, 0 },
+};
+
+/// Player placement for nursery shooting-scene clip 61.
+///
+/// XYZ is in whole world units; yaw is 455/4096 turns. Borrowed through placement.
+static ActorTransform _gActor450800NurseryPlayerClip61Placement = {
+    .pos = { 5280, 0, -290, 0 },
+    .rot = { 0, 455, 0, 0 },
+};
+
+/// Player placement for nursery shooting-scene clip 62.
+///
+/// XYZ is in whole world units; yaw is a quarter turn. Borrowed through placement.
+static ActorTransform _gActor450800NurseryPlayerClip62Placement = {
+    .pos = { 6500, 0, 1000, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
+
+/// Companion placement for nursery shooting-scene clip 56.
+///
+/// XYZ is in whole world units; yaw is -455/4096 turns. Borrowed through placement.
+static ActorTransform _gActor450800NurseryCompanionClip56Placement = {
+    .pos = { 5710, 0, -290, 0 },
+    .rot = { 0, -455, 0, 0 },
+};
+
+/// Companion placement for nursery shooting-scene clip 57.
+///
+/// XYZ is in whole world units; yaw is a quarter turn. Borrowed through placement.
+static ActorTransform _gActor450800NurseryCompanionClip57Placement = {
+    .pos = { 7000, 0, 1200, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
+
+/// Initial shooting-scene placement of the first nursery Pawn GOLEM.
+///
+/// Scene actor 1 receives parent-frame XYZ and yaw 807/4096 turns through dispatch.
+static ActorTransform _gActor450800NurseryFirstPawnGolemPlacement = {
+    .pos = { -1200, 0, -220, 0 },
+    .rot = { 0, 807, 0, 0 },
+};
+
+/// Walk destination of the first nursery Pawn GOLEM during the shooting scene.
+///
+/// Scene actor 1 reads only X/Z in whole parent-frame units; Y and rotation are
+/// unused. The destination is consumed through dispatch without retaining it.
+static ActorTransform _gActor450800NurseryFirstPawnGolemWalkTarget = {
+    .pos = { 800, 0, 450, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
+
+/// Shooting-scene placement of the second nursery Pawn GOLEM before clip 5.
+///
+/// Scene actor 2 receives parent-frame XYZ and yaw 853/4096 turns through dispatch.
+static ActorTransform _gActor450800NurserySecondPawnGolemPlacement = {
+    .pos = { 0, 0, 0, 0 },
+    .rot = { 0, 853, 0, 0 },
+};
+
+/// Scene/audio stream selection for the nursery shooting sequence.
+///
+/// Matches group 5, stream 9, qualifier 11, with implicit second qualifier 0.
+/// The interpreter retains this key until the scene selection is cleared.
+static EvsSceneKey _gActor450800NurseryShootingSceneKey = {
+    .group    = 5,
+    .streamId = 9,
+    .subId    = 11,
+};
+
+/// Indices and additional binary-motor repetitions of the gunshot vibration.
+enum {
+    ACTOR_450800_NURSERY_GUNSHOT_RAMP_SEGMENT  = 0,
+    ACTOR_450800_NURSERY_GUNSHOT_PULSE_SEGMENT = 1,
+    ACTOR_450800_NURSERY_GUNSHOT_REPEAT_COUNT  = 3,
+    ACTOR_450800_NURSERY_GUNSHOT_LOOP_START    = 0,
+};
+
+/// Two-lane controller vibration used for nursery gunfire and impact cues.
+///
+/// The binary motor plays segment 1 four times with one-frame waits; the variable
+/// motor plays segment 0 once. Both lanes end within these five steps. Borrowed
+/// with the segment table for the spawned vibration task's lifetime.
+static PadScriptCmd _gActor450800NurseryGunshotVibrationCommands[] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_450800_NURSERY_GUNSHOT_PULSE_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_450800_NURSERY_GUNSHOT_RAMP_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACTOR_450800_NURSERY_GUNSHOT_REPEAT_COUNT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, ACTOR_450800_NURSERY_GUNSHOT_LOOP_START), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+};
+
+/// Variable-motor ramp and binary-motor pulse for the nursery gunshot script.
+///
+/// Segment 0 ramps intensity 210 toward 63 over nine script frames; segment 1
+/// gives a two-frame binary pulse. The interpreter does not read `field_3`; its
+/// stored bytes are retained. Borrowed for the vibration task's lifetime.
+static PadScriptVibrationSegment _gActor450800NurseryGunshotVibrationSegments[] = {
+    [ACTOR_450800_NURSERY_GUNSHOT_RAMP_SEGMENT]  = { .startIntensity = 210, .endIntensity = 63, .durationFrames = 9, .field_3 = 1 },
+    [ACTOR_450800_NURSERY_GUNSHOT_PULSE_SEGMENT] = { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
 };
 
 EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_450800_8013AF68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor450800NurseryShootingSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
@@ -1952,16 +2156,16 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunShowCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunShowCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AE90 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerShootingSceneStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip63Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AEA8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerClip59Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip59Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip60Reset }, { .value = 0 } },
@@ -1973,33 +2177,33 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip26Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_8013AE30 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_450800_8013AF70 }, { .vibrationSegments = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryKyleShootingPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gActor450800NurseryGunshotVibrationCommands }, { .vibrationSegments = _gActor450800NurseryGunshotVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip25Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunFireCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450800SpawnNurseryImpactSpark }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryView13SpriteHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_450800_8013AF70 }, { .vibrationSegments = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gActor450800NurseryGunshotVibrationCommands }, { .vibrationSegments = _gActor450800NurseryGunshotVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip25Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_450800_8013AF70 }, { .vibrationSegments = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunFireCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gActor450800NurseryGunshotVibrationCommands }, { .vibrationSegments = _gActor450800NurseryGunshotVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip25Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_450800_8013AF70 }, { .vibrationSegments = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor450800NurseryGunFireCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gActor450800NurseryGunshotVibrationCommands }, { .vibrationSegments = _gActor450800NurseryGunshotVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip21Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AEC0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AEF0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerClip61Placement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionClip56Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip61Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip56Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip22Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_8013AE48 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryKylePostShootingPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
@@ -2007,24 +2211,24 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 50 }, { .value = 10 }, { .value = 10 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013AE14 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013AE14 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_8013AF20 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryPawnGolemClip1Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryPawnGolemClip1Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryFirstPawnGolemPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013ADEC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_450800_8013AF38 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryPawnGolemClip4Blend } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor450800NurseryFirstPawnGolemWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_8013AF50 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013AE00 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurserySecondPawnGolemPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryPawnGolemClip5Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 150 }, { .value = 40 }, { .value = 40 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AF08 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013AED8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionClip57Placement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerClip62Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip62Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip57Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2032,7 +2236,7 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurserySecondBodyClip23Reset } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_8013AE60 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurserySecondBodyFinalPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurserySecondBodyClip24Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2890,7 +3094,13 @@ static TmdSource _gActor450800KyleMadiganGun = {
     _gActor450800KyleMadiganGunStream,
 };
 
-TaskMessageEntry D_actor_450800_8014AC58[6] = {
+/// Message handlers borrowed by Kyle and the nursery's second scene body.
+///
+/// Supports fixed-bank animation, body/hand/gun draw flags, position/yaw, gun
+/// commands and XZ walk targets. The terminal entry returns zero for other IDs.
+/// Requires initialized body work and live helpers; keep this table and the
+/// handlers loaded until both bodies stop receiving messages.
+static TaskMessageEntry _gActor450800KyleMadiganMessages[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor450800PlayKyleMadiganAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor450800SetKyleMadiganDrawFlags },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
@@ -2929,131 +3139,44 @@ TaskDesc gActor450800NurseryActorTasks[ACTOR_450800_NURSERY_ACTOR_TASK_COUNT] = 
     },
 };
 
-u8 D_actor_450800_8014ACC4[124] = {
-    0,
-    0,
-    0,
-    0,
-    132,
-    83,
-    20,
-    128,
-    144,
-    86,
-    20,
-    128,
-    72,
-    89,
-    20,
-    128,
-    52,
-    92,
-    20,
-    128,
-    80,
-    94,
-    20,
-    128,
-    36,
-    97,
-    20,
-    128,
-    100,
-    99,
-    20,
-    128,
-    172,
-    101,
-    20,
-    128,
-    144,
-    104,
-    20,
-    128,
-    184,
-    106,
-    20,
-    128,
-    172,
-    109,
-    20,
-    128,
-    156,
-    111,
-    20,
-    128,
-    180,
-    114,
-    20,
-    128,
-    16,
-    118,
-    20,
-    128,
-    152,
-    120,
-    20,
-    128,
-    56,
-    122,
-    20,
-    128,
-    32,
-    124,
-    20,
-    128,
-    252,
-    125,
-    20,
-    128,
-    64,
-    129,
-    20,
-    128,
-    236,
-    167,
-    20,
-    128,
-    120,
-    132,
-    20,
-    128,
-    24,
-    134,
-    20,
-    128,
-    216,
-    135,
-    20,
-    128,
-    52,
-    138,
-    20,
-    128,
-    200,
-    140,
-    20,
-    128,
-    160,
-    142,
-    20,
-    128,
-    168,
-    146,
-    20,
-    128,
-    32,
-    149,
-    20,
-    128,
-    20,
-    151,
-    20,
-    128,
-    240,
-    155,
-    20,
-    128,
+/// Fixed clip bank borrowed by Kyle and the nursery's second scene body.
+///
+/// Entry 0 is unplayable; entries 1..30 are loaded clips for twenty-part rigs.
+/// Clip 1 initializes the body; clips 2/14/15 drive travel, 3 drives turning and
+/// 13 is arrival idle. Keep the table and clip data loaded for both bodies'
+/// animation lifetime. This is a native pointer table with no bank extension.
+static AnimationSet* _gActor450800KyleMadiganAnimationSets[] = {
+    NULL,
+    &_gActor450800Animation13564,
+    &_gActor450800Animation13870,
+    &_gActor450800Animation13B28,
+    &_gActor450800Animation13E14,
+    &_gActor450800Animation14030,
+    &_gActor450800Animation14304,
+    &_gActor450800Animation14544,
+    &_gActor450800Animation1478C,
+    &_gActor450800Animation14A70,
+    &_gActor450800Animation14C98,
+    &_gActor450800Animation14F8C,
+    &_gActor450800Animation1517C,
+    &_gActor450800Animation15494,
+    &_gActor450800Animation157F0,
+    &_gActor450800Animation15A78,
+    &_gActor450800Animation15C18,
+    &_gActor450800Animation15E00,
+    &_gActor450800Animation15FDC,
+    &_gActor450800Animation16320,
+    &_gActor450800Animation189CC,
+    &_gActor450800Animation16658,
+    &_gActor450800Animation167F8,
+    &_gActor450800Animation169B8,
+    &_gActor450800Animation16C14,
+    &_gActor450800Animation16EA8,
+    &_gActor450800Animation17080,
+    &_gActor450800Animation17488,
+    &_gActor450800Animation17700,
+    &_gActor450800Animation178F4,
+    &_gActor450800Animation17DD0,
 };
 
 static TmdBone _gActor450800PawnGolemBodySkeleton[19] = {
@@ -3281,9 +3404,9 @@ void actor450800StartNurseryInteraction(void)
             _gActor450800NurseryInteractionCount = interactionCount;
             if (interactionCount >= ACTOR_450800_NURSERY_COUNT_LIMIT) {
                 _gActor450800NurseryInteractionCount = ACTOR_450800_NURSERY_COUNT_LIMIT;
-                evsStartScript(D_actor_450800_8013A774, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gActor450800NurseryKyleFinalRepeatDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
-                evsStartScript(D_actor_450800_8013A684, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gActor450800NurseryKyleRepeatDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         } else {
             sceneCount = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) + 1;
@@ -3293,13 +3416,13 @@ void actor450800StartNurseryInteraction(void)
             gameFlagSetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT, sceneCount);
             if (sceneCount == ACTOR_450800_NURSERY_FIRST_SCENE) {
                 if (gameFlagGetNibble(GAME_FLAG_083) == sceneCount) {
-                    evsStartScript(D_actor_450800_8013A984, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                    evsStartScript(_gActor450800NurseryFirstVisitDialogue6Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 } else {
-                    evsStartScript(D_actor_450800_8013AB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                    evsStartScript(_gActor450800NurseryFirstVisitDialogue7Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_450800_NURSERY_OBJECTIVE);
             } else {
-                evsStartScript(D_actor_450800_8013ACFC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gActor450800NurseryLaterVisitDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         }
     }
@@ -3370,7 +3493,7 @@ static void _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector)
 
 void actor450800StartNurseryCompanionDialogue(void)
 {
-    evsStartScript(D_actor_450800_8013A564, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+    evsStartScript(_gActor450800NurseryCompanionDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
 }
 
 void actor450800PrepareNurseryKyleMadigan(void)
@@ -3511,7 +3634,7 @@ static void _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task)
     lightingPosition.vy = rootCoord->workm.t[1] - ACTOR_450800_KYLE_LIGHT_HEIGHT;
     lightingPosition.vz = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor450800KyleMadiganAnimationSets, model, work->rig.poses,
                          work->rig.slots);
     work->st.animId = ACTOR_450800_KYLE_INITIAL_CLIP;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
@@ -3541,7 +3664,7 @@ static void _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task)
     work->st.travel   = 0;
     work->turnFrames  = 0;
     work->gunShown    = 0;
-    task->msgTable    = D_actor_450800_8014AC58;
+    task->msgTable    = _gActor450800KyleMadiganMessages;
     _actor450800UpdateKyleMadigan(task);
     task->state++;
 }
@@ -3832,9 +3955,6 @@ static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 fl
 static s32 _actor450800ApplyKyleMadiganGunCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArgument)
 {
     enum {
-        ACTOR_450800_GUN_FIRE              = 0,
-        ACTOR_450800_GUN_SHOW              = 1,
-        ACTOR_450800_GUN_HIDE              = 2,
         ACTOR_450800_GUN_NPC_FLASH_PROFILE = 33
     };
     _Actor450800KyleMadiganWork* work     = task->work;
