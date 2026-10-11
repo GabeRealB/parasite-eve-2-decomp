@@ -2114,136 +2114,270 @@ static AnimationSet _gM4a1JavelinAimHoldAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0C69CBank1[13] = {
+/// Translation/rotation poses for the backward/turn aim clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0C69C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0C69CBank4[175] = {
+/// Packed rotations for the backward/turn aim clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinAimBackwardOrTurnAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0C69C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0C69CRecords[255] = {
+/// Keyframes and loop/stop controls for backward or turning aim locomotion.
+///
+/// Child tracks loop over 32 normal-rate frames; track 1 marks paired footsteps.
+/// Pose offsets count four-byte words; jumps use absolute record indices.
+static const AnimationRecord _gM4a1JavelinAimBackwardOrTurnAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0C69C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0C69CIndices[20] = {
+/// Absolute record starts for the backward/turn aim clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinAimBackwardOrTurnAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0C69C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0C69C = {
-    _gM4a1JavelinAnimation0C69CRecords,
-    _gM4a1JavelinAnimation0C69CIndices,
-    { NULL, _gM4a1JavelinAnimation0C69CBank1, NULL, NULL, _gM4a1JavelinAnimation0C69CBank4, NULL, NULL, NULL },
+/// Backward-motion and stationary-turn aim clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 13, selected while backing up or turning at rest.
+/// Child tracks loop until another action replaces the clip.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinAimBackwardOrTurnAnimation = {
+    .records           = _gM4a1JavelinAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinAimBackwardOrTurnAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinAimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0D144Bank1[19] = {
+/// Translation/rotation poses for the forward aim clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinAimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0D144_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0D144Bank4[269] = {
+/// Packed rotations for the forward aim clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinAimForwardAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0D144_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0D144Records[336] = {
+/// Keyframes and loop/stop controls for forward aim locomotion.
+///
+/// Child tracks loop over 19 normal-rate frames; track 1 marks paired footsteps.
+/// Pose offsets count four-byte words; jumps use absolute record indices.
+static const AnimationRecord _gM4a1JavelinAimForwardAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0D144_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0D144Indices[20] = {
+/// Absolute record starts for the forward aim clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinAimForwardAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0D144_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0D144 = {
-    _gM4a1JavelinAnimation0D144Records,
-    _gM4a1JavelinAnimation0D144Indices,
-    { NULL, _gM4a1JavelinAnimation0D144Bank1, NULL, NULL, _gM4a1JavelinAnimation0D144Bank4, NULL, NULL, NULL },
+/// Forward-motion aim clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 12, selected while moving forward in aim mode.
+/// Child tracks loop until another action replaces the clip.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinAimForwardAnimation = {
+    .records           = _gM4a1JavelinAimForwardAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinAimForwardAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinAimForwardAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinAimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0E5F4Bank1[35] = {
+/// Translation/rotation poses for the reload clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0E5F4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0E5F4Bank4[567] = {
+/// Packed rotations for the reload clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinReloadAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0E5F4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0E5F4Records[632] = {
+/// Keyframes and stop controls for the M4A1 Javelin reload clip.
+///
+/// Every track stops at its final pose; durations count normal-rate frames.
+/// Track 1 carries two records with both cue flags set for reload sounds
+/// and ammunition application. Pose offsets count four-byte words.
+static const AnimationRecord _gM4a1JavelinReloadAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0E5F4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0E5F4Indices[20] = {
+/// Absolute record starts for the reload clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinReloadAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0E5F4_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0E5F4 = {
-    _gM4a1JavelinAnimation0E5F4Records,
-    _gM4a1JavelinAnimation0E5F4Indices,
-    { NULL, _gM4a1JavelinAnimation0E5F4Bank1, NULL, NULL, _gM4a1JavelinAnimation0E5F4Bank4, NULL, NULL, NULL },
+/// Reload clip shared by the M4A1 Javelin primary and secondary loads.
+///
+/// Native bank entries 14 and 15, also reused at entry 20 after battle.
+/// Reload entry blends child tracks for three frames; the second paired
+/// cue on track 1 applies the selected ammunition before playback ends.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinReloadAnimation = {
+    .records           = _gM4a1JavelinReloadAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinReloadAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinReloadAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0EADCBank1[8] = {
+/// Translation/rotation poses for the rifle-shot clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinRifleShotAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0EADC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0EADCBank4[111] = {
+/// Packed rotations for the rifle-shot clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinRifleShotAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EADC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0EADCRecords[159] = {
+/// Keyframes and stop controls for one M4A1 Javelin rifle shot.
+///
+/// Every track stops at its final pose; durations count normal-rate frames.
+/// Pose offsets count four-byte words. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinRifleShotAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EADC_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0EADCIndices[20] = {
+/// Absolute record starts for the rifle-shot clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinRifleShotAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EADC_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0EADC = {
-    _gM4a1JavelinAnimation0EADCRecords,
-    _gM4a1JavelinAnimation0EADCIndices,
-    { NULL, _gM4a1JavelinAnimation0EADCBank1, NULL, NULL, _gM4a1JavelinAnimation0EADCBank4, NULL, NULL, NULL },
+/// Rifle-shot clip restarted for each round of the M4A1 Javelin primary attack.
+///
+/// Native bank entry 10, blended into child tracks over two frames for
+/// each fired round. Every track stops at its final pose.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinRifleShotAnimation = {
+    .records           = _gM4a1JavelinRifleShotAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinRifleShotAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinRifleShotAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinRifleShotAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0EE3CBank1[6] = {
+/// Translation/rotation poses for the beam-fire clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinBeamFireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0EE3C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0EE3CBank4[65] = {
+/// Packed rotations for the beam-fire clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinBeamFireAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EE3C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0EE3CRecords[113] = {
+/// Keyframes and stop controls for the M4A1 Javelin beam attack.
+///
+/// Every track stops at its final pose; durations count normal-rate frames.
+/// Pose offsets count four-byte words. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinBeamFireAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EE3C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0EE3CIndices[20] = {
+/// Absolute record starts for the beam-fire clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinBeamFireAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0EE3C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0EE3C = {
-    _gM4a1JavelinAnimation0EE3CRecords,
-    _gM4a1JavelinAnimation0EE3CIndices,
-    { NULL, _gM4a1JavelinAnimation0EE3CBank1, NULL, NULL, _gM4a1JavelinAnimation0EE3CBank4, NULL, NULL, NULL },
+/// Beam-fire clip for the M4A1 Javelin secondary attack.
+///
+/// Native bank entry 11, blended into child tracks over three frames when
+/// the beam attack starts. Every track stops at its final pose.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinBeamFireAnimation = {
+    .records           = _gM4a1JavelinBeamFireAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinBeamFireAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinBeamFireAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinBeamFireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0F4FCBank1[12] = {
+/// Translation/rotation poses for the aim-entry clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinAimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0F4FC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0F4FCBank4[168] = {
+/// Packed rotations for the aim-entry clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinAimEntryAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0F4FC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0F4FCRecords[208] = {
+/// Keyframes and stop controls for entering aim with the M4A1 Javelin.
+///
+/// Every track stops at its final pose; durations count normal-rate frames.
+/// Pose offsets count four-byte words. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinAimEntryAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0F4FC_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0F4FCIndices[20] = {
+/// Absolute record starts for the aim-entry clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinAimEntryAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0F4FC_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0F4FC = {
-    _gM4a1JavelinAnimation0F4FCRecords,
-    _gM4a1JavelinAnimation0F4FCIndices,
-    { NULL, _gM4a1JavelinAnimation0F4FCBank1, NULL, NULL, _gM4a1JavelinAnimation0F4FCBank4, NULL, NULL, NULL },
+/// Aim-entry clip for raising the equipped M4A1 Javelin into its ready pose.
+///
+/// Native bank entry 7. Aim entry restarts or blends the child tracks;
+/// completion blends them into the aim-hold clip over five frames.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinAimEntryAnimation = {
+    .records           = _gM4a1JavelinAimEntryAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinAimEntryAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinAimEntryAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinAimEntryAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation0FE0CBank1[16] = {
@@ -2342,20 +2476,20 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation11838,
     &_gM4a1JavelinNegativeTurnAnimation,
     &_gM4a1JavelinPositiveTurnAnimation,
-    &_gM4a1JavelinAnimation0F4FC,
+    &_gM4a1JavelinAimEntryAnimation,
     &_gM4a1JavelinAnimation0FE0C,
     &_gM4a1JavelinAimHoldAnimation,
-    &_gM4a1JavelinAnimation0EADC,
-    &_gM4a1JavelinAnimation0EE3C,
-    &_gM4a1JavelinAnimation0D144,
-    &_gM4a1JavelinAnimation0C69C,
-    &_gM4a1JavelinAnimation0E5F4,
-    &_gM4a1JavelinAnimation0E5F4,
+    &_gM4a1JavelinRifleShotAnimation,
+    &_gM4a1JavelinBeamFireAnimation,
+    &_gM4a1JavelinAimForwardAnimation,
+    &_gM4a1JavelinAimBackwardOrTurnAnimation,
+    &_gM4a1JavelinReloadAnimation,
+    &_gM4a1JavelinReloadAnimation,
     &_gM4a1JavelinPart4HitReactionAnimation,
     &_gM4a1JavelinOtherBodyHitReactionAnimation,
     &_gM4a1JavelinStoppedPoseAnimation,
     &_gM4a1JavelinUnarmedWalkAnimation,
-    &_gM4a1JavelinAnimation0E5F4,
+    &_gM4a1JavelinReloadAnimation,
     &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinHighHealthIdleAnimation,
