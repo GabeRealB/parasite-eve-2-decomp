@@ -296,17 +296,52 @@ extern TmdSource gMappicS500SubmarineTunnelShape;
 /// vertices and first stream group; keep mappic_s5_00 loaded during use.
 extern TmdSource gMappicS500PavilionShape;
 
-extern TmdSource D_mappic_s5_00_8012F490;
+/// Island's default area-fill shape on page 1 of the Neo Ark map.
+///
+/// Three quads over eight vertices share visited/marked state with the
+/// Submarine gallery. The altar picture variant substitutes a different shape.
+/// Model X/Z are scaled by 1495/4096 into map X/inverted Y; no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s5_00
+/// loaded during use.
+extern TmdSource gMappicS500IslandShape;
 
-extern TmdSource D_mappic_s5_00_8012F58C;
+/// Garden's area-fill shape on page 1 of the Neo Ark map.
+///
+/// Two triangles and three quads over ten vertices lie in the model X/Z plane,
+/// scaled by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s5_00
+/// loaded during use.
+extern TmdSource gMappicS500GardenShape;
 
-extern TmdSource D_mappic_s5_00_8012F61C;
+/// Shared area-fill quad for Power plants 1 and 2 on page 1 of the Neo Ark map.
+///
+/// Both areas use this footprint and combine their visited/marked state.
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500PowerPlantsShape;
 
-extern TmdSource D_mappic_s5_00_8012F6AC;
+/// Savanna zone's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500SavannaZoneShape;
 
-extern TmdSource D_mappic_s5_00_8012F7E8;
+/// South promenade's area-fill shape on page 1 of the Neo Ark map.
+///
+/// One triangle and six quads over fifteen vertices lie in the model X/Z plane,
+/// scaled by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s5_00
+/// loaded during use.
+extern TmdSource gMappicS500SouthPromenadeShape;
 
-extern TmdSource D_mappic_s5_00_8012F878;
+/// Altar's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500AltarShape;
 
 extern TmdSource D_mappic_s5_00_8012F9D4;
 

@@ -329,12 +329,12 @@ gMappicS500NorthPromenadeShape = 0x8012F218; // absolute:True owner=mappic_s5_00
 gMappicS500ForestZoneShape = 0x8012F2A8; // absolute:True owner=mappic_s5_00 shared=mappic
 gMappicS500SubmarineTunnelShape = 0x8012F338; // absolute:True owner=mappic_s5_00
 gMappicS500PavilionShape = 0x8012F3C8; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F490 = 0x8012F490; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F58C = 0x8012F58C; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F61C = 0x8012F61C; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F6AC = 0x8012F6AC; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012F7E8 = 0x8012F7E8; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F878 = 0x8012F878; // absolute:True owner=mappic_s5_00
+gMappicS500IslandShape = 0x8012F490; // absolute:True owner=mappic_s5_00
+gMappicS500GardenShape = 0x8012F58C; // absolute:True owner=mappic_s5_00
+gMappicS500PowerPlantsShape = 0x8012F61C; // absolute:True owner=mappic_s5_00
+gMappicS500SavannaZoneShape = 0x8012F6AC; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500SouthPromenadeShape = 0x8012F7E8; // absolute:True owner=mappic_s5_00
+gMappicS500AltarShape = 0x8012F878; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012F9D4 = 0x8012F9D4; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012FAD4 = 0x8012FAD4; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012FBB4 = 0x8012FBB4; // absolute:True owner=mappic_s5_00 shared=mappic
