@@ -5633,7 +5633,7 @@ this hoist.
 ```c
 collision->damageBody.key    = long_div_expr;
 collision->damageBody.flags  = 1;
-collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+collision->damageBody.radius = _gNecrosisLevelTuning[effect->index].startRadius;
 worldCollisionLinkBody(1, &collision->damageBody);
 ```
 
@@ -5648,7 +5648,7 @@ delay:
 
 ```c
 collision->damageBody.key    = long_div_expr;
-collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+collision->damageBody.radius = _gNecrosisLevelTuning[effect->index].startRadius;
 collision->damageBody.flags  = 1;
 worldCollisionLinkBody(1, &collision->damageBody);
 ```

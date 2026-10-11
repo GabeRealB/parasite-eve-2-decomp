@@ -45,8 +45,23 @@ static EffectBandShape _gPlasmaBandShapes[] = {
     { 0x0300, 0x0400, 0x0400 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each PE level 1..3.
-static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
+enum {
+    PLASMA_CAST_SOUND_LEVEL_1 = (s32)0xE0160001,
+    PLASMA_CAST_SOUND_LEVEL_2 = (s32)0xE0190001,
+    PLASMA_CAST_SOUND_LEVEL_3 = (s32)0xE01C0001,
+};
+
+/// Plasma startup sound-script requests, indexed by PE level minus one (0..2).
+///
+/// Each signed word packs a type-14 PE bank id, zero instance tag and entry 1.
+/// This selection is independent of the three concurrent visual bands.
+/// Startup copies the selected value into the sound queue; no table pointer
+/// survives unloading this overlay.
+static s32 _gPlasmaCastSoundScripts[ATTACHMENT_AREA_LEVEL_COUNT] = {
+    PLASMA_CAST_SOUND_LEVEL_1,
+    PLASMA_CAST_SOUND_LEVEL_2,
+    PLASMA_CAST_SOUND_LEVEL_3,
+};
 
 /// Retained texture-frame offsets for each Plasma band's sixteen segments.
 ///
@@ -137,7 +152,7 @@ void plasmaCastTask(Task* task)
             }
             task->state = nextState;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(gAttachmentState.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(_gPlasmaCastSoundScripts[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             padScriptSpawnVariableMotorRamp((s16)(effect->index * PLASMA_MOTOR_FRAMES_PER_LEVEL + PLASMA_MOTOR_BASE_FRAMES), PLASMA_MOTOR_START_INTENSITY, PLASMA_MOTOR_END_INTENSITY);
             return;

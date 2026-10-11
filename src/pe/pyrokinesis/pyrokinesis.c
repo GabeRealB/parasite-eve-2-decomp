@@ -68,18 +68,27 @@ STATIC_ASSERT_SIZEOF(_PyrokinesisWork, 0x58);
 
 static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize);
 
-/// The `sndEvtRequestScriptStart` id of the ignition roar, three per PE level,
-/// indexed by `EffectWork.index * 3 + Task::spawnArg1` (level by cast variant).
-static s32 D_pyrokinesis_80131DD8[] = {
-    0xE00B0002,
-    0xE00B0002,
-    0xE00B0002,
-    0xE00E0002,
-    0xE00E0002,
-    0xE00E0002,
-    0xE0110002,
-    0xE0110003,
-    0xE0110004,
+enum {
+    PYROKINESIS_CAST_VARIANT_COUNT        = 3,
+    PYROKINESIS_CAST_SOUND_LEVEL_1        = (s32)0xE00B0002,
+    PYROKINESIS_CAST_SOUND_LEVEL_2        = (s32)0xE00E0002,
+    PYROKINESIS_CAST_SOUND_LEVEL_3_FIRST  = (s32)0xE0110002,
+    PYROKINESIS_CAST_SOUND_LEVEL_3_SECOND = (s32)0xE0110003,
+    PYROKINESIS_CAST_SOUND_LEVEL_3_THIRD  = (s32)0xE0110004,
+};
+
+/// Pyrokinesis launch sound-script requests by PE level and requested cast variant.
+///
+/// Rows are level minus one (0..2); columns are the original spawn argument
+/// (0..2), also the projectile's ordinal in a volley. Levels 1 and 2 reuse
+/// entry 2 for all variants; level 3 selects entries 2, 3 and 4 respectively.
+/// Each signed word packs a type-14 PE bank id and zero instance tag.
+/// Selection precedes the task's variant normalization, and the sound queue
+/// copies the value without retaining a pointer into this overlay.
+static s32 _gPyrokinesisCastSoundScripts[ATTACHMENT_AREA_LEVEL_COUNT][PYROKINESIS_CAST_VARIANT_COUNT] = {
+    { PYROKINESIS_CAST_SOUND_LEVEL_1, PYROKINESIS_CAST_SOUND_LEVEL_1, PYROKINESIS_CAST_SOUND_LEVEL_1 },
+    { PYROKINESIS_CAST_SOUND_LEVEL_2, PYROKINESIS_CAST_SOUND_LEVEL_2, PYROKINESIS_CAST_SOUND_LEVEL_2 },
+    { PYROKINESIS_CAST_SOUND_LEVEL_3_FIRST, PYROKINESIS_CAST_SOUND_LEVEL_3_SECOND, PYROKINESIS_CAST_SOUND_LEVEL_3_THIRD },
 };
 
 /// Retained texture-frame offsets for Pyrokinesis's sixteen jet-cone segments.
@@ -225,7 +234,7 @@ void pyrokinesisCastTask(Task* task)
             effect->period  = (gRandomLcgState >> 16) & PYROKINESIS_ANGLE_MASK;
             effect->index   = (gAttachmentState.attachId % 10) - 1;
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[effect->index * 3 + task->spawnArg1.value], pan,
+            sndEvtRequestScriptStart(_gPyrokinesisCastSoundScripts[effect->index][task->spawnArg1.value], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             padScriptSpawnVariableMotorRamp((s16)(effect->index * 2 + 8), PYROKINESIS_MOTOR_START_INTENSITY, PYROKINESIS_MOTOR_END_INTENSITY);
             // Choose the sound with the requested variant before normalizing cone behavior.

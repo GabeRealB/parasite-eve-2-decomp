@@ -7,3 +7,5 @@ necrosisCastTask = 0x8012EF34; // type:func
 spriteQuadDraw = 0x8012F6EC; // type:func
 _necrosisDrawMistPuff = 0x8012fe64; // type:func
 _necrosisDrawLargeMistPuff = 0x80130288; // type:func
+_gNecrosisLevelTuning = 0x801306bc;
+_gNecrosisCastSoundScripts = 0x801306c8;

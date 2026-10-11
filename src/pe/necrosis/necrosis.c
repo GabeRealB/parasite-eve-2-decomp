@@ -75,16 +75,33 @@ typedef struct {
 } _NecrosisWork;
 STATIC_ASSERT_SIZEOF(_NecrosisWork, 0x58);
 
-/// Per-level tuning for the necrosis cloud, one row per PE level 1-3, weakest
-/// first.
-static _NecrosisLevelTuning D_necrosis_801306BC[] = {
+/// Initial size and travel duration of the Necrosis cloud at each PE level.
+///
+/// Row `level - 1` (0..2) supplies the collision sphere's launch radius and
+/// the trail puff's size base in game-coordinate units, plus the travel limit
+/// in running PE updates. Pausing holds that age; the final trail wait does not.
+static _NecrosisLevelTuning _gNecrosisLevelTuning[ATTACHMENT_AREA_LEVEL_COUNT] = {
     { 0x03C0, 0x000A },
     { 0x0480, 0x000F },
     { 0x0540, 0x0014 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_necrosis_801306BC` row.
-static s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
+enum {
+    NECROSIS_CAST_SOUND_LEVEL_1 = (s32)0xE0150001,
+    NECROSIS_CAST_SOUND_LEVEL_2 = (s32)0xE0180001,
+    NECROSIS_CAST_SOUND_LEVEL_3 = (s32)0xE01B0001,
+};
+
+/// Necrosis launch sound-script requests, indexed by PE level minus one (0..2).
+///
+/// Each signed word packs a type-14 PE bank id, zero instance tag and entry 1.
+/// The selected value is copied into the sound queue at cloud launch; no
+/// pointer to this overlay's table is retained.
+static s32 _gNecrosisCastSoundScripts[ARRAY_SIZE(_gNecrosisLevelTuning)] = {
+    NECROSIS_CAST_SOUND_LEVEL_1,
+    NECROSIS_CAST_SOUND_LEVEL_2,
+    NECROSIS_CAST_SOUND_LEVEL_3,
+};
 
 /// Packed sprite-frame bits and fixed-point units shared by the mist puff task and drawers.
 enum {
@@ -283,7 +300,7 @@ void necrosisCastTask(Task* task)
             collision->damageBody.context.contacts = contacts;
             collision->damageBody.key =
                 ((u16)(gAttachmentState.attachId / 100) - 1) * 9 + ((u16)((u16)(gAttachmentState.attachId % 100) / 10) - 1) * 3 + (u16)(gAttachmentState.attachId % 10) + NECROSIS_SPELL_DAMAGE_KEY_BASE;
-            collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+            collision->damageBody.radius = _gNecrosisLevelTuning[effect->index].startRadius;
             collision->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->damageBody);
             contacts->flags                      = WORLD_COLLISION_CONTACT_LAST;
@@ -296,9 +313,9 @@ void necrosisCastTask(Task* task)
             worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &collision->gridBody);
             collision->gridBody.flags = (collision->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan                       = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(gAttachmentState.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(_gNecrosisCastSoundScripts[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            padScriptSpawnVariableMotorRamp(D_necrosis_801306BC[effect->index].travelFrames + NECROSIS_MOTOR_TAIL_FRAMES, NECROSIS_MOTOR_START_INTENSITY, NECROSIS_MOTOR_END_INTENSITY);
+            padScriptSpawnVariableMotorRamp(_gNecrosisLevelTuning[effect->index].travelFrames + NECROSIS_MOTOR_TAIL_FRAMES, NECROSIS_MOTOR_START_INTENSITY, NECROSIS_MOTOR_END_INTENSITY);
             task->state = NECROSIS_CAST_TRAVELLING;
             /* fallthrough */
         case NECROSIS_CAST_TRAVELLING:
@@ -310,7 +327,7 @@ void necrosisCastTask(Task* task)
                 gte_stsv(&effect->move);
                 _necrosisAdvanceCastCoord(coord, effect);
                 spawned = effectSpawn((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
-                                      D_necrosis_801306BC[effect->index].startRadius + (effect->age * NECROSIS_TRAIL_SIZE_STEP),
+                                      _gNecrosisLevelTuning[effect->index].startRadius + (effect->age * NECROSIS_TRAIL_SIZE_STEP),
                                       NULL);
                 if (spawned != NULL) {
                     taskReparent(task, spawned->task);
@@ -324,7 +341,7 @@ void necrosisCastTask(Task* task)
                 worldCollisionUnlinkBody(&collision->gridBody);
                 break;
             }
-            if (effect->age > D_necrosis_801306BC[effect->index].travelFrames) {
+            if (effect->age > _gNecrosisLevelTuning[effect->index].travelFrames) {
                 worldCollisionUnlinkBody(&collision->damageBody);
                 worldCollisionUnlinkBody(&collision->gridBody);
                 task->state = NECROSIS_CAST_WAIT_FOR_TRAIL;
@@ -347,7 +364,7 @@ void necrosisCastTask(Task* task)
                 break;
             }
             nextAge = (s16)nextAge;
-            if ((D_necrosis_801306BC[effect->index].travelFrames + NECROSIS_TRAIL_WAIT_FRAMES) < nextAge) {
+            if ((_gNecrosisLevelTuning[effect->index].travelFrames + NECROSIS_TRAIL_WAIT_FRAMES) < nextAge) {
                 break;
             }
             return;

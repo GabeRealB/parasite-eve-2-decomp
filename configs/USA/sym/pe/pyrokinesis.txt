@@ -16,3 +16,4 @@ spriteQuadDraw = 0x80130848; // type:func
 _jetConeDraw = 0x80131784; // type:func
 _pyrokinesisDrawGroundGlow = 0x801304c4; // type:func
 _gPyrokinesisConeFrameOffsets = 0x80131dfc;
+_gPyrokinesisCastSoundScripts = 0x80131dd8;
