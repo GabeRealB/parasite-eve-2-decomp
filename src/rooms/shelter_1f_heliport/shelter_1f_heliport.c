@@ -1011,6 +1011,17 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     }
 }
 
+/// Selects the heliport's mutable room grid receiving the companion obstacle.
+///
+/// Binds a `WorldCollisionGrid` object lvalue; the fragment takes its address
+/// once per rebuild. Writable, word-aligned mesh pools reserve normals/faces
+/// 0..3 and vertices 0..7 for the obstacle, disjoint from the source pools.
+/// Normals use 4096 for unit length; vertices use signed room-coordinate units.
+/// Every cell already references those four faces, so moving the obstacle
+/// preserves the cell lists, grid descriptor and remaining room geometry.
+/// The record and pools live with the room overlay through rebuilding and
+/// active collision queries. Define before the rebuild fragment include and
+/// undefine immediately after it.
 #define FOLLOW_COLLISION_ROOM_GRID _gShelter1fHeliportCollisionGrid
 
 /// Selects the heliport's model-local companion-obstacle template.
