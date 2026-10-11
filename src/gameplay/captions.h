@@ -389,7 +389,14 @@ extern s16 gCapTextBoxHeight;
 /// updates. Transition, freeze and other playback gates do not count.
 extern u8 gCapRevealDelayLimit;
 
-extern s8 D_801155B9;
+/// Eligible CAP text-reveal updates elapsed since the last code-index advance.
+///
+/// Compared as a signed byte to `gCapRevealDelayLimit`'s signed-byte view before
+/// incrementing. A limit N reached from zero advances after N + 1 updates and
+/// resets this counter; the text-update callback sees true on that reset update.
+/// Playback gates pause progression. Sequence initialization intentionally leaves
+/// the counter intact. Incrementing uses the unsigned byte view then truncates.
+extern s8 gCapRevealElapsedUpdates;
 
 /// Playback ticks left before a mode-2 placed-action frame capture and prompt.
 ///

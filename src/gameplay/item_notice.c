@@ -19,7 +19,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-UiObjectDesc D_8010D348 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, telephoneDispatchMenuTask, 0 };
+const UiObjectDesc gTelephoneMenuDescriptor __attribute__((section(".data"))) = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, telephoneDispatchMenuTask, 0 };
 
 /// Captures the player model root's local XYZ and signed-turn yaw for saving.
 ///
@@ -100,7 +100,7 @@ void itemPickupActionPromptTask(Task* task)
                 save->state.playerBp   = player->bp;
                 save->state.savePoint  = gItemPickupPublishedKind;
                 stageEnsureHeapTaskPrimitiveBuffer();
-                descriptor = &D_8010D348;
+                descriptor = &gTelephoneMenuDescriptor;
                 break;
             default:
                 stageEnsureHeapTaskPrimitiveBuffer();
@@ -108,7 +108,7 @@ void itemPickupActionPromptTask(Task* task)
                 break;
         }
         request->accepted = 0;
-        if (D_80114DDE & AREA_OBJECT_PLACE_PROMPT) {
+        if (gItemPickupPublishedPlaceState & AREA_OBJECT_PLACE_PROMPT) {
             request->defaultPrompt = 0;
         } else {
             request->defaultPrompt = 1;

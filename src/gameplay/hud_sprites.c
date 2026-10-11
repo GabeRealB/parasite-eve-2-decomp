@@ -202,7 +202,12 @@ static u16 _gHudRadarRangePalette[16];
 /// Rebuilt with the palette and retained unchanged through GPU consumption.
 static RECT _gHudRadarRangePaletteRect;
 
-ScreenFade D_80114BD8;
+/// Persistent death-screen fade state, borrowed by one fade task through teardown.
+///
+/// Uses subtractive black with no requested return, holding the covered frame
+/// through the area change. The session's signed deathFadeFrames sets its ramp;
+/// nonpositive values select the fade task's default. Do not start overlapping fades.
+static ScreenFade _gPlayClockDeathFade;
 
 /// Starts the persistent death-screen fade using the session's signed frame count.
 ///
@@ -217,7 +222,7 @@ static inline void _playClockQueueDeathFade(const GameSession* session)
            PLAY_CLOCK_DEATH_FADE_TASK_TYPE = 0x31 };
     ScreenFade* fade;
 
-    fade             = &D_80114BD8;
+    fade             = &_gPlayClockDeathFade;
     fade->blend      = SCREEN_FADE_SUBTRACT;
     fade->phase      = SCREEN_FADE_RUNNING;
     fade->rampFrames = session->deathFadeFrames;

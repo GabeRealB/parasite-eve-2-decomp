@@ -1776,7 +1776,7 @@ void hudUpdateAndDraw(HudState* hud)
                     currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
                     hud->field_8         = 0;
                     if (currentStageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
-                        displayQueueModeTask(&D_8010CAB0, 0, hud, STAGE_ENTRY_GRAY_CAPTURE);
+                        displayQueueModeTask(&gSceneBattleStartTransitionTaskDesc, 0, hud, STAGE_ENTRY_GRAY_CAPTURE);
                     } else {
                         hud->battleStep = hud->battleStep + 1;
                     }

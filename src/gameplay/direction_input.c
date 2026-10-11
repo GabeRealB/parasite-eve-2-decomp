@@ -159,7 +159,7 @@ void directionUpdateAction(void)
     u32                  automaticFlag;
     DirectionActionTable actions;
 
-    actions      = Gp_DirActionFns;
+    actions      = gDirectionActionHandlers;
     playerStatus = &gPlayerStatus;
     viewGateTask = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     // View changes rearm manual interaction before this eligible update is counted.

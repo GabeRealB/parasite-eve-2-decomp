@@ -11,17 +11,19 @@
 #include "main/mc_types.h"
 #include "main/task_types.h"
 
-/// Per-stage `InventoryBattleReward` lists selected by
-/// `inventoryGrantBattleRewards` when
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is 0 or 2. Indexed by
-/// `GameSession.location.loc.stage`.
-extern InventoryBattleReward* D_8010F9F4[];
+/// Stage-indexed battle-reward lists for normal/replay (mode 0) and Scavenger (2).
+///
+/// Stage IDs 1..5 select the owning map overlay's read-only reward list; slot
+/// zero is NULL and must not be selected. Each list ends at
+/// `INVENTORY_BATTLE_REWARD_LIST_END` and matches the current area/variant key.
+/// Keep the selected map data loaded throughout `inventoryGrantBattleRewards`.
+extern const InventoryBattleReward* const gInventoryBattleRewardLists[6];
 
-/// Per-stage `InventoryBattleReward` lists selected by
-/// `inventoryGrantBattleRewards` when
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is not 0 or 2. Indexed by
-/// `GameSession.location.loc.stage`.
-extern InventoryBattleReward* D_8010FA0C[];
+/// Stage-indexed battle-reward lists for Bounty (mode 1) and Nightmare (3).
+///
+/// Selected for every mode other than 0 or 2. Stage IDs 1..5, the NULL slot
+/// zero, sentinel and loaded-map lifetime follow `gInventoryBattleRewardLists`.
+extern const InventoryBattleReward* const gInventoryHardBattleRewardLists[6];
 
 /// Draws equipped armor and its attachments, and handles attachment item use.
 ///

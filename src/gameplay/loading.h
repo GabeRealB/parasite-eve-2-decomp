@@ -424,7 +424,13 @@ extern DR_STP gLoadingViewMaskResetCommand;
 /// resources of `loadingFinishViewLoad`; immediate completion kills the task.
 void loadingUploadViewImageTask(Task* viewLoadTask);
 
-extern s16 D_80114C40;
+/// Selected view-movie slot: 0..14, or `STREAM_SLOT_NOT_FOUND` (-1) when absent.
+///
+/// View loading caches the loaded stream-directory selection for the subsequent
+/// image-upload task; playback encodes the live slot in one command byte. Keep
+/// the stream directory and view selection stable between selection and playback.
+/// Cached-scene-image loading bypasses this selection and leaves the value intact.
+extern s16 gLoadingViewMovieSlot;
 
 /// Holds a synchronized frame and starts the current view's image/movie load.
 ///

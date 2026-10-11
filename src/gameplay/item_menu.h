@@ -72,8 +72,6 @@ void itemMenuDrawSwitchRow(UiList* list, UiObject* object);
 /// and advances the pickup dispatcher after a one-tick countdown.
 void itemPickupPublishPlacedObjectTask(Task* task);
 
-extern UiObjectDesc D_8010D348;
-
 /// Notice title for the belt-pouch armor attachment-slot confirmation panel.
 ///
 /// The first seven bytes are the NUL-terminated label. The final stored byte

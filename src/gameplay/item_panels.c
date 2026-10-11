@@ -16,6 +16,7 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/map.h"
+#include "telephone.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -1958,7 +1959,7 @@ void itemPickupOpenPromptTask(Task* task)
                 break;
             case ITEM_PICKUP_PLACE_BANK_SAVE_POINT:
                 playerCaptureSaveState();
-                descriptor                                         = &D_8010D348;
+                descriptor                                         = &gTelephoneMenuDescriptor;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = gItemPickupPublishedKind;
                 break;
             default:

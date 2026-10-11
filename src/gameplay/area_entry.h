@@ -18,7 +18,12 @@ extern u8 gItemPickupBonusNoticeText[];
 /// and fills those rows before the transfer screen offers them to the player.
 extern InventoryItemRange gInventoryBattleRewardRange;
 
-extern TaskDesc D_8010CAB0;
+/// Stage-mode descriptor for the battle-start transition from the live HUD.
+///
+/// Spawn argument 1 is unused; spawn argument 2 borrows the live HudState
+/// through the transition. It advances the battle to fighting, queues the
+/// battle-start presentation and applies the session's music policy.
+extern TaskDesc gSceneBattleStartTransitionTaskDesc;
 
 /// Battle-result payload modes used by `gSceneBattleResultTaskDesc`.
 enum {

@@ -1082,9 +1082,9 @@ s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange)
     areaLayoutKey = GAME_LOCATION_KEY(stage, area, variant, 0);
     gameMode      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     if ((gameMode == INVENTORY_BATTLE_REWARD_MODE_NORMAL_REPLAY) || (gameMode == INVENTORY_BATTLE_REWARD_MODE_SCAVENGER)) {
-        reward = D_8010F9F4[stage];
+        reward = gInventoryBattleRewardLists[stage];
     } else {
-        reward = D_8010FA0C[stage];
+        reward = gInventoryHardBattleRewardLists[stage];
     }
     // Grant only the first row for this area layout.
     if (reward->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END) {

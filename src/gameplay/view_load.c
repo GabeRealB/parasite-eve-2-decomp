@@ -13,7 +13,7 @@
 #include "main/session.h"
 #include "main/stream.h"
 
-s16 D_80114C40;
+s16 gLoadingViewMovieSlot;
 
 /// Queues the current mapped view's image file with default placement and load policy.
 ///
@@ -68,8 +68,8 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
             viewLoadTask->state = LOADING_VIEW_WAIT_FOR_SCENE_IMAGE;
         } else {
             // Movie views release model packets; leaving movie mode restores their policy.
-            D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, LOADING_VIEW_MOVIE_SUB_ID, LOADING_VIEW_REQUIRE_VIEW_MOVIE);
-            if (D_80114C40 >= 0) {
+            gLoadingViewMovieSlot = streamFindMovieSlot(&gGameSession->location.loc, LOADING_VIEW_MOVIE_SUB_ID, LOADING_VIEW_REQUIRE_VIEW_MOVIE);
+            if (gLoadingViewMovieSlot >= 0) {
                 sceneFreeActorPrimitiveBuffers();
                 queue->viewMovieSelected = LOADING_VIEW_MOVIE_SELECTED;
             } else {

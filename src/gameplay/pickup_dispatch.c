@@ -21,10 +21,6 @@
 #include "main/ui.h"
 #include "main/wipsys_types.h"
 
-/// Five-entry dispatcher table: `itemPickupPublishPlacedObjectTask`, `itemPickupOpenPromptTask`, `itemPickupHandleResultTask`,
-/// `itemPickupRestoreFrameTimingTask`, `itemPickupExitTask`. Copied onto the stack by `itemPickupTask`.
-extern const TaskFuncTable5 D_80096E70;
-
 UiObjectTaskFunc gItemMenuUseHandlers[96] = {
     NULL,
     itemMenuApplySelectedHealingItem,
@@ -124,7 +120,12 @@ UiObjectTaskFunc gItemMenuUseHandlers[96] = {
     NULL,
 };
 
-const TaskFuncTable5 D_80096E70 = { { itemPickupPublishPlacedObjectTask, itemPickupOpenPromptTask, itemPickupHandleResultTask, itemPickupRestoreFrameTimingTask, itemPickupExitTask } };
+/// Pickup states: publish, open prompt, await result, restore timing, then exit.
+///
+/// `itemPickupTask` copies all five callbacks before selecting state 0..4.
+/// The first four states advance in order; the last releases the task and the
+/// stage primitive reservation after the close delay. There is no terminator.
+static const TaskFuncTable5 _gItemPickupStates = { { itemPickupPublishPlacedObjectTask, itemPickupOpenPromptTask, itemPickupHandleResultTask, itemPickupRestoreFrameTimingTask, itemPickupExitTask } };
 
 // "EXP"
 // "MP"
@@ -133,7 +134,7 @@ void itemPickupTask(Task* task)
 {
     TaskFuncTable5 states;
 
-    states = D_80096E70;
+    states = _gItemPickupStates;
     states.funcs[task->state](task);
 }
 

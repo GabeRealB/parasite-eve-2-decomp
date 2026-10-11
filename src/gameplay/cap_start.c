@@ -26,7 +26,7 @@ s16 gCapTextBoxHeight;
 
 u8 gCapRevealDelayLimit;
 
-s8 D_801155B9;
+s8 gCapRevealElapsedUpdates;
 
 u8 gCapActionCaptureFramesRemaining;
 

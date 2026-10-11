@@ -512,14 +512,14 @@ void capUpdatePlaybackTask(Task* task)
             }
         } else if ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.displayFrames != 0) && !(gCapRecordSoundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
             gCapRecordPhase = _capDrawTextStream(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, gCapSelectedSequence[(s16)gCapRecordIndex].control.text.title | ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
-            if ((s8)gCapRevealDelayLimit > D_801155B9) {
-                D_801155B9 = (u8)D_801155B9 + 1;
+            if ((s8)gCapRevealDelayLimit > gCapRevealElapsedUpdates) {
+                gCapRevealElapsedUpdates = (u8)gCapRevealElapsedUpdates + 1;
             } else {
-                D_801155B9          = 0;
-                gCapRevealCodeIndex = (u16)gCapRevealCodeIndex + 1;
+                gCapRevealElapsedUpdates = 0;
+                gCapRevealCodeIndex      = (u16)gCapRevealCodeIndex + 1;
             }
             if (gCapTextUpdateCallback != NULL) {
-                gCapTextUpdateCallback(gCapTextCursorX, gCapTextCursorY, gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, gCapRevealCodeIndex, D_801155B9 == 0);
+                gCapTextUpdateCallback(gCapTextCursorX, gCapTextCursorY, gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, gCapRevealCodeIndex, gCapRevealElapsedUpdates == 0);
             }
             if (gCapRecordPhase != CAP_RECORD_BEGIN) {
                 gCapPauseFramesRemaining   = gCapSelectedSequence[(s16)gCapRecordIndex].control.text.pauseFrames;
@@ -562,12 +562,12 @@ void capUpdatePlaybackTask(Task* task)
             }
 
             gCapRecordPhase = _capDrawTextStream(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, gCapSelectedSequence[(s16)gCapRecordIndex].control.text.title | ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
-            if ((s8)gCapRevealDelayLimit > D_801155B9) {
-                D_801155B9 = (u8)D_801155B9 + 1;
+            if ((s8)gCapRevealDelayLimit > gCapRevealElapsedUpdates) {
+                gCapRevealElapsedUpdates = (u8)gCapRevealElapsedUpdates + 1;
                 return;
             }
-            D_801155B9          = 0;
-            gCapRevealCodeIndex = (u16)gCapRevealCodeIndex + 1;
+            gCapRevealElapsedUpdates = 0;
+            gCapRevealCodeIndex      = (u16)gCapRevealCodeIndex + 1;
         }
     }
 }

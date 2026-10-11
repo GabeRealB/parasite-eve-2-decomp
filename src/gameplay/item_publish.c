@@ -27,7 +27,7 @@ s32 D_80114DD8;
 
 u16 gItemPickupPublishedKind;
 
-u16 D_80114DDE;
+u16 gItemPickupPublishedPlaceState;
 
 s32 gItemMenuPreviousSecondaryItemId;
 
@@ -147,11 +147,11 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
 
                         do {
                             if (place->flagIndex == flagIndex) {
-                                objectKind                    = place->kind;
-                                placeState                    = place->state;
-                                gItemPickupPublishedFlagIndex = flagIndex;
-                                gItemPickupPublishedKind      = objectKind;
-                                D_80114DDE                    = placeState;
+                                objectKind                     = place->kind;
+                                placeState                     = place->state;
+                                gItemPickupPublishedFlagIndex  = flagIndex;
+                                gItemPickupPublishedKind       = objectKind;
+                                gItemPickupPublishedPlaceState = placeState;
                                 // Publish item quantity only for the item bank.
                                 if (objectKind < ITEM_PICKUP_ITEM_BANK_END) {
                                     if (inventoryIsItemLimitReached(place->kind) != 0) {

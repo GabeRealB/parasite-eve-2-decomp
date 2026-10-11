@@ -126,7 +126,7 @@ static const TaskFuncTable3 _gDirectionTaskStates;
 
 static const _DirectionWarpPhaseTable _gDirectionWarpPhaseHandlers;
 
-static const _DirectionFacingPhaseTable D_80093990;
+static const _DirectionFacingPhaseTable _gDirectionStairPhaseHandlers;
 
 static inline s32 _areaHasMapMark(const GameLocationKey* key);
 
@@ -432,7 +432,7 @@ static const TaskFuncTable3 _gDirectionTaskStates = { {
     taskKill,
 } };
 
-const DirectionActionTable Gp_DirActionFns = { {
+const DirectionActionTable gDirectionActionHandlers = { {
     [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = _directionUpdateWarpAction,
     [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = _directionUpdateStairAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = directionDispatchCapInteraction,
@@ -456,7 +456,11 @@ static const _DirectionWarpPhaseTable _gDirectionWarpPhaseHandlers = { {
     [DIRECTION_WARP_PHASE_LEAVE]       = _directionLeaveWarp,
 } };
 
-static const _DirectionFacingPhaseTable D_80093990 = { {
+/// Stair-action phases: turn, await turn, climb, await climb, then finish a met warp.
+///
+/// Indexed by the latched phase in 0..4 through a whole-table copy. Each phase
+/// advances at most once; the final phase ends the action without advancing.
+static const _DirectionFacingPhaseTable _gDirectionStairPhaseHandlers = { {
     [DIRECTION_FACING_PHASE_TURN]        = _directionStartStairTurn,
     [DIRECTION_FACING_PHASE_AWAIT_TURN]  = _directionAwaitStairTurn,
     [DIRECTION_FACING_PHASE_CLIMB]       = _directionStartStairClimb,
@@ -640,7 +644,7 @@ static void _directionUpdateStairAction(void)
 {
     _DirectionFacingPhaseTable phaseTable;
 
-    phaseTable = D_80093990;
+    phaseTable = _gDirectionStairPhaseHandlers;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
         if (gDirectionPreviousBattlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
             gDirectionStairBattleFinished = gDirectionPreviousBattlePhase;

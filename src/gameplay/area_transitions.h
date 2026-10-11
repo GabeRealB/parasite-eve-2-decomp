@@ -10,7 +10,12 @@
 
 #include "main/task_types.h"
 
-extern const DirectionActionTable Gp_DirActionFns;
+/// Handlers for the seven latched world-collision trigger actions, indexed by action kind.
+///
+/// `directionUpdateAction` copies the table before dispatch. The trigger's low
+/// control byte must be in 0..6; entries consume the direction subsystem's
+/// latched parameters and phase. The callbacks remain loaded with gameplay.
+extern const DirectionActionTable gDirectionActionHandlers;
 
 /// Returns the yaw from a model task's root translation toward a point in its parent frame.
 ///

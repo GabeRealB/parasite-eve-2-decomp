@@ -2,6 +2,14 @@
 #define GAMEPLAY_PRIVATE_TELEPHONE_H
 
 #include "main/task_types.h"
+#include "main/ui_types.h"
+
+/// Telephone save/statistics panel recipe for a placed save-point action.
+///
+/// Uses a titled 128-by-64-pixel panel and dispatches by the saved stage/area.
+/// The owning room's telephone code and UI resources must remain loaded for
+/// the spawned menu's lifetime. The descriptor itself is read only at spawn.
+extern const UiObjectDesc gTelephoneMenuDescriptor;
 
 /// Dispatches the telephone save/statistics menu to the saved area's room overlay.
 ///

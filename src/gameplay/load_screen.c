@@ -68,7 +68,12 @@ static TILE _gLoadingFadeTiles[2];
 /// Each is linked ahead of its tile and must remain live through GPU consumption.
 static DR_TPAGE _gLoadingFadeBlendCommands[2];
 
-ActorSpawnTransform D_80114CB0;
+/// Persistent room-start transform reconstructed from the captured player pose.
+///
+/// Signed XYZ use whole room-coordinate units; yaw uses 4096 units per turn.
+/// All four words are replaced before the saved-position spawn. The spawner
+/// reads the pose during the call and retains no pointer to this storage.
+static ActorSpawnTransform _gAreaPlayerSpawnTransform;
 
 /// Map-marker state written on arrival after the initial session setup.
 enum { DIRECTION_WARP_MAP_FLAG_ARRIVED = 1 };
@@ -241,10 +246,10 @@ void areaStartRoomRuntime(s32 skipViewGate)
     if (gDisplayState.control.flags.pendingPlayerPos == true) {
         // Restore the captured signed coordinates instead of the warp's start.
         savedPosition = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
-        _areaRestorePlayerSpawnTransform(&D_80114CB0, savedPosition);
+        _areaRestorePlayerSpawnTransform(&_gAreaPlayerSpawnTransform, savedPosition);
         spawnOptions.initialAnimationId = AREA_ROOM_RESTORE_INITIAL_ANIMATION;
         spawnOptions.startScripted      = false;
-        playerActorSpawn(&D_80114CB0, (u16)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, 0, &spawnOptions);
+        playerActorSpawn(&_gAreaPlayerSpawnTransform, (u16)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, 0, &spawnOptions);
         companionSpawnScheduledActor(&warpEntry.companion, &spawnOptions);
         gDisplayState.control.flags.pendingPlayerPos = false;
     } else {

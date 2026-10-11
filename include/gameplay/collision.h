@@ -302,7 +302,7 @@ typedef struct WorldCollisionGrid {
 } WorldCollisionGrid;
 STATIC_ASSERT_SIZEOF(WorldCollisionGrid, 0x24);
 
-/// The setup argument of a `D_8010FABC` descriptor: the location whose entry
+/// The setup argument of a room-task descriptor: the location whose entry
 /// starts the task, packed in decimal as `stage * 10000 + area * 100 + room`,
 /// with room 0 matching the whole area.
 #define GP_TASK_LOC_KEY(stage, area, room) ((stage) * 10000 + (area) * 100 + (room))

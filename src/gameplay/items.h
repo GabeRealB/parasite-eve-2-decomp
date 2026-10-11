@@ -374,6 +374,10 @@ extern u16 gItemPickupPublishedQuantity;
 /// reordering may change its contents; selection must be refreshed before reuse.
 extern InventoryItemRow* gItemMenuSelectedRow;
 
+/// Retained word written -1 by weapon and ammunition selection; no reader is known.
+///
+/// Its role and the meaning of -1 remain unproven. External linkage preserves
+/// both stores; this is not established as a selection or reset sentinel.
 extern s32 D_80114DD8;
 
 /// Placed-object kind selected for the current pickup/action prompt.
@@ -385,7 +389,14 @@ extern s32 D_80114DD8;
 /// this gameplay singleton; keep it stable while its prompt children run.
 extern u16 gItemPickupPublishedKind;
 
-extern u16 D_80114DDE;
+/// Full placed-object state word published for the current action prompt.
+///
+/// Copies `AreaObjectPlace.state`: bits 0..1 are the initial two-bit flag value,
+/// `AREA_OBJECT_PLACE_PROMPT` (bit 9) selects the nondefault prompt, and bit 8's
+/// purpose is unproven with no observed reader. Successful place lookup replaces
+/// this singleton; a missed lookup and enemy-only publication leave it unchanged.
+/// Keep the published place context stable until its prompt has consumed it.
+extern u16 gItemPickupPublishedPlaceState;
 
 /// Secondary consumable item ID captured when the item menu opens.
 ///

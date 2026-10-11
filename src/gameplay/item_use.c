@@ -52,13 +52,12 @@ s8 gWorldCoordAmbientColorOverrideEnabled;
 
 SVECTOR gWorldCoordAmbientColorOverride;
 
-static const char D_80097440[];
+static const char _gItemMenuArmorLabel[];
 
-static const char D_80097448[];
+static const u8 _gItemMenuAttachmentsLabel[];
 
 /* After Armor/Attachments from itemMenuArmorAttachmentPanelTask so overlay .rodata stays packed. */
-/// "Weapon" string drawn by `itemMenuAttachmentUseWeaponPanelTask` (trailing 0x60 byte).
-static const char Gp_StrWeapon[];
+static const char _gItemMenuWeaponLabel[];
 
 // Catalogue items handled by the attachment-use panel.
 enum {
@@ -108,7 +107,7 @@ enum { WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8 = -0x10000 }; // -256 screen pixels.
 
 s32 gWorldTargetCursorYFixed8 = WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8;
 
-InventoryBattleReward* D_8010F9F4[6] = {
+const InventoryBattleReward* const gInventoryBattleRewardLists[6] __attribute__((section(".data"))) = {
     NULL,
     gMapAkropolisBattleRewards,
     gMapDryfieldBattleRewards,
@@ -117,7 +116,7 @@ InventoryBattleReward* D_8010F9F4[6] = {
     gMapNeoArkBattleRewards,
 };
 
-InventoryBattleReward* D_8010FA0C[6] = {
+const InventoryBattleReward* const gInventoryHardBattleRewardLists[6] __attribute__((section(".data"))) = {
     NULL,
     gMapAkropolisHardBattleRewards,
     gMapDryfieldHardBattleRewards,
@@ -501,8 +500,10 @@ static s32 _itemIsAttachedItemUnusable(s32 itemId, const InventoryItemRow* attac
     return unusable;
 }
 
-static const char D_80097440[] = { 'A', 'r', 'm', 'o', 'r', 0, 0, 0 };
-static const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 't', 's', 0 };
+/// Title of the equipped-armor attachment-use panel.
+static const char _gItemMenuArmorLabel[8] = "Armor";
+/// Encoded subheading above the equipped armor's attachment choices.
+static const u8 _gItemMenuAttachmentsLabel[] = "Attachments";
 
 void itemMenuArmorAttachmentPanelTask(Task* panelTask)
 {
@@ -560,7 +561,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
     object->result                      = USER_INTERFACE_RESULT_NONE;
     object->panel.bounds.unsignedRect.y = ITEM_MENU_ATTACHMENT_PANEL_TOP_PIXELS - gDisplayState.vramYOffset;
     uiUpdatePanelContentLayout(&object->panel, NULL, NULL, 0);
-    uiDrawPanelLabel(&object->panel, D_80097440);
+    uiDrawPanelLabel(&object->panel, _gItemMenuArmorLabel);
     selectedUsable = 1;
     if (panelTask->state == ITEM_MENU_ATTACHMENT_PANEL_INITIAL) {
         // Reset item-use notifications and open the companion weapon summary once.
@@ -636,7 +637,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
     attachmentLabel.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     attachmentLabel.alignment  = TEXT_ALIGNMENT_LEFT;
     attachmentLabel.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&attachmentLabel, (const u8*)D_80097448);
+    textDrawString(&attachmentLabel, _gItemMenuAttachmentsLabel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         // Re-read the selected position on Confirm before applying its item use.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
@@ -677,8 +678,11 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
 }
 
 /* After Armor/Attachments from itemMenuArmorAttachmentPanelTask so overlay .rodata stays packed. */
-/// "Weapon" string drawn by `itemMenuAttachmentUseWeaponPanelTask` (trailing 0x60 byte).
-static const char Gp_StrWeapon[] = {
+/// Title of the weapon summary beside the armor attachment-use panel.
+///
+/// The first seven bytes are the NUL-terminated label; the final stored 0x60
+/// byte has no observed text use and its purpose is unproven.
+static const char _gItemMenuWeaponLabel[] = {
     'W',
     'e',
     'a',
@@ -789,7 +793,7 @@ void itemMenuAttachmentUseWeaponPanelTask(Task* panelTask)
     weaponX = panel->contentLeft.signedValue;
     weaponY = panel->contentTop.signedValue;
     itemMenuDrawWeaponSummary(object, weaponX + 2, weaponY + 0xF, 1);
-    uiDrawPanelLabel(panel, Gp_StrWeapon);
+    uiDrawPanelLabel(panel, _gItemMenuWeaponLabel);
 }
 
 const u8 gWorldCoordLightProbeMarkerText[4] = {

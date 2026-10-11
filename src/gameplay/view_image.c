@@ -71,10 +71,10 @@ void loadingUploadViewImageTask(Task* viewLoadTask)
         memFillBytes(&queue->activeRequest, 0, sizeof(queue->activeRequest));
         _loadingUploadCurrentViewImage();
         cdCmdSelectMovieWorkspace();
-        if (D_80114C40 >= 0) {
+        if (gLoadingViewMovieSlot >= 0) {
             viewLoadTask->state++;
             // The command packer copies all four bytes; only the slot is written.
-            commandArgs[0] = (u8)D_80114C40;
+            commandArgs[0] = (u8)gLoadingViewMovieSlot;
             cdCmdStageReplacement(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             cdCmdCommitReplacement();
             viewLoadTask->killCountdown = 0;

@@ -25,13 +25,25 @@
 // Bank-0 descriptor that refreshes coordinates and draws the active model list.
 enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
 
-/// Saved model-list endpoints; the first element still refers to the active sentinel.
+/// Snapshot of the live model-list sentinel's two endpoints during one list stash.
+///
+/// Owns no nodes and is not a new sentinel. The first saved node still links to
+/// `gTmdList`; keep saved models live and untouched until restore. Empty lists
+/// retain their original sentinel as the tail. The snapshot remains after restore.
 static TmdListNode _gModelObjectSavedModelList = { NULL, NULL };
 
-/// Saved coordinate-body-list endpoints; restored to their original sentinel together.
-static TmdListNode _gModelObjectSavedDisp2dList = { NULL, NULL };
+/// Snapshot of the coordinate-body refresh list's endpoints during one list stash.
+///
+/// Owns no bodies and is not a new sentinel. The first saved node still links
+/// to `gModelObjectCoordBodyList`; keep the saved bodies live and untouched until
+/// restore. The model and coordinate-body snapshots are saved/restored together.
+static TmdListNode _gModelObjectSavedCoordBodyList = { NULL, NULL };
 
-/// Temporary draw task active while the previous body lists are stashed.
+/// Borrowed coordinate-refresh/model-draw task handle for one outstanding list stash.
+///
+/// Spawn must succeed and install its exit callback before restore calls it.
+/// Temporary bodies must be retired first. Restore exits the task before replacing
+/// the live endpoints and leaves this stored handle stale; do not restore twice.
 static Task* _gModelObjectTemporaryDrawTask = NULL;
 
 /// Geometry references encode byte offsets into complete eight-byte SVECTOR entries.
@@ -491,8 +503,8 @@ static inline void _modelObjectResetRenderLists(void)
 static void _modelObjectStashLists(void)
 {
     // Save endpoints, keeping the elements tied to their original sentinels.
-    _gModelObjectSavedModelList  = gTmdList;
-    _gModelObjectSavedDisp2dList = gModelObjectCoordBodyList;
+    _gModelObjectSavedModelList     = gTmdList;
+    _gModelObjectSavedCoordBodyList = gModelObjectCoordBodyList;
     _modelObjectResetRenderLists();
     _gModelObjectTemporaryDrawTask = taskSpawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
 }
@@ -509,7 +521,7 @@ static void _modelObjectRestoreLists(void)
 {
     taskCallExit(_gModelObjectTemporaryDrawTask);
     gTmdList                  = _gModelObjectSavedModelList;
-    gModelObjectCoordBodyList = _gModelObjectSavedDisp2dList;
+    gModelObjectCoordBodyList = _gModelObjectSavedCoordBodyList;
 }
 
 void actorRenderComposeCoordChain(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)

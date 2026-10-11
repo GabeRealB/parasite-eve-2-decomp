@@ -452,20 +452,12 @@ s32 gRoomEffectFlashId;
 #include "gameplay/effect_tasks.h"
 #include "gameplay/room_effects.h"
 
-extern s32 D_80111B70[20];
-
-extern s32 D_80111BC0[38];
-
-extern s32 D_80111C58[38];
-
-extern s32 D_80111CF0[49];
-
 /// Zero area-table entries suppress the ambient-effect task.
 enum { ROOM_EFFECT_AMBIENT_TASK_NONE = 0 };
 
 static const s32 _gRoomEffectShelterNeoArkTaskTypes[33];
 
-static const TaskFuncTable3 D_80097678;
+static const TaskFuncTable3 _gRoomEffectControllerStates;
 
 enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
@@ -1208,158 +1200,178 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorPlayerHitGlowTask, { NULL } },                                     // 0x299
     { { { TASK_BODY_COORD, 0x70 } }, gunbladeChargeFlashTask, { NULL } },                                                // 0x29A
 };
-s32 D_80111B70[20] = {
-    45,
-    33,
-    131,
-    96,
-    77,
-    72,
-    132,
-    38,
-    133,
-    39,
-    74,
-    119,
-    134,
-    176,
-    78,
-    29,
-    30,
-    0,
-    57,
-    415,
+/// Ambient-effect task types for Acropolis/MIST, indexed by area minus one.
+///
+/// Areas 1..20 are supported. Zero suppresses the ambient task; nonzero entries
+/// select bank-6 descriptors and require the area's effect resources and callback
+/// code to remain loaded. Values are task types, not packed effect IDs.
+static const s32 _gRoomEffectAcropolisTaskTypes[20] __attribute__((section(".data"))) = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = 0x02D,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = 0x021,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = 0x083,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = 0x060,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = 0x04D,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = 0x048,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = 0x084,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = 0x026,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = 0x085,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = 0x027,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = 0x04A,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = 0x077,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = 0x086,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = 0x0B0,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = 0x04E,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = 0x01D,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = 0x01E,
+    [GAME_AREA_MIST_R18 - 1]                         = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_MIST_PARKING - 1]                     = 0x039,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = 0x19F,
 };
-s32 D_80111BC0[38] = {
-    194,
-    195,
-    196,
-    0,
-    197,
-    198,
-    199,
-    438,
-    200,
-    0,
-    201,
-    202,
-    0,
-    0,
-    205,
-    206,
-    0,
-    208,
-    209,
-    210,
-    211,
-    212,
-    213,
-    214,
-    215,
-    216,
-    217,
-    0,
-    219,
-    220,
-    0,
-    222,
-    0,
-    223,
-    0,
-    0,
-    0,
-    191,
+/// Ambient-effect task types for daytime Dryfield, indexed by area minus one.
+///
+/// Areas 1..38 are supported. Zero suppresses the ambient task; nonzero entries
+/// select bank-6 descriptors and require the area's effect resources and callback
+/// code to remain loaded. Values are task types, not packed effect IDs.
+static const s32 _gRoomEffectDryfieldTaskTypes[38] __attribute__((section(".data"))) = {
+    [GAME_AREA_DRYFIELD_GAS_STATION - 1]       = 0x0C2,
+    [GAME_AREA_DRYFIELD_MAIN_STREET - 1]       = 0x0C3,
+    [GAME_AREA_DRYFIELD_GENERAL_STORE - 1]     = 0x0C4,
+    [GAME_AREA_DRYFIELD_R04 - 1]               = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_BACK_STREET - 1]       = 0x0C5,
+    [GAME_AREA_DRYFIELD_SOUVENIR_SHOP - 1]     = 0x0C6,
+    [GAME_AREA_DRYFIELD_WAREHOUSE - 1]         = 0x0C7,
+    [GAME_AREA_DRYFIELD_R08 - 1]               = 0x1B6,
+    [GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE - 1] = 0x0C8,
+    [9]                                        = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_1 - 1]      = 0x0C9,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_2 - 1]      = 0x0CA,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_3 - 1]      = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_4 - 1]      = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_PARKING_LOT - 1]       = 0x0CD,
+    [GAME_AREA_DRYFIELD_TOILET - 1]            = 0x0CE,
+    [GAME_AREA_DRYFIELD_MOTEL_LOBBY - 1]       = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_SALOON_G_R - 1]        = 0x0D0,
+    [GAME_AREA_DRYFIELD_G_R_KITCHEN - 1]       = 0x0D1,
+    [GAME_AREA_DRYFIELD_WATER_TOWER - 1]       = 0x0D2,
+    [GAME_AREA_DRYFIELD_WATER_TANK - 1]        = 0x0D3,
+    [GAME_AREA_DRYFIELD_BREEZEWAY - 1]         = 0x0D4,
+    [GAME_AREA_DRYFIELD_FACTORY - 1]           = 0x0D5,
+    [GAME_AREA_DRYFIELD_GARAGE - 1]            = 0x0D6,
+    [GAME_AREA_DRYFIELD_DRIVEWAY - 1]          = 0x0D7,
+    [GAME_AREA_DRYFIELD_JUNK_YARD - 1]         = 0x0D8,
+    [GAME_AREA_DRYFIELD_TRAILER_COACH - 1]     = 0x0D9,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_5 - 1]      = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_MOTEL_BALCONY - 1]     = 0x0DB,
+    [GAME_AREA_DRYFIELD_MOTEL_ROOM_6 - 1]      = 0x0DC,
+    [GAME_AREA_DRYFIELD_MOTEL_LOFT - 1]        = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_WATER_HOLE - 1]        = 0x0DE,
+    [32]                                       = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_CELLAR - 1]            = 0x0DF,
+    [34]                                       = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [35]                                       = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [36]                                       = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_UNDERPASS - 1]         = 0x0BF,
 };
-s32 D_80111C58[38] = {
-    256,
-    257,
-    258,
-    0,
-    259,
-    260,
-    261,
-    382,
-    262,
-    0,
-    263,
-    264,
-    265,
-    266,
-    267,
-    268,
-    269,
-    270,
-    271,
-    272,
-    273,
-    274,
-    275,
-    276,
-    277,
-    278,
-    279,
-    280,
-    281,
-    282,
-    283,
-    284,
-    0,
-    285,
-    0,
-    0,
-    0,
-    286,
+/// Ambient-effect task types for nighttime Dryfield, indexed by area minus one.
+///
+/// Areas 1..38 are supported. Zero suppresses the ambient task; nonzero entries
+/// select bank-6 descriptors and require the area's effect resources and callback
+/// code to remain loaded. Values are task types, not packed effect IDs.
+static const s32 _gRoomEffectDryfieldNightTaskTypes[38] __attribute__((section(".data"))) = {
+    [GAME_AREA_DRYFIELD_NIGHT_GAS_STATION - 1]       = 0x100,
+    [GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET - 1]       = 0x101,
+    [GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE - 1]     = 0x102,
+    [3]                                              = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_NIGHT_BACK_STREET - 1]       = 0x103,
+    [GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP - 1]     = 0x104,
+    [GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE - 1]         = 0x105,
+    [GAME_AREA_DRYFIELD_NIGHT_R08 - 1]               = 0x17E,
+    [GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE - 1] = 0x106,
+    [9]                                              = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_1 - 1]      = 0x107,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2 - 1]      = 0x108,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_3 - 1]      = 0x109,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_4 - 1]      = 0x10A,
+    [GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT - 1]       = 0x10B,
+    [GAME_AREA_DRYFIELD_NIGHT_TOILET - 1]            = 0x10C,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY - 1]       = 0x10D,
+    [GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R - 1]        = 0x10E,
+    [GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN - 1]       = 0x10F,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER - 1]       = 0x110,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_TANK - 1]        = 0x111,
+    [GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY - 1]         = 0x112,
+    [GAME_AREA_DRYFIELD_NIGHT_FACTORY - 1]           = 0x113,
+    [GAME_AREA_DRYFIELD_NIGHT_GARAGE - 1]            = 0x114,
+    [GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY - 1]          = 0x115,
+    [GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD - 1]         = 0x116,
+    [GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH - 1]     = 0x117,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_5 - 1]      = 0x118,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY - 1]     = 0x119,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6 - 1]      = 0x11A,
+    [GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT - 1]        = 0x11B,
+    [GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE - 1]        = 0x11C,
+    [32]                                             = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_NIGHT_CELLAR - 1]            = 0x11D,
+    [34]                                             = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [35]                                             = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [36]                                             = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_DRYFIELD_NIGHT_UNDERPASS - 1]         = 0x11E,
 };
-s32 D_80111CF0[49] = {
-    288,
-    289,
-    290,
-    291,
-    292,
-    293,
-    294,
-    295,
-    296,
-    297,
-    298,
-    299,
-    300,
-    301,
-    302,
-    303,
-    304,
-    305,
-    306,
-    307,
-    308,
-    309,
-    310,
-    311,
-    312,
-    313,
-    314,
-    315,
-    316,
-    317,
-    318,
-    319,
-    320,
-    321,
-    322,
-    0,
-    0,
-    0,
-    323,
-    324,
-    325,
-    326,
-    327,
-    328,
-    329,
-    330,
-    331,
-    332,
-    354,
+/// Ambient-effect task types for Mine/Shelter, indexed by area minus one.
+///
+/// Areas 1..49 are supported. Zero suppresses the ambient task; nonzero entries
+/// select bank-6 descriptors and require the area's effect resources and callback
+/// code to remain loaded. Values are task types, not packed effect IDs.
+static const s32 _gRoomEffectMineShelterTaskTypes[49] __attribute__((section(".data"))) = {
+    [GAME_AREA_MINE_MESA - 1]                             = 0x120,
+    [GAME_AREA_MINE_CAVERN - 1]                           = 0x121,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = 0x122,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = 0x123,
+    [GAME_AREA_MINE_GORGE - 1]                            = 0x124,
+    [GAME_AREA_MINE_REFUGE - 1]                           = 0x125,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = 0x126,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = 0x127,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = 0x128,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = 0x129,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = 0x12A,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = 0x12B,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = 0x12C,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = 0x12D,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = 0x12E,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = 0x12F,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = 0x130,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = 0x131,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = 0x132,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = 0x133,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = 0x134,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = 0x135,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = 0x136,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = 0x137,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = 0x138,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = 0x139,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = 0x13A,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = 0x13B,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = 0x13C,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = 0x13D,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = 0x13E,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = 0x13F,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = 0x140,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = 0x141,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = 0x142,
+    [GAME_AREA_SHELTER_R36 - 1]                           = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_SHELTER_R37 - 1]                           = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = ROOM_EFFECT_AMBIENT_TASK_NONE,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = 0x143,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = 0x144,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = 0x145,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = 0x146,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = 0x147,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = 0x148,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = 0x149,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = 0x14A,
+    [GAME_AREA_SHELTER_R47 - 1]                           = 0x14B,
+    [GAME_AREA_SHELTER_R48 - 1]                           = 0x14C,
+    [GAME_AREA_SHELTER_R49 - 1]                           = 0x162,
 };
 /// Ambient-effect task types for the Shelter/Neo Ark stage, indexed by area minus one.
 ///
@@ -1402,7 +1414,12 @@ static const s32 _gRoomEffectShelterNeoArkTaskTypes[33] __attribute__((section("
     [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = 0x038,
 };
 
-static const TaskFuncTable3 D_80097678 = { {
+/// Room-controller states: initialize, update scene effects, then kill.
+///
+/// The controller copies the table and selects Task::state in 0..2.
+/// Initialization advances to update; update holds state 1, and state 2
+/// releases the task and its owned effect state.
+static const TaskFuncTable3 _gRoomEffectControllerStates = { {
     _roomEffectInitController,
     _roomEffectTickController,
     taskKill,
@@ -1472,16 +1489,16 @@ static void _roomEffectInitController(Task* task)
     // The stage tables contain bank-6 types, with zero disabling ambient effects.
     switch (gGameSession->location.loc.stage) {
         case GAME_STAGE_ACROPOLIS:
-            roomEffectType = D_80111B70[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectAcropolisTaskTypes[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_DRYFIELD:
-            roomEffectType = D_80111BC0[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectDryfieldTaskTypes[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_DRYFIELD_NIGHT:
-            roomEffectType = D_80111C58[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectDryfieldNightTaskTypes[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_MINE_SHELTER:
-            roomEffectType = D_80111CF0[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectMineShelterTaskTypes[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_SHELTER_NEO_ARK:
             roomEffectType = _gRoomEffectShelterNeoArkTaskTypes[gGameSession->location.loc.area - 1];
@@ -1682,7 +1699,7 @@ static void _roomEffectControllerTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_80097678;
+    states = _gRoomEffectControllerStates;
     states.funcs[task->state](task);
 }
 

@@ -7180,9 +7180,9 @@ Selecting one of two pointer tables and then indexing:
 
 ```c
 if (mode == 0 || mode == 2) {
-    table = D_8010F9F4;
+    table = gInventoryBattleRewardLists;
 } else {
-    table = D_8010FA0C;
+    table = gInventoryHardBattleRewardLists;
 }
 rec = table[stage];
 ```
@@ -7194,12 +7194,12 @@ delay slot and a same-register `la`:
 ```
 bne   a1, v0, else
  nop
-lui   v1, %hi(D_8010F9F4)
+lui   v1, %hi(gInventoryBattleRewardLists)
 j     join
- addiu v1, v1, %lo(D_8010F9F4)
+ addiu v1, v1, %lo(gInventoryBattleRewardLists)
 else:
-lui   v1, %hi(D_8010FA0C)
-addiu v1, v1, %lo(D_8010FA0C)
+lui   v1, %hi(gInventoryHardBattleRewardLists)
+addiu v1, v1, %lo(gInventoryHardBattleRewardLists)
 join:
 sll   v0, a2, 2
 addu  v0, v0, v1
@@ -7210,9 +7210,9 @@ Write the index in both arms so the table address is the phi:
 
 ```c
 if (mode == 0 || mode == 2) {
-    rec = D_8010F9F4[stage];
+    rec = gInventoryBattleRewardLists[stage];
 } else {
-    rec = D_8010FA0C[stage];
+    rec = gInventoryHardBattleRewardLists[stage];
 }
 ```
 
@@ -28622,7 +28622,7 @@ block cannot just emit another table at the current C `.rodata` cursor
 Fill that hole with a `const` in the C file **after** the `INCLUDE_ASM`
 that emits the previous rodata, so `.rdata`/`.rodata` concatenation stays
 packed. `_itemIsAttachedItemUnusable` is the example: yaml `.rodata, 3A34` moved from
-`0x3CB4` to `0x3B3C`, and `Gp_StrWeapon` is a C `const char[]` after
+`0x3CB4` to `0x3B3C`, and `_gItemMenuWeaponLabel` is a C `const char[]` after
 `itemMenuArmorAttachmentPanelTask`.
 
 ## Pin the flag, not the pointer, so `&Global[i]` keeps `$v1`
@@ -33095,7 +33095,7 @@ example.
 Gameplay `.rodata` is a sequence of C jtbl slices interleaved with splat
 `rodata` blobs. A new `switch` in an existing TU appends its jtbl to that
 TU's `.rodata` slice. If a named table sits between the old jtbl and the
-new one (here `D_80097678` between `padInputChangeSuppression` and `_roomEffectInitController`),
+new one (here `_gRoomEffectControllerStates` between `padInputChangeSuppression` and `_roomEffectInitController`),
 keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
 `.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
 as `3CD8_34D8.c` / `3FB8_75BC.c`.

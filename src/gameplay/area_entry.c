@@ -26,11 +26,6 @@
 
 Task* gPlayerActorTasks[PLAYER_ACTOR_TASK_COUNT];
 
-/// Area transition panel and item-title panel, selected by the spawn index.
-extern UiObjectDesc D_8010CA40[];
-
-extern UiObjectDesc D_8010CA78[];
-
 static void _sceneBattleResultTask(Task* task);
 
 u8                 gItemPickupObtainedNoticeText[] = "Item obtained!";
@@ -41,17 +36,28 @@ InventoryItemRange gInventoryBattleRewardRange     = { .firstRow = 0, .rowCount 
 /// Retained eight-halfword data with no reader; its purpose is unproven.
 static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
 
-/// Area transition panel and item-title panel, selected by the spawn index.
-UiObjectDesc D_8010CA40[] = {
+/// Battle-result panel at index 0 and retained item-title recipe at index 1.
+///
+/// The result task spawns only index 0, passing victory/escape as its content
+/// argument. Index 1 has no observed spawner; both callbacks use live gameplay
+/// UI resources. Bounds are screen-center-relative pixels.
+static const UiObjectDesc _gSceneBattleResultPanels[2] __attribute__((section(".data"))) = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -48, 160, 64 }, 32, 0, TASK_BODY_NONE, 0xC0, itemMenuBattleResultTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -96, 256, 192 }, 36, 0, TASK_BODY_NONE, 0xC0, itemPickupTitleTask, 0 },
 };
-UiObjectDesc D_8010CA78[] = {
-    { 3, { -80, 16, 160, 20 }, 28, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
-    { 3, { 16, 24, 160, 20 }, 24, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
+enum { SCENE_BATTLE_REWARD_NOTICE_PANEL_STYLE = 3 };
+
+/// Reward-result child panels: index 0 item obtained, index 1 bonus item.
+///
+/// Content arguments 1 and 2 select the corresponding encoded notice heading.
+/// They open after the result panel with inactive input; bonus appears only
+/// after a Medicine Wheel bonus grant. Bounds are screen-center-relative pixels.
+static const UiObjectDesc _gSceneBattleRewardNoticePanels[2] __attribute__((section(".data"))) = {
+    { SCENE_BATTLE_REWARD_NOTICE_PANEL_STYLE, { -80, 16, 160, 20 }, 28, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
+    { SCENE_BATTLE_REWARD_NOTICE_PANEL_STYLE, { 16, 24, 160, 20 }, 24, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
 };
-TaskDesc D_8010CAB0                 = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
-TaskDesc gSceneBattleResultTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
+TaskDesc gSceneBattleStartTransitionTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
+TaskDesc gSceneBattleResultTaskDesc          = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
 
 /// Presents battle gains or an escape result, restores area music and exits the transition.
 ///
@@ -109,7 +115,7 @@ static void _sceneBattleResultTask(Task* task)
         if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
             task->spawnArg2.pointer = uiSpawnObject(&gMistShootingGalleryResultPanelDesc, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY, NULL);
         } else {
-            task->spawnArg2.pointer = uiSpawnObject(D_8010CA40, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+            task->spawnArg2.pointer = uiSpawnObject(_gSceneBattleResultPanels, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
             if (task->spawnArg1.value == SCENE_BATTLE_RESULT_WON) {
                 // The battle is over: return the HUD to its out-of-battle state.
                 hud->battleStep = HUD_BATTLE_STEP_START;
@@ -127,9 +133,9 @@ static void _sceneBattleResultTask(Task* task)
                 inventoryClearItems(rewardRange);
                 task->status = inventoryGrantBattleRewards(rewardRange);
                 if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
-                    uiSpawnObject(D_8010CA78, SCENE_BATTLE_RESULT_ITEM_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_ITEM_NOTICE_DELAY, task->spawnArg2.pointer);
+                    uiSpawnObject(_gSceneBattleRewardNoticePanels, SCENE_BATTLE_RESULT_ITEM_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_ITEM_NOTICE_DELAY, task->spawnArg2.pointer);
                     if (task->status == INVENTORY_BATTLE_REWARD_BONUS_GRANTED) {
-                        uiSpawnObject(D_8010CA78 + 1, SCENE_BATTLE_RESULT_BONUS_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_BONUS_NOTICE_DELAY, task->spawnArg2.pointer);
+                        uiSpawnObject(_gSceneBattleRewardNoticePanels + 1, SCENE_BATTLE_RESULT_BONUS_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_BONUS_NOTICE_DELAY, task->spawnArg2.pointer);
                     }
                 }
             } else {

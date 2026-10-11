@@ -27,15 +27,12 @@
 
 u8 gCapRoomCompletionSoundsEnabled;
 
-/// Per-stage task descriptor tables searched by `objectTaskInitializeRoomState`.
-extern TaskDesc* D_8010FABC[];
-
-/// Message table of the stand-in room task, used where the stage's table has
-/// no task for the current room: a room-transition request is echoed back as
-/// its reply, and a key-item use (0x13F1) is refused.
-extern TaskMessageEntry D_8010FAD4[];
-
-TaskDesc* D_8010FABC[6] = {
+/// Stage-indexed room-task descriptor lists; slot zero is NULL, stages 1..5 are valid.
+///
+/// The room selector takes the first descriptor matching the exact room key
+/// or area-default key in list order. Lists end at `TASK_DESC_END` and belong to
+/// the loaded map overlay; selected room callback code must also remain loaded.
+static TaskDesc* const _gObjectTaskStageRoomTables[6] __attribute__((section(".data"))) = {
     NULL,
     gMapAkropolisRoomTaskDescriptors,
     gMapDryfieldRoomTaskDescriptors,
@@ -44,7 +41,13 @@ TaskDesc* D_8010FABC[6] = {
     gMapNeoArkRoomTaskDescriptors,
 };
 
-TaskMessageEntry D_8010FAD4[3] = {
+/// Fallback receiver when no room-task descriptor matches the current location.
+///
+/// Resolves a transition by copying the borrowed RoomEventMsg request to its
+/// writable reply unchanged; refuses every collected-key-item request with 0.
+/// Other IDs return zero at `TASK_MESSAGE_TABLE_END`. Installed on the selector
+/// itself in the room task slot, with no retained message payloads.
+static const TaskMessageEntry _gObjectTaskDefaultRoomMessages[3] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, objectTaskResolveDefaultRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, objectTaskRefuseDefaultRoomKeyItemUse },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -109,7 +112,7 @@ void objectTaskInitializeRoomState(Task* task)
     descriptorIndex = 0;
     locationKeyBase = GP_TASK_LOC_KEY(gGameSession->location.loc.stage, gGameSession->location.loc.area, 0);
     roomKey         = locationKeyBase + gGameSession->location.loc.room;
-    stageRoomTable  = D_8010FABC[gGameSession->location.loc.stage];
+    stageRoomTable  = _gObjectTaskStageRoomTables[gGameSession->location.loc.stage];
     areaKey         = locationKeyBase;
     descriptor      = stageRoomTable;
     roomTaskHeader  = OBJECT_TASK_ROOM_DESCRIPTOR_HEADER;
@@ -125,7 +128,7 @@ searchDescriptor:
         goto searchDescriptor;
     }
     // Keep the selector itself as the fallback room receiver when no descriptor matches.
-    task->msgTable = D_8010FAD4;
+    task->msgTable = _gObjectTaskDefaultRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }

@@ -201,15 +201,18 @@ typedef struct {
 } _ItemPickupLidLighting;
 STATIC_ASSERT_SIZEOF(_ItemPickupLidLighting, 0x40);
 
-_ItemMenuMoveWork* Gp_ItemMoveWork;
+/// Borrowed work of the single active container/carried-item transfer screen.
+///
+/// Row callbacks use its swap selection without owning the screen task. Its
+/// allocation must remain live while those callbacks run; closing the screen
+/// releases the work without clearing this pointer. A new screen replaces it.
+static _ItemMenuMoveWork* _gItemMenuMoveWork;
 
 /// Full placed-item kind borrowed by the single active transfer screen.
 ///
 /// Bank 7's low byte selects the container; retaining the complete kind also
 /// enforces the Acropolis 0x703 container's M93R transfer restriction.
 static u16 _gItemMenuTransferPlaceKind;
-
-extern TaskMessageEntry D_8010D828[2];
 
 static const char _gItemMenuBattleFieldPaneTitle[];
 
@@ -222,8 +225,7 @@ static const char _gItemMenuAmmoSplitTitleText[];
 /* After _gItemMenuAmmoSplitTitleText from _itemMenuAmmoSplitTask so the overlay .rodata stays packed. */
 static const _ItemMenuPromptTexts _gItemMenuTransferExitTexts;
 
-/// Vector template used by `itemPickupContainerLidTask`.
-static const VECTOR D_80093DB0;
+static const VECTOR _gItemPickupLidLightSamplePosition;
 
 static void _itemMenuTransferScreenTask(Task* task);
 
@@ -339,7 +341,12 @@ UiObjectDesc gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_PANEL_COUNT] =
         .contentCallback = _itemMenuHolderPromptTask,
     },
 };
-TaskMessageEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, _itemPickupHandleLidActionRequest }, { TASK_MESSAGE_TABLE_END, NULL } };
+/// CAP action-request receiver for the placed-container lid task.
+///
+/// The first payload borrows a writable `CapActionRequest` until closing finishes;
+/// an already-collected object completes it during dispatch. The second payload
+/// is ignored. Unsupported IDs return zero at `TASK_MESSAGE_TABLE_END`.
+static const TaskMessageEntry _gItemPickupLidMessages[2] __attribute__((section(".data"))) = { { CAP_ACTION_MESSAGE_REQUEST, _itemPickupHandleLidActionRequest }, { TASK_MESSAGE_TABLE_END, NULL } };
 
 /// Returns whether the transfer context forbids moving or swapping this item.
 ///
@@ -616,10 +623,10 @@ static void _itemMenuTransferScreenTask(Task* task)
             screen->resultValue        = USER_INTERFACE_LIST_COMMAND_NO;
             return;
         }
-        containerRanges = gInventoryContainerRanges;
-        task->work      = work;
-        Gp_ItemMoveWork = work;
-        work->field_C   = 0;
+        containerRanges    = gInventoryContainerRanges;
+        task->work         = work;
+        _gItemMenuMoveWork = work;
+        work->field_C      = 0;
         do {
             if (paneIndex == ITEM_MENU_PANE_CONTAINER) {
                 placeKind                   = gItemPickupPublishedKind;
@@ -670,8 +677,8 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
     row    = inventoryGetRow(gItemMenuTransferRanges + object->owner->spawnArg1.value, list->currentItemIndex, 0);
     itemId = row->itemId;
     if (list->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if ((object->owner->state != ITEM_MENU_PANE_BROWSING) && (list->currentItemIndex == Gp_ItemMoveWork->swapRow) &&
-            (object->owner->spawnArg1.value == Gp_ItemMoveWork->swapPane)) {
+        if ((object->owner->state != ITEM_MENU_PANE_BROWSING) && (list->currentItemIndex == _gItemMenuMoveWork->swapRow) &&
+            (object->owner->spawnArg1.value == _gItemMenuMoveWork->swapPane)) {
             list->colorRgb = ITEM_MENU_TRANSFER_SWAP_SOURCE_COLOR_RGB;
         }
     }
@@ -715,7 +722,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             // After drawing, the item-id temporary carries the optional notice index.
             itemId = ITEM_MENU_TRANSFER_NO_NOTICE;
-            if (Gp_ItemMoveWork->swapPane != object->owner->spawnArg1.value) {
+            if (_gItemMenuMoveWork->swapPane != object->owner->spawnArg1.value) {
                 if (_itemMenuCheckTransferRestriction(partnerItemId, object->owner->status)) {
                     itemId = ITEM_MENU_NOTICE_CANNOT_SWITCH_WITH_ITEM;
                 } else if ((partnerItemId >= INVENTORY_CONSUMABLE_ITEM_FIRST && partnerItemId < INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT) && (object->owner->status == ITEM_MENU_PANE_MODE_ITEM_BOX)) {
@@ -730,8 +737,8 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
                 itemMenuSpawnNotice(object, itemId, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                Gp_ItemMoveWork->swapPartnerRow = list->currentItemIndex;
-                object->result                  = ITEM_MENU_RESULT_CONFIRM_SWAP_PARTNER;
+                _gItemMenuMoveWork->swapPartnerRow = list->currentItemIndex;
+                object->result                     = ITEM_MENU_RESULT_CONFIRM_SWAP_PARTNER;
             }
         }
     }
@@ -1389,8 +1396,11 @@ static void _itemMenuAmmoSplitTask(Task* task)
 /// The callback copies all four pointers; only rows 0..2 are dispatched.
 /// End is retained in the fourth slot. Borrowed strings live with gameplay.
 static const _ItemMenuPromptTexts _gItemMenuTransferExitTexts = { .label = { gItemMenuTransferAllText, gItemMenuTransferSelectText, gItemMenuTransferDiscardText, gItemMenuTransferEndText } };
-/// Vector template used by `itemPickupContainerLidTask`.
-static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
+/// Fixed world-coordinate lighting sample for placed-container lids, in game units.
+///
+/// Both setup and subsequent updates copy XYZ (0,-100,0), independently of the
+/// container's position; the fourth vector word is unused by lighting.
+static const VECTOR _gItemPickupLidLightSamplePosition = { 0, -100, 0, 0 };
 
 /// Clears removable weapon-load quantities whose consumable is no longer carried.
 ///
@@ -1581,14 +1591,14 @@ void itemPickupContainerLidTask(Task* task)
         // The model borrows both matrices from the task-owned allocation.
         lighting = memCalloc(sizeof(*lighting), 0);
         if (lighting != NULL) {
-            initialLightPosition = D_80093DB0;
+            initialLightPosition = _gItemPickupLidLightSamplePosition;
             model->lightMtx      = &lighting->light;
             model->colorMtx      = &lighting->color;
             actorRenderComposeCoord(task->extra.tmd->coords);
             worldCoordSetModelLighting(model, &initialLightPosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
             task->work = lighting;
         }
-        task->msgTable = D_8010D828;
+        task->msgTable = _gItemPickupLidMessages;
         task->status   = 0;
         model->flags   = 0;
         task->state++;
@@ -1692,7 +1702,7 @@ void itemPickupContainerLidTask(Task* task)
             task->state = ITEM_PICKUP_LID_WAIT_REQUEST;
         }
     }
-    lightPosition = D_80093DB0;
+    lightPosition = _gItemPickupLidLightSamplePosition;
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
 }

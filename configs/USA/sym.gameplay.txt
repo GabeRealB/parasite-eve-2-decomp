@@ -1234,7 +1234,7 @@ gViewCameraTables = 0x8010CB2C; // size:0x14 defined:True
 gViewIndexTables = 0x8010CB54; // size:0x14 defined:True
 _gCdCmdSceneSoundBankBits = 0x8010D1C4; // size:0x38 defined:True
 _gModelObjectSavedModelList = 0x80114B80; // size:0x8 defined:True
-_gModelObjectSavedDisp2dList = 0x80114B88; // size:0x8 defined:True
+_gModelObjectSavedCoordBodyList = 0x80114B88; // size:0x8 defined:True
 _gModelObjectTemporaryDrawTask = 0x80114B90; // size:0x4 defined:True
 _gActorRenderLastFullChainCoord = 0x80114B9C; // size:0x4 defined:True
 gGameDebugReplayButtons = 0x80114C02; // size:0x2 defined:True
@@ -1250,7 +1250,7 @@ _gSceneManagerMessages = 0x8010D208; // size:0x28 defined:True
 _gSpriteViewCachedPacketCursor = 0x80114CC8; // size:0x4 defined:True
 
 // Gameplay naming pass 3 (link nodes, items, room coords, area flags)
-Gp_StrWeapon                = 0x80097454;
+_gItemMenuWeaponLabel                = 0x80097454;
 gWorldTargetNullBodyPositionDiagnostic        = 0x80097460;
 gItemPickupObtainedNoticeText          = 0x8010CA08; // defined:True
 gItemPickupBonusNoticeText             = 0x8010CA18; // defined:True
@@ -1313,7 +1313,7 @@ _gPlayerActorMessageTable = 0x80112C88; // size:0xE0 defined:True
 gLoadingAreaPlacementFilePhase = 0x80114C60; // size:0x2 defined:True
 _gLoadingFadeTiles = 0x80114C80; // size:0x20 defined:True
 _gLoadingFadeBlendCommands = 0x80114CA0; // size:0x10 defined:True
-Gp_ItemMoveWork             = 0x80114D78; // size:0x4 defined:True
+_gItemMenuMoveWork             = 0x80114D78; // size:0x4 defined:True
 gItemPickupPublicationReady = 0x80114DC8; // size:0x2 defined:True
 gItemPickupPublishedQuantity = 0x80114DD0; // size:0x2 defined:True
 gItemPickupPublishedKind = 0x80114DDC; // size:0x2 defined:True
@@ -1688,7 +1688,7 @@ gGameFlowReloadStateHandlers            = 0x80093918;
 gLoadingSessionStateHandlers             = 0x80093924;
 gLoadingRoomResourceStateHandlers            = 0x80093944;
 _gDirectionTaskStates            = 0x80093950;
-Gp_DirActionFns             = 0x8009395C;
+gDirectionActionHandlers             = 0x8009395C;
 _gDirectionWarpPhaseHandlers             = 0x80093978;
 
 // Dispatch-table follow-up
@@ -1701,11 +1701,11 @@ _gItemMenuBattleResultHpRecovery                  = 0x80114BE2; // type:s16 size
 gDirectionStairBattleFinished                  = 0x80114CDD; // type:u8 size:0x1 defined:True
 gDirectionPreviousBattlePhase                  = 0x80114CDE; // type:u8 size:0x1 defined:True
 _gStreamScenePayloadTransferEnabled                  = 0x80114D1A; // type:s16 size:0x2 defined:True
-D_80114DDE = 0x80114DDE; // size:0x2 defined:True
+gItemPickupPublishedPlaceState = 0x80114DDE; // size:0x2 defined:True
 gCapRecordIndex                  = 0x801155AE; // type:u16 size:0x2 defined:True
 gCapTextBlockLeftX                  = 0x801155B2; // type:s16 size:0x2 defined:True
 gCapTextBoxHeight                  = 0x801155B6; // type:s16 size:0x2 defined:True
-D_801155B9                  = 0x801155B9; // type:s8 size:0x1 defined:True
+gCapRevealElapsedUpdates                  = 0x801155B9; // type:s8 size:0x1 defined:True
 gCapActionCaptureFramesRemaining                  = 0x801155BA; // type:u8 size:0x1 defined:True
 gCapPendingViewPhase                  = 0x801155BB; // type:u8 size:0x1 defined:True
 gCapChoiceCount                  = 0x801155BE; // type:s16 size:0x2 defined:True
@@ -1943,9 +1943,9 @@ gRoomEffectOrangeBurst2Id = 0x80115754; // size:0x4 defined:True
 gRoomEffectFlashId = 0x80115758; // size:0x4 defined:True
 gInventoryBattleRewardRange = 0x8010CA2C; // size:0x4 defined:True
 D_8010CA30 = 0x8010CA30; // size:0x10 defined:True
-D_8010CA40 = 0x8010CA40; // size:0x38 defined:True
-D_8010CA78 = 0x8010CA78; // size:0x38 defined:True
-D_8010CAB0 = 0x8010CAB0; // size:0xC defined:True
+_gSceneBattleResultPanels = 0x8010CA40; // size:0x38 defined:True
+_gSceneBattleRewardNoticePanels = 0x8010CA78; // size:0x38 defined:True
+gSceneBattleStartTransitionTaskDesc = 0x8010CAB0; // size:0xC defined:True
 gSceneBattleResultTaskDesc = 0x8010CABC; // size:0xC defined:True
 _gMenuPendingItemUseTaskDesc = 0x8010E7E8; // size:0xC defined:True
 _gMenuGalleryWeaponHoldAnimationRequest = 0x8010E7F4; // size:0x14 defined:True
@@ -2005,8 +2005,8 @@ gDirectionInteractionRearmUpdates = 0x80114D08; // size:0x2 defined:True
 
 gWorldTargetCursorXFixed8 = 0x8010F9EC; // size:0x4 defined:True
 gWorldTargetCursorYFixed8 = 0x8010F9F0; // size:0x4 defined:True
-D_8010F9F4 = 0x8010F9F4; // size:0x18 defined:True
-D_8010FA0C = 0x8010FA0C; // size:0x18 defined:True
+gInventoryBattleRewardLists = 0x8010F9F4; // size:0x18 defined:True
+gInventoryHardBattleRewardLists = 0x8010FA0C; // size:0x18 defined:True
 _gCapWeaponEventEntryAnimationRequest = 0x8010FB10; // size:0x14 defined:True
 _gCapWeaponEventExitAnimationRequest = 0x8010FB24; // size:0x14 defined:True
 gCapPlaybackTaskDescriptors = 0x8010FB4C; // size:0x24 defined:True
@@ -2036,9 +2036,9 @@ gItemKeyDescriptors = 0x8010DE38; // size:0x400 defined:True
 
 _gItemMenuTransferInventoryRowCallbacks = 0x8010D630; // size:0x4 defined:True
 
-D_80096E70 = 0x80096E70; // size:0x14 defined:True
+_gItemPickupStates = 0x80096E70; // size:0x14 defined:True
 
-D_8010D348 = 0x8010D348; // size:0x1C defined:True
+gTelephoneMenuDescriptor = 0x8010D348; // size:0x1C defined:True
 
 gCapActionRequest = 0x801155A0; // size:0x6 defined:True
 
@@ -2074,11 +2074,11 @@ _gEvsSavedView = 0x801156F8; // size:0x1 defined:True
 
 _gHudRadarRangePalette = 0x80114BB0; // size:0x20 defined:True
 _gHudRadarRangePaletteRect = 0x80114BD0; // size:0x8 defined:True
-D_80114BD8 = 0x80114BD8; // size:0x4 defined:True
+_gPlayClockDeathFade = 0x80114BD8; // size:0x4 defined:True
 
 gAttachmentSoundQueueTicks = 0x80114C34; // size:0x4 defined:True
 
-D_80114C40 = 0x80114C40; // size:0x2 defined:True
+gLoadingViewMovieSlot = 0x80114C40; // size:0x2 defined:True
 
 gLoadingViewMaskResetCommand = 0x80114C50; // size:0xC defined:True
 
@@ -2099,7 +2099,7 @@ gLoadingAreaResourcePass = 0x80114C74; // size:0x2 defined:True
 
 _gLoadingAreaHasBasePlacement = 0x80114C72; // size:0x2 defined:True
 
-D_80114CB0 = 0x80114CB0; // size:0x10 defined:True
+_gAreaPlayerSpawnTransform = 0x80114CB0; // size:0x10 defined:True
 
 gPlanarReflectionLocationKey = 0x80114DCC; // size:0x4 defined:True
 D_80114DD8 = 0x80114DD8; // size:0x4 defined:True
@@ -2115,19 +2115,19 @@ gEffectTaskDescriptors = 0x8010FC2C; // size:0x1F44 defined:True
 _gItemMenuTransferExitRowCallbacks = 0x8010D6B0; // size:0x4 defined:True
 gItemMenuTransferScreenDescriptor = 0x8010D6D8; // size:0x1C defined:True
 gItemMenuTransferPanelDescriptors = 0x8010D6F4; // size:0x134 defined:True
-D_8010D828 = 0x8010D828; // size:0x10 defined:True
+_gItemPickupLidMessages = 0x8010D828; // size:0x10 defined:True
 
 gWorldCollisionPairRules = 0x8010FA4C; // size:0x40 defined:True
 
-D_8010FABC = 0x8010FABC; // size:0x18 defined:True
-D_8010FAD4 = 0x8010FAD4; // size:0x18 defined:True
+_gObjectTaskStageRoomTables = 0x8010FABC; // size:0x18 defined:True
+_gObjectTaskDefaultRoomMessages = 0x8010FAD4; // size:0x18 defined:True
 
-D_8010FB90 = 0x8010FB90; // size:0x50 defined:True
+_gCapControlMessages = 0x8010FB90; // size:0x50 defined:True
 
-D_80111B70 = 0x80111B70; // size:0x50 defined:True
-D_80111BC0 = 0x80111BC0; // size:0x98 defined:True
-D_80111C58 = 0x80111C58; // size:0x98 defined:True
-D_80111CF0 = 0x80111CF0; // size:0xC4 defined:True
+_gRoomEffectAcropolisTaskTypes = 0x80111B70; // size:0x50 defined:True
+_gRoomEffectDryfieldTaskTypes = 0x80111BC0; // size:0x98 defined:True
+_gRoomEffectDryfieldNightTaskTypes = 0x80111C58; // size:0x98 defined:True
+_gRoomEffectMineShelterTaskTypes = 0x80111CF0; // size:0xC4 defined:True
 _gRoomEffectShelterNeoArkTaskTypes = 0x80111DB4; // size:0x84 defined:True
 
 gEffectUnitQuadCorners = 0x80111E38; // size:0x10 defined:True
@@ -2325,3 +2325,8 @@ _gHudWeaponR2LabelText = 0x80093890;
 _gHudWeaponPrimaryButtonGlyphText = 0x80093894;
 _gHudWeaponSecondaryButtonGlyphText = 0x80093898;
 _gHudHiddenHpText = 0x800938ac;
+_gDirectionStairPhaseHandlers = 0x80093990;
+_gItemPickupLidLightSamplePosition = 0x80093db0;
+_gItemMenuArmorLabel = 0x80097440;
+_gItemMenuAttachmentsLabel = 0x80097448;
+_gRoomEffectControllerStates = 0x80097678;

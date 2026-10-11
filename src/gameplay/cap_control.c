@@ -41,8 +41,6 @@ s16 gCapSceneSyncElapsedTicks;
 
 #include "captions.h"
 
-extern TaskMessageEntry D_8010FB90[10];
-
 static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s16 commandIndex, s32 unusedSecondArg);
 
 static s32 _capResumeTimedRecord(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -72,7 +70,16 @@ enum {
     CAP_CONTROL_HUD_SLIDE_RETURN     = 1
 };
 
-TaskMessageEntry D_8010FB90[10] = {
+/// Retained CAP control-table trailing ID; it is not a safe lookup terminator.
+enum { CAP_CONTROL_MESSAGE_LEGACY_END = -1 };
+
+/// CAP control protocol: nine installed messages spanning 0xFA0..0xFA8.
+///
+/// Only the CAP_CONTROL_MESSAGE_* IDs may be sent. The last -1/NULL record
+/// is not TASK_MESSAGE_TABLE_END: any other ID would search past this array,
+/// and -1 would select a NULL handler. Payloads and replies follow the public
+/// CAP control contract; the table stays live with gameplay while installed.
+static const TaskMessageEntry _gCapControlMessages[10] __attribute__((section(".data"))) = {
     { CAP_CONTROL_MESSAGE_START, _capStartControlledSequence },
     { CAP_CONTROL_MESSAGE_RESUME_TIMED_RECORD, _capResumeTimedRecord },
     { CAP_CONTROL_MESSAGE_ABORT, _capAbortControlledPlayback },
@@ -82,7 +89,7 @@ TaskMessageEntry D_8010FB90[10] = {
     { CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, _capAbortEventHud },
     { CAP_CONTROL_MESSAGE_SELECT_SCENE, _capSelectScene },
     { CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC, _capBeginSceneSync },
-    { -1, NULL },
+    { CAP_CONTROL_MESSAGE_LEGACY_END, NULL },
 };
 
 /// Advances the armed scene-sync timer while CAP playback is selected.
@@ -117,7 +124,7 @@ void capInitializeControlTask(Task* task)
     }
     capReset();
     _gCapHudSlideTask = NULL;
-    task->msgTable    = D_8010FB90;
+    task->msgTable    = _gCapControlMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
     task->work          = workStorage;
     _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
