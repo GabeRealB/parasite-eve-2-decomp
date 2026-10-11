@@ -984,9 +984,9 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
 
     const VECTOR3* position;
 
-    register WorldCoordRoomLights*         roomLights;
-    register MATRIX*                       colorMtx;
-    register _WorldCoordLightQueryScratch* lightQuery;
+    WorldCoordRoomLights*         roomLights;
+    MATRIX*                       colorMtx;
+    _WorldCoordLightQueryScratch* lightQuery;
 
     s32                   sourceCount;
     s32                   activeTransientCount;
@@ -1067,10 +1067,10 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     gte_stsv(&lightQuery->viewOffset);
 
     {
-        s32                                     transientIndex;
-        register WorldCoordTransientPointLight* transientSlot;
+        s32                            transientIndex;
+        WorldCoordTransientPointLight* transientSlot;
 
-        register _WorldCoordRankedLight* cutoffEntry;
+        _WorldCoordRankedLight* cutoffEntry;
 
         // Rank active transient points alongside the room's authored lights.
         transientSlot  = gWorldCoordTransientPointLights;
@@ -1103,8 +1103,8 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     }
 
     if (roomLights->coneLightCount > 0) {
-        register WorldCoordSpotLight* coneLight;
-        s32                           coneKind;
+        WorldCoordSpotLight* coneLight;
+        s32                  coneKind;
 
         coneLight  = roomLights->coneLights;
         lightIndex = 0;
@@ -1120,7 +1120,7 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     }
 
     if (roomLights->directionalLightCount > 0) {
-        register WorldCoordLight* directionalLight;
+        WorldCoordLight* directionalLight;
 
         directionalLight = roomLights->directionalLights;
         lightIndex       = 0;
