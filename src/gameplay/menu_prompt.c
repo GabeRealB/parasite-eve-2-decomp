@@ -523,7 +523,7 @@ void itemMenuMainPanelTask(Task* task)
     UiObject* childObject;
     s32       childResult;
 
-    commandList = &D_8010E820;
+    commandList = &gItemMenuMainCommandList;
     object      = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_PANEL_INITIAL) {
         uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_PLAYER_SUMMARY_DESCRIPTOR], 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SUMMARY_OPEN_DELAY_TICKS, object);
@@ -1354,7 +1354,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
             if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_SELECT) {
                 GP_SHOW_ITEM_IN_HOLDER(itemId);
             } else {
-                uiSetPromptText(Gp_StrSelectDest, 0, 0);
+                uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
             }
         }
     }
@@ -1542,7 +1542,7 @@ static void _itemMenuInventoryListTask(Task* task)
     s32       childResult;
 
     object         = task->spawnArg2.pointer;
-    inventoryList  = &D_8010E854;
+    inventoryList  = &gItemMenuInventoryList;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_PANEL_INITIAL) {
         gItemMenuDestinationSelectionMode = ITEM_MENU_MODE_SELECT;
@@ -1631,11 +1631,9 @@ static void _itemMenuInventoryListTask(Task* task)
 
 void itemMenuInventoryPanelTask(Task* task)
 {
-    enum { ITEM_MENU_PANEL_INITIAL           = 0,
-           ITEM_MENU_WEAPON_PANE_DESCRIPTOR  = 47,
-           ITEM_MENU_DESTINATION_WEAPON_PANE = 0,
-           ITEM_MENU_DESTINATION_ARMOR_PANE  = 1,
-           ITEM_MENU_REOPEN_DELAY_TICKS      = 16 };
+    enum { ITEM_MENU_PANEL_INITIAL          = 0,
+           ITEM_MENU_WEAPON_PANE_DESCRIPTOR = 47,
+           ITEM_MENU_REOPEN_DELAY_TICKS     = 16 };
     UiObject*           object;
     UiObject*           equipmentPane;
     const UiObjectDesc* weaponDescriptor;
@@ -1644,10 +1642,10 @@ void itemMenuInventoryPanelTask(Task* task)
 
     object = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_PANEL_INITIAL) {
-        weaponDescriptor                              = &gItemMenuPanelDescriptors[ITEM_MENU_WEAPON_PANE_DESCRIPTOR];
-        gItemMenuEquipmentDetailOpen                  = false;
-        D_80114D98[ITEM_MENU_DESTINATION_WEAPON_PANE] = uiSpawnObject(weaponDescriptor, 1, USER_INTERFACE_PANEL_ACTIVE, 1, object);
-        D_80114D98[ITEM_MENU_DESTINATION_ARMOR_PANE]  = uiSpawnObject(weaponDescriptor + 1, 1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        weaponDescriptor                                             = &gItemMenuPanelDescriptors[ITEM_MENU_WEAPON_PANE_DESCRIPTOR];
+        gItemMenuEquipmentDetailOpen                                 = false;
+        gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_WEAPON_PANE] = uiSpawnObject(weaponDescriptor, 1, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE]  = uiSpawnObject(weaponDescriptor + 1, 1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
     }
     _itemMenuInventoryListTask(task);
     if ((gItemMenuEquipmentDetailOpen == true) && (uiIsPanelHidingOrHidden(object) == 0)) {
@@ -1658,10 +1656,10 @@ void itemMenuInventoryPanelTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             // Carry signed screen Y into the equipment pane that contains that height.
-            equipmentPane          = D_80114D98[ITEM_MENU_DESTINATION_ARMOR_PANE];
+            equipmentPane          = gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE];
             *(s32*)&cursorPosition = uiGetCursorPositionWord();
             if (cursorPosition.y.signedValue < equipmentPane->panel.bounds.rect.y) {
-                equipmentPane = D_80114D98[ITEM_MENU_DESTINATION_WEAPON_PANE];
+                equipmentPane = gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_WEAPON_PANE];
             }
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             object->panel.control.word        = USER_INTERFACE_PANEL_INACTIVE;
@@ -1711,7 +1709,7 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
             }
             itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
         } else {
-            uiSetPromptText(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
         }
     }
 
@@ -1863,10 +1861,10 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
                 uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
             } else {
-                uiSetPromptText(Gp_StrAmmoNone, 0, 0);
+                uiSetPromptText(gItemMenuNoAmmunitionText, 0, 0);
             }
         } else {
-            uiSetPromptText(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
         }
     }
     if (itemId != INVENTORY_ITEM_NONE) {
@@ -2025,7 +2023,7 @@ void itemMenuWeaponPanelTask(Task* task)
     UiCursorPosition cursorPosition;
 
     object         = task->spawnArg2.pointer;
-    weaponList     = &D_8010E884;
+    weaponList     = &gItemMenuEquippedWeaponList;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuWeaponTitle);
     // Initialize the equipped-weapon rows, then refresh them as loads change.
@@ -2048,9 +2046,9 @@ void itemMenuWeaponPanelTask(Task* task)
     if (controlMode == USER_INTERFACE_PANEL_ACTIVE) {
         if (weaponList->actionResult == USER_INTERFACE_LIST_ACTION_AT_END) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            D_80114D98[1]->resultValue        = ITEM_MENU_FOCUS_FIRST_ROW_Y;
-            D_80114D98[1]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            object->panel.control.word        = USER_INTERFACE_PANEL_INACTIVE;
+            gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE]->resultValue        = ITEM_MENU_FOCUS_FIRST_ROW_Y;
+            gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
+            object->panel.control.word                                                      = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             Task*     parentTask;
             UiObject* parentObject;
@@ -2063,7 +2061,7 @@ void itemMenuWeaponPanelTask(Task* task)
                 parentObject = parentTask->spawnArg2.pointer;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 *(s32*)&cursorPosition           = uiGetCursorPositionWord();
-                inventoryList                    = &D_8010E854;
+                inventoryList                    = &gItemMenuInventoryList;
                 cursorRow                        = cursorPosition.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
                 cursorRow                        = cursorRow / inventoryList->rowHeight;
                 inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;
@@ -2193,10 +2191,10 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
                 uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
             } else {
-                uiSetPromptText(Gp_StrAttachNone, 0, 0);
+                uiSetPromptText(gItemMenuNoAttachmentsText, 0, 0);
             }
         } else {
-            uiSetPromptText(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
         }
     }
     if (carriedRow != NULL) {
@@ -2370,7 +2368,7 @@ void itemMenuArmorPanelTask(Task* task)
         s32 field_1C[2];               // Role and original grouping unproven; no accesses.
     } scratch;
 
-    attachmentList = &D_8010E8AC;
+    attachmentList = &gItemMenuArmorAttachmentList;
     object         = task->spawnArg2.pointer;
     player         = &gPlayerStatus;
     object->result = USER_INTERFACE_RESULT_NONE;
@@ -2444,7 +2442,7 @@ void itemMenuArmorPanelTask(Task* task)
                     }
                     itemMenuSetPreviewItem(armorItemId, CD_COMMAND_DISPLAY_LOAD_MENU);
                 } else {
-                    uiSetPromptText(Gp_StrSelectDest, 0, 0);
+                    uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
                 }
             }
         }
@@ -2460,9 +2458,9 @@ void itemMenuArmorPanelTask(Task* task)
                 attachmentList->selectedItemIndex = attachmentList->firstVisibleItemIndex.signedValue;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                D_80114D98[0]->panel.control.word = controlWord;
-                D_8010E884.selectedItemIndex      = D_8010E884.itemCount - 1;
-                object->panel.control.word        = USER_INTERFACE_PANEL_INACTIVE;
+                gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_WEAPON_PANE]->panel.control.word = controlWord;
+                gItemMenuEquippedWeaponList.selectedItemIndex                                    = gItemMenuEquippedWeaponList.itemCount - 1;
+                object->panel.control.word                                                       = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 s32 orderMode;
                 orderMode = gItemMenuDestinationSelectionMode;
@@ -2481,8 +2479,8 @@ void itemMenuArmorPanelTask(Task* task)
                             scratch.rowY         = object->panel.contentTop.unsignedValue + 0xF;
                             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                                itemMenuSizeUnequippedArmorList(&D_8010E9F4, object);
-                                if (D_8010E9F4.itemCount != 0) {
+                                itemMenuSizeUnequippedArmorList(&gItemMenuArmorChoiceList, object);
+                                if (gItemMenuArmorChoiceList.itemCount != 0) {
                                     UiObject* childObject;
                                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                                     childObject = uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_ARMOR_CHOICE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EQUIPMENT_CHOICE_DELAY_TICKS, object);
@@ -2612,7 +2610,7 @@ void itemMenuArmorPanelTask(Task* task)
                     // This path intentionally promotes screen Y through its unsigned halfword.
                     scratch.cursorPosition.word = uiGetCursorPositionWord();
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                    inventoryList                    = &D_8010E854;
+                    inventoryList                    = &gItemMenuInventoryList;
                     cursorRow                        = scratch.cursorPosition.position.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
                     cursorRow                        = cursorRow / inventoryList->rowHeight;
                     inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;

@@ -255,7 +255,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
                 s32               rowCount;
 
                 // Replace the occupant of the selected one-based armor slot.
-                armorSlots = &D_8010E8AC;
+                armorSlots = &gItemMenuArmorAttachmentList;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 rows     = inventoryGetRangeTable(carriedItems);
                 rowCount = carriedItems->rowCount;
@@ -298,7 +298,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
                 s32 rowIndex;
                 s32 rowCount;
 
-                attachmentSlot = D_8010E8AC.selectedItemIndex + 1;
+                attachmentSlot = gItemMenuArmorAttachmentList.selectedItemIndex + 1;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 carriedRow = inventoryGetRangeTable(carriedItems);
                 rowCount   = carriedItems->rowCount;
@@ -368,7 +368,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
     Task*             parentTask;
 
     object         = task->spawnArg2.pointer;
-    candidateList  = &D_8010E8D4;
+    candidateList  = &gItemMenuAttachmentCandidateList;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, (const char*)_gItemMenuAttachmentItemSelectionTitle);
     previewItemId = INVENTORY_ITEM_NONE;

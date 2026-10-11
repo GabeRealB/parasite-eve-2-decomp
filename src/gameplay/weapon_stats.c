@@ -211,11 +211,11 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
         firstStatY = contentTop + 0x1C;
     }
     if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
-        statList       = &gItemMenuWeaponChoiceList;
-        candidateStats = _itemMenuGetWeaponStats(itemId);
-        statCount      = ITEM_MENU_WEAPON_COMPARISON_STAT_COUNT;
-        D_80114D80     = D_8010E984;
-        equippedStats  = _gItemMenuWeaponComparisonValues[player->weapon];
+        statList                     = &gItemMenuWeaponChoiceList;
+        candidateStats               = _itemMenuGetWeaponStats(itemId);
+        statCount                    = ARRAY_SIZE(gItemMenuWeaponStatLabels);
+        gItemMenuEquipmentStatLabels = gItemMenuWeaponStatLabels;
+        equippedStats                = _gItemMenuWeaponComparisonValues[player->weapon];
     } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
         weaponLoad     = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
         statList       = &gItemMenuConsumableChoiceList;
@@ -233,23 +233,23 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
                 equippedStats = _itemMenuGetConsumablePower(weaponLoad->primaryItemId);
             }
         }
-        D_80114D80 = D_8010E990;
-        statCount  = 1;
+        gItemMenuEquipmentStatLabels = gItemMenuConsumableStatLabels;
+        statCount                    = ARRAY_SIZE(gItemMenuConsumableStatLabels);
     } else if ((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
 
-        statList               = &D_8010E9F4;
-        armorStats             = &gEquipmentArmorStats[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
-        candidateArmorStats[0] = armorStats->hpBonus;
-        candidateArmorStats[1] = armorStats->mpBonus;
-        candidateArmorStats[2] = equipmentGetArmorAttachmentSlotCount(itemId);
-        candidateStats         = candidateArmorStats;
-        equippedStats          = equippedArmorStats;
-        armorStats             = &gEquipmentArmorStats[(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1)) - ITEM_MENU_ARMOR_ITEM_FIRST];
-        statCount              = 3;
-        equippedArmorStats[0]  = armorStats->hpBonus;
-        equippedArmorStats[1]  = armorStats->mpBonus;
-        equippedArmorStats[2]  = equipmentGetArmorAttachmentSlotCount(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1));
-        D_80114D80             = D_8010E994;
+        statList                     = &gItemMenuArmorChoiceList;
+        armorStats                   = &gEquipmentArmorStats[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
+        candidateArmorStats[0]       = armorStats->hpBonus;
+        candidateArmorStats[1]       = armorStats->mpBonus;
+        candidateArmorStats[2]       = equipmentGetArmorAttachmentSlotCount(itemId);
+        candidateStats               = candidateArmorStats;
+        equippedStats                = equippedArmorStats;
+        armorStats                   = &gEquipmentArmorStats[(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1)) - ITEM_MENU_ARMOR_ITEM_FIRST];
+        statCount                    = ARRAY_SIZE(gItemMenuArmorStatLabels);
+        equippedArmorStats[0]        = armorStats->hpBonus;
+        equippedArmorStats[1]        = armorStats->mpBonus;
+        equippedArmorStats[2]        = equipmentGetArmorAttachmentSlotCount(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1));
+        gItemMenuEquipmentStatLabels = gItemMenuArmorStatLabels;
     } else {
         return;
     }
@@ -272,7 +272,7 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
             captionRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             captionRequest.alignment  = TEXT_ALIGNMENT_LEFT;
             captionRequest.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&captionRequest, D_80114D80[statIndex]);
+            textDrawString(&captionRequest, gItemMenuEquipmentStatLabels[statIndex]);
             lowerIsBetter = 0;
             // Weight is column two, the same numeric value as right alignment.
             if (statIndex == rightAlignment) {
@@ -808,7 +808,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
         TextDrawReq request;
     } textScratch;
 
-    consumableItemId = Gp_AttachListIds[list->currentItemIndex];
+    consumableItemId = gItemMenuConsumableChoiceItemIds[list->currentItemIndex];
     weaponItemId     = (u16)object->owner->spawnArg1.value;
     controlWord      = object->panel.control.word;
     if (((controlWord >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (controlWord == USER_INTERFACE_PANEL_ACTIVE)) {
@@ -961,7 +961,7 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
             if (consumableItemId != INVENTORY_ITEM_NONE) {
                 availableQuantity = _itemMenuGetLoadableQuantity(carriedItems, weaponLoad, loadSelection, consumableItemId, 0);
                 if (availableQuantity > 0) {
-                    Gp_AttachListIds[consumableCount++] = consumableItemId;
+                    gItemMenuConsumableChoiceItemIds[consumableCount++] = consumableItemId;
                     rowCount++;
                 }
             }
@@ -973,14 +973,14 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
             if (consumableItemId != INVENTORY_ITEM_NONE) {
                 availableQuantity = _itemMenuGetLoadableQuantity(carriedItems, weaponLoad, loadSelection, consumableItemId, 1);
                 if (availableQuantity > 0) {
-                    Gp_AttachListIds[consumableCount++] = consumableItemId;
+                    gItemMenuConsumableChoiceItemIds[consumableCount++] = consumableItemId;
                     rowCount++;
                 }
             }
         }
     }
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_BOTH && rowCount > 0) {
-        Gp_AttachListIds[consumableCount] = INVENTORY_ITEM_NONE;
+        gItemMenuConsumableChoiceItemIds[consumableCount] = INVENTORY_ITEM_NONE;
         rowCount++;
     }
     list->itemCount                     = rowCount;

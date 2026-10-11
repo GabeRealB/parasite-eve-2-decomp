@@ -647,7 +647,7 @@ void itemMenuDrawSortRow(UiList* list, UiObject* object)
     if (gItemMenuDestinationSelectionMode == ITEM_MENU_REORDER_SELECT_DESTINATION) {
         list->colorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrSort, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gItemMenuSortText, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     panelControl = object->panel.control.word;
     if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
@@ -784,7 +784,7 @@ void itemMenuDrawKeyItemUseRow(UiList* list, UiObject* object)
     TextDrawReq request;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
-    textDrawString(&request, (const u8*)Gp_StrUse);
+    textDrawString(&request, gItemMenuUseText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -949,7 +949,7 @@ void itemMenuDrawUseRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Gp_StrUse);
+    textDrawString(&request, gItemMenuUseText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -970,7 +970,7 @@ void itemMenuDrawMoveRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Gp_StrMove);
+    textDrawString(&request, gItemMenuMoveText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -988,7 +988,7 @@ void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object)
     UiObject*   attachmentPicker;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
-    textDrawString(&request, (const u8*)Gp_StrExchange);
+    textDrawString(&request, gItemMenuExchangeText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);

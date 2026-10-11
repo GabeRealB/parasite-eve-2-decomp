@@ -4,6 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "common.h"
 #include "types.h"
 
 #include "attachments.h"
@@ -34,7 +35,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-const u8** D_80114D80;
+const u8* const* gItemMenuEquipmentStatLabels;
 
 u16 gItemMenuEquipmentDetailOpen;
 
@@ -44,23 +45,9 @@ s32 gItemMenuDestinationSelectionMode;
 
 s32 gItemMenuWeaponLoadSelection;
 
-UiObject* D_80114D98[2];
+UiObject* gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_PANE_COUNT];
 
-s32 Gp_AttachListIds[6];
-
-extern UiListRowCallback Gp_MainMenuCmds[6];
-
-extern UiListRowCallback D_8010E850[1];
-
-extern UiListRowCallback Gp_WeaponSlotRows[3];
-
-extern UiListRowCallback D_8010E8A8[1];
-
-extern UiListRowCallback D_8010E8D0[1];
-
-extern UiListRowCallback D_8010E934[1];
-
-extern UiListRowCallback D_8010E95C[1];
+s32 gItemMenuConsumableChoiceItemIds[6];
 
 /// Menu task priorities and the equipped-bank stationary aiming clip.
 enum {
@@ -71,25 +58,25 @@ enum {
 
 static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
 
-u8       gItemMenuAddonUsedText[6]                                           = "used.";
-u8       gItemMenuAddonCreatedText[9]                                        = "created.";
-const u8 gItemMenuKeyItemRefusedText[21] __attribute__((section(".data")))   = "No use for this now.";
-const u8 gItemMenuKeyItemUsedText[5] __attribute__((section(".data")))       = "Used";
-char     Gp_StrSelectDest[]                                                  = "Select destination.";
-u8       gItemMenuEquippedText[9]                                            = "Equipped";
-u8       gItemPickupObtainedText[9]                                          = "Obtained";
-u8       gItemMenuLoadedText[7]                                              = "Loaded";
-u8       gItemMenuRemovedText[8]                                             = "Removed";
-u8       gItemMenuRemovedAmmunitionText[20]                                  = "Removed ammunition.";
-u8       gItemMenuInvokedText[8]                                             = "Invoked";
-char     Gp_StrAmmoNone[]                                                    = "Ammunition: None";
-char     Gp_StrAttachNone[]                                                  = "Attachments: None";
-char     Gp_StrUse[]                                                         = "Use";
-char     Gp_StrMove[]                                                        = "Move";
-const u8 gItemMenuRemoveAmmunitionText[18] __attribute__((section(".data"))) = "Remove ammunition";
-char     Gp_StrLoad[]                                                        = "Load";
-char     Gp_StrExchange[]                                                    = "Exchange";
-const u8 gItemMenuDetachArmorText[18] __attribute__((section(".data")))      = "Remove from armor";
+u8       gItemMenuAddonUsedText[6]                                            = "used.";
+u8       gItemMenuAddonCreatedText[9]                                         = "created.";
+const u8 gItemMenuKeyItemRefusedText[21] __attribute__((section(".data")))    = "No use for this now.";
+const u8 gItemMenuKeyItemUsedText[5] __attribute__((section(".data")))        = "Used";
+const u8 gItemMenuSelectDestinationText[20] __attribute__((section(".data"))) = "Select destination.";
+u8       gItemMenuEquippedText[9]                                             = "Equipped";
+u8       gItemPickupObtainedText[9]                                           = "Obtained";
+u8       gItemMenuLoadedText[7]                                               = "Loaded";
+u8       gItemMenuRemovedText[8]                                              = "Removed";
+u8       gItemMenuRemovedAmmunitionText[20]                                   = "Removed ammunition.";
+u8       gItemMenuInvokedText[8]                                              = "Invoked";
+const u8 gItemMenuNoAmmunitionText[17] __attribute__((section(".data")))      = "Ammunition: None";
+const u8 gItemMenuNoAttachmentsText[18] __attribute__((section(".data")))     = "Attachments: None";
+const u8 gItemMenuUseText[4] __attribute__((section(".data")))                = "Use";
+const u8 gItemMenuMoveText[5] __attribute__((section(".data")))               = "Move";
+const u8 gItemMenuRemoveAmmunitionText[18] __attribute__((section(".data")))  = "Remove ammunition";
+const u8 gItemMenuLoadText[5] __attribute__((section(".data")))               = "Load";
+const u8 gItemMenuExchangeText[9] __attribute__((section(".data")))           = "Exchange";
+const u8 gItemMenuDetachArmorText[18] __attribute__((section(".data")))       = "Remove from armor";
 /// Retained NUL-terminated Equip command text with no current reader.
 static const u8 _gItemMenuEquipText[6] __attribute__((section(".data"))) = "Equip";
 u8              gItemMenuYesText[4]                                      = "Yes";
@@ -99,7 +86,7 @@ u8              gItemMenuCancelText[7]                                   = "Canc
 u8              gItemPickupQuestionText[19]                              = "Pick up this item?";
 u8              gItemPickupInventoryFullText[16]                         = "Inventory full.";
 u8              gItemPickupInventoryFullSecondLineText[1]                = "";
-char            Gp_StrSort[]                                             = "Sort";
+const u8        gItemMenuSortText[5] __attribute__((section(".data")))   = "Sort";
 u8              gItemMenuAmmoLabelText[5]                                = "AMMO";
 u8              gItemMenuPeriodText[2]                                   = ".";
 /// NUL-only text for properties with no displayed label in the specifications panel.
@@ -219,9 +206,26 @@ static AnimationPlayRequest _gMenuGalleryWeaponHoldAnimationRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, itemMenuDrawPeCommandRow, itemMenuDrawMapCommandRow, itemMenuDrawOptionsCommandRow, itemMenuDrawExitCommandRow };
+/// Main-menu rows in Use/Attach, Key Item, P.E., Map, Options and Exit order.
+///
+/// The main command list borrows all six entries for gameplay's lifetime.
+/// The mutable callback type follows `UiList`; these entries are never replaced.
+static UiListRowCallback _gItemMenuMainCommandRowCallbacks[6] = {
+    itemMenuDrawUseAttachCommandRow,
+    itemMenuDrawKeyItemCommandRow,
+    itemMenuDrawPeCommandRow,
+    itemMenuDrawMapCommandRow,
+    itemMenuDrawOptionsCommandRow,
+    itemMenuDrawExitCommandRow,
+};
 
-UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuMainCommandList = {
+    .rowCallbacks    = _gItemMenuMainCommandRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gItemMenuMainCommandRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gItemMenuMainCommandRowCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = 8,
+};
 
 MenuParasiteEnergyCaption gItemMenuParasiteEnergyCaptions[4] = {
     { .u = 16, .v = 88, .xOffset = 0 },
@@ -230,21 +234,62 @@ MenuParasiteEnergyCaption gItemMenuParasiteEnergyCaptions[4] = {
     { .u = 120, .v = 80, .xOffset = 0 },
 };
 
-UiListRowCallback D_8010E850[1] = { itemMenuDrawReorderableItemRow };
+/// Single shared row handler for reorderable carried items and the trailing Sort row.
+///
+/// Inventory setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`;
+/// the list borrows entry zero for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuInventoryRowCallbacks[1] = { itemMenuDrawReorderableItemRow };
 
-UiList D_8010E854 = { D_8010E850, 10, { 10 }, 1, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuInventoryList = {
+    .rowCallbacks    = _gItemMenuInventoryRowCallbacks,
+    .itemCount       = 10,
+    .visibleRowCount = { .unsignedValue = 10 },
+    .wrapNavigation  = 1,
+    .rowHeight       = 15,
+};
 
-UiListRowCallback Gp_WeaponSlotRows[3] = { itemMenuDrawEquippedWeaponRow, itemMenuDrawWeaponLoadRow, itemMenuDrawWeaponLoadRow };
+/// Equipped-weapon row followed by primary and secondary load-row handlers.
+///
+/// The weapon list borrows the active prefix (one to three entries) for
+/// gameplay's lifetime. Entries are never replaced; `UiList` uses a mutable type.
+static UiListRowCallback _gItemMenuEquippedWeaponRowCallbacks[3] = {
+    itemMenuDrawEquippedWeaponRow,
+    itemMenuDrawWeaponLoadRow,
+    itemMenuDrawWeaponLoadRow,
+};
 
-UiList D_8010E884 = { Gp_WeaponSlotRows, 3, { 3 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuEquippedWeaponList = {
+    .rowCallbacks    = _gItemMenuEquippedWeaponRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gItemMenuEquippedWeaponRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gItemMenuEquippedWeaponRowCallbacks) },
+    .rowHeight       = 16,
+};
 
-UiListRowCallback D_8010E8A8[1] = { itemMenuDrawArmorAttachmentRow };
+/// Single shared handler for the equipped armor's attachment-slot rows.
+///
+/// Armor setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`;
+/// entry zero handles every slot for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuArmorAttachmentRowCallbacks[1] = { itemMenuDrawArmorAttachmentRow };
 
-UiList D_8010E8AC = { D_8010E8A8, 1, { 1 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuArmorAttachmentList = {
+    .rowCallbacks    = _gItemMenuArmorAttachmentRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 16,
+};
 
-UiListRowCallback D_8010E8D0[1] = { itemMenuDrawAttachmentCandidateRow };
+/// Single shared handler for armor-attachment candidates and the trailing detach row.
+///
+/// Picker setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`;
+/// entry zero handles every choice for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuAttachmentCandidateRowCallbacks[1] = { itemMenuDrawAttachmentCandidateRow };
 
-UiList D_8010E8D4 = { D_8010E8D0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuAttachmentCandidateList = {
+    .rowCallbacks    = _gItemMenuAttachmentCandidateRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
 s32 gItemMenuPreviewItemIds[ITEM_MENU_PREVIEW_SLOT_COUNT] = {
     ITEM_MENU_PREVIEW_EMPTY,
@@ -267,25 +312,43 @@ UiList gItemMenuDescriptionList = {
     .rowHeight       = 15,
 };
 
-UiListRowCallback D_8010E934[1] = { itemMenuDrawKeyItemUseRow };
+/// Sole Use-command handler for the selected collected key item.
+///
+/// The one-row command list borrows entry zero for gameplay's lifetime.
+static UiListRowCallback _gItemMenuKeyItemCommandRowCallbacks[1] = { itemMenuDrawKeyItemUseRow };
 
-UiList D_8010E938 = { D_8010E934, 1, { 1 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuKeyItemCommandList = {
+    .rowCallbacks    = _gItemMenuKeyItemCommandRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gItemMenuKeyItemCommandRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gItemMenuKeyItemCommandRowCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT,
+};
 
-UiListRowCallback D_8010E95C[1] = { itemMenuDrawCollectedItemRow };
+/// Single shared handler for rows selected from the collected-item bitmap.
+///
+/// Collected-list setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`;
+/// entry zero handles every row for the gameplay overlay's lifetime.
+static UiListRowCallback _gItemMenuCollectedRowCallbacks[1] = { itemMenuDrawCollectedItemRow };
 
-UiList D_8010E960 = { D_8010E95C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuCollectedList = {
+    .rowCallbacks    = _gItemMenuCollectedRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
-const u8* D_8010E984[3] = {
+const u8* const gItemMenuWeaponStatLabels[3] __attribute__((section(".data"))) = {
     gItemMenuWeaponRangeLabel,
     gItemMenuWeaponRateLabel,
     gItemMenuWeaponWeightLabel,
 };
 
-const u8* D_8010E990[1] = {
+const u8* const gItemMenuConsumableStatLabels[1] __attribute__((section(".data"))) = {
     gItemMenuAmmoPowerLabel,
 };
 
-const u8* D_8010E994[3] = {
+const u8* const gItemMenuArmorStatLabels[3] __attribute__((section(".data"))) = {
     gItemMenuArmorHpBonusLabel,
     gItemMenuArmorMpBonusLabel,
     gItemMenuArmorAttachmentCountLabel,
@@ -323,9 +386,14 @@ UiList gItemMenuConsumableChoiceList = {
 /// entry zero handles every item for the gameplay overlay's lifetime.
 static UiListRowCallback _gItemMenuArmorChoiceRowCallbacks[1] = { itemMenuDrawArmorChoiceRow };
 
-UiList D_8010E9F4 = { _gItemMenuArmorChoiceRowCallbacks, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuArmorChoiceList = {
+    .rowCallbacks    = _gItemMenuArmorChoiceRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 15,
+};
 
-UiListRowCallback Gp_ItemCmdFns[6] = {
+UiListRowCallback gItemMenuCommandRowCallbacks[6] = {
     itemMenuDrawUseRow,
     itemMenuDrawMoveRow,
     itemMenuDrawMoveRow,
@@ -334,7 +402,13 @@ UiListRowCallback Gp_ItemCmdFns[6] = {
     itemMenuDrawSortRow,
 };
 
-UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuCommandList = {
+    .rowCallbacks    = gItemMenuCommandRowCallbacks,
+    .itemCount       = 3,
+    .visibleRowCount = { .unsignedValue = 3 },
+    .wrapNavigation  = 1,
+    .rowHeight       = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT,
+};
 
 /// Retained six-word data with no reader; its purpose and units are unproven.
 static s32 D_8010EA54[] = { 30, 60, 50, 100, 100, 200 };
@@ -950,8 +1024,9 @@ static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
 
 #undef ITEM_MENU_DRAW_PROMPT_PAYLOAD
 
-/// Three-entry dispatcher table indexed by `Task::state` (`itemMenuCaptionTask`).
-const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { itemMenuInitializeCaptionTask, _itemMenuUpdatePromptTask, itemMenuDispatchCommand } };
+const UiObjectTaskFuncTable3 gItemMenuCaptionStates = {
+    .funcs = { itemMenuInitializeCaptionTask, _itemMenuUpdatePromptTask, itemMenuDispatchCommand },
+};
 
 const u16 gItemMenuIconPaletteCluts[12] = {
     getClut(240, 242), // No current selector; role unproven.

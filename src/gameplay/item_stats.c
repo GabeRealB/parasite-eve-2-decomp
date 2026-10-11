@@ -714,7 +714,7 @@ void itemMenuUseKeyItemTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_KEY_ITEM_USE_STATE_REQUEST) {
-        keyItemList = &D_8010E960;
+        keyItemList = &gItemMenuCollectedList;
         roomTask    = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
         itemId      = inventoryGetCollectedItemId(keyItemList->selectedItemIndex, 0);
         // The room may start an event; its reply selects this menu's presentation.
@@ -786,7 +786,7 @@ void itemMenuKeyItemCommandTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    commandList    = &D_8010E938;
+    commandList    = &gItemMenuKeyItemCommandList;
     if (task->state == 0) {
         object->panel.bounds.unsignedRect.w = ITEM_MENU_KEY_ITEM_COMMAND_WIDTH;
         uiFitPanelToList(commandList, &object->panel);
@@ -965,7 +965,7 @@ void itemMenuCollectedItemsTask(Task* task)
     s32       childResult;
 
     object         = task->spawnArg2.pointer;
-    collectedList  = &D_8010E960;
+    collectedList  = &gItemMenuCollectedList;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, (const char*)gItemMenuKeyItemTitle);
     if (task->state == ITEM_MENU_COLLECTED_INIT) {

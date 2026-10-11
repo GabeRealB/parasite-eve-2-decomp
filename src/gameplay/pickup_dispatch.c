@@ -238,7 +238,7 @@ void itemMenuCaptionTask(Task* task)
     UiObjectTaskFuncTable3 states;
     UiObject*              object;
 
-    states = Gp_ItemMenuStates;
+    states = gItemMenuCaptionStates;
     object = task->spawnArg2.pointer;
     states.funcs[task->state](object, task);
 }

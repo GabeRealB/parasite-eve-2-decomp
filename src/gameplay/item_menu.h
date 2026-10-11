@@ -1154,8 +1154,13 @@ void itemMenuWeaponPanelTask(Task* task);
 /// resources throughout the task; resets the object's result each update.
 void itemMenuArmorPanelTask(Task* task);
 
-/// Three-entry dispatcher table: `itemMenuInitializeCaptionTask`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
-extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
+/// Caption-strip phases indexed by its owning task's state in 0..2.
+///
+/// Entry 0 initializes the prompt holder and first child; 1 draws the prompt
+/// and waits for a child result; 2 waits for the dispatch delay, opens the
+/// selected command panel and returns to phase 1. The caption task copies the
+/// three callbacks before dispatch; the table lives with the gameplay overlay.
+extern const UiObjectTaskFuncTable3 gItemMenuCaptionStates;
 
 /// Past-tense suffix after the consumed weapon and add-on rows, including its period.
 ///
@@ -1167,10 +1172,15 @@ extern u8 gItemMenuAddonUsedText[6];
 /// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
 extern u8 gItemMenuAddonCreatedText[9];
 
-/// Holder text for a weapon slot with no ammunition loaded.
-extern char Gp_StrAmmoNone[];
+/// Prompt for the selected weapon-load row when no consumable is loaded.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuNoAmmunitionText[17];
 
-extern char Gp_StrAttachNone[];
+/// Prompt for the selected armor attachment slot when it has no occupant.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuNoAttachmentsText[18];
 
 /// Shared mutable scrolling viewport for the item-information description.
 ///
@@ -1201,7 +1211,12 @@ extern const u8* gItemMenuCaliberTexts[16];
 /// text for gameplay's lifetime; resistance labels include an orange command.
 extern const u8* gItemMenuArmorFeatureTexts[13];
 
-extern const u8** D_80114D80;
+/// Borrowed label table selected by the current equipment-stat draw.
+///
+/// Selects weapon Range/Rate/Weight, consumable Power or armor HP/MP/attachment
+/// labels. Drawing indexes only that table's 3/1/3 entries; the selection
+/// remains afterward and owns no text. Tables and text live with gameplay.
+extern const u8* const* gItemMenuEquipmentStatLabels;
 
 /// Equipment or attachment details are open (0 normal panes, 1 hide them).
 ///
@@ -1239,9 +1254,30 @@ extern s32 gItemMenuDestinationSelectionMode;
 /// BSS starts at BOTH; menu entry/teardown does not independently reset it.
 extern s32 gItemMenuWeaponLoadSelection;
 
-extern UiObject* D_80114D98[2];
+/// Indices of the equipment panes beside the carried-item destination list.
+enum {
+    ITEM_MENU_DESTINATION_WEAPON_PANE = 0,
+    ITEM_MENU_DESTINATION_ARMOR_PANE  = 1,
+    ITEM_MENU_DESTINATION_PANE_COUNT  = 2
+};
 
-extern s32 Gp_AttachListIds[6];
+/// Borrowed weapon and armor destination-pane objects for the active inventory tree.
+///
+/// Inventory initialization replaces both entries with its newly spawned
+/// children. Focus transfer requires both spawns to succeed and the tree to
+/// remain live. Their tasks own and release the objects; tree teardown does
+/// not clear these pointers, so they must not be used after that tree closes.
+extern UiObject* gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_PANE_COUNT];
+
+/// Item ids for the active weapon-consumable choice rows, including zero for removal.
+///
+/// Only the prefix below `gItemMenuConsumableChoiceList.itemCount` is valid;
+/// rebuilding leaves the tail unchanged. BOTH load selection can append three
+/// primary and three secondary occurrences, retaining duplicates. PRIMARY or
+/// SECONDARY appends at most three choices plus a removal row when nonempty.
+/// Producers must keep `gItemMenuWeaponLoadSelection` in 0..2. Storage lives
+/// with gameplay and is shared by one live consumable-choice session at a time.
+extern s32 gItemMenuConsumableChoiceItemIds[6];
 
 /// Complete notice when the room refuses the selected collected key item.
 ///
@@ -1253,7 +1289,10 @@ extern const u8 gItemMenuKeyItemRefusedText[21];
 /// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
 extern const u8 gItemMenuKeyItemUsedText[5];
 
-extern char Gp_StrSelectDest[];
+/// Prompt while choosing a carried-item, equipment or armor-attachment destination.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuSelectDestinationText[20];
 
 /// First-line verb in equipment and armor-attachment confirmation notices.
 ///
@@ -1285,18 +1324,30 @@ extern u8 gItemMenuRemovedAmmunitionText[20];
 /// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
 extern u8 gItemMenuInvokedText[8];
 
-extern char Gp_StrUse[];
+/// Use-command label shared by carried-item and collected-key-item menus.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuUseText[4];
 
-extern char Gp_StrMove[];
+/// Move-command label for choosing a carried item's destination.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuMoveText[5];
 
 /// Command text for the no-consumable row that removes a weapon's loaded ammunition.
 ///
 /// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
 extern const u8 gItemMenuRemoveAmmunitionText[18];
 
-extern char Gp_StrLoad[];
+/// Load-command label for assigning a consumable to a compatible weapon.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuLoadText[5];
 
-extern char Gp_StrExchange[];
+/// Exchange-command label for equipment and armor-attachment replacement.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuExchangeText[9];
 
 /// Command text for the row that clears the selected armor attachment slot.
 ///
@@ -1330,7 +1381,10 @@ extern u8 gItemPickupInventoryFullText[16];
 /// NUL-terminated byte text borrowed for the gameplay overlay's lifetime.
 extern u8 gItemPickupInventoryFullSecondLineText[1];
 
-extern char Gp_StrSort[];
+/// Sort-command label for the final row of the carried-item list.
+///
+/// NUL-terminated encoded bytes, borrowed for the gameplay overlay's lifetime.
+extern const u8 gItemMenuSortText[5];
 
 /// Uppercase ammunition heading shared by weapon summaries and the load-detail pane.
 ///
@@ -1340,15 +1394,49 @@ extern u8 gItemMenuAmmoLabelText[5];
 /// NUL-terminated period appended after an item name in menu action notices.
 extern u8 gItemMenuPeriodText[2];
 
-extern UiList D_8010E820;
+/// Shared list state for the six main-menu commands.
+///
+/// Rows are Use/Attach, Key Item, P.E., Map, Options and Exit, in that order.
+/// All six are visible, with wrapped navigation and eight-pixel spacing.
+/// Panel setup retains selection when saved cursorMode is 0 and resets it
+/// otherwise. Only one root panel may use this gameplay-owned state at a time.
+extern UiList gItemMenuMainCommandList;
 
-extern UiList D_8010E854;
+/// Shared scrolling list of reorderable carried rows followed by Sort.
+///
+/// Setup replaces the ten-row seed, clamps navigation, enables its shared row
+/// callback and resets selection/scrolling. Equipped armor, equipped weapons
+/// and attached rows are excluded; empty carried rows remain destinations.
+/// Up to nine rows are visible at fifteen-pixel spacing. The inventory and
+/// equipment panes share this state in one live inventory tree at a time.
+extern UiList gItemMenuInventoryList;
 
-extern UiList D_8010E884;
+/// Shared list for the equipped weapon and its available load slots.
+///
+/// Row 0 is the weapon, 1 its primary load, and 2 its secondary load. Setup
+/// refreshes the active prefix to one, two or three rows, resets selection and
+/// uses clamped navigation with sixteen-pixel spacing. Inventory/armor focus
+/// transfers reuse this gameplay-owned state in one live menu tree at a time.
+extern UiList gItemMenuEquippedWeaponList;
 
-extern UiList D_8010E8AC;
+/// Shared scrolling list of the equipped armor's attachment slots.
+///
+/// Setup replaces the one-row seed with the armor's capacity, enables its
+/// shared row callback and initializes the viewport with at most three visible
+/// slots. Rows are sixteen pixels apart; selection is zero-based and corresponds
+/// to the one-based saved attachment slot. The item picker borrows that
+/// selection until it returns. Only one
+/// active armor pane may use this gameplay-owned state at a time.
+extern UiList gItemMenuArmorAttachmentList;
 
-extern UiList D_8010E8D4;
+/// Shared list of carried armor-attachment candidates and a final detach command.
+///
+/// Setup replaces the one-row seed, shows four rows, enables its shared row
+/// callback and resets selection/scrolling. Candidates include items attached
+/// elsewhere but exclude empty rows, forbidden attachments and the equipped
+/// weapon. The selected destination slot belongs to `gItemMenuArmorAttachmentList`.
+/// One live picker may use this gameplay-owned state at a time.
+extern UiList gItemMenuAttachmentCandidateList;
 
 /// Empty requested-preview id and total backing-slot count, including reset-only slots.
 enum {
@@ -1366,15 +1454,38 @@ enum {
 /// clearing ids neither cancels CD requests nor releases loaded resources.
 extern s32 gItemMenuPreviewItemIds[ITEM_MENU_PREVIEW_SLOT_COUNT];
 
-extern UiList D_8010E938;
+/// Shared one-row Use-command list for the selected collected key item.
+///
+/// Wrapped navigation and ten-pixel spacing; the callback uses the selection
+/// retained in `gItemMenuCollectedList`. One live command panel may use this
+/// gameplay-owned state at a time, through completion of its child use notice.
+extern UiList gItemMenuKeyItemCommandList;
 
-extern UiList D_8010E960;
+/// Shared scrolling list of collected items selected from the saved bitmap.
+///
+/// Setup replaces the one-row seed with the collected count, enables its
+/// shared row callback and resets selection/scrolling. Rows use clamped
+/// navigation and fifteen-pixel spacing. Selection indexes collected items,
+/// not carried inventory rows, and remains available to the key-item use task.
+/// One live collected-item panel may use this gameplay-owned state at a time.
+extern UiList gItemMenuCollectedList;
 
-extern const u8* D_8010E984[3];
+/// Weapon-stat labels in Range, Rate and Weight order.
+///
+/// Each index accompanies the corresponding weapon comparison value. The
+/// three NUL-terminated encoded strings are borrowed for gameplay's lifetime.
+extern const u8* const gItemMenuWeaponStatLabels[3];
 
-extern const u8* D_8010E990[1];
+/// Consumable-stat label for the single Power comparison value.
+///
+/// Borrows NUL-terminated encoded text for the gameplay overlay's lifetime.
+extern const u8* const gItemMenuConsumableStatLabels[1];
 
-extern const u8* D_8010E994[3];
+/// Armor-stat labels in added HP, added MP and attachment-slot-count order.
+///
+/// The three NUL-terminated encoded strings accompany those comparison
+/// values and are borrowed for the gameplay overlay's lifetime.
+extern const u8* const gItemMenuArmorStatLabels[3];
 
 /// Shared mutable list for carried weapons, optionally filtered by a consumable.
 ///
@@ -1391,15 +1502,34 @@ extern UiList gItemMenuWeaponChoiceList;
 /// Setup replaces the three-row seed, enables its single callback and resets
 /// selection/scrolling. BOTH selects at most six primary/secondary occurrences;
 /// a single load selects at most three plus a removal row when nonempty.
-/// Rows index `Gp_AttachListIds`; entries are item ids, with zero for removal.
+/// Rows index `gItemMenuConsumableChoiceItemIds`; entries are item ids, with zero for removal.
 /// One live choice session may use this gameplay-owned list at a time.
 extern UiList gItemMenuConsumableChoiceList;
 
-extern UiList D_8010E9F4;
+/// Shared scrolling list of carried armor rows excluding the equipped armor.
+///
+/// Setup replaces the one-row seed, shows four rows, enables its shared row
+/// callback and resets selection/scrolling. Clamped navigation uses fifteen
+/// pixels between rows. The comparison renderer also uses this list to identify
+/// armor stats. One live armor chooser may use this gameplay-owned state at a time.
+extern UiList gItemMenuArmorChoiceList;
 
-extern UiListRowCallback Gp_ItemCmdFns[6];
+/// Mutable row handlers for the selected carried-item or equipment command popup.
+///
+/// Setup writes an active prefix of zero to three callbacks and leaves the
+/// rest unchanged. The six-entry seed is Use, Move, Move, Move, Discard, Sort;
+/// all six slots remain allocated. `gItemMenuCommandList.itemCount` limits
+/// dispatch to the current prefix. One live popup may use this gameplay-owned
+/// callback table and list at a time.
+extern UiListRowCallback gItemMenuCommandRowCallbacks[6];
 
-extern UiList D_8010EA30;
+/// Shared command-popup list for the selected carried item or equipment row.
+///
+/// Setup rebuilds the callback prefix and both counts (zero to three rows).
+/// Uses wrapped navigation, ten-pixel spacing and the mutable
+/// `gItemMenuCommandRowCallbacks`. The three-row seed is replaced before use;
+/// one live popup may use this gameplay-owned state at a time.
+extern UiList gItemMenuCommandList;
 
 /// Mutable row drawers for the shared item-menu choice dialog.
 ///
@@ -1588,7 +1718,7 @@ void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile);
 ///
 /// The shared list's `currentItemIndex` selects a carried candidate, excluding
 /// empty/forbidden items and the equipped weapon; the final row detaches.
-/// `D_8010E8AC.selectedItemIndex` selects the destination armor slot (zero-based).
+/// `gItemMenuArmorAttachmentList.selectedItemIndex` selects the destination armor slot (zero-based).
 /// Confirm detaches its existing occupant, assigns the candidate if present and
 /// dismisses the picker. Triangle opens item information with relocated preview.
 /// Consumables display only quantity not loaded into weapons. Requires a valid
@@ -1753,7 +1883,7 @@ void itemMenuWeaponSelectionTask(Task* task);
 
 /// Draws and handles a weapon's consumable choice or its Remove Ammo row.
 ///
-/// Uses `Gp_AttachListIds` built by `itemMenuBuildConsumableChoiceList`; the
+/// Uses `gItemMenuConsumableChoiceItemIds` built by `itemMenuBuildConsumableChoiceList`; the
 /// index must be below that list's itemCount. The owner's spawnArg1 low
 /// halfword is weapon id 0x80..0x9F. Nonzero rows require a carried item row
 /// and display available rounds/supply units, adding back this weapon's load
@@ -1788,7 +1918,7 @@ enum { ITEM_MENU_LOAD_AFTER_EQUIP = 0x10000 };
 ///
 /// spawnArg1's low halfword must be weapon id 0x80..0x9F, optionally combined
 /// with `ITEM_MENU_LOAD_AFTER_EQUIP`. spawnArg2 borrows the task-owned UiObject.
-/// Uses the singleton consumable list, `Gp_AttachListIds` and reload mode 0..2;
+/// Uses the singleton consumable list, `gItemMenuConsumableChoiceItemIds` and reload mode 0..2;
 /// the live carried range must satisfy `itemMenuBuildConsumableChoiceList`.
 /// Initialization sizes the list and limits its bottom to 70 centered pixels.
 /// A nonempty list accepts input on later callbacks. An empty list shows a

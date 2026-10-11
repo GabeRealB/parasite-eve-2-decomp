@@ -36435,7 +36435,7 @@ enough — GCC still uses `$s1` for both halves.
 
 ## Do not pin a BSS pointer that already lands in the right `$s` reg
 
-`register UiList* menu asm("s4"); menu = &D_8010E8AC` emits
+`register UiList* menu asm("s4"); menu = &gItemMenuArmorAttachmentList` emits
 `lui s4, %hi` / `addiu s4, s4, %lo`. The prologue wants the save of `$s4`
 interleaved as `lui v0, %hi` / `sw s4, off(sp)` / `addiu s4, v0, %lo`.
 Unpinning `menu` was enough: GCC still colored it `$s4` (other long-lived
@@ -39306,7 +39306,7 @@ Assigning `slot->timeLeft - 1` to a `u16` local first blocks the reassociation.
 The linker script emits one contiguous `<file>.c.o(.rodata)` chunk per TU, so a
 new jump table always appends directly onto that TU's existing `.rodata` slice.
 `itemMenuDrawItemIcon` (gameplay `3688`) has two jtbls at 0x37A0/0x37C0, but the TU's
-`.rodata` ended at 0x377C and the splat blob `rodata_3688` (`Gp_ItemMenuStates`,
+`.rodata` ended at 0x377C and the splat blob `rodata_3688` (`gItemMenuCaptionStates`,
 `gItemMenuIconPaletteCluts`, then the jtbls, then strings) filled the gap. Splitting the yaml
 into two `.rodata, 3688` cuts does not work — the same object may appear only
 once.
@@ -39316,11 +39316,11 @@ The fix is the reverse of "give the function its own C file": move the
 `.rodata` and not `.data`, positioned in the source between the function that
 owns the earlier jtbl and the new one. GCC 2.8.1 assembles file-scope
 definitions in source order, so `.rodata` comes out
-`jtbl(menuRootTask) | Gp_ItemMenuStates | gItemMenuIconPaletteCluts | jtbl(itemMenuDrawItemIcon)`.
+`jtbl(menuRootTask) | gItemMenuCaptionStates | gItemMenuIconPaletteCluts | jtbl(itemMenuDrawItemIcon)`.
 Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
 that segment's yaml address to the first surviving symbol. Existing `extern`
 declarations must gain `const` too; assigning a `const` struct to a plain local
-(`states = Gp_ItemMenuStates;` in `itemMenuCaptionTask`) still compiles and still matches.
+(`states = gItemMenuCaptionStates;` in `itemMenuCaptionTask`) still compiles and still matches.
 
 ## Chained prim assignments give the CSE-forwarded `move` + `addiu`
 

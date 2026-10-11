@@ -440,7 +440,7 @@ void itemMenuAmmoSelectionTask(Task* task)
             uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_CONSUMABLE, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
         }
         uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS);
-        consumableItemId = Gp_AttachListIds[list->selectedItemIndex];
+        consumableItemId = gItemMenuConsumableChoiceItemIds[list->selectedItemIndex];
         if (consumableItemId != INVENTORY_ITEM_NONE) {
             itemMenuDrawEquipmentStats(object, consumableItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
         }
@@ -557,7 +557,7 @@ void itemMenuArmorSelectionTask(Task* task)
     s32       armorItemId;
     s32       previewFlags;
 
-    list           = &D_8010E9F4;
+    list           = &gItemMenuArmorChoiceList;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, (const char*)gItemMenuArmorSelectionTitle);
@@ -834,7 +834,7 @@ void itemMenuDrawLoadRow(UiList* list, UiObject* object)
     UiObject* loadDialog;
     s32       selectedItemId;
 
-    _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrLoad);
+    _itemMenuDrawEquipmentCommandLabel(list, object, gItemMenuLoadText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             // Capture the selected row before the sound request; it remains the dialog payload.
@@ -869,7 +869,7 @@ void itemMenuDrawExchangeRow(UiList* list, UiObject* object)
     UiObject* exchangeDialog;
     s32       selectedItemId;
 
-    _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrExchange);
+    _itemMenuDrawEquipmentCommandLabel(list, object, gItemMenuExchangeText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
