@@ -58,8 +58,9 @@ arrives in pieces as the game goes, without a stop for each sound.
 
 While it runs the tool takes commands on its input, each carried out with the game stopped: `pause` and `resume`
 stop and continue the game; `session NAME` reads the buffer and begins a new session, which is a marker line in
-the log saying what the records after it are; `name NAME` renames the current one; `drop` throws the current
-session away, buffer and log lines both; `drain`, `status`, `quit`. `--session NAME` names the first.
+the log saying what the records after it are; `name NAME` renames the current one; `drop` marks the current session as
+dropped - its records stay in the log, since what was loaded during it is still loaded, with a marker after them -
+and stops the game until the next session begins (`session` alone begins one of the same name); `drain`, `status`, `quit`. `--session NAME` names the first.
 
 A record is one JSON line: id, name, phase ("enter" or "exit"), then each capture under its own text; a captured
 `ra` also gives `from`, the function it returns into. An event with `render = "name"` is written by a renderer
@@ -835,7 +836,7 @@ class Session:
         self.count = 0
         self.ready = self.running = self.paused = False
         self.session_number = self.session_at = self.session_count = 0
-        self.session_name = ""
+        self.session_name = self.awaiting = ""          # awaiting: the name of a session just dropped, until the next begins
         self.drains: set[int] = set()
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
@@ -881,24 +882,22 @@ class Session:
         self.out.flush()
 
     def drop(self) -> int:
-        """Throw the current session away: what the buffer holds, and its lines in the log. A new one begins."""
+        """Mark the current session as one to disregard. Its records stay in the log - what was loaded during it is
+        still loaded, and whoever replays the log needs to see that - with a marker after them saying so."""
         if self.ready:
-            self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", self.symbols["gt_buffer"]))
-        dropped = self.count - self.session_count
+            self.drain(reset=True)
+        import datetime
+        self.out.write(json.dumps({"dropped": self.session_name, "number": self.session_number, "at": datetime.datetime.now().isoformat(timespec="seconds")}) + "\n")
         self.out.flush()
-        self.out.truncate(self.session_at)
-        self.out.seek(self.session_at)
-        self.count = self.session_count
-        self.session_number -= 1
-        self.session()
-        return dropped
+        return self.count - self.session_count
 
     COMMANDS = """commands (the game is stopped while one is carried out):
   pause            stop the game and keep it stopped
   resume           let it run again
   session NAME     read the buffer into the log, then begin a new session called NAME
   name NAME        rename the current session
-  drop             throw the current session away - the buffer and its lines in the log - and begin another
+  drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
+                   game until `session NAME` begins the next one; plain `session` begins one of the same name
   drain            read the buffer into the log now
   status           where things stand
   quit             read the buffer, take the hooks out, let the game run, and leave"""
@@ -911,18 +910,25 @@ class Session:
             self.paused = True
             say("paused")
         elif word in ("resume", "r", "continue", "c"):
-            self.paused = False
-            say("running")
+            if self.awaiting:
+                say(f"the last session was dropped: begin the next one first, with `session NAME`, or `session` for \"{self.awaiting}\" again")
+            else:
+                self.paused = False
+                say("running")
         elif word in ("session", "s"):
             if self.ready:
                 self.drain(reset=True)
-            self.session(rest or None)
-            say(f"session {self.session_number}: {self.session_name}")
+            self.session(rest or self.awaiting or None)
+            if self.awaiting:                         # the game was only stopped to wait for this
+                self.awaiting, self.paused = "", False
+            say(f"session {self.session_number}: {self.session_name}" + ("" if self.paused else "; running"))
         elif word in ("name", "n") and rest:
             self.rename(rest)
             say(f"session {self.session_number} is now: {self.session_name}")
         elif word == "drop":
-            say(f"dropped {self.drop()} records; session {self.session_number}: {self.session_name}")
+            count = self.drop()
+            self.awaiting, self.paused = self.session_name, True
+            say(f"session {self.session_number} ({self.session_name}) marked dropped, {count} records kept; the game is stopped until `session NAME`, or `session` for the same name")
         elif word in ("drain", "d"):
             before = self.count
             if self.ready:
@@ -931,7 +937,7 @@ class Session:
         elif word == "status":
             placed = self.install() if self.ready else 0
             say(f"session {self.session_number}: {self.session_name} - {self.count - self.session_count} records in it, {self.count} in all; "
-                f"{placed} of {len(self.hooks)} hooks in place; {'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
+                f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
         elif word in ("quit", "q", "detach", "exit"):
             raise KeyboardInterrupt
         elif word:
