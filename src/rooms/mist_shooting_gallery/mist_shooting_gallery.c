@@ -125,9 +125,6 @@ STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
 
 static const char _gMistShootingGallerySupplyLevelCaption[];
 
-extern EvsCommand D_actor_215100_80153274[];
-extern EvsCommand D_actor_215100_80153D6C[];
-
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
 
 static void _mistShootingGalleryJukeboxPanelTask(Task* task);
@@ -2065,7 +2062,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
-        evsStartScriptWithSkip(D_actor_215100_80153274, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_215100_80153D6C);
+        evsStartScriptWithSkip(gActor215100PierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor215100PierceStorySkipScript);
     }
     return 0;
 }

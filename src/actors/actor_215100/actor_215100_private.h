@@ -38,7 +38,12 @@ extern AnimationSet gActor215100Animation03FF0;
 
 extern AnimationSet gActor215100Animation042F4;
 
-extern EvsCommand D_actor_215100_8014EB98[3];
+/// Waits for the accepted training offer's CAP cue before opening the course menu.
+///
+/// Three commands include END. The caller must already have selected the
+/// acceptance caption; a three-frame wait follows its cue. Does not restore
+/// HUD or player control. Both gallery overlays and CAP playback stay loaded.
+extern EvsCommand gActor215100GalleryWaitTrainingAcceptanceScript[3];
 
 /// Refusal dialogue and room restoration after declining gallery training.
 ///
@@ -49,15 +54,41 @@ extern EvsCommand D_actor_215100_8014EB98[3];
 /// waits for CAP cues, returns to view 8, then restores HUD and player control.
 extern EvsCommand gActor215100GalleryDeclineTrainingScript[18];
 
-extern EvsCommand D_actor_215100_8014ED90[9];
+/// Stages Pierce and the player for direct entry to the training menus.
+///
+/// Nine commands include END. Hides the HUD, resets the player to clip 9,
+/// selects menu view 15 and applies the ambient override. Requires live actors,
+/// gallery CAP resources and an event session using `EVENT_SCRIPT_HUD_KEEP`.
+extern EvsCommand gActor215100GalleryPrepareTrainingMenuScript[9];
 
-extern EvsCommand D_actor_215100_8014EE68[13];
+/// Stages the repeat-entry training offer after its caption has been selected.
+///
+/// Thirteen commands include END. Installs gallery player clips, shows Pierce,
+/// places both actors and waits for the offer's CAP cue. Holds view/HUD setup
+/// for the menu's reply; both overlays and borrowed clip data stay loaded.
+extern EvsCommand gActor215100GalleryOfferTrainingMenuScript[13];
 
-extern EvsCommand D_actor_215100_8014EFA0[8];
+/// Returns the player to fixed-view training for selected course levels 1..2.
+///
+/// Eight commands include END. Resets clip 1, places the player, selects view 14
+/// and alternate room lights, then releases ambient and HUD suppression.
+/// Scripted player control remains held for the course controller's handoff.
+/// Requires the actor and gallery overlays and their live player/CAP tasks.
+extern EvsCommand gActor215100GalleryStartFixedViewTrainingScript[8];
 
-extern EvsCommand D_actor_215100_8014F060[9];
+/// Returns the player to free movement for selected course levels 3..5.
+///
+/// Nine commands include END. Resets clip 1, removes the ambient override,
+/// places the player in view 8, restores the HUD and ends scripted control.
+/// Requires both gallery overlays and their live player/CAP tasks.
+extern EvsCommand gActor215100GalleryStartFreeMovementTrainingScript[9];
 
-extern EvsCommand D_actor_215100_8014F138[6];
+/// Plays Pierce's response to the already-selected course-confirmation caption.
+///
+/// Six commands include END. Waits for a CAP cue, plays body clip 20 for
+/// 35 frames, resets to clip 18 and waits for the next cue. Requires live
+/// Pierce and CAP tasks and both overlays through playback.
+extern EvsCommand gActor215100GalleryConfirmCourseScript[6];
 
 /// Selected shooting-gallery training course, numbered 1..5.
 ///

@@ -277,14 +277,14 @@ void actor215100GalleryTrainingMenuTask(Task* task)
                 return;
             }
             if (task->spawnArg1.value == 0) {
-                evsStartScript(D_actor_215100_8014ED90, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(gActor215100GalleryPrepareTrainingMenuScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 captionSlot = ACTOR_215100_MENU_REPEAT_PROMPT_SLOT;
                 if (D_actor_215100_8014D040 == 0) {
                     captionSlot = ACTOR_215100_MENU_FIRST_PROMPT_SLOT;
                 }
                 capStartSequenceSlot(captionSlot, 0, 0);
-                evsStartScript(D_actor_215100_8014EE68, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(gActor215100GalleryOfferTrainingMenuScript, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
@@ -315,7 +315,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
                 captionSlot = ACTOR_215100_MENU_FIRST_ACCEPT_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
-            evsStartScript(D_actor_215100_8014EB98, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(gActor215100GalleryWaitTrainingAcceptanceScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case ACTOR_215100_MENU_WAIT_ACCEPT:
@@ -370,7 +370,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_CONFIRM_LEVEL:
             capStartSequenceSlot(capGetVariantKey() + ACTOR_215100_MENU_LEVEL_CAPTION_BASE, 0, 0);
-            evsStartScript(D_actor_215100_8014F138, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(gActor215100GalleryConfirmCourseScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case ACTOR_215100_MENU_AFTER_CONFIRM:
@@ -380,9 +380,9 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             D_actor_215100_8014D040++;
             gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
             if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
-                evsStartScript(D_actor_215100_8014EFA0, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(gActor215100GalleryStartFixedViewTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                evsStartScript(D_actor_215100_8014F060, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(gActor215100GalleryStartFreeMovementTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             }
             gActor215100GalleryTrainingActive = 1;
             task->state++;

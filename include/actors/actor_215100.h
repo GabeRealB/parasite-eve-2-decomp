@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "gameplay/evs.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -45,6 +46,23 @@ enum {
 /// task argument. Both callbacks require the actor overlay and model sources
 /// to stay loaded until the task tree is destroyed.
 extern TaskDesc gActor215100PierceTaskDescs[ACTOR_215100_PIERCE_TASK_COUNT];
+
+/// Pierce's one-time story scene at shooting-gallery action point 4.
+///
+/// The 117 commands include END. Switches to conversation CAP command 1,
+/// installs player clips, stages both actors, then restores weapons, view 2,
+/// placements, player control and the default CAP resource. Start with
+/// `EVENT_SCRIPT_HUD_HIDE_RESTORE` and the matching skip script. Both overlays,
+/// CAP resources, callbacks and borrowed animation data must stay loaded.
+extern EvsCommand gActor215100PierceStoryScript[117];
+
+/// Restores the gallery after skipping `gActor215100PierceStoryScript`.
+///
+/// The 15 commands include END. Cleans up scene playback under a primary fade,
+/// restores Pierce and the player in view 2, and releases scripted control
+/// before resetting CAP selection. Requires the story's loaded resources and
+/// live actor tasks through completion; the event task restores the HUD.
+extern EvsCommand gActor215100PierceStorySkipScript[15];
 
 /// Gallery exit-gate replies to the room-transition resolver.
 enum {
