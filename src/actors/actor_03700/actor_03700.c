@@ -852,10 +852,13 @@ static inline void _actor03700ApplySwayStep(Task* task, s32 baseAmplitude)
     coord->coord.t[2] += (displacement * coord->coord.m[2][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
 }
 
-/// The enemy's state handlers, run by `_actor03700Task` for the task's
-/// state: spawn, per-frame tick and death.
-static const EnemyTaskFuncTable3 Actor03700_D00004 = {
-    { _actor03700InitEnemy, _actor03700UpdateEnemy, _actor03700Die },
+/// Bat task callbacks: 0 initialize, 1 active frame, 2 death sequence.
+///
+/// Each receives separate Enemy and Task pointers. The task owns the work and model
+/// through death; its callbacks may release them.
+static const EnemyTaskFuncTable3 _gActor03700TaskStates = {
+    .funcs = {
+        _actor03700InitEnemy, _actor03700UpdateEnemy, _actor03700Die },
 };
 
 /// Initializes the placed bat enemy, its animation rig and collision sphere.
@@ -2301,7 +2304,7 @@ static void _actor03700Task(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = Actor03700_D00004;
+    stateHandlers = _gActor03700TaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

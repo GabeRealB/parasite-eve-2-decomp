@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_113100.
 _gActor113100HeadTurnByClip = 0x801442E4; // size:0x24 defined:True
 gActor113100PierceCarradineTaskDescriptors = 0x80144308; // size:0x30 defined:True
-D_actor_113100_80144338 = 0x80144338; // size:0x30 defined:True
+_gActor113100PierceCarradineMessages = 0x80144338; // size:0x30 defined:True
 _gActor113100PierceCarradineBodySkeleton = 0x8013346C; // size:0x2D0 defined:True
 _gActor113100PierceCarradineBodyPartVerts = 0x8013373C; // size:0x50 defined:True
 _gActor113100PierceCarradineBodyVerts = 0x8013378C; // size:0xC30 defined:True
@@ -229,3 +229,4 @@ _actor113100UpdatePierceCarradine = 0x80132104; // type:func
 _gActor113100BillboardStates = 0x80131e24;
 _gActor113100AttachedModelStates = 0x80131e30;
 _gActor113100PierceCarradineWalkSteps = 0x80131e48;
+_gActor113100PierceCarradineTaskStates = 0x80131e3c;

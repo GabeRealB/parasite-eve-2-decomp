@@ -248,12 +248,11 @@ static void _actor03800UpdateColor(Task* task);
 static void _actor03800DrawGroundShadow(Task* task);
 static void _actor03800SquashCorpse(Task* task);
 
-/// State handlers `_actor03800Task` dispatches, indexed by the task's state
-/// (`Task::state`): the spawn state that allocates the work block and
-/// moves to state 1, the per-frame tick, and the state-2 handler the tick hands
-/// over to, which carries the death sequence.
-static const EnemyTaskFuncTable3 Actor03800_D00004 = {
-    {
+/// Black Beetle task callbacks: 0 spawn, 1 active frame, 2 death sequence.
+///
+/// Each receives separate Enemy and Task pointers and may release them during death.
+static const EnemyTaskFuncTable3 _gActor03800TaskStates = {
+    .funcs = {
         _actor03800Spawn,
         _actor03800Tick,
         _actor03800Death,
@@ -2463,7 +2462,7 @@ static void _actor03800Task(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor03800_D00004;
+    handlers = _gActor03800TaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

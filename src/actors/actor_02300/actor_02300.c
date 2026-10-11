@@ -51,14 +51,6 @@
 /// Character script bank used by this carrier's cue tables.
 enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x17 };
 
-/// The `EnemyParams` the enemy parks in its own `field_50` slot.
-extern EnemyParams Actor02300_D159D8;
-/// Per-room voice-stream sector tables, indexed by `GameSession::location.loc.stage` then
-/// `field_6`; a NULL row means this room has no cue.
-extern u16* Actor02300_D15C80[];
-/// Animation bank `animationInitContext` binds to the work block.
-extern AnimationSet* Actor02300_D15CBC[31];
-
 static AnimationSet _gActor02300Actor102300Animation0A2F0;
 static AnimationSet _gActor02300Actor102300Animation0AC58;
 static AnimationSet _gActor02300Actor102300Animation0B280;
@@ -766,7 +758,19 @@ static DamageAttack _gGolemPawnRookAttacks[5] = {
     { 5, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor02300_D159D8 = { _gGolemPawnRookAttacks, 482, 250, 400, 8, 0, 6, 0, 0 };
+/// Beam Sword Rook GOLEM combat parameters and rewards.
+///
+/// Fresh bodies borrow this record and start at 482 HP. Release credits 250 EXP,
+/// 400 BP and 8 MP; the buildup base is six 31-frame steps. Critical chance and
+/// damage-over-time chance/count are zero. The attack rows share the GOLEM indices.
+static EnemyParams _gActor02300RookGolemParams = {
+    .attacks      = _gGolemPawnRookAttacks,
+    .hpMax        = 482,
+    .exp          = 250,
+    .bp           = 400,
+    .mp           = 8,
+    .buildupSteps = 6,
+};
 
 /// Weapon attack rows absorbed by the raised frontal shield (0 bypass, 1 absorb).
 ///
@@ -1171,13 +1175,18 @@ static u16 _gActor02300ShelterNeoArkAreaSoundSets[34] = {
     0,
 };
 
-u16* Actor02300_D15C80[6] = {
-    NULL,
-    _gActor02300AcropolisAreaSoundSets,
-    _gActor02300DryfieldAreaSoundSets,
-    _gActor02300DryfieldNightAreaSoundSets,
-    _gActor02300MineShelterAreaSoundSets,
-    _gActor02300ShelterNeoArkAreaSoundSets,
+/// Stage directory of Beam Sword Rook GOLEM area sound-bank selections.
+///
+/// Stage 0 has no row; stages 1..5 select Acropolis, Dryfield day, Dryfield night,
+/// Mine/Shelter or Shelter/Neo Ark. Each borrowed row is indexed by the saved area
+/// ID. Zero disables cues and bank loading; 1..4 select the character-bank variant.
+static const u16* _gActor02300StageAreaSoundSets[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
+    [GAME_STAGE_NONE]            = NULL,
+    [GAME_STAGE_ACROPOLIS]       = _gActor02300AcropolisAreaSoundSets,
+    [GAME_STAGE_DRYFIELD]        = _gActor02300DryfieldAreaSoundSets,
+    [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor02300DryfieldNightAreaSoundSets,
+    [GAME_STAGE_MINE_SHELTER]    = _gActor02300MineShelterAreaSoundSets,
+    [GAME_STAGE_SHELTER_NEO_ARK] = _gActor02300ShelterNeoArkAreaSoundSets,
 };
 
 TaskDesc gActor02300RookGolemTasks[3] = {
@@ -1186,7 +1195,12 @@ TaskDesc gActor02300RookGolemTasks[3] = {
     { { { TASK_BODY_TMD, 96 } }, _actor02300ShieldTask, { .model = &_gActor02300RookGolemShield } },
 };
 
-AnimationSet* Actor02300_D15CBC[31] = {
+/// Beam Sword Rook GOLEM body animation-set directory.
+///
+/// The body rig borrows this 31-pointer table for its lifetime. Loaded clip slots
+/// are 1..11 and 17..29; 0, 12..16 and 30 are NULL and cannot be played.
+/// The mutable pointer-table type is required by the animation context interface.
+static AnimationSet* _gActor02300RookGolemAnimationSets[31] = {
     NULL,
     &_gActor02300Actor102300Animation0A2F0,
     &_gActor02300Actor102300Animation0AC58,
@@ -1330,7 +1344,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
     GfxCoord*          swordCoords;
     Enemy*             shieldEnemy;
     Enemy*             swordEnemy;
-    u16*               areaSoundSets;
+    const u16*         areaSoundSets;
     u8                 soundFileKey[8];
     u8                 soundFileArgs[8];
     s32                slotIndex;
@@ -1354,7 +1368,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[ACTOR_02300_BODY_PART];
     work->hitEffectArg.spawnArgLo = ACTOR_02300_HIT_EFFECT_SIZE;
     work->hitEffectArg.spawnArgHi = ACTOR_02300_HIT_EFFECT_KIND;
-    animationInitContext(&work->rig.anim, Actor02300_D15CBC, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor02300RookGolemAnimationSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, 1);
     }
@@ -1373,10 +1387,10 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             enemy->bodyPos.vx = 0;
             enemy->bodyPos.vy = 0;
             enemy->bodyPos.vz = 0;
-            enemy->param      = &Actor02300_D159D8;
+            enemy->param      = &_gActor02300RookGolemParams;
             enemy->recs       = work->hurtContacts;
             enemy->coord      = &bodyCoords[ACTOR_02300_BODY_PART];
-            enemy->hp         = Actor02300_D159D8.hpMax;
+            enemy->hp         = _gActor02300RookGolemParams.hpMax;
             sceneAcquireBattleRef(0);
             work->patrols = enemy->place->mode & ACTOR_02300_PLACEMENT_PATROLS;
             if (work->patrols == 0) {
@@ -1389,7 +1403,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
                 work->patrolDistanceLeft = patrolLengthThousands * ACTOR_02300_PATROL_UNITS_PER_VARIANT;
             }
 
-            areaSoundSets = Actor02300_D15C80[gGameSession->location.loc.stage];
+            areaSoundSets = _gActor02300StageAreaSoundSets[gGameSession->location.loc.stage];
             if (areaSoundSets != NULL) {
                 work->soundSet = areaSoundSets[gGameSession->location.loc.area];
             }
@@ -1500,13 +1514,16 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
-/// State handlers of the child task hung off part 7 of the enemy's model -
-/// spawn/setup, per-frame tick and teardown - dispatched through by
-/// `_actor02300SwordTask`.
-static const EnemyTaskFuncTable3 Actor02300_D00060 = {
-    _golemPawnRookSwordSpawn,
-    _golemPawnRookSwordTick,
-    enemyDestroy,
+/// Rook GOLEM Beam Sword callbacks: 0 attach at body part 7, 1 tick, 2 destroy.
+///
+/// The sword borrows its body's coordinates and lighting. Its tick mirrors drawing
+/// and starts the delayed trail; sword teardown also releases that trail.
+static const EnemyTaskFuncTable3 _gActor02300SwordTaskStates = {
+    .funcs = {
+        _golemPawnRookSwordSpawn,
+        _golemPawnRookSwordTick,
+        enemyDestroy,
+    },
 };
 
 /// Runs the Rook GOLEM's attached Beam Sword lifecycle.
@@ -1517,7 +1534,7 @@ static const EnemyTaskFuncTable3 Actor02300_D00060 = {
 /// from the body; sword teardown also releases its successfully spawned trail.
 static void _actor02300SwordTask(Task* sword)
 {
-    const EnemyTaskFuncTable3 stateHandlers = Actor02300_D00060;
+    const EnemyTaskFuncTable3 stateHandlers = _gActor02300SwordTaskStates;
 
     stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
@@ -1526,13 +1543,16 @@ static void _actor02300SwordTask(Task* sword)
 
 #include "../../shared/golem_pawn_rook_sword_tick.inc.c"
 
-/// State handlers of the child task hung off part 11 of the enemy's model -
-/// spawn/setup, per-frame tick and teardown - dispatched through by
-/// `_actor02300ShieldTask`.
-static const EnemyTaskFuncTable3 Actor02300_D0006C = {
-    _golemPawnRookShieldSpawn,
-    _golemPawnRookShieldTick,
-    enemyDestroy,
+/// Rook GOLEM shield callbacks: 0 attach at body part 11, 1 tick, 2 destroy.
+///
+/// The shield borrows its body's coordinates and lighting. Its tick mirrors drawing
+/// and processes the shield break before requesting destruction.
+static const EnemyTaskFuncTable3 _gActor02300ShieldTaskStates = {
+    .funcs = {
+        _golemPawnRookShieldSpawn,
+        _golemPawnRookShieldTick,
+        enemyDestroy,
+    },
 };
 
 /// Runs the Beam Sword Rook GOLEM's attached shield lifecycle.
@@ -1543,20 +1563,23 @@ static const EnemyTaskFuncTable3 Actor02300_D0006C = {
 /// from the body; the break tick requests teardown after spawning its effects.
 static void _actor02300ShieldTask(Task* shield)
 {
-    const EnemyTaskFuncTable3 stateHandlers = Actor02300_D0006C;
+    const EnemyTaskFuncTable3 stateHandlers = _gActor02300ShieldTaskStates;
 
     stateHandlers.funcs[shield->state](shield->spawnArg2.pointer, shield);
 }
 
 #include "../../shared/golem_pawn_rook_shield_spawn.inc.c"
 
-/// The enemy's own state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by `_actor02300BodyTask`. Each takes the task
-/// as the enemy view it is.
-static const EnemyTaskFuncTable3 Actor02300_D00078 = {
-    _actor02300SpawnBody,
-    _golemPawnRookFrameState,
-    _golemPawnRookDeadState,
+/// Rook GOLEM body callbacks: 0 spawn, 1 combat frame, 2 persistent corpse.
+///
+/// Each receives separate Enemy and Task pointers. The corpse state releases combat
+/// participation and keeps the model and work alive for pose, lighting and shadow.
+static const EnemyTaskFuncTable3 _gActor02300BodyTaskStates = {
+    .funcs = {
+        _actor02300SpawnBody,
+        _golemPawnRookFrameState,
+        _golemPawnRookDeadState,
+    },
 };
 
 #include "../../shared/golem_pawn_rook_shield_tick.inc.c"
@@ -1570,7 +1593,7 @@ static void _actor02300BodyTask(Task* task)
 {
     EnemyTaskFuncTable3 lifecycleHandlers;
 
-    lifecycleHandlers = Actor02300_D00078;
+    lifecycleHandlers = _gActor02300BodyTaskStates;
     lifecycleHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

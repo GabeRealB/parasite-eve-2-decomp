@@ -233,10 +233,11 @@ static void _actor01500UpdateColor(Task* actor);
 static void _actor01500DrawGroundShadow(Task* actor);
 static void _actor01500SquashCorpse(Task* actor);
 
-/// The actor's three task states - spawn, per-frame tick and teardown - run
-/// by `_actor01500Task`.
-static const EnemyTaskFuncTable3 Actor01500_D00004 = {
-    {
+/// Mind Suckler task callbacks: 0 spawn, 1 active frame, 2 death sequence.
+///
+/// Each callback receives the separate live Enemy and Task; death can release both.
+static const EnemyTaskFuncTable3 _gActor01500TaskStates = {
+    .funcs = {
         _actor01500Spawn,
         _actor01500ActiveState,
         _actor01500DeathState,
@@ -2039,7 +2040,7 @@ static void _actor01500Task(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = Actor01500_D00004;
+    states = _gActor01500TaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

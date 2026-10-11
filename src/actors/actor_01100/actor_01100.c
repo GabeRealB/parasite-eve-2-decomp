@@ -388,13 +388,17 @@ static void _actor01100SpitGlobCountdown(Task* task);
 static void _actor01100SpitExit(Task* task);
 static void _actor01100SpitCloudTick(Task* task);
 
-/// The enemy task's three states - set-up, the per-frame dispatcher and
-/// teardown - which `_actor01100Task` runs by `Task::state`.
-static const _Actor01100TaskStateTable Actor01100_D00004 = { {
-    _actor01100Init,
-    _actor01100ArmCollisionBodies,
-    _actor01100Tick,
-} };
+/// Mossback task callbacks: 0 initialize, 1 wait for the CD queue and arm collisions, 2 tick.
+///
+/// Teardown is a separate task exit callback. Each handler receives the live
+/// enemy and task, nullable initialization work, and scratch borrowed for the call.
+static const _Actor01100TaskStateTable _gActor01100TaskStates = {
+    .funcs = {
+        _actor01100Init,
+        _actor01100ArmCollisionBodies,
+        _actor01100Tick,
+    },
+};
 
 /// Uniform 1.25 scale for Brute Mossback placements, in Q12 units.
 ///
@@ -2089,36 +2093,40 @@ static void _actor01100ApplyPoseAdjustments(Enemy* unusedEnemy, Task* task, _Act
     }
 }
 
-/// Per-frame state handlers `_actor01100Tick` copies to its stack and
-/// indexes by `_Actor01100Work::state`.
-static const _Actor01100StateTable Actor01100_D00064 = { {
-    _actor01100Idle,
-    _actor01100IdleSwingLeft,
-    _actor01100IdleSwingRight,
-    _actor01100IdleTurn,
-    _actor01100IdleRest,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100NoticePlayer,
-    _actor01100Spit,
-    _actor01100PunchLeft,
-    _actor01100PunchRight,
-    _actor01100Advance,
-    _actor01100FacePlayer,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Idle,
-    _actor01100Stunned,
-    _actor01100Flinch,
-    _actor01100Fall,
-    _actor01100Rise,
-    _actor01100Death,
-    _actor01100FallAgain,
-} };
+/// Mossback behavior callbacks indexed by `ACTOR_01100_STATE_*`.
+///
+/// All 26 slots are callable; unused slots 5..9 and 16..19 retain the idle handler.
+/// Handlers borrow the enemy, task, work and scratch supplied by the frame update.
+static const _Actor01100StateTable _gActor01100StateHandlers = {
+    .funcs = {
+        _actor01100Idle,
+        _actor01100IdleSwingLeft,
+        _actor01100IdleSwingRight,
+        _actor01100IdleTurn,
+        _actor01100IdleRest,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100NoticePlayer,
+        _actor01100Spit,
+        _actor01100PunchLeft,
+        _actor01100PunchRight,
+        _actor01100Advance,
+        _actor01100FacePlayer,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Idle,
+        _actor01100Stunned,
+        _actor01100Flinch,
+        _actor01100Fall,
+        _actor01100Rise,
+        _actor01100Death,
+        _actor01100FallAgain,
+    },
+};
 
 /// Advances Mossback animation, behavior, hit reactions and presentation for one frame.
 ///
@@ -2174,7 +2182,7 @@ static void _actor01100Tick(Enemy* enemy, Task* task, _Actor01100Work* work, _Ac
     s16                   surfaceDeltaY;
     s16                   lookYaw;
 
-    stateHandlers = Actor01100_D00064;
+    stateHandlers = _gActor01100StateHandlers;
     restartMotion = 0;
     if (work->hidden != 0) {
         return;
@@ -3963,7 +3971,7 @@ static void _actor01100Task(Task* task)
     _Actor01100Work*          work;
     _Actor01100Scratch*       scratch;
 
-    taskStates = Actor01100_D00004;
+    taskStates = _gActor01100TaskStates;
     enemy      = task->spawnArg2.pointer;
     work       = task->work;
     scratch    = SCRATCH_STACK_RESERVE_BLOCK(_Actor01100Scratch);
@@ -3973,14 +3981,16 @@ static void _actor01100Task(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor01100Scratch);
 }
 
-/// State handlers of the secondary task this entry spawns: set-up
-/// (`_actor01100SpitGlobInit`), per-frame tick (`_actor01100SpitGlobFly`) and the
-/// countdown to exit (`_actor01100SpitGlobCountdown`).
-static const TaskFuncTable3 Actor01100_D000DC = { {
-    _actor01100SpitGlobInit,
-    _actor01100SpitGlobFly,
-    _actor01100SpitGlobCountdown,
-} };
+/// Spit-glob task callbacks: 0 initialize, 1 fly, 2 count down after impact.
+///
+/// The glob owns its work and collision body; the exit callback releases them.
+static const TaskFuncTable3 _gActor01100SpitGlobTaskStates = {
+    .funcs = {
+        _actor01100SpitGlobInit,
+        _actor01100SpitGlobFly,
+        _actor01100SpitGlobCountdown,
+    },
+};
 
 /// Dispatches the spit glob's initialization, flight or post-impact countdown.
 ///
@@ -3990,7 +4000,7 @@ static void _actor01100SpitGlobTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Actor01100_D000DC;
+    states = _gActor01100SpitGlobTaskStates;
     states.funcs[task->state](task);
 }
 

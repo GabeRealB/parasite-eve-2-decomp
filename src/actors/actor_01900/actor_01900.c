@@ -823,7 +823,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 
 static SVECTOR ActorContact_ScratchPosition;
 
-static const _Actor01900StateTable Actor01900_D001BC;
+static const _Actor01900StateTable _gActor01900StateHandlers;
 
 static void _actor01900StateStatusHold(Task* task);
 
@@ -3776,7 +3776,7 @@ static void _actor01900Tick(Enemy* enemy, Task* task)
     s32                       actorState;
 
     work   = task->work;
-    states = Actor01900_D001BC;
+    states = _gActor01900StateHandlers;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
@@ -3861,53 +3861,58 @@ static s32 _actor01900IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPay
 {
 }
 
-/// The actor's state handlers, indexed by `_Actor01900Work::state`; empty
-/// slots are states the actor never enters. `_actor01900Tick` copies the
-/// table to its frame before dispatching.
-static const _Actor01900StateTable Actor01900_D001BC = { {
-    _actor01900StateHidden,
-    _actor01900StatePlayWalk,
-    _actor01900StatePlayRun,
-    _actor01900StatePlayDown,
-    _actor01900StateStatusHold,
-    _actor01900StateFlinch,
-    _actor01900StateAlert,
-    _actor01900StateChase,
-    _actor01900StateCircle,
-    _actor01900StateTurnAround,
-    _actor01900StateSidestep,
-    _actor01900StateStrike,
-    NULL,
-    NULL,
-    _actor01900StateStepBack,
-    _actor01900StateRise,
-    NULL,
-    _actor01900StateDown,
-    _actor01900StateApproach,
-    _actor01900StateFall,
-    NULL,
-    _actor01900StateDeathBurn,
-    NULL,
-    _actor01900StateDormantScripted,
-    _actor01900StatePatrol,
-    _actor01900StateBackOff,
-    _actor01900StateSlide,
-    _actor01900StateAlertRepeat,
-    _actor01900StateScriptedWatch,
-    _actor01900StateDeathBurst,
-    _actor01900StateDeathBurstWalk,
-    _actor01900StateRefall,
-} };
+/// Grinning Stranger behavior callbacks indexed by `ACTOR_01900_STATE_*`.
+///
+/// The 32 stored slots include NULL at 12, 13, 16, 20 and 22; callers must select
+/// a populated slot. Each callback receives the live body task.
+static const _Actor01900StateTable _gActor01900StateHandlers = {
+    .handlers = {
+        [ACTOR_01900_STATE_HIDDEN]           = _actor01900StateHidden,
+        [ACTOR_01900_STATE_PLAY_WALK]        = _actor01900StatePlayWalk,
+        [ACTOR_01900_STATE_PLAY_RUN]         = _actor01900StatePlayRun,
+        [ACTOR_01900_STATE_PLAY_DOWN]        = _actor01900StatePlayDown,
+        [ACTOR_01900_STATE_STATUS_HOLD]      = _actor01900StateStatusHold,
+        [ACTOR_01900_STATE_FLINCH]           = _actor01900StateFlinch,
+        [ACTOR_01900_STATE_ALERT]            = _actor01900StateAlert,
+        [ACTOR_01900_STATE_CHASE]            = _actor01900StateChase,
+        [ACTOR_01900_STATE_CIRCLE]           = _actor01900StateCircle,
+        [ACTOR_01900_STATE_TURN_AROUND]      = _actor01900StateTurnAround,
+        [ACTOR_01900_STATE_SIDESTEP]         = _actor01900StateSidestep,
+        [ACTOR_01900_STATE_STRIKE]           = _actor01900StateStrike,
+        [ACTOR_01900_STATE_UNUSED_0C]        = NULL,
+        [ACTOR_01900_STATE_UNUSED_0D]        = NULL,
+        [ACTOR_01900_STATE_STEP_BACK]        = _actor01900StateStepBack,
+        [ACTOR_01900_STATE_RISE]             = _actor01900StateRise,
+        [ACTOR_01900_STATE_UNUSED_10]        = NULL,
+        [ACTOR_01900_STATE_DOWN]             = _actor01900StateDown,
+        [ACTOR_01900_STATE_APPROACH]         = _actor01900StateApproach,
+        [ACTOR_01900_STATE_FALL]             = _actor01900StateFall,
+        [ACTOR_01900_STATE_UNUSED_14]        = NULL,
+        [ACTOR_01900_STATE_DEATH_BURN]       = _actor01900StateDeathBurn,
+        [ACTOR_01900_STATE_UNUSED_16]        = NULL,
+        [ACTOR_01900_STATE_DORMANT_SCRIPTED] = _actor01900StateDormantScripted,
+        [ACTOR_01900_STATE_PATROL]           = _actor01900StatePatrol,
+        [ACTOR_01900_STATE_BACK_OFF]         = _actor01900StateBackOff,
+        [ACTOR_01900_STATE_SLIDE]            = _actor01900StateSlide,
+        [ACTOR_01900_STATE_ALERT_REPEAT]     = _actor01900StateAlertRepeat,
+        [ACTOR_01900_STATE_SCRIPTED_WATCH]   = _actor01900StateScriptedWatch,
+        [ACTOR_01900_STATE_DEATH_BURST]      = _actor01900StateDeathBurst,
+        [ACTOR_01900_STATE_DEATH_BURST_WALK] = _actor01900StateDeathBurstWalk,
+        [ACTOR_01900_STATE_REFALL]           = _actor01900StateRefall,
+    },
+};
 
-/// The actor task's dispatcher table, indexed by `Task::state`: spawn
-/// (`_actor01900Initialize`), a three-frame wait (`_actor01900WaitAfterSetup`), the
-/// per-frame tick (`_actor01900Tick`) and teardown.
-static const EnemyTaskFuncTable4 Actor01900_D0023C = { {
-    _actor01900Initialize,
-    _actor01900WaitAfterSetup,
-    _actor01900Tick,
-    enemyDestroy,
-} };
+/// Grinning Stranger task callbacks: 0 initialize, 1 wait three ticks, 2 tick, 3 destroy.
+///
+/// Each callback receives the separate live Enemy and Task; destruction releases them.
+static const EnemyTaskFuncTable4 _gActor01900TaskStates = {
+    .funcs = {
+        _actor01900Initialize,
+        _actor01900WaitAfterSetup,
+        _actor01900Tick,
+        enemyDestroy,
+    },
+};
 
 /// Maps a requested animation id and forces entry into the down state.
 ///
@@ -4276,7 +4281,7 @@ static void _actor01900Task(Task* task)
 {
     EnemyTaskFuncTable4 states;
 
-    states = Actor01900_D0023C;
+    states = _gActor01900TaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

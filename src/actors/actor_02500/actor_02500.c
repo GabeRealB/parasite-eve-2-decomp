@@ -258,10 +258,12 @@ static void _actor02500SpawnCorpsePoison(Enemy* enemy, Task* task);
 static void _actor02500TickCorpsePoison(Enemy* enemy, Task* task);
 static void _actor02500ReleaseCorpsePoison(Enemy* enemy, Task* task);
 
-/// State handlers of the enemy task `_actor02500Task` dispatches, indexed
-/// by `Task::state`: spawn, per-frame tick and the dying sequence.
-static const EnemyTaskFuncTable3 Actor02500_D00004 = {
-    {
+/// Scorpion task callbacks: 0 spawn, 1 active frame, 2 death sequence.
+///
+/// Indexed by `ACTOR_02500_TASK_STATE_*`; each callback receives separate Enemy
+/// and Task pointers and can release them during death.
+static const EnemyTaskFuncTable3 _gActor02500TaskStates = {
+    .funcs = {
         _actor02500Spawn,
         _actor02500Tick,
         _actor02500Die,
@@ -1747,7 +1749,7 @@ static void _actor02500Task(Task* actor)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor02500_D00004;
+    handlers = _gActor02500TaskStates;
     handlers.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }
 
@@ -1837,11 +1839,12 @@ static void _actor02500ConsumeReactions(Task* actor)
     }
 }
 
-/// State handlers of the helper task `_actor02500CorpsePoisonTask` dispatches, indexed
-/// by `Task::state`: setup, per-frame tick and the countdown that
-/// destroys it.
-static const EnemyTaskFuncTable3 Actor02500_D00050 = {
-    {
+/// Corpse-poison callbacks: 0 create the detached sphere, 1 tick, 2 release.
+///
+/// The poison has its own Enemy and work, independent of the dead scorpion.
+/// Release unlinks collision, requests decal fade and waits 30 calls before destruction.
+static const EnemyTaskFuncTable3 _gActor02500CorpsePoisonTaskStates = {
+    .funcs = {
         _actor02500SpawnCorpsePoison,
         _actor02500TickCorpsePoison,
         _actor02500ReleaseCorpsePoison,
@@ -2136,7 +2139,7 @@ static void _actor02500CorpsePoisonTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor02500_D00050;
+    handlers = _gActor02500CorpsePoisonTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

@@ -328,10 +328,12 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// varying address, this load a scalar MEM at a fixed one -- and sched2 then
 /// hoists this load above the store, ahead of the `sll`.
 
-/// The enemy task's state handlers, indexed by `Task::state`: spawn/setup,
-/// per-frame tick and teardown.
-static const EnemyTaskFuncTable3 D_actor_105100_80131E24 = {
-    {
+/// Stinger task callbacks: 0 spawn, 1 active frame, 2 death sequence.
+///
+/// Indexed by the task phase; each receives separate Enemy and Task pointers.
+/// The death sequence retains the body until its final release.
+static const EnemyTaskFuncTable3 _gActor105100TaskStates = {
+    .funcs = {
         _actor105100Spawn,
         _actor105100Tick,
         _actor105100Death,
@@ -2166,10 +2168,12 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     task->state     = ACTOR_105100_TASK_UPDATE;
 }
 
-/// The projectile task's state handlers, indexed by `Task::state`: setup,
-/// per-frame flight and teardown.
-static const EnemyTaskFuncTable3 D_actor_105100_80131E90 = {
-    {
+/// Stinger fireball callbacks: 0 spawn, 1 update flight and burst, 2 destroy.
+///
+/// The coordinate-body task owns its collision sphere and sweep capsule;
+/// destruction unlinks both before releasing the fireball Enemy and Task.
+static const EnemyTaskFuncTable3 _gActor105100FireballTaskStates = {
+    .funcs = {
         _actor105100FireballSpawn,
         _actor105100FireballTick,
         _actor105100FireballDestroy,
@@ -2694,7 +2698,7 @@ static void _actor105100Task(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_105100_80131E24;
+    stateHandlers = _gActor105100TaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -3066,7 +3070,7 @@ static void _actor105100FireballTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_105100_80131E90;
+    stateHandlers = _gActor105100FireballTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

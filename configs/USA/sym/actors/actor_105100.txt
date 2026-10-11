@@ -130,3 +130,5 @@ _actor105100Tick = 0x80132aa0; // type:func
 _actor105100Death = 0x80134284; // type:func
 _actor105100FireballTick = 0x80134b00; // type:func
 _gActor105100BeamStates = 0x80131eb0;
+_gActor105100TaskStates = 0x80131e24;
+_gActor105100FireballTaskStates = 0x80131e90;

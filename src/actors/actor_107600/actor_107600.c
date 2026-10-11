@@ -327,13 +327,6 @@ static void _actor107600MeasureTargetPlayerDistance(Task* task);
 static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord);
 static void _actor107600ApplyTargetScale(Task* task);
 
-/* Eight effect offsets `_actor107600UpdateTarget` cycles through from
- * `_Actor107600TargetWork::hitMarkFirst`. */
-extern DVECTOR D_actor_107600_80135730[];
-
-/* Pair-source record the spawn state hangs off `Enemy.param`. */
-extern EnemyParams D_actor_107600_80134F84;
-
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
 
@@ -343,14 +336,18 @@ static void _actor107600UpdateHangingMountPath(Task* task);
 static void _actor107600UpdateMount(Task* task);
 static void _actor107600ApplyTargetHits(Task* task);
 
-/// The actor's top-level task states, which `_actor107600MountTask` runs:
-/// spawn, update, drop and destroy.
-static const TaskFuncTable4 D_actor_107600_80131E24 = { {
-    _actor107600InitMount,
-    _actor107600UpdateMount,
-    _actor107600RetireMount,
-    _actor107600DestroyMount,
-} };
+/// Gallery mount task callbacks: 0 initialize, 1 update, 2 retire, 3 destroy.
+///
+/// The mount owns work and its carried target. Retirement updates the gallery's
+/// live-target count before destruction releases the mount and its child.
+static const TaskFuncTable4 _gActor107600MountTaskStates = {
+    .funcs = {
+        _actor107600InitMount,
+        _actor107600UpdateMount,
+        _actor107600RetireMount,
+        _actor107600DestroyMount,
+    },
+};
 
 /// Gallery mount behavior callbacks, copied before dispatch by behavior 0..2.
 ///
@@ -367,7 +364,16 @@ static const TaskFuncTable3 _gActor107600MountBehaviourHandlers = { {
 /// zero/no-contact key. It remains live with the mount's enemy parameters.
 static DamageAttack _gActor107600MountAttacks[1] = { { .power = 0, .reaction = 0 } };
 
-EnemyParams D_actor_107600_80134F84 = { _gActor107600MountAttacks, 50, 0, 0, 0, 255, 0, 0, 0 };
+/// Gallery mount enemy parameters, borrowed by each initialized mount.
+///
+/// Nominal maximum health is 50; the zero-power attack has an ordinary reaction.
+/// Rewards and buildup/damage-over-time counts are zero; base critical chance is
+/// 255 percent. Mount initialization does not copy this maximum into current HP.
+static EnemyParams _gActor107600MountParams = {
+    .attacks    = _gActor107600MountAttacks,
+    .hpMax      = 50,
+    .critChance = 255,
+};
 
 /// Execution priority shared by the gallery mount and its carried target.
 enum { ACTOR_107600_TASK_PRIORITY = 96 };
@@ -978,7 +984,12 @@ static EnemyParams _gActor107600TargetParams = {
     .critChance = 255,
 };
 
-DVECTOR D_actor_107600_80135730[8] = {
+/// Eight cyclic hit-mark offsets on a gallery target's face.
+///
+/// Signed X/Y use target-local model coordinates; Z is zero at drawing.
+/// The first-mark cursor plus mark index wraps with a count-minus-one mask.
+/// A dead target substitutes a death burst for its last mark without reading this row.
+static DVECTOR _gActor107600TargetHitMarkOffsets[ACTOR_107600_TARGET_HIT_MARK_COUNT] = {
     { 0, -0x120 },
     { 0x60, -0xA0 },
     { -0x70, -0x60 },
@@ -1063,7 +1074,7 @@ static void _actor107600InitMount(Task* task)
     work->behaviour    = (s32)(task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_MASK) >> ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_SHIFT;
     model->lightMtx    = &work->lightMatrix;
     model->colorMtx    = &work->colorMatrix;
-    enemy->param       = &D_actor_107600_80134F84;
+    enemy->param       = &_gActor107600MountParams;
     rootCoord->parent  = &gGfxViewCoord;
     enemy->field_4     = &task->extra.tmd->coords->coord;
     enemy->field_48    = 0;
@@ -1238,29 +1249,38 @@ static void _actor107600UpdateHangingMountPath(Task* task)
     _actor107600UpdateMountPath(task, -0xF4C, -0xF3C);
 }
 
-/// Task states run by `_actor107600TargetTask`, indexed by its
-/// `Task::state`.
-static const TaskFuncTable4 D_actor_107600_80131E74 = { {
-    _actor107600InitTarget,
-    _actor107600UpdateTarget,
-    _actor107600HideTarget,
-    _actor107600DestroyTarget,
-} };
+/// Gallery target task callbacks: 0 initialize, 1 update, 2 hide, 3 destroy.
+///
+/// The hidden target waits for its owning mount's teardown. Destruction unlinks
+/// its collision body before releasing target work, Enemy and Task.
+static const TaskFuncTable4 _gActor107600TargetTaskStates = {
+    .funcs = {
+        _actor107600InitTarget,
+        _actor107600UpdateTarget,
+        _actor107600HideTarget,
+        _actor107600DestroyTarget,
+    },
+};
 
-/// Behaviour states indexed by `_Actor107600TargetWork::state`, run by
-/// `_actor107600UpdateTarget`.
-static const TaskFuncTable10 D_actor_107600_80131E84 = { {
-    _actor107600BeginTargetBehaviour,
-    _actor107600UpdateActiveTarget,
-    _actor107600UpdateTargetFlinch,
-    _actor107600UpdateTargetFlinch,
-    _actor107600ResumeTargetState4,
-    _actor107600ResumeTargetState5,
-    _actor107600ResumeTargetState6,
-    _actor107600FoldTarget,
-    _actor107600BeginFixedTargetExit,
-    _actor107600TumbleDestroyedTarget,
-} };
+/// Gallery target behavior callbacks indexed by `ACTOR_107600_TARGET_STATE_*`.
+///
+/// Slots 0..9 select initialization, active behavior, two flinch strengths, three
+/// immediate active-state resumptions, folding, fixed demonstration or destroyed
+/// tumbling. The three resume slots' original reaction meanings remain unproven.
+static const TaskFuncTable10 _gActor107600TargetStateHandlers = {
+    .funcs = {
+        _actor107600BeginTargetBehaviour,
+        _actor107600UpdateActiveTarget,
+        _actor107600UpdateTargetFlinch,
+        _actor107600UpdateTargetFlinch,
+        _actor107600ResumeTargetState4,
+        _actor107600ResumeTargetState5,
+        _actor107600ResumeTargetState6,
+        _actor107600FoldTarget,
+        _actor107600BeginFixedTargetExit,
+        _actor107600TumbleDestroyedTarget,
+    },
+};
 
 /// Dispatches one gallery mount tick through its four task lifecycle states.
 ///
@@ -1271,7 +1291,7 @@ static void _actor107600MountTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_107600_80131E24;
+    handlers = _gActor107600MountTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1593,7 +1613,7 @@ static void _actor107600UpdateTarget(Task* task)
     work      = task->work;
     rootCoord = model->coords;
     drawModel = model;
-    states    = D_actor_107600_80131E84;
+    states    = _gActor107600TargetStateHandlers;
     SCRATCH_STACK_RESERVE_BYTES(sizeof(*hitMarkOffset));
     hitMarkOffset = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (gSceneCombatState.actorControl) {
@@ -1633,8 +1653,8 @@ static void _actor107600UpdateTarget(Task* task)
             hitMarkOffset->vz = 0;
             _actor107600DrawTargetDeathBurst(rootCoord, hitMarkOffset);
         } else {
-            hitMarkOffset->vx = D_actor_107600_80135730[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vx;
-            hitMarkOffset->vy = D_actor_107600_80135730[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vy;
+            hitMarkOffset->vx = _gActor107600TargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vx;
+            hitMarkOffset->vy = _gActor107600TargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vy;
             hitMarkOffset->vz = 0;
             _actor107600DrawTargetHitMark(rootCoord, hitMarkOffset);
         }
@@ -2373,7 +2393,7 @@ static void _actor107600TargetTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_107600_80131E74;
+    handlers = _gActor107600TargetTaskStates;
     handlers.funcs[task->state](task);
 }
 

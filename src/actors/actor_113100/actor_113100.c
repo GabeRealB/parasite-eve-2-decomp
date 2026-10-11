@@ -91,15 +91,6 @@ typedef struct {
 } _Actor113100PierceCarradineWork;
 STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
 
-/// The actor's message table, stored in `Task::msgTable`: 0x7D3
-/// (`_actor113100PlayAnimation`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
-/// (`_actor113100SetModelDraw`), 0x7DD (`_actor113100StartWalk`) and
-/// 0x7DB (`_actor113100ApplyCommand`), terminated by `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_113100_80144338[];
-
 static void _actor113100SpawnPierceCarradine(Task* task);
 static void _actor113100UpdatePierceCarradine(Task* task);
 static void _actor113100TurnAndBeginWalk(Task* task);
@@ -139,13 +130,17 @@ static const TaskFuncTable3 _gActor113100AttachedModelStates = { {
     taskKill,
 } };
 
-/// The actor's own three states - setup, per-frame tick and exit -
-/// dispatched by `_actor113100PierceCarradineTask`.
-static const TaskFuncTable3 D_actor_113100_80131E3C = { {
-    _actor113100SpawnPierceCarradine,
-    _actor113100UpdatePierceCarradine,
-    _actor113100Exit,
-} };
+/// Pierce Carradine body callbacks: 0 initialize, 1 update, 2 exit.
+///
+/// The task owns its body work and attached models; exit unlinks collision before
+/// releasing the body and its descendants.
+static const TaskFuncTable3 _gActor113100PierceCarradineTaskStates = {
+    .funcs = {
+        _actor113100SpawnPierceCarradine,
+        _actor113100UpdatePierceCarradine,
+        _actor113100Exit,
+    },
+};
 
 /// Pierce Carradine's four scripted-walk steps, copied before dispatch.
 ///
@@ -1190,7 +1185,12 @@ TaskDesc gActor113100PierceCarradineTaskDescriptors[4] = {
     },
 };
 
-TaskMessageEntry D_actor_113100_80144338[6] = {
+/// Pierce Carradine's synchronous animation, placement, drawing, walk and command messages.
+///
+/// The five ID-selected callbacks borrow message payloads for dispatch; walk setup
+/// copies its destination. The sixth END/null entry terminates lookup.
+/// Installed on the initialized body task for that task's lifetime.
+static TaskMessageEntry _gActor113100PierceCarradineMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor113100PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor113100SetModelDraw },
@@ -1268,7 +1268,7 @@ static void _actor113100SpawnPierceCarradine(Task* task)
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
-    task->msgTable = D_actor_113100_80144338;
+    task->msgTable = _gActor113100PierceCarradineMessages;
     mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_LOWERED);
     _actor113100SetModelDraw(task, 0, ACTOR_113100_DRAW_HIDE, 0);
     task->exitCallback = _actor113100Exit;
@@ -1781,7 +1781,7 @@ static void _actor113100PierceCarradineTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_113100_80131E3C;
+    states = _gActor113100PierceCarradineTaskStates;
     states.funcs[task->state](task);
 }
 

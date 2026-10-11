@@ -3064,28 +3064,32 @@ static void _actor04000StateScriptedLeap(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static const _Actor04000StateTable Actor04000_D001F4 = {
-    {
-        _actor04000StateHidden,
-        _actor04000StateSettle,
-        _actor04000StateIdle,
-        _actor04000StateRouse,
-        _actor04000StateChase,
-        _actor04000StateSelfBurst,
-        _actor04000StateDeathBurst,
-        _actor04000StatePatrol,
-        _actor04000StateReturn,
-        _actor04000StateAwaitBattle,
-        _actor04000StateLunge,
-        _actor04000StateLatched,
-        _actor04000StateLungeRecover,
-        _actor04000StateReleaseBurst,
-        _actor04000StateHang,
-        _actor04000StateDrop,
-        _actor04000StateScriptedThrash,
-        _actor04000StateScriptedFall,
-        _actor04000StateScriptedLeap,
-    }
+/// Blood Suckler behavior callbacks indexed by `ACTOR_04000_STATE_*`.
+///
+/// All nineteen slots receive the separate Enemy and Task; initialized work must
+/// remain live through dispatch. Behavior states are independent of task phases.
+static const _Actor04000StateTable _gActor04000StateHandlers = {
+    .handlers = {
+        [ACTOR_04000_STATE_HIDDEN]          = _actor04000StateHidden,
+        [ACTOR_04000_STATE_SETTLE]          = _actor04000StateSettle,
+        [ACTOR_04000_STATE_IDLE]            = _actor04000StateIdle,
+        [ACTOR_04000_STATE_ROUSE]           = _actor04000StateRouse,
+        [ACTOR_04000_STATE_CHASE]           = _actor04000StateChase,
+        [ACTOR_04000_STATE_SELF_BURST]      = _actor04000StateSelfBurst,
+        [ACTOR_04000_STATE_DEATH_BURST]     = _actor04000StateDeathBurst,
+        [ACTOR_04000_STATE_PATROL]          = _actor04000StatePatrol,
+        [ACTOR_04000_STATE_RETURN]          = _actor04000StateReturn,
+        [ACTOR_04000_STATE_AWAIT_BATTLE]    = _actor04000StateAwaitBattle,
+        [ACTOR_04000_STATE_LUNGE]           = _actor04000StateLunge,
+        [ACTOR_04000_STATE_LATCHED]         = _actor04000StateLatched,
+        [ACTOR_04000_STATE_LUNGE_RECOVER]   = _actor04000StateLungeRecover,
+        [ACTOR_04000_STATE_RELEASE_BURST]   = _actor04000StateReleaseBurst,
+        [ACTOR_04000_STATE_HANG]            = _actor04000StateHang,
+        [ACTOR_04000_STATE_DROP]            = _actor04000StateDrop,
+        [ACTOR_04000_STATE_SCRIPTED_THRASH] = _actor04000StateScriptedThrash,
+        [ACTOR_04000_STATE_SCRIPTED_FALL]   = _actor04000StateScriptedFall,
+        [ACTOR_04000_STATE_SCRIPTED_LEAP]   = _actor04000StateScriptedLeap,
+    },
 };
 
 /// Consumes this tick's grid, hit and burst-attack contacts without unlinking bodies.
@@ -3142,7 +3146,7 @@ static void _actor04000Tick(Enemy* enemy, Task* task)
     s32                   soundCue;
 
     work                                  = task->work;
-    stateHandlers                         = Actor04000_D001F4;
+    stateHandlers                         = _gActor04000StateHandlers;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldPosition.vx = task->extra.tmd->coords->workm.t[0];
@@ -3593,12 +3597,15 @@ static void _actor04000StateHang(Enemy* enemy, Task* task)
     _animDriverTick(task);
 }
 
-/// The enemy's spawn, per-frame and teardown handlers, indexed by the task's
-/// state.
-static const EnemyTaskFuncTable3 Actor04000_D00240 = {
-    _actor04000SpawnEnemy,
-    _actor04000Tick,
-    enemyDestroy,
+/// Blood Suckler task callbacks: 0 spawn, 1 tick, 2 destroy.
+///
+/// Each receives separate Enemy and Task pointers; destruction releases both.
+static const EnemyTaskFuncTable3 _gActor04000TaskStates = {
+    .funcs = {
+        _actor04000SpawnEnemy,
+        _actor04000Tick,
+        enemyDestroy,
+    },
 };
 
 /// Dispatches the enemy task's spawn, update or teardown phase.
@@ -3610,7 +3617,7 @@ static void _actor04000Task(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor04000_D00240;
+    handlers = _gActor04000TaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

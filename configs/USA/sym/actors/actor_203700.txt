@@ -3,7 +3,7 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-Actor03700_D00004 = 0x80149E24;
+_gActor03700TaskStates = 0x80149E24;
 Actor03700_Jt00044 = 0x80149E64;
 Actor03700_Jt0005C = 0x80149E7C;
 Actor03700_Jt00074 = 0x80149E94;

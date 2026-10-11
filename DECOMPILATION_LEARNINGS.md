@@ -13219,13 +13219,13 @@ remainder, not a separate statement. Recognising that, the whole thing is one
 structure assignment:
 
 ```c
-extern TaskFuncTable11 D_actor_548100_80131E6C;
+static const TaskFuncTable11 _gActor548100PanelStateHandlers;
 
 void _actor548100PanelTask(Task* task)
 {
     TaskFuncTable11 states;
 
-    states = D_actor_548100_80131E6C;
+    states = _gActor548100PanelStateHandlers;
     states.funcs[task->state](task);
 }
 ```
@@ -45062,7 +45062,7 @@ chosen by an `if` must be a ternary, not a pre-set local".
 `jr $v0` switch, so the parent is what gets matched (see "A vacuum `L`-label is
 a basic block, not a function"). What is new here is where the table sat:
 `Actor02500_Jt0005C` is the *fifth* symbol in `actor_102500_header.rodata.s`,
-with `Actor02500_D00050` before it and the `.text` right after, and the same
+with `_gActor02500CorpsePoisonTaskStates` before it and the `.text` right after, and the same
 header exists three times because this actor ships in three RAM slots.
 
 That needs no pad and no absolute copy. The table is the last thing in the
@@ -49640,7 +49640,7 @@ TU already has:
 ```c
 TaskFuncTable4 handlers;
 
-handlers = D_actor_107600_80131E74;
+handlers = _gActor107600TargetTaskStates;
 handlers.funcs[task->state](task);
 ```
 
@@ -103398,7 +103398,7 @@ static void _actor01900Task(Task* task)
 {
     EnemyTaskFuncTable4 states;
 
-    states = Actor01900_D0023C;
+    states = _gActor01900TaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 ```
@@ -103411,7 +103411,7 @@ copy, not argument passing - and only then `lw $v0,0x30($a1)` / `sll` /
 the discriminator: 55 unmatched functions under `asm/USA/actors` open with the
 same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 
-Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
+Name the type from the whole table, not from the call: `_gActor01900TaskStates`'s
 four words point at `_actor01900Initialize`, `_actor01900WaitAfterSetup`,
 `_actor01900Tick` and `enemyDestroy`, which is `EnemyTaskFuncTable4`
 (gameplay/enemy.h). The three-entry `EnemyTaskFuncTable3` and five-entry
@@ -106177,7 +106177,7 @@ Adding `INCLUDE_RODATA` for them failed for one of the two: with
 `migrate_rodata_to_functions`, a symbol only one function references is folded
 into *that function's* `.s`, and when the function is already C that `.s` lives
 under `matchings/`, so there is no `nonmatchings/…/D_….s` to include
-(`can't open … D_actor_107600_80131E84.s`).
+(`can't open … _gActor107600TargetStateHandlers.s`).
 
 Define such tables in C instead, at the source position of their address (after
 the last function whose rodata precedes them). Function-pointer tables are

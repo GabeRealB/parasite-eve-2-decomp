@@ -3,13 +3,13 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-Actor01100_D00004 = 0x80161E24;
+_gActor01100TaskStates = 0x80161E24;
 _gActor01100BruteMossbackScale = 0x80161E30;
 Actor01100_Jt00024 = 0x80161E44;
 Actor01100_Jt0004C = 0x80161E6C;
-Actor01100_D00064 = 0x80161E84;
+_gActor01100StateHandlers = 0x80161E84;
 _gActor01100BurstChestScale = 0x80161EEC;
-Actor01100_D000DC = 0x80161EFC;
+_gActor01100SpitGlobTaskStates = 0x80161EFC;
 _actorContactFindLastObstaclePush = 0x80161F08;
 _actorContactApplyAvoidancePushback = 0x80162250;
 _actor01100Init = 0x8016279C;

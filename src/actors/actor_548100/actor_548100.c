@@ -35,10 +35,13 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 
-/// Panel dispatch states used by hotspot selection and the switch caption.
+/// Indices of the mine power-panel task callbacks.
 enum {
+    ACTOR_548100_STATE_INIT_PANEL              = 0,
+    ACTOR_548100_STATE_ARM_CURSOR              = 1,
     ACTOR_548100_STATE_SCAN_HOTSPOTS           = 2,
     ACTOR_548100_STATE_OPEN_COMMANDS           = 3,
+    ACTOR_548100_STATE_HANDLE_CHOICE           = 4,
     ACTOR_548100_STATE_EXIT                    = 5,
     ACTOR_548100_STATE_PLACE_BATTERY           = 6,
     ACTOR_548100_STATE_WAIT_BATTERY_RETURN     = 7,
@@ -319,7 +322,6 @@ typedef struct {
     const char* label;  // the colour's name
 } _Actor548100ColorRow;
 STATIC_ASSERT_SIZEOF(_Actor548100ColorRow, 16);
-extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 
 static void _actionPromptResetDefault(Task* task);
 static void _actor548100InitPanel(Task* task);
@@ -351,9 +353,9 @@ static void _actor548100ResetWireStates(void);
 static s32  _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused);
 static void _actor548100PromptTask(Task* task);
 
-static const char D_actor_548100_80131E54[6];
-static const char D_actor_548100_80131E5C[5];
-static const char D_actor_548100_80131E64[5];
+static const char _gActor548100ShortWireLabel[6];
+static const char _gActor548100StopWireLabel[5];
+static const char _gActor548100FlowWireLabel[5];
 static void       _actor548100PanelTask(Task* task);
 
 enum { ACTOR_548100_PANEL_PROMPT_PRIORITY = 192 };
@@ -604,10 +606,15 @@ static u8 _gActor548100ShortBaseBlueStorage[28] = {
     0,
 };
 
-_Actor548100ColorRow D_actor_548100_801358A8[3] = {
-    { { &_gActor548100FlowBaseRed, &_gActor548100FlowBaseGreen, &_gActor548100FlowBaseBlue }, D_actor_548100_80131E64 },
-    { { &_gActor548100StopBaseRed, &_gActor548100StopBaseGreen, &_gActor548100StopBaseBlue }, D_actor_548100_80131E5C },
-    { { &_gActor548100ShortBaseRed, &_gActor548100ShortBaseGreen, _gActor548100ShortBaseBlueStorage }, D_actor_548100_80131E54 },
+/// Wire-color labels paired with writable base red, green and blue components.
+///
+/// Rows are Flow, Stop and Short, at pulse level 32. The drawing code reads the
+/// same component bytes directly; the shipped actor has no reader of this table.
+/// Its original UI or tuning purpose is unproven.
+static _Actor548100ColorRow _gActor548100WireColorRows[3] = {
+    { { &_gActor548100FlowBaseRed, &_gActor548100FlowBaseGreen, &_gActor548100FlowBaseBlue }, _gActor548100FlowWireLabel },
+    { { &_gActor548100StopBaseRed, &_gActor548100StopBaseGreen, &_gActor548100StopBaseBlue }, _gActor548100StopWireLabel },
+    { { &_gActor548100ShortBaseRed, &_gActor548100ShortBaseGreen, _gActor548100ShortBaseBlueStorage }, _gActor548100ShortWireLabel },
 };
 
 TaskDesc gActor548100PanelTaskDesc = { { { TASK_BODY_NONE, ACTOR_548100_PANEL_TASK_PRIORITY } }, _actor548100PanelTask, { .value = 0 } };
@@ -1106,28 +1113,33 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge);
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
-/// Three prompt-mode labels nothing in the actor reads.
-static const char D_actor_548100_80131E54[] = "Short";
-static const char D_actor_548100_80131E5C[] = "Stop";
-static const char D_actor_548100_80131E64[] = "Flow";
+/// Label for the short-circuit wire color's RGB row, including the terminating NUL.
+static const char _gActor548100ShortWireLabel[] = "Short";
+/// Label for the stopped-wire color's RGB row, including the terminating NUL.
+static const char _gActor548100StopWireLabel[] = "Stop";
+/// Label for the flowing-wire color's RGB row, including the terminating NUL.
+static const char _gActor548100FlowWireLabel[] = "Flow";
 
-/// State table of the actor's `Task::callback`, `_actor548100PanelTask`,
-/// one handler per `Task::state`, which that body copies onto its stack before
-/// indexing. States 0 and 2 are the spawners, 1 and 3 arm and re-spawn the
-/// action prompt, 4 is the `choice` switch and 9 the switch-on animation.
-static const TaskFuncTable11 D_actor_548100_80131E6C = { {
-    _actor548100InitPanel,
-    _actor548100ArmCursor,
-    _actor548100ScanHotspots,
-    _actor548100OpenHotspotCommands,
-    _actor548100HandleHotspotChoice,
-    _actor548100ExitPanel,
-    _actor548100PlaceQueuedBattery,
-    _actor548100WaitBatteryReturn,
-    _actor548100WaitSwitchCaption,
-    _actor548100AnimateCircuitFlow,
-    _actor548100WaitCompletionCaption,
-} };
+/// Mine power-panel callbacks indexed by `ACTOR_548100_STATE_*`.
+///
+/// The eleven states initialize panel work, arm the cursor, scan hotspots, open
+/// commands, handle a choice, exit, place a battery, wait for battery return, wait
+/// for the switch caption, animate current flow and wait for its completion caption.
+static const TaskFuncTable11 _gActor548100PanelStateHandlers = {
+    .funcs = {
+        [ACTOR_548100_STATE_INIT_PANEL]              = _actor548100InitPanel,
+        [ACTOR_548100_STATE_ARM_CURSOR]              = _actor548100ArmCursor,
+        [ACTOR_548100_STATE_SCAN_HOTSPOTS]           = _actor548100ScanHotspots,
+        [ACTOR_548100_STATE_OPEN_COMMANDS]           = _actor548100OpenHotspotCommands,
+        [ACTOR_548100_STATE_HANDLE_CHOICE]           = _actor548100HandleHotspotChoice,
+        [ACTOR_548100_STATE_EXIT]                    = _actor548100ExitPanel,
+        [ACTOR_548100_STATE_PLACE_BATTERY]           = _actor548100PlaceQueuedBattery,
+        [ACTOR_548100_STATE_WAIT_BATTERY_RETURN]     = _actor548100WaitBatteryReturn,
+        [ACTOR_548100_STATE_WAIT_SWITCH_CAPTION]     = _actor548100WaitSwitchCaption,
+        [ACTOR_548100_STATE_ANIMATE_FLOW]            = _actor548100AnimateCircuitFlow,
+        [ACTOR_548100_STATE_WAIT_COMPLETION_CAPTION] = _actor548100WaitCompletionCaption,
+    },
+};
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
@@ -1171,7 +1183,7 @@ static void _actor548100InitPanel(Task* task)
     task->msgTable                                             = _gActor548100PanelMessages;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_PANEL_SAVED_VIEW;
-    task->state                                               += 1;
+    task->state                                               += ACTOR_548100_STATE_ARM_CURSOR - ACTOR_548100_STATE_INIT_PANEL;
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
@@ -2254,7 +2266,7 @@ static void _actor548100PanelTask(Task* task)
 {
     TaskFuncTable11 states;
 
-    states = D_actor_548100_80131E6C;
+    states = _gActor548100PanelStateHandlers;
     states.funcs[task->state](task);
     _actor548100SelectCircuit();
     _actor548100PostStateHook(task);
@@ -2442,7 +2454,7 @@ static void _actor548100ArmCursor(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    task->state         = task->state + 1;
+    task->state         = task->state + (ACTOR_548100_STATE_SCAN_HOTSPOTS - ACTOR_548100_STATE_ARM_CURSOR);
 }
 
 /// Opens the selected panel hotspot's commands at the cursor's screen position.
@@ -2452,8 +2464,6 @@ static void _actor548100ArmCursor(Task* task)
 /// handle the confirmed choice or battery item use.
 static void _actor548100OpenHotspotCommands(Task* task)
 {
-    enum { ACTOR_548100_STATE_HANDLE_CHOICE = 4 };
-
     ActionPrompt*     prompt = gActionPromptSlots;
     _Actor548100Work* work   = task->work;
 
