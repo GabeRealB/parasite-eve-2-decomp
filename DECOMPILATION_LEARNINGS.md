@@ -11404,10 +11404,7 @@ Use adjacent stack halfwords (struct or array) and reload through a whole-word u
 
 ```c
 s32 uiGetCursorPositionWord(void) {
-    union {
-        UiCursorPosition pixels;
-        s32 word;
-    } position;
+    UiCursorPosition position;
     s16* cursorX = &position.pixels.x.signedValue;
 
     *cursorX = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;

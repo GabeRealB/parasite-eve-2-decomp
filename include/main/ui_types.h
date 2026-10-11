@@ -22,13 +22,27 @@ typedef union {
 } UiHalf;
 STATIC_ASSERT_SIZEOF(UiHalf, 2);
 
-/// The selection cursor's position in screen-centered integer pixels.
+/// The shared selection cursor's coordinates in screen-centered integer pixels.
 ///
-/// Halfword views select signed coordinates or unsigned arithmetic before
-/// promotion; both retain the same coordinate bits.
+/// Coordinates increase right and down from the screen center. Signed views
+/// represent -32768..32767; unsigned views promote the same bits as 0..65535.
+/// Select a view before integer promotion; stores retain the low sixteen bits.
 typedef struct {
     UiHalf x; // Horizontal coordinate relative to the screen center, in pixels
     UiHalf y; // Vertical coordinate relative to the screen center, in pixels
+} UiCursorPixels;
+STATIC_ASSERT_SIZEOF(UiCursorPixels, 4);
+
+/// The shared selection cursor's pixel coordinates and integer-register transport.
+///
+/// `word` packs X in its low sixteen bits and Y in its high sixteen bits on the
+/// little-endian PlayStation. `pixels` interprets those same four bytes; changing
+/// views performs no coordinate conversion. The packed position getter discards
+/// eight fractional bits from the retained cursor accumulators, rounding toward
+/// negative infinity, and keeps the low sixteen bits of each pixel coordinate.
+typedef union {
+    UiCursorPixels pixels; // Signed coordinates or unsigned layout arithmetic in pixels
+    s32            word;   // Packed X/Y bits returned through the integer-register interface
 } UiCursorPosition;
 STATIC_ASSERT_SIZEOF(UiCursorPosition, 4);
 

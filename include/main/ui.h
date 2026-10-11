@@ -294,8 +294,9 @@ void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY);
 /// Arithmetic shifts discard eight fractional bits, rounding toward negative
 /// infinity; coordinates then retain their low sixteen bits. X occupies the
 /// low halfword and Y the high halfword, matching the X/Y halfwords of
-/// `UiCursorPosition`. The s32 return preserves the integer-register interface
-/// used across images; this call does not advance the cursor.
+/// `UiCursorPosition.pixels`. Its `word` member accepts the s32 return, preserving
+/// the integer-register interface used across images. This call does not advance
+/// the cursor.
 s32 uiGetCursorPositionWord(void);
 
 /// Text-color selectors shared by resident prompts, menus and list rows.

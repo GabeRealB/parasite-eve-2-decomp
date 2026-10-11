@@ -1638,7 +1638,7 @@ void itemMenuInventoryPanelTask(Task* task)
     UiObject*           equipmentPane;
     const UiObjectDesc* weaponDescriptor;
     s16                 cursorY;
-    UiCursorPosition    cursorPosition;
+    UiCursorPixels      cursorPosition;
 
     object = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_PANEL_INITIAL) {
@@ -2060,9 +2060,13 @@ void itemMenuWeaponPanelTask(Task* task)
 
                 parentObject = parentTask->spawnArg2.pointer;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                *(s32*)&cursorPosition           = uiGetCursorPositionWord();
+                {
+                    s32  packedPosition = uiGetCursorPositionWord();
+                    s32* cursorWord     = &cursorPosition.word;
+                    *cursorWord         = packedPosition;
+                }
                 inventoryList                    = &gItemMenuInventoryList;
-                cursorRow                        = cursorPosition.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
+                cursorRow                        = cursorPosition.pixels.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
                 cursorRow                        = cursorRow / inventoryList->rowHeight;
                 inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;
                 _itemMenuClampArmorSelection(inventoryList, inventoryList->firstVisibleItemIndex.signedValue + inventoryList->visibleRowCount.signedValue);
@@ -2357,15 +2361,12 @@ void itemMenuArmorPanelTask(Task* task)
     s32           labelY;
     // Keep the observed text/cursor scratch storage and otherwise unproven words.
     struct {
-        TextDrawReq request;           // Shared label and attachment-caption request.
-        union {
-            s32              word;     // Packed X/Y returned in one register.
-            UiCursorPosition position; // Screen-centered integer-pixel coordinates.
-        } cursorPosition;
-        s32 field_14;                  // Role unproven; no accesses.
-        s16 rowX;                      // Content-relative pixel X stored here but never read.
-        s16 rowY;                      // Content-relative pixel Y stored here but never read.
-        s32 field_1C[2];               // Role and original grouping unproven; no accesses.
+        TextDrawReq      request;        // Shared label and attachment-caption request.
+        UiCursorPosition cursorPosition; // Shared cursor's packed word and pixel coordinates.
+        s32              field_14;       // Role unproven; no accesses.
+        s16              rowX;           // Content-relative pixel X stored here but never read.
+        s16              rowY;           // Content-relative pixel Y stored here but never read.
+        s32              field_1C[2];    // Role and original grouping unproven; no accesses.
     } scratch;
 
     attachmentList = &gItemMenuArmorAttachmentList;
@@ -2611,7 +2612,7 @@ void itemMenuArmorPanelTask(Task* task)
                     scratch.cursorPosition.word = uiGetCursorPositionWord();
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     inventoryList                    = &gItemMenuInventoryList;
-                    cursorRow                        = scratch.cursorPosition.position.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
+                    cursorRow                        = scratch.cursorPosition.pixels.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
                     cursorRow                        = cursorRow / inventoryList->rowHeight;
                     inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;
                     _itemMenuClampArmorSelection(inventoryList, inventoryList->firstVisibleItemIndex.signedValue + inventoryList->visibleRowCount.signedValue);

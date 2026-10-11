@@ -3145,11 +3145,8 @@ static void _uiDispatchPanelLifecycle(Task* owningTask)
 
 s32 uiGetCursorPositionWord(void)
 {
-    union {
-        UiCursorPosition pixels; // Screen-centered integer pixel coordinates
-        s32              word;   // Packed X/Y value for the integer-register return
-    } position;
-    s16* cursorX = &position.pixels.x.signedValue;
+    UiCursorPosition position;
+    s16*             cursorX = &position.pixels.x.signedValue;
 
     *cursorX                      = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     position.pixels.y.signedValue = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
