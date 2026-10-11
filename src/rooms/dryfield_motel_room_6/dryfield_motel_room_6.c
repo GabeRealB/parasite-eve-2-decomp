@@ -2189,9 +2189,13 @@ static const TaskFuncTable3 _gDryfieldMotelRoom6RoomTaskStates = {
     },
 };
 
-/// Binds the next fragment's four-word fallback to this private void handler.
+/// Selects the daytime no-op for motel room 6 commands other than cutscene command 22.
 ///
-/// The replacement is a function identifier; dispatch ignores its result.
+/// The replacement names a previously declared `void (Task*, s32, s32, s32)`
+/// function taking the receiver, message ID, command and second payload.
+/// `motel_room_6_cutscene_msg.inc.c` calls it once as a statement with those
+/// arguments unchanged. Define this alias only around that fragment inclusion
+/// and undefine it afterwards.
 #define MOTEL_ROOM_6_HANDLE_OTHER_COMMAND _dryfieldMotelRoom6IgnoreCommand
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
 #undef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND

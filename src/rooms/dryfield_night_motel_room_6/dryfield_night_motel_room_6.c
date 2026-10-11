@@ -1206,9 +1206,13 @@ static const TaskFuncTable3 _gDryfieldNightMotelRoom6RoomStates = {
     },
 };
 
-/// Binds the next fragment's four-word fallback to this private command handler.
+/// Selects the nighttime CAP/rest handler for motel room 6 commands other than 22.
 ///
-/// The replacement is a function identifier; dispatch ignores its s32 result.
+/// The replacement names a previously declared `s32 (Task*, s32, s32, s32)`
+/// function taking the receiver, message ID, command and second payload.
+/// `motel_room_6_cutscene_msg.inc.c` calls it once with those arguments unchanged
+/// and discards its reply. Define this alias only around that fragment inclusion
+/// and undefine it afterwards.
 #define MOTEL_ROOM_6_HANDLE_OTHER_COMMAND _dryfieldNightMotelRoom6HandleCommand
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
 #undef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND

@@ -1,5 +1,9 @@
 /* Part of the motel room 6 library; see motel_room_6.h. */
 
+#ifndef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
+#error "Bind MOTEL_ROOM_6_HANDLE_OTHER_COMMAND to the carrier's non-cutscene command handler"
+#endif
+
 /// Configures and requests the motel-room-6 story cutscene for command 22.
 ///
 /// Handles `ROOM_MESSAGE_COMMAND`; other commands are forwarded with all four
