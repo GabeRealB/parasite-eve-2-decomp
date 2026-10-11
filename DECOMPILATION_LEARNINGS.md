@@ -4600,7 +4600,7 @@ Write the two stores as literals and let GCC cross-jump them:
 if (completedSave.state.gameMode >= 2) {
     saveData->state.replayRank = 2;
 } else if (saveData->state.replayRank <= 0) {
-    if (D_replay_bonus_80119274.totalExp > 0x10D88) {
+    if (gReplayBonusTotals.totalExp > 0x10D88) {
         saveData->state.replayRank = 1;
     }
 }
@@ -5125,7 +5125,7 @@ copying the result into `spend`:
 ```c
 tmp = replayBonusGetTotalExp();
 SCHED_BARRIER();
-p     = D_replay_bonus_80118F78;
+p     = gReplayBonusShopTierLadder;
 spend = tmp;
 ```
 
@@ -148454,7 +148454,7 @@ Removing either one alone is worse, because they compensate each other:
   `SOFT_USE_REG(textureV)` stretches `textureV` to the end of the glyph body (20 / 183 =
   0.437).
 - The `textureV` barrier's two extra insns also decide `clutId` (5 refs / 110) against
-  the hoisted `%hi(D_replay_bonus_801192AC)` (19 / 836): 10/110 and 76/836 are
+  the hoisted `%hi(_gReplayBonusCreditsBrightness)` (19 / 836): 10/110 and 76/836 are
   both 0.0909, and the lower pseudo (`clutId`) wins the tie and `$fp`. With both
   barriers gone `clutId` is at 109 and wins outright.
 
@@ -152616,7 +152616,7 @@ one):
   have 17 weighted references; `textureV` lives 135 insns (5037), `heightValue` 157 (4331).
   The sprite-loop barrier alone fixes this: 20 / 158 = 5063.
 - B. `clutId` (5 refs / 109) has to stay ahead of the hoisted
-  `%hi(D_replay_bonus_801192AC)` (19 / 832) for `$fp`: 917 against 913. This
+  `%hi(_gReplayBonusCreditsBrightness)` (19 / 832) for `$fp`: 917 against 913. This
   is true with no barrier at all. The sprite-loop barrier breaks it (its insn
   costs `clutId` 1 and the `%hi` 2: 909.09 against 911), and the glyph-loop
   barrier existed only to repair that (two more insns for the `%hi`, 836: a

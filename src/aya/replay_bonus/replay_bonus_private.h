@@ -190,72 +190,118 @@ typedef struct {
 } ReplayBonusTotals;
 STATIC_ASSERT_SIZEOF(ReplayBonusTotals, 0x18);
 
-/// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
-/// `_replayBonusIsListedItem` tests membership; `_replayBonusBuildItemList`
-/// walks the same list when filling the owner task's `s16` item-id array.
-extern u16 D_replay_bonus_8011908C[];
+/// Number of eligible catalogue ids, excluding the two stored trailer halfwords.
+enum { REPLAY_BONUS_ITEM_WHITELIST_COUNT = 78 };
 
-/// Double-buffered MDEC strip pixels. `_replayBonusUploadPictureStrip` LoadImage's
-/// one 16-pixel-wide column from `buf[(flip << 5) * (s16)height]`.
-extern u8* D_replay_bonus_8011925C;
+/// Catalogue ids eligible for the Complete Bonus item-credit list.
+///
+/// The first 78 entries are searched by count: 70 ordinary item ids and eight
+/// collection ids. A 0xFFFF terminator and an unused zero follow them. Saved
+/// non-consumable rows contribute once per row; collection flags contribute
+/// once per eligible id. Storage is read-only for the loaded package's lifetime.
+extern const u16 gReplayBonusItemWhitelist[REPLAY_BONUS_ITEM_WHITELIST_COUNT + 2];
 
-/// VLC-decoded MDEC bitstream; `DecDCTin` source and `DecDCTvlc2` dest.
-extern u_long* D_replay_bonus_80119260;
+/// Auxiliary-heap RGB16 pixels for two alternating 16-pixel-wide picture strips.
+///
+/// Each strip occupies `gReplayBonusPictureHeight * 8` 32-bit words. MDEC fills
+/// the selected strip, then its completion callback submits it to VRAM before
+/// toggling the buffer index. The serialized decoder owns the allocation until
+/// its final upload; the retained pointer is invalid after it is released.
+extern u_long* gReplayBonusPictureStripPixels;
 
-/// Full image width in pixels; strip count is `width / 16`.
-extern s16 D_replay_bonus_80119264;
+/// Auxiliary-heap expanded DCT bitstream for the current credits picture.
+///
+/// VLC expansion writes this word-aligned allocation before MDEC reads it.
+/// Capacity is width * height * 2 bytes; the loaded bitstream must fit it.
+/// The serialized decoder releases it after the final strip upload without
+/// clearing this retained pointer.
+extern u_long* gReplayBonusPictureDctBitstream;
 
-/// Image height in pixels, also RECT.h of each uploaded strip.
-extern u16 D_replay_bonus_80119266;
+/// Current decoded picture's width in pixels, copied from the decode request.
+///
+/// Valid requests use signed-halfword dimensions, width at least 32 and a
+/// multiple of 16. Completion occurs after width / 16 - 1 uploaded strips;
+/// the final 16-pixel column is left at its pre-cleared colour.
+extern s16 gReplayBonusPictureWidth;
 
-/// VRAM destination x of strip 0.
-extern u16 D_replay_bonus_80119268;
+/// Current decoded picture's height in pixels, positive and a multiple of 16.
+///
+/// Copied from the request and interpreted as a signed halfword for allocation,
+/// MDEC output lengths and each strip's VRAM rectangle. Requests must fit 32767.
+extern s16 gReplayBonusPictureHeight;
 
-/// VRAM destination y.
-extern u16 D_replay_bonus_8011926A;
+/// Current picture's destination X in VRAM words, copied from the request.
+///
+/// RGB16 uses one word per pixel; strip n starts at X + n * 16. The complete
+/// destination rectangle must fit VRAM while the serialized decoder runs.
+extern u16 gReplayBonusPictureVramX;
 
-/// Nonzero while a strip decode is in flight; the out-callback clears it.
-extern s16 D_replay_bonus_8011926C;
+/// Current picture's destination Y in VRAM rows, copied from the request.
+///
+/// Every uploaded strip uses this Y and the full picture height.
+extern u16 gReplayBonusPictureVramY;
 
-/// Current strip index; dest x is `vramX + strip * 16`.
-extern s16 D_replay_bonus_8011926E;
+/// Values of the serialized decoder's strip-output handshake.
+enum {
+    REPLAY_BONUS_PICTURE_STRIP_UPLOADED = 0,
+    REPLAY_BONUS_PICTURE_STRIP_PENDING  = 1,
+};
 
-/// 0/1 selector for the double-buffer; toggled after each LoadImage.
-extern u16 D_replay_bonus_80119270;
+/// MDEC strip-output handshake (0 upload submitted, 1 output pending).
+///
+/// The task queues output only after the completion callback clears this flag.
+/// Requests are serialized; this flag describes the selected strip buffer.
+extern s16 gReplayBonusPictureStripPending;
 
-extern ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT];
+/// Number of picture strips submitted to VRAM, also the next strip's X index.
+///
+/// Starts at zero, advances after each 16-pixel upload and stops at width / 16
+/// minus one. The callback retains unsigned-halfword increment and signed
+/// completion comparisons; valid requests keep the count nonnegative.
+extern s16 gReplayBonusPictureStripsUploaded;
 
-/// TaskDesc for the MDEC stream worker (`replayBonusDecodePictureTask`).
-extern TaskDesc D_replay_bonus_80118F6C;
+/// Selected RAM strip buffer (0 first, 1 second), toggled after each upload.
+///
+/// Reset for each decode; each half contains height * 8 32-bit words.
+extern u16 gReplayBonusPictureStripBufferIndex;
 
-/// Stream phase: 0 idle, 1 running, 2 finished. Spawn is skipped when
-/// `(u32)(phase - 1) < 2` (already running or finished).
-extern u8 D_replay_bonus_80119225;
+/// Thirteen EXP ceilings and item triples used to choose the next shop unlock.
+///
+/// Indexed by saved tier bits. Selection applies the game-mode boost and skips
+/// unlocked rows; a fully unlocked ladder grants its rounded purchase-price
+/// total as extra BP instead. This package owns a read-only copy independent
+/// of the equal tables in shop room images.
+extern const ShopTier gReplayBonusShopTierLadder[SHOP_TIER_COUNT];
 
-/// 0/1 VRAM-Y flip; xor'd when a stream finishes.
-extern u8 D_replay_bonus_80119226;
+/// NUL-terminated three-line warning before discarding unsaved game-clear data.
+extern const u8 gReplayBonusQuitWarningText[];
 
-/// Post-stream wait (`0x78` frames) written when the worker is polled dead.
-extern u8 D_replay_bonus_80119227;
+/// NUL-terminated warning line used as the quit panel's horizontal width sample.
+///
+/// The complete warning is drawn separately; this is only the width sample.
+extern const u8 gReplayBonusQuitWarningWidthText[];
 
-/// The live `D_replay_bonus_80118F6C` worker, or NULL.
-extern Task* D_replay_bonus_80119228;
+/// Bodyless priority-192 recipe for the NEXT REPLAY BONUS child balance panel.
+///
+/// Initial bounds are centred-screen pixels and ordering-table base is tag 52.
+/// The Balance panel spawns it with argument 1 equal to 1 and itself as parent.
+/// Spawning copies the recipe; replay and gameplay must remain loaded through
+/// the child tree's closure.
+extern const UiObjectDesc gReplayBonusNextReplayBonusPanelDescriptor;
 
-/// Heap pointer to the current `ReplayBonusPictureDecode`.
-extern ReplayBonusPictureDecode* D_replay_bonus_801192BC;
+/// Completed-run totals and next-replay awards shared by the award panels.
+///
+/// Complete Bonus computes these before presentation; cleared-save preparation
+/// later applies them. Only one award sequence may use this mutable record.
+extern ReplayBonusTotals gReplayBonusTotals;
 
-/// TaskDesc table spawned from the credits task (hold / fade / stream workers).
-extern TaskDesc D_replay_bonus_8011922C[4];
-
-/// Relocated STF presentation parameters.
-extern ReplayBonusStfParams* D_replay_bonus_80119294;
-
-/// Stream sprite brightness.
-extern u8 D_replay_bonus_801192AC;
-
-extern ReplayBonusTotals D_replay_bonus_80119274;
-
-extern UiList D_replay_bonus_80119130;
+/// Mutable Complete Bonus list, shared with its item-credit row callback.
+///
+/// Initialized with one row and 15-pixel spacing; the panel fills its item count,
+/// fits nine visible rows and enables the single shared callback. The owner
+/// task holds the item-id storage. Only one panel may use it at a time, and
+/// reachable indices and visible counts must fit nonnegative signed bytes.
+extern UiList gReplayBonusCompleteBonusList;
 
 /// Returns an item's replay-clear BP credit: half its unsigned purchase price, rounded down.
 ///
@@ -311,7 +357,7 @@ static inline s32 _replayBonusResolveShopTier(void)
     s32               selectedTier;
 
     totalExp  = replayBonusGetTotalExp();
-    tierRow   = D_replay_bonus_80118F78;
+    tierRow   = gReplayBonusShopTierLadder;
     tierIndex = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
         selectedTier = REPLAY_BONUS_SHOP_TIER_NONE;

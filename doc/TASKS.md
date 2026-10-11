@@ -452,7 +452,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `_gStageTransitionState->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
-| `D_8010D1FC`, `gCapPlaybackTaskDescriptors`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
+| `D_8010D1FC`, `gCapPlaybackTaskDescriptors`, `D_80115D9C`, `D_80119218`, `gReplayBonusCreditsTaskDescriptors`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `taskGetDesc(bank, index)` borrows `gTaskDescBanks[bank][index]` without copying

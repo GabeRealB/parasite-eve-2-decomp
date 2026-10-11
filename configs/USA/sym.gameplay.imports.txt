@@ -276,7 +276,7 @@ gStageMusicParams = 0x8007A39C; // absolute:True
 gCdAudioProgress = 0x80082798; // absolute:True
 gAya20900TaskDescriptors = 0x80115D9C; // absolute:True owner=aya_20900
 gReplayBonusAwardScreenTaskDescriptor = 0x80119218; // absolute:True owner=replay_bonus
-D_replay_bonus_8011922C = 0x8011922C; // absolute:True owner=replay_bonus
+gReplayBonusCreditsTaskDescriptors = 0x8011922C; // absolute:True owner=replay_bonus
 gActor361100StreamWaterTaskDesc = 0x801637C8; // absolute:True owner=actor_361100
 actor800100EnterReload = 0x80166E94; // type:func absolute:True owner=actor_800100
 gActor800100WeaponIdsByResourceVariant = 0x80167218; // absolute:True owner=actor_800100

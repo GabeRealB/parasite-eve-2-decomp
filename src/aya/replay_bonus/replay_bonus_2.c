@@ -31,16 +31,20 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-extern u8           D_replay_bonus_80119014[];
-extern u8           D_replay_bonus_8011906C[];
-extern UiObjectDesc D_replay_bonus_80119154;
-extern UiObjectDesc D_replay_bonus_801191A8;
-
-extern UiObjectDesc D_replay_bonus_80119170;
-extern UiObjectDesc D_replay_bonus_8011918C;
-extern UiObjectDesc D_replay_bonus_801191C4;
-extern UiObjectDesc D_replay_bonus_801191E0;
-extern UiObjectDesc D_replay_bonus_801191FC;
+static const TaskDesc              _gReplayBonusPictureDecoderTaskDescriptor;
+static const UiObjectDesc          _gReplayBonusCompleteBonusPanelDescriptor;
+static const UiObjectDesc          _gReplayBonusQuitWarningPanelDescriptor;
+static const UiObjectDesc          _gReplayBonusBalancePanelDescriptor;
+static const UiObjectDesc          _gReplayBonusFirstAndThirdShopItemPanelDescriptor;
+static const UiObjectDesc          _gReplayBonusSecondShopItemPanelDescriptor;
+static const UiObjectDesc          _gReplayBonusExtraBpPanelDescriptor;
+static u8                          _gReplayBonusCreditsPicturePhase;
+static u8                          _gReplayBonusCreditsPicturePageIndex;
+static u8                          _gReplayBonusCreditsPictureCrossFadeFramesLeft;
+static Task*                       _gReplayBonusPictureDecoderTask;
+static const ReplayBonusStfParams* _gReplayBonusCreditsParams;
+static u8                          _gReplayBonusCreditsBrightness;
+static ReplayBonusPictureDecode*   _gReplayBonusCreditsPictureRequest;
 
 static u8                          _gReplayBonusNextCreditsPrimitiveBufferIndex;
 static ReplayBonusStfFile*         _gReplayBonusCreditsFile;
@@ -123,21 +127,21 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
         uiStartTreeClosing(object, panelTask);
         switch (task->state) {
             case REPLAY_BONUS_SCREEN_COMPLETE_ITEMS:
-                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_8011918C, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusBalancePanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
             case REPLAY_BONUS_SCREEN_BALANCE:
-                if (D_replay_bonus_80119274.shopTier < 0) {
-                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191FC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                if (gReplayBonusTotals.shopTier < 0) {
+                    task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusExtraBpPanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                     task->state             = task->state + 2;
                 } else {
-                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                    task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusFirstAndThirdShopItemPanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 }
                 break;
             case REPLAY_BONUS_SCREEN_FIRST_SHOP_ITEM:
-                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191E0, 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusSecondShopItemPanelDescriptor, 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
             case REPLAY_BONUS_SCREEN_SECOND_SHOP_ITEM:
-                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 2, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusFirstAndThirdShopItemPanelDescriptor, 2, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
             case REPLAY_BONUS_SCREEN_LAST_AWARD:
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
@@ -150,7 +154,7 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
                     task->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_COMPLETE, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                     task->state             = task->state + 1;
                 } else {
-                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119170, 0, USER_INTERFACE_PANEL_ACTIVE, 2, NULL);
+                    task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusQuitWarningPanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, 2, NULL);
                 }
                 break;
             case REPLAY_BONUS_SCREEN_QUIT_WARNING:
@@ -191,7 +195,7 @@ static s16 _replayBonusGetUnlockedShopItem(s32 unusedArgument, s32 itemColumn)
     if (selectedTier < 0) {
         return INVENTORY_ITEM_NONE;
     }
-    return D_replay_bonus_80118F78[selectedTier].items[itemColumn];
+    return gReplayBonusShopTierLadder[selectedTier].items[itemColumn];
 }
 
 /// Returns 1 when an item id belongs to the Complete Bonus whitelist, otherwise 0.
@@ -200,11 +204,10 @@ static s16 _replayBonusGetUnlockedShopItem(s32 unusedArgument, s32 itemColumn)
 /// eligibility alone, without checking possession, quantity or identification.
 static s32 _replayBonusIsListedItem(s32 itemId)
 {
-    enum { REPLAY_BONUS_ITEM_WHITELIST_COUNT = 78 };
     const u16* whitelistItem;
     s32        whitelistIndex;
 
-    whitelistItem  = D_replay_bonus_8011908C;
+    whitelistItem  = gReplayBonusItemWhitelist;
     whitelistIndex = 0;
     do {
         whitelistIndex++;
@@ -302,7 +305,7 @@ static s32 _replayBonusGetShopCatalogueBp(void)
     s32             tierIndex;
 
     totalBp   = 0;
-    tier      = D_replay_bonus_80118F78;
+    tier      = gReplayBonusShopTierLadder;
     tierIndex = totalBp;
     do {
         itemColumn = 0;
@@ -351,7 +354,7 @@ static void _replayBonusWaitForAwardUi(Task* task)
 
     if (cdCmdIsIdle() != 0) {
         textUploadPalettes();
-        task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, USER_INTERFACE_PANEL_ACTIVE, REPLAY_BONUS_PANEL_OPEN_DELAY_TICKS, NULL);
+        task->spawnArg2.pointer = uiSpawnObject(&_gReplayBonusCompleteBonusPanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, REPLAY_BONUS_PANEL_OPEN_DELAY_TICKS, NULL);
         task->state             = task->state + 1;
     }
 }
@@ -453,8 +456,6 @@ static void _replayBonusCreditsTask(Task* task)
         REPLAY_BONUS_CREDITS_FINISH                 = 25,
         REPLAY_BONUS_CREDITS_DISPLAY_SETUP          = 0x1141, // Interlaced 640x480, 16-bit colour
         REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS = 480,
-        REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX     = 1,
-        REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX    = 2,
         REPLAY_BONUS_CREDITS_FADE_TICKS             = 180,
         REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS        = 30,
         REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS   = 8,
@@ -464,25 +465,25 @@ static void _replayBonusCreditsTask(Task* task)
         REPLAY_BONUS_CREDITS_AUDIO_SUB_ID           = 11,
     };
 
-    s32                   nextScrollY;
-    s32                   scrollFixedPoint;
-    s32                   lastScrollY;
-    u16*                  vlcTable;
-    u16                   startHoldTicksLeft;
-    u16                   endHoldTicksLeft;
-    ReplayBonusStfParams* creditsParams;
+    s32                         nextScrollY;
+    s32                         scrollFixedPoint;
+    s32                         lastScrollY;
+    u16*                        vlcTable;
+    u16                         startHoldTicksLeft;
+    u16                         endHoldTicksLeft;
+    const ReplayBonusStfParams* creditsParams;
 
     switch (task->state) {
         case REPLAY_BONUS_CREDITS_INITIALIZE:
             // Keep both picture pages black until the first decode and fade-in.
-            D_replay_bonus_80119226           = 0;
-            D_replay_bonus_80119227           = 0;
-            D_replay_bonus_801192AC           = 0;
-            D_replay_bonus_801192BC           = memCalloc(sizeof(ReplayBonusPictureDecode), false);
-            vlcTable                          = replayBonusCreatePictureVlcTable();
-            D_replay_bonus_80119228           = NULL;
-            D_replay_bonus_80119225           = REPLAY_BONUS_PICTURE_IDLE;
-            D_replay_bonus_801192BC->vlcTable = vlcTable;
+            _gReplayBonusCreditsPicturePageIndex           = 0;
+            _gReplayBonusCreditsPictureCrossFadeFramesLeft = 0;
+            _gReplayBonusCreditsBrightness                 = 0;
+            _gReplayBonusCreditsPictureRequest             = memCalloc(sizeof(ReplayBonusPictureDecode), false);
+            vlcTable                                       = replayBonusCreatePictureVlcTable();
+            _gReplayBonusPictureDecoderTask                = NULL;
+            _gReplayBonusCreditsPicturePhase               = REPLAY_BONUS_PICTURE_IDLE;
+            _gReplayBonusCreditsPictureRequest->vlcTable   = vlcTable;
             _replayBonusSelectCreditsResource(0);
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(true);
@@ -491,7 +492,7 @@ static void _replayBonusCreditsTask(Task* task)
             _gReplayBonusCreditsScrollY             = -REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             _gReplayBonusCreditsDrawFrameCount      = 0;
-            task->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
+            task->killCountdown                     = _gReplayBonusCreditsParams->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             cdCmdSelectScene(REPLAY_BONUS_CREDITS_AUDIO_GROUP, REPLAY_BONUS_CREDITS_AUDIO_STREAM_ID, REPLAY_BONUS_CREDITS_AUDIO_SUB_ID);
             cdCmdEnqueueSceneAudioStart();
             task->state += 1;
@@ -509,11 +510,11 @@ static void _replayBonusCreditsTask(Task* task)
             startHoldTicksLeft  = task->killCountdown - 1;
             task->killCountdown = startHoldTicksLeft;
             if ((s16)startHoldTicksLeft <= 0) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
+                taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
                 task->state = REPLAY_BONUS_CREDITS_SCROLL;
             }
             if (padIsStartPressed() != 0) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
+                taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
                 cdCmdCancelScene();
                 task->state         = REPLAY_BONUS_CREDITS_END_HOLD;
                 task->killCountdown = REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS;
@@ -524,7 +525,7 @@ static void _replayBonusCreditsTask(Task* task)
             _gReplayBonusCreditsDrawFrameCount += 1;
             _replayBonusDrawCreditsFrame();
             // Carry whole pixels into document Y, retaining the fractional byte.
-            creditsParams                      = D_replay_bonus_80119294;
+            creditsParams                      = _gReplayBonusCreditsParams;
             scrollFixedPoint                   = _gReplayBonusCreditsScrollFraction + creditsParams->scrollSpeed;
             nextScrollY                        = _gReplayBonusCreditsScrollY + (scrollFixedPoint >> REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS);
             _gReplayBonusCreditsScrollFraction = scrollFixedPoint;
@@ -538,7 +539,7 @@ static void _replayBonusCreditsTask(Task* task)
             }
             if (padIsStartPressed() != 0) {
                 cdCmdCancelScene();
-                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
+                taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
                 task->killCountdown = REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS;
                 task->state        += 1;
                 return;
@@ -550,7 +551,7 @@ static void _replayBonusCreditsTask(Task* task)
             endHoldTicksLeft    = task->killCountdown - 1;
             task->killCountdown = endHoldTicksLeft;
             if ((s16)endHoldTicksLeft == REPLAY_BONUS_CREDITS_FADE_TICKS) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
+                taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
             }
             if (task->killCountdown <= 0) {
                 task->state = REPLAY_BONUS_CREDITS_WAIT_PICTURE;
@@ -559,7 +560,7 @@ static void _replayBonusCreditsTask(Task* task)
             break;
         case REPLAY_BONUS_CREDITS_WAIT_PICTURE:
             // The request record remains borrowed until the picture worker finishes.
-            if (D_replay_bonus_80119225 != REPLAY_BONUS_PICTURE_DECODING) {
+            if (_gReplayBonusCreditsPicturePhase != REPLAY_BONUS_PICTURE_DECODING) {
                 SetDispMask(false);
                 task->state += 1;
                 return;
@@ -568,7 +569,7 @@ static void _replayBonusCreditsTask(Task* task)
         case REPLAY_BONUS_CREDITS_RESTORE_DISPLAY:
             streamFinishScene();
             // The separate VLC allocation is retired by the post-awards restart.
-            memFree(D_replay_bonus_801192BC);
+            memFree(_gReplayBonusCreditsPictureRequest);
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
             task->state += 1;
             return;
@@ -595,7 +596,7 @@ static void _replayBonusSetCreditsFade(u8 fadeAmount)
     // Unused storage retains the leaf routine's sixteen-byte stack frame.
     char unusedStackBytes[0x10];
 
-    D_replay_bonus_801192AC = REPLAY_BONUS_CREDITS_MAX_BRIGHTNESS - (fadeAmount >> REPLAY_BONUS_CREDITS_FADE_SHIFT);
+    _gReplayBonusCreditsBrightness = REPLAY_BONUS_CREDITS_MAX_BRIGHTNESS - (fadeAmount >> REPLAY_BONUS_CREDITS_FADE_SHIFT);
 }
 
 /// Selects the next private credits primitive buffer and resets its byte cursor.
@@ -701,7 +702,7 @@ static void _replayBonusDrawCreditsFrame(void)
     setDrawTPage(drawPage, 0, 1, 0);
     addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_TEXT_OT_INDEX, drawPage);
 
-    if (D_replay_bonus_80119225 != REPLAY_BONUS_PICTURE_CROSS_FADING) {
+    if (_gReplayBonusCreditsPicturePhase != REPLAY_BONUS_PICTURE_CROSS_FADING) {
         pictureSprite  = gGpuPrimCursor;
         gGpuPrimCursor = pictureSprite + 1;
         setSprt(pictureSprite);
@@ -709,16 +710,16 @@ static void _replayBonusDrawCreditsFrame(void)
         pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
         pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
         pictureSprite->h  = REPLAY_BONUS_PICTURE_HEIGHT;
-        pictureSprite->r0 = D_replay_bonus_801192AC;
-        pictureSprite->g0 = D_replay_bonus_801192AC;
-        pictureSprite->b0 = D_replay_bonus_801192AC;
+        pictureSprite->r0 = _gReplayBonusCreditsBrightness;
+        pictureSprite->g0 = _gReplayBonusCreditsBrightness;
+        pictureSprite->b0 = _gReplayBonusCreditsBrightness;
         pictureSprite->u0 = 0;
         pictureSprite->v0 = 0;
         addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_PICTURE_OT_INDEX, pictureSprite);
 
         drawPage       = gGpuPrimCursor;
         gGpuPrimCursor = drawPage + 1;
-        setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, 0, REPLAY_BONUS_PICTURE_VRAM_X, D_replay_bonus_80119226 << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
+        setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, 0, REPLAY_BONUS_PICTURE_VRAM_X, _gReplayBonusCreditsPicturePageIndex << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
         addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_PICTURE_OT_INDEX, drawPage);
         return;
     }
@@ -727,7 +728,7 @@ static void _replayBonusDrawCreditsFrame(void)
     pictureSprite  = gGpuPrimCursor;
     gGpuPrimCursor = pictureSprite + 1;
     setSprt(pictureSprite);
-    pictureBrightness = (D_replay_bonus_801192AC * (REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES - D_replay_bonus_80119227)) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
+    pictureBrightness = (_gReplayBonusCreditsBrightness * (REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES - _gReplayBonusCreditsPictureCrossFadeFramesLeft)) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
     pictureSprite->x0 = _gReplayBonusCreditsPictureLeftX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
     pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
     pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
@@ -742,13 +743,13 @@ static void _replayBonusDrawCreditsFrame(void)
 
     drawPage       = gGpuPrimCursor;
     gGpuPrimCursor = drawPage + 1;
-    setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, REPLAY_BONUS_PICTURE_BLEND_ADDITIVE, REPLAY_BONUS_PICTURE_VRAM_X, D_replay_bonus_80119226 << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
+    setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, REPLAY_BONUS_PICTURE_BLEND_ADDITIVE, REPLAY_BONUS_PICTURE_VRAM_X, _gReplayBonusCreditsPicturePageIndex << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
     addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_PICTURE_OT_INDEX, drawPage);
 
     pictureSprite  = gGpuPrimCursor;
     gGpuPrimCursor = pictureSprite + 1;
     setSprt(pictureSprite);
-    pictureBrightness = (D_replay_bonus_801192AC * D_replay_bonus_80119227) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
+    pictureBrightness = (_gReplayBonusCreditsBrightness * _gReplayBonusCreditsPictureCrossFadeFramesLeft) / REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
     pictureSprite->x0 = _gReplayBonusCreditsPictureLeftX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
     pictureSprite->y0 = REPLAY_BONUS_PICTURE_SCREEN_TOP;
     pictureSprite->w  = REPLAY_BONUS_PICTURE_WIDTH;
@@ -762,13 +763,13 @@ static void _replayBonusDrawCreditsFrame(void)
 
     drawPage       = gGpuPrimCursor;
     gGpuPrimCursor = drawPage + 1;
-    setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, 0, REPLAY_BONUS_PICTURE_VRAM_X, (D_replay_bonus_80119226 ^ 1) << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
+    setDrawTPage(drawPage, 0, 1, getTPage(REPLAY_BONUS_PICTURE_TEXTURE_16_BIT, 0, REPLAY_BONUS_PICTURE_VRAM_X, (_gReplayBonusCreditsPicturePageIndex ^ 1) << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT));
     addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_PICTURE_OT_INDEX, drawPage);
 
-    crossFadeFramesLeft     = D_replay_bonus_80119227 - 1;
-    D_replay_bonus_80119227 = crossFadeFramesLeft;
+    crossFadeFramesLeft                            = _gReplayBonusCreditsPictureCrossFadeFramesLeft - 1;
+    _gReplayBonusCreditsPictureCrossFadeFramesLeft = crossFadeFramesLeft;
     if (!(crossFadeFramesLeft & 0xFF)) {
-        D_replay_bonus_80119225 = REPLAY_BONUS_PICTURE_IDLE;
+        _gReplayBonusCreditsPicturePhase = REPLAY_BONUS_PICTURE_IDLE;
     }
 }
 
@@ -784,24 +785,23 @@ static void _replayBonusDrawCreditsFrame(void)
 static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* commands)
 {
     enum {
-        REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX = 3,
-        REPLAY_BONUS_STF_ANCHOR_CENTER          = 0,
-        REPLAY_BONUS_STF_ANCHOR_LEFT            = 1,
-        REPLAY_BONUS_STF_ANCHOR_RIGHT           = 2,
-        REPLAY_BONUS_STF_DEFAULT_PALETTE        = 7,
-        REPLAY_BONUS_STF_PALETTES_PER_ROW       = 4,
-        REPLAY_BONUS_STF_CLUT_FIRST_Y           = 510,
-        REPLAY_BONUS_STF_CLUT_FIRST_X           = 896,
-        REPLAY_BONUS_STF_TEXTURE_PAGE_PIXELS    = 256,
-        REPLAY_BONUS_STF_PIXEL_MODE_8_BIT       = 1,
-        REPLAY_BONUS_STF_PIXEL_MODE_16_BIT      = 2,
-        REPLAY_BONUS_STF_PALETTE_COLORS         = 16,
-        REPLAY_BONUS_STF_FONT_PAGE0_X           = 896,
-        REPLAY_BONUS_STF_FONT_PAGE0_Y           = 256,
-        REPLAY_BONUS_STF_FONT_PAGE1_X           = 960,
-        REPLAY_BONUS_STF_FONT_PAGE1_Y           = 0,
-        REPLAY_BONUS_STF_VRAM_X_MASK            = 0x3FF,
-        REPLAY_BONUS_STF_VRAM_PAGE_X_SHIFT      = 6,
+        REPLAY_BONUS_STF_ANCHOR_CENTER       = 0,
+        REPLAY_BONUS_STF_ANCHOR_LEFT         = 1,
+        REPLAY_BONUS_STF_ANCHOR_RIGHT        = 2,
+        REPLAY_BONUS_STF_DEFAULT_PALETTE     = 7,
+        REPLAY_BONUS_STF_PALETTES_PER_ROW    = 4,
+        REPLAY_BONUS_STF_CLUT_FIRST_Y        = 510,
+        REPLAY_BONUS_STF_CLUT_FIRST_X        = 896,
+        REPLAY_BONUS_STF_TEXTURE_PAGE_PIXELS = 256,
+        REPLAY_BONUS_STF_PIXEL_MODE_8_BIT    = 1,
+        REPLAY_BONUS_STF_PIXEL_MODE_16_BIT   = 2,
+        REPLAY_BONUS_STF_PALETTE_COLORS      = 16,
+        REPLAY_BONUS_STF_FONT_PAGE0_X        = 896,
+        REPLAY_BONUS_STF_FONT_PAGE0_Y        = 256,
+        REPLAY_BONUS_STF_FONT_PAGE1_X        = 960,
+        REPLAY_BONUS_STF_FONT_PAGE1_Y        = 0,
+        REPLAY_BONUS_STF_VRAM_X_MASK         = 0x3FF,
+        REPLAY_BONUS_STF_VRAM_PAGE_X_SHIFT   = 6,
     };
     /// Selects a run's left edge from the current relocated layout columns.
     ///
@@ -809,17 +809,17 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
     /// `resultX` is a distinct s16 lvalue initialized to zero. Width narrows
     /// to s16 for centring, and the assignment narrows the selected edge.
     /// Uses this function's anchor constants and the live STF parameter table.
-#define REPLAY_BONUS_SELECT_CREDITS_ANCHOR(column, mode, width, resultX)                         \
-    switch ((u8)(mode)) {                                                                        \
-        case REPLAY_BONUS_STF_ANCHOR_CENTER:                                                     \
-            (resultX) = D_replay_bonus_80119294->columns[(column)].centerX - ((s16)(width) / 2); \
-            break;                                                                               \
-        case REPLAY_BONUS_STF_ANCHOR_LEFT:                                                       \
-            (resultX) = D_replay_bonus_80119294->columns[(column)].leftX;                        \
-            break;                                                                               \
-        case REPLAY_BONUS_STF_ANCHOR_RIGHT:                                                      \
-            (resultX) = D_replay_bonus_80119294->columns[(column)].rightX - (width);             \
-            break;                                                                               \
+#define REPLAY_BONUS_SELECT_CREDITS_ANCHOR(column, mode, width, resultX)                            \
+    switch ((u8)(mode)) {                                                                           \
+        case REPLAY_BONUS_STF_ANCHOR_CENTER:                                                        \
+            (resultX) = _gReplayBonusCreditsParams->columns[(column)].centerX - ((s16)(width) / 2); \
+            break;                                                                                  \
+        case REPLAY_BONUS_STF_ANCHOR_LEFT:                                                          \
+            (resultX) = _gReplayBonusCreditsParams->columns[(column)].leftX;                        \
+            break;                                                                                  \
+        case REPLAY_BONUS_STF_ANCHOR_RIGHT:                                                         \
+            (resultX) = _gReplayBonusCreditsParams->columns[(column)].rightX - (width);             \
+            break;                                                                                  \
     }
 
     s32                        paletteIndex;
@@ -886,13 +886,13 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         glyphQuad->v2     = textureV + glyphHeight;
                         glyphQuad->u3     = drawWidth + textureU;
                         glyphQuad->v3     = textureV + glyphHeight;
-                        glyphQuad->r0     = D_replay_bonus_801192AC;
+                        glyphQuad->r0     = _gReplayBonusCreditsBrightness;
                         glyphQuad->x0     = penX;
                         glyphQuad->x2     = penX;
                         glyphQuad->y2     = bottomY;
                         glyphQuad->y3     = bottomY;
-                        glyphQuad->g0     = D_replay_bonus_801192AC;
-                        glyphQuad->b0     = D_replay_bonus_801192AC;
+                        glyphQuad->g0     = _gReplayBonusCreditsBrightness;
+                        glyphQuad->b0     = _gReplayBonusCreditsBrightness;
                         topY              = bottomY - glyphHeight;
                         rightX            = penX + drawWidth;
                         glyphQuad->y0     = topY;
@@ -936,7 +936,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         commands[commandIndex].arg = REPLAY_BONUS_STF_PICTURE_STARTED;
                         REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, REPLAY_BONUS_PICTURE_WIDTH, penX);
                         _gReplayBonusCreditsPictureLeftX = penX;
-                        taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX, imageIndex + 1, 0);
+                        taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX, imageIndex + 1, 0);
                     }
                     break;
                 case REPLAY_BONUS_STF_COMMAND_SPRITE:
@@ -973,10 +973,10 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         imageSprite    = gGpuPrimCursor;
                         gGpuPrimCursor = imageSprite + 1;
                         setSprt(imageSprite);
-                        imageSprite->r0   = D_replay_bonus_801192AC;
+                        imageSprite->r0   = _gReplayBonusCreditsBrightness;
                         imageSprite->x0   = penX - REPLAY_BONUS_CREDITS_HALF_WIDTH;
-                        imageSprite->g0   = D_replay_bonus_801192AC;
-                        imageSprite->b0   = D_replay_bonus_801192AC;
+                        imageSprite->g0   = _gReplayBonusCreditsBrightness;
+                        imageSprite->b0   = _gReplayBonusCreditsBrightness;
                         imageSprite->y0   = bottomY - heightValue;
                         imageSprite->w    = pieceWidth;
                         imageSprite->h    = heightValue;
@@ -1037,7 +1037,7 @@ static s32 _replayBonusRelocateCreditsFile(ReplayBonusStfFile* file, s32 unusedR
     }
 
     _gReplayBonusCreditsGlyphs  = file->glyphs.pointer;
-    D_replay_bonus_80119294     = file->params.pointer;
+    _gReplayBonusCreditsParams  = file->params.pointer;
     _gReplayBonusCreditsLines   = file->lineTable.pointer->lines;
     _gReplayBonusCreditsSprites = file->sprites.pointer;
     return 1;
@@ -1061,27 +1061,27 @@ static void _replayBonusStartCreditsPictureTask(Task* task)
     pictureState = task->state;
     switch (pictureState) {
         case REPLAY_BONUS_PICTURE_START:
-            if ((u32)(D_replay_bonus_80119225 - REPLAY_BONUS_PICTURE_DECODING) < (u32)(REPLAY_BONUS_PICTURE_CROSS_FADING - REPLAY_BONUS_PICTURE_DECODING + 1)) {
+            if ((u32)(_gReplayBonusCreditsPicturePhase - REPLAY_BONUS_PICTURE_DECODING) < (u32)(REPLAY_BONUS_PICTURE_CROSS_FADING - REPLAY_BONUS_PICTURE_DECODING + 1)) {
                 taskKill(task);
                 break;
             }
             // Decode into the page opposite the currently displayed picture.
-            picture                 = D_replay_bonus_801192BC;
-            picture->resourceIndex  = task->spawnArg1.value;
-            picture->vramX          = REPLAY_BONUS_PICTURE_VRAM_X;
-            picture->vramY          = (D_replay_bonus_80119226 ^ 1) << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT;
-            picture->width          = REPLAY_BONUS_PICTURE_WIDTH;
-            picture->height         = REPLAY_BONUS_PICTURE_HEIGHT;
-            D_replay_bonus_80119228 = taskSpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, picture);
-            D_replay_bonus_80119225 = REPLAY_BONUS_PICTURE_DECODING;
-            task->state            += 1;
+            picture                          = _gReplayBonusCreditsPictureRequest;
+            picture->resourceIndex           = task->spawnArg1.value;
+            picture->vramX                   = REPLAY_BONUS_PICTURE_VRAM_X;
+            picture->vramY                   = (_gReplayBonusCreditsPicturePageIndex ^ 1) << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT;
+            picture->width                   = REPLAY_BONUS_PICTURE_WIDTH;
+            picture->height                  = REPLAY_BONUS_PICTURE_HEIGHT;
+            _gReplayBonusPictureDecoderTask  = taskSpawnFromTable(&_gReplayBonusPictureDecoderTaskDescriptor, 0, 0, picture);
+            _gReplayBonusCreditsPicturePhase = REPLAY_BONUS_PICTURE_DECODING;
+            task->state                     += 1;
             break;
         case REPLAY_BONUS_PICTURE_WAIT_DECODE:
-            if (taskPollKill(D_replay_bonus_80119228, &decodeResult) != 0) {
+            if (taskPollKill(_gReplayBonusPictureDecoderTask, &decodeResult) != 0) {
                 // Publish the completed page; drawing owns the cross-fade countdown.
-                D_replay_bonus_80119227  = REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
-                D_replay_bonus_80119226 ^= 1;
-                D_replay_bonus_80119225  = REPLAY_BONUS_PICTURE_CROSS_FADING;
+                _gReplayBonusCreditsPictureCrossFadeFramesLeft = REPLAY_BONUS_PICTURE_CROSS_FADE_FRAMES;
+                _gReplayBonusCreditsPicturePageIndex          ^= 1;
+                _gReplayBonusCreditsPicturePhase               = REPLAY_BONUS_PICTURE_CROSS_FADING;
                 taskKill(task);
             }
             break;
@@ -1179,129 +1179,327 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
 
 /* The package's data, in address order. */
 
-/// Task descriptor of the picture decoder.
-TaskDesc D_replay_bonus_80118F6C = { { { TASK_BODY_NONE, 0xC0 } }, replayBonusDecodePictureTask, { NULL } };
-
-ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT] = {
-    { 0x38A4, { 0x6D, 0x37, 0x2 } },
-    { 0x3E80, { 0x46, 0xA, 0x3A } },
-    { 0xABE0, { 0x45, 0x3C, 0xA1 } },
-    { 0xC738, { 0x42, 0xD, 0x6 } },
-    { 0xDEA8, { 0x43, 0xB, 0x61 } },
-    { 0xF230, { 0x44, 0xE, 0x38 } },
-    { 0x101D0, { 0x6B, 0xA2, 0x39 } },
-    { 0x10D88, { 0x8E, 0xAE, 0xAD } },
-    { 0x11940, { 0x88, 0xA6, 0x36 } },
-    { 0x124F8, { 0x90, 0xA7, 0x5 } },
-    { 0x30D40, { 0x8B, 0xAA, 0x3 } },
-    { 0x61A80, { 0x95, 0x3F, 0x7 } },
-    { 0x7FFFFFFF, { 0x96, 0x3D, 0x3E } },
+enum {
+    REPLAY_BONUS_PICTURE_DECODER_TASK_PRIORITY = 192,
+    REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY     = 192,
+    REPLAY_BONUS_CREDITS_TASK_PRIORITY         = 32,
+    REPLAY_BONUS_COMPLETE_BONUS_ROW_HEIGHT     = 15,
 };
 
-u8 D_replay_bonus_80119014[] = "You will lose the game clear\ndata if you quit now. Quit now\nand delete game clear data?";
-
-u8 D_replay_bonus_8011906C[] = "data if you quit now. Quit now";
-
-u16 D_replay_bonus_8011908C[80] = {
-    0x9D,
-    0x81,
-    0x92,
-    0x99,
-    0x9A,
-    0x8D,
-    0x9C,
-    0x9B,
-    0x83,
-    0x82,
-    0x8A,
-    0x127,
-    0x88,
-    0x84,
-    0x8B,
-    0x8C,
-    0x8E,
-    0x8F,
-    0x90,
-    0x96,
-    0x107,
-    0x98,
-    0x95,
-    0x80,
-    0x9E,
-    0x9F,
-    0x93,
-    0x94,
-    0x61,
-    0x62,
-    0x69,
-    0x64,
-    0x63,
-    0x6B,
-    0x68,
-    0x6A,
-    0x67,
-    0x65,
-    0x60,
-    0x66,
-    0x6D,
-    0x1,
-    0x2,
-    0x3,
-    0x6,
-    0x5,
-    0x7,
-    0x4,
-    0x8,
-    0xD,
-    0xC,
-    0x9,
-    0xA,
-    0x3A,
-    0x3B,
-    0x36,
-    0x37,
-    0x38,
-    0x39,
-    0x3C,
-    0x3D,
-    0x3E,
-    0x3F,
-    0xB,
-    0xE,
-    0x40,
-    0x41,
-    0x42,
-    0x43,
-    0x44,
-    0x45,
-    0x46,
-    0x105,
-    0x121,
-    0x122,
-    0x124,
-    0x12F,
-    0x130,
-    0xFFFF,
-    0x0,
+/// Bodyless priority-192 worker that decodes one borrowed credits picture.
+///
+/// Spawn argument 2 points to the live decode request; argument 1 is unused.
+/// The request, VLC table and resource bitstream must survive worker completion.
+/// Only one worker may use the shared MDEC workspace at a time.
+static const TaskDesc _gReplayBonusPictureDecoderTaskDescriptor SECTION(".data") = {
+    .header   = { .fields = { TASK_BODY_NONE, REPLAY_BONUS_PICTURE_DECODER_TASK_PRIORITY } },
+    .callback = replayBonusDecodePictureTask,
+    .data     = { .model = NULL },
 };
 
-UiListRowCallback D_replay_bonus_8011912C[1] = { _replayBonusDrawCurrentItemRow };
+/// Catalogue ids stored in this package's item whitelist and shop ladder.
+///
+/// Ordinary ids index the gameplay catalogue; collection ids index its key
+/// catalogue. Their stored representations remain unsigned/signed halfwords.
+enum {
+    REPLAY_BONUS_ITEM_RECOVERY_1         = 0x1,
+    REPLAY_BONUS_ITEM_RECOVERY_2         = 0x2,
+    REPLAY_BONUS_ITEM_RECOVERY_3         = 0x3,
+    REPLAY_BONUS_ITEM_STIM               = 0x4,
+    REPLAY_BONUS_ITEM_COLA               = 0x5,
+    REPLAY_BONUS_ITEM_MP_BOOST_1         = 0x6,
+    REPLAY_BONUS_ITEM_MP_BOOST_2         = 0x7,
+    REPLAY_BONUS_ITEM_PENICILLIN         = 0x8,
+    REPLAY_BONUS_ITEM_SMG_CLIP_HOLDER    = 0x9,
+    REPLAY_BONUS_ITEM_RIFLE_CLIP_HOLDER  = 0xa,
+    REPLAY_BONUS_ITEM_LIPSTICK           = 0xb,
+    REPLAY_BONUS_ITEM_SNAIL_MAGAZINE     = 0xc,
+    REPLAY_BONUS_ITEM_BELT_POUCH         = 0xd,
+    REPLAY_BONUS_ITEM_MD_PLAYER          = 0xe,
+    REPLAY_BONUS_ITEM_SKULL_CRYSTAL      = 0x36,
+    REPLAY_BONUS_ITEM_MEDICINE_WHEEL     = 0x37,
+    REPLAY_BONUS_ITEM_HOLY_WATER         = 0x38,
+    REPLAY_BONUS_ITEM_OFUDA              = 0x39,
+    REPLAY_BONUS_ITEM_FLARE              = 0x3a,
+    REPLAY_BONUS_ITEM_PEPPER_SPRAY       = 0x3b,
+    REPLAY_BONUS_ITEM_PROTEIN_CAPSULE    = 0x3c,
+    REPLAY_BONUS_ITEM_RINGERS_SOLUTION   = 0x3d,
+    REPLAY_BONUS_ITEM_EAU_DE_TOILETTE    = 0x3e,
+    REPLAY_BONUS_ITEM_HUNTER_GOGGLES     = 0x3f,
+    REPLAY_BONUS_ITEM_GPS                = 0x40,
+    REPLAY_BONUS_ITEM_COMBAT_LIGHT       = 0x41,
+    REPLAY_BONUS_ITEM_HAMMER             = 0x42,
+    REPLAY_BONUS_ITEM_PYKE               = 0x43,
+    REPLAY_BONUS_ITEM_JAVELIN            = 0x44,
+    REPLAY_BONUS_ITEM_M203               = 0x45,
+    REPLAY_BONUS_ITEM_M9                 = 0x46,
+    REPLAY_BONUS_ITEM_LEATHER_JACKET     = 0x60,
+    REPLAY_BONUS_ITEM_TACTICAL_ARMOR     = 0x61,
+    REPLAY_BONUS_ITEM_COMBAT_ARMOR       = 0x62,
+    REPLAY_BONUS_ITEM_ASSAULT_SUIT       = 0x63,
+    REPLAY_BONUS_ITEM_PASGT_VEST         = 0x64,
+    REPLAY_BONUS_ITEM_TACTICAL_VEST      = 0x65,
+    REPLAY_BONUS_ITEM_EOD_SUIT           = 0x66,
+    REPLAY_BONUS_ITEM_TURTLE_VEST        = 0x67,
+    REPLAY_BONUS_ITEM_CHICKEN_PLATE      = 0x68,
+    REPLAY_BONUS_ITEM_NBC_SUIT           = 0x69,
+    REPLAY_BONUS_ITEM_PSY_SUIT           = 0x6a,
+    REPLAY_BONUS_ITEM_AYA_SPECIAL        = 0x6b,
+    REPLAY_BONUS_ITEM_MONK_ROBE          = 0x6d,
+    REPLAY_BONUS_ITEM_P08_SNAIL_MAGAZINE = 0x80,
+    REPLAY_BONUS_ITEM_M93R               = 0x81,
+    REPLAY_BONUS_ITEM_M950               = 0x82,
+    REPLAY_BONUS_ITEM_P08                = 0x83,
+    REPLAY_BONUS_ITEM_P229               = 0x84,
+    REPLAY_BONUS_ITEM_MONGOOSE           = 0x88,
+    REPLAY_BONUS_ITEM_GRENADE_PISTOL     = 0x8a,
+    REPLAY_BONUS_ITEM_MM1                = 0x8b,
+    REPLAY_BONUS_ITEM_PA3                = 0x8c,
+    REPLAY_BONUS_ITEM_SP12               = 0x8d,
+    REPLAY_BONUS_ITEM_AS12               = 0x8e,
+    REPLAY_BONUS_ITEM_M4A1_RIFLE         = 0x8f,
+    REPLAY_BONUS_ITEM_M249               = 0x90,
+    REPLAY_BONUS_ITEM_TONFA_BATON        = 0x92,
+    REPLAY_BONUS_ITEM_M4A1_PLUS_1        = 0x93,
+    REPLAY_BONUS_ITEM_M4A1_PLUS_2        = 0x94,
+    REPLAY_BONUS_ITEM_HYPERVELOCITY      = 0x95,
+    REPLAY_BONUS_ITEM_GUNBLADE           = 0x96,
+    REPLAY_BONUS_ITEM_M4A1_HAMMER        = 0x98,
+    REPLAY_BONUS_ITEM_M4A1_BAYONET       = 0x99,
+    REPLAY_BONUS_ITEM_M4A1_GRENADE       = 0x9a,
+    REPLAY_BONUS_ITEM_M4A1_PYKE          = 0x9b,
+    REPLAY_BONUS_ITEM_M4A1_JAVELIN       = 0x9c,
+    REPLAY_BONUS_ITEM_MP5A5              = 0x9d,
+    REPLAY_BONUS_ITEM_MP5A5_PLUS_1       = 0x9e,
+    REPLAY_BONUS_ITEM_MP5A5_PLUS_2       = 0x9f,
+    REPLAY_BONUS_ITEM_9MM_HYDRA          = 0xa1,
+    REPLAY_BONUS_ITEM_9MM_SPARTAN        = 0xa2,
+    REPLAY_BONUS_ITEM_44_MAGNUM          = 0xa6,
+    REPLAY_BONUS_ITEM_44_MAEDA_SP        = 0xa7,
+    REPLAY_BONUS_ITEM_AIRBURST           = 0xaa,
+    REPLAY_BONUS_ITEM_FIREFLY            = 0xad,
+    REPLAY_BONUS_ITEM_RSLUG              = 0xae,
+    REPLAY_BONUS_ITEM_YOSHIDA_CARD       = 0x122,
+    REPLAY_BONUS_ITEM_TEDDY_BEAR         = 0x124,
+    REPLAY_BONUS_ITEM_AERIS_MAGAZINE     = 0x127,
+    REPLAY_BONUS_ITEM_WHITELIST_END      = 0xFFFF,
+    REPLAY_BONUS_SHOP_FINAL_EXP_CEILING  = 0x7FFFFFFF,
+};
 
-UiList D_replay_bonus_80119130 = { D_replay_bonus_8011912C, 1, { 1 }, 0, 0xF };
+const ShopTier gReplayBonusShopTierLadder[SHOP_TIER_COUNT] SECTION(".data") = {
+    { 14500, { REPLAY_BONUS_ITEM_MONK_ROBE, REPLAY_BONUS_ITEM_MEDICINE_WHEEL, REPLAY_BONUS_ITEM_RECOVERY_2 } },
+    { 16000, { REPLAY_BONUS_ITEM_M9, REPLAY_BONUS_ITEM_RIFLE_CLIP_HOLDER, REPLAY_BONUS_ITEM_FLARE } },
+    { 44000, { REPLAY_BONUS_ITEM_M203, REPLAY_BONUS_ITEM_PROTEIN_CAPSULE, REPLAY_BONUS_ITEM_9MM_HYDRA } },
+    { 51000, { REPLAY_BONUS_ITEM_HAMMER, REPLAY_BONUS_ITEM_BELT_POUCH, REPLAY_BONUS_ITEM_MP_BOOST_1 } },
+    { 57000, { REPLAY_BONUS_ITEM_PYKE, REPLAY_BONUS_ITEM_LIPSTICK, REPLAY_BONUS_ITEM_TACTICAL_ARMOR } },
+    { 62000, { REPLAY_BONUS_ITEM_JAVELIN, REPLAY_BONUS_ITEM_MD_PLAYER, REPLAY_BONUS_ITEM_HOLY_WATER } },
+    { 66000, { REPLAY_BONUS_ITEM_AYA_SPECIAL, REPLAY_BONUS_ITEM_9MM_SPARTAN, REPLAY_BONUS_ITEM_OFUDA } },
+    { 69000, { REPLAY_BONUS_ITEM_AS12, REPLAY_BONUS_ITEM_RSLUG, REPLAY_BONUS_ITEM_FIREFLY } },
+    { 72000, { REPLAY_BONUS_ITEM_MONGOOSE, REPLAY_BONUS_ITEM_44_MAGNUM, REPLAY_BONUS_ITEM_SKULL_CRYSTAL } },
+    { 75000, { REPLAY_BONUS_ITEM_M249, REPLAY_BONUS_ITEM_44_MAEDA_SP, REPLAY_BONUS_ITEM_COLA } },
+    { 200000, { REPLAY_BONUS_ITEM_MM1, REPLAY_BONUS_ITEM_AIRBURST, REPLAY_BONUS_ITEM_RECOVERY_3 } },
+    { 400000, { REPLAY_BONUS_ITEM_HYPERVELOCITY, REPLAY_BONUS_ITEM_HUNTER_GOGGLES, REPLAY_BONUS_ITEM_MP_BOOST_2 } },
+    { REPLAY_BONUS_SHOP_FINAL_EXP_CEILING, { REPLAY_BONUS_ITEM_GUNBLADE, REPLAY_BONUS_ITEM_RINGERS_SOLUTION, REPLAY_BONUS_ITEM_EAU_DE_TOILETTE } },
+};
 
-UiObjectDesc D_replay_bonus_80119154 = { 2, { -144, -104, 208, 160 }, 0x3C, 0, 0, 0xC0, replayBonusCompleteBonusPanelTask, 0 };
+const u8 gReplayBonusQuitWarningText[] SECTION(".data") = "You will lose the game clear\ndata if you quit now. Quit now\nand delete game clear data?";
 
-UiObjectDesc D_replay_bonus_80119170 = { 2, { -144, -96, 160, 160 }, 0x3C, 0, 0, 0xC0, replayBonusQuitWarningTask, 0 };
+const u8 gReplayBonusQuitWarningWidthText[] SECTION(".data") = "data if you quit now. Quit now";
 
-UiObjectDesc D_replay_bonus_8011918C = { 2, { -72, -64, 144, 56 }, 0x30, 0, 0, 0xC0, replayBonusBalancePanelTask, 0 };
+const u16 gReplayBonusItemWhitelist[REPLAY_BONUS_ITEM_WHITELIST_COUNT + 2] SECTION(".data") = {
+    REPLAY_BONUS_ITEM_MP5A5,
+    REPLAY_BONUS_ITEM_M93R,
+    REPLAY_BONUS_ITEM_TONFA_BATON,
+    REPLAY_BONUS_ITEM_M4A1_BAYONET,
+    REPLAY_BONUS_ITEM_M4A1_GRENADE,
+    REPLAY_BONUS_ITEM_SP12,
+    REPLAY_BONUS_ITEM_M4A1_JAVELIN,
+    REPLAY_BONUS_ITEM_M4A1_PYKE,
+    REPLAY_BONUS_ITEM_P08,
+    REPLAY_BONUS_ITEM_M950,
+    REPLAY_BONUS_ITEM_GRENADE_PISTOL,
+    REPLAY_BONUS_ITEM_AERIS_MAGAZINE,
+    REPLAY_BONUS_ITEM_MONGOOSE,
+    REPLAY_BONUS_ITEM_P229,
+    REPLAY_BONUS_ITEM_MM1,
+    REPLAY_BONUS_ITEM_PA3,
+    REPLAY_BONUS_ITEM_AS12,
+    REPLAY_BONUS_ITEM_M4A1_RIFLE,
+    REPLAY_BONUS_ITEM_M249,
+    REPLAY_BONUS_ITEM_GUNBLADE,
+    INVENTORY_COLLECTION_ID_MENDEL_JOURNAL,
+    REPLAY_BONUS_ITEM_M4A1_HAMMER,
+    REPLAY_BONUS_ITEM_HYPERVELOCITY,
+    REPLAY_BONUS_ITEM_P08_SNAIL_MAGAZINE,
+    REPLAY_BONUS_ITEM_MP5A5_PLUS_1,
+    REPLAY_BONUS_ITEM_MP5A5_PLUS_2,
+    REPLAY_BONUS_ITEM_M4A1_PLUS_1,
+    REPLAY_BONUS_ITEM_M4A1_PLUS_2,
+    REPLAY_BONUS_ITEM_TACTICAL_ARMOR,
+    REPLAY_BONUS_ITEM_COMBAT_ARMOR,
+    REPLAY_BONUS_ITEM_NBC_SUIT,
+    REPLAY_BONUS_ITEM_PASGT_VEST,
+    REPLAY_BONUS_ITEM_ASSAULT_SUIT,
+    REPLAY_BONUS_ITEM_AYA_SPECIAL,
+    REPLAY_BONUS_ITEM_CHICKEN_PLATE,
+    REPLAY_BONUS_ITEM_PSY_SUIT,
+    REPLAY_BONUS_ITEM_TURTLE_VEST,
+    REPLAY_BONUS_ITEM_TACTICAL_VEST,
+    REPLAY_BONUS_ITEM_LEATHER_JACKET,
+    REPLAY_BONUS_ITEM_EOD_SUIT,
+    REPLAY_BONUS_ITEM_MONK_ROBE,
+    REPLAY_BONUS_ITEM_RECOVERY_1,
+    REPLAY_BONUS_ITEM_RECOVERY_2,
+    REPLAY_BONUS_ITEM_RECOVERY_3,
+    REPLAY_BONUS_ITEM_MP_BOOST_1,
+    REPLAY_BONUS_ITEM_COLA,
+    REPLAY_BONUS_ITEM_MP_BOOST_2,
+    REPLAY_BONUS_ITEM_STIM,
+    REPLAY_BONUS_ITEM_PENICILLIN,
+    REPLAY_BONUS_ITEM_BELT_POUCH,
+    REPLAY_BONUS_ITEM_SNAIL_MAGAZINE,
+    REPLAY_BONUS_ITEM_SMG_CLIP_HOLDER,
+    REPLAY_BONUS_ITEM_RIFLE_CLIP_HOLDER,
+    REPLAY_BONUS_ITEM_FLARE,
+    REPLAY_BONUS_ITEM_PEPPER_SPRAY,
+    REPLAY_BONUS_ITEM_SKULL_CRYSTAL,
+    REPLAY_BONUS_ITEM_MEDICINE_WHEEL,
+    REPLAY_BONUS_ITEM_HOLY_WATER,
+    REPLAY_BONUS_ITEM_OFUDA,
+    REPLAY_BONUS_ITEM_PROTEIN_CAPSULE,
+    REPLAY_BONUS_ITEM_RINGERS_SOLUTION,
+    REPLAY_BONUS_ITEM_EAU_DE_TOILETTE,
+    REPLAY_BONUS_ITEM_HUNTER_GOGGLES,
+    REPLAY_BONUS_ITEM_LIPSTICK,
+    REPLAY_BONUS_ITEM_MD_PLAYER,
+    REPLAY_BONUS_ITEM_GPS,
+    REPLAY_BONUS_ITEM_COMBAT_LIGHT,
+    REPLAY_BONUS_ITEM_HAMMER,
+    REPLAY_BONUS_ITEM_PYKE,
+    REPLAY_BONUS_ITEM_JAVELIN,
+    REPLAY_BONUS_ITEM_M203,
+    REPLAY_BONUS_ITEM_M9,
+    INVENTORY_COLLECTION_ID_ARMORY_CARDKEY,
+    INVENTORY_COLLECTION_ID_BOWMANS_CARD,
+    REPLAY_BONUS_ITEM_YOSHIDA_CARD,
+    REPLAY_BONUS_ITEM_TEDDY_BEAR,
+    INVENTORY_COLLECTION_ID_PIERCE_RESCUE_BONUS,
+    INVENTORY_COLLECTION_ID_SOLDIER_RESCUE_BONUS,
+    REPLAY_BONUS_ITEM_WHITELIST_END,
+    0,
+};
 
-UiObjectDesc D_replay_bonus_801191A8 = { 2, { -72, 8, 144, 56 }, 0x34, 0, 0, 0xC0, replayBonusBalancePanelTask, 0 };
+/// Single row renderer shared by every item of the Complete Bonus list.
+///
+/// The panel enables USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch;
+/// entry zero identifies and draws the owner's current item and half-price BP.
+/// The list borrows this table for the loaded package's lifetime.
+static UiListRowCallback _gReplayBonusCompleteBonusRowCallbacks[1] = { _replayBonusDrawCurrentItemRow };
 
-UiObjectDesc D_replay_bonus_801191C4 = { 2, { -144, -104, 288, 208 }, 0x2C, 0, 0, 0xC0, replayBonusUnlockedItemPanelTask, 0 };
+UiList gReplayBonusCompleteBonusList = {
+    .rowCallbacks    = _gReplayBonusCompleteBonusRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .wrapNavigation  = 0,
+    .rowHeight       = REPLAY_BONUS_COMPLETE_BONUS_ROW_HEIGHT,
+};
 
-UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0, 0xC0, replayBonusUnlockedItemPanelTask, 0 };
+/// Title-style recipe for the Complete Bonus item-credit and totals panel.
+///
+/// The award controller opens it as an active root with unused argument 1.
+/// Its callback fits the initial centred-screen pixel bounds to the item list.
+/// Spawning copies this bodyless priority-192 recipe, retaining its callback;
+/// replay and gameplay must remain loaded through the panel's closure.
+static const UiObjectDesc _gReplayBonusCompleteBonusPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 208, 160 },
+    .otIndexSeed     = 60,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusCompleteBonusPanelTask,
+};
 
-UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, replayBonusExtraBpPanelTask, 0 };
+/// Title-style recipe for the unsaved game-clear warning and its Yes/No child.
+///
+/// Spawned as an active root after declining the save prompt. Its callback
+/// fits the initial centred-screen pixel bounds to the warning text.
+/// Spawning copies the bodyless priority-192 recipe; replay and gameplay must
+/// stay loaded through closure of the warning's tree.
+static const UiObjectDesc _gReplayBonusQuitWarningPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -96, 160, 160 },
+    .otIndexSeed     = 60,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusQuitWarningTask,
+};
+
+/// Title-style recipe for the completed run's Balance panel.
+///
+/// Spawn argument 1 is zero; the active root later opens NEXT REPLAY BONUS
+/// as a child. Bounds are centred-screen pixels. Spawning copies the bodyless
+/// priority-192 recipe; replay and gameplay must remain loaded until closure.
+static const UiObjectDesc _gReplayBonusBalancePanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -72, -64, 144, 56 },
+    .otIndexSeed     = 48,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusBalancePanelTask,
+};
+
+const UiObjectDesc gReplayBonusNextReplayBonusPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -72, 8, 144, 56 },
+    .otIndexSeed     = 52,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusBalancePanelTask,
+};
+
+/// Item-information recipe for columns zero and two of the unlocked shop tier.
+///
+/// The controller opens each as an active root; argument 1 selects the column.
+/// Bounds are centred-screen pixels, with OT base tag 44. Spawning copies this
+/// bodyless priority-192 recipe. Keep replay, gameplay and the selected item
+/// resources loaded until the information panel closes.
+static const UiObjectDesc _gReplayBonusFirstAndThirdShopItemPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 288, 208 },
+    .otIndexSeed     = 44,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusUnlockedItemPanelTask,
+};
+
+/// Item-information recipe for column one of the unlocked shop tier.
+///
+/// Opened as an active root with argument 1 equal to 1. Centred-screen pixel
+/// bounds match the other item panels, but its OT base is tag 40. Spawning
+/// copies this bodyless priority-192 recipe. Keep replay, gameplay and the
+/// selected item resources loaded until the information panel closes.
+static const UiObjectDesc _gReplayBonusSecondShopItemPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 288, 208 },
+    .otIndexSeed     = 40,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusUnlockedItemPanelTask,
+};
+
+/// Title-style recipe for the BP award replacing a fully unlocked shop tier.
+///
+/// Opened as an active root with unused argument 1. Bounds are centred-screen
+/// pixels and its ordering-table base is tag 44. Spawning copies the bodyless
+/// priority-192 recipe; replay and gameplay must remain loaded until closure.
+static const UiObjectDesc _gReplayBonusExtraBpPanelDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -72, -32, 144, 40 },
+    .otIndexSeed     = 44,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = REPLAY_BONUS_AWARD_PANEL_TASK_PRIORITY,
+    .contentCallback = replayBonusExtraBpPanelTask,
+};
 
 enum { REPLAY_BONUS_AWARD_SCREEN_TASK_PRIORITY = 0xC0 };
 TaskDesc gReplayBonusAwardScreenTaskDescriptor = { { { TASK_BODY_NONE, REPLAY_BONUS_AWARD_SCREEN_TASK_PRIORITY } }, _replayBonusAwardScreenTask, { NULL } };
@@ -1311,38 +1509,56 @@ TaskDesc gReplayBonusAwardScreenTaskDescriptor = { { { TASK_BODY_NONE, REPLAY_BO
 /// Toggles after each selection and persists for the loaded package's lifetime.
 static u8 _gReplayBonusNextCreditsPrimitiveBufferIndex = 0;
 
-u8 D_replay_bonus_80119225 = 0;
+/// Credits picture lifecycle (0 idle, 1 decoding, 2 cross-fading).
+///
+/// Decode and cross-fade reject further picture requests. The drawing callback
+/// returns the phase to idle after 120 cross-fade draws; the credits controller
+/// waits only for decoding before retiring the borrowed request.
+static u8 _gReplayBonusCreditsPicturePhase = REPLAY_BONUS_PICTURE_IDLE;
 
-u8 D_replay_bonus_80119226 = 0;
+/// Current credits picture's VRAM page (0 Y=0, 1 Y=256), both at X=640.
+///
+/// Decoding targets the opposite page. Completion toggles this selector before
+/// cross-fading the new page over the previous one; drawing keeps both live.
+static u8 _gReplayBonusCreditsPicturePageIndex = 0;
 
-u8 D_replay_bonus_80119227 = 0;
+/// Draw callbacks remaining in the credits picture's 120-frame cross-fade.
+///
+/// Starts at 120 when decoding completes. Drawing uses complementary fractions
+/// of the shared credits brightness for both pages, then decrements to zero.
+static u8 _gReplayBonusCreditsPictureCrossFadeFramesLeft = 0;
 
-Task* D_replay_bonus_80119228 = NULL;
+/// Decoder task handle retained until the picture-request worker polls its exit.
+///
+/// Reset to NULL when credits start, then replaced by each serialized decode.
+/// Polling releases the task; the retained handle is not cleared afterwards and
+/// must not be used again before the next spawn replaces it.
+static Task* _gReplayBonusPictureDecoderTask = NULL;
 
-TaskDesc D_replay_bonus_8011922C[4] = {
-    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusCreditsTask, { NULL } },
-    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsInTask, { NULL } },
-    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsOutTask, { NULL } },
-    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusStartCreditsPictureTask, { NULL } },
+const TaskDesc gReplayBonusCreditsTaskDescriptors[REPLAY_BONUS_CREDITS_TASK_COUNT] SECTION(".data") = {
+    [REPLAY_BONUS_CREDITS_CONTROLLER_TASK_INDEX] = { { { TASK_BODY_NONE, REPLAY_BONUS_CREDITS_TASK_PRIORITY } }, _replayBonusCreditsTask, { NULL } },
+    [REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX]    = { { { TASK_BODY_NONE, REPLAY_BONUS_CREDITS_TASK_PRIORITY } }, _replayBonusFadeCreditsInTask, { NULL } },
+    [REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX]   = { { { TASK_BODY_NONE, REPLAY_BONUS_CREDITS_TASK_PRIORITY } }, _replayBonusFadeCreditsOutTask, { NULL } },
+    [REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX]    = { { { TASK_BODY_NONE, REPLAY_BONUS_CREDITS_TASK_PRIORITY } }, _replayBonusStartCreditsPictureTask, { NULL } },
 };
 
-u8* D_replay_bonus_8011925C = NULL;
+u_long* gReplayBonusPictureStripPixels = NULL;
 
-u_long* D_replay_bonus_80119260 = NULL;
+u_long* gReplayBonusPictureDctBitstream = NULL;
 
-s16 D_replay_bonus_80119264 = 0;
+s16 gReplayBonusPictureWidth = 0;
 
-u16 D_replay_bonus_80119266 = 0;
+s16 gReplayBonusPictureHeight = 0;
 
-u16 D_replay_bonus_80119268 = 0;
+u16 gReplayBonusPictureVramX = 0;
 
-u16 D_replay_bonus_8011926A = 0;
+u16 gReplayBonusPictureVramY = 0;
 
-s16 D_replay_bonus_8011926C = 0;
+s16 gReplayBonusPictureStripPending = REPLAY_BONUS_PICTURE_STRIP_UPLOADED;
 
-s16 D_replay_bonus_8011926E = 0;
+s16 gReplayBonusPictureStripsUploaded = 0;
 
-u16 D_replay_bonus_80119270 = 0;
+u16 gReplayBonusPictureStripBufferIndex = 0;
 
 /// Byte initialized to 0x43 with no observed accesses; its role is unproven.
 static u8 D_replay_bonus_80119272 = 0x43;
@@ -1350,7 +1566,14 @@ static u8 D_replay_bonus_80119272 = 0x43;
 /// Byte initialized to 0x42 with no observed accesses; its role is unproven.
 static u8 D_replay_bonus_80119273 = 0x42;
 
-ReplayBonusTotals D_replay_bonus_80119274 = { 0, 0, 0, 0, 0, 0 };
+ReplayBonusTotals gReplayBonusTotals = {
+    .totalExp     = 0,
+    .totalBp      = 0,
+    .nextExp      = 0,
+    .nextBp       = 0,
+    .shopTier     = 0,
+    .extraBonusBp = 0,
+};
 
 /// Borrowed data resource selected as the credits STF document.
 ///
@@ -1364,7 +1587,12 @@ static ReplayBonusStfFile* _gReplayBonusCreditsFile = NULL;
 /// The serialized file supplies no glyph count here and must outlive drawing.
 static const ReplayBonusStfGlyph* _gReplayBonusCreditsGlyphs = NULL;
 
-ReplayBonusStfParams* D_replay_bonus_80119294 = NULL;
+/// Borrowed scroll timing and layout columns from the relocated STF document.
+///
+/// Scroll speed is 8.8 pixels per draw callback; initial/final holds use six
+/// callbacks per stored unit. Row commands select column indices 0..7. This
+/// view is read-only and remains valid only while the credits file is loaded.
+static const ReplayBonusStfParams* _gReplayBonusCreditsParams = NULL;
 
 /// Borrowed credits rows, paired with `_gReplayBonusCreditsLineCount`.
 ///
@@ -1400,7 +1628,12 @@ static s32 _gReplayBonusCreditsScrollY = 0;
 /// than reset when a credits controller starts.
 static s32 _gReplayBonusCreditsScrollFraction = 0;
 
-u8 D_replay_bonus_801192AC = 0;
+/// Shared RGB modulation of credits glyphs, row sprites and picture pages.
+///
+/// Range 0..127: zero is black, 127 is full credits brightness. Fade workers
+/// derive it from byte fade amounts; picture cross-fades scale both page levels
+/// by it. Reset to black when the credits controller starts.
+static u8 _gReplayBonusCreditsBrightness = 0;
 
 /// Draw callbacks elapsed during credits' initial hold, scroll and final hold.
 ///
@@ -1420,7 +1653,13 @@ static s32 _gReplayBonusCreditsPrimitiveBytesUsed = 0;
 /// screen coordinates; the position persists until another picture command.
 static u16 _gReplayBonusCreditsPictureLeftX = 0;
 
-ReplayBonusPictureDecode* D_replay_bonus_801192BC = NULL;
+/// Primary-heap request reused for each serialized credits picture decode.
+///
+/// The credits controller owns the record until decoding finishes. Workers
+/// borrow it and its separately allocated auxiliary-heap VLC table. The record
+/// is freed during display restoration without clearing this pointer; the VLC
+/// table survives awards until the post-awards restart resets the heaps.
+static ReplayBonusPictureDecode* _gReplayBonusCreditsPictureRequest = NULL;
 
 /// Byte base of the active credits row-guide/glyph packet arena.
 ///

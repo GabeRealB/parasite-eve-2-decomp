@@ -473,8 +473,6 @@ static void _sceneInitializeManager(Task* sceneTask);
 
 static void _worldTargetDrawOverlayTask(Task* unusedTask);
 
-extern TaskDesc D_replay_bonus_8011922C[];
-
 _CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
     { 1, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
     { 4, SOUND_SCRIPT_REQUEST_TYPE_1 },
@@ -1393,7 +1391,7 @@ static void _loadingAwaitRestartResources(Task* task)
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
             // Replay bonus takes over without a child for this loader to poll.
-            taskSpawnFromTable(D_replay_bonus_8011922C, 0, 0, 0);
+            taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_CONTROLLER_TASK_INDEX, 0, 0);
             taskKill(task);
         } else {
             task->spawnArg2.pointer = taskSpawnFromTable(gAya20900TaskDescriptors, AYA_20900_TASK_GAME_OVER, 0, 0);
