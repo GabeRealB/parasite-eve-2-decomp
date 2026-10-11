@@ -116,29 +116,10 @@ static AreaResource _gDryfieldNightDilapidatedHouseVariant21Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullDilapidatedHouseVariant3Placements, _gDryfieldNightDilapidatedHouseVariant3Resources },
-    { gMapDryfieldFullDilapidatedHouseVariant4Placements, _gDryfieldNightDilapidatedHouseVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullDilapidatedHouseVariant21Placements, _gDryfieldNightDilapidatedHouseVariant21Resources },
+AreaVariant gDryfieldNightDilapidatedHouseAreaVariants[22] = {
+    [3]  = { .placements = gMapDryfieldFullDilapidatedHouseVariant3Placements, .resources = _gDryfieldNightDilapidatedHouseVariant3Resources },
+    [4]  = { .placements = gMapDryfieldFullDilapidatedHouseVariant4Placements, .resources = _gDryfieldNightDilapidatedHouseVariant4Resources },
+    [21] = { .placements = gMapDryfieldFullDilapidatedHouseVariant21Placements, .resources = _gDryfieldNightDilapidatedHouseVariant21Resources },
 };
 
 WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12] = {

@@ -1229,29 +1229,10 @@ static AreaResource _gDryfieldNightMotelRoom2Variant21Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_motel_room_2_801809A0[22] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullMotelRoom2Variant2Placements, _gDryfieldNightMotelRoom2Variant2Resources },
-    { gMapDryfieldFullMotelRoom2Variant3Placements, _gDryfieldNightMotelRoom2Variant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullMotelRoom2Variant21Placements, _gDryfieldNightMotelRoom2Variant21Resources },
+AreaVariant gDryfieldNightMotelRoom2AreaVariants[22] = {
+    [2]  = { .placements = gMapDryfieldFullMotelRoom2Variant2Placements, .resources = _gDryfieldNightMotelRoom2Variant2Resources },
+    [3]  = { .placements = gMapDryfieldFullMotelRoom2Variant3Placements, .resources = _gDryfieldNightMotelRoom2Variant3Resources },
+    [21] = { .placements = gMapDryfieldFullMotelRoom2Variant21Placements, .resources = _gDryfieldNightMotelRoom2Variant21Resources },
 };
 
 /// Cue-2 bases in the loaded type-1 sound bank; cue 1 selects the next entry.

@@ -622,20 +622,10 @@ static AreaPlacement _gDryfieldJunkYardVariant10Placements[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_junk_yard_8017F558[13] = {
-    { NULL, NULL },
-    { gMapDryfieldJunkYardVariant1Placements, _gDryfieldJunkYardVariant1Resources },
-    { gMapDryfieldJunkYardVariant2Placements, _gDryfieldJunkYardVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gDryfieldJunkYardVariant10Placements, _gDryfieldJunkYardVariant10Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldJunkYardAreaVariants[13] = {
+    [1]  = { .placements = gMapDryfieldJunkYardVariant1Placements, .resources = _gDryfieldJunkYardVariant1Resources },
+    [2]  = { .placements = gMapDryfieldJunkYardVariant2Placements, .resources = _gDryfieldJunkYardVariant2Resources },
+    [10] = { .placements = _gDryfieldJunkYardVariant10Placements, .resources = _gDryfieldJunkYardVariant10Resources },
 };
 
 ViewCamera gDryfieldJunkYardViewCameras[7] = {

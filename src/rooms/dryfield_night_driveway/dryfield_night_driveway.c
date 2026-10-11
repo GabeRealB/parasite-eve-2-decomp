@@ -1285,29 +1285,10 @@ static AreaResource _gDryfieldNightDrivewayVariant21Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_driveway_80181F4C[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullDrivewayVariant1Placements, _gDryfieldNightDrivewayVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullDrivewayVariant3Placements, _gDryfieldNightDrivewayVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullDrivewayVariant21Placements, _gDryfieldNightDrivewayVariant21Resources },
+AreaVariant gDryfieldNightDrivewayAreaVariants[22] = {
+    [1]  = { .placements = gMapDryfieldFullDrivewayVariant1Placements, .resources = _gDryfieldNightDrivewayVariant1Resources },
+    [3]  = { .placements = gMapDryfieldFullDrivewayVariant3Placements, .resources = _gDryfieldNightDrivewayVariant3Resources },
+    [21] = { .placements = gMapDryfieldFullDrivewayVariant21Placements, .resources = _gDryfieldNightDrivewayVariant21Resources },
 };
 
 /// Two mutable room-space sight-blocking quads shared by both driveway rooms.

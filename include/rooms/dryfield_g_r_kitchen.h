@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_g_r_kitchen_8017F4B8[13];
+/// Dryfield G & R kitchen placement/resource directory indexed by `GameLocationKey.variant` 0..12.
+///
+/// Slots 1, 2 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldGRKitchenAreaVariants[13];
 
 /// Number of identity-mapped camera, image and sprite views in the daytime kitchen.
 enum { DRYFIELD_G_R_KITCHEN_VIEW_COUNT = 3 };

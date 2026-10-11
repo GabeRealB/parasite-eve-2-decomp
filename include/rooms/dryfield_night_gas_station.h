@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_gas_station_80190624[12];
+/// Dryfield night gas station placement/resource directory indexed by `GameLocationKey.variant` 0..11.
+///
+/// Slots 1, 2, 3, 7, 11 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldNightGasStationAreaVariants[12];
 
 /// Lighting for night gas station room variants 1..4, indexed by room - 1.
 ///

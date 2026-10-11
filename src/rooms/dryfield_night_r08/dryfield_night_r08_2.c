@@ -303,18 +303,8 @@ static AreaResource _gDryfieldNightR08Variant1Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_r08_801818D8[11] = {
-    { NULL, NULL },
-    { gMapDryfieldFullR08Variant1Placements, _gDryfieldNightR08Variant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldNightR08AreaVariants[11] = {
+    [1] = { .placements = gMapDryfieldFullR08Variant1Placements, .resources = _gDryfieldNightR08Variant1Resources },
 };
 
 /// Type-1 cue-2 bases; cue 1 adds one and companion playback adds 100.

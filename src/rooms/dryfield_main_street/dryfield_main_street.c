@@ -1174,20 +1174,12 @@ static AreaPlacement _gDryfieldMainStreetVariant10Placements[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_main_street_80184F20[13] = {
-    { NULL, NULL },
-    { gMapDryfieldMainStreetVariant1Placements, _gDryfieldMainStreetVariant1Resources },
-    { gMapDryfieldMainStreetVariant2Placements, _gDryfieldMainStreetVariant2Resources },
-    { gMapDryfieldMainStreetVariant3Placements, _gDryfieldMainStreetVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldMainStreetVariant7Placements, _gDryfieldMainStreetVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gDryfieldMainStreetVariant10Placements, _gDryfieldMainStreetVariant10Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldMainStreetAreaVariants[13] = {
+    [1]  = { .placements = gMapDryfieldMainStreetVariant1Placements, .resources = _gDryfieldMainStreetVariant1Resources },
+    [2]  = { .placements = gMapDryfieldMainStreetVariant2Placements, .resources = _gDryfieldMainStreetVariant2Resources },
+    [3]  = { .placements = gMapDryfieldMainStreetVariant3Placements, .resources = _gDryfieldMainStreetVariant3Resources },
+    [7]  = { .placements = gMapDryfieldMainStreetVariant7Placements, .resources = _gDryfieldMainStreetVariant7Resources },
+    [10] = { .placements = _gDryfieldMainStreetVariant10Placements, .resources = _gDryfieldMainStreetVariant10Resources },
 };
 
 /// Sixteen authored point lights eligible in every Main Street view.

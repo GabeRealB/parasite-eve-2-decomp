@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_motel_balcony_80186220[13];
+/// Dryfield motel balcony placement/resource directory indexed by `GameLocationKey.variant` 0..12.
+///
+/// Slots 1, 2, 3, 7, 8 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldMotelBalconyAreaVariants[13];
 
 /// Collision resources for room 1 of the daytime motel balcony.
 ///

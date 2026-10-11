@@ -45,7 +45,16 @@ extern SVECTOR gDryfieldGarageCollisionGridVerts[106];
 /// lists. Indices must fit the pools; surface classes select this room's policies.
 extern WorldCollisionGridFace gDryfieldGarageCollisionGridFaces[54];
 
-extern AreaVariant D_dryfield_garage_801800E0[13];
+/// Dryfield garage placement/resource directory indexed by `GameLocationKey.variant` 0..12.
+///
+/// Slots 1, 2, 3, 10 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Variant 10 owns its placements in this room; other placements belong to the
+/// stage map. All resource recipes belong to this room. Keep each storage owner
+/// and the actors supplying task descriptors loaded during loading, spawning
+/// and model-flag updates. Lookups require an index within this array; there is
+/// no terminator or bounds check.
+extern AreaVariant gDryfieldGarageAreaVariants[13];
 
 /// Room 1's collision grid, fourteen view boundaries and eleven action triggers.
 ///

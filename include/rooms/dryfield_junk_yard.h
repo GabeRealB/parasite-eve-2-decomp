@@ -12,7 +12,16 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_dryfield_junk_yard_8017F558[13];
+/// Dryfield junk yard placement/resource directory indexed by `GameLocationKey.variant` 0..12.
+///
+/// Slots 1, 2, 10 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Variant 10 owns its placements in this room; other placements belong to the
+/// stage map. All resource recipes belong to this room. Keep each storage owner
+/// and the actors supplying task descriptors loaded during loading, spawning
+/// and model-flag updates. Lookups require an index within this array; there is
+/// no terminator or bounds check.
+extern AreaVariant gDryfieldJunkYardAreaVariants[13];
 
 /// Models the Dryfield map UI overlay's enemy descriptors attach.
 extern TmdSource gDryfieldJunkYardModel01378;

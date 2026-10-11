@@ -993,19 +993,10 @@ static AreaResource _gDryfieldNightCellarVariant11Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_cellar_80180780[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullCellarVariant1Placements, _gDryfieldNightCellarVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullCellarVariant3Placements, _gDryfieldNightCellarVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullCellarVariant11Placements, _gDryfieldNightCellarVariant11Resources },
+AreaVariant gDryfieldNightCellarAreaVariants[12] = {
+    [1]  = { .placements = gMapDryfieldFullCellarVariant1Placements, .resources = _gDryfieldNightCellarVariant1Resources },
+    [3]  = { .placements = gMapDryfieldFullCellarVariant3Placements, .resources = _gDryfieldNightCellarVariant3Resources },
+    [11] = { .placements = gMapDryfieldFullCellarVariant11Placements, .resources = _gDryfieldNightCellarVariant11Resources },
 };
 
 /// Cue-2 script bases in the loaded type-1 room bank; cue 1 uses the next entry.

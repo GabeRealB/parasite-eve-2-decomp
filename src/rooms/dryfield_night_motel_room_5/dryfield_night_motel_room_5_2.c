@@ -1074,20 +1074,9 @@ static AreaResource _gDryfieldNightMotelRoom5Variant2Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_motel_room_5_80181190[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullMotelRoom5Variant1Placements, _gDryfieldNightMotelRoom5Variant1Resources },
-    { gMapDryfieldFullMotelRoom5Variant2Placements, _gDryfieldNightMotelRoom5Variant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldNightMotelRoom5AreaVariants[13] = {
+    [1] = { .placements = gMapDryfieldFullMotelRoom5Variant1Placements, .resources = _gDryfieldNightMotelRoom5Variant1Resources },
+    [2] = { .placements = gMapDryfieldFullMotelRoom5Variant2Placements, .resources = _gDryfieldNightMotelRoom5Variant2Resources },
 };
 
 enum {

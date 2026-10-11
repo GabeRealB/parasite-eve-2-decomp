@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_r08_801818D8[11];
+/// Dryfield night r08 placement/resource directory indexed by `GameLocationKey.variant` 0..10.
+///
+/// Slot 1 publishes paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldNightR08AreaVariants[11];
 
 /// Room 8's lighting descriptor, selected by room - 1 (room 1 only).
 ///

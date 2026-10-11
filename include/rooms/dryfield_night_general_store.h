@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_general_store_8018572C[22];
+/// Dryfield night general store placement/resource directory indexed by `GameLocationKey.variant` 0..21.
+///
+/// Slots 1, 2, 3, 21 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldNightGeneralStoreAreaVariants[22];
 
 /// Logical and mapped view slots supplied by the night General Store.
 enum { DRYFIELD_NIGHT_GENERAL_STORE_VIEW_COUNT = 16 };

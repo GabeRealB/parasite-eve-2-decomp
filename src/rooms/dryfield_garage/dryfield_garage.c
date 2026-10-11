@@ -730,20 +730,11 @@ static AreaPlacement _gDryfieldGarageVariant10Placements[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_dryfield_garage_801800E0[13] = {
-    { NULL, NULL },
-    { gMapDryfieldGarageVariant1Placements, _gDryfieldGarageVariant1Resources },
-    { gMapDryfieldGarageVariant2Placements, _gDryfieldGarageVariant2Resources },
-    { gMapDryfieldGarageVariant3Placements, _gDryfieldGarageVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gDryfieldGarageVariant10Placements, _gDryfieldGarageVariant10Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldGarageAreaVariants[13] = {
+    [1]  = { .placements = gMapDryfieldGarageVariant1Placements, .resources = _gDryfieldGarageVariant1Resources },
+    [2]  = { .placements = gMapDryfieldGarageVariant2Placements, .resources = _gDryfieldGarageVariant2Resources },
+    [3]  = { .placements = gMapDryfieldGarageVariant3Placements, .resources = _gDryfieldGarageVariant3Resources },
+    [10] = { .placements = _gDryfieldGarageVariant10Placements, .resources = _gDryfieldGarageVariant10Resources },
 };
 
 /// View-count header followed by the fifteen views' minimum ambient colours.

@@ -1297,20 +1297,12 @@ static AreaResource _gDryfieldMotelBalconyVariant8Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_motel_balcony_80186220[13] = {
-    { NULL, NULL },
-    { gMapDryfieldMotelBalconyVariant1Placements, _gDryfieldMotelBalconyVariant1Resources },
-    { gMapDryfieldMotelBalconyVariant2Placements, _gDryfieldMotelBalconyVariant2Resources },
-    { gMapDryfieldMotelBalconyVariant3Placements, _gDryfieldMotelBalconyVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldMotelBalconyVariant7Placements, _gDryfieldMotelBalconyVariant7Resources },
-    { gMapDryfieldMotelBalconyVariant8Placements, _gDryfieldMotelBalconyVariant8Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldMotelBalconyAreaVariants[13] = {
+    [1] = { .placements = gMapDryfieldMotelBalconyVariant1Placements, .resources = _gDryfieldMotelBalconyVariant1Resources },
+    [2] = { .placements = gMapDryfieldMotelBalconyVariant2Placements, .resources = _gDryfieldMotelBalconyVariant2Resources },
+    [3] = { .placements = gMapDryfieldMotelBalconyVariant3Placements, .resources = _gDryfieldMotelBalconyVariant3Resources },
+    [7] = { .placements = gMapDryfieldMotelBalconyVariant7Placements, .resources = _gDryfieldMotelBalconyVariant7Resources },
+    [8] = { .placements = gMapDryfieldMotelBalconyVariant8Placements, .resources = _gDryfieldMotelBalconyVariant8Resources },
 };
 
 /// Nine mutable all-view point lights for the daytime motel balcony.

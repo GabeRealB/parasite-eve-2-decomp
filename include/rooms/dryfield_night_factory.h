@@ -16,7 +16,12 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_factory_8018A70C[11];
+/// Dryfield night factory placement/resource directory indexed by `GameLocationKey.variant` 0..10.
+///
+/// All eleven slots are absent (NULL, NULL), so this room publishes no actor
+/// placement or resource lists. The indexed slot itself is still returned by
+/// the area lookup. Keep the room overlay loaded; there is no bounds check.
+extern AreaVariant gDryfieldNightFactoryAreaVariants[11];
 
 /// Logical-to-mapped view directories for night factory room selectors 1 and 2.
 ///

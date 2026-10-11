@@ -2063,19 +2063,9 @@ static AreaResource _gDryfieldMotelRoom6Variant2Resources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_motel_room_6_80186764[12] = {
-    { NULL, NULL },
-    { gMapDryfieldMotelRoom6Variant1Placements, _gDryfieldMotelRoom6Variant1Resources },
-    { gMapDryfieldMotelRoom6Variant2Placements, _gDryfieldMotelRoom6Variant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldMotelRoom6AreaVariants[12] = {
+    [1] = { .placements = gMapDryfieldMotelRoom6Variant1Placements, .resources = _gDryfieldMotelRoom6Variant1Resources },
+    [2] = { .placements = gMapDryfieldMotelRoom6Variant2Placements, .resources = _gDryfieldMotelRoom6Variant2Resources },
 };
 
 /// Cue-2 bases in this room's loaded type-1 sound bank; cue 1 adds one.

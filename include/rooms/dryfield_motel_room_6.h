@@ -19,7 +19,15 @@
 /// the descriptor; its callbacks and borrowed geometry must remain loaded.
 extern TaskDesc gDryfieldMotelRoom6ReflectionTaskDescs[2];
 
-extern AreaVariant D_dryfield_motel_room_6_80186764[12];
+/// Dryfield motel room 6 placement/resource directory indexed by `GameLocationKey.variant` 0..11.
+///
+/// Slots 1, 2 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldMotelRoom6AreaVariants[12];
 
 /// Collision resources for daytime motel room 6's single room.
 ///

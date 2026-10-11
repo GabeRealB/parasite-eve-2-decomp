@@ -1429,20 +1429,9 @@ static AreaResource _gDryfieldNightMotelRoom3Variant2Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_motel_room_3_80180D24[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullMotelRoom3Variant1Placements, _gDryfieldNightMotelRoom3Variant1Resources },
-    { gMapDryfieldFullMotelRoom3Variant2Placements, _gDryfieldNightMotelRoom3Variant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldNightMotelRoom3AreaVariants[13] = {
+    [1] = { .placements = gMapDryfieldFullMotelRoom3Variant1Placements, .resources = _gDryfieldNightMotelRoom3Variant1Resources },
+    [2] = { .placements = gMapDryfieldFullMotelRoom3Variant2Placements, .resources = _gDryfieldNightMotelRoom3Variant2Resources },
 };
 
 // Type-1 requests select entries in the loaded sound bank; these are cue-2 bases.

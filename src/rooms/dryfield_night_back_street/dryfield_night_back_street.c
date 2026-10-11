@@ -459,29 +459,12 @@ static AreaResource _gDryfieldNightBackStreetVariant21Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_back_street_80181518[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullBackStreetVariant1Placements, _gDryfieldNightBackStreetVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullBackStreetVariant3Placements, _gDryfieldNightBackStreetVariant3Resources },
-    { gMapDryfieldFullBackStreetVariant4Placements, _gDryfieldNightBackStreetVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullBackStreetVariant7Placements, _gDryfieldNightBackStreetVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullBackStreetVariant21Placements, _gDryfieldNightBackStreetVariant21Resources },
+AreaVariant gDryfieldNightBackStreetAreaVariants[22] = {
+    [1]  = { .placements = gMapDryfieldFullBackStreetVariant1Placements, .resources = _gDryfieldNightBackStreetVariant1Resources },
+    [3]  = { .placements = gMapDryfieldFullBackStreetVariant3Placements, .resources = _gDryfieldNightBackStreetVariant3Resources },
+    [4]  = { .placements = gMapDryfieldFullBackStreetVariant4Placements, .resources = _gDryfieldNightBackStreetVariant4Resources },
+    [7]  = { .placements = gMapDryfieldFullBackStreetVariant7Placements, .resources = _gDryfieldNightBackStreetVariant7Resources },
+    [21] = { .placements = gMapDryfieldFullBackStreetVariant21Placements, .resources = _gDryfieldNightBackStreetVariant21Resources },
 };
 
 /// Minimum ambient RGB levels for the night back street's five views.

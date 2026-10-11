@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
+/// Dryfield night dilapidated house placement/resource directory indexed by `GameLocationKey.variant` 0..21.
+///
+/// Slots 3, 4, 21 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldNightDilapidatedHouseAreaVariants[22];
 
 /// Light collection and minimum ambient colours for the house's single room.
 ///

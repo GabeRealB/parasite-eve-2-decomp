@@ -11,7 +11,16 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_main_street_80184F20[13];
+/// Dryfield main street placement/resource directory indexed by `GameLocationKey.variant` 0..12.
+///
+/// Slots 1, 2, 3, 7, 10 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Variant 10 owns its placements in this room; other placements belong to the
+/// stage map. All resource recipes belong to this room. Keep each storage owner
+/// and the actors supplying task descriptors loaded during loading, spawning
+/// and model-flag updates. Lookups require an index within this array; there is
+/// no terminator or bounds check.
+extern AreaVariant gDryfieldMainStreetAreaVariants[13];
 
 /// Collision resources for Main Street's single room, indexed by room ID minus one.
 ///

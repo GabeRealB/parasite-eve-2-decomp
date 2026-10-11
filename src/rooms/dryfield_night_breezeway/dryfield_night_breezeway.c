@@ -702,29 +702,10 @@ static AreaResource _gDryfieldNightBreezewayVariant21Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_breezeway_801803E4[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullBreezewayVariant1Placements, _gDryfieldNightBreezewayVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullBreezewayVariant3Placements, _gDryfieldNightBreezewayVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullBreezewayVariant21Placements, _gDryfieldNightBreezewayVariant21Resources },
+AreaVariant gDryfieldNightBreezewayAreaVariants[22] = {
+    [1]  = { .placements = gMapDryfieldFullBreezewayVariant1Placements, .resources = _gDryfieldNightBreezewayVariant1Resources },
+    [3]  = { .placements = gMapDryfieldFullBreezewayVariant3Placements, .resources = _gDryfieldNightBreezewayVariant3Resources },
+    [21] = { .placements = gMapDryfieldFullBreezewayVariant21Placements, .resources = _gDryfieldNightBreezewayVariant21Resources },
 };
 
 /// Class 2's paired footstep cues in the loaded type-1 sound-script bank.

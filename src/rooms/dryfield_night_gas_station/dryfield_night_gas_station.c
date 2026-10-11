@@ -2928,19 +2928,12 @@ static AreaResource _gDryfieldNightGasStationVariant11Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_gas_station_80190624[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullGasStationVariant1Placements, _gDryfieldNightGasStationVariant1Resources },
-    { gMapDryfieldFullGasStationVariant2Placements, _gDryfieldNightGasStationVariant2Resources },
-    { gMapDryfieldFullGasStationVariant3Placements, _gDryfieldNightGasStationVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullGasStationVariant7Placements, _gDryfieldNightGasStationVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullGasStationVariant11Placements, _gDryfieldNightGasStationVariant11Resources },
+AreaVariant gDryfieldNightGasStationAreaVariants[12] = {
+    [1]  = { .placements = gMapDryfieldFullGasStationVariant1Placements, .resources = _gDryfieldNightGasStationVariant1Resources },
+    [2]  = { .placements = gMapDryfieldFullGasStationVariant2Placements, .resources = _gDryfieldNightGasStationVariant2Resources },
+    [3]  = { .placements = gMapDryfieldFullGasStationVariant3Placements, .resources = _gDryfieldNightGasStationVariant3Resources },
+    [7]  = { .placements = gMapDryfieldFullGasStationVariant7Placements, .resources = _gDryfieldNightGasStationVariant7Resources },
+    [11] = { .placements = gMapDryfieldFullGasStationVariant11Placements, .resources = _gDryfieldNightGasStationVariant11Resources },
 };
 
 /// Ambient minima for logical views 1..21, shared by all four room variants.

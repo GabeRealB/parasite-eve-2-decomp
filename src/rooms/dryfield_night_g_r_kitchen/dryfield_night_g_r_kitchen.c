@@ -325,19 +325,10 @@ static AreaResource _gDryfieldNightGRKitchenVariant11Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_g_r_kitchen_8017EB88[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullGRKitchenVariant1Placements, _gDryfieldNightGRKitchenVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullGRKitchenVariant3Placements, _gDryfieldNightGRKitchenVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullGRKitchenVariant11Placements, _gDryfieldNightGRKitchenVariant11Resources },
+AreaVariant gDryfieldNightGRKitchenAreaVariants[12] = {
+    [1]  = { .placements = gMapDryfieldFullGRKitchenVariant1Placements, .resources = _gDryfieldNightGRKitchenVariant1Resources },
+    [3]  = { .placements = gMapDryfieldFullGRKitchenVariant3Placements, .resources = _gDryfieldNightGRKitchenVariant3Resources },
+    [11] = { .placements = gMapDryfieldFullGRKitchenVariant11Placements, .resources = _gDryfieldNightGRKitchenVariant11Resources },
 };
 
 /// Class-1 floor footstep bases in the loaded type-1 bank; jumps share the walking pair.

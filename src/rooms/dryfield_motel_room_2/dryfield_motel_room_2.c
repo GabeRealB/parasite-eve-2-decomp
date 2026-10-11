@@ -1051,19 +1051,10 @@ static AreaResource _gDryfieldMotelRoom2Variant7Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_motel_room_2_80180410[12] = {
-    { NULL, NULL },
-    { gMapDryfieldMotelRoom2Variant1Placements, _gDryfieldMotelRoom2Variant1Resources },
-    { gMapDryfieldMotelRoom2Variant2Placements, _gDryfieldMotelRoom2Variant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldMotelRoom2Variant7Placements, _gDryfieldMotelRoom2Variant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldMotelRoom2AreaVariants[12] = {
+    [1] = { .placements = gMapDryfieldMotelRoom2Variant1Placements, .resources = _gDryfieldMotelRoom2Variant1Resources },
+    [2] = { .placements = gMapDryfieldMotelRoom2Variant2Placements, .resources = _gDryfieldMotelRoom2Variant2Resources },
+    [7] = { .placements = gMapDryfieldMotelRoom2Variant7Placements, .resources = _gDryfieldMotelRoom2Variant7Resources },
 };
 
 /// Cue-2 bases in the currently loaded type-1 sound bank; cue 1 uses base + 1.

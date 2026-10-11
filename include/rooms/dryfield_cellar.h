@@ -11,10 +11,22 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_cellar_80180ACC[12];
+/// Dryfield cellar placement/resource directory indexed by `GameLocationKey.variant` 0..11.
+///
+/// Slot 1 publishes paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldCellarAreaVariants[12];
 
-// dryfield_cellar
-extern WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[];
+/// Collision resources for cellar room selectors 1 and 2, indexed by room minus one.
+///
+/// Both rooms borrow the same grid, six directed view boundaries and one sight
+/// occluder. Each supplies its own ten action triggers. Setup mutates resource
+/// links and trigger coordinates; keep the room overlay loaded until unlinked.
+extern WorldCollisionRoomResources gDryfieldCellarRoomCollisionResources[2];
 
 /// Logical-view maps for cellar rooms 1 and 2, indexed by room minus one.
 ///
@@ -24,7 +36,12 @@ extern WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[];
 /// overlay loaded while borrowing these maps.
 extern u8* gDryfieldCellarRoomViewMaps[2];
 
-extern ViewCount D_dryfield_cellar_8017DC0C[];
+/// Logical-view reverse-search lengths for cellar rooms 1 and 2: 11 and 6.
+///
+/// Indexed by room minus one. These signed halfword element counts limit each
+/// room's view-map search; they do not describe map capacity or mapped resource
+/// extent. There is no terminator. Borrow while the room overlay is loaded.
+extern ViewCount gDryfieldCellarRoomViewCounts[2];
 
 /// Lighting for cellar rooms 1 and 2, indexed by room minus one.
 ///
@@ -33,7 +50,14 @@ extern ViewCount D_dryfield_cellar_8017DC0C[];
 /// Light arrays remain writable and valid only while the room overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldCellarRoomLighting[2];
 
-extern DirectionWarpEntry D_dryfield_cellar_8017DC20[];
+/// The cellar's underpass arrival/departure endpoint, indexed by warp ID minus one.
+///
+/// Only warp ID 1 exists. Both actors arrive at world (5611, 3, 3945), facing
+/// yaw 2048 (4096 units per turn), with initial logical view 2. Arrival and
+/// departure request cellar-bank sounds; a blocked departure is silent. The
+/// endpoint updates the cellar/underpass map marker. There is no terminator;
+/// borrow the record only while this room overlay is loaded.
+extern DirectionWarpEntry gDryfieldCellarWarpEntries[1];
 
 /// Eleven cameras shared by the cellar's two room slots.
 ///

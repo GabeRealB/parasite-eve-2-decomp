@@ -4005,20 +4005,11 @@ static AreaResource _gDryfieldNightMotelBalconyVariant11Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_motel_balcony_8018EA94[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullMotelBalconyVariant1Placements, _gDryfieldNightMotelBalconyVariant1Resources },
-    { gMapDryfieldFullMotelBalconyVariant2Placements, _gDryfieldNightMotelBalconyVariant2Resources },
-    { gMapDryfieldFullMotelBalconyVariant3Placements, _gDryfieldNightMotelBalconyVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullMotelBalconyVariant11Placements, _gDryfieldNightMotelBalconyVariant11Resources },
-    { NULL, NULL },
+AreaVariant gDryfieldNightMotelBalconyAreaVariants[13] = {
+    [1]  = { .placements = gMapDryfieldFullMotelBalconyVariant1Placements, .resources = _gDryfieldNightMotelBalconyVariant1Resources },
+    [2]  = { .placements = gMapDryfieldFullMotelBalconyVariant2Placements, .resources = _gDryfieldNightMotelBalconyVariant2Resources },
+    [3]  = { .placements = gMapDryfieldFullMotelBalconyVariant3Placements, .resources = _gDryfieldNightMotelBalconyVariant3Resources },
+    [11] = { .placements = gMapDryfieldFullMotelBalconyVariant11Placements, .resources = _gDryfieldNightMotelBalconyVariant11Resources },
 };
 
 /// Interaction and exit triggers for balcony room 1.

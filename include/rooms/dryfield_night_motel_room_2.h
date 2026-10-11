@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_motel_room_2_801809A0[22];
+/// Dryfield night motel room 2 placement/resource directory indexed by `GameLocationKey.variant` 0..21.
+///
+/// Slots 2, 3, 21 publish paired tables; all other slots are absent (NULL, NULL).
+/// This placement selector is independent of the room and logical-view selectors.
+/// Placements belong to the stage map; resource recipes belong to this room.
+/// Keep both overlays and the actors supplying task descriptors loaded during
+/// loading, spawning and model-flag updates. Lookups require an index within
+/// this array; there is no terminator or bounds check.
+extern AreaVariant gDryfieldNightMotelRoom2AreaVariants[22];
 
 /// Number of identity-mapped logical views and camera/sprite slots in night motel room 2.
 enum { DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_COUNT = 6 };

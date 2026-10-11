@@ -311,20 +311,9 @@ static AreaResource _gDryfieldGRKitchenVariant2Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
-    { NULL, NULL },
-    { gMapDryfieldGRKitchenVariant1Placements, _gDryfieldGRKitchenVariant1Resources },
-    { gMapDryfieldGRKitchenVariant2Placements, _gDryfieldGRKitchenVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldGRKitchenAreaVariants[13] = {
+    [1] = { .placements = gMapDryfieldGRKitchenVariant1Placements, .resources = _gDryfieldGRKitchenVariant1Resources },
+    [2] = { .placements = gMapDryfieldGRKitchenVariant2Placements, .resources = _gDryfieldGRKitchenVariant2Resources },
 };
 
 /// Cue-2 bases in the loaded type-1 footstep bank; cue 1 uses the next entry.

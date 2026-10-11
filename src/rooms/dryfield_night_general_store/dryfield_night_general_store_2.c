@@ -1646,29 +1646,11 @@ static AreaResource _gDryfieldNightGeneralStoreVariant21Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_general_store_8018572C[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullGeneralStoreVariant1Placements, _gDryfieldNightGeneralStoreVariant1Resources },
-    { gMapDryfieldFullGeneralStoreVariant2Placements, _gDryfieldNightGeneralStoreVariant2Resources },
-    { gMapDryfieldFullGeneralStoreVariant3Placements, _gDryfieldNightGeneralStoreVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullGeneralStoreVariant21Placements, _gDryfieldNightGeneralStoreVariant21Resources },
+AreaVariant gDryfieldNightGeneralStoreAreaVariants[22] = {
+    [1]  = { .placements = gMapDryfieldFullGeneralStoreVariant1Placements, .resources = _gDryfieldNightGeneralStoreVariant1Resources },
+    [2]  = { .placements = gMapDryfieldFullGeneralStoreVariant2Placements, .resources = _gDryfieldNightGeneralStoreVariant2Resources },
+    [3]  = { .placements = gMapDryfieldFullGeneralStoreVariant3Placements, .resources = _gDryfieldNightGeneralStoreVariant3Resources },
+    [21] = { .placements = gMapDryfieldFullGeneralStoreVariant21Placements, .resources = _gDryfieldNightGeneralStoreVariant21Resources },
 };
 
 /// Minimum model ambient colours for logical views 1..16, following a count header.

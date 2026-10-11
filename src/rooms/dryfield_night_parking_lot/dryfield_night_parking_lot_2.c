@@ -689,29 +689,12 @@ static AreaResource _gDryfieldNightParkingLotVariant21Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_parking_lot_80181438[22] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullParkingLotVariant2Placements, _gDryfieldNightParkingLotVariant2Resources },
-    { gMapDryfieldFullParkingLotVariant3Placements, _gDryfieldNightParkingLotVariant3Resources },
-    { gMapDryfieldFullParkingLotVariant4Placements, _gDryfieldNightParkingLotVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullParkingLotVariant7Placements, _gDryfieldNightParkingLotVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullParkingLotVariant21Placements, _gDryfieldNightParkingLotVariant21Resources },
+AreaVariant gDryfieldNightParkingLotAreaVariants[22] = {
+    [2]  = { .placements = gMapDryfieldFullParkingLotVariant2Placements, .resources = _gDryfieldNightParkingLotVariant2Resources },
+    [3]  = { .placements = gMapDryfieldFullParkingLotVariant3Placements, .resources = _gDryfieldNightParkingLotVariant3Resources },
+    [4]  = { .placements = gMapDryfieldFullParkingLotVariant4Placements, .resources = _gDryfieldNightParkingLotVariant4Resources },
+    [7]  = { .placements = gMapDryfieldFullParkingLotVariant7Placements, .resources = _gDryfieldNightParkingLotVariant7Resources },
+    [21] = { .placements = gMapDryfieldFullParkingLotVariant21Placements, .resources = _gDryfieldNightParkingLotVariant21Resources },
 };
 
 /// Cue-2 script bases in the loaded type-1 bank; cue 1 selects base + 1.
