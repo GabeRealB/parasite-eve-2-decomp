@@ -298,7 +298,7 @@ gNeoArkSubmarineGalleryViewBoundaryTriggers = 0x8018529C; // absolute:True owner
 gNeoArkSubmarineGalleryActionTriggers = 0x801854FC; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGallerySurfacePropertiesByClass = 0x801858EC; // absolute:True owner=neo_ark_submarine_gallery
 neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
-gNeoArkR31ViewMaps = 0x8017DA1C; // absolute:True owner=neo_ark_r31 shared=rooms
+gNeoArkR31ViewMaps = 0x8017DA1C; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DA20 = 0x8017DA20; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DA24 = 0x8017DA24; // absolute:True owner=neo_ark_r31
 gNeoArkR31ViewCameras = 0x8017DA5C; // absolute:True owner=neo_ark_r31 shared=rooms

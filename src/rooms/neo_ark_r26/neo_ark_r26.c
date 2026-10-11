@@ -12,11 +12,14 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
+#include "gameplay/captions.h"
 #include "gameplay/direction.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
@@ -35,15 +38,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// Cutscene script blob argument of `evsStartScriptWithSkip`.
-extern EvsCommand D_neo_ark_r26_8017DA74[];
-
-/// Cutscene script blob argument of `evsStartScriptWithSkip`.
-extern EvsCommand D_neo_ark_r26_8017DFCC[];
-
-/// Room message handler table installed into `Task::msgTable`.
-extern TaskMessageEntry D_neo_ark_r26_8017E0A4[];
-
 /// Key-item request and refusal result used by this room's message handler.
 enum {
     NEO_ARK_R26_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -60,13 +54,8 @@ static WorldCollisionGrid         _gNeoArkR26FloorCollisionGrid;
 static WorldCoordRoomAmbientEntry _gNeoArkR26ViewAmbient[5];
 static WorldCoordRoomLights       _gNeoArkR26RoomLights;
 
-extern AnimationPlayRequest D_neo_ark_r26_8017D7D8;
-extern AnimationPlayRequest D_neo_ark_r26_8017D864;
-extern AnimationPlayRequest D_neo_ark_r26_8017D904;
-extern AnimationPlayRequest D_neo_ark_r26_8017D918;
-extern AnimationPlayRequest D_neo_ark_r26_8017D9CC;
-static void                 _neoArkR26ReturnToShelterTent(void);
-static void                 _neoArkR26InitializeRoom(Task* task);
+static void _neoArkR26ReturnToShelterTent(void);
+static void _neoArkR26InitializeRoom(Task* task);
 
 /// Replay scene whose entry script and departure callback are suppressed.
 enum { NEO_ARK_R26_ATTRACT_DEMO = 9 };
@@ -79,6 +68,17 @@ enum {
     NEO_ARK_R26_FIRST_WALKER_RESOURCE    = 111,
     NEO_ARK_R26_SECOND_WALKER_RESOURCE   = 112,
     NEO_ARK_R26_VIEW2_MAIN_SPRITE_COUNT  = 54,
+};
+
+/// Entry-scene CAP command, actor and weapon selectors, draw flags and fade tag.
+enum {
+    NEO_ARK_R26_ENTRY_CAP_COMMAND = 1,
+    NEO_ARK_R26_FIRST_WALKER      = 0,
+    NEO_ARK_R26_SECOND_WALKER     = 1,
+    NEO_ARK_R26_WALKER_HIDE       = 0,
+    NEO_ARK_R26_WALKER_SHOW       = 1,
+    NEO_ARK_R26_FADE_OT_TAG       = 5,
+    NEO_ARK_R26_PLAYER_WEAPONS    = 0,
 };
 
 /// Restarts the player's entry clip in the equipped weapon bank, without grid response.
@@ -94,7 +94,14 @@ static const AnimationPlayRequest _gNeoArkR26PlayerEntryAnimation SECTION(".data
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-ActorCommand D_neo_ark_r26_8017D794 = { { .loc = { 4, 36 } }, 0 };
+/// Unreferenced record shaped as command zero with Shelter R36 context tags.
+///
+/// Its receiver and action are unproven; command zero has different meanings
+/// for the two scripted walkers.
+static ActorCommand D_neo_ark_r26_8017D794 = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36 } },
+    .command = 0,
+};
 
 /// Shows attachment 1 and hides attachment 2 of the second scripted walker.
 ///
@@ -105,7 +112,10 @@ static ActorCommand _gNeoArkR26ShowWalkerAttachment1Command = {
     NEO_ARK_R26_WALKER_SHOW_ATTACHMENT1,
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D79C[2] = {
+/// Unreferenced records shaped as clips 1/2 with ten-frame interpolation requests.
+///
+/// The receiver, purpose and whether these form an indexed array are unproven.
+static AnimationPlayRequest D_neo_ark_r26_8017D79C[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
@@ -122,9 +132,22 @@ static AnimationPlayRequest _gNeoArkR26SecondWalkerEntryAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D7D8 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the second scripted walker's clip 4 at four entry-scene cues.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26SecondWalkerClip4Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017D7EC[6] = {
+/// Unreferenced records shaped as reset requests for clips 5/6/7/8/1/1.
+///
+/// The receiver, purpose and whether these form an indexed array are unproven.
+static AnimationPlayRequest D_neo_ark_r26_8017D7EC[6] = {
     { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -133,9 +156,22 @@ AnimationPlayRequest D_neo_ark_r26_8017D7EC[6] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D864 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scripted walker's clip 9 as the entry fade returns.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip9Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017D878[7] = {
+/// Unreferenced records shaped as reset requests for clips 10 through 16.
+///
+/// The receiver, purpose and whether these form an indexed array are unproven.
+static AnimationPlayRequest D_neo_ark_r26_8017D878[7] = {
     { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -145,11 +181,34 @@ AnimationPlayRequest D_neo_ark_r26_8017D878[7] = {
     { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D904 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the second scripted walker's clip 9 at two entry-scene cues.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26SecondWalkerClip9Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017D918 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the second scripted walker's clip 10 during the entry scene.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26SecondWalkerClip10Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017D92C[8] = {
+/// Unreferenced block shaped as eight identical clip-1 reset requests.
+///
+/// The receiver, purpose and whether these form an indexed array are unproven.
+static AnimationPlayRequest D_neo_ark_r26_8017D92C[8] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -160,96 +219,176 @@ AnimationPlayRequest D_neo_ark_r26_8017D92C[8] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_neo_ark_r26_8017D9CC = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scripted walker's final entry-scene clip, number 5.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip5Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 5,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_neo_ark_r26_8017D9E0 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced record shaped as a clip-6 reset request; receiver and purpose unproven.
+static AnimationPlayRequest D_neo_ark_r26_8017D9E0 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_neo_ark_r26_8017D9F4 = { { .index = 1 }, 7, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the first scripted walker into entry-scene clip 7 over eight normal-rate frames.
+///
+/// Borrowed through synchronous dispatch. The receiver latches blendFrames
+/// as a signed halfword; bank selector and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip7Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 7,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017DA08 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scripted walker's clip 8 during the entry scene.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip8Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 8,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017DA1C = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scripted walker's clip 17 during the entry scene.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip17Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 17,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_neo_ark_r26_8017DA30 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scripted walker's clip 18 during the entry scene.
+///
+/// Borrowed through synchronous dispatch. The receiver uses animationId and
+/// blend; bank selector, reset duration and grid participation are ignored.
+static AnimationPlayRequest _gNeoArkR26FirstWalkerClip18Animation = {
+    .source               = { .index = 1 },
+    .animationId          = 18,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_neo_ark_r26_8017DA44 = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
+/// Places the player at (3270,-10000,-1630) with zero Euler rotation for scene entry.
+///
+/// XYZ uses whole units in the model root's parent frame; angles use 4096 units
+/// per turn. The receiver reads the complete pose synchronously and retains no pointer.
+static ActorTransform _gNeoArkR26PlayerEntryTransform = {
+    .pos = { 3270, -10000, -1630, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-ActorTransform D_neo_ark_r26_8017DA5C = { { 0, 0, 850, 0 }, { 0, 0, 0, 0 } };
+/// Places the second scripted walker at (0,0,850) facing zero for scene entry.
+///
+/// XYZ uses whole units in the model root's parent frame; yaw uses 4096 units
+/// per turn. The receiver reads XYZ and yaw synchronously and retains no pointer.
+static ActorTransform _gNeoArkR26SecondWalkerEntryTransform = {
+    .pos = { 0, 0, 850, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-EvsCommand D_neo_ark_r26_8017DA74[57] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Runs the room-entry dialogue, two walkers' cue-driven clips and return to Shelter Tent.
+///
+/// Borrows the room, CAP and actor resources until playback ends. The paired
+/// skip script may take over until input skipping is disabled immediately after
+/// the departure request.
+static EvsCommand _gNeoArkR26EntryScript[57] = {
+    // Prepare CAP playback, scripted player control and the second walker.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = NEO_ARK_R26_ENTRY_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = NEO_ARK_R26_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 1 }, { .value = NEO_ARK_R26_FADE_OT_TAG }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkR26PlayerEntryAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_r26_8017DA44 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkR26ShowWalkerAttachment1Command } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_neo_ark_r26_8017DA5C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerEntryAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkR26PlayerEntryTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkR26ShowWalkerAttachment1Command } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkR26SecondWalkerEntryTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = NEO_ARK_R26_WALKER_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerEntryAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Reveal the scene and advance the walkers in step with CAP cues.
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D864 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip9Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D904 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip9Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017DA1C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D904 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017DA30 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D7D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip17Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D918 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip9Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip18Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip4Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D7D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D9F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip10Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017DA08 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D7D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip4Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip7Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D7D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip8Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip4Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_neo_ark_r26_8017D9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerClip4Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip5Animation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Hide the second walker, fade out and reload the tent.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = NEO_ARK_R26_WALKER_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 60 }, { .value = NEO_ARK_R26_FADE_OT_TAG }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkR26ReturnToShelterTent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_neo_ark_r26_8017DFCC[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Fades out and cleans up a skipped entry scene before returning to Shelter Tent.
+///
+/// Paired with `_gNeoArkR26EntryScript`; borrows this room's resources through
+/// playback. The final player message requests release of scripted control.
+static EvsCommand _gNeoArkR26SkipEntryScript[9] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkR26ReturnToShelterTent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
+/// Room-controller messages for transitions, key-item refusal and ignored room actions.
+///
+/// Borrowed by the room task until teardown. The four synchronous callbacks
+/// receive ID-specific payloads; the final sentinel returns zero for other IDs.
+static TaskMessageEntry _gNeoArkR26RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkR26ResolveRoomVariant },
     { NEO_ARK_R26_MESSAGE_USE_KEY_ITEM, _neoArkR26RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR26IgnoreRoomActionMessage },
@@ -641,10 +780,10 @@ static s32 _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessage
 /// Requires the event-script and room resources to remain loaded during playback.
 static void _neoArkR26InitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_r26_8017E0A4;
+    task->msgTable = _gNeoArkR26RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != NEO_ARK_R26_ATTRACT_DEMO) {
-        evsStartScriptWithSkip(D_neo_ark_r26_8017DA74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_r26_8017DFCC);
+        evsStartScriptWithSkip(_gNeoArkR26EntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gNeoArkR26SkipEntryScript);
     }
     task->state = task->state + 1;
 }
@@ -659,9 +798,11 @@ static void _neoArkR26RoomIdleState(Task* unusedTask)
     char unusedStackFrame[0x10];
 }
 
-/// State handlers of the room task `neoArkR26RoomTask`, indexed by
-/// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
+/// Room-controller states: initialize (0), message-only idle (1) and teardown (2).
+///
+/// Copied by value for dispatch; `Task::state` must be in 0..2. Teardown may
+/// release the task, and dispatch makes no further access afterwards.
+static const TaskFuncTable3 _gNeoArkR26RoomStateHandlers = {
     {
         _neoArkR26InitializeRoom,
         _neoArkR26RoomIdleState,
@@ -673,7 +814,7 @@ void neoArkR26RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_r26_8017D5C4;
+    stateHandlers = _gNeoArkR26RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
