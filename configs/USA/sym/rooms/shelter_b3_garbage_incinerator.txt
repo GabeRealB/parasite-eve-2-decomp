@@ -2,7 +2,7 @@
 D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // size:0x2 defined:True
 CapCaption_Data_8015E66A = 0x8018FC5A; // type:u16 size:0x2 defined:True
 D_shelter_b3_garbage_incinerator_801855D8 = 0x801855D8; // size:0x4 defined:True
-D_shelter_b3_garbage_incinerator_801855DC = 0x801855DC; // size:0x2 defined:True
+_gShelterB3GarbageIncineratorSwitchNoticeTicks = 0x801855DC; // size:0x2 defined:True
 _gCapCaptionSceneClockSchedule = 0x801871A8; // size:0xD0 defined:True
 _gCapCaptionCaretPulseLevel = 0x80187278; // size:0x4 defined:True
 _gShelterB3GarbageIncineratorLightPoints = 0x80187544; // size:0x278 defined:True
@@ -169,7 +169,7 @@ D_shelter_b3_garbage_incinerator_80185B40 = 0x80185B40; // size:0x18 defined:Tru
 D_shelter_b3_garbage_incinerator_80185B58 = 0x80185B58; // size:0x30 defined:True
 D_shelter_b3_garbage_incinerator_80185B88 = 0x80185B88; // size:0x18 defined:True
 D_shelter_b3_garbage_incinerator_80185BA0 = 0x80185BA0; // size:0xC defined:True
-D_shelter_b3_garbage_incinerator_80185BAC = 0x80185BAC; // size:0x18 defined:True
+_gShelterB3GarbageIncineratorBlazeHeatHazeTaskDescs = 0x80185BAC; // size:0x18 defined:True
 _gScreenWaveAmplitude = 0x80185BC4; // size:0x4 defined:True
 _gShelterB3GarbageIncineratorAnimation088E4Bank1 = 0x80185BC8; // size:0x48 defined:True
 _gShelterB3GarbageIncineratorAnimation088E4Bank4 = 0x80185C10; // size:0xB8 defined:True

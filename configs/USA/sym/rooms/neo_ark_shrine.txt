@@ -115,9 +115,9 @@ _gNeoArkShrineModel04C6CPartVerts = 0x80182198; // size:0x4 defined:True
 _gNeoArkShrineModel04C6CVerts = 0x8018219C; // size:0x90 defined:True
 _gNeoArkShrineModel04C6CStream = 0x8018222C; // size:0x1B4 defined:True
 _gNeoArkShrineModel04C6C = 0x801823E0; // size:0x24 defined:True
-D_neo_ark_shrine_80182404 = 0x80182404; // size:0xC defined:True
+gNeoArkShrinePuzzleCursorTaskDescs = 0x80182404; // size:0xC defined:True
 D_neo_ark_shrine_80182410 = 0x80182410; // size:0x20 defined:True
-D_neo_ark_shrine_80182430 = 0x80182430; // size:0xD8 defined:True
+gNeoArkShrinePuzzleHotspots = 0x80182430; // size:0xD8 defined:True
 D_neo_ark_shrine_80182508 = 0x80182508; // size:0x24 defined:True
 
 neoArkShrineFlareTask = 0x8017F8DC; // type:func

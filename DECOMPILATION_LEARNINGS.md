@@ -95043,9 +95043,9 @@ s32 func_<room>_<addr>(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* d
     func_80179A04(src, dst);          /* or mapNeoArkResolveRoomVariant */
     if (src->areaId == <area>) {        /* the area id, an immediate */
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_<room>_<addr2>.warp = (u8)dst->areaId; /* saved-location byte order */
-            D_<room>_<addr2>.field_4 = dst->warp;
-            ((u8*)&D_<room>_<addr2>.areaId)[1] = dst->room;
+            D_<room>_<addr2>.loc.area = (u8)dst->areaId; /* saved-location byte order */
+            D_<room>_<addr2>.loc.warp = dst->warp;
+            D_<room>_<addr2>.loc.room = dst->room;
             taskSpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
         }
         return 0;                     /* or 1 / 2, and optional playerActorSetScriptedControl(0) */
@@ -95064,7 +95064,7 @@ handler textually unique even though the body is identical.
 with operands dropped (`fields` compares load/store displacements, `shape` the
 opcode order). A `fields` score of 1.00 on a room handler means: read that
 sibling's C and transplant it, changing only the message constant, the latched
-`RoomEventMsg` and the spawned `TaskDesc` — and check the *return value*, which
+`GameLoc` and the spawned `TaskDesc` — and check the *return value*, which
 varies (island returns 0 for its message, `shelter_1f_bulwark` 2 for one branch,
 the observatory's event handler always 1) independently of the rest.
 
@@ -119528,7 +119528,7 @@ case 3's walk:  sw, addiu, [D = NULL store differs]         -> label at the addi
 ```
 
 Case 0's walk is long because nothing separates its `lw` from the addiu; case
-3's stops one insn earlier because its `D_mine_refuge_80182AD8 = NULL;` sits
+3's stops one insn earlier because its `_gMineRefugeCircuitPanelTask = NULL;` sits
 between its load and its `addiu`. So the target is case 0 and case 3 both
 keeping their own `lw`, and only the `[addiu, sw, j]` tail shared.
 

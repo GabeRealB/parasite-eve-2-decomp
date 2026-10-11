@@ -502,21 +502,21 @@ gDryfieldMotelRoom6ReflectionTaskDescs = 0x80182D0C; // absolute:True owner=dryf
 
 gDryfieldNightMotelRoom6ReflectionTaskDescs = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6
 
-D_neo_ark_bridge_80181F18 = 0x80181F18; // absolute:True owner=neo_ark_bridge
+gNeoArkBridgeWaterRefractionTaskDesc = 0x80181F18; // absolute:True owner=neo_ark_bridge
 
 gNeoArkGardenWaterRefractionTaskDesc = 0x80181398; // absolute:True owner=neo_ark_garden
 
-D_neo_ark_island_80181B30 = 0x80181B30; // absolute:True owner=neo_ark_island
+gNeoArkIslandWaterRefractionTaskDesc = 0x80181B30; // absolute:True owner=neo_ark_island
 
 gNeoArkObservatoryReflectionTaskDescs = 0x80180DBC; // absolute:True owner=neo_ark_observatory
 
 gNeoArkPavilionWaterRefractionTaskDesc = 0x8018384C; // absolute:True owner=neo_ark_pavilion
 
-D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // absolute:True owner=neo_ark_r31
+gNeoArkR31FramebufferShiftTaskDesc = 0x8017D9E8; // absolute:True owner=neo_ark_r31
 
 gNeoArkSubmarineGalleryWaterTaskDescriptors = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery
 
-D_neo_ark_submarine_tunnel_801810E4 = 0x801810E4; // absolute:True owner=neo_ark_submarine_tunnel
+gNeoArkSubmarineTunnelWaterRefractionTaskDesc = 0x801810E4; // absolute:True owner=neo_ark_submarine_tunnel
 
 gNeoArkWoodlandPathWaterRefractionTaskDesc = 0x80181638; // absolute:True owner=neo_ark_woodland_path shared=rooms
 

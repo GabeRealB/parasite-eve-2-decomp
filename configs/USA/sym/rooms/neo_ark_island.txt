@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_island.
-D_neo_ark_island_80184008 = 0x80184008; // size:0x8 defined:True
+_gNeoArkIslandGalleryDestination = 0x80184008; // size:0x8 defined:True
 gNeoArkIslandAreaVariants = 0x80183F48; // size:0x68 defined:True
 _gNeoArkIslandSurface3FootstepSounds = 0x80183FB0; // size:0xC defined:True
 _gNeoArkIslandSurface4FootstepSounds = 0x80183FBC; // size:0xC defined:True
@@ -47,16 +47,16 @@ gActor05700RookGolemTasks = 0x801491F8; // absolute:True owner=actor_105700
 gActor01100Tasks = 0x8015F400; // absolute:True owner=actor_204900
 D_neo_ark_island_80181BB4 = 0x80181BB4; // size:0x70 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80181B84; // size:0x10 defined:True
-D_neo_ark_island_80181C24 = 0x80181C24; // size:0x2 defined:True
-D_neo_ark_island_80181C28 = 0x80181C28; // size:0x40 defined:True
-D_neo_ark_island_80181C68 = 0x80181C68; // size:0x40 defined:True
-D_neo_ark_island_80181CA8 = 0x80181CA8; // size:0x40 defined:True
-D_neo_ark_island_80181CE8 = 0x80181CE8; // size:0x10 defined:True
-D_neo_ark_island_80181CF8 = 0x80181CF8; // size:0x38 defined:True
-D_neo_ark_island_80181B30 = 0x80181B30; // size:0xC defined:True
-D_neo_ark_island_80181B3C = 0x80181B3C; // size:0xC defined:True
-D_neo_ark_island_80181B48 = 0x80181B48; // size:0x30 defined:True
-D_neo_ark_island_80181B78 = 0x80181B78; // size:0xC defined:True
+gNeoArkIslandDiverWaterY = 0x80181C24; // size:0x2 defined:True
+_gNeoArkIslandDiverPatrolWaypoints0 = 0x80181C28; // size:0x40 defined:True
+_gNeoArkIslandDiverPatrolWaypoints1 = 0x80181C68; // size:0x40 defined:True
+_gNeoArkIslandDiverPatrolWaypoints2 = 0x80181CA8; // size:0x40 defined:True
+gNeoArkIslandDiverPatrolRings = 0x80181CE8; // size:0x10 defined:True
+gNeoArkIslandDiverSurfaceSpots = 0x80181CF8; // size:0x38 defined:True
+gNeoArkIslandWaterRefractionTaskDesc = 0x80181B30; // size:0xC defined:True
+_gNeoArkIslandUnusedWaterDistortionTaskDesc = 0x80181B3C; // size:0xC defined:True
+gNeoArkIslandRoomMessages = 0x80181B48; // size:0x30 defined:True
+gNeoArkIslandGalleryDepartureTaskDesc = 0x80181B78; // size:0xC defined:True
 
 neoArkIslandInstallRoomEffectIdsTask = 0x8017FB2C; // type:func
 
@@ -87,3 +87,4 @@ _neoArkIslandInitializeRoom = 0x8017ea94; // type:func
 neoArkIslandRoomTask = 0x8017eb10; // type:func
 neoArkIslandGalleryDepartureTask = 0x8017e844; // type:func
 neoArkIslandResolveRoomTransition = 0x8017e968; // type:func
+_gNeoArkIslandRoomTaskStates = 0x8017d614;

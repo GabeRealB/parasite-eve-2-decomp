@@ -52,3 +52,4 @@ _shelter1fAirlockIdle = 0x8017d670; // type:func
 _shelter1fAirlockResolveRoomTransition = 0x8017d5d8; // type:func
 _shelter1fAirlockInitRoomTask = 0x8017d62c; // type:func
 shelter1fAirlockRoomTask = 0x8017d678; // type:func
+_gShelter1fAirlockRoomTaskStates = 0x8017d5c4;

@@ -18,7 +18,11 @@
 /// its 3..8-pixel ramp. Requires the R31 room overlay to remain loaded.
 extern s32 gNeoArkR31FramebufferShiftPixels;
 
-extern TaskDesc D_neo_ark_r31_8017D9E8;
+/// Bodyless shifted-framebuffer overlay task recipe started on room entry.
+///
+/// One descriptor, priority 192, zero metadata, with no terminator. Spawn at
+/// index 0 with zero arguments; the callback borrows the loaded room overlay.
+extern TaskDesc gNeoArkR31FramebufferShiftTaskDesc;
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { NEO_ARK_R31_AREA_VARIANT_COUNT = 13 };

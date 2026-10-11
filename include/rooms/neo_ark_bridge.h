@@ -38,7 +38,11 @@ extern SVECTOR gNeoArkBridgeDiverSurfaceSpots[9];
 /// room overlay must remain loaded while the Diver configuration is read.
 extern s16 gNeoArkBridgeDiverWaterY;
 
-extern TaskDesc D_neo_ark_bridge_80181F18;
+/// Bodyless water-refraction task recipe started on bridge entry.
+///
+/// One descriptor, priority 192, zero metadata, with no terminator. Spawn at
+/// index 0 with zero arguments; the callback borrows the loaded room overlay.
+extern TaskDesc gNeoArkBridgeWaterRefractionTaskDesc;
 
 /// Placement/resource pairs indexed by the bridge's saved placement variant (0..12).
 ///

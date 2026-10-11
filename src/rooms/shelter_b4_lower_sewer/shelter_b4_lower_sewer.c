@@ -158,10 +158,11 @@ static void _shelterB4LowerSewerIdleRoom(Task* task)
 {
 }
 
-/// State handlers of the room task `shelterB4LowerSewerRoomTask`
-/// runs, which copies the table to the stack and calls the entry for the
-/// task's state: the room's setup, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
+/// Lower-sewer room-controller states: 0 register/conditionally start water, 1 idle, 2 kill.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// The selector must be in 0..2 and the room overlay must remain loaded.
+static const TaskFuncTable3 _gShelterB4LowerSewerRoomTaskStates = {
     { _shelterB4LowerSewerInitializeRoom, _shelterB4LowerSewerIdleRoom, taskKill }
 };
 
@@ -169,7 +170,7 @@ void shelterB4LowerSewerRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b4_lower_sewer_8017D5C4;
+    stateHandlers = _gShelterB4LowerSewerRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

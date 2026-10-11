@@ -48,9 +48,6 @@ typedef struct {
 } NeoArkShrinePuzzleWork;
 STATIC_ASSERT_SIZEOF(NeoArkShrinePuzzleWork, 0x10);
 
-/// Hotspot table of the shrine's cap script, terminated by `ACTION_PROMPT_HOTSPOT_END`.
-extern ActionPromptHotspot D_neo_ark_shrine_80182430[];
-
 extern TaskDesc D_neo_ark_shrine_80182508[];
 
 /// Whether the puzzle has latched its active room layout (0 base, 1 active).
@@ -78,6 +75,18 @@ enum {
     NEO_ARK_SHRINE_PUZZLE_TILE_COUNT = NEO_ARK_SHRINE_PUZZLE_CELL_COUNT,
 };
 
+/// Board cells plus the off-board fallback and hotspot-table terminator.
+enum { NEO_ARK_SHRINE_PUZZLE_HOTSPOT_COUNT = NEO_ARK_SHRINE_PUZZLE_CELL_COUNT + 2 };
+
+/// Sliding-tile puzzle hotspots: sixteen cells, off-board fallback, then terminator.
+///
+/// IDs 0..15 select row-major board cells; ID 16 covers the whole screen and
+/// follows the cells so a board hit takes precedence. Rectangles use centred
+/// screen pixels with inclusive far edges. Every live entry offers Examine
+/// (promptKind 0); hit bytes are cleared at session start and refreshed by hit
+/// testing. The mutable table is borrowed throughout the loaded puzzle session.
+extern ActionPromptHotspot gNeoArkShrinePuzzleHotspots[NEO_ARK_SHRINE_PUZZLE_HOTSPOT_COUNT];
+
 /// Tile number occupying each board cell, in row-major order from the top left.
 ///
 /// After reset this is a permutation of 0..15, with 0 the gap. Slides swap
@@ -94,7 +103,12 @@ extern s16 gNeoArkShrinePuzzleCellTiles[NEO_ARK_SHRINE_PUZZLE_CELL_COUNT];
 /// Requires the room storage loaded throughout the puzzle session.
 extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
-extern TaskDesc D_neo_ark_shrine_80182404[1];
+/// Bodyless sliding-tile puzzle cursor recipe, priority 192 and zero metadata.
+///
+/// Exactly one descriptor, with no terminator. Entry 0 takes spawnArg1 1 for
+/// controller port 0 and a NULL second argument. The puzzle session retains the
+/// separate cursor task for explicit teardown; keep the room overlay loaded.
+extern TaskDesc gNeoArkShrinePuzzleCursorTaskDescs[1];
 
 extern u16 D_neo_ark_shrine_80182410[16];
 

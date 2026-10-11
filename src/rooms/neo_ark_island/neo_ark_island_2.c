@@ -47,11 +47,26 @@
 #define WATER_RIPPLE_CACHED_COORD_TASK neoArkIslandWaterRippleTask
 #include "../../shared/water_effects.h"
 
-TaskDesc D_neo_ark_island_80181B30 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+enum { NEO_ARK_ISLAND_WATER_TASK_PRIORITY             = 192,
+       NEO_ARK_ISLAND_GALLERY_DEPARTURE_TASK_PRIORITY = 32 };
 
-TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+TaskDesc gNeoArkIslandWaterRefractionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_WATER_TASK_PRIORITY } },
+    .callback = waterRefractionTask,
+    .data     = { .value = 0 },
+};
 
-TaskMessageEntry D_neo_ark_island_80181B48[6] = {
+/// Retained unused bodyless water-distortion recipe, priority 192.
+///
+/// One record with zero metadata and no terminator. Nothing spawns it; the
+/// callback's drawing branches select only the submarine tunnel and gallery.
+static TaskDesc _gNeoArkIslandUnusedWaterDistortionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_WATER_TASK_PRIORITY } },
+    .callback = waterDistortBandTask,
+    .data     = { .value = 0 },
+};
+
+TaskMessageEntry gNeoArkIslandRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkIslandResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkIslandRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkIslandIgnoreActionMessage },
@@ -60,7 +75,11 @@ TaskMessageEntry D_neo_ark_island_80181B48[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, neoArkIslandGalleryDepartureTask, { .value = 0 } };
+TaskDesc gNeoArkIslandGalleryDepartureTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_GALLERY_DEPARTURE_TASK_PRIORITY } },
+    .callback = neoArkIslandGalleryDepartureTask,
+    .data     = { .value = 0 },
+};
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

@@ -149,8 +149,14 @@ static TmdSource _gNeoArkShrineModel04C6C = {
     _gNeoArkShrineModel04C6CStream,
 };
 
-TaskDesc D_neo_ark_shrine_80182404[1] = {
-    { { { TASK_BODY_NONE, 192 } }, neoArkShrinePuzzleCursorTask, { .value = 0 } },
+enum { NEO_ARK_SHRINE_PUZZLE_CURSOR_TASK_PRIORITY = 192 };
+
+TaskDesc gNeoArkShrinePuzzleCursorTaskDescs[1] = {
+    {
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SHRINE_PUZZLE_CURSOR_TASK_PRIORITY } },
+        .callback = neoArkShrinePuzzleCursorTask,
+        .data     = { .value = 0 },
+    },
 };
 
 u16 D_neo_ark_shrine_80182410[16] = {
@@ -172,24 +178,26 @@ u16 D_neo_ark_shrine_80182410[16] = {
     0,
 };
 
-ActionPromptHotspot D_neo_ark_shrine_80182430[18] = {
-    { -64, -64, 32, 32, 0, 0, 0 },
-    { -32, -64, 32, 32, 1, 0, 0 },
-    { 0, -64, 32, 32, 2, 0, 0 },
-    { 32, -64, 32, 32, 3, 0, 0 },
-    { -64, -32, 32, 32, 4, 0, 0 },
-    { -32, -32, 32, 32, 5, 0, 0 },
-    { 0, -32, 32, 32, 6, 0, 0 },
-    { 32, -32, 32, 32, 7, 0, 0 },
-    { -64, 0, 32, 32, 8, 0, 0 },
-    { -32, 0, 32, 32, 9, 0, 0 },
-    { 0, 0, 32, 32, 10, 0, 0 },
-    { 32, 0, 32, 32, 11, 0, 0 },
-    { -64, 32, 32, 32, 12, 0, 0 },
-    { -32, 32, 32, 32, 13, 0, 0 },
-    { 0, 32, 32, 32, 14, 0, 0 },
-    { 32, 32, 32, 32, 15, 0, 0 },
-    { -160, -120, 320, 240, NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD, 0, 0 },
+enum { NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE = 0 };
+
+ActionPromptHotspot gNeoArkShrinePuzzleHotspots[NEO_ARK_SHRINE_PUZZLE_HOTSPOT_COUNT] = {
+    { -64, -64, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 0, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -32, -64, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 1, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 0, -64, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 2, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 32, -64, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 3, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -64, -32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 4, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -32, -32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 5, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 0, -32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 6, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 32, -32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 7, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -64, 0, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 8, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -32, 0, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 9, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 0, 0, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 10, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 32, 0, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 11, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -64, 32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 12, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -32, 32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 13, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 0, 32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 14, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { 32, 32, NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE, 15, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
+    { -160, -120, 320, 240, NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD, NEO_ARK_SHRINE_PUZZLE_PROMPT_EXAMINE, false },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -487,7 +495,7 @@ void neoArkShrinePuzzleIdle(Task* task)
            NEO_ARK_SHRINE_PUZZLE_CONFIRM_SLOT = 0,
            NEO_ARK_SHRINE_PUZZLE_CANCEL_SLOT  = 1 };
 
-    ActionPromptHotspot*    hotspot = D_neo_ark_shrine_80182430;
+    ActionPromptHotspot*    hotspot = gNeoArkShrinePuzzleHotspots;
     ActionPrompt*           prompt  = gActionPromptSlots;
     NeoArkShrinePuzzleWork* work    = task->work;
 

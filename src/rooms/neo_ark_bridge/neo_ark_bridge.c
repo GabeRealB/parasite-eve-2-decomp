@@ -43,7 +43,13 @@ static s32  _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const Direc
 static void _neoArkBridgeInitRoomTask(Task* task);
 static void _neoArkBridgeIdleRoomTask(Task* unusedTask);
 
-TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+enum { NEO_ARK_BRIDGE_WATER_REFRACTION_TASK_PRIORITY = 192 };
+
+TaskDesc gNeoArkBridgeWaterRefractionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_BRIDGE_WATER_REFRACTION_TASK_PRIORITY } },
+    .callback = waterRefractionTask,
+    .data     = { .value = 0 },
+};
 
 enum { NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY = 192 };
 
@@ -139,14 +145,16 @@ static void _neoArkBridgeIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the room's entry task, indexed by its state through
-/// `neoArkBridgeRoomTask`: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_bridge_8017D614 = {
+/// Bridge room-controller states: 0 register/start ambience, 1 idle, 2 kill.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// The selector must be in 0..2 and the room overlay must remain loaded.
+static const TaskFuncTable3 _gNeoArkBridgeRoomTaskStates = {
     { _neoArkBridgeInitRoomTask, _neoArkBridgeIdleRoomTask, taskKill }
 };
 
 void neoArkBridgeRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_neo_ark_bridge_8017D614;
+    TaskFuncTable3 stateHandlers = _gNeoArkBridgeRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

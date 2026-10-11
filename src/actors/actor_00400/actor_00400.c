@@ -1353,7 +1353,7 @@ _Actor00400AreaConfig Actor00400_D15F20[12] = {
     { gNeoArkSubmarineGalleryDiverPatrolRings, gNeoArkSubmarineGalleryDiverSurfaceSpots, &gNeoArkSubmarineGalleryDiverWaterY, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { gNeoArkSubmarineTunnelDiverWaypointSets, NULL, &gNeoArkSubmarineTunnelDiverWaterY, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0 },
     { gNeoArkPavilionDiverPatrolRings, gNeoArkPavilionDiverSurfaceSpots, &gNeoArkPavilionDiverWaterY, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0 },
-    { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0 },
+    { gNeoArkIslandDiverPatrolRings, gNeoArkIslandDiverSurfaceSpots, &gNeoArkIslandDiverWaterY, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0 },
     { gShelterB2MainCorridorDiverPatrolWaypointSets, gShelterB2MainCorridorDiverSurfaceSpots, &gShelterB2MainCorridorWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 0 },
     { gShelterB4LowerSewerDiverPatrolRings, gShelterB4LowerSewerDiverSurfaceSpots, &gShelterB4LowerSewerWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { NULL, NULL, NULL, ACTOR_00400_AREA_CONFIG_END, 0, 0 },

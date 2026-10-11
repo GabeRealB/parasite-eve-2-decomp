@@ -73,3 +73,4 @@ _shelterB1ControlRoomAccessTunnelIdle = 0x8017d684; // type:func
 _shelterB1ControlRoomAccessTunnelResolveRoomEvent = 0x8017d5ec; // type:func
 _shelterB1ControlRoomAccessTunnelInitializeRoom = 0x8017d640; // type:func
 shelterB1ControlRoomAccessTunnelRoomTask = 0x8017d68c; // type:func
+_gShelterB1ControlRoomAccessTunnelRoomTaskStates = 0x8017d5c4;

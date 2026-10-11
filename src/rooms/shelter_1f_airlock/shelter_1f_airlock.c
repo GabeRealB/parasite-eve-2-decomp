@@ -558,8 +558,11 @@ static void _shelter1fAirlockIdle(Task* unusedTask)
 {
 }
 
-/// The event task's three states: install the message table, idle, and kill.
-static const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
+/// Airlock room-controller states: 0 register, 1 idle, 2 kill.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// The selector must be in 0..2 and the room overlay must remain loaded.
+static const TaskFuncTable3 _gShelter1fAirlockRoomTaskStates = {
     {
         _shelter1fAirlockInitRoomTask,
         _shelter1fAirlockIdle,
@@ -571,7 +574,7 @@ void shelter1fAirlockRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_airlock_8017D5C4;
+    stateHandlers = _gShelter1fAirlockRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

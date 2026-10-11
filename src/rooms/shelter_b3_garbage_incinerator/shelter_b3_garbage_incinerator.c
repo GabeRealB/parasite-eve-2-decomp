@@ -5,7 +5,12 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* D_shelter_b3_garbage_incinerator_801855D8;
 
-u16 D_shelter_b3_garbage_incinerator_801855DC;
+/// Elapsed room-controller ticks since the last blocked exit-switch notice.
+///
+/// Starts at zero; each idle update increments it up to 61. A blocked switch
+/// press at or above that threshold displays its notice and resets the counter.
+/// The unsigned halfword and its first-declaration position are retained.
+static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
@@ -40,6 +45,9 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
 
 static void _shelterB3GarbageIncineratorInitializeRoom(Task* task);
 static void _shelterB3GarbageIncineratorAdvanceSwitchTimer(Task* task);
+
+/// Minimum elapsed controller ticks before another blocked-switch notice.
+enum { SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS = 61 };
 
 /// State handlers of the room's controller task, run by
 /// `shelterB3GarbageIncineratorRoomTask`: set-up, a per-frame tick,
@@ -218,17 +226,16 @@ static s32 _shelterB3GarbageIncineratorHandleRoomAction(Task* task, s32 messageI
 {
     enum {
         SHELTER_B3_GARBAGE_INCINERATOR_EXIT_SWITCH_ACTION = 2,
-        SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS = 61,
     };
 
     if (request->actionId == SHELTER_B3_GARBAGE_INCINERATOR_EXIT_SWITCH_ACTION && gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_NONE) {
         if (gGameSession->incineratorDescentPhase == GAME_SESSION_INCINERATOR_DESCENT_COMPLETE) {
             taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
             gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
-        } else if (D_shelter_b3_garbage_incinerator_801855DC >= SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
+        } else if (_gShelterB3GarbageIncineratorSwitchNoticeTicks >= SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
             shelterB3GarbageIncineratorShowTimedCaption(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_EXIT_BLOCKED, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS);
-            D_shelter_b3_garbage_incinerator_801855DC = 0;
+            _gShelterB3GarbageIncineratorSwitchNoticeTicks = 0;
         }
     }
     return 0;
@@ -320,12 +327,11 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
 /// values at least 61 are preserved. `task` is unused.
 static void _shelterB3GarbageIncineratorAdvanceSwitchTimer(Task* task)
 {
-    enum { SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS = 61 };
     // Retained unused storage preserves the original 16-byte stack frame.
     char unusedStackBytes[0x10];
 
-    if (D_shelter_b3_garbage_incinerator_801855DC < SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
-        D_shelter_b3_garbage_incinerator_801855DC++;
+    if (_gShelterB3GarbageIncineratorSwitchNoticeTicks < SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
+        _gShelterB3GarbageIncineratorSwitchNoticeTicks++;
     }
 }
 

@@ -139,10 +139,6 @@ extern ActorTransform   D_shelter_b3_garbage_incinerator_80185B88;
 
 static s32 _gScreenWaveAmplitude;
 
-/* Shared in source with actors 342100 (the encounter's fade and spawn) and
-   215100 (the caption drawing): their data here. */
-extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[];
-
 static s16 _gCapCaptionTexturePageX;
 static s16 _gCapCaptionTexturePageY;
 
@@ -293,8 +289,15 @@ ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
+enum { SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY = 192 };
+
+/// Burn-scene heat-haze mesh recipe followed by a descriptor terminator.
+///
+/// Entry 0 is bodyless, priority 192, with zero metadata. Its second spawn
+/// argument borrows the controller's embedded ScreenWaveCtx ramp through the
+/// final draw; keep that work and this overlay loaded until the mesh exits.
+static TaskDesc _gShelterB3GarbageIncineratorBlazeHeatHazeTaskDescs[2] = {
+    { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1355,7 +1358,7 @@ static void _shelterB3GarbageIncineratorStartBlazeHeatHaze(void)
 
     work->blaze.wave.span  = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_RISE_TICKS;
     work->blaze.wave.scale = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_PEAK_STRENGTH;
-    taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->blaze.wave);
+    taskSpawnFromTable(_gShelterB3GarbageIncineratorBlazeHeatHazeTaskDescs, 0, 0, &work->blaze.wave);
 }
 
 /// Starts limited player-body fire, or spreads the existing fire over the whole body.

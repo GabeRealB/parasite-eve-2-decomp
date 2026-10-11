@@ -3,9 +3,12 @@
 #include "main/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-/// The cap script task the entry task spawns, the target of the scene task's
-/// message `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` and of the room's message 0x13F4.
-Task* D_dryfield_water_tower_801876A0;
+/// Spawned persistent prop-scene driver receiving run requests and actor events.
+///
+/// Borrowed from room initialization, including NULL on spawn failure. The
+/// driver owns its prop tasks; this handle owns no resources and is not cleared
+/// on teardown. Requires the driver and room overlay alive for message dispatch.
+static Task* _gDryfieldWaterTowerSpawnedPropSceneTask;
 
 Task* gDryfieldWaterTowerPropSceneTask;
 
@@ -149,7 +152,7 @@ void dryfieldWaterTowerMechanismPromptTask(Task* task)
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED);
                 _dryfieldWaterTowerRestoreMechanismSpriteVisibility();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                taskMessageDispatch(D_dryfield_water_tower_801876A0, DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, 0, 0);
+                taskMessageDispatch(_gDryfieldWaterTowerSpawnedPropSceneTask, DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, 0, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
             } else {
                 // Cancellation restores the saved view and ordinary player control.
@@ -210,7 +213,7 @@ s32 dryfieldWaterTowerRoomActionMsg(Task* task, s32 messageId, const DirectionAc
 
 s32 dryfieldWaterTowerActorEventMsg(Task* task, s32 messageId, s32 eventId, s32 eventArg)
 {
-    return taskMessageDispatch(D_dryfield_water_tower_801876A0, messageId, eventId, eventArg);
+    return taskMessageDispatch(_gDryfieldWaterTowerSpawnedPropSceneTask, messageId, eventId, eventArg);
 }
 
 /// Registers the water-tower message receiver and starts its prop-scene driver.
@@ -224,9 +227,9 @@ static void _dryfieldWaterTowerInitializeRoomTask(Task* task)
 
     task->msgTable = gDryfieldWaterTowerRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    propSceneTask                   = taskSpawnFromTable(gDryfieldWaterTowerPropSceneTasks, 0, 0, 0);
-    task->state                     = task->state + 1;
-    D_dryfield_water_tower_801876A0 = propSceneTask;
+    propSceneTask                            = taskSpawnFromTable(gDryfieldWaterTowerPropSceneTasks, 0, 0, 0);
+    task->state                              = task->state + 1;
+    _gDryfieldWaterTowerSpawnedPropSceneTask = propSceneTask;
 }
 
 /// Keeps the installed room task available for messages between entry and teardown.

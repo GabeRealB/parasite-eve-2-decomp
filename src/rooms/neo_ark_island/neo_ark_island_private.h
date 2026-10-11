@@ -41,9 +41,18 @@ extern WorldCollisionTrigger gNeoArkIslandViewBoundaryTriggers[4];
 /// use room units and normals use 4096 per unit.
 extern WorldCollisionTrigger gNeoArkIslandActionTriggers[3];
 
-extern TaskMessageEntry D_neo_ark_island_80181B48[6];
+/// Island room-message dispatch: transitions, item refusals, actions, commands and sound.
+///
+/// Five id-selected callbacks followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows this table; keep the overlay loaded while it receives messages.
+extern TaskMessageEntry gNeoArkIslandRoomMessages[6];
 
-extern TaskDesc D_neo_ark_island_80181B78;
+/// Bodyless gallery-departure prompt recipe, priority 32 and zero metadata.
+///
+/// One descriptor with no terminator. Spawn at index 0 with zero arguments
+/// after staging a destination and holding player control. The prompt borrows
+/// the shared destination and room CAP resources through completion.
+extern TaskDesc gNeoArkIslandGalleryDepartureTaskDesc;
 
 // Callbacks referenced by the overlay's shared data tables.
 

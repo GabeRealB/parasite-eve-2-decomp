@@ -107,7 +107,7 @@ static TaskMessageEntry     D_shelter_r47_80186F2C[6];
 static AnimationPlayRequest D_shelter_r47_80186F5C;
 static TaskDesc             _gShelterR47AuxiliaryTaskDescs[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
-static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
+static ActionPromptHotspot  _gShelterR47ConsoleHotspots[9];
 static TaskDesc             D_shelter_r47_80187020;
 static TaskDesc             D_shelter_r47_801872F0;
 static s32                  _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -209,15 +209,31 @@ u8 D_shelter_r47_80186FAC[5] = {
     19,
 };
 
-static ActionPromptHotspot D_shelter_r47_80186FB4[9] = {
-    { 128, -104, 20, 20, 1025, 0, 0 },
-    { -152, -104, 68, 20, 769, 0, 0 },
-    { -152, 72, 72, 16, 257, 1, 0 },
-    { 124, -83, 26, 16, 0, 1, 0 },
-    { 124, -67, 26, 16, 1, 1, 0 },
-    { 124, -51, 26, 16, 2, 1, 0 },
-    { 124, -35, 26, 16, 3, 1, 0 },
-    { 124, -19, 26, 16, 4, 1, 0 },
+/// Packed choices and command-menu modes stored by the console's hotspot table.
+enum {
+    SHELTER_R47_CONSOLE_CHOICE_LABEL   = 0x401,
+    SHELTER_R47_CONSOLE_CHOICE_HEADER  = 0x301,
+    SHELTER_R47_CONSOLE_CHOICE_SWITCH  = 0x101,
+    SHELTER_R47_CONSOLE_PROMPT_EXAMINE = 0,
+    SHELTER_R47_CONSOLE_PROMPT_PUSH    = 1,
+};
+
+/// Console hotspots: label, header, switch button, five rows, then terminator.
+///
+/// Rectangles use centred screen pixels with inclusive far edges. Row IDs
+/// 0..4 select a row; 0x101 flips its switch, 0x301/0x401 examine header/label.
+/// The label and header offer Examine, button and rows Push. Initialization
+/// clears hit bytes and hit testing refreshes them; the switch button is
+/// disabled for row 2. The first hit wins on confirmation.
+static ActionPromptHotspot _gShelterR47ConsoleHotspots[9] = {
+    { 128, -104, 20, 20, SHELTER_R47_CONSOLE_CHOICE_LABEL, SHELTER_R47_CONSOLE_PROMPT_EXAMINE, false },
+    { -152, -104, 68, 20, SHELTER_R47_CONSOLE_CHOICE_HEADER, SHELTER_R47_CONSOLE_PROMPT_EXAMINE, false },
+    { -152, 72, 72, 16, SHELTER_R47_CONSOLE_CHOICE_SWITCH, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
+    { 124, -83, 26, 16, 0, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
+    { 124, -67, 26, 16, 1, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
+    { 124, -51, 26, 16, 2, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
+    { 124, -35, 26, 16, 3, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
+    { 124, -19, 26, 16, 4, SHELTER_R47_CONSOLE_PROMPT_PUSH, false },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -1374,7 +1390,7 @@ void shelterR47ConsoleInitializeTask(Task* task)
     task->state++;
     displayAcquireMenuHold();
 
-    _shelterR47ConsoleClearHotspotHits(D_shelter_r47_80186FB4);
+    _shelterR47ConsoleClearHotspotHits(_gShelterR47ConsoleHotspots);
 
     // Start the console panels off screen before their entrance animation.
     work->headerX              = -0xF8;
@@ -1444,7 +1460,7 @@ void shelterR47ConsoleSelectHotspotTask(Task* task)
     ActionPromptHotspot*   hotspot;
     ActionPrompt*          prompt;
 
-    hotspot = D_shelter_r47_80186FB4;
+    hotspot = _gShelterR47ConsoleHotspots;
     prompt  = gActionPromptSlots;
     work    = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);

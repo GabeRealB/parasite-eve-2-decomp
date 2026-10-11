@@ -87,10 +87,6 @@ extern TaskDesc D_mine_refuge_801818B4[];
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Task `_mineRefugeCircuitPanelTask` spawns from `gActor548100PanelTaskDesc` and waits on;
-/// message 0x13F1 is relayed to it while it exists.
-extern Task* D_mine_refuge_80182AD8;
-
 /// View saved when `_mineRefugeRoomCommandMsg` forces view 6 for its scene,
 /// restored when the scene ends.
 
@@ -566,7 +562,12 @@ WorldCollisionSurfaceProperties* gMineRefugeSurfacePropertiesByClass[8] = {
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-Task* D_mine_refuge_80182AD8 = NULL;
+/// Borrowed live circuit-panel task receiving battery-item use messages.
+///
+/// NULL outside a panel session. The room's scene controller publishes the
+/// spawned actor-548100 task and clears this handle immediately after exit
+/// polling releases it; room initialization also clears it.
+static Task* _gMineRefugeCircuitPanelTask = NULL;
 
 u8 D_mine_refuge_80182ADC[4] = {
     0,
@@ -637,14 +638,14 @@ static void _mineRefugeCircuitPanelTask(Task* task)
             return;
         case MINE_REFUGE_PANEL_OPEN:
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
-            D_mine_refuge_80182AD8 = taskSpawnFromTable(&gActor548100PanelTaskDesc, 0, 0, 0);
-            task->state            = task->state + 1;
+            _gMineRefugeCircuitPanelTask = taskSpawnFromTable(&gActor548100PanelTaskDesc, 0, 0, 0);
+            task->state                  = task->state + 1;
             return;
         case MINE_REFUGE_PANEL_WAIT_EXIT:
-            if (taskPollKill(D_mine_refuge_80182AD8, &panelResult) != 0) {
+            if (taskPollKill(_gMineRefugeCircuitPanelTask, &panelResult) != 0) {
                 // Item-use messages must stop reaching the panel after its exit.
-                D_mine_refuge_80182AD8 = NULL;
-                task->state            = task->state + 1;
+                _gMineRefugeCircuitPanelTask = NULL;
+                task->state                  = task->state + 1;
             }
             return;
         case MINE_REFUGE_PANEL_OPEN_DELAY:
@@ -669,10 +670,10 @@ static s32 _mineRefugeUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 s
 {
     s32 itemUseReply;
 
-    if (D_mine_refuge_80182AD8 == NULL) {
+    if (_gMineRefugeCircuitPanelTask == NULL) {
         itemUseReply = ROOM_KEY_ITEM_USE_REFUSED;
     } else {
-        itemUseReply = taskMessageDispatch(D_mine_refuge_80182AD8, messageId, itemId, secondArg);
+        itemUseReply = taskMessageDispatch(_gMineRefugeCircuitPanelTask, messageId, itemId, secondArg);
     }
     return itemUseReply;
 }
@@ -885,10 +886,10 @@ static void _mineRefugeInitRoomTask(Task* task)
 
     task->msgTable = D_mine_refuge_80181884;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_mine_refuge_80182AD8    = NULL;
-    gStageCountdownMusicEntry = MINE_REFUGE_SCENE_MUSIC_ENTRY;
-    task->state               = task->state + 1;
-    D_80115598                = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
+    _gMineRefugeCircuitPanelTask = NULL;
+    gStageCountdownMusicEntry    = MINE_REFUGE_SCENE_MUSIC_ENTRY;
+    task->state                  = task->state + 1;
+    D_80115598                   = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the room message task idle while its installed handlers remain available.

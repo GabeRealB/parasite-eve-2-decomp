@@ -2151,20 +2151,20 @@ void sceneStartRoomTasks(void)
     // Room callbacks belong to the overlay selected by the live save's area.
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkBridgeWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 0, 0):
             taskSpawnFromTable(&gNeoArkGardenWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkIslandWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0, 0):
             taskSpawnFromTable(&gNeoArkPavilionWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0, 0):
             // Index one reaches the adjacent water-distortion descriptor.
-            taskSpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(&gNeoArkSubmarineTunnelWaterRefractionTaskDesc, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 0, 0):
             taskSpawnFromTable(gNeoArkObservatoryReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_FLOOR, 0);
@@ -2179,7 +2179,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_R31, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkR31FramebufferShiftTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 0, 0):
             taskSpawnFromTable(gNeoArkSubmarineGalleryWaterTaskDescriptors, SCENE_ROOM_WATER_REFRACTION_TASK_INDEX, 0, 0);

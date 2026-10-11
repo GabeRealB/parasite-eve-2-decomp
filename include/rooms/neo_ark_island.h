@@ -20,14 +20,39 @@ enum {
     NEO_ARK_ISLAND_SURFACE_CLASS_COUNT = 8,
 };
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_neo_ark_island_80181CE8[4];
+/// Extents of the Bog Diver's patrol-ring directory and emergence-spot list.
+enum {
+    NEO_ARK_ISLAND_DIVER_PATROL_RING_COUNT  = 4,
+    NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_COUNT = 7,
+};
 
-extern SVECTOR D_neo_ark_island_80181CF8[7];
+/// Four eight-point patrol rings selected by Bog Diver spawn-argument bits 4..5.
+///
+/// Selectors 0 and 3 share a ring; 1 and 2 select the other two. X/Z are room
+/// coordinates and Y is depth below `gNeoArkIslandDiverWaterY`, all in game units.
+/// The Diver borrows these pointers until teardown; keep the island loaded.
+extern SVECTOR* gNeoArkIslandDiverPatrolRings[NEO_ARK_ISLAND_DIVER_PATROL_RING_COUNT];
 
-extern s16 D_neo_ark_island_80181C24;
+/// Writable emergence spots shared by the island's Bog Divers.
+///
+/// Entries 1..5 supply room-coordinate X/Z; entry 0 is the reserved fallback
+/// claim and is never searched. Y is unused by the searches. The fourth
+/// halfword (`pad`) stores 0 free, 1 claimed; entry 6 has -1 and ends the list.
+/// With no eligible spot, a Diver retains its position and selects claim 0.
+/// Keep the island loaded until all Divers have released their claims.
+extern SVECTOR gNeoArkIslandDiverSurfaceSpots[NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_COUNT];
 
-extern TaskDesc D_neo_ark_island_80181B30;
+/// Room-coordinate water-surface Y sampled by each island Bog Diver at spawn.
+///
+/// Positive Y points downward; normal patrol adds waypoint depth to this height.
+/// Keep the island loaded while the Diver configuration is read.
+extern s16 gNeoArkIslandDiverWaterY;
+
+/// Bodyless water-refraction task recipe started on island entry.
+///
+/// One descriptor, priority 192, zero metadata, with no terminator. Spawn at
+/// index 0 with zero arguments; the callback borrows the loaded room overlay.
+extern TaskDesc gNeoArkIslandWaterRefractionTaskDesc;
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { NEO_ARK_ISLAND_AREA_VARIANT_COUNT = 13 };

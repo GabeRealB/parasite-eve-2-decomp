@@ -52,20 +52,18 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// Staging save location the island commits: area / warp / room
-/// hold what `neoArkIslandResolveRoomTransition` copies out of the resolved
-/// destination, and `neoArkIslandGalleryDepartureTask` moves those same three bytes
-/// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
-extern RoomEventMsg D_neo_ark_island_80184008;
-
 static void _neoArkIslandInitializeRoom(Task* task);
 static void _neoArkIslandRoomIdleState(Task* unusedTask);
 
-// Height override read by the shared waypoint actor.
-s16 D_neo_ark_island_80181C24 = 300;
+s16 gNeoArkIslandDiverWaterY = 300;
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_island_80181C28[8] = {
+enum { NEO_ARK_ISLAND_DIVER_PATROL_WAYPOINT_COUNT = 8 };
+
+/// Eight-point Bog Diver patrol ring for spawn selectors 0 and 3.
+///
+/// X/Z are signed room coordinates; Y is depth below `gNeoArkIslandDiverWaterY`,
+/// all in game units. Borrowed through the loaded room's patrol-ring directory.
+static SVECTOR _gNeoArkIslandDiverPatrolWaypoints0[NEO_ARK_ISLAND_DIVER_PATROL_WAYPOINT_COUNT] = {
     { 300, 1500, 5900, 0 },
     { 5200, 1500, 2500, 0 },
     { 300, 1500, 700, 0 },
@@ -76,8 +74,11 @@ SVECTOR D_neo_ark_island_80181C28[8] = {
     { 300, 1500, 2500, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_island_80181C68[8] = {
+/// Eight-point Bog Diver patrol ring for spawn selector 1.
+///
+/// X/Z are signed room coordinates; Y is depth below `gNeoArkIslandDiverWaterY`,
+/// all in game units. Borrowed through the loaded room's patrol-ring directory.
+static SVECTOR _gNeoArkIslandDiverPatrolWaypoints1[NEO_ARK_ISLAND_DIVER_PATROL_WAYPOINT_COUNT] = {
     { 5200, 3000, 2000, 0 },
     { 300, 3000, 800, 0 },
     { 300, 3000, 5000, 0 },
@@ -88,8 +89,11 @@ SVECTOR D_neo_ark_island_80181C68[8] = {
     { 8500, 3000, 0x2AF8, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_island_80181CA8[8] = {
+/// Eight-point Bog Diver patrol ring for spawn selector 2.
+///
+/// X/Z are signed room coordinates; Y is depth below `gNeoArkIslandDiverWaterY`,
+/// all in game units. Borrowed through the loaded room's patrol-ring directory.
+static SVECTOR _gNeoArkIslandDiverPatrolWaypoints2[NEO_ARK_ISLAND_DIVER_PATROL_WAYPOINT_COUNT] = {
     { -1700, 4000, 6200, 0 },
     { 0, 4000, 4600, 0 },
     { 6600, 4000, 4500, 0 },
@@ -100,23 +104,25 @@ SVECTOR D_neo_ark_island_80181CA8[8] = {
     { -4400, 4000, 5700, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_neo_ark_island_80181CE8[4] = {
-    D_neo_ark_island_80181C28,
-    D_neo_ark_island_80181C68,
-    D_neo_ark_island_80181CA8,
-    D_neo_ark_island_80181C28,
+SVECTOR* gNeoArkIslandDiverPatrolRings[NEO_ARK_ISLAND_DIVER_PATROL_RING_COUNT] = {
+    _gNeoArkIslandDiverPatrolWaypoints0,
+    _gNeoArkIslandDiverPatrolWaypoints1,
+    _gNeoArkIslandDiverPatrolWaypoints2,
+    _gNeoArkIslandDiverPatrolWaypoints0,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_neo_ark_island_80181CF8[7] = {
-    { 0, 0, 0, 0 },
-    { 300, 0, 5700, 0 },
-    { 300, 0, 2300, 0 },
-    { 300, 0, 300, 0 },
-    { 5300, 0, 1500, 0 },
-    { 5300, 0, 4900, 0 },
-    { 0, 0, 0, -1 },
+/// Fourth halfword of an emergence spot: initially free, or the list terminator.
+enum { NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE = 0,
+       NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_END  = -1 };
+
+SVECTOR gNeoArkIslandDiverSurfaceSpots[NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_COUNT] = {
+    { 0, 0, 0, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 300, 0, 5700, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 300, 0, 2300, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 300, 0, 300, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 5300, 0, 1500, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 5300, 0, 4900, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, 0, NEO_ARK_ISLAND_DIVER_SURFACE_SPOT_END },
 };
 
 /// Grid dimensions in cells; the cell table is X-major.
@@ -639,15 +645,23 @@ WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_S
     &_gNeoArkIslandSolidSurface,
 };
 
-RoomEventMsg D_neo_ark_island_80184008;
+/// Resolved gallery destination held while the departure prompt runs.
+///
+/// Only `loc.room`, `loc.area` and `loc.warp` are staged and committed. The other
+/// five bytes have no recovered access. A later request replaces those selectors;
+/// keep the room loaded until the pending departure finishes. The location cell
+/// retains its eight-byte storage and original two-byte alignment.
+static GameLoc _gNeoArkIslandGalleryDestination __attribute__((aligned(2)));
 
 #include "../../shared/water_refraction_task.inc.c"
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-/// State handlers of the room's entry task, indexed by its state through
-/// `neoArkIslandRoomTask`: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
+/// Island room-controller states: 0 register/start ambience, 1 idle, 2 kill.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// The selector must be in 0..2 and the room overlay must remain loaded.
+static const TaskFuncTable3 _gNeoArkIslandRoomTaskStates = {
     { _neoArkIslandInitializeRoom, _neoArkIslandRoomIdleState, taskKill }
 };
 
@@ -691,9 +705,9 @@ void neoArkIslandGalleryDepartureTask(Task* task)
             // Commit the staged destination only after the prompt and delay tick.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                = NEO_ARK_ISLAND_DEPARTURE_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_island_80184008.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gNeoArkIslandGalleryDestination.loc.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gNeoArkIslandGalleryDestination.loc.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gNeoArkIslandGalleryDestination.loc.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -717,11 +731,11 @@ s32 neoArkIslandResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, Roo
     if (request->areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Preserve the resolved destination while the departure prompt holds control.
-            D_neo_ark_island_80184008.warp              = (u8)reply->areaId;
-            D_neo_ark_island_80184008.field_4           = reply->warp;
-            ((u8*)&D_neo_ark_island_80184008.areaId)[1] = reply->room;
+            _gNeoArkIslandGalleryDestination.loc.area = (u8)reply->areaId;
+            _gNeoArkIslandGalleryDestination.loc.warp = reply->warp;
+            _gNeoArkIslandGalleryDestination.loc.room = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkIslandGalleryDepartureTaskDesc, 0, 0, 0);
         }
         return NEO_ARK_ISLAND_TRANSITION_DEFERRED;
     }
@@ -770,7 +784,7 @@ static void _neoArkIslandInitializeRoom(Task* task)
 {
     enum { NEO_ARK_ISLAND_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
 
-    task->msgTable = D_neo_ark_island_80181B48;
+    task->msgTable = gNeoArkIslandRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
@@ -789,6 +803,6 @@ void neoArkIslandRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_island_8017D614;
+    handlers = _gNeoArkIslandRoomTaskStates;
     handlers.funcs[task->state](task);
 }

@@ -1470,7 +1470,7 @@ static inline void _neoArkShrineBeginPuzzleSession(Task* task, NeoArkShrinePuzzl
            NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY  = 0,
            NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0 = 1 };
 
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_neo_ark_shrine_80182404, NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY, NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0, NULL);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(gNeoArkShrinePuzzleCursorTaskDescs, NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY, NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0, NULL);
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_PUZZLE_VIEW;
     task->state++;
@@ -1495,7 +1495,7 @@ static void _neoArkShrineInitializePuzzle(Task* task)
         return;
     }
     _neoArkShrineBeginPuzzleSession(task, work);
-    for (hotspot = D_neo_ark_shrine_80182430; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = gNeoArkShrinePuzzleHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
     gGameSession->cutsceneHold = true;

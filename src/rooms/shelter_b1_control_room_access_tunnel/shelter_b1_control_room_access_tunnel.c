@@ -135,10 +135,11 @@ static void _shelterB1ControlRoomAccessTunnelIdle(Task* task)
 {
 }
 
-/// State handlers of the task `shelterB1ControlRoomAccessTunnelRoomTask`
-/// runs, which copies the table to the stack and calls the entry for the
-/// task's state: the room's setup, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_shelter_b1_control_room_access_tunnel_8017D5C4 = {
+/// Access-tunnel room-controller states: 0 register, 1 idle, 2 kill.
+///
+/// The dispatcher copies all three callbacks before indexing by `Task::state`.
+/// The selector must be in 0..2 and the room overlay must remain loaded.
+static const TaskFuncTable3 _gShelterB1ControlRoomAccessTunnelRoomTaskStates = {
     { _shelterB1ControlRoomAccessTunnelInitializeRoom, _shelterB1ControlRoomAccessTunnelIdle, taskKill }
 };
 
@@ -146,7 +147,7 @@ void shelterB1ControlRoomAccessTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_control_room_access_tunnel_8017D5C4;
+    stateHandlers = _gShelterB1ControlRoomAccessTunnelRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

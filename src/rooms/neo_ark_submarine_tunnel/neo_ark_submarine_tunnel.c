@@ -82,7 +82,13 @@ static void                     _neoArkSubmarineTunnelSetEventSeen(s32 seenValue
 
 enum { NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN = 1 };
 
-TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+enum { NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY = 192 };
+
+TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } },
+    .callback = waterRefractionTask,
+    .data     = { .value = 0 },
+};
 
 TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 

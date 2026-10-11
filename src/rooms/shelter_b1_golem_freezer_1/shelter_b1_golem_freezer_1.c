@@ -51,10 +51,9 @@
 /// The room's message table, installed on the room task.
 extern TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
-extern s16                D_shelter_b1_golem_freezer_1_8017E6D0[3];
-extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714;
-extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E738[];
-extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E740[];
+extern s16     D_shelter_b1_golem_freezer_1_8017E6D0[3];
+extern SVECTOR D_shelter_b1_golem_freezer_1_8017E738[];
+extern SVECTOR D_shelter_b1_golem_freezer_1_8017E740[];
 
 static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg);
 static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset);
@@ -104,29 +103,52 @@ s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
     0,
 };
 
-static SVECTOR _gShelterB1GolemFreezer1Collision01154Normals[1] = {
+/// Model-local quad normal in Q12, copied before each obstacle transform.
+static SVECTOR _gShelterB1GolemFreezer1MeetingObstacleCollisionNormals[SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_FACE_COUNT] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_normals.inc"
 };
 
-static SVECTOR _gShelterB1GolemFreezer1Collision01154Verts[4] = {
+/// Meeting-obstacle corners in signed model-local game units.
+static SVECTOR _gShelterB1GolemFreezer1MeetingObstacleCollisionVerts[SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_VERTEX_COUNT] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1GolemFreezer1Collision01154Faces[1] = {
+/// One class-0 quad referencing the four model-local corners and normal zero.
+static WorldCollisionGridFace _gShelterB1GolemFreezer1MeetingObstacleCollisionFaces[SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_FACE_COUNT] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_faces.inc"
 };
 
-static s16 _gShelterB1GolemFreezer1Collision01154Cells[2] = {
+/// Face zero followed by WORLD_COLLISION_GRID_CELL_END for the single cell.
+static s16 _gShelterB1GolemFreezer1MeetingObstacleCollisionCells[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1GolemFreezer1Collision01154Cells[i])
-static s16* _gShelterB1GolemFreezer1Collision01154Table[1] = {
+#define GRID_CELL(i) (&_gShelterB1GolemFreezer1MeetingObstacleCollisionCells[i])
+/// Single-cell directory borrowing the meeting quad's serialized face list.
+static s16* _gShelterB1GolemFreezer1MeetingObstacleCollisionTable[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714 = { NULL, _gShelterB1GolemFreezer1Collision01154Normals, _gShelterB1GolemFreezer1Collision01154Verts, _gShelterB1GolemFreezer1Collision01154Faces, _gShelterB1GolemFreezer1Collision01154Table, 679, -454, 1, 1, 4000, 1 };
+/// Model-local source quad for the meeting actor's moving collision obstacle.
+///
+/// Its normal, four corners and face are copied into the leading room-grid
+/// slots before transformation by the placed model. The source remains
+/// unchanged. The asset retains one 4000-unit cell at X/Z origin (-679, 454);
+/// rebuilding the obstacle uses its geometry without activating this grid.
+static WorldCollisionGrid _gShelterB1GolemFreezer1MeetingObstacleCollision = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1GolemFreezer1MeetingObstacleCollisionNormals,
+    .vertices    = _gShelterB1GolemFreezer1MeetingObstacleCollisionVerts,
+    .faces       = _gShelterB1GolemFreezer1MeetingObstacleCollisionFaces,
+    .cellFaceIds = _gShelterB1GolemFreezer1MeetingObstacleCollisionTable,
+    .xBias       = 679,
+    .zBias       = -454,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1GolemFreezer1MeetingObstacleCollisionFaces),
+};
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E738[1] = {
     { 385, -3495, 555, 0 },
@@ -581,7 +603,7 @@ static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelR
     SVECTOR*                  destinationVector;
     SVECTOR*                  sourceVector;
     WorldCollisionGrid*       roomGrid       = &gShelterB1GolemFreezer1RoomCollision;
-    const WorldCollisionGrid* obstacleSource = &D_shelter_b1_golem_freezer_1_8017E714;
+    const WorldCollisionGrid* obstacleSource = &_gShelterB1GolemFreezer1MeetingObstacleCollision;
 
     /// Restores the meeting quad's complete face and XYZ components, preserving pads.
     ///

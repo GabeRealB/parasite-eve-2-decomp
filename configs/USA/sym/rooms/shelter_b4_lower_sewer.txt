@@ -100,3 +100,4 @@ _shelterB4LowerSewerInitializeWater = 0x8017e33c; // type:func
 _shelterB4LowerSewerDrawWater = 0x8017e37c; // type:func
 _shelterB4LowerSewerWaterTask = 0x8017e2d4; // type:func
 _shelterB4LowerSewerInitializeRoom = 0x8017d664; // type:func
+_gShelterB4LowerSewerRoomTaskStates = 0x8017d5c4;
