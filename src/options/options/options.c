@@ -684,20 +684,29 @@ void optionsUpdateMenuTask(Task* owningTask)
 /// read before this update's input. The parent owns closing and release.
 static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
 {
-/// Sets a positioned chart request's medium outlined style and draws its label.
+/// Draws an action label in the key-configuration chart with medium outlined text.
 ///
-/// `requestValue` is a live TextDrawReq lvalue with X/Y already set. It is
-/// evaluated repeatedly and must have no side effects; `objectValue` is a
-/// borrowed live UI object. Color is packed RGB and alignment is TEXT_ALIGNMENT_*.
-/// Other arguments are evaluated once. The drawer mutates the request but
-/// retains neither argument. Use as a standalone statement in a compound block.
+/// `requestValue` is a writable `TextDrawReq` lvalue whose X anchor and baseline Y
+/// are already in draw-environment pixels; no panel-origin or baseline offset is
+/// added. `colorValue` packs R/G/B in bits 0..23 (R low byte); `alignmentValue`
+/// selects `TEXT_ALIGNMENT_*` and narrows to a signed byte.
+///
+/// Borrows the live `UiObject` and NUL-terminated UI text under `textDrawString`'s
+/// contract. The panel's signed OT base + 1 (fill) and + 2 (outline) must be valid,
+/// with fonts, palettes and sufficient primitive storage available. Drawing
+/// advances the request's X/Y pen and initializes its texture V bias; restore
+/// placement before drawing another label. The object and text are not retained.
+///
+/// Expands to one void expression with assignments sequenced before drawing.
+/// `requestValue` is evaluated six times and must identify stable storage without
+/// side effects; every other argument is evaluated once. Captures no caller locals.
 #define OPTIONS_KEY_DRAW_ASSIGNMENT(requestValue, objectValue, colorValue, alignmentValue, textValue) \
-    (requestValue).otIndex    = (objectValue)->panel.otIndex.signedValue + 1;                         \
-    (requestValue).colorRgb   = (colorValue);                                                         \
-    (requestValue).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                              \
-    (requestValue).alignment  = (alignmentValue);                                                     \
-    (requestValue).drawMode   = TEXT_DRAW_OUTLINED;                                                   \
-    textDrawString(&(requestValue), (textValue))
+    ((requestValue).otIndex    = (objectValue)->panel.otIndex.signedValue + 1,                        \
+     (requestValue).colorRgb   = (colorValue),                                                        \
+     (requestValue).glyphTable = TEXT_GLYPH_TABLE_MEDIUM,                                             \
+     (requestValue).alignment  = (alignmentValue),                                                    \
+     (requestValue).drawMode   = TEXT_DRAW_OUTLINED,                                                  \
+     textDrawString(&(requestValue), (textValue)))
     enum {
         OPTIONS_KEY_TASK_INITIAL           = 0,
         OPTIONS_KEY_TASK_READY             = 1,
