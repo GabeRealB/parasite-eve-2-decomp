@@ -19,7 +19,18 @@ enum {
     ACROPOLIS_OBSERVATORY_WARP_COUNT          = 4,
 };
 
-extern AreaVariant D_acropolis_observatory_80181264[19];
+/// Actor layout variants for the Acropolis observatory.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..18); no terminator.
+/// Slots 1..3, 7 and 10..17 publish placement/resource pairs; all other slots are NULL pairs.
+/// Variant 10 has no matching placement/resource key; variant 15 has an empty
+/// resource list. Neither spawns its placements; their intended use is unproven.
+/// Variants 12 and 13 share recipes but have separate placements.
+/// The room owns recipes and some placements; the stage map owns the others.
+/// Keep each placement owner loaded while actors borrow its records.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisObservatoryAreaVariants[19];
 
 /// Collision resources for rooms 1 and 2, indexed by room minus one.
 ///

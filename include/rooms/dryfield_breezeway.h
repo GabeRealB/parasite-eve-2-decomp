@@ -14,7 +14,15 @@
 /// Number of logical and mapped camera/sprite views in the breezeway.
 enum { DRYFIELD_BREEZEWAY_VIEW_COUNT = 6 };
 
-extern AreaVariant D_dryfield_breezeway_801842F8[13];
+/// Actor layout variants for the daytime Dryfield breezeway.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..12); no terminator.
+/// Slots 1, 3 and 10 publish placement/resource pairs; all other slots are NULL pairs.
+/// The room owns recipes and some placements; the stage map owns the others.
+/// Keep each placement owner loaded while actors borrow its records.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gDryfieldBreezewayAreaVariants[13];
 
 // dryfield_breezeway
 extern WorldCollisionRoomResources D_dryfield_breezeway_8018316C[];

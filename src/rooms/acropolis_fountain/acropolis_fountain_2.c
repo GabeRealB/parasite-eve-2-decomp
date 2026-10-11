@@ -353,7 +353,7 @@ static AreaResource _gAcropolisFountainVariant7Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_acropolis_fountain_8017FC9C[11] = {
+AreaVariant gAcropolisFountainAreaVariants[11] = {
     { NULL, NULL },
     { NULL, NULL },
     { gMapAkropolisFountainVariant2Placements, _gAcropolisFountainVariant2Resources },

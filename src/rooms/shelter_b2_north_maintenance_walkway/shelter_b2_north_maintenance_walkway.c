@@ -72,8 +72,6 @@ extern RoomEventReq gRoomEventReq;
 /// spawned the event task; every call clears it first.
 extern u8 gRoomEventActive;
 
-extern AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3];
-
 u8* gShelterB2NorthMaintenanceWalkwayRoomViewMaps[1] = {
     gViewIdentityMap,
 };
@@ -636,10 +634,22 @@ WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
     { NULL, NULL, NULL, { 2064, -64, 3055, 0 }, { { -1008, 0, -272, 0 }, { 1040, 0, -48, 0 }, { -1040, 0, 48, 0 }, { 1008, 0, 272, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, gActor341300ScriptTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+enum {
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCENE_EXIT_DESCRIPTOR = 2,
+};
+
+/// Default walkway recipes for a Brain Stinger and its scripted scene library.
+///
+/// Entry 3 loads file 100300 and spawns the Brain Stinger body at descriptor zero.
+/// Entry 100 loads file 341300 and selects descriptor 2, the live exit recipe
+/// that releases its placed Enemy. Both keys have placements in variant 1.
+/// `AREA_PLACEMENT_END` ends the list. Keep the room and placements loaded
+/// during loading, spawning and model-policy updates; actor descriptors must
+/// be resident before spawning or model-policy updates and until task teardown.
+static AreaResource _gShelterB2NorthMaintenanceWalkwayVariant1Resources[3] = {
+    { .entryId = 3, .fileNumber = 3, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = gActor100300Tasks },
+    { .entryId = 100, .fileNumber = 413, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCENE_EXIT_DESCRIPTOR, .taskTable = gActor341300ScriptTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Slouch and Creeping Stranger resource recipes for placement variant 3.
@@ -699,55 +709,82 @@ static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant1Placements[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_north_maintenance_walkway_801860F8[6] = {
-    { 70, 0, 0, 1800, 0, -400, 200, 0, 0, 2, 0 },
-    { 70, 0, 0, 2300, 0, -1700, 3900, 0, 0, 2, 0 },
-    { 72, 0, 0, 1700, 0, 2100, 300, 0, 2, 4, 0 },
-    { 72, 0, 0, 2450, 0, 800, 3600, 0, 2, 4, 0 },
-    { 72, 0, 0, 1500, 0, -2800, 3200, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Slouches and three Creeping Strangers in walkway placement variant 3.
+///
+/// Keys 70 and 72 select the paired actor recipes and separate texture offsets.
+/// XYZ use world game units and yaw uses 4096 units per turn.
+/// `AREA_PLACEMENT_END` ends the list. Actors borrow these room-owned records
+/// until teardown; the room overlay must stay loaded.
+static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant3Placements[6] = {
+    { .entryId = 70, .x = 1800, .z = -400, .yaw = 200, .clutRowOffset = 2 },
+    { .entryId = 70, .x = 2300, .z = -1700, .yaw = 3900, .clutRowOffset = 2 },
+    { .entryId = 72, .x = 1700, .z = 2100, .yaw = 300, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 72, .x = 2450, .z = 800, .yaw = 3600, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 72, .x = 1500, .z = -2800, .yaw = 3200, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_north_maintenance_walkway_80186158[5] = {
-    { 11, 2, 0, 2400, 0, 600, 2200, 0, 0, 2, 0 },
-    { 70, 0, 0, 1000, 0, 4200, 2600, 0, 2, 4, 0 },
-    { 70, 0, 0, 1500, 0, -500, 300, 0, 2, 4, 0 },
-    { 70, 0, 0, 2300, 0, -2400, 2300, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// One Mossback and three Slouches in walkway placement variant 4.
+///
+/// Keys 11 and 70 select the paired actor recipes and separate texture offsets.
+/// XYZ use world game units and yaw uses 4096 units per turn; the first actor
+/// receives variant 2. `AREA_PLACEMENT_END` ends the list. Actors borrow these
+/// room-owned records until teardown; the room overlay must stay loaded.
+static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant4Placements[5] = {
+    { .entryId = 11, .variant = 2, .x = 2400, .z = 600, .yaw = 2200, .clutRowOffset = 2 },
+    { .entryId = 70, .x = 1000, .z = 4200, .yaw = 2600, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 70, .x = 1500, .z = -500, .yaw = 300, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 70, .x = 2300, .z = -2400, .yaw = 2300, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_north_maintenance_walkway_801861A8[6] = {
-    { 44, 0, 0, 2300, 0, 3700, 512, 0, 0, 2, 0 },
-    { 44, 0, 1, 2050, -2500, 1050, 3072, 0, 0, 2, 0 },
-    { 72, 0, 0, 2000, 0, -2300, 1000, 0, 2, 4, 0 },
-    { 72, 0, 0, 2400, 0, -100, 3900, 0, 2, 4, 0 },
-    { 73, 0, 1, 800, 0, 4100, 2100, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Mad Chasers, two Creeping Strangers and one Skull Stalker in walkway variant 11.
+///
+/// Keys 44, 72 and 73 select the paired actor recipes and texture offsets.
+/// XYZ use world game units and yaw uses 4096 units per turn; mode is passed
+/// unchanged to each actor. `AREA_PLACEMENT_END` ends the list. Actors borrow
+/// these records until teardown; the room overlay must stay loaded.
+static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant11Placements[6] = {
+    { .entryId = 44, .x = 2300, .z = 3700, .yaw = 512, .clutRowOffset = 2 },
+    { .entryId = 44, .mode = 1, .x = 2050, .y = -2500, .z = 1050, .yaw = 3072, .clutRowOffset = 2 },
+    { .entryId = 72, .x = 2000, .z = -2300, .yaw = 1000, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 72, .x = 2400, .z = -100, .yaw = 3900, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 73, .mode = 1, .x = 800, .z = 4100, .yaw = 2100, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_north_maintenance_walkway_80186208[5] = {
-    { 21, 2, 0, -2900, -2000, 3800, 1024, 0, 0, 2, 7 },
-    { 21, 2, 0, -2900, -2000, 4500, 1024, 0, 0, 2, 7 },
-    { 20, 4, 1, 2000, 0, -2000, 0, 0, 2, 4, 0 },
-    { 20, 0, 0, 2000, 0, 4000, 3072, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+enum {
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_PAWN_GOLEM_PATROL_MODE = 1,
+};
+
+/// Two Watchers and two Pawn GOLEMs in walkway placement variant 21.
+///
+/// Watchers use parameter row 7 and variant 2; the GOLEMs select distinct
+/// spawn modes, with a four-thousand-unit patrol on the mode-1 placement.
+/// XYZ use world game units and yaw uses 4096 units per turn.
+/// `AREA_PLACEMENT_END` ends the list. Actors borrow these room-owned records
+/// until teardown; the room overlay must stay loaded.
+static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant21Placements[5] = {
+    { .entryId = 21, .variant = 2, .x = -2900, .y = -2000, .z = 3800, .yaw = 1024, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = 21, .variant = 2, .x = -2900, .y = -2000, .z = 4500, .yaw = 1024, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = 20, .variant = 4, .mode = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_PAWN_GOLEM_PATROL_MODE, .x = 2000, .z = -2000, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = 20, .x = 2000, .z = 4000, .yaw = 3072, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22] = {
     { NULL, NULL },
-    { _gShelterB2NorthMaintenanceWalkwayVariant1Placements, D_shelter_b2_north_maintenance_walkway_80186008 },
+    { _gShelterB2NorthMaintenanceWalkwayVariant1Placements, _gShelterB2NorthMaintenanceWalkwayVariant1Resources },
     { NULL, NULL },
-    { D_shelter_b2_north_maintenance_walkway_801860F8, _gShelterB2NorthMaintenanceWalkwayVariant3Resources },
-    { D_shelter_b2_north_maintenance_walkway_80186158, _gShelterB2NorthMaintenanceWalkwayVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+    { _gShelterB2NorthMaintenanceWalkwayVariant3Placements, _gShelterB2NorthMaintenanceWalkwayVariant3Resources },
+    { _gShelterB2NorthMaintenanceWalkwayVariant4Placements, _gShelterB2NorthMaintenanceWalkwayVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_north_maintenance_walkway_801861A8, _gShelterB2NorthMaintenanceWalkwayVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
+    { _gShelterB2NorthMaintenanceWalkwayVariant11Placements, _gShelterB2NorthMaintenanceWalkwayVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -755,7 +792,9 @@ AreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_north_maintenance_walkway_80186208, _gShelterB2NorthMaintenanceWalkwayVariant21Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gShelterB2NorthMaintenanceWalkwayVariant21Placements, _gShelterB2NorthMaintenanceWalkwayVariant21Resources },
 };
 
 WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[1] = {

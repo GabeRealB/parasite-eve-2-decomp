@@ -379,7 +379,7 @@ static AreaResource _gAcropolisFireEscapeActorResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_acropolis_fire_escape_8018294C[5] = {
+AreaVariant gAcropolisFireEscapeAreaVariants[5] = {
     { NULL, NULL },
     { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
     { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },

@@ -1395,35 +1395,35 @@ gShelterB1ArmoryShopSessionTaskDesc = 0x801824D0; // absolute:True owner=shelter
 
 gAcropolisCafeteriaAreaVariants = 0x80189DCC; // absolute:True owner=acropolis_cafeteria
 
-D_acropolis_east_elevator_hall_80186C50 = 0x80186C50; // absolute:True owner=acropolis_east_elevator_hall
+gAcropolisEastElevatorHallAreaVariants = 0x80186C50; // absolute:True owner=acropolis_east_elevator_hall
 
-D_acropolis_fire_escape_8018294C = 0x8018294C; // absolute:True owner=acropolis_fire_escape
+gAcropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=acropolis_fire_escape
 
-D_acropolis_forked_road_801831C4 = 0x801831C4; // absolute:True owner=acropolis_forked_road
+gAcropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=acropolis_forked_road
 
-D_acropolis_fountain_8017FC9C = 0x8017FC9C; // absolute:True owner=acropolis_fountain
+gAcropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=acropolis_fountain
 
-D_acropolis_hallway_8017EA3C = 0x8017EA3C; // absolute:True owner=acropolis_hallway
+gAcropolisHallwayAreaVariants = 0x8017EA3C; // absolute:True owner=acropolis_hallway
 
-D_acropolis_helicopter_landing_pad_801861E8 = 0x801861E8; // absolute:True owner=acropolis_helicopter_landing_pad
+gAcropolisHelicopterLandingPadAreaVariants = 0x801861E8; // absolute:True owner=acropolis_helicopter_landing_pad
 
-D_acropolis_observatory_80181264 = 0x80181264; // absolute:True owner=acropolis_observatory
+gAcropolisObservatoryAreaVariants = 0x80181264; // absolute:True owner=acropolis_observatory
 
 gAcropolisPatioAreaVariants = 0x80184A90; // absolute:True owner=acropolis_patio
 
 gAcropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=acropolis_promenade shared=rooms
 
-D_acropolis_roof_garden_80185934 = 0x80185934; // absolute:True owner=acropolis_roof_garden
+gAcropolisRoofGardenAreaVariants = 0x80185934; // absolute:True owner=acropolis_roof_garden
 
 gAcropolisSanctuaryAreaVariants = 0x8018402C; // absolute:True owner=acropolis_sanctuary shared=rooms
 
 gAcropolisSecurityRoomAreaVariants = 0x80184088; // absolute:True owner=acropolis_security_room
 
-D_acropolis_square_80185E50 = 0x80185E50; // absolute:True owner=acropolis_square
+gAcropolisSquareAreaVariants = 0x80185E50; // absolute:True owner=acropolis_square
 
-D_dryfield_back_street_80180A50 = 0x80180A50; // absolute:True owner=dryfield_back_street
+gDryfieldBackStreetAreaVariants = 0x80180A50; // absolute:True owner=dryfield_back_street
 
-D_dryfield_breezeway_801842F8 = 0x801842F8; // absolute:True owner=dryfield_breezeway
+gDryfieldBreezewayAreaVariants = 0x801842F8; // absolute:True owner=dryfield_breezeway
 
 gDryfieldCellarAreaVariants = 0x80180ACC; // absolute:True owner=dryfield_cellar
 
@@ -1627,7 +1627,7 @@ gShelterB1SouthMaintenanceWalkwayAreaVariants = 0x80183598; // absolute:True own
 
 gShelterB1SterilizationRoomAreaVariants = 0x8018C14C; // absolute:True owner=shelter_b1_sterilization_room
 
-D_shelter_b1_storeroom_80186C9C = 0x80186C9C; // absolute:True owner=shelter_b1_storeroom
+gShelterB1StoreroomAreaVariants = 0x80186C9C; // absolute:True owner=shelter_b1_storeroom
 
 gShelterB1TransferTunnelAreaVariants = 0x801830B8; // absolute:True owner=shelter_b1_transfer_tunnel
 

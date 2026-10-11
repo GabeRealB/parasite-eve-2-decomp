@@ -16,16 +16,14 @@
 
 #include "mapui/map_shelter.h"
 
-/// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
-/// to the room's handlers, closed by id `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_shelter_b1_storeroom_80184968[];
-
 static void _shelterB1StoreroomInitializeRoomState(Task* task);
 static void _shelterB1StoreroomIdleRoomState(Task* task);
 
-/// The room task's three states, dispatched by
-/// `shelterB1StoreroomTask`: install the message table, idle, end.
-static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
+/// Room-task states 0 initialize, 1 wait for messages and 2 release the task.
+///
+/// The task copies all three callbacks before indexing by its unchecked state.
+/// This table and its callbacks stay live with the storeroom overlay.
+static const TaskFuncTable3 _gShelterB1StoreroomTaskStates = {
     { _shelterB1StoreroomInitializeRoomState, _shelterB1StoreroomIdleRoomState, taskKill }
 };
 
@@ -35,7 +33,14 @@ static s32 _shelterB1StoreroomIgnoreRoomCommand(Task* task, s32 messageId, s32 c
 static s32 _shelterB1StoreroomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32 _shelterB1StoreroomHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 
-TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
+/// Transition, key-item, action, command and sound handlers for the room receiver.
+///
+/// Five supported message IDs precede `TASK_MESSAGE_TABLE_END`; unsupported
+/// IDs return zero. The receiver borrows this table until teardown. Transition
+/// messages borrow request/reply records; action messages borrow a request;
+/// the other messages carry integer words. Callbacks use the synchronous
+/// `TaskMessageHandler` argument convention and return signed replies.
+static TaskMessageEntry _gShelterB1StoreroomRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1StoreroomResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1StoreroomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1StoreroomIgnoreRoomAction },
@@ -152,7 +157,7 @@ static void _shelterB1StoreroomInitializeRoomState(Task* task)
     enum {
         CAP_COMPLETION_SOUNDS_ENABLED = 1,
     };
-    task->msgTable = D_shelter_b1_storeroom_80184968;
+    task->msgTable = _gShelterB1StoreroomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     D_80115598 = CAP_COMPLETION_SOUNDS_ENABLED;
@@ -167,6 +172,6 @@ void shelterB1StoreroomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b1_storeroom_8017D5C4;
+    states = _gShelterB1StoreroomTaskStates;
     states.funcs[task->state](task);
 }

@@ -388,9 +388,16 @@ WorldCollisionTrigger gShelterB2ElevatorActionTriggers[1] = {
     { NULL, NULL, NULL, { 0x2BF0, -48, -448, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { ONE, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_WARP_KEY, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_elevator_8017E93C[2] = {
-    { 101, 429, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor142900TaskTable },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant-1 loading recipe for the B2 elevator scene library.
+///
+/// Entry 101 loads file 142900 (base 10 plus decimal file number 429).
+/// The paired placement list contains only `AREA_PLACEMENT_END`, so loading
+/// queues the library but area spawning creates no actor. Descriptor zero is
+/// retained for the resource recipe. The final entry ends the resource scan;
+/// keep the room and actor library loaded while their records are borrowed.
+static AreaResource _gShelterB2ElevatorVariant1Resources[2] = {
+    { .entryId = 101, .fileNumber = 429, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = gActor142900TaskTable },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Empty placement list for variant 1, whose resource list still loads the scene actor.
@@ -400,7 +407,7 @@ static AreaPlacement _gShelterB2ElevatorVariant1Placements[1] = {
 
 AreaVariant D_shelter_b2_elevator_8017E964[11] = {
     { NULL, NULL },
-    { _gShelterB2ElevatorVariant1Placements, D_shelter_b2_elevator_8017E93C },
+    { _gShelterB2ElevatorVariant1Placements, _gShelterB2ElevatorVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

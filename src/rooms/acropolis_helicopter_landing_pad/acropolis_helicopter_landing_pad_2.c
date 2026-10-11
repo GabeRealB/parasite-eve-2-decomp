@@ -241,7 +241,7 @@ static AreaResource _gAcropolisHelicopterLandingPadVariant2Resources[4] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
+AreaVariant gAcropolisHelicopterLandingPadAreaVariants[13] = {
     { NULL, NULL },
     { gMapAkropolisHelicopterLandingPadVariant1Placements, _gAcropolisHelicopterLandingPadVariant1Resources },
     { gMapAkropolisHelicopterLandingPadVariant2Placements, _gAcropolisHelicopterLandingPadVariant2Resources },

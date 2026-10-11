@@ -18,7 +18,15 @@ enum {
     ACROPOLIS_EAST_ELEVATOR_HALL_WARP_COUNT = 1,
 };
 
-extern AreaVariant D_acropolis_east_elevator_hall_80186C50[3];
+/// Actor layout variants for the Acropolis east elevator hall.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..2); no terminator.
+/// Slot 1 publishes a placement/resource pair; all other slots are NULL pairs.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisEastElevatorHallAreaVariants[3];
 
 /// Collision resources for the hall's single room, indexed by room minus one.
 ///

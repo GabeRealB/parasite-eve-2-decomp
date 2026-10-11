@@ -11,10 +11,23 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_storeroom_80186C9C[22];
+/// Actor layout variants for the Shelter B1 storeroom.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..21); no terminator.
+/// Slots 1..3 and 11 publish placement/resource pairs; all other slots are NULL pairs.
+/// Saved variant 21 selects an empty layout.
+/// The room owns both lists; keep it loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gShelterB1StoreroomAreaVariants[22];
 
-// shelter_b1_storeroom
-extern WorldCollisionRoomResources D_shelter_b1_storeroom_80184B50[];
+/// Collision resources for the storeroom's single room, indexed by room minus one.
+///
+/// Borrows the mutable grid, twelve view boundaries, fifteen action quads and
+/// one sight occluder. Trigger/occluder LAST bits mark final live records.
+/// The map overlay publishes this directory; keep the room overlay loaded
+/// while its grid is active or any borrowed collision record is linked.
+extern WorldCollisionRoomResources gShelterB1StoreroomRoomCollisionResources[1];
 
 /// Authored lighting for the storeroom's single room, indexed by room minus one.
 ///
@@ -30,9 +43,22 @@ extern WorldCoordRoomLighting gShelterB1StoreroomRoomLighting[1];
 /// valid only while this room overlay is loaded.
 extern u8* gShelterB1StoreroomRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_storeroom_80184B6C[];
+/// Logical-view count for the storeroom's single room, indexed by room minus one.
+///
+/// The signed count 8 limits reverse searches of the borrowed identity map
+/// to logical views 1..8. It is an element count, with no terminator. The map
+/// overlay borrows this room-owned array only while the room remains loaded.
+extern ViewCount gShelterB1StoreroomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_storeroom_80184B70[];
+/// Arrival placements and departure effects for the storeroom's three doorways.
+///
+/// Warp IDs 1 south walkway, 2 armory and 3 north walkway index at ID minus one;
+/// no terminator. Each endpoint places player and companion together in world
+/// game units, with yaw at 4096 units per turn and initial logical views 2, 4
+/// and 6. The armory endpoint also supplies a blocked-departure sound. The map
+/// overlay borrows the full entries, including retained uninterpreted bytes;
+/// keep the room overlay loaded while they can be copied.
+extern DirectionWarpEntry gShelterB1StoreroomWarpEntries[3];
 
 /// Authored cameras for mapped view indices 1..8, stored at index minus one.
 ///

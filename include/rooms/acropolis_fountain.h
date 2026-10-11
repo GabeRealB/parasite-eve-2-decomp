@@ -20,7 +20,16 @@ enum {
     ACROPOLIS_FOUNTAIN_CAMERA_COUNT        = 21
 };
 
-extern AreaVariant D_acropolis_fountain_8017FC9C[11];
+/// Actor layout variants for the Acropolis fountain.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..10); no terminator.
+/// Slots 2 and 7 publish placement/resource pairs; all other slots are NULL pairs.
+/// Variant 1 is empty.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisFountainAreaVariants[11];
 
 /// Collision resources for fountain rooms 1 and 2, indexed by room - 1.
 ///

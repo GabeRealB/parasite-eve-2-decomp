@@ -12,7 +12,15 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_acropolis_roof_garden_80185934[12];
+/// Actor layout variants for the Acropolis roof garden.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..11); no terminator.
+/// Slots 1, 2, 7 and 8 publish placement/resource pairs; all other slots are NULL pairs.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisRoofGardenAreaVariants[12];
 
 extern TmdSource gAcropolisRoofGardenModel09868;
 

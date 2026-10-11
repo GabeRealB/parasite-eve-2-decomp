@@ -83,8 +83,6 @@ static inline void _shelterB6TrainingRoomMaskBackdrop(void)
     } while (pixelIndex <= (s32)(sizeof(*gFsImageWorkspacePtr) / sizeof(*imagePixel)) - 1);
 }
 
-extern AreaResource D_shelter_b6_training_room_80185994[6];
-
 // Texture placement and source-element splits for the destroyed-part overlays.
 enum {
     SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
@@ -345,18 +343,26 @@ WorldCollisionTrigger D_shelter_b6_training_room_80185780[7] = {
     { NULL, NULL, NULL, { 2479, -2144, 2047, 0 }, { { -4031, -3312, -3, 0 }, { 4031, -3312, 3, 0 }, { -4031, 3312, -3, 0 }, { 4031, 3312, 3, 0 } }, { 2, 0, -4097, 0 }, { 0, 0, 4096, 0 }, 5196, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b6_training_room_80185994[6] = {
-    { 131, 507, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor350700MaskedEveReverseWalkTaskDesc },
-    { 140, 507, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor350700KyleMadiganTaskDescriptors },
-    { 51, 51, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105100TaskDescriptors },
-    { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },
-    { 60, 60, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor205200BodyTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Training-room variant-1 recipes for Masked Eve, Kyle, Stinger and Eve's controller/body.
+///
+/// Keys 131/140 load 650700/350700 and select Masked Eve/Kyle descriptor zero;
+/// keys 51/52/60 load 105100/205200/206000 and select their body/controller
+/// recipes at index zero. The base-60 file requires key 131's base placement.
+/// `AREA_PLACEMENT_END` ends the list. Keep room recipes and map placements
+/// loaded during loading, spawning and model-policy updates; retain each
+/// actor overlay throughout its tasks' lifetime.
+static AreaResource _gShelterB6TrainingRoomVariant1Resources[6] = {
+    { .entryId = 131, .fileNumber = 507, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskTable = &gActor350700MaskedEveReverseWalkTaskDesc },
+    { .entryId = 140, .fileNumber = 507, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskTable = gActor350700KyleMadiganTaskDescriptors },
+    { .entryId = 51, .fileNumber = 51, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = gActor105100TaskDescriptors },
+    { .entryId = 52, .fileNumber = 52, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = gActor205200ControllerPartTasks },
+    { .entryId = 60, .fileNumber = 60, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = &gActor205200BodyTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b6_training_room_801859DC[13] = {
     { NULL, NULL },
-    { gMapNeoArkTrainingRoomDefaultPlacements, D_shelter_b6_training_room_80185994 },
+    { gMapNeoArkTrainingRoomDefaultPlacements, _gShelterB6TrainingRoomVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

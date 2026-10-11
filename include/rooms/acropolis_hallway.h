@@ -12,7 +12,15 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_acropolis_hallway_8017EA3C[13];
+/// Actor layout variants for the Acropolis hallway.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..12); no terminator.
+/// Slots 1..4 publish placement/resource pairs; all other slots are NULL pairs.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisHallwayAreaVariants[13];
 
 extern TmdSource gAcropolisHallwayModel01AE0;
 

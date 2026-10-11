@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_back_street_80180A50[13];
+/// Actor layout variants for the daytime Dryfield back street.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..12); no terminator.
+/// Slots 1, 7 and 10 publish placement/resource pairs; all other slots are NULL pairs.
+/// The room owns recipes and some placements; the stage map owns the others.
+/// Keep each placement owner loaded while actors borrow its records.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gDryfieldBackStreetAreaVariants[13];
 
 /// Daytime Back Street room 1's collision mesh, view boundaries and action triggers.
 ///

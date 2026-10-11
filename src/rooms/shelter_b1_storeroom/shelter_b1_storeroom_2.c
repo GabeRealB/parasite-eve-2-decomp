@@ -38,6 +38,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -60,9 +61,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB1StoreroomLampGlowPoints, 0x188);
 
 static WorldCollisionGrid               _gShelterB1StoreroomCollisionGrid;
-extern WorldCollisionOccluder           D_shelter_b1_storeroom_80186D94[1];
-extern WorldCollisionTrigger            D_shelter_b1_storeroom_801862E0[12];
-extern WorldCollisionTrigger            D_shelter_b1_storeroom_80186670[15];
+static WorldCollisionOccluder           _gShelterB1StoreroomSightOccluders[1];
+static WorldCollisionTrigger            _gShelterB1StoreroomViewBoundaryTriggers[12];
+static WorldCollisionTrigger            _gShelterB1StoreroomActionTriggers[15];
 static const WorldCoordRoomAmbientEntry _gShelterB1StoreroomRoomAmbient[9];
 static WorldCoordRoomLights             _gShelterB1StoreroomRoomLights;
 
@@ -127,8 +128,13 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-WorldCollisionRoomResources D_shelter_b1_storeroom_80184B50[1] = {
-    { &_gShelterB1StoreroomCollisionGrid, D_shelter_b1_storeroom_801862E0, D_shelter_b1_storeroom_80186670, D_shelter_b1_storeroom_80186D94 },
+WorldCollisionRoomResources gShelterB1StoreroomRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gShelterB1StoreroomCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB1StoreroomViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB1StoreroomActionTriggers,
+        .occluders            = _gShelterB1StoreroomSightOccluders,
+    },
 };
 
 WorldCoordRoomLighting gShelterB1StoreroomRoomLighting[1] = {
@@ -139,12 +145,50 @@ u8* gShelterB1StoreroomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_storeroom_80184B6C[1] = { 8 };
+ViewCount gShelterB1StoreroomRoomViewCounts[1] = { ARRAY_SIZE(gShelterB1StoreroomViewCameras) };
 
-DirectionWarpEntry D_shelter_b1_storeroom_80184B70[3] = {
-    { { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5750, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0002, 0x540B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1AE },
-    { { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3250, 0, -2200 }, { 0, 0, 0, 0 }, 0x540B0006, 0x540B0005, 0x540B0007, 4, DIRECTION_WARP_FLAG_NONE, 460 },
-    { { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, 0x540B0004, 0x540B0003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
+// Departure slots select this table; arrival slots select the adjacent area's table.
+enum {
+    SHELTER_B1_STOREROOM_WARP_SOUTH_WALKWAY         = 1,
+    SHELTER_B1_STOREROOM_WARP_ARMORY                = 2,
+    SHELTER_B1_STOREROOM_WARP_NORTH_WALKWAY         = 3,
+    SHELTER_B1_STOREROOM_SOUTH_WALKWAY_ARRIVAL_SLOT = 2,
+    SHELTER_B1_STOREROOM_ARMORY_ARRIVAL_SLOT        = 2,
+    SHELTER_B1_STOREROOM_NORTH_WALKWAY_ARRIVAL_SLOT = 2,
+    SHELTER_B1_STOREROOM_ARMORY_MAP_MARKER          = 460,
+};
+
+DirectionWarpEntry gShelterB1StoreroomWarpEntries[3] = {
+    [SHELTER_B1_STOREROOM_WARP_SOUTH_WALKWAY - 1] = {
+        .player         = { .yaw = { .word = 0 }, .x = 5750, .z = -2200 },
+        .companion      = { .yaw = { .word = 0 }, .x = 5750, .z = -2200 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1AE,
+    },
+    [SHELTER_B1_STOREROOM_WARP_ARMORY - 1] = {
+        .player         = { .yaw = { .word = 0 }, .x = -3250, .z = -2200 },
+        .companion      = { .yaw = { .word = 0 }, .x = -3250, .z = -2200 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 6),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 5),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 7),
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_STOREROOM_ARMORY_MAP_MARKER,
+    },
+    [SHELTER_B1_STOREROOM_WARP_NORTH_WALKWAY - 1] = {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 5750, .z = 2200 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 5750, .z = 2200 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1B0,
+    },
 };
 
 /// Room-space face normals, with 4096 representing unit length.
@@ -514,26 +558,40 @@ static WorldCoordRoomLights _gShelterB1StoreroomRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_storeroom_801862E0[12] = {
-    { NULL, NULL, NULL, { 3616, -1568, 1839, 0 }, { { -64, -1904, -1664, 0 }, { 64, -1904, 1664, 0 }, { -64, 1904, -1664, 0 }, { 64, 1904, 1664, 0 } }, { 4095, 0, -158, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3760, -1600, 1872, 0 }, { { 80, -1904, 1712, 0 }, { -80, -1904, -1712, 0 }, { 80, 1904, 1712, 0 }, { -80, 1904, -1712, 0 } }, { -4091, 0, 190, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5696, -1568, 175, 0 }, { { 1936, -1904, 0, 0 }, { -1936, -1904, 0, 0 }, { 1936, 1904, 0, 0 }, { -1936, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 2709, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5568, -1536, 288, 0 }, { { -1584, -1904, 0, 0 }, { 1584, -1904, 0, 0 }, { -1584, 1904, 0, 0 }, { 1584, 1904, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 2468, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4348, -1569, -1829, 0 }, { { 99, -1904, -1663, 0 }, { -99, -1904, 1664, 0 }, { 99, 1904, -1663, 0 }, { -99, 1904, 1664, 0 } }, { 4094, 0, 243, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4478, -1568, -1828, 0 }, { { -88, -1904, 1711, 0 }, { 88, -1904, -1710, 0 }, { -88, 1904, 1711, 0 }, { 88, 1904, -1710, 0 } }, { -4101, 0, -212, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1440, -1537, -1633, 0 }, { { -64, -1904, -1664, 0 }, { 64, -1904, 1664, 0 }, { -64, 1904, -1664, 0 }, { 64, 1904, 1664, 0 } }, { 4095, 0, -158, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1184, -1536, -1600, 0 }, { { 80, -1904, 1712, 0 }, { -80, -1904, -1712, 0 }, { 80, 1904, 1712, 0 }, { -80, 1904, -1712, 0 } }, { -4091, 0, 190, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2912, -1600, 352, 0 }, { { -1904, -1904, 128, 0 }, { 1904, -1904, -128, 0 }, { -1904, 1904, 128, 0 }, { 1904, 1904, -128, 0 } }, { -275, 0, -4088, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3072, -1600, 176, 0 }, { { 1904, -1904, -144, 0 }, { -1904, -1904, 144, 0 }, { 1904, 1904, -144, 0 }, { -1904, 1904, 144, 0 } }, { 308, 0, 4086, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -320, -1473, 1888, 0 }, { { -88, -1904, 1711, 0 }, { 88, -1904, -1710, 0 }, { -88, 1904, 1711, 0 }, { 88, 1904, -1710, 0 } }, { -4101, 0, -212, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -704, -1696, 1759, 0 }, { { 88, -1904, -1710, 0 }, { -88, -1904, 1711, 0 }, { 88, 1904, -1710, 0 }, { -88, 1904, 1711, 0 } }, { 4099, 0, 210, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Twelve directed view boundaries joining logical views 2..7 around the storeroom.
+///
+/// The six crossings have a record for each direction. Origins and corner
+/// offsets use room game units; normals use `ONE` per unit. The last live
+/// record carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup binds coordinates
+/// and mutates list links, enabled flags and hit latches; retain writable room
+/// storage until every record is unlinked.
+static WorldCollisionTrigger _gShelterB1StoreroomViewBoundaryTriggers[12] = {
+    { NULL, NULL, NULL, { 3616, -1568, 1839, 0 }, { { -64, -1904, -1664, 0 }, { 64, -1904, 1664, 0 }, { -64, 1904, -1664, 0 }, { 64, 1904, 1664, 0 } }, { 4095, 0, -158, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3760, -1600, 1872, 0 }, { { 80, -1904, 1712, 0 }, { -80, -1904, -1712, 0 }, { 80, 1904, 1712, 0 }, { -80, 1904, -1712, 0 } }, { -4091, 0, 190, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5696, -1568, 175, 0 }, { { 1936, -1904, 0, 0 }, { -1936, -1904, 0, 0 }, { 1936, 1904, 0, 0 }, { -1936, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, ONE, 0 }, 2709, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5568, -1536, 288, 0 }, { { -1584, -1904, 0, 0 }, { 1584, -1904, 0, 0 }, { -1584, 1904, 0, 0 }, { 1584, 1904, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, ONE, 0 }, 2468, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4348, -1569, -1829, 0 }, { { 99, -1904, -1663, 0 }, { -99, -1904, 1664, 0 }, { 99, 1904, -1663, 0 }, { -99, 1904, 1664, 0 } }, { 4094, 0, 243, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4478, -1568, -1828, 0 }, { { -88, -1904, 1711, 0 }, { 88, -1904, -1710, 0 }, { -88, 1904, 1711, 0 }, { 88, 1904, -1710, 0 } }, { -4101, 0, -212, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1440, -1537, -1633, 0 }, { { -64, -1904, -1664, 0 }, { 64, -1904, 1664, 0 }, { -64, 1904, -1664, 0 }, { 64, 1904, 1664, 0 } }, { 4095, 0, -158, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1184, -1536, -1600, 0 }, { { 80, -1904, 1712, 0 }, { -80, -1904, -1712, 0 }, { 80, 1904, 1712, 0 }, { -80, 1904, -1712, 0 } }, { -4091, 0, 190, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2912, -1600, 352, 0 }, { { -1904, -1904, 128, 0 }, { 1904, -1904, -128, 0 }, { -1904, 1904, 128, 0 }, { 1904, 1904, -128, 0 } }, { -275, 0, -4088, 0 }, { 0, 0, ONE, 0 }, 2684, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3072, -1600, 176, 0 }, { { 1904, -1904, -144, 0 }, { -1904, -1904, 144, 0 }, { 1904, 1904, -144, 0 }, { -1904, 1904, 144, 0 } }, { 308, 0, 4086, 0 }, { 0, 0, ONE, 0 }, 2684, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -320, -1473, 1888, 0 }, { { -88, -1904, 1711, 0 }, { 88, -1904, -1710, 0 }, { -88, 1904, 1711, 0 }, { 88, 1904, -1710, 0 } }, { -4101, 0, -212, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -704, -1696, 1759, 0 }, { { 88, -1904, -1710, 0 }, { -88, -1904, 1711, 0 }, { 88, 1904, -1710, 0 }, { -88, 1904, 1711, 0 } }, { 4099, 0, 210, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_storeroom_80186670[15] = {
-    { NULL, NULL, NULL, { 5776, -48, -2256, 0 }, { { -688, 0, -432, 0 }, { 688, 0, -432, 0 }, { -688, 0, 432, 0 }, { 688, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_WARP, 10, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3312, -48, -2176, 0 }, { { -688, 0, -528, 0 }, { 688, 0, -528, 0 }, { -688, 0, 528, 0 }, { 688, 0, 528, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5712, -80, 2432, 0 }, { { -784, 0, -464, 0 }, { 784, 0, -464, 0 }, { -784, 0, 464, 0 }, { 784, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6224, -64, -160, 0 }, { { -432, 0, -592, 0 }, { 432, 0, -592, 0 }, { -432, 0, 592, 0 }, { 432, 0, 592, 0 } }, { 0, 4096, 0, 0 }, { -4076, 0, 401, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Three doorway warps and twelve CAP interaction quads for the storeroom.
+///
+/// The warps join the south walkway, armory and north walkway through departure
+/// slots 1..3. Other records select CAP commands 2..13. Origins and corners use
+/// room game units; normals use `ONE` per unit. The last live record carries
+/// `WORLD_COLLISION_TRIGGER_LAST`. Room setup binds coordinates and mutates
+/// links, enabled flags and hit latches; keep this storage live until unlinked.
+static WorldCollisionTrigger _gShelterB1StoreroomActionTriggers[15] = {
+    { NULL, NULL, NULL, { 5776, -48, -2256, 0 }, { { -688, 0, -432, 0 }, { 688, 0, -432, 0 }, { -688, 0, 432, 0 }, { 688, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, (SHELTER_B1_STOREROOM_WARP_SOUTH_WALKWAY << 4) | SHELTER_B1_STOREROOM_SOUTH_WALKWAY_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3312, -48, -2176, 0 }, { { -688, 0, -528, 0 }, { 688, 0, -528, 0 }, { -688, 0, 528, 0 }, { 688, 0, 528, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ARMORY, (SHELTER_B1_STOREROOM_WARP_ARMORY << 4) | SHELTER_B1_STOREROOM_ARMORY_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5712, -80, 2432, 0 }, { { -784, 0, -464, 0 }, { 784, 0, -464, 0 }, { -784, 0, 464, 0 }, { 784, 0, 464, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, (SHELTER_B1_STOREROOM_WARP_NORTH_WALKWAY << 4) | SHELTER_B1_STOREROOM_NORTH_WALKWAY_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6224, -64, -160, 0 }, { { -432, 0, -592, 0 }, { 432, 0, -592, 0 }, { -432, 0, 592, 0 }, { 432, 0, 592, 0 } }, { 0, ONE, 0, 0 }, { -4076, 0, 401, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 6208, -64, 1472, 0 }, { { -432, 0, -864, 0 }, { 432, 0, -864, 0 }, { -432, 0, 864, 0 }, { 432, 0, 864, 0 } }, { 0, 4102, 0, 0 }, { -4076, 0, 401, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2992, -64, 784, 0 }, { { -1472, 0, -368, 0 }, { 1472, 0, -368, 0 }, { -1472, 0, 368, 0 }, { 1472, 0, 368, 0 } }, { 0, 4104, 0, 0 }, { -202, 0, 4091, 0 }, 1514, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0, -64, 736, 0 }, { { -1472, 0, -368, 0 }, { 1472, 0, -368, 0 }, { -1472, 0, 368, 0 }, { 1472, 0, 368, 0 } }, { 0, 4104, 0, 0 }, { -202, 0, 4091, 0 }, 1514, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -541,9 +599,9 @@ WorldCollisionTrigger D_shelter_b1_storeroom_80186670[15] = {
     { NULL, NULL, NULL, { 2976, -64, -832, 0 }, { { -1472, 0, -368, 0 }, { 1472, 0, -368, 0 }, { -1472, 0, 368, 0 }, { 1472, 0, 368, 0 } }, { 0, 4104, 0, 0 }, { 402, 0, -4077, 0 }, 1514, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -3664, -64, -32, 0 }, { { -432, 0, -2384, 0 }, { 432, 0, -2384, 0 }, { -432, 0, 2384, 0 }, { 432, 0, 2384, 0 } }, { 0, 4100, 0, 0 }, { 4075, 0, 400, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -352, -64, 2336, 0 }, { { -1024, 0, -912, 0 }, { 1024, 0, -912, 0 }, { -1024, 0, 208, 0 }, { 1024, 0, 208, 0 } }, { 0, 4110, 0, 0 }, { -201, 0, -4091, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3520, -64, -1776, 0 }, { { -1024, 0, -352, 0 }, { 1024, 0, -352, 0 }, { -1024, 0, 352, 0 }, { 1024, 0, 352, 0 } }, { 0, 4094, 0, 0 }, { 0, 0, 4096, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -480, -64, -2464, 0 }, { { -1568, 0, -224, 0 }, { 1504, 0, -224, 0 }, { -608, 0, 832, 0 }, { 1024, 0, 832, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1888, -64, 2624, 0 }, { { -768, 0, -800, 0 }, { 1024, 0, -800, 0 }, { -1472, 0, 96, 0 }, { 1760, 0, 128, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3520, -64, -1776, 0 }, { { -1024, 0, -352, 0 }, { 1024, 0, -352, 0 }, { -1024, 0, 352, 0 }, { 1024, 0, 352, 0 } }, { 0, 4094, 0, 0 }, { 0, 0, ONE, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -480, -64, -2464, 0 }, { { -1568, 0, -224, 0 }, { 1504, 0, -224, 0 }, { -608, 0, 832, 0 }, { 1024, 0, 832, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, ONE, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1888, -64, 2624, 0 }, { { -768, 0, -800, 0 }, { 1024, 0, -800, 0 }, { -1472, 0, 96, 0 }, { 1760, 0, 128, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 6304, -64, -1584, 0 }, { { -432, 0, -736, 0 }, { 432, 0, -736, 0 }, { -432, 0, 736, 0 }, { 432, 0, 736, 0 } }, { 0, 4113, 0, 0 }, { -4076, 0, 401, 0 }, 851, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
@@ -566,7 +624,7 @@ enum {
 /// Odd Stranger and Rat recipes for placement variant 1.
 ///
 /// Keys 18 and 7 load files 401800 and 300700 and spawn descriptor zero.
-/// Paired with `D_shelter_b1_storeroom_80186B5C`; AREA_PLACEMENT_END ends the list.
+/// Paired with `_gShelterB1StoreroomVariant1Placements`; AREA_PLACEMENT_END ends the list.
 /// Retain room recipes, placements and actor descriptors through loading,
 /// spawning and model-flag updates.
 static AreaResource _gShelterB1StoreroomVariant1Resources[3] = {
@@ -578,7 +636,7 @@ static AreaResource _gShelterB1StoreroomVariant1Resources[3] = {
 /// Amoeba resource recipe for placement variant 2.
 ///
 /// Key 24 loads file 102400 and spawns body descriptor zero.
-/// Paired with `D_shelter_b1_storeroom_80186BBC`; AREA_PLACEMENT_END ends the list.
+/// Paired with `_gShelterB1StoreroomVariant2Placements`; AREA_PLACEMENT_END ends the list.
 /// Retain room recipes, placements and actor descriptors through loading,
 /// spawning and model-flag updates.
 static AreaResource _gShelterB1StoreroomVariant2Resources[2] = {
@@ -589,7 +647,7 @@ static AreaResource _gShelterB1StoreroomVariant2Resources[2] = {
 /// Stinger resource recipe for placement variant 3.
 ///
 /// Key 3 loads file 100300 and spawns body descriptor zero.
-/// Paired with `D_shelter_b1_storeroom_80186C3C`; AREA_PLACEMENT_END ends the list.
+/// Paired with `_gShelterB1StoreroomVariant3Placements`; AREA_PLACEMENT_END ends the list.
 /// Retain room recipes, placements and actor descriptors through loading,
 /// spawning and model-flag updates.
 static AreaResource _gShelterB1StoreroomVariant3Resources[2] = {
@@ -600,7 +658,7 @@ static AreaResource _gShelterB1StoreroomVariant3Resources[2] = {
 /// Two Pawn GOLEM recipes for placement variant 11.
 ///
 /// Keys 20 and 56 load files 102000 and 205600 and spawn descriptor zero.
-/// Paired with `D_shelter_b1_storeroom_80186C6C`; AREA_PLACEMENT_END ends the list.
+/// Paired with `_gShelterB1StoreroomVariant11Placements`; AREA_PLACEMENT_END ends the list.
 /// Retain room recipes, placements and actor descriptors through loading,
 /// spawning and model-flag updates.
 static AreaResource _gShelterB1StoreroomVariant11Resources[3] = {
@@ -609,43 +667,79 @@ static AreaResource _gShelterB1StoreroomVariant11Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_storeroom_80186B5C[6] = {
-    { 18, 16, 1, 3000, 0, 1350, 1024, 0, 0, 2, 0 },
-    { 18, 16, 1, -500, 0, -1550, 3072, 0, 0, 2, 0 },
-    { 7, 0, 0, 6200, 0, -600, 700, 0, 2, 4, 4 },
-    { 7, 0, 0, 6200, 0, -100, 900, 0, 2, 4, 4 },
-    { 7, 0, 0, 6250, 0, 0, 1700, 0, 2, 4, 4 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+// Actor-specific selectors packed into placement variant and mode fields.
+enum {
+    SHELTER_B1_STOREROOM_ODD_STRANGER_STALK_VARIANT = 0x10,
+    SHELTER_B1_STOREROOM_ODD_STRANGER_THIRD_TUNING  = 1,
+    SHELTER_B1_STOREROOM_AMOEBA_ALTERNATE_TUNING    = 1,
+    SHELTER_B1_STOREROOM_PAWN_GOLEM_PATROL_MODE     = 1,
 };
 
-AreaPlacement D_shelter_b1_storeroom_80186BBC[8] = {
-    { 24, 0, 1, -3750, 0, 2050, 1900, 0, 0, 2, 0 },
-    { 24, 0, 0, 6200, 0, -300, 1200, 0, 0, 2, 0 },
-    { 24, 0, 0, 6100, 0, -200, 1024, 0, 0, 2, 0 },
-    { 24, 0, 0, 6300, 0, -100, 1400, 0, 0, 2, 0 },
-    { 24, 0, 0, 3300, 0, 1000, 900, 0, 0, 2, 0 },
-    { 24, 0, 0, -1850, 0, 0, 1024, 0, 0, 2, 0 },
-    { 24, 0, 0, -500, 0, -1550, 800, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two stalking Odd Strangers and three Rats in storeroom placement variant 1.
+///
+/// Entry IDs select the paired resource recipes; Odd Strangers use their third
+/// tuning row, and Rats use parameter row 4.
+/// XYZ use world game units, yaw uses 4096 units per turn, and texture offsets
+/// count VRAM pages and CLUT rows. `AREA_PLACEMENT_END` closes the list.
+/// Actors borrow these records; keep the room overlay loaded until teardown.
+static AreaPlacement _gShelterB1StoreroomVariant1Placements[6] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_ODD_STRANGER, .variant = SHELTER_B1_STOREROOM_ODD_STRANGER_STALK_VARIANT, .mode = SHELTER_B1_STOREROOM_ODD_STRANGER_THIRD_TUNING, .x = 3000, .z = 1350, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_ODD_STRANGER, .variant = SHELTER_B1_STOREROOM_ODD_STRANGER_STALK_VARIANT, .mode = SHELTER_B1_STOREROOM_ODD_STRANGER_THIRD_TUNING, .x = -500, .z = -1550, .yaw = 3072, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_RAT, .x = 6200, .z = -600, .yaw = 700, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_RAT, .x = 6200, .z = -100, .yaw = 900, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_RAT, .x = 6250, .yaw = 1700, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_storeroom_80186C3C[3] = {
-    { 3, 0, 0, 4000, 0, 1300, 3072, 0, 0, 2, 0 },
-    { 3, 0, 1, -1000, 0, -1300, 1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Seven Amoebas in storeroom placement variant 2.
+///
+/// The first placement selects alternate tuning and palette; the other six
+/// use the ordinary tuning and palette.
+/// XYZ use world game units, yaw uses 4096 units per turn, and texture offsets
+/// count VRAM pages and CLUT rows. `AREA_PLACEMENT_END` closes the list.
+/// Actors borrow these records; keep the room overlay loaded until teardown.
+static AreaPlacement _gShelterB1StoreroomVariant2Placements[8] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .mode = SHELTER_B1_STOREROOM_AMOEBA_ALTERNATE_TUNING, .x = -3750, .z = 2050, .yaw = 1900, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = 6200, .z = -300, .yaw = 1200, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = 6100, .z = -200, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = 6300, .z = -100, .yaw = 1400, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = 3300, .z = 1000, .yaw = 900, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = -1850, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_AMOEBA, .x = -500, .z = -1550, .yaw = 800, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_storeroom_80186C6C[3] = {
-    { 20, 8, 1, -3000, 0, 1400, 1024, 0, 0, 2, 0 },
-    { 56, 6, 1, 3000, 0, -1400, 3072, 0, 3, 5, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Brain Stingers with distinct patrol routes in storeroom placement variant 3.
+///
+/// Both placements select the paired entry-3 recipe. Modes 0 and 1 select
+/// the room's two authored two-point patrol routes; both allow target lock-on.
+/// XYZ use world game units, yaw uses 4096 units per turn, and texture offsets
+/// count VRAM pages and CLUT rows. `AREA_PLACEMENT_END` closes the list.
+/// Actors borrow these records; keep the room overlay loaded until teardown.
+static AreaPlacement _gShelterB1StoreroomVariant3Placements[3] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_STINGER, .x = 4000, .z = 1300, .yaw = 3072, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_STINGER, .mode = 1, .x = -1000, .z = -1300, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
+/// Two patrolling Pawn GOLEMs in storeroom placement variant 11.
+///
+/// Entry IDs select the two actor-slot recipes and separate texture offsets.
+/// The patrol lengths are eight and six thousand world units, respectively.
+/// XYZ use world game units and yaw uses 4096 units per turn.
+/// `AREA_PLACEMENT_END` closes the list. Actors borrow these records; keep
+/// the room overlay loaded until teardown.
+static AreaPlacement _gShelterB1StoreroomVariant11Placements[3] = {
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM, .variant = 8, .mode = SHELTER_B1_STOREROOM_PAWN_GOLEM_PATROL_MODE, .x = -3000, .z = 1400, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B1_STOREROOM_RESOURCE_PAWN_GOLEM_ALT, .variant = 6, .mode = SHELTER_B1_STOREROOM_PAWN_GOLEM_PATROL_MODE, .x = 3000, .z = -1400, .yaw = 3072, .texturePageOffset = 3, .clutRowOffset = 5 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gShelterB1StoreroomAreaVariants[22] = {
     { NULL, NULL },
-    { D_shelter_b1_storeroom_80186B5C, _gShelterB1StoreroomVariant1Resources },
-    { D_shelter_b1_storeroom_80186BBC, _gShelterB1StoreroomVariant2Resources },
-    { D_shelter_b1_storeroom_80186C3C, _gShelterB1StoreroomVariant3Resources },
+    { _gShelterB1StoreroomVariant1Placements, _gShelterB1StoreroomVariant1Resources },
+    { _gShelterB1StoreroomVariant2Placements, _gShelterB1StoreroomVariant2Resources },
+    { _gShelterB1StoreroomVariant3Placements, _gShelterB1StoreroomVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -653,7 +747,7 @@ AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_storeroom_80186C6C, _gShelterB1StoreroomVariant11Resources },
+    { _gShelterB1StoreroomVariant11Placements, _gShelterB1StoreroomVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -682,8 +776,14 @@ static const WorldCoordRoomAmbientEntry _gShelterB1StoreroomRoomAmbient[9] __att
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionOccluder D_shelter_b1_storeroom_80186D94[1] = {
-    { NULL, NULL, { 1568, -240, 0, 0 }, { { -2976, 1840, 0, 0 }, { 2976, 1840, 0, 0 }, { -2976, -1840, 0, 0 }, { 2976, -1840, 0, 0 } }, { 0, 0, 4096, 0 }, 3491, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// One room-space quad blocking line of sight through the storeroom.
+///
+/// Origin and corners use game units; the plane normal uses `ONE` per unit.
+/// The live record carries `WORLD_COLLISION_OCCLUDER_LAST`; its retained low
+/// flag bit has no established meaning. Setup mutates links and enabled state.
+/// Keep this writable storage loaded until the record is unlinked.
+static WorldCollisionOccluder _gShelterB1StoreroomSightOccluders[1] = {
+    { NULL, NULL, { 1568, -240, 0, 0 }, { { -2976, 1840, 0, 0 }, { 2976, 1840, 0, 0 }, { -2976, -1840, 0, 0 }, { 2976, -1840, 0, 0 } }, { 0, 0, ONE, 0 }, 3491, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 // Type-1 requests select the loaded room bank; cue 1 uses the next entry.

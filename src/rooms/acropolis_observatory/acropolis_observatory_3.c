@@ -430,7 +430,7 @@ static AreaPlacement _gAcropolisObservatoryVariant17Placements[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_acropolis_observatory_80181264[19] = {
+AreaVariant gAcropolisObservatoryAreaVariants[19] = {
     { NULL, NULL },
     { gMapAkropolisObservatoryVariant1Placements, _gAcropolisObservatoryVariant1Resources },
     { gMapAkropolisObservatoryVariant2Placements, _gAcropolisObservatoryVariant2Resources },

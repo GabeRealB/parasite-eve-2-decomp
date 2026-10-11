@@ -33,7 +33,16 @@ extern SVECTOR gAcropolisFireEscapeCollisionGridVerts[55];
 /// Keep the room overlay loaded through collision queries and barrier updates.
 extern WorldCollisionGridFace gAcropolisFireEscapeCollisionGridFaces[23];
 
-extern AreaVariant D_acropolis_fire_escape_8018294C[5];
+/// Actor layout variants for the Acropolis fire escape.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..4); no terminator.
+/// Slots 1..3 publish placement/resource pairs; all other slots are NULL pairs.
+/// Variants 1..3 share both lists.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisFireEscapeAreaVariants[5];
 
 /// Room 1's collision mesh, eight view boundaries, twelve actions and two sight blockers.
 ///

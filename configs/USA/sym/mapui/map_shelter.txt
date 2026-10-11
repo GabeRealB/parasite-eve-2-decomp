@@ -97,11 +97,11 @@ gShelterB1SouthMaintenanceWalkwayViewCameras = 0x801827DC; // absolute:True owne
 gShelterB1SouthMaintenanceWalkwaySpriteViews = 0x80182E18; // absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 gShelterB1SouthMaintenanceWalkwaySurfacePropertiesByClass = 0x80183614; // absolute:True owner=shelter_b1_south_maintenance_walkway
 shelterB1StoreroomTask = 0x8017D794; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
-D_shelter_b1_storeroom_80184B50 = 0x80184B50; // absolute:True owner=shelter_b1_storeroom
+gShelterB1StoreroomRoomCollisionResources = 0x80184B50; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomRoomLighting = 0x80184B60; // absolute:True owner=shelter_b1_storeroom shared=rooms
 gShelterB1StoreroomRoomViewMaps = 0x80184B68; // absolute:True owner=shelter_b1_storeroom shared=rooms
-D_shelter_b1_storeroom_80184B6C = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom
-D_shelter_b1_storeroom_80184B70 = 0x80184B70; // absolute:True owner=shelter_b1_storeroom
+gShelterB1StoreroomRoomViewCounts = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom
+gShelterB1StoreroomWarpEntries = 0x80184B70; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomViewCameras = 0x801850FC; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomSpriteViews = 0x80186090; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomSurfaceClassProperties = 0x80186DEC; // absolute:True owner=shelter_b1_storeroom
@@ -281,7 +281,7 @@ gShelterB2ElevatorHallSpriteViews = 0x80184120; // absolute:True owner=shelter_b
 gShelterB2ElevatorHallRoomLights = 0x801846B4; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallViewBoundaryTriggers = 0x801846CC; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallSightOccluders = 0x8018492C; // absolute:True owner=shelter_b2_elevator_hall
-gShelterB2ElevatorHallWarpTriggers = 0x80184968; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
+gShelterB2ElevatorHallWarpTriggers = 0x80184968; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallSurfacePropertiesByClass = 0x80184D5C; // absolute:True owner=shelter_b2_elevator_hall
 shelterB2SouthMaintenanceWalkwayRoomTask = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 gShelterB2SouthMaintenanceWalkwayRoomViewMaps = 0x8018263C; // absolute:True owner=shelter_b2_south_maintenance_walkway

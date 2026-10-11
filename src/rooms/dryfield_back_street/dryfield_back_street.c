@@ -373,7 +373,7 @@ static AreaPlacement _gDryfieldBackStreetMindSucklerPlacements[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_dryfield_back_street_80180A50[13] = {
+AreaVariant gDryfieldBackStreetAreaVariants[13] = {
     { NULL, NULL },
     { gMapDryfieldBackStreetDesertChaserPlacements, _gDryfieldBackStreetDesertChaserResources },
     { NULL, NULL },

@@ -29,7 +29,15 @@ extern PadScriptCmd gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands[
 /// this record through playback while the landing-pad overlay remains loaded.
 extern PadScriptVibrationSegment gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment;
 
-extern AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13];
+/// Actor layout variants for the Acropolis helicopter landing pad.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..12); no terminator.
+/// Slots 1 and 2 publish placement/resource pairs; all other slots are NULL pairs.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisHelicopterLandingPadAreaVariants[13];
 
 extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
 

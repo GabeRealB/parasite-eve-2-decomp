@@ -11,7 +11,16 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_acropolis_forked_road_801831C4[24];
+/// Actor layout variants for the Acropolis forked road.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..23); no terminator.
+/// Slots 2..4, 7..16 and 20..22 publish placement/resource pairs; all other slots are NULL pairs.
+/// Variant 1 is empty.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisForkedRoadAreaVariants[24];
 
 /// Collision resources for forked-road rooms 1..3, indexed by room minus one.
 ///

@@ -850,7 +850,7 @@ static AreaResource _gAcropolisRoofGardenVariant8Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_acropolis_roof_garden_80185934[12] = {
+AreaVariant gAcropolisRoofGardenAreaVariants[12] = {
     { NULL, NULL },
     { gMapAkropolisRoofGardenVariant1Placements, _gAcropolisRoofGardenVariant1Resources },
     { gMapAkropolisRoofGardenVariant2Placements, _gAcropolisRoofGardenVariant2Resources },

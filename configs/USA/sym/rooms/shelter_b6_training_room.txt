@@ -41,7 +41,7 @@ _gShelterB6TrainingRoomPointLights = 0x80184DD8; // size:0x480 defined:True
 _gShelterB6TrainingRoomConeLights = 0x80185258; // size:0x510 defined:True
 gShelterB6TrainingRoomLights = 0x80185768; // size:0x18 defined:True
 D_shelter_b6_training_room_80185780 = 0x80185780; // size:0x214 defined:True
-D_shelter_b6_training_room_80185994 = 0x80185994; // size:0x48 defined:True
+_gShelterB6TrainingRoomVariant1Resources = 0x80185994; // size:0x48 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor105100TaskDescriptors = 0x80141464; // absolute:True owner=actor_105100
 gActor205200ControllerPartTasks = 0x8014CA60; // absolute:True owner=actor_205200

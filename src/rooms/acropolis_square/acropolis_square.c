@@ -506,7 +506,7 @@ static AreaResource _gAcropolisSquareVariant1Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_acropolis_square_80185E50[3] = {
+AreaVariant gAcropolisSquareAreaVariants[3] = {
     { NULL, NULL },
     { gMapAkropolisSquareVariant1Placements, _gAcropolisSquareVariant1Resources },
     { NULL, NULL },

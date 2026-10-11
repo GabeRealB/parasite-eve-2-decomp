@@ -882,16 +882,26 @@ WorldCollisionTrigger gShelterB6NurseryViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 6017, -1504, 2081, 0 }, { { -2694, -1904, -404, 0 }, { 2686, -1904, 395, 0 }, { -2694, 1904, -404, 0 }, { 2686, 1904, 395, 0 } }, { 602, 0, -4063, 0 }, { 0, 0, ONE, 0 }, 3318, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b6_nursery_80187474[4] = {
-    { 101, 508, AREA_RESOURCE_FILE_GROUP_BASE_40, ACTOR_450800_NURSERY_ACTOR_TASK_KYLE, { 0, 0 }, gActor450800NurseryActorTasks },
-    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, PAIR_WALK_TASK_BODY, { 0, 0 }, gActor450800PawnGolemTasks },
-    { 140, 508, AREA_RESOURCE_FILE_GROUP_BASE_60, ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY, { 0, 0 }, gActor450800NurseryActorTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Nursery variant-1 recipes for Kyle, Pawn GOLEMs and the second scene body.
+///
+/// Keys 101 and 140 select descriptors 0 and 3 from the nursery actor table;
+/// key 20 selects the Pawn GOLEM body recipe. Files are 450800, 535800 and
+/// 650800, respectively. The base-60 load requires key 140's base placement.
+/// `AREA_PLACEMENT_END` ends the list. Keep room recipes and map placements
+/// loaded through loading, spawning and model-policy updates; actor overlays
+/// must remain loaded while their tasks run. Buffer-policy restoration uses
+/// descriptor 0 even for key 140, whose spawned descriptor 3 suppresses
+/// automatic buffers; the reason for this distinction is unproven.
+static AreaResource _gShelterB6NurseryVariant1Resources[4] = {
+    { .entryId = 101, .fileNumber = 508, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = ACTOR_450800_NURSERY_ACTOR_TASK_KYLE, .taskTable = gActor450800NurseryActorTasks },
+    { .entryId = 20, .fileNumber = 358, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = PAIR_WALK_TASK_BODY, .taskTable = gActor450800PawnGolemTasks },
+    { .entryId = 140, .fileNumber = 508, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY, .taskTable = gActor450800NurseryActorTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b6_nursery_801874A4[13] = {
     { NULL, NULL },
-    { gMapNeoArkNurseryDefaultPlacements, D_shelter_b6_nursery_80187474 },
+    { gMapNeoArkNurseryDefaultPlacements, _gShelterB6NurseryVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

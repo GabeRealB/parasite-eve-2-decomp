@@ -248,7 +248,7 @@ static AreaResource _gAcropolisHallwayVariant4Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_acropolis_hallway_8017EA3C[13] = {
+AreaVariant gAcropolisHallwayAreaVariants[13] = {
     { NULL, NULL },
     { gMapAkropolisHallwayVariant1Placements, _gAcropolisHallwayVariant1Resources },
     { gMapAkropolisHallwayVariant2Placements, _gAcropolisHallwayVariant2Resources },

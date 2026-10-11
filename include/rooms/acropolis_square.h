@@ -20,7 +20,16 @@
 /// overlay must be loaded when that branch applies the updates.
 extern AreaApplyRec gAcropolisSquarePostCutsceneAreaUpdates[4];
 
-extern AreaVariant D_acropolis_square_80185E50[3];
+/// Actor layout variants for the Acropolis square.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..2); no terminator.
+/// Slot 1 publishes a placement/resource pair; all other slots are NULL pairs.
+/// The siren sequence selects empty variant 2 to clear the default layout.
+/// The room owns recipes and the stage map owns placements. Keep the map
+/// loaded while actors borrow placements.
+/// Keep the room loaded during loading, spawning and model-policy updates,
+/// and each selected actor overlay loaded throughout its tasks' lifetime.
+extern AreaVariant gAcropolisSquareAreaVariants[3];
 
 /// Collision resources for the square's single room, borrowed by the Akropolis map.
 ///
