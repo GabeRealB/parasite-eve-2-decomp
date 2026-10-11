@@ -66,11 +66,14 @@
 #include "weapons/m4a1_pyke.h"
 #include "weapons/m93r.h"
 #include "weapons/m950.h"
+#include "weapons/mongoose.h"
 #include "weapons/mp5a5.h"
 #include "weapons/p08.h"
 #include "weapons/p229.h"
 #include "weapons/pa3.h"
+#include "weapons/sp12.h"
 #include "weapons/tonfa_baton.h"
+#include "weapons/unused_85.h"
 
 #include "main/areas.h"
 #include "main/task_types.h"
@@ -609,21 +612,7 @@ static void _playerActorTickBodyBlastHit(Task* task);
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
 
-extern AnimationBank D_m950_8012BA78;
-
-extern AnimationBank D_p229_8012B51C;
-
-extern AnimationBank D_unused_85_8012A474;
-
 extern AnimationBank D_unused_86_8012A0D8;
-
-extern AnimationBank D_mongoose_8012A9C0;
-
-extern AnimationBank D_sp12_8012BCC8;
-
-extern AnimationBank D_m4a1_8012B9E4;
-
-extern AnimationBank D_mp5a5_8012B3CC;
 
 /// Weapon overlay entry points, at fixed addresses.
 
@@ -913,7 +902,7 @@ u16 Gp_WeaponIdBase[2] = {
     1,
     0,
 };
-AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &D_m950_8012BA78, &gP08PlayerAnimationBank, &D_p229_8012B51C, &D_unused_85_8012A474, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &D_mongoose_8012A9C0, &D_unused_86_8012A0D8, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &D_sp12_8012BCC8, &gAs12PlayerAnimationBank, &D_m4a1_8012B9E4, &gM249PlayerAnimationBank, &D_unused_86_8012A0D8, &gTonfaBatonPlayerAnimationBank, &D_m4a1_8012B9E4, &D_m4a1_8012B9E4, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &D_unused_86_8012A0D8, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC };
+AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &gMongoosePlayerAnimationBank, &D_unused_86_8012A0D8, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &D_unused_86_8012A0D8, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &D_unused_86_8012A0D8, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
 u16            D_80112DF4[4]           = {
     0,
     64,

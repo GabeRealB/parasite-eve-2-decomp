@@ -1,3 +1,4 @@
 // Overlay-local symbols for M950 (file 10303).
 gM950WeaponModel = 0x8011DA9C; // model named by a task descriptor
 m950AttackState = 0x8011d1dc; // type:func
+gM950PlayerAnimationBank = 0x8012ba78;

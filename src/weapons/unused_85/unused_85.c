@@ -1,8 +1,8 @@
-#include "weapons/weapon.h"
+#include "weapons/unused_85.h"
 
 #include <psyq/libgpu.h>
 
-#include "gameplay/animation.h"
+#include "weapons/weapon.h"
 
 enum {
     UNUSED_85_HELD_WEAPON_QUAD_COUNT              = 18,
@@ -1278,106 +1278,89 @@ static AnimationSet _gUnused85AimEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused85Animation0D28CBank1[10] = {
+/// Aim-exit translations in model units and rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gUnused85AimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0D28C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0D28CBank4[145] = {
+/// Packed aim-exit Euler rotations in eight-unit angle steps for tracks 2..18.
+static const AnimationPackedRotation _gUnused85AimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0D28C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0D28CRecords[176] = {
+/// Aim-exit keyframes and stop controls without cues; durations count normal-rate frames.
+static const AnimationRecord _gUnused85AimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0D28C_records.inc"
 };
 
-static u16 _gUnused85Animation0D28CIndices[20] = {
+/// Absolute aim-exit record starts for tracks 0..18 and the retained unused export halfword.
+static const u16 _gUnused85AimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0D28C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0D28C = {
-    _gUnused85Animation0D28CRecords,
-    _gUnused85Animation0D28CIndices,
-    { NULL, _gUnused85Animation0D28CBank1, NULL, NULL, _gUnused85Animation0D28CBank4, NULL, NULL, NULL },
+/// Player transition out of the aiming stance for unused weapon index 6.
+///
+/// Native-bank set 8 is blended over six normal-rate frames. All 19 tracks
+/// stop at their final poses without cues; child playback uses tracks 1..18.
+/// The set and payloads are borrowed while this package remains loaded.
+static AnimationSet _gUnused85AimExitAnimation = {
+    .records           = _gUnused85AimExitAnimationRecords,
+    .trackStartIndices = _gUnused85AimExitAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85AimExitAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85AimExitAnimationBank4,
+    },
 };
 
-AnimationBank D_unused_85_8012A474 = { { {
-    NULL,
-    &_gUnused85IdleAnimation,
-    &_gUnused85WalkAnimation,
-    &_gUnused85BackwardWalkAnimation,
-    &_gUnused85RunAnimation,
-    &_gUnused85NegativeTurnAnimation,
-    &_gUnused85PositiveTurnAnimation,
-    &_gUnused85AimEntryAnimation,
-    &_gUnused85Animation0D28C,
-    &_gUnused85AimIdleAnimation,
-    &_gUnused85FireAnimation,
-    &_gUnused85FireAnimation,
-    &_gUnused85AimForwardAnimation,
-    &_gUnused85AimBackwardOrTurnAnimation,
-    &_gUnused85ReloadAnimation,
-    &_gUnused85ReloadAnimation,
-    &_gUnused85Part4HitReactionAnimation,
-    &_gUnused85OtherBodyHitReactionAnimation,
-    &_gUnused85StoppedPoseAnimation,
-    &_gUnused85UnarmedWalkAnimation,
-    &_gUnused85ReloadAnimation,
-    &_gUnused85IdleAnimation,
-    &_gUnused85IdleAnimation,
-    &_gUnused85HealthyIdleAnimation,
-    &_gUnused85MediumHealthIdleAnimation,
-    &_gUnused85CriticalHealthIdleAnimation,
-    &_gUnused85PeReleaseFamily0Animation,
-    &_gUnused85PeChargeFamily0Animation,
-    &_gUnused85PeCastFamily0Animation,
-    &_gUnused85PeReleaseFamily1Animation,
-    &_gUnused85PeChargeFamily1Animation,
-    &_gUnused85PeCastFamily1Animation,
-    &_gUnused85ScriptedPresentationEnterAnimation,
-    &_gUnused85ScriptedPresentationLeaveAnimation,
-    &_gUnused85ScriptedPresentationEnterAnimation,
-    &_gUnused85ScriptedPresentationLeaveAnimation,
-    &_gUnused85StairAscentAnimation,
-    &_gUnused85StairDescentAnimation,
-    &_gUnused85StairAscentFinishEvenAnimation,
-    &_gUnused85StairAscentFinishOddAnimation,
-    &_gUnused85ItemUseAnimation,
-    &_gUnused85IdleAnimation,
-    &_gUnused85PeReleaseFamily2Animation,
-    &_gUnused85PeChargeFamily2Animation,
-    &_gUnused85PeCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gUnused85PlayerAnimationBank = {
+    .table = {
+        .sets = {
+            NULL,
+            &_gUnused85IdleAnimation,
+            &_gUnused85WalkAnimation,
+            &_gUnused85BackwardWalkAnimation,
+            &_gUnused85RunAnimation,
+            &_gUnused85NegativeTurnAnimation,
+            &_gUnused85PositiveTurnAnimation,
+            &_gUnused85AimEntryAnimation,
+            &_gUnused85AimExitAnimation,
+            &_gUnused85AimIdleAnimation,
+            &_gUnused85FireAnimation,
+            &_gUnused85FireAnimation,
+            &_gUnused85AimForwardAnimation,
+            &_gUnused85AimBackwardOrTurnAnimation,
+            &_gUnused85ReloadAnimation,
+            &_gUnused85ReloadAnimation,
+            &_gUnused85Part4HitReactionAnimation,
+            &_gUnused85OtherBodyHitReactionAnimation,
+            &_gUnused85StoppedPoseAnimation,
+            &_gUnused85UnarmedWalkAnimation,
+            &_gUnused85ReloadAnimation,
+            &_gUnused85IdleAnimation,
+            &_gUnused85IdleAnimation,
+            &_gUnused85HealthyIdleAnimation,
+            &_gUnused85MediumHealthIdleAnimation,
+            &_gUnused85CriticalHealthIdleAnimation,
+            &_gUnused85PeReleaseFamily0Animation,
+            &_gUnused85PeChargeFamily0Animation,
+            &_gUnused85PeCastFamily0Animation,
+            &_gUnused85PeReleaseFamily1Animation,
+            &_gUnused85PeChargeFamily1Animation,
+            &_gUnused85PeCastFamily1Animation,
+            &_gUnused85ScriptedPresentationEnterAnimation,
+            &_gUnused85ScriptedPresentationLeaveAnimation,
+            &_gUnused85ScriptedPresentationEnterAnimation,
+            &_gUnused85ScriptedPresentationLeaveAnimation,
+            &_gUnused85StairAscentAnimation,
+            &_gUnused85StairDescentAnimation,
+            &_gUnused85StairAscentFinishEvenAnimation,
+            &_gUnused85StairAscentFinishOddAnimation,
+            &_gUnused85ItemUseAnimation,
+            &_gUnused85IdleAnimation,
+            &_gUnused85PeReleaseFamily2Animation,
+            &_gUnused85PeChargeFamily2Animation,
+            &_gUnused85PeCastFamily2Animation,
+            // Unused base slots and all raw extension words start cleared.
+        },
+    },
+};

@@ -3,16 +3,7 @@
 
 #include "types.h"
 
-#include "gameplay/effects.h"
-
 #include "main/task_types.h"
-
-/// The running beam task and its `EffectWork`, cached on entry to state 0 so
-/// `gunbladeRequestChargeFlash` can reach them from outside the task. The work
-/// pointer is cleared again when that `EffectWork` is released.
-extern Task* D_gunblade_8012E244;
-
-extern EffectWork* D_gunblade_8012E248;
 
 /// Requests a deferred charge flash on the active gunblade trail.
 ///

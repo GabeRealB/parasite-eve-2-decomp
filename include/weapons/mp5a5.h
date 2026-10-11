@@ -1,7 +1,20 @@
 #ifndef INCLUDE_WEAPONS_MP5A5_H
 #define INCLUDE_WEAPONS_MP5A5_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Native player animation bank shared by the MP5A5 and both upgrade packages.
+///
+/// Character 1 selects bank indices 31..33 for equipped weapons 30..32.
+/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
+/// are NULL. The 32 raw extension words at indices 47..78 start cleared and
+/// remain writable for scripted copies, including non-pointer data. Play an
+/// extension entry only after installing a valid clip pointer there. Keep the
+/// selected family package loaded while playback borrows this bank or its native
+/// clips; copied clips also require their source data to remain loaded.
+extern AnimationBank gMp5a5PlayerAnimationBank;
 
 /// Advances the MP5A5 alternate-fire muzzle flash and its transient point light.
 ///

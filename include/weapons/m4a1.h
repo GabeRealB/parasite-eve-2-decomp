@@ -1,8 +1,21 @@
 #ifndef INCLUDE_WEAPONS_M4A1_H
 #define INCLUDE_WEAPONS_M4A1_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Native player animation bank shared by the M4A1 and both upgrade packages.
+///
+/// Character 1 selects bank indices 17, 21 and 22 for equipped weapons 16,
+/// 20 and 21. Base slots 1..44 contain nineteen-track player clips; slots
+/// 0, 45 and 46 are NULL. The 32 raw extension words at indices 47..78 start
+/// cleared and remain writable for scripted copies, including non-pointer data.
+/// Play an extension entry only after installing a valid clip pointer there.
+/// Keep the selected family package loaded while playback borrows this bank or
+/// its native clips; copied clips also require their source data to remain loaded.
+extern AnimationBank gM4a1PlayerAnimationBank;
 
 /// The held rifle model shared by the M4A1 and both upgrade packages.
 ///

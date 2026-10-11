@@ -34,16 +34,21 @@ static GfxCoord _gGunbladeTrailFarHistory[8];
 #include "../../shared/blade_trail.h"
 #include "types.h"
 
-/// The near end of the gunblade beam inside the muzzle frame, `(0, 0x60, 0x80)`;
-/// the task's own coordinate starts there. The far end follows it directly, and
-/// state 0 reaches that as element 1 of this array.
-static SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
+static Task*       _gGunbladeTrailTask;
+static EffectWork* _gGunbladeTrailWork;
 
-/// The far end of that pair, immediately after it. Both forms appear in
-/// the original: one path reaches it as `D_gunblade_8011E704[1]`, which compiles to the
-/// array's address plus 8, and another names it directly, which compiles
-/// to its own address - so it has to be a separate object, not element 1.
-static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
+enum {
+    GUNBLADE_TRAIL_ENDPOINT_NEAR = 0,
+    GUNBLADE_TRAIL_ENDPOINT_FAR  = 1,
+};
+
+/// Near and far ribbon endpoints in integer coordinates of the Gunblade muzzle frame.
+///
+/// The task coordinate stays at endpoint 0; endpoint 1 is sampled every update.
+static SVECTOR _gGunbladeTrailEndpointOffsets[] = {
+    [GUNBLADE_TRAIL_ENDPOINT_NEAR] = { 0, 0x0060, 0x0080, 0 },
+    [GUNBLADE_TRAIL_ENDPOINT_FAR]  = { 0, 0x0060, 0x0380, 0 },
+};
 
 /// Saves a Gunblade endpoint pose in a trail frame that follows the camera independently of the weapon.
 ///
@@ -97,15 +102,15 @@ void gunbladeTrailTask(Task* task)
             case GUNBLADE_TRAIL_SEED:
                 // Seed both histories with the current endpoint poses before drawing any ribbon.
                 nearCoord->parent       = effectWork->parent;
-                nearCoord->coord.t[0]   = D_gunblade_8011E704[0].vx;
-                D_gunblade_8012E244     = task;
-                nearCoord->coord.t[1]   = D_gunblade_8011E704[0].vy;
-                D_gunblade_8012E248     = effectWork;
-                nearCoord->coord.t[2]   = D_gunblade_8011E704[0].vz;
+                nearCoord->coord.t[0]   = _gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_NEAR].vx;
+                _gGunbladeTrailTask     = task;
+                nearCoord->coord.t[1]   = _gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_NEAR].vy;
+                _gGunbladeTrailWork     = effectWork;
+                nearCoord->coord.t[2]   = _gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_NEAR].vz;
                 nearCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(nearCoord);
                 task->state              = GUNBLADE_TRAIL_RECORD;
-                farOffset                = &D_gunblade_8011E704[1];
+                farOffset                = &_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR];
                 farEndpoint.parent       = effectWork->parent;
                 farEndpoint.coord.t[0]   = farOffset->vx;
                 farEndpoint.coord.t[1]   = farOffset->vy;
@@ -119,14 +124,17 @@ void gunbladeTrailTask(Task* task)
                     _gunbladeStoreTrailFrame(historyFrame, &farEndpoint);
                 }
                 return;
-            case GUNBLADE_TRAIL_RECORD:
+            case GUNBLADE_TRAIL_RECORD: {
+                const SVECTOR* recordOffset;
+
                 // Record world poses so old frames follow the camera, independently of the weapon.
                 nearCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(nearCoord);
+                recordOffset             = &_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR];
                 farEndpoint.parent       = effectWork->parent;
-                farEndpoint.coord.t[0]   = D_gunblade_8011E70C.vx;
-                farEndpoint.coord.t[1]   = D_gunblade_8011E70C.vy;
-                farEndpoint.coord.t[2]   = D_gunblade_8011E70C.vz;
+                farEndpoint.coord.t[0]   = recordOffset->vx;
+                farEndpoint.coord.t[1]   = recordOffset->vy;
+                farEndpoint.coord.t[2]   = recordOffset->vz;
                 farEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&farEndpoint);
                 historyFrame = &_gGunbladeTrailNearHistory[effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1)];
@@ -156,12 +164,13 @@ void gunbladeTrailTask(Task* task)
                 _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1), BLADE_TRAIL_TINT_YELLOW_WHITE);
                 keepTask = effectWork->age < GUNBLADE_TRAIL_LIFETIME_TICKS;
                 break;
+            }
             default:
                 return;
         }
     }
     if (!keepTask) {
-        D_gunblade_8012E248 = NULL;
+        _gGunbladeTrailWork = NULL;
         effectKillTask(effectWork, task);
     }
 }
@@ -336,10 +345,10 @@ void gunbladeChargeFlashTask(Task* task)
 
 void gunbladeRequestChargeFlash(s32 ammunitionIndex)
 {
-    EffectWork* trailWork = D_gunblade_8012E248;
+    EffectWork* trailWork = _gGunbladeTrailWork;
 
     if (trailWork != NULL) {
-        D_gunblade_8012E244->spawnArg1.value = ammunitionIndex;
+        _gGunbladeTrailTask->spawnArg1.value = ammunitionIndex;
         trailWork->index++;
     }
 }
@@ -1881,13 +1890,22 @@ AnimationBank gGunbladePlayerAnimationBank = {
                } },
 };
 
-/// The running beam task and its `EffectWork`, cached on entry to state 0 so
-/// `gunbladeRequestChargeFlash` can reach them from outside the task.
-Task*       D_gunblade_8012E244 = NULL;
-EffectWork* D_gunblade_8012E248 = NULL;
+/// Borrowed trail task receiving the ammunition selector for a deferred charge flash.
+///
+/// Published when the histories are seeded. Explicit retirement leaves this
+/// handle unchanged; requests dereference it only behind `_gGunbladeTrailWork`.
+/// Parent teardown does not invalidate either cached handle.
+static Task* _gGunbladeTrailTask = NULL;
 
-/// Nothing reads the two words after the work pointer; they keep the offset of
-/// the trails that follow.
+/// Borrowed trail work whose index counts deferred charge-flash requests.
+///
+/// Published with `_gGunbladeTrailTask` when the histories are seeded and cleared
+/// before normal or cancellation retirement. Parent teardown releases the work
+/// through the generic effect exit without clearing this cache; a non-NULL
+/// value alone does not establish liveness after that teardown.
+static EffectWork* _gGunbladeTrailWork = NULL;
+
+/// Two retained zero words with no code references; their original role is unproven.
 static s32 s_unused_8012E24C[2] = { 0, 0 };
 
 /// Eight retained world-coordinate snapshots of the Gunblade ribbon's near endpoint.

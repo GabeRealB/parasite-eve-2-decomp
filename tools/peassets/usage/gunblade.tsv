@@ -64,4 +64,4 @@ gameplay effect EFFECT_SHOTGUN_MUZZLE_FLASH (ancestor; assets not resolved)	spaw
 # `asset_residency.py show gunblade` prints only `carrier / 0/gunblade (2 uploads)` - no layer, though the load is established (cd_loading.c:1098, layer = variant on gPlayerStatus.weapon), and nothing about the ammunition sound file.
 # tools/peassets/model_textures.tsv has no gunblade row; asset_data.ASSETS['gunblade_model_017FC'].textures = [[39, 15552]] agrees with the face stream. asset_data gives pe2img_24 w=64, which is VRAM words (256 texels at 4-bit).
 # checklist key gunblade_model_017FC names the stream offset; the manifest cuts the model at 0x1554 with its TmdSource at 0x1CF0 (overlays.toml:148), and the generated .inc headers say 'model at 0x1CF0'.
-# D_gunblade_8011E704 / D_gunblade_8011E70C (gunblade.c:37, 43: the trail's base and tip offsets) are small code-owned data, not assets; no literal-number track or path found in the overlay.
+# _gGunbladeTrailEndpointOffsets contains the ribbon's near and far muzzle-frame endpoints (0,96,128) and (0,96,896); this small code-owned table is separate from the embedded model and animation assets.

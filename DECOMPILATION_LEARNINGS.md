@@ -56197,22 +56197,23 @@ before blaming `dbr` — the effect is several blocks away from the edit.
 ## Two adjacent `SVECTOR`s: array indexing and the second symbol are not the same code
 
 When splat emits two labels for what the source treated as one small array
-(`D_gunblade_8011E704` and `D_gunblade_8011E70C`, eight bytes apart), the two
+(`_gGunbladeTrailEndpointOffsets` and its far element, eight bytes apart), the two
 spellings generate different address code and the ROM can use *both*:
 
-- `D_gunblade_8011E704[1].vx` in a block where the array base is already in a
+- `_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR].vx` in a block where the array base is already in a
   register gives `addiu $v0, $s0, 8` plus `lh ... 8($s0)` / `2($v0)` / `4($v0)` —
   a register for the element, with the first field folded back onto the base.
-  A pointer local (`farOffset = &D_gunblade_8011E704[1]; farOffset->vx; …`) is what produces
-  that shape; writing `D_gunblade_8011E704[1].vy` directly folds every offset
+  A pointer local (`farOffset = &_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR]; farOffset->vx; …`) is what produces
+  that shape; writing `_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR].vy` directly folds every offset
   into the base and drops the `addiu`.
-- `D_gunblade_8011E70C.vx` in a block with no live base gives its own
-  `lui`/`addiu` pair and `lh $v0, %lo(D_gunblade_8011E70C)($v0)`.
+- A separate block-scoped pointer (`recordOffset = &_gGunbladeTrailEndpointOffsets[GUNBLADE_TRAIL_ENDPOINT_FAR]`)
+  in a block with no live base gives its own `lui`/`addiu` pair and
+  `lh $v0, %lo(_gGunbladeTrailEndpointOffsets+8)($v0)`.
 
-Declare both (`extern SVECTOR D_gunblade_8011E704[2];` *and*
-`extern SVECTOR D_gunblade_8011E70C;`) and use whichever the block wants; they
-are the same bytes, so the link is unaffected. `gunbladeTrailTask` needs
-the array form in state 0 and the standalone symbol in state 1.
+Declare both endpoints in the two-element `_gGunbladeTrailEndpointOffsets`
+table. `gunbladeTrailTask` uses its function-scoped `farOffset` in state 0 and
+the independent block-scoped `recordOffset` in state 1. Both accesses are in
+bounds and retain the two address-expression forms without an interior symbol.
 
 ## A target `D_8007xxxx` that is a named global's *interior* is not a real diff
 

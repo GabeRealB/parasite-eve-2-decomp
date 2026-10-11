@@ -1,7 +1,20 @@
 #ifndef INCLUDE_WEAPONS_P229_H
 #define INCLUDE_WEAPONS_P229_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Native player animation bank supplied by the loaded P229 package.
+///
+/// Character 1 selects bank index 6 for equipped weapon 5. Base slots 1..44
+/// contain nineteen-track player clips; slots 0, 45 and 46 are NULL. The 32
+/// raw extension words at indices 47..78 start cleared and remain writable for
+/// scripted copies, including non-pointer data. Play an extension entry only
+/// after installing a valid clip pointer there. Keep P229 loaded while playback
+/// borrows this bank or its native clips; copied clips also require their source
+/// data to remain loaded.
+extern AnimationBank gP229PlayerAnimationBank;
 
 /// Advances the P229 alternate-fire muzzle flash and its transient white point light.
 ///
