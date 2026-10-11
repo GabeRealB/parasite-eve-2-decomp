@@ -68,6 +68,11 @@ Memory being there is not the same as the game being allowed to reach it: a prog
 much memory it has, after which anything above faults. `blob.poke` lists words, `[address, value]`, that every
 stub writes before it touches the blob's memory - such as the register that says how much memory there is.
 
+Between the events and the log sit filters (`[log] filters = [...]`, see `filter`): every line about to be written
+goes through them. `repeats`, built in, is for an event that says the same thing over and over: mark the event
+`collapse = true` and a run of its lines that repeats the last one, or the last few in order, is written once,
+followed by `{"event": "repeated", "last": N, "times": T}` - the N lines before this one came T more times.
+
 The buffer is read when it is full, when the tracer detaches (Ctrl-C: what is left is read, the hooks are taken
 out and the game runs on), and after every event marked `drain = true` - at its returns where the config gives
 them, otherwise straight after its entry. A rare event, such as a room load, makes a good one: the log then
@@ -203,6 +208,26 @@ def renderer(name: str):
 
 
 HANDLERS: dict[str, object] = {}
+FILTERS: dict[str, object] = {}
+
+
+def filter(name: str):  # noqa: A001 - the name a hooks file imports
+    """Register a class as the filter `name`. The config's `[log] filters = ["name", ...]` puts filters between the
+    events and the log: every line about to be written goes through them in turn, and each says what is written
+    in its place - the line itself, nothing, or several lines.
+
+        @filter("name")
+        class Mine:
+            def line(self, line, event, trace):    # a line (a dict) of `event` (its config entry); return a list of lines
+                return [line]
+            def end(self, trace):                  # give up anything held back: called before a session's marker
+                return []                          # and at the end of the log
+
+    One object is made per run, so a filter may keep what it needs between lines. `repeats` is built in."""
+    def register(cls):
+        FILTERS[name] = cls
+        return cls
+    return register
 
 
 def handler(name: str):
@@ -252,6 +277,9 @@ def load_hooks(cfg: dict, config_path: Path) -> None:
     missing = sorted({e["render"] for e in cfg.get("event", []) if e.get("render") and e["render"] not in RENDERERS})
     if missing:
         raise SystemExit(f"no renderer named {', '.join(missing)}; the hooks files register: {', '.join(sorted(RENDERERS)) or 'none'}")
+    missing = sorted(set(cfg.get("log", {}).get("filters", [])) - set(FILTERS))
+    if missing:
+        raise SystemExit(f"no filter named {', '.join(missing)}; there are: {', '.join(sorted(FILTERS)) or 'none'}")
     missing = sorted({e["handler"] for e in cfg.get("event", []) if e.get("handler") and e["handler"] not in HANDLERS})
     if missing:
         raise SystemExit(f"no handler named {', '.join(missing)}; the hooks files register: {', '.join(sorted(HANDLERS)) or 'none'}")
@@ -1000,11 +1028,65 @@ class Shared:
         return [wanted.replace("{pid}", pid) for pid in pids]
 
 
+# ---- repeats: an event sent over and over is written once, with a line saying how often it came again
+
+@filter("repeats")
+class Repeats:
+    """A filter for the events marked `collapse = true`. It keeps a short history of the lines written for the events marked `collapse`. When new lines keep matching the
+    last one, or the last few in the same order, they are held back and counted instead of written. The first
+    line that does not fit ends it, and three things are written in order: a line saying the last N events were
+    repeated so many times, the lines held of a repetition that was only partly through, and the new line. So
+    nothing is lost. A line of any other event passes straight through, except in the middle of a repetition,
+    where what is held is written first to keep the order."""
+
+    def __init__(self, longest: int = 8) -> None:
+        self.longest = longest
+        self.history: list[str] = []       # the last lines written, as text
+        self.pattern: list[str] = []       # the lines being repeated, once a repeat is under way
+        self.held: list[dict] = []         # the lines of the repetition now in progress
+        self.times = 0                     # whole repetitions not written
+
+    def line(self, line: dict, event: dict, trace) -> list[dict]:
+        if event.get("collapse"):
+            return self.offer(line)
+        return (self.end() if self.held else []) + [line]
+
+    def offer(self, line: dict) -> list[dict]:
+        """A new line of a collapsed event; returns the lines to write now."""
+        text = json.dumps(line, sort_keys=True)
+        if self.pattern:
+            if text == self.pattern[len(self.held)]:
+                self.held.append(line)
+                if len(self.held) == len(self.pattern):
+                    self.times, self.held = self.times + 1, []
+                return []
+            out = self.end()
+        else:
+            out = []
+        for length in range(1, min(self.longest, len(self.history)) + 1):      # does it begin the last few again?
+            if self.history[-length] == text:
+                self.pattern, self.held, self.times = self.history[-length:], [line], 0
+                if length == 1:
+                    self.times, self.held = 1, []
+                return out
+        self.history = (self.history + [text])[-self.longest:]
+        return out + [line]
+
+    def end(self, trace=None) -> list[dict]:
+        """Stop holding back: the count of what was repeated, then what was held of an unfinished repetition."""
+        out = [{"event": "repeated", "last": len(self.pattern), "times": self.times}] if self.times else []
+        out += self.held
+        self.history = (self.history + [json.dumps(line, sort_keys=True) for line in self.held])[-self.longest:]
+        self.pattern, self.held, self.times = [], [], 0
+        return out
+
+
 # ---- a session
 
 class Session:
     def __init__(self, cfg: dict, gdb: Gdb, out) -> None:
         self.cfg, self.gdb, self.out = cfg, gdb, out
+        self.filters = [FILTERS[name]() for name in cfg.get("log", {}).get("filters", [])]
         self.events = cfg.get("event", [])
         self.count = 0
         self.ready = self.running = self.paused = False
@@ -1038,6 +1120,7 @@ class Session:
 
     def session(self, name: str | None = None) -> None:
         """Begin a session: everything logged from here on belongs to it."""
+        self.settle()
         self.session_number += 1
         self.session_name = name or f"session {self.session_number}"
         self.out.flush()
@@ -1067,6 +1150,7 @@ class Session:
         still loaded, and whoever replays the log needs to see that - with a marker after them saying so."""
         if self.ready:
             self.drain(reset=True)
+        self.settle()
         import datetime
         self.out.write(json.dumps({"dropped": self.session_name, "number": self.session_number, "at": datetime.datetime.now().isoformat(timespec="seconds")}) + "\n")
         self.out.flush()
@@ -1144,6 +1228,7 @@ class Session:
 
     def write(self, text: str) -> None:
         """A line of its own in the log, for a renderer."""
+        self.settle()
         self.out.write(text.rstrip("\n") + "\n")
         self.count += 1
 
@@ -1180,7 +1265,21 @@ class Session:
                     plain["from"] = self.symbol(value)
             else:
                 plain[key] = value
-        self.emit(plain)
+        lines = [plain]
+        for step in self.filters:
+            lines = [out for line in lines for out in (step.line(line, event, self) or [])]
+        for line in lines:
+            self.emit(line)
+
+    def settle(self) -> None:
+        """Have the filters give up whatever they are holding back: before a session's marker, a line a renderer
+        writes itself, and the end of the log."""
+        for n, step in enumerate(self.filters):
+            lines = step.end(self) or []
+            for later in self.filters[n + 1:]:
+                lines = [out for line in lines for out in (later.line(line, {}, self) or [])]
+            for line in lines:
+                self.emit(line)
 
     def start(self) -> None:
         """Wait for the game to reach the first `install_at` address (it is continued to there), then set up."""
@@ -1379,6 +1478,7 @@ class Session:
                     break
                 self.gdb._go("s")
             self.drain(reset=True)
+            self.settle()
             self.remove()
         # A game the user had paused stays paused: the hooks and breakpoints are gone, and it is theirs to resume.
         self.gdb.release(False, resume=not self.paused)

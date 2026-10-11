@@ -347,9 +347,6 @@ def stream_scene(record, trace):
             "sub_id_2": record["a3"] & 0xFFFF, "from": trace.symbol(record["ra"])}
 
 
-SENT: dict = {}          # (call site, message, receiver) -> (its last arguments, how many exact repeats since)
-
-
 def message_names() -> dict[int, list[str]]:
     """value -> the message constants of include/gameplay/message.h with that value (several enums share numbers)."""
     if "messages" not in _CONSTANTS:
@@ -370,16 +367,7 @@ def task_message(record, trace):
     """taskMessageDispatch(receiver, messageId, firstArg, secondArg). The receiver is a task; which names apply to
     a message number depends on the receiver's kind, so every constant with that value is given."""
     ident = record["a1"]
-    # Some senders say the same thing every frame (a placed actor's draw mode is nine in ten of all messages). A
-    # message is written when it differs from the last one the same call site sent the same receiver; the next
-    # one that is written says how many repeats went unwritten before it.
-    key, value = (record["ra"], ident, record["a0"]), (record["a2"], record["a3"])
-    if SENT.get(key, (None, 0))[0] == value:
-        SENT[key] = (value, SENT[key][1] + 1)
-        return None
-    repeats = SENT.get(key, (None, 0))[1]
-    SENT[key] = (value, 0)
-    return {"event": "task_message", "message": ident, **({"repeats_unwritten": repeats} if repeats else {}), "names": message_names().get(ident, []), "receiver": f"{record['a0']:#010x}",
+    return {"event": "task_message", "message": ident, "names": message_names().get(ident, []), "receiver": f"{record['a0']:#010x}",
             "arg1": f"{record['a2']:#010x}", "arg2": f"{record['a3']:#010x}", "arg1_at": trace.symbol(record["a2"]) if record["a2"] >> 24 == 0x80 else None,
             "from": trace.symbol(record["ra"])}
 

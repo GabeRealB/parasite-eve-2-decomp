@@ -47,6 +47,7 @@ process = "duckstation"
 # Where logs and the `blob` command's files go, from this file's directory.
 [log]
 dir = "../../local/gametrace"
+filters = ["repeats"]    # lines of events marked `collapse = true` that repeat are written once, with a count
 
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
@@ -259,6 +260,7 @@ render = "movie_start"
 [[event]]
 id = 24
 name = "task_message"
+collapse = true          # most are one sender saying the same two things every frame: see the repeats filter
 address = 0x800AC464     # taskMessageDispatch(receiver, messageId, firstArg, secondArg)
 image = "gameplay"
 capture = ["a0", "a1", "a2", "a3", "ra"]
