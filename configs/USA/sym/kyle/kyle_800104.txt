@@ -5,3 +5,4 @@ gKyle800104KyleMadiganHandRight = 0x8016C9E8; // model named by a task descripto
 gKyle800104KyleMadiganHandLeft = 0x8016D81C; // model named by a task descriptor
 gKyle800104KyleMadiganHandRightSecondPair = 0x8016CED8; // model named by a task descriptor
 gKyle800104KyleMadiganHandLeftFirstPair = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
+gKyle800104KyleMadiganAnimationBank = 0x80176c1c;

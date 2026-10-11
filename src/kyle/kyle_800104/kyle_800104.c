@@ -5,8 +5,6 @@
 
 #include "types.h"
 
-#include "gameplay/animation.h"
-
 /// Initial part-local pose and parent indices copied into each body model.
 static TmdBone _gKyle800104KyleMadiganBodySkeleton[] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -846,172 +844,187 @@ static AnimationSet _gKyle800104KyleMadiganCombatEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gKyle800104Animation0D5F0Bank1[11] = {
+/// Combat-exit translation/rotation keys for tracks 0 and 1: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganCombatExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0D5F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0D5F0Bank4[129] = {
+/// Combat-exit rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganCombatExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0D5F0_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0D5F0Records[167] = {
+/// Combat-exit keyframes and stop controls: word pose offsets and normal-rate frame durations.
+static const AnimationRecord _gKyle800104KyleMadiganCombatExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0D5F0_records.inc"
 };
 
-static u16 _gKyle800104Animation0D5F0Indices[20] = {
+/// Absolute record-array starts for combat exit's twenty skeletal tracks (0..19).
+static const u16 _gKyle800104KyleMadiganCombatExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0D5F0_indices.inc"
 };
 
-static AnimationSet _gKyle800104Animation0D5F0 = {
-    _gKyle800104Animation0D5F0Records,
-    _gKyle800104Animation0D5F0Indices,
-    { NULL, _gKyle800104Animation0D5F0Bank1, NULL, NULL, _gKyle800104Animation0D5F0Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's combat-exit animation, shared by companion bank slots 8 and 35.
+///
+/// Twenty tracks: 0 and 1 carry translation and rotation, 2..19 rotation only.
+/// Tracks stop on their final keyframe. Native exit drives child tracks 1..19;
+/// keep this package loaded while playback borrows the descriptor or its data.
+static AnimationSet _gKyle800104KyleMadiganCombatExitAnimation = {
+    .records           = _gKyle800104KyleMadiganCombatExitAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganCombatExitAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganCombatExitAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganCombatExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0DE84Bank1[11] = {
+/// Walk translation/rotation keys for tracks 0 and 1: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0DE84_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0DE84Bank4[206] = {
+/// Walk rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0DE84_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0DE84Records[290] = {
+/// Walk keyframes, footstep cues and loop controls: word pose offsets and normal-rate frame durations.
+static const AnimationRecord _gKyle800104KyleMadiganWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0DE84_records.inc"
 };
 
-static u16 _gKyle800104Animation0DE84Indices[20] = {
+/// Absolute record-array starts for the walk animation's twenty skeletal tracks (0..19).
+static const u16 _gKyle800104KyleMadiganWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0DE84_indices.inc"
 };
 
-static AnimationSet _gKyle800104Animation0DE84 = {
-    _gKyle800104Animation0DE84Records,
-    _gKyle800104Animation0DE84Indices,
-    { NULL, _gKyle800104Animation0DE84Bank1, NULL, NULL, _gKyle800104Animation0DE84Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping walk while carrying the variant-4 weapon.
+///
+/// Twenty tracks: 0 and 1 carry translation and rotation, 2..19 rotation only.
+/// Native follow and wander drive child tracks 1..19; keep this package loaded
+/// while slots borrow the descriptor, records, indices or pose banks.
+static AnimationSet _gKyle800104KyleMadiganWalkAnimation = {
+    .records           = _gKyle800104KyleMadiganWalkAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganWalkAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganWalkAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0E5D8Bank1[12] = {
+/// Slot-3 translation/rotation keys for tracks 0 and 1: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104Animation0E5D8Bank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0E5D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0E5D8Bank4[165] = {
+/// Slot-3 rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104Animation0E5D8Bank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0E5D8_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0E5D8Records[248] = {
+/// Slot-3 keyframes, cue bits and loop controls: word pose offsets and normal-rate frame durations.
+static const AnimationRecord _gKyle800104Animation0E5D8Records[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0E5D8_records.inc"
 };
 
-static u16 _gKyle800104Animation0E5D8Indices[20] = {
+/// Absolute record-array starts for slot 3's twenty skeletal tracks (0..19).
+static const u16 _gKyle800104Animation0E5D8Indices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0E5D8_indices.inc"
 };
 
+/// Looping twenty-track clip in Kyle Madigan's native bank slot 3; its behavior is unproven.
+///
+/// Tracks 0 and 1 carry translation and rotation, 2..19 rotation only.
+/// Keep this package loaded while playback borrows the descriptor or its data.
 static AnimationSet _gKyle800104Animation0E5D8 = {
-    _gKyle800104Animation0E5D8Records,
-    _gKyle800104Animation0E5D8Indices,
-    { NULL, _gKyle800104Animation0E5D8Bank1, NULL, NULL, _gKyle800104Animation0E5D8Bank4, NULL, NULL, NULL },
+    .records           = _gKyle800104Animation0E5D8Records,
+    .trackStartIndices = _gKyle800104Animation0E5D8Indices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104Animation0E5D8Bank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104Animation0E5D8Bank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0F184Bank1[17] = {
+/// Run translation/rotation keys for tracks 0 and 1: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganRunAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0F184_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0F184Bank4[298] = {
+/// Run rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0F184_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0F184Records[378] = {
+/// Run keyframes, footstep cues and loop controls: word pose offsets and normal-rate frame durations.
+static const AnimationRecord _gKyle800104KyleMadiganRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0F184_records.inc"
 };
 
-static u16 _gKyle800104Animation0F184Indices[20] = {
+/// Absolute record-array starts for the run animation's twenty skeletal tracks (0..19).
+static const u16 _gKyle800104KyleMadiganRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0F184_indices.inc"
 };
 
-static AnimationSet _gKyle800104Animation0F184 = {
-    _gKyle800104Animation0F184Records,
-    _gKyle800104Animation0F184Indices,
-    { NULL, _gKyle800104Animation0F184Bank1, NULL, NULL, _gKyle800104Animation0F184Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping run while carrying the variant-4 weapon.
+///
+/// Twenty tracks: 0 and 1 carry translation and rotation, 2..19 rotation only.
+/// Native follow and retreat drive child tracks 1..19; keep this package loaded
+/// while slots borrow the descriptor, records, indices or pose banks.
+static AnimationSet _gKyle800104KyleMadiganRunAnimation = {
+    .records           = _gKyle800104KyleMadiganRunAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganRunAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganRunAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganRunAnimationBank4,
+    },
 };
 
-AnimationBank D_kyle_800104_80176C1C = { { {
-    NULL,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104Animation0DE84,
-    &_gKyle800104Animation0E5D8,
-    &_gKyle800104Animation0F184,
-    &_gKyle800104KyleMadiganTurnLeftAnimation,
-    &_gKyle800104KyleMadiganTurnRightAnimation,
-    &_gKyle800104KyleMadiganCombatEntryAnimation,
-    &_gKyle800104Animation0D5F0,
-    &_gKyle800104KyleMadiganCombatHoldAnimation,
-    &_gKyle800104KyleMadiganRifleFireAnimation,
-    &_gKyle800104KyleMadiganPykeFinishAnimation,
-    &_gKyle800104KyleMadiganArmedRunAnimation,
-    &_gKyle800104Animation0B214,
-    &_gKyle800104KyleMadiganReloadAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganPart4HitAnimation,
-    &_gKyle800104KyleMadiganOtherBodyHitAnimation,
-    &_gKyle800104KyleMadiganDeathAnimation,
-    &_gKyle800104KyleMadiganUnarmedWalkAnimation,
-    &_gKyle800104KyleMadiganReloadAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleVariationAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    &_gKyle800104Animation0A394,
-    &_gKyle800104Animation0A8EC,
-    &_gKyle800104KyleMadiganCombatEntryAnimation,
-    &_gKyle800104Animation0D5F0,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104KyleMadiganIdleAnimation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+/// Native set indices for these clips; the combat-exit descriptor also has a second slot.
+enum {
+    KYLE_800104_ANIMATION_WALK_SET              = 2,
+    KYLE_800104_ANIMATION_RUN_SET               = 4,
+    KYLE_800104_ANIMATION_COMBAT_EXIT_SET       = 8,
+    KYLE_800104_ANIMATION_COMBAT_EXIT_ALIAS_SET = 35,
+};
+
+AnimationBank gKyle800104KyleMadiganAnimationBank = {
+    .table = {
+        .sets = {
+            [1]                                           = &_gKyle800104KyleMadiganIdleAnimation,
+            [KYLE_800104_ANIMATION_WALK_SET]              = &_gKyle800104KyleMadiganWalkAnimation,
+            [3]                                           = &_gKyle800104Animation0E5D8,
+            [KYLE_800104_ANIMATION_RUN_SET]               = &_gKyle800104KyleMadiganRunAnimation,
+            [5]                                           = &_gKyle800104KyleMadiganTurnLeftAnimation,
+            [6]                                           = &_gKyle800104KyleMadiganTurnRightAnimation,
+            [7]                                           = &_gKyle800104KyleMadiganCombatEntryAnimation,
+            [KYLE_800104_ANIMATION_COMBAT_EXIT_SET]       = &_gKyle800104KyleMadiganCombatExitAnimation,
+            [9]                                           = &_gKyle800104KyleMadiganCombatHoldAnimation,
+            [10]                                          = &_gKyle800104KyleMadiganRifleFireAnimation,
+            [11]                                          = &_gKyle800104KyleMadiganPykeFinishAnimation,
+            [12]                                          = &_gKyle800104KyleMadiganArmedRunAnimation,
+            [13]                                          = &_gKyle800104Animation0B214,
+            [14]                                          = &_gKyle800104KyleMadiganReloadAnimation,
+            [15]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [16]                                          = &_gKyle800104KyleMadiganPart4HitAnimation,
+            [17]                                          = &_gKyle800104KyleMadiganOtherBodyHitAnimation,
+            [18]                                          = &_gKyle800104KyleMadiganDeathAnimation,
+            [19]                                          = &_gKyle800104KyleMadiganUnarmedWalkAnimation,
+            [20]                                          = &_gKyle800104KyleMadiganReloadAnimation,
+            [21]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [22]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [23]                                          = &_gKyle800104KyleMadiganIdleVariationAnimation,
+            [24]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [25]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [32]                                          = &_gKyle800104Animation0A394,
+            [33]                                          = &_gKyle800104Animation0A8EC,
+            [34]                                          = &_gKyle800104KyleMadiganCombatEntryAnimation,
+            [KYLE_800104_ANIMATION_COMBAT_EXIT_ALIAS_SET] = &_gKyle800104KyleMadiganCombatExitAnimation,
+            [36]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [37]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [38]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [39]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            [40]                                          = &_gKyle800104KyleMadiganIdleAnimation,
+            // Absent native clips and all extension words start as NULL/zero.
+        },
+    },
+};

@@ -1,6 +1,8 @@
 #ifndef INCLUDE_KYLE_KYLE_H
 #define INCLUDE_KYLE_KYLE_H
 
+#include "gameplay/animation.h"
+
 #include "main/tmd_types.h"
 
 /// Kyle Madigan's twenty-part companion body for resource variant 1.
@@ -163,6 +165,16 @@ extern TmdSource gKyle800102KyleMadiganHandLeft;
 /// geometry and writable command stream; keep the package loaded until every
 /// model using this source has been released.
 extern TmdSource gKyle800104KyleMadiganGun;
+
+/// Kyle Madigan's native companion animation bank for resource variant 4.
+///
+/// The first `ANIMATION_BANK_BASE_SET_COUNT` entries are package-owned clips
+/// or NULL. The following `ANIMATION_BANK_EXTENSION_CAPACITY` words start
+/// zeroed and remain writable for borrowed scripted clips and other raw words;
+/// play an extension entry only when it holds a valid set pointer.
+/// Body playback uses tracks 1..19 of the twenty-track clips. Keep this package
+/// and any copied clip data loaded while playback or cached records borrow it.
+extern AnimationBank gKyle800104KyleMadiganAnimationBank;
 
 /// Kyle Madigan's one-part MM1 launcher for companion resource variant 2.
 ///
