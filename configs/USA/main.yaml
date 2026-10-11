@@ -115,7 +115,7 @@ segments:
       - [0x3b58, .rodata, cdvol] # jtbl from _cdSyncPollDiscInit
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
-      - [0x3c04, .rodata, gamemain] # GameMain_PauseText ("PAUSE!")
+      - [0x3c04, .rodata, gamemain] # _gGameMainPauseText ("PAUSE!")
       - [0x3c0c, o, libgs/gs_123, .rdata]
       - [0x3c9c, o, libpad/padentry, .rdata]
       - [0x3cbc, .rodata, gameflow] # GameFlow_States5 / GameFlow_States3, then the controller state and mode jump tables

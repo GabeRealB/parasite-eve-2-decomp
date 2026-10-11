@@ -3,8 +3,6 @@
 
 #include "main/wipsys_types.h"
 
-extern GameMainPersistentState Wip_SysFlags;
-
 /// Resident player state and its serialized memory-card backup.
 ///
 /// The live image occupies the first `PLAYER_STATUS_SAVE_RECORD_BYTES` bytes;

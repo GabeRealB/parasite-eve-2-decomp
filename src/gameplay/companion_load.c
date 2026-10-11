@@ -29,7 +29,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/wipsys.h"
+#include "main/gamemain.h"
 
 /// Resource families selected by the area schedules, independent of actor IDs.
 enum {
@@ -574,8 +574,8 @@ void loadingSessionLoadTask(Task* task)
     if (displayState->demoScene != DISPLAY_DEMO_NONE) {
         if (padReadRawButtons(0) & PAD_BUTTON_START) {
             if (cdCmdIsIdle()) {
-                Wip_SysFlags.skipTitleIntro = 1;
-                displayState->gameMode      = DISPLAY_GAME_RESTART;
+                gGameMainPersistentState.skipTitleIntro = 1;
+                displayState->gameMode                  = DISPLAY_GAME_RESTART;
                 return;
             }
         }

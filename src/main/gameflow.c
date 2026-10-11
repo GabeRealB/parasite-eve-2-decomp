@@ -34,6 +34,7 @@
 #include "ui.h"
 #include "main/ui_types.h"
 #include "main/wipsys.h"
+#include "main/gamemain.h"
 #include "main/wipsys_types.h"
 
 #include "gameplay/companion_load.h"
@@ -248,7 +249,7 @@ void gameFlowLaunchSessionTask(Task* task)
             gDisplayState.gameRunning                    = 1;
             queue->releasePauseBlockAfterFade            = 1;
             queue->blockGamePause                        = 1;
-            Wip_SysFlags.skipTitleIntro                  = 1;
+            gGameMainPersistentState.skipTitleIntro      = 1;
             mcResetSaveData();
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
             task->state                                        = task->state + 1;
@@ -258,7 +259,7 @@ void gameFlowLaunchSessionTask(Task* task)
             gDisplayState.control.flags.pendingPlayerPos = 0;
             queue->releasePauseBlockAfterFade            = 1;
             queue->blockGamePause                        = 1;
-            Wip_SysFlags.skipTitleIntro                  = 1;
+            gGameMainPersistentState.skipTitleIntro      = 1;
             gGameSession->applySaveVariant               = 1;
         }
         _gameFlowHandOffSessionStartup(task);
@@ -353,7 +354,7 @@ static void _gameFlowResetNewSession(Task* task)
     gDisplayState.gameRunning                    = 1;
     cdQueue->releasePauseBlockAfterFade          = 1;
     cdQueue->blockGamePause                      = 1;
-    Wip_SysFlags.skipTitleIntro                  = 1;
+    gGameMainPersistentState.skipTitleIntro      = 1;
     // Reset progress and option defaults, then retain the previous vibration choice.
     mcResetSaveData();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;

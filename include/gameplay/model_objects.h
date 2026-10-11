@@ -133,7 +133,7 @@ void modelObjectFreeCoordBody(ModelObjectCoordBody* body);
 /// the saved lists remain untouched. `unusedTask` is ignored; the callback
 /// requires no task body or work allocation.
 ///
-/// `gDisplayState.drawBuffer` must be 0 or 1 for the `Gpu_OtBuffers` argument.
+/// `gDisplayState.drawBuffer` must be 0 or 1 for the `gGpuFrameOrderingTables` argument.
 /// That argument does not select the destination: drawing uses `gGpuCurrentOt`,
 /// which the caller must select together with the depth shift and GTE settings.
 /// Composition, active-model selection and resource-lifetime requirements

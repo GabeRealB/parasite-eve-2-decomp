@@ -588,7 +588,7 @@ static Task* _modelObjectFindTaskByCoord(const GfxCoord* targetCoord)
 
 void modelObjectDrawTemporaryListsTask(Task* unusedTask)
 {
-    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
+    actorRenderComposeAndDrawActiveModels(&gGpuFrameOrderingTables[gDisplayState.drawBuffer]);
 }
 
 u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

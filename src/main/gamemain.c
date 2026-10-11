@@ -41,38 +41,40 @@
 #define GameResetScratchHead() *SCRATCH_STACK_CURSOR_SLOT = SCRATCH_STACK_CURSOR_SLOT
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
-static TILE D_8006EC18;
+/// Reusable black semitransparent rectangle for the synchronous pause backdrop.
+static TILE _gGameMainPauseTile;
 
-static DR_TPAGE D_8006EC28;
+/// Reusable average-blend draw-mode packet for the synchronous pause backdrop.
+static DR_TPAGE _gGameMainPauseDrawMode;
 
-volatile u8 D_8006EC30;
+volatile u8 gDisplayTaskImageSourceSnapshot;
 
-u_long Gpu_OtTags[2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES];
+u_long gGpuFrameOtTags[2][GPU_ORDERING_TABLE_BUFFER_ENTRIES];
 
-volatile u8 D_80070E38;
+volatile u8 gDisplayTaskFlipControlSnapshot;
 
 GfxCoord gGfxViewRotCoord;
 
-GfxCoord Gfx_ViewOffsetCoord;
+GfxCoord gGfxViewOffsetCoord;
 
-u8* Gpu_SysPrimCursor;
+void* gGpuSystemPrimCursor;
 
-GsOT Gpu_OtBuffers[2];
+GsOT gGpuFrameOrderingTables[2];
 
 GfxCoord gGfxViewCoord;
 
 u32 gRandomLcgState;
 
+/// Decremented once per vertical blank; no consumer or countdown purpose is established.
 static volatile s32 D_80070F64;
 
 DisplayState gDisplayState;
 
 u_long* gGpuCurrentOt;
 
-GameMainPersistentState Wip_SysFlags;
+GameMainPersistentState gGameMainPersistentState;
 
-/// Unreferenced.
+/// Retained 80-byte resident reservation with no observed accesses; role unproven.
 static u8 D_800710C8[0x50];
 
 #include "main/display.h"
@@ -80,19 +82,14 @@ static u8 D_800710C8[0x50];
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/random.h"
-#include "main/wipsys.h"
 
-static u32 D_8005EC64;
+static u32 _gGameMainInitializationCount;
 
-/// Unreferenced.
 static s32 D_8005EC7C;
 
-/// Unreferenced.
 static u32 D_8005EC84[4];
 
-// Drawn by _gameMainShowPauseScreen (must stay in .rodata for this TU).
-/// "PAUSE!" overlay text for _gameMainShowPauseScreen (@ VA 0x80013404).
-static const u8 GameMain_PauseText[];
+static const u8 _gGameMainPauseText[];
 
 static void _gameMainInitialize(void);
 
@@ -117,18 +114,23 @@ static void _displayPresentGameFrame(s32 bufferIndex);
 enum {
     GAME_MAIN_FIRST_INITIALIZATION           = 1,
     GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT = 1,
+    DISPLAY_INITIAL_FRAME_BUDGET_LINES       = 240,
 };
 
-static u32   D_8005EC64          = 0;
-s32          D_8005EC68          = 0;
-s32          D_8005EC6C          = 0xF0;
-volatile s32 Display_PendingFlip = 0;
-volatile s32 D_8005EC74          = 0;
-volatile s32 D_8005EC78          = 0;
-/// Unreferenced.
+/// Wrapping resident initialization count retained across soft resets.
+///
+/// Cleared at power-on; the first initialization increments it to one and
+/// selects full graphics and boot setup. Later initializations reload the title.
+static u32   _gGameMainInitializationCount     = 0;
+s32          gDisplayVSyncWaitMode             = 0;
+s32          gDisplayFrameBudgetLines          = DISPLAY_INITIAL_FRAME_BUDGET_LINES;
+volatile s32 gDisplayPendingFlip               = 0;
+volatile s32 gDisplayVSyncElapsedLines         = 0;
+volatile s32 gDisplayPreviousVSyncElapsedLines = 0;
+/// Retained initialized word with no observed accesses; role unproven.
 static s32   D_8005EC7C         = 0;
-volatile s32 GameMain_HaltFlags = 0;
-/// Unreferenced.
+volatile s32 gGameMainHaltFlags = 0;
+/// Retained four-word data block with no observed accesses; interpretation unproven.
 static u32 D_8005EC84[4] = { 0, 0x01FF03FF, 0, 0 };
 
 /// Clears resident display state and selects the initial game-loop controls.
@@ -178,7 +180,7 @@ static void _gameMainInitialize(void)
     VSync(GAME_MAIN_RESET_SETTLE_VBLANKS);
 
     GameResetScratchHead();
-    D_8005EC64++;
+    _gGameMainInitializationCount++;
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
     memInitHeaps();
     taskResetDefaultList();
@@ -188,7 +190,7 @@ static void _gameMainInitialize(void)
     // Reset the full display state after startup work has been queued.
     _displayResetGameState();
 
-    Display_PendingFlip = 0;
+    gDisplayPendingFlip = 0;
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     spuResetSystem();
@@ -207,12 +209,12 @@ void displayPresentTaskFrame(s32 bufferIndex)
     s32 flipMode;
     u8  savedDrawBuffer;
 
-    flipMode = D_80070E38 & DISPLAY_FLIP_MODE_MASK;
+    flipMode = gDisplayTaskFlipControlSnapshot & DISPLAY_FLIP_MODE_MASK;
     if (flipMode != DISPLAY_FLIP_HOLD) {
         PutDrawEnv(&gDisplayState.drawEnv[bufferIndex]);
         PutDispEnv(&gDisplayState.dispEnv[bufferIndex]);
         if (flipMode == DISPLAY_FLIP_FULL) {
-            if (D_8006EC30 != DISPLAY_IMAGE_NONE) {
+            if (gDisplayTaskImageSourceSnapshot != DISPLAY_IMAGE_NONE) {
                 displayUploadBackgroundImage(bufferIndex);
                 // Place the movie in this buffer, then restore the drawing tasks' selector.
                 savedDrawBuffer          = gDisplayState.drawBuffer;
@@ -220,14 +222,14 @@ void displayPresentTaskFrame(s32 bufferIndex)
                 streamPresentMovieFrame();
                 gDisplayState.drawBuffer = savedDrawBuffer;
             }
-            DrawOTag((u_long*)Gpu_OtBuffers[gDisplayState.otBuffer].tag);
-        } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
+            DrawOTag((u_long*)gGpuFrameOrderingTables[gDisplayState.otBuffer].tag);
+        } else if (gDisplayTaskImageSourceSnapshot == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             displayUploadBackgroundImage(bufferIndex);
-        } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
+        } else if (gDisplayTaskImageSourceSnapshot == DISPLAY_IMAGE_ROOM_SLOT) {
             gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
         }
         // The snapshot is read as a signed byte; keep its high-bit behavior.
-        if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
+        if ((s8)gDisplayTaskFlipControlSnapshot < DISPLAY_FLIP_SKIP_TASK_OT) {
             DrawOTag((u_long*)gGpuTaskOrderingTables[bufferIndex].tag);
         }
     }
@@ -248,7 +250,7 @@ static inline void _displayPresentFrame(s32 bufferIndex)
     }
     streamPresentMovieFrame();
     if (gDisplayState.skipDraw == 0) {
-        DrawOTag((u_long*)Gpu_OtBuffers[bufferIndex].tag);
+        DrawOTag((u_long*)gGpuFrameOrderingTables[bufferIndex].tag);
     }
 }
 
@@ -269,14 +271,14 @@ static void _displayVSyncCallback(void)
     s32 startScanlines;
 
     startScanlines = VSync(1);
-    if (Display_PendingFlip >= 0) {
-        if (((startScanlines & DISPLAY_VSYNC_SCANLINE_MASK) + D_8005EC78) > (D_8005EC6C >> 1)) {
+    if (gDisplayPendingFlip >= 0) {
+        if (((startScanlines & DISPLAY_VSYNC_SCANLINE_MASK) + gDisplayPreviousVSyncElapsedLines) > (gDisplayFrameBudgetLines >> 1)) {
             if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_GAME) {
-                _displayPresentFrame(Display_PendingFlip);
-                Display_PendingFlip = DISPLAY_FLIP_REQUEST_NONE;
+                _displayPresentFrame(gDisplayPendingFlip);
+                gDisplayPendingFlip = DISPLAY_FLIP_REQUEST_NONE;
             } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK) {
-                displayPresentTaskFrame(Display_PendingFlip);
-                Display_PendingFlip = DISPLAY_FLIP_REQUEST_NONE;
+                displayPresentTaskFrame(gDisplayPendingFlip);
+                gDisplayPendingFlip = DISPLAY_FLIP_REQUEST_NONE;
             }
         }
     }
@@ -289,12 +291,11 @@ static void _displayVSyncCallback(void)
     cdAudioPollDriver();
     spuRunVBlankAudioUpdate();
     padPollPort0();
-    D_8005EC74 = VSync(1) - (startScanlines & DISPLAY_VSYNC_SCANLINE_MASK);
+    gDisplayVSyncElapsedLines = VSync(1) - (startScanlines & DISPLAY_VSYNC_SCANLINE_MASK);
 }
 
-// Drawn by _gameMainShowPauseScreen (must stay in .rodata for this TU).
-/// "PAUSE!" overlay text for _gameMainShowPauseScreen (@ VA 0x80013404).
-static const u8 GameMain_PauseText[] = "PAUSE!";
+/// NUL-terminated large-font caption for the controller-disconnect pause screen.
+static const u8 _gGameMainPauseText[] = "PAUSE!";
 
 /// Returns 1 when the loading/pause overlay and halted main-loop path are blocked.
 ///
@@ -303,13 +304,10 @@ static const u8 GameMain_PauseText[] = "PAUSE!";
 /// block pausing. Reads live state without changing it; returns 0 when permitted.
 static inline s32 _gameMainPauseBlocked(void)
 {
-    enum {
-        GAME_MAIN_HALT_SCENE_ERROR = 8,
-    };
     s32 blocked;
 
     blocked = 0;
-    if (gCdCmdQueue.blockGamePause != 0 && !(GameMain_HaltFlags & GAME_MAIN_HALT_SCENE_ERROR)) {
+    if (gCdCmdQueue.blockGamePause != 0 && !(gGameMainHaltFlags & GAME_MAIN_HALT_SCENE_ERROR)) {
         blocked = 1;
     } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
@@ -350,7 +348,7 @@ static inline void _gameMainDrawPauseBackdrop(TILE* tile, DR_TPAGE* drawMode)
 
 /// Draws and holds the pause screen when the main-loop pause gates allow it.
 ///
-/// `haltBitIndex` selects a bit in `GameMain_HaltFlags` (0..30 for the signed
+/// `haltBitIndex` selects a bit in `gGameMainHaltFlags` (0..30 for the signed
 /// shift). The current caller selects bit 1 for a disconnected controller; the
 /// main loop releases audio ducking when its disconnect-pause condition clears.
 /// Any halt bit except bit 0 prevents another pause. Requires the 320x240 game
@@ -371,11 +369,11 @@ static void _gameMainShowPauseScreen(s32 haltBitIndex)
     DR_TPAGE*   drawMode;
     s32         displayBufferIndex;
 
-    if (!(GameMain_HaltFlags & ~GAME_MAIN_PAUSE_EXEMPT_HALT_MASK)) {
+    if (!(gGameMainHaltFlags & ~GAME_MAIN_PAUSE_EXEMPT_HALT_MASK)) {
         if (!_gameMainPauseBlocked()) {
-            GameMain_HaltFlags |= 1 << haltBitIndex;
-            tile                = &D_8006EC18;
-            drawMode            = &D_8006EC28;
+            gGameMainHaltFlags |= 1 << haltBitIndex;
+            tile                = &_gGameMainPauseTile;
+            drawMode            = &_gGameMainPauseDrawMode;
             if (haltBitIndex == GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT) {
                 sndEvtRequestScriptDuckAcquire();
             }
@@ -389,7 +387,7 @@ static void _gameMainShowPauseScreen(s32 haltBitIndex)
             textRequest.alignment  = TEXT_ALIGNMENT_CENTER;
             textRequest.drawMode   = TEXT_DRAW_IMMEDIATE;
             textRequest.y          = GAME_MAIN_PAUSE_TEXT_BASELINE_Y - gDisplayState.vramYOffset;
-            textDrawString(&textRequest, GameMain_PauseText);
+            textDrawString(&textRequest, _gGameMainPauseText);
 
             // Hold the just-drawn image while redirecting drawing to its partner.
             displayBufferIndex = gDisplayState.drawBuffer ^ 1;
@@ -397,7 +395,7 @@ static void _gameMainShowPauseScreen(s32 haltBitIndex)
             PutDispEnv(&gDisplayState.dispEnv[displayBufferIndex]);
 
             EnterCriticalSection();
-            Display_PendingFlip = GAME_MAIN_PAUSE_FLIP_REQUEST_NONE;
+            gDisplayPendingFlip = GAME_MAIN_PAUSE_FLIP_REQUEST_NONE;
             ExitCriticalSection();
         }
     }
@@ -477,14 +475,14 @@ static inline void _gameMainBeginFrame(void)
     // Animation frames, play time and paced loop time use separate clocks.
     gDisplayState.animFrame++;
     if (cdQueue->pausePlayClock == 0) {
-        gDisplayState.gameTick += 1 + (D_8005EC68 >> 1);
+        gDisplayState.gameTick += 1 + (gDisplayVSyncWaitMode >> 1);
     }
-    gDisplayState.loopTicks += D_8005EC68 >> 1;
+    gDisplayState.loopTicks += gDisplayVSyncWaitMode >> 1;
     _gpuBeginOt(bufferIndex);
 
     // Select matching halves of the system-packet and heap-packet arenas.
-    Gpu_SysPrimCursor = gDisplayStaticPrimitiveArena + gDisplayState.otBuffer * (s32)(sizeof(gDisplayStaticPrimitiveArena) / 2);
-    gGpuPrimCursor    = gGpuPrimitiveBufferBase + gDisplayState.otBuffer * (gGpuPrimitiveBufferBytes >> 1);
+    gGpuSystemPrimCursor = gDisplayStaticPrimitiveArena + gDisplayState.otBuffer * (s32)(sizeof(gDisplayStaticPrimitiveArena) / 2);
+    gGpuPrimCursor       = gGpuPrimitiveBufferBase + gDisplayState.otBuffer * (gGpuPrimitiveBufferBytes >> 1);
 }
 
 /// Dispatches resident game and task-owned frames indefinitely.
@@ -502,24 +500,23 @@ static inline void _gameMainBeginFrame(void)
 static void _gameMainRunLoop(void)
 {
     enum {
-        GAME_MAIN_HALT_CONTROLLER_DISCONNECT = 1 << GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT,
-        GAME_MAIN_ELAPSED_SCANLINE_MASK      = 0x7FFF,
-        GAME_MAIN_FLIP_REQUEST_NONE          = -1,
-        GAME_MAIN_FLIP_REQUEST_IMMEDIATE     = -2,
-        GAME_MAIN_VSYNC_WAIT_NEXT            = 0,
-        GAME_MAIN_VSYNC_SCANLINE_COUNTER     = 1,
-        GAME_MAIN_GPU_WAIT_COMPLETE          = 0,
-        GAME_MAIN_GRAPH_RESET_QUEUE          = 1,
-        GAME_MAIN_FRAMEBUFFER_FULL_HEIGHT    = 480,
-        GAME_MAIN_FRAMEBUFFER_HALF_HEIGHT    = 240,
-        GAME_MAIN_FRAMEBUFFER_VERTICAL_GAP   = 32,
+        GAME_MAIN_ELAPSED_SCANLINE_MASK    = 0x7FFF,
+        GAME_MAIN_FLIP_REQUEST_NONE        = -1,
+        GAME_MAIN_FLIP_REQUEST_IMMEDIATE   = -2,
+        GAME_MAIN_VSYNC_WAIT_NEXT          = 0,
+        GAME_MAIN_VSYNC_SCANLINE_COUNTER   = 1,
+        GAME_MAIN_GPU_WAIT_COMPLETE        = 0,
+        GAME_MAIN_GRAPH_RESET_QUEUE        = 1,
+        GAME_MAIN_FRAMEBUFFER_FULL_HEIGHT  = 480,
+        GAME_MAIN_FRAMEBUFFER_HALF_HEIGHT  = 240,
+        GAME_MAIN_FRAMEBUFFER_VERTICAL_GAP = 32,
     };
     s32 frameStartLines;
     s32 elapsedLines;
     s8  pendingShakeY;
 
     frameStartLines        = 0;
-    GameMain_HaltFlags     = 0;
+    gGameMainHaltFlags     = 0;
     gDisplayState.otBuffer = gDisplayState.drawBuffer;
 
     for (;;) {
@@ -527,7 +524,7 @@ static void _gameMainRunLoop(void)
             (gDisplayState.gameMode == DISPLAY_GAME_ACTIVE && gDisplayState.cdBusy == DISPLAY_CD_IDLE && gDisplayState.gameRunning != 0 &&
              padCheckSoftResetCombo() != 0)) {
             _gameMainInitialize();
-            GameMain_HaltFlags = 0;
+            gGameMainHaltFlags = 0;
         }
         // Scratch borrowers cannot carry a reservation into the next iteration.
         _scratchStackSetCursor(SCRATCH_STACK_CURSOR_SLOT);
@@ -536,14 +533,14 @@ static void _gameMainRunLoop(void)
         if (gPadStates[0].inputFormat == PAD_INPUT_FORMAT_UNAVAILABLE && gPadStates[0].inputBlockPolls == 0 && gDisplayState.gameRunning != 0 &&
             gDisplayState.suppressDisconnectPause == 0 && gDisplayState.gameMode == DISPLAY_GAME_ACTIVE) {
             _gameMainShowPauseScreen(GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT);
-        } else if (GameMain_HaltFlags & GAME_MAIN_HALT_CONTROLLER_DISCONNECT) {
+        } else if (gGameMainHaltFlags & GAME_MAIN_HALT_CONTROLLER_DISCONNECT) {
             sndEvtRequestScriptDuckRelease();
-            GameMain_HaltFlags &= ~GAME_MAIN_HALT_CONTROLLER_DISCONNECT;
+            gGameMainHaltFlags &= ~GAME_MAIN_HALT_CONTROLLER_DISCONNECT;
         }
 
         asyncCbPollMainLoop(0);
 
-        if (GameMain_HaltFlags != 0 && !_gameMainPauseBlocked()) {
+        if (gGameMainHaltFlags != 0 && !_gameMainPauseBlocked()) {
             VSync(GAME_MAIN_VSYNC_WAIT_NEXT);
             frameStartLines = VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
             cdCmdService();
@@ -558,7 +555,7 @@ static void _gameMainRunLoop(void)
             displayDispatchModeRequest(gDisplayState.pendingMode);
         }
         if (gDisplayState.displayOwner != DISPLAY_OWNER_GAME_LOOP) {
-            frameStartLines = displayRunTaskFrame(Gpu_OtBuffers, frameStartLines, gDisplayState.otBuffer);
+            frameStartLines = displayRunTaskFrame(gGpuFrameOrderingTables, frameStartLines, gDisplayState.otBuffer);
             continue;
         }
 
@@ -573,7 +570,7 @@ static void _gameMainRunLoop(void)
 
         // A 480-line frame shares one VRAM region and bypasses timed flips.
         if (gDisplayState.height == GAME_MAIN_FRAMEBUFFER_FULL_HEIGHT) {
-            Display_PendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
+            gDisplayPendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
             VSync(GAME_MAIN_VSYNC_WAIT_NEXT);
             ResetGraph(GAME_MAIN_GRAPH_RESET_QUEUE);
             _displayPresentFrame(gDisplayState.otBuffer);
@@ -585,26 +582,26 @@ static void _gameMainRunLoop(void)
         elapsedLines = _gameMainPaceToSceneTiming(frameStartLines, (VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) - frameStartLines) & GAME_MAIN_ELAPSED_SCANLINE_MASK);
 
         // The callback consumes timely flips; late or unconsumed frames submit here.
-        if (elapsedLines < D_8005EC6C) {
+        if (elapsedLines < gDisplayFrameBudgetLines) {
             gDisplayState.vsyncFlag = DISPLAY_VSYNC_GAME;
-            Display_PendingFlip     = gDisplayState.otBuffer;
-            VSync(D_8005EC68);
-            if (Display_PendingFlip != GAME_MAIN_FLIP_REQUEST_NONE) {
-                D_8005EC78      = 0;
-                frameStartLines = VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
+            gDisplayPendingFlip     = gDisplayState.otBuffer;
+            VSync(gDisplayVSyncWaitMode);
+            if (gDisplayPendingFlip != GAME_MAIN_FLIP_REQUEST_NONE) {
+                gDisplayPreviousVSyncElapsedLines = 0;
+                frameStartLines                   = VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
                 _displayPresentFrame(gDisplayState.otBuffer);
-                Display_PendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
+                gDisplayPendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
             } else {
-                D_8005EC78      = D_8005EC74;
-                frameStartLines = -D_8005EC74;
+                gDisplayPreviousVSyncElapsedLines = gDisplayVSyncElapsedLines;
+                frameStartLines                   = -gDisplayVSyncElapsedLines;
             }
         } else {
-            gDisplayState.vsyncFlag = DISPLAY_VSYNC_GAME;
-            Display_PendingFlip     = GAME_MAIN_FLIP_REQUEST_IMMEDIATE;
-            D_8005EC78              = 0;
-            frameStartLines         = VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
+            gDisplayState.vsyncFlag           = DISPLAY_VSYNC_GAME;
+            gDisplayPendingFlip               = GAME_MAIN_FLIP_REQUEST_IMMEDIATE;
+            gDisplayPreviousVSyncElapsedLines = 0;
+            frameStartLines                   = VSync(GAME_MAIN_VSYNC_SCANLINE_COUNTER) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
             _displayPresentFrame(gDisplayState.otBuffer);
-            Display_PendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
+            gDisplayPendingFlip = GAME_MAIN_FLIP_REQUEST_NONE;
         }
 
         // Apply the request to the next image crop and both centered draw origins.
@@ -638,8 +635,8 @@ void gfxResetView(void)
     (node).composeStamp = GRAPHICS_COORD_DIRTY
 
     // World nodes inherit view translation, then view rotation, then the root offset.
-    GRAPHICS_RESET_VIEW_COORD(Gfx_ViewOffsetCoord, NULL, GRAPHICS_DEFAULT_VIEW_OFFSET_Z);
-    GRAPHICS_RESET_VIEW_COORD(gGfxViewRotCoord, &Gfx_ViewOffsetCoord, 0);
+    GRAPHICS_RESET_VIEW_COORD(gGfxViewOffsetCoord, NULL, GRAPHICS_DEFAULT_VIEW_OFFSET_Z);
+    GRAPHICS_RESET_VIEW_COORD(gGfxViewRotCoord, &gGfxViewOffsetCoord, 0);
     GRAPHICS_RESET_VIEW_COORD(gGfxViewCoord, &gGfxViewRotCoord, 0);
 #undef GRAPHICS_RESET_VIEW_COORD
 
@@ -726,22 +723,22 @@ void displaySetFrameTiming(s32 timingMode)
     // Keep animation ticks, the SDK wait argument and scanline budgets distinct.
     if (timingMode == DISPLAY_TIMING_EVERY_VBLANK) {
         gDisplayState.frameTicks = 1;
-        D_8005EC68               = 0;
-        D_8005EC6C               = DISPLAY_FRAME_LINES_ONE;
+        gDisplayVSyncWaitMode    = 0;
+        gDisplayFrameBudgetLines = DISPLAY_FRAME_LINES_ONE;
     } else if (timingMode == DISPLAY_TIMING_TWO_VBLANKS) {
         gDisplayState.frameTicks = 2;
-        D_8005EC68               = 2;
-        D_8005EC6C               = DISPLAY_FRAME_LINES_TWO;
+        gDisplayVSyncWaitMode    = 2;
+        gDisplayFrameBudgetLines = DISPLAY_FRAME_LINES_TWO;
     } else if (timingMode == DISPLAY_TIMING_THREE_VBLANKS) {
         gDisplayState.frameTicks = 3;
-        D_8005EC68               = 3;
-        D_8005EC6C               = DISPLAY_FRAME_LINES_THREE;
+        gDisplayVSyncWaitMode    = 3;
+        gDisplayFrameBudgetLines = DISPLAY_FRAME_LINES_THREE;
     }
 }
 
 void gpuClearFrameOrderingTable(s16 bufferIndex)
 {
-    u_long* tableStart = Gpu_OtTags + bufferIndex * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    u_long* tableStart = gGpuFrameOtTags[bufferIndex];
     ClearOTagR(tableStart, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     // End at the first frame tag instead of following the SDK's trailing packets.
     *tableStart = GPU_OT_END_PRIM;
@@ -760,15 +757,15 @@ static inline void _gpuInitGameOrderingTableDescriptors(void)
     u_long* tags;
     s32     depthBits;
 
-    orderingTables           = Gpu_OtBuffers;
+    orderingTables           = gGpuFrameOrderingTables;
     depthBits                = GPU_ORDERING_TABLE_DEPTH_BITS;
     orderingTables->length   = depthBits;
-    tags                     = Gpu_OtTags;
+    tags                     = gGpuFrameOtTags[0];
     orderingTables->tag      = (GsOT_TAG*)(tags + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
     orderingTables->org      = (GsOT_TAG*)tags;
     orderingTables[1].length = depthBits;
-    orderingTables[1].org    = (GsOT_TAG*)(tags + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
-    orderingTables[1].tag    = (GsOT_TAG*)(tags + ARRAY_SIZE(Gpu_OtTags) - 1);
+    orderingTables[1].org    = (GsOT_TAG*)gGpuFrameOtTags[1];
+    orderingTables[1].tag    = (GsOT_TAG*)(gGpuFrameOtTags[1] + ARRAY_SIZE(gGpuFrameOtTags[1]) - 1);
 }
 
 /// Restores GPU/GTE and resident view defaults and queues game startup.
@@ -786,7 +783,7 @@ static void _gameMainInitGraphics(void)
     };
     RECT framebufferStrip;
 
-    if (D_8005EC64 == GAME_MAIN_FIRST_INITIALIZATION) {
+    if (_gGameMainInitializationCount == GAME_MAIN_FIRST_INITIALIZATION) {
         ResetGraph(GAME_MAIN_GRAPH_RESET_FULL);
     }
 
@@ -820,7 +817,7 @@ static void _gameMainSpawnStartupTask(void)
         GAME_MAIN_STARTUP_TASK_RELOAD_TITLE = 0x20,
     };
 
-    if (D_8005EC64 == GAME_MAIN_FIRST_INITIALIZATION) {
+    if (_gGameMainInitializationCount == GAME_MAIN_FIRST_INITIALIZATION) {
         taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_FIRST_BOOT, 0, 0);
     } else {
         taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_RELOAD_TITLE, 0, 0);
@@ -847,13 +844,13 @@ void gameMainRun(void)
     padInit();
     bootInitCd();
     // Only power-on startup clears the state retained across soft resets.
-    memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
-    D_8005EC64 = 0;
+    memFillBytes(&gGameMainPersistentState, 0, sizeof(gGameMainPersistentState));
+    _gGameMainInitializationCount = 0;
     _gameMainInitialize();
     _gameMainRunLoop();
 }
 
 u32 gameMainGetInitializationCount(void)
 {
-    return D_8005EC64;
+    return _gGameMainInitializationCount;
 }

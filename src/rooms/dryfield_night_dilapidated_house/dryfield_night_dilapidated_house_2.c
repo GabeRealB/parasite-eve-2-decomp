@@ -40,7 +40,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "main/wipsys.h"
+#include "main/gamemain.h"
 #include "main/wipsys_types.h"
 
 #include "rooms/room_common.h"
@@ -2993,7 +2993,7 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
             return;
         case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_QUEUE:
             movieKey = gGameSession->location;
-            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+            if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
                 movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID;
             } else {
                 movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID;

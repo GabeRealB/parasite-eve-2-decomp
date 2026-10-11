@@ -20,8 +20,7 @@
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/wipsys.h"
-#include "main/wipsys_types.h"
+#include "main/gamemain.h"
 
 #include "gameplay/effect_tasks.h"
 #include "gameplay/view.h"
@@ -250,7 +249,7 @@ u8 loadUiPollDiskSwap(void)
         case LOAD_UI_DISK_SWAP_VALIDATE_DISC:
             // Directory discovery identifies the disc and starts an asynchronous HED read.
             fsScanIsoDirectory(0);
-            if (Wip_SysFlags.discNumber != GAME_MAIN_DISC_UNKNOWN) {
+            if (gGameMainPersistentState.discNumber != GAME_MAIN_DISC_UNKNOWN) {
                 while (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
                     if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
                         return LOAD_UI_DISK_SWAP_PENDING;
@@ -259,7 +258,7 @@ u8 loadUiPollDiskSwap(void)
                 }
                 cdSyncWaitForCommandCompletion();
             }
-            if (Wip_SysFlags.discNumber != _gLoadUiDiskSwapRequiredDisc) {
+            if (gGameMainPersistentState.discNumber != _gLoadUiDiskSwapRequiredDisc) {
                 _loadUiRestartRejectedDiskSwapPrompt();
                 return LOAD_UI_DISK_SWAP_PENDING;
             } else {

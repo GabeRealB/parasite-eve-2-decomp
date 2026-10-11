@@ -14,9 +14,59 @@
 
 #define GPU_OT_END_PRIM 0xFFFFFF
 
-extern u_long Gpu_OtTags[2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES];
+/// Two resident frame ordering tables of packed four-byte DMA tag words.
+///
+/// Index 0 or 1 selects 1088 tags: 32 foreground tags, 1024 depth-sorting tags
+/// and 32 trailing tags. Game drawing uses tag 32 as its depth base; the game
+/// descriptors submit from tag 1087. Task presentation can borrow the first
+/// 1024 tags without that bias. Clear or reuse only after GPU drawing finishes.
+/// SDK `GsOT_TAG*` views describe these same words without owning the storage.
+extern u_long gGpuFrameOtTags[2][GPU_ORDERING_TABLE_BUFFER_ENTRIES];
 
-extern u8* Gpu_SysPrimCursor;
+/// Next free mixed-packet slot in the current system drawing arena half.
+///
+/// Game frames select one 0x3000-byte half of `gDisplayStaticPrimitiveArena`.
+/// Caption and fade drawing borrow TILE, SPRT and DR_TPAGE slots and advance
+/// by their complete typed sizes. Reservations must remain word-aligned and
+/// fit the selected half; allocation has no capacity check. Packets remain
+/// borrowed until GPU completion, and the cursor is reset each game frame.
+extern void* gGpuSystemPrimCursor;
+
+/// SDK VSync wait argument for paced frames (0 next blank, 2 or 3 paced blanks).
+///
+/// Also contributes `waitMode >> 1` to the game-loop clocks, independently of
+/// animation `frameTicks`. Frame-timing selection sets it for both presenters.
+extern s32 gDisplayVSyncWaitMode;
+
+/// Frame-pacing budget in VSync(1) horizontal-line counter units.
+///
+/// Initially 240, then set to the fixed NTSC budgets 262, 525 or 787. Both
+/// presenters compare elapsed scanlines with it; VSync presentation requires
+/// the current scanlines plus prior callback time to exceed half the budget.
+extern s32 gDisplayFrameBudgetLines;
+
+/// Shared framebuffer request consumed by vertical-blank presentation.
+///
+/// Values 0 and 1 select prepared framebuffers. -1 means no pending request;
+/// -2 marks synchronous late-frame presentation and suppresses the callback.
+/// Both frame paths publish requests; VSync changes a consumed request to -1.
+/// Initialized to buffer 0. Task control snapshots must be ready before the
+/// callback can observe their request; GPU buffers remain live through drawing.
+extern volatile s32 gDisplayPendingFlip;
+
+/// Scanlines spent in the most recent vertical-blank callback.
+///
+/// Includes frame submission and driver polling. The paced paths reload this
+/// interrupt-written value after a consumed flip, using its negation as the
+/// next frame's scanline origin and copying it to the prior-callback allowance.
+extern volatile s32 gDisplayVSyncElapsedLines;
+
+/// Prior callback scanlines included in the next interrupt-side flip deadline.
+///
+/// Set from `gDisplayVSyncElapsedLines` after VSync consumes a frame request;
+/// synchronous presentation clears it. The callback adds it to the current
+/// low-16-bit scanline count before testing half the frame-pacing budget.
+extern volatile s32 gDisplayPreviousVSyncElapsedLines;
 
 /// Resident primitive bytes shared by system drawing and modal task presentation.
 ///
@@ -34,9 +84,21 @@ extern u8 gDisplayStaticPrimitiveArena[DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES];
 /// those tasks/resources must already be disposable. The head has program lifetime.
 extern TaskNode gDisplayTaskList;
 
-extern volatile u8 D_8006EC30;
+/// Queued task frame's image policy, retained for interrupt-side presentation.
+///
+/// Copies `DisplayState::control.flags.imageSource`: DISPLAY_IMAGE_* values
+/// 0 none, 1 image strips, 2 transition strips, 3 captured room slot. Published
+/// with the flip-control snapshot before the VSync handoff. Readers are volatile;
+/// the writer uses a nonvolatile byte lvalue to preserve call-slot scheduling.
+extern volatile u8 gDisplayTaskImageSourceSnapshot;
 
-extern volatile u8 D_80070E38;
+/// Queued task frame's flip control, retained for interrupt-side presentation.
+///
+/// Copies `DisplayState::control.flags.flipMode`. Low nibble DISPLAY_FLIP_*
+/// selects 0 full, 1 task-only or 2 hold. The signed-byte comparison suppresses
+/// the task OT for 0x10..0x7F, while 0x80..0xFF retain it unless holding.
+/// Published with the image snapshot; volatile reads retain interrupt handoff.
+extern volatile u8 gDisplayTaskFlipControlSnapshot;
 
 /// Negative red argument that disables automatic framebuffer clearing.
 enum { DISPLAY_CLEAR_DISABLED = -1 };
@@ -143,7 +205,7 @@ static inline void _gpuBeginOt(s32 bufferIndex)
     u_long*        firstTag;
 
     // Clear the reverse DMA chain before drawing tasks borrow its depth base.
-    gGpuCurrentOt = Gpu_OtTags + bufferIndex * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    gGpuCurrentOt = gGpuFrameOtTags[bufferIndex];
     ClearOTagR(gGpuCurrentOt, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
     firstTag      = gGpuCurrentOt;
     *firstTag     = GPU_OT_END_PRIM;

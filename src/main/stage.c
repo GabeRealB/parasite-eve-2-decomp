@@ -691,12 +691,12 @@ static void _stageFlipOtAndRedraw(s32 unused)
             break;
         case STAGE_TRANSITION_ACTORS:
             spriteLinkViewCachedPackets();
-            actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[display->otBuffer]);
+            actorRenderComposeAndDrawActiveModels(&gGpuFrameOrderingTables[display->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
             taskExecListForPriority(&gTaskDefaultList, STAGE_REDRAW_TASK_PRIORITY);
             spriteLinkViewCachedPackets();
-            actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[display->otBuffer]);
+            actorRenderComposeAndDrawFlaggedModels(&gGpuFrameOrderingTables[display->otBuffer]);
             break;
     }
     gGpuCurrentOt = savedOt;

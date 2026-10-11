@@ -64,7 +64,7 @@ _gBootBuildStamp             = 0x80012750;
 //--------------------------------------------------------------------
 //--- PA: 0x03C04   VA: 0x80013404   subsegment: .rodata, gamemain
 //--------------------------------------------------------------------
-GameMain_PauseText          = 0x80013404;
+_gGameMainPauseText          = 0x80013404;
 
 //================================================
 //=== .text section (0x004B00-0x04CB2F)
@@ -2713,10 +2713,10 @@ _spu_RQ                     = 0x8006EC00;
 //--------------------------------------------------------------------
 //--- PA: 0x5F414   VA: 0x8006EC14   subsegment: bss
 //--------------------------------------------------------------------
-Gpu_OtTags       = 0x8006EC38; // type:u32 size:0x2200
+gGpuFrameOtTags       = 0x8006EC38; // type:u32 size:0x2200
 gDisplayState               = 0x80070F68; // type:DisplayState size:0x138
 gGpuCurrentOt               = 0x800710A0;
-Wip_SysFlags                  = 0x800710A8; // size:0x20
+gGameMainPersistentState                  = 0x800710A8; // size:0x20
 
 //--------------------------------------------------------------------
 //--- PA: 0x61918   VA: 0x80071118   subsegment: o, libgs/gs_123
@@ -2801,7 +2801,7 @@ _gSndScriptInstances             = 0x80082248; // size:0x300 // _SndScript[8]
 _gSndBankSlots              = 0x80082148; // type:SndBankSlot
 gSndLoadState               = 0x800820F0; // type:SndLoadState size:0x30
 _gMidiSongSlots                   = 0x8007F300; // size:0x5DC // _MidiSong[1]
-Gpu_OtBuffers               = 0x80070EE8; // type:GsOT size:0x28
+gGpuFrameOrderingTables               = 0x80070EE8; // type:GsOT size:0x28
 
 // SndEvt / UiPanel / Tmd / GameSession renames
 _gSndEvtPool                = 0x8007EBF0; // type:SndEvt
@@ -2845,21 +2845,21 @@ gRandomLcgState                  = 0x80070F60;
 
 // Globals naming pass 1
 gGpuPrimCursor              = 0x80071190;
-Gpu_SysPrimCursor           = 0x80070EE0;
+gGpuSystemPrimCursor           = 0x80070EE0;
 gDisplayStaticPrimitiveArena           = 0x800740E0;
 _gDisplayTaskPrimitiveArenaBase             = 0x8007A0E0;
 gGfxViewCoord               = 0x80070F10; // type:GfxCoord size:0x50
 Gfx_ViewWorldMtx            = 0x80070F34;
 gGfxViewRotCoord            = 0x80070E40; // type:GfxCoord size:0x50
-Gfx_ViewOffsetCoord         = 0x80070E90; // type:GfxCoord size:0x50
+gGfxViewOffsetCoord         = 0x80070E90; // type:GfxCoord size:0x50
 gPadConfirmButtonMask             = 0x8005ED70;
 gPadCancelButtonMask              = 0x8005ED74;
 gPadMenuButtonMask                = 0x8005ED78;
 _gMcDialogTitle            = 0x8001398C;
 
 // Globals naming pass 2
-Display_PendingFlip         = 0x8005EC70;
-GameMain_HaltFlags          = 0x8005EC80;
+gDisplayPendingFlip         = 0x8005EC70;
+gGameMainHaltFlags          = 0x8005EC80;
 _gMdecScenePayloadBase             = 0x8007A364;
 _gMdecSceneImageHeader               = 0x8007A368;
 
@@ -3387,3 +3387,12 @@ gStreamMovieWidthPixels = 0x8006ac5a;
 gStreamMovieBackgroundPlayback = 0x8006ac5c;
 gStreamMovieRingBuffer = 0x8006ac60;
 gStreamMovieHeightRows = 0x8006ac6c;
+_gGameMainInitializationCount = 0x8005ec64;
+gDisplayVSyncWaitMode = 0x8005ec68;
+gDisplayFrameBudgetLines = 0x8005ec6c;
+gDisplayVSyncElapsedLines = 0x8005ec74;
+gDisplayPreviousVSyncElapsedLines = 0x8005ec78;
+_gGameMainPauseTile = 0x8006ec18;
+_gGameMainPauseDrawMode = 0x8006ec28;
+gDisplayTaskImageSourceSnapshot = 0x8006ec30;
+gDisplayTaskFlipControlSnapshot = 0x80070e38;

@@ -14,19 +14,31 @@
 /// A matrix's translation as a vector.
 #define MATRIX_TRANS(mat) ((VECTOR3*)(mat)->t)
 
-/// The view rotation: the coordinate `gGfxViewCoord` hangs off, whose `coord`
-/// holds the view's rotation, parented in turn to `Gfx_ViewOffsetCoord`.
+/// Resident world-to-view rotation node above the view-origin translation.
+///
+/// `gGfxViewCoord` is its child and `gGfxViewOffsetCoord` its parent. Its local
+/// 3x3 coefficients use 12 fractional bits (4096 for one); camera application
+/// transposes a camera pose or copies an already inverted camera rotation.
+/// Translation stays zero. Writers invalidate `composeStamp` after changing
+/// the rotation; composed matrices are rebuilt on demand. Storage has resident
+/// lifetime and is shared by camera application and model-coordinate chains.
 extern GfxCoord gGfxViewRotCoord;
 
-/// The root of the view chain, whose `coord` offsets the view along z.
-extern GfxCoord Gfx_ViewOffsetCoord;
+/// Resident root translation applied after the view rotation.
+///
+/// Parentless root above `gGfxViewRotCoord`, with identity local rotation and
+/// an outer XYZ offset in signed game-coordinate units. Graphics startup sets
+/// Z to 32768; camera records clear XYZ, explicit camera offsets replace them,
+/// and the gameplay default view sets Z to 4096. Writers invalidate
+/// `composeStamp`; the coordinate and its cached matrix have resident lifetime.
+extern GfxCoord gGfxViewOffsetCoord;
 
 /// View coordinate, and the parent of nodes stored in world space.
 ///
 /// A node parented here keeps a world-space local matrix. Composing that node
 /// includes this coordinate's `workm`, the view matrix the world is drawn and
 /// projected through, so the result is in view space. This node is parented to
-/// `gGfxViewRotCoord`; the view rotation and `Gfx_ViewOffsetCoord` are the two
+/// `gGfxViewRotCoord`; the view rotation and `gGfxViewOffsetCoord` are the two
 /// coordinates above it. Its own `coord` keeps the identity rotation from
 /// initialization and carries the view translation in `t`. View updates store
 /// that translation and clear `composeStamp` so the next composition rebuilds

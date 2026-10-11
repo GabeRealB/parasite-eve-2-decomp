@@ -51,7 +51,7 @@ void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex);
 /// Restores the default view chain and perspective projection distance.
 ///
 /// Links `gGfxViewCoord` through `gGfxViewRotCoord` to the parentless
-/// `Gfx_ViewOffsetCoord`. All three local rotations become the fixed-point
+/// `gGfxViewOffsetCoord`. All three local rotations become the fixed-point
 /// identity; translations become zero except for the root's +32768 game-unit
 /// Z offset. All three composition stamps are cleared, so cached matrices must
 /// be recomposed before use. Cached matrices and optional node state are retained.

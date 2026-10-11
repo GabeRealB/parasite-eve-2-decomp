@@ -11,7 +11,6 @@
 
 #include "fs.h"
 #include "main/display_types.h"
-#include "gamemain.h"
 #include "main/mem.h"
 #include "mem.h"
 #include "main/session.h"
@@ -132,34 +131,34 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
         DrawSync(0);
     }
     // Queue an interrupt-side flip within budget; late frames present immediately.
-    if (((VSync(1) - frameStartLines) & DISPLAY_TASK_FRAME_SCANLINE_MASK) < D_8005EC6C) {
+    if (((VSync(1) - frameStartLines) & DISPLAY_TASK_FRAME_SCANLINE_MASK) < gDisplayFrameBudgetLines) {
         EnterCriticalSection();
         display->vsyncFlag  = DISPLAY_VSYNC_TASK;
-        Display_PendingFlip = display->frameBuffer;
+        gDisplayPendingFlip = display->frameBuffer;
         // Snapshot presentation controls for the interrupt-side flip.
-        D_80070E38 = display->control.flags.flipMode;
+        gDisplayTaskFlipControlSnapshot = display->control.flags.flipMode;
         // This non-volatile store must remain eligible for the following call delay slot.
-        *(u8*)&D_8006EC30 = display->control.flags.imageSource;
+        *(u8*)&gDisplayTaskImageSourceSnapshot = display->control.flags.imageSource;
         ExitCriticalSection();
-        VSync(D_8005EC68);
-        if (Display_PendingFlip != DISPLAY_TASK_FLIP_NONE) {
-            D_8005EC78      = 0;
-            frameStartLines = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
+        VSync(gDisplayVSyncWaitMode);
+        if (gDisplayPendingFlip != DISPLAY_TASK_FLIP_NONE) {
+            gDisplayPreviousVSyncElapsedLines = 0;
+            frameStartLines                   = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
             displayPresentTaskFrame(display->frameBuffer);
-            Display_PendingFlip = DISPLAY_TASK_FLIP_NONE;
+            gDisplayPendingFlip = DISPLAY_TASK_FLIP_NONE;
         } else {
-            D_8005EC78      = D_8005EC74;
-            frameStartLines = -D_8005EC74;
+            gDisplayPreviousVSyncElapsedLines = gDisplayVSyncElapsedLines;
+            frameStartLines                   = -gDisplayVSyncElapsedLines;
         }
     } else {
-        D_8005EC78          = 0;
-        frameStartLines     = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
-        display->vsyncFlag  = DISPLAY_VSYNC_TASK;
-        Display_PendingFlip = DISPLAY_TASK_FLIP_IMMEDIATE;
-        D_80070E38          = display->control.flags.flipMode;
-        *(u8*)&D_8006EC30   = display->control.flags.imageSource;
+        gDisplayPreviousVSyncElapsedLines      = 0;
+        frameStartLines                        = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
+        display->vsyncFlag                     = DISPLAY_VSYNC_TASK;
+        gDisplayPendingFlip                    = DISPLAY_TASK_FLIP_IMMEDIATE;
+        gDisplayTaskFlipControlSnapshot        = display->control.flags.flipMode;
+        *(u8*)&gDisplayTaskImageSourceSnapshot = display->control.flags.imageSource;
         displayPresentTaskFrame(display->frameBuffer);
-        Display_PendingFlip = DISPLAY_TASK_FLIP_NONE;
+        gDisplayPendingFlip = DISPLAY_TASK_FLIP_NONE;
     }
     gGpuCurrentOt = savedOt;
     return frameStartLines;
@@ -266,7 +265,7 @@ static void _displayFlipOtAndDrawViewActors(void)
     display->otBuffer = otBuffer;
     _gpuBeginOt(otBuffer);
     spriteLinkViewCachedPackets();
-    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[display->otBuffer]);
+    actorRenderComposeAndDrawActiveModels(&gGpuFrameOrderingTables[display->otBuffer]);
     gGpuCurrentOt                   = savedOt;
     display->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
@@ -388,11 +387,11 @@ static void _displayFlipOtAndDrawFlaggedModels(void)
     otBuffer          = display->otBuffer ^ 1;
     display->otBuffer = otBuffer;
     // Tasks and models share the game's depth base after its reserved foreground tags.
-    gGpuCurrentOt = Gpu_OtTags + otBuffer * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    gGpuCurrentOt = gGpuFrameOtTags[otBuffer];
     gpuClearFrameOrderingTable(display->otBuffer);
     gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
     taskExecListForPriority(&gTaskDefaultList, DISPLAY_REDRAW_TASK_PRIORITY);
-    actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[display->otBuffer]);
+    actorRenderComposeAndDrawFlaggedModels(&gGpuFrameOrderingTables[display->otBuffer]);
     gGpuCurrentOt                   = savedOt;
     display->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
@@ -405,9 +404,9 @@ void gpuInitTaskOrderingTables(void)
 
     orderingTables           = gGpuTaskOrderingTables;
     orderingTables->length   = GPU_ORDERING_TABLE_DEPTH_BITS;
-    orderingTables->org      = (GsOT_TAG*)Gpu_OtTags;
+    orderingTables->org      = (GsOT_TAG*)gGpuFrameOtTags[0];
     orderingTables[1].length = GPU_ORDERING_TABLE_DEPTH_BITS;
-    orderingTables[1].org    = (GsOT_TAG*)(Gpu_OtTags + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
+    orderingTables[1].org    = (GsOT_TAG*)gGpuFrameOtTags[1];
     display                  = &gDisplayState;
     // Select tag zero as the task depth base, without the game loop's foreground bias.
     GsClearOt(0, 0, &orderingTables[display->frameBuffer]);

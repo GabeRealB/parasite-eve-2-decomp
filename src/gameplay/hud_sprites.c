@@ -346,7 +346,7 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
 
     viewRotation    = (_ViewRotation*)gGfxViewRotCoord.coord.m;
     viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
-    viewOffset      = &Gfx_ViewOffsetCoord;
+    viewOffset      = &gGfxViewOffsetCoord;
 
     // Copy only coefficients and XYZ into separate nodes; leave matrix alignment bytes intact.
     *viewRotation    = *(const _ViewRotation*)camera->transform.m;
@@ -373,7 +373,7 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
 /// invalidates all three caches, retaining no pointers. Rotation coefficients
 /// have 12 fractional bits; origin XYZ uses signed game units. The destination
 /// views must be `gGfxViewRotCoord.coord`, `gGfxViewCoord.coord.t` and
-/// `Gfx_ViewOffsetCoord` respectively. Projection distance retains its low 16 bits.
+/// `gGfxViewOffsetCoord` respectively. Projection distance retains its low 16 bits.
 static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* rotation, VECTOR3* translation, GfxCoord* offset)
 {
     // Copy the 18-byte coefficient and 12-byte origin views, excluding alignment bytes.
@@ -1459,13 +1459,13 @@ static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     GfxCoord  relative;
 
     if (offset != NULL) {
-        Gfx_ViewOffsetCoord.coord.t[0] = offset->vx;
-        Gfx_ViewOffsetCoord.coord.t[1] = offset->vy;
-        Gfx_ViewOffsetCoord.coord.t[2] = offset->vz;
+        gGfxViewOffsetCoord.coord.t[0] = offset->vx;
+        gGfxViewOffsetCoord.coord.t[1] = offset->vy;
+        gGfxViewOffsetCoord.coord.t[2] = offset->vz;
     } else {
-        Gfx_ViewOffsetCoord.coord.t[0] = 0;
-        Gfx_ViewOffsetCoord.coord.t[1] = 0;
-        Gfx_ViewOffsetCoord.coord.t[2] = 0;
+        gGfxViewOffsetCoord.coord.t[0] = 0;
+        gGfxViewOffsetCoord.coord.t[1] = 0;
+        gGfxViewOffsetCoord.coord.t[2] = 0;
     }
 
     // A direct child already expresses its camera pose in the required frame.
@@ -1485,7 +1485,7 @@ static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     }
     cameraCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    gGfxViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
     gGfxViewCoord.composeStamp       = GRAPHICS_COORD_DIRTY;
 }
@@ -1569,7 +1569,7 @@ void viewApplyCoordTask(Task* task)
     s32                   column;
 
     row                    = 0;
-    viewOffset             = &Gfx_ViewOffsetCoord;
+    viewOffset             = &gGfxViewOffsetCoord;
     body                   = task->extra.coordBody;
     offset                 = task->work;
     cameraCoord            = body->coord;
@@ -1589,7 +1589,7 @@ void viewApplyCoordTask(Task* task)
     viewOrigin->coord.t[1] = cameraCoord->coord.t[1];
     viewOrigin->coord.t[2] = cameraCoord->coord.t[2];
 
-    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    gGfxViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
     gGfxViewCoord.composeStamp       = GRAPHICS_COORD_DIRTY;
     taskKill(task);
@@ -1612,7 +1612,7 @@ void viewApplyCurrentCamera(void)
 
     viewRotation    = &gGfxViewRotCoord.coord;
     viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
-    viewOffset      = &Gfx_ViewOffsetCoord;
+    viewOffset      = &gGfxViewOffsetCoord;
 
     _viewApplyCameraCursor(&cameras[cameraIndex], viewRotation, viewTranslation, viewOffset);
 }
@@ -1653,7 +1653,7 @@ static void _viewResetTransform(void)
     GfxCoord* viewOrigin;
     s32       one;
 
-    viewOffset             = &Gfx_ViewOffsetCoord;
+    viewOffset             = &gGfxViewOffsetCoord;
     one                    = ONE;
     viewOffset->coord.t[0] = 0;
     viewOffset->coord.t[1] = 0;

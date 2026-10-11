@@ -1078,16 +1078,14 @@ void streamFinishScene(void)
 
 s32 streamSetSceneError(s32 errorCode, s32 unusedArgument)
 {
-    enum { STREAM_SCENE_GAME_HALT = 8 };
-
     s16 narrowErrorCode;
 
     narrowErrorCode = errorCode;
     if (narrowErrorCode != 0) {
         D_80114D20          = narrowErrorCode;
-        GameMain_HaltFlags |= STREAM_SCENE_GAME_HALT;
+        gGameMainHaltFlags |= GAME_MAIN_HALT_SCENE_ERROR;
     } else {
-        GameMain_HaltFlags &= ~STREAM_SCENE_GAME_HALT;
+        gGameMainHaltFlags &= ~GAME_MAIN_HALT_SCENE_ERROR;
     }
     return 0;
 }

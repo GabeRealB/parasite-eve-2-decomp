@@ -8383,7 +8383,7 @@ obviously have filled, the global involved is probably `volatile` — most often
 because it is shared with an interrupt or VSync callback.
 
 Corollary: this is a useful signal *about the game*, not just a matching trick.
-`Display_PendingFlip` is written by the VSync callback `_displayVSyncCallback` and read by the
+`gDisplayPendingFlip` is written by the VSync callback `_displayVSyncCallback` and read by the
 main loop `_gameMainRunLoop`, so `volatile` is semantically correct there.
 
 Inverse check: if the target *does* fill the slot with a store, that variable is
@@ -8417,30 +8417,30 @@ volatile `_gCdAudioState` matches.
 `_spuInitSystem` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `_gSpuAudioWorkAvailable = 0`).
 
-`D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
+`gDisplayTaskImageSourceSnapshot` / `gDisplayTaskFlipControlSnapshot` are the same shape for the draw path: main-line
 `displayRunTaskFrame` writes them (copies of `gDisplayState.control.flags.imageSource` /
 `gDisplayState.control.flags.flipMode`) and the VSync callback `_displayVSyncCallback` → `displayPresentTaskFrame` reads
 them. Without `volatile`:
 
-- successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
+- successive `if (gDisplayTaskImageSourceSnapshot == …)` arms CSE the load (target reloads via a
   `%hi` kept in `$v1` from the earlier branch delay slot);
-- `(s8)D_80070E38 < 0x10` collapses to a single `lb` instead of
+- `(s8)gDisplayTaskFlipControlSnapshot < 0x10` collapses to a single `lb` instead of
   `lbu` + `sll 24` + `sra 24`.
 
 **Writer/reader conflict on the same global.** The reader (`displayPresentTaskFrame`)
-needs `D_8006EC30` volatile, but the writer (`displayRunTaskFrame`) must put the
+needs `gDisplayTaskImageSourceSnapshot` volatile, but the writer (`displayRunTaskFrame`) must put the
 store in the `jal ExitCriticalSection` / `jal displayPresentTaskFrame` delay slot.
 Keep the global `volatile` and store through a non-volatile lvalue:
 
 ```c
-*(u8*)&D_8006EC30 = display->control.flags.imageSource; /* fills jal delay slot */
+*(u8*)&gDisplayTaskImageSourceSnapshot = display->control.flags.imageSource; /* fills jal delay slot */
 ExitCriticalSection();
 ```
 
-`D_8005EC74` / `D_8005EC78` are the same VSync-shared pair on the lag path
-(`_displayVSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `displayRunTaskFrame`
-does the inverse). Mark both `volatile` so the draw path reloads `D_8005EC74`
-twice and keeps `D_8005EC78 = 0` *outside* the following `jal VSync` delay
+`gDisplayVSyncElapsedLines` / `gDisplayPreviousVSyncElapsedLines` are the same VSync-shared pair on the lag path
+(`_displayVSyncCallback` writes `gDisplayVSyncElapsedLines` and reads `gDisplayPreviousVSyncElapsedLines`; `displayRunTaskFrame`
+does the inverse). Mark both `volatile` so the draw path reloads `gDisplayVSyncElapsedLines`
+twice and keeps `gDisplayPreviousVSyncElapsedLines = 0` *outside* the following `jal VSync` delay
 slot.
 
 ## Interleave an independent load with `*org = CONST`
@@ -8532,15 +8532,15 @@ local pointer before the constant. Reversing those two lines swaps the
 instructions and costs a near-match:
 
 ```c
-/* Matches: lui of Gpu_OtBuffers, then li a1,0xA */
-orderingTables = Gpu_OtBuffers;
+/* Matches: lui of gGpuFrameOrderingTables, then li a1,0xA */
+orderingTables = gGpuFrameOrderingTables;
 depthBits = 0xA;
 orderingTables->length = depthBits;
 /* ... orderingTables[1].length = depthBits reuses a1 */
 
 /* Mismatches: li first, then lui */
 depthBits = 0xA;
-orderingTables = Gpu_OtBuffers;
+orderingTables = gGpuFrameOrderingTables;
 orderingTables->length = depthBits;
 ```
 
@@ -12361,7 +12361,7 @@ pointer in `$v0` so the first `lbu` can land in `$v1`.
 The double-buffered ordering-table descriptors (size `0x14`, two entries =
 `0x28`) are the SDK's `GsOT` from `<psyq/libgs.h>`, which
 `include/main/display.h` includes. Both pairs use it: `gGpuTaskOrderingTables`
-(task-owned presentation) and `Gpu_OtBuffers` (the game loop's tables). Do not
+(task-owned presentation) and `gGpuFrameOrderingTables` (the game loop's tables). Do not
 define a local struct with the same layout.
 
 ```c
@@ -12388,11 +12388,11 @@ gGpuCurrentOt = ot[temp->frameBuffer].org;
 ```
 
 `gpuInitTaskOrderingTables` is the reference: sets both `gGpuTaskOrderingTables` slots to depth `0xA`
-with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buffer
+with `gGpuFrameOtTags[0]` / `gGpuFrameOtTags[1]`, clears the active buffer
 (`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
 
 `GsClearOt` sets `tag = org + (1 << length) - 1` and clears `1 << length`
-entries. `Gpu_OtBuffers` describes `GPU_ORDERING_TABLE_BUFFER_ENTRIES` (`0x440`)
+entries. `gGpuFrameOrderingTables` describes `GPU_ORDERING_TABLE_BUFFER_ENTRIES` (`0x440`)
 entries at `length` 10, so `_gameMainInitGraphics` stores `tag` itself and the game
 loop clears those tables with `ClearOTagR`.
 
@@ -16845,7 +16845,7 @@ PutDrawEnv(&drawBase[buf]);
 stride = buf * 0x14;          /* emit s0*0x14 into $s2 first */
 dispBase = ds->dispEnv;       /* then addiu a0, s1, 0x20 */
 PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
-/* later DrawOTag((u_long*)Gpu_OtBuffers[buf].tag) reuses $s2 */
+/* later DrawOTag((u_long*)gGpuFrameOrderingTables[buf].tag) reuses $s2 */
 ```
 
 `_displayVSyncCallback` needs this for `PutDispEnv(&gDisplayState.dispEnv[buf])`
@@ -16862,9 +16862,9 @@ slot. Use `s8` when the target has plain `lb`.
 `gDisplayState.vsyncFlag` is written by main-line code and read by the VSync
 callback `_displayVSyncCallback`. Marking it `volatile u8` forces a second load for
 `if (f == 0) … else if (f == 1)` (target reloads into `$v1` rather than CSE'ing
-the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
+the first `lbu`). Same idea as `gDisplayTaskImageSourceSnapshot` / `gDisplayTaskFlipControlSnapshot`.
 
-`D_80070F64` (countdown next to `gDisplayState`) is also VSync-shared: without
+`D_80070F64` (decrement-only word next to `gDisplayState`) is also VSync-shared: without
 `volatile`, `D_80070F64 -= 1` fills the following `bnez` delay slot; the target
 has `sw` then `nop`.
 
@@ -17489,9 +17489,9 @@ m->m[2][2] = one;
 The word stores through `*(s32*)&m->m[r][c]` match the target's packed
 halfword pairs; individual halfword assigns usually do not.
 
-`gfxResetView` pairs `gfxSetRotIdentity(&Gfx_ViewOffsetCoord.coord)` with
-direct `Gfx_ViewOffsetCoord.parent`, `Gfx_ViewOffsetCoord.coord.t[]` and
-`Gfx_ViewOffsetCoord.composeStamp` stores. The identity helper's word-struct
+`gfxResetView` pairs `gfxSetRotIdentity(&gGfxViewOffsetCoord.coord)` with
+direct `gGfxViewOffsetCoord.parent`, `gGfxViewOffsetCoord.coord.t[]` and
+`gGfxViewOffsetCoord.composeStamp` stores. The identity helper's word-struct
 accesses let the compiler derive the containing coordinate address from the
 matrix address: `parent` / `coord.t[]` use `off($a2)` while the matrix stays
 on `$v0`, including `sw zero, -4($v0)` for `composeStamp`. The source uses the
@@ -18210,7 +18210,7 @@ shifting every later label. Use this when the target has an otherwise-redundant
 ## Fade color global before prim cursor for `lui` order
 
 When a function both writes a halfword fade/clear color and allocates a TILE from
-`Gpu_SysPrimCursor`, source order of the *first mention* of each global controls the
+`gGpuSystemPrimCursor`, source order of the *first mention* of each global controls the
 early `lui %hi` order, while the actual `lw`/`sh` can still schedule as
 `lw cursor` then `sh color`:
 
@@ -18219,8 +18219,8 @@ static s16 _gFadeBootImageMaskLevel;
 
 _gFadeBootImageMaskLevel = 0xFF;                      /* mention color first → lui v1 first */
 color      = *(volatile u8*)&_gFadeBootImageMaskLevel; /* forces lbu reload, not reg reuse */
-p          = (TILE*)Gpu_SysPrimCursor;         /* lui t0 second; lw may still lead */
-Gpu_SysPrimCursor = (u8*)(p + 1);
+p          = gGpuSystemPrimCursor;         /* lui t0 second; lw may still lead */
+gGpuSystemPrimCursor = p + 1;
 setlen(p, 3);
 setcode(p, 0x62);                       /* 0x62 = TILE | semi-trans */
 p->r0 = color;
@@ -18229,7 +18229,7 @@ p->b0 = color;
 /* x/y/w/h then addPrim(gGpuCurrentOt - 0x10, p); DR_TPAGE with setDrawTPage */
 ```
 
-Writing `p = Gpu_SysPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
+Writing `p = gGpuSystemPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
 `(u8)_gFadeBootImageMaskLevel` may keep the value in a register. `_fadeBeginBootImageReveal` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
@@ -19970,7 +19970,7 @@ kept putting `$s3` first, while the late assign matched the target prologue.
 
 ## Volatile flags: force reload + delay-slot `lui`
 
-Shared flag words (e.g. `GameMain_HaltFlags`) that the target reloads from a kept
+Shared flag words (e.g. `gGameMainHaltFlags`) that the target reloads from a kept
 `%hi` base in `$a0` will CSE into a single load if the global is non-volatile:
 the value stays in a register, the second access becomes `andi` of that reg,
 and the address never lands in `$a0`. Mark the flag `volatile` so each access
@@ -19981,9 +19981,9 @@ amount for `flags |= 1 << arg` and as a later live value (`setlen`, compares,
 stores), write the shift with a literal first and assign the named temp after:
 
 ```c
-GameMain_HaltFlags |= 1 << haltBitIndex; /* volatile load address can fill prior bnez delay */
+gGameMainHaltFlags |= 1 << haltBitIndex; /* volatile load address can fill prior bnez delay */
 one = 1;                 /* li s2,1 then CSE into the shift as sllv …,s2 */
-tile = &D_8006EC18;
+tile = &_gGameMainPauseTile;
 /* … setlen(drawMode, one); … if (haltBitIndex == one) … */
 ```
 
@@ -22340,7 +22340,7 @@ RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
 ## Local OT pointer for `gGpuCurrentOt` so `%hi` stays temporary
 
 `_gameMainRunLoop` (and similar dual-buffer main loops) must both:
-1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `displayRunTaskFrame` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
+1. pin `gGpuFrameOrderingTables` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `displayRunTaskFrame` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
 2. use `%hi(gGpuCurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
 Writing only through the global:
@@ -22353,14 +22353,14 @@ gGpuCurrentOt += 0x20;
 ```
 
 makes GCC hoist `lui sN,%hi(gGpuCurrentOt)` into the prologue and steal the reg that
-should hold `Gpu_OtBuffers`'s full address.
+should hold `gGpuFrameOrderingTables`'s full address.
 
 Fix: pass a **local** into `ClearOTagR`, then reload from the global for the
 end-prim write so the `%hi` is only live in that block:
 
 ```c
 {
-    u_long* ot = Gpu_OtTags + flip * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    u_long* ot = gGpuFrameOtTags[flip];
     gGpuCurrentOt = ot;
     ClearOTagR(ot, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
 }
@@ -23129,7 +23129,7 @@ example of that case.
 Shared status words reloaded twice in a prologue (e.g. `_gSndLoadFailure`) CSE into
 one load when non-volatile, and the address often lands in `$a1`. Mark them
 `volatile` so each access reloads and GCC keeps `%hi` in `$a0` after
-`move sN,a0` frees the argument register — same pattern as `GameMain_HaltFlags` in
+`move sN,a0` frees the argument register — same pattern as `gGameMainHaltFlags` in
 `_gameMainShowPauseScreen`.
 
 Do **not** hard-pin the state pointer to `$s3` with `register … asm("s3")` while
@@ -23293,10 +23293,10 @@ lui  v0, %hi(gDisplayState)
 addiu v0, v0, %lo(gDisplayState)
 sw   s2, …(sp)
 move s2, v0
-lui  v0, %hi(GameMain_HaltFlags)
+lui  v0, %hi(gGameMainHaltFlags)
 sw   s4, …(sp)
 move s4, v0
-sw   s5; lui s5, %hi(Display_PendingFlip)
+sw   s5; lui s5, %hi(gDisplayPendingFlip)
 …
 ```
 
@@ -23320,10 +23320,10 @@ ds = &gDisplayState; /* CSE → move s2,v0; alias-known */
 {
     register s32 t4 asm("v0");
     /* "r"(t) keeps Display load in v0 before EC80 hi reuses it */
-    __asm__("lui %0, %%hi(GameMain_HaltFlags)" : "=r"(t4) : "r"(t));
+    __asm__("lui %0, %%hi(gGameMainHaltFlags)" : "=r"(t4) : "r"(t));
     __asm__("move %0, %1" : "=r"(s4r) : "r"(t4)); /* s4 only holds %hi */
 }
-__asm__("lui %0, %%hi(Display_PendingFlip)" : "=r"(s5r)); /* direct lui s5 is fine */
+__asm__("lui %0, %%hi(gDisplayPendingFlip)" : "=r"(s5r)); /* direct lui s5 is fine */
 ```
 
 Rules of thumb:
@@ -26043,7 +26043,7 @@ Keep the earlier object on a `volatile` pointer, write the packed identity
 through a volatile cast, and leave the last `composeStamp` target non-volatile:
 
 ```c
-volatile GfxCoord* c1 = &Gfx_ViewOffsetCoord;
+volatile GfxCoord* c1 = &gGfxViewOffsetCoord;
 s32 one = ONE;
 
 c1->coord.t[0] = 0;

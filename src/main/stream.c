@@ -18,8 +18,7 @@
 #include "main/session_types.h"
 #include "main/stream_types.h"
 #include "main/tmd.h"
-#include "main/wipsys.h"
-#include "main/wipsys_types.h"
+#include "main/gamemain.h"
 
 #include "mapui/map_akropolis.h"
 #include "mapui/map_dryfield.h"
@@ -548,13 +547,13 @@ s16 streamPollMovieStop(s32 clearFramebuffers)
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        movieDisplayMode               = _gStreamMovieDisplayMode;
-        Wip_SysFlags.movieStreamActive = false;
-        queue->field_24A               = 0;
-        queue->movieReady              = false;
-        queue->movieFrameChanged       = false;
-        queue->field_1E2               = 0;
-        queue->movieStep               = CD_COMMAND_MOVIE_WAIT_READY;
+        movieDisplayMode                           = _gStreamMovieDisplayMode;
+        gGameMainPersistentState.movieStreamActive = false;
+        queue->field_24A                           = 0;
+        queue->movieReady                          = false;
+        queue->movieFrameChanged                   = false;
+        queue->field_1E2                           = 0;
+        queue->movieStep                           = CD_COMMAND_MOVIE_WAIT_READY;
         if (movieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
             displayVideoMode = gDisplayState.videoMode;
             if (displayVideoMode == DISPLAY_VIDEO_STREAMING) {
@@ -875,7 +874,7 @@ static __inline__ void _streamStartDecode(void)
     StSetStream(_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_RING_RGB16 : _gStreamMovieDisplayMode, STREAM_MOVIE_RING_NO_START_FRAME, STREAM_MOVIE_RING_NO_END_FRAME, NULL, NULL);
     StSetRing(gStreamMovieRingBuffer, _gStreamMovieRingSectorCount);
     StClearRing();
-    Wip_SysFlags.movieStreamActive = true;
+    gGameMainPersistentState.movieStreamActive = true;
     DecDCToutCallback(_mdecMovieOutputCallback);
     cdVolApplyMoviePreset(0);
     queue->mdecOutputPending = false;
@@ -983,13 +982,13 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             DecDCTReset(0);
             StClearRing();
             StUnSetRing();
-            movieDisplayMode               = _gStreamMovieDisplayMode;
-            Wip_SysFlags.movieStreamActive = false;
-            stopQueue->field_24A           = 0;
-            stopQueue->movieReady          = false;
-            stopQueue->movieFrameChanged   = false;
-            stopQueue->field_1E2           = 0;
-            stopQueue->movieStep           = CD_COMMAND_MOVIE_WAIT_READY;
+            movieDisplayMode                           = _gStreamMovieDisplayMode;
+            gGameMainPersistentState.movieStreamActive = false;
+            stopQueue->field_24A                       = 0;
+            stopQueue->movieReady                      = false;
+            stopQueue->movieFrameChanged               = false;
+            stopQueue->field_1E2                       = 0;
+            stopQueue->movieStep                       = CD_COMMAND_MOVIE_WAIT_READY;
             if (movieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
                 displayVideoMode = gDisplayState.videoMode;
                 if (displayVideoMode == DISPLAY_VIDEO_STREAMING) {

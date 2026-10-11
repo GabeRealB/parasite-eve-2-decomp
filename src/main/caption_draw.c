@@ -146,8 +146,8 @@ static void _primDrawCaptionSprite(const PrimDrawParams* draw, u32 clutX, s32 cl
     SPRT* sprite;
     u8    textureV;
 
-    sprite            = (SPRT*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(sprite + 1);
+    sprite               = gGpuSystemPrimCursor;
+    gGpuSystemPrimCursor = sprite + 1;
     SetSprt(sprite);
     if (draw->semiTrans == 0) {
         SetShadeTex(sprite, 1);
@@ -182,8 +182,8 @@ static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIn
     enum { PRIMITIVE_TEXTURE_DEPTH_4BIT = 0 };
     DR_TPAGE* pagePacket;
 
-    pagePacket        = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(pagePacket + 1);
+    pagePacket           = gGpuSystemPrimCursor;
+    gGpuSystemPrimCursor = pagePacket + 1;
     SetDrawTPage(pagePacket, true, false, GetTPage(PRIMITIVE_TEXTURE_DEPTH_4BIT, (s16)blendMode, (s16)tpageX, (s16)tpageY));
     AddPrim(gGpuCurrentOt + otIndex, pagePacket);
 }
@@ -268,14 +268,14 @@ static inline void _primSetTileBlend(TILE* tile, s32 semiTrans)
 /// width/height are w-1/h-1 narrowed to halfwords (positive dimensions are the
 /// normal domain). UV and unused fields are not read. Nonzero semiTrans enables
 /// blending; the caller must prepend the desired draw-mode command at tag 5.
-/// Requires one word-aligned TILE slot in Gpu_SysPrimCursor and writable OT tag 5.
+/// Requires one word-aligned TILE slot in `gGpuSystemPrimCursor` and writable OT tag 5.
 /// The arena is byte-addressed; the queued packet is borrowed until GPU completion.
 static void _primDrawTile(const PrimDrawParams* draw)
 {
     TILE* tile;
 
-    tile              = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(tile + 1);
+    tile                 = gGpuSystemPrimCursor;
+    gGpuSystemPrimCursor = tile + 1;
     SetTile(tile);
     _primSetTileBlend(tile, draw->semiTrans);
     tile->r0 = draw->r;

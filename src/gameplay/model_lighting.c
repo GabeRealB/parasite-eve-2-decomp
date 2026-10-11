@@ -2808,7 +2808,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         cursorOffsetBytes = (const u8*)gGameDebugReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
     if (cursorOffsetBytes <= GAME_DEBUG_REPLAY_CURSOR_LIMIT_BYTES) {
-        if (GameMain_HaltFlags != 0) {
+        if (gGameMainHaltFlags != 0) {
             *buttons = gGameDebugReplayButtons;
             return;
         }
@@ -2819,7 +2819,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
         }
         if (*buttons & PAD_BUTTON_START) {
             *buttons                    = gGameDebugReplayButtons | PAD_BUTTON_START;
-            Wip_SysFlags.skipTitleIntro = 1;
+            gGameMainPersistentState.skipTitleIntro = 1;
         } else {
             *buttons = gGameDebugReplayButtons;
         }
@@ -2834,7 +2834,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
             gGameDebugReplayButtons = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
             gGameDebugReplayCursor  = nextRecord;
             if (*nextButtons == GAME_DEBUG_REPLAY_BUTTONS_END) {
-                Wip_SysFlags.skipTitleIntro        = 0;
+                gGameMainPersistentState.skipTitleIntro        = 0;
                 gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
         }
@@ -3049,8 +3049,8 @@ void playClockUpdateTask(Task* task)
             }
         }
         displayAcquireMenuHold();
-        task->killCountdown   = gGameSession->deathRestartDelay;
-        Wip_SysFlags.gameOver = 1;
+        task->killCountdown               = gGameSession->deathRestartDelay;
+        gGameMainPersistentState.gameOver = 1;
         task->state++;
         return;
     }

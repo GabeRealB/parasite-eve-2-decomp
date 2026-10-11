@@ -323,7 +323,7 @@ caller supplies stream id (+ optional sub keys)
 
 #### Title (fully known)
 
-ISO root scan sets the disc number (`Wip_SysFlags.discNumber`):
+ISO root scan sets the disc number (`gGameMainPersistentState.discNumber`):
 
 - stage1/2 present → `1` (disk1-like)
 - stage4/5 present → `2` (disk2-like)
@@ -331,7 +331,7 @@ ISO root scan sets the disc number (`Wip_SysFlags.discNumber`):
 ```c
 // title.c
 key = gGameSession->location;
-if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2)
+if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2)
     key.loc.view = 0x65;  // 101
 else
     key.loc.view = 0x64;  // 100

@@ -251,7 +251,7 @@ static void _titleInitializeScreenTask(Task* task)
         work->menuCount         = TITLE_MENU_DEBUG_OPTION;
         work->selection         = TITLE_MENU_NEW_GAME;
         work->idleFrames        = 0;
-        if (Wip_SysFlags.gameOver != 0) {
+        if (gGameMainPersistentState.gameOver != 0) {
             work->selection = TITLE_MENU_LOAD_GAME;
         }
         textUploadPalettes();
@@ -395,8 +395,8 @@ static void _titleUpdateScreenTask(Task* task)
                 _titlePrependScreenFadeDrawMode();
             }
         } else {
-            Wip_SysFlags.skipTitleIntro = 0;
-            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_1) {
+            gGameMainPersistentState.skipTitleIntro = 0;
+            if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_1) {
                 taskCallExit(task);
                 gDisplayState.demoScene = gameMainGetInitializationCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % TITLE_ATTRACT_DEMO_COUNT + 1;
@@ -630,7 +630,7 @@ static void _titleIntroMovieTask(Task* task)
             break;
         case TITLE_INTRO_QUEUE_MOVIE:
             movieLocation = gGameSession->location;
-            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+            if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
                 movieLocation.loc.view = TITLE_INTRO_DISC_2_MOVIE_ID;
             } else {
                 movieLocation.loc.view = TITLE_INTRO_DISC_1_MOVIE_ID;
@@ -716,7 +716,7 @@ static void _titleStartupTask(Task* startupTask)
             // Normal boot gives the movie exclusive presentation ownership.
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             _gTitleScreenSkipFade                   = true;
-            if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.skipTitleIntro != 0)) {
+            if ((gDisplayState.debugMode < 0) || (gGameMainPersistentState.skipTitleIntro != 0)) {
                 nextState             = TITLE_STARTUP_QUEUE_BACKGROUND;
                 _gTitleScreenSkipFade = false;
             } else {
@@ -742,7 +742,7 @@ static void _titleStartupTask(Task* startupTask)
             return;
         case TITLE_STARTUP_FINISH:
             SetDispMask(1);
-            Wip_SysFlags.skipTitleIntro = 1;
+            gGameMainPersistentState.skipTitleIntro = 1;
             taskKill(task);
             return;
         case TITLE_STARTUP_QUEUE_BACKGROUND:

@@ -22,8 +22,7 @@
 #include "main/gfx_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/wipsys.h"
-#include "main/wipsys_types.h"
+#include "main/gamemain.h"
 
 #include "mapui/map_akropolis.h"
 
@@ -188,7 +187,7 @@ static __inline__ void _bootReleaseMovieRing(void)
     DecDCTReset(BOOT_MOVIE_RESET_CALLBACKS_AND_DECODER);
     StClearRing();
     StUnSetRing();
-    Wip_SysFlags.movieStreamActive = false;
+    gGameMainPersistentState.movieStreamActive = false;
 }
 
 /// Clears the trailing ten bytes of the configured GPU primitive reservation.
@@ -425,7 +424,7 @@ void bootResetCd(s32 resetMode)
     CdFlush();
     VSync(BOOT_CD_RESET_SETTLE_VBLANKS);
     CdControlB(CdlPause, NULL, NULL);
-    if (Wip_SysFlags.movieStreamActive != 0) {
+    if (gGameMainPersistentState.movieStreamActive != 0) {
         _bootReleaseMovieRing();
     }
     CdReset(resetMode);

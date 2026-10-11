@@ -50,7 +50,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/wipsys.h"
+#include "main/gamemain.h"
 #include "main/wipsys_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -1535,7 +1535,7 @@ static inline void _dryfieldNightGarageQueueMovie(const Task* task)
     s16     streamSlot;
 
     movieKey = gGameSession->location;
-    if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+    if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
         if (task->spawnArg1.value != 0) {
             movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE;
         } else {

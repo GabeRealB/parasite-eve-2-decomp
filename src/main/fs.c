@@ -20,8 +20,7 @@
 #include "sound.h"
 #include "stream.h"
 #include "main/stream_types.h"
-#include "main/wipsys.h"
-#include "main/wipsys_types.h"
+#include "main/gamemain.h"
 
 /// Where one folder of a stage CDF starts, as the loader keeps it.
 ///
@@ -1563,12 +1562,12 @@ restart:
         stageIndex++;
     } while (stageIndex < ARRAY_SIZE(gFsStageCdfBaseSectors));
 
-    directoryRecord              = gFsSectorBuffers.sector.bytes;
-    directoryDone                = 0;
-    gStreamInterFile.field_4     = 0;
-    Wip_SysFlags.discNumber      = GAME_MAIN_DISC_UNKNOWN;
-    gStreamInterFile.startSector = 0;
-    _gFsStage0HeaderSector       = FILE_SYSTEM_SECTOR_UNSET;
+    directoryRecord                     = gFsSectorBuffers.sector.bytes;
+    directoryDone                       = 0;
+    gStreamInterFile.field_4            = 0;
+    gGameMainPersistentState.discNumber = GAME_MAIN_DISC_UNKNOWN;
+    gStreamInterFile.startSector        = 0;
+    _gFsStage0HeaderSector              = FILE_SYSTEM_SECTOR_UNSET;
 
     while ((directoryDone & 0xFF) == 0) {
         switch (directoryRecord[0]) {
@@ -1625,10 +1624,10 @@ restart:
     }
 
     if (gFsStageCdfBaseSectors[1] != 0 || gFsStageCdfBaseSectors[2] != 0) {
-        Wip_SysFlags.discNumber = GAME_MAIN_DISC_1;
+        gGameMainPersistentState.discNumber = GAME_MAIN_DISC_1;
     }
     if (gFsStageCdfBaseSectors[4] != 0 || gFsStageCdfBaseSectors[5] != 0) {
-        Wip_SysFlags.discNumber = GAME_MAIN_DISC_2;
+        gGameMainPersistentState.discNumber = GAME_MAIN_DISC_2;
     }
 
     cdSyncWaitForCommandCompletion();
@@ -1666,7 +1665,7 @@ restart:
     } else if ((bootMode & 0xFF) != 0) {
         goto restart;
     } else {
-        Wip_SysFlags.discNumber = GAME_MAIN_DISC_UNKNOWN;
+        gGameMainPersistentState.discNumber = GAME_MAIN_DISC_UNKNOWN;
     }
 }
 

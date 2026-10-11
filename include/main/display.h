@@ -119,7 +119,14 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// `frameBuffer` belong to their respective presentation paths.
 extern DisplayState gDisplayState;
 
-extern GsOT Gpu_OtBuffers[2];
+/// Game-loop ordering-table descriptors for resident frame buffers 0 and 1.
+///
+/// Each borrows 1088 packed DMA tags with ten-bit sorting depth and submits
+/// from its final tag. Game drawing selects the depth base after 32 foreground
+/// tags. Initialization binds the heads/tails once; frame clearing rebuilds
+/// links without changing the descriptors. Storage remains live through GPU
+/// drawing. These are distinct from the task-owned presentation descriptors.
+extern GsOT gGpuFrameOrderingTables[2];
 
 /// Two resident ordering-table descriptors for task-owned frame presentation.
 ///

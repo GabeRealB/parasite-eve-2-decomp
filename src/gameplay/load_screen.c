@@ -641,7 +641,7 @@ void loadingPollAreaResourcesTask(Task* task)
         worldCollisionResetListsAndGrid();
         actorRenderResetLists();
         completedDisplayState = &gDisplayState;
-        actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[completedDisplayState->drawBuffer]);
+        actorRenderComposeAndDrawActiveModels(&gGpuFrameOrderingTables[completedDisplayState->drawBuffer]);
         task->state++;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
             completedDisplayState->dispEnv[1].isinter = LOADING_INTERLACE_ENABLED;

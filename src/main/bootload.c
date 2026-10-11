@@ -1891,8 +1891,8 @@ static inline void _fadeDrawBootImageMask(u8 maskColor)
     TILE*     tile;
     DR_TPAGE* pagePacket;
 
-    tile              = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(tile + 1);
+    tile                 = gGpuSystemPrimCursor;
+    gGpuSystemPrimCursor = tile + 1;
     setTile(tile);
     setSemiTrans(tile, true);
     tile->r0 = maskColor;
@@ -1904,8 +1904,8 @@ static inline void _fadeDrawBootImageMask(u8 maskColor)
     tile->h  = FILE_SYSTEM_IMAGE_HEIGHT;
     addPrim(gGpuCurrentOt + FADE_BOOT_IMAGE_OT_INDEX, tile);
 
-    pagePacket        = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(pagePacket + 1);
+    pagePacket           = gGpuSystemPrimCursor;
+    gGpuSystemPrimCursor = pagePacket + 1;
     // Head insertion makes the blend-mode command execute before the tile.
     setDrawTPage(pagePacket, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
     addPrim(gGpuCurrentOt + FADE_BOOT_IMAGE_OT_INDEX, pagePacket);

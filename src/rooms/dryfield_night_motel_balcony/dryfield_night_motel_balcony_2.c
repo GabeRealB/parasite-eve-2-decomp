@@ -21,7 +21,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/wipsys.h"
+#include "main/gamemain.h"
 #include "main/wipsys_types.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -103,7 +103,7 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
             return;
         case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_FIRST:
             firstMovieKey = gGameSession->location;
-            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+            if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
                 firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_FIRST_STREAM_ID;
             } else {
                 firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_FIRST_STREAM_ID;
@@ -132,7 +132,7 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
         case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_SECOND:
             if (cdCmdIsIdle()) {
                 secondMovieKey = gGameSession->location;
-                if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+                if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
                     secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID;
                 } else {
                     secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID;
