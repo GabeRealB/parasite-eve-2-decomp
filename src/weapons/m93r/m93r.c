@@ -5,7 +5,6 @@
 
 #include "common.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1465,106 +1464,94 @@ static AnimationSet _gM93rPlayerBackwardWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gM93rAnimation0DC10Bank1[13] = {
+/// Run translations in model units and rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM93rPlayerRunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0DC10_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0DC10Bank4[167] = {
+/// Run rotations for tracks 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gM93rPlayerRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0DC10_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0DC10Records[235] = {
+/// Run keyframes, loop jumps and retained stops; durations count normal-rate frames.
+///
+/// Pose offsets count four-byte words; jump targets are absolute record indices.
+/// Track 1 carries alternating footstep cues `ANIMATION_RECORD_CUE_1` and
+/// `ANIMATION_RECORD_CUE_2`.
+static const AnimationRecord _gM93rPlayerRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0DC10_records.inc"
 };
 
-static u16 _gM93rAnimation0DC10Indices[20] = {
+/// Absolute run record starts for tracks 0..18, followed by a retained serialized halfword.
+static const u16 _gM93rPlayerRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0DC10_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM93rPlayerRunAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m93r_run_track_starts);
 
-static AnimationSet _gM93rAnimation0DC10 = {
-    _gM93rAnimation0DC10Records,
-    _gM93rAnimation0DC10Indices,
-    { NULL, _gM93rAnimation0DC10Bank1, NULL, NULL, _gM93rAnimation0DC10Bank4, NULL, NULL, NULL },
+/// Looping player run with the M93R, at native clip id 4.
+///
+/// Normal locomotion and scripted run-to playback use child tracks 1..18;
+/// track 1 supplies paired footstep cues. Root displacement is driven separately.
+/// Tracks 0..1 carry translation/rotation and 2..18 rotation only. Keep the
+/// M93R package loaded while any slot or cached record refers to this clip.
+static AnimationSet _gM93rPlayerRunAnimation = {
+    .records           = _gM93rPlayerRunAnimationRecords,
+    .trackStartIndices = _gM93rPlayerRunAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerRunAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerRunAnimationBank4,
+    },
 };
 
-AnimationBank D_m93r_8012ADF8 = { { {
-    NULL,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerWalkAnimation,
-    &_gM93rPlayerBackwardWalkAnimation,
-    &_gM93rAnimation0DC10,
-    &_gM93rPlayerTurnLeftAnimation,
-    &_gM93rPlayerTurnRightAnimation,
-    &_gM93rPlayerAimEnterAnimation,
-    &_gM93rPlayerAimExitAnimation,
-    &_gM93rPlayerAimIdleAnimation,
-    &_gM93rPlayerFireAnimation,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerAimForwardAnimation,
-    &_gM93rPlayerAimBackwardOrTurnAnimation,
-    &_gM93rPlayerReloadAnimation,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerHitPart4Animation,
-    &_gM93rPlayerHitOtherBodyAnimation,
-    &_gM93rPlayerDeathAnimation,
-    &_gM93rPlayerUnarmedWalkAnimation,
-    &_gM93rPlayerReloadAnimation,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerHighHealthIdleAnimation,
-    &_gM93rPlayerMidHealthIdleAnimation,
-    &_gM93rPlayerLowHealthIdleAnimation,
-    &_gM93rPlayerParasiteEnergyReleaseFamily0Animation,
-    &_gM93rPlayerParasiteEnergyChargeFamily0Animation,
-    &_gM93rPlayerParasiteEnergyCastFamily0Animation,
-    &_gM93rPlayerParasiteEnergyReleaseFamily1Animation,
-    &_gM93rPlayerParasiteEnergyChargeFamily1Animation,
-    &_gM93rPlayerParasiteEnergyCastFamily1Animation,
-    &_gM93rPlayerScriptedPresentationEnterAnimation,
-    &_gM93rPlayerScriptedPresentationExitAnimation,
-    &_gM93rPlayerAimEnterAnimation,
-    &_gM93rPlayerAimExitAnimation,
-    &_gM93rPlayerStairAscentAnimation,
-    &_gM93rPlayerStairDescentAnimation,
-    &_gM93rPlayerStairAscentFinishEvenAnimation,
-    &_gM93rPlayerStairAscentFinishOddAnimation,
-    &_gM93rPlayerItemUseAnimation,
-    &_gM93rPlayerIdleAnimation,
-    &_gM93rPlayerParasiteEnergyReleaseFamily2Animation,
-    &_gM93rPlayerParasiteEnergyChargeFamily2Animation,
-    &_gM93rPlayerParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gM93rPlayerAnimationBank = {
+    .table = {
+        .sets = {
+            [1]  = &_gM93rPlayerIdleAnimation,
+            [2]  = &_gM93rPlayerWalkAnimation,
+            [3]  = &_gM93rPlayerBackwardWalkAnimation,
+            [4]  = &_gM93rPlayerRunAnimation,
+            [5]  = &_gM93rPlayerTurnLeftAnimation,
+            [6]  = &_gM93rPlayerTurnRightAnimation,
+            [7]  = &_gM93rPlayerAimEnterAnimation,
+            [8]  = &_gM93rPlayerAimExitAnimation,
+            [9]  = &_gM93rPlayerAimIdleAnimation,
+            [10] = &_gM93rPlayerFireAnimation,
+            [11] = &_gM93rPlayerIdleAnimation,
+            [12] = &_gM93rPlayerAimForwardAnimation,
+            [13] = &_gM93rPlayerAimBackwardOrTurnAnimation,
+            [14] = &_gM93rPlayerReloadAnimation,
+            [15] = &_gM93rPlayerIdleAnimation,
+            [16] = &_gM93rPlayerHitPart4Animation,
+            [17] = &_gM93rPlayerHitOtherBodyAnimation,
+            [18] = &_gM93rPlayerDeathAnimation,
+            [19] = &_gM93rPlayerUnarmedWalkAnimation,
+            [20] = &_gM93rPlayerReloadAnimation,
+            [21] = &_gM93rPlayerIdleAnimation,
+            [22] = &_gM93rPlayerIdleAnimation,
+            [23] = &_gM93rPlayerHighHealthIdleAnimation,
+            [24] = &_gM93rPlayerMidHealthIdleAnimation,
+            [25] = &_gM93rPlayerLowHealthIdleAnimation,
+            [26] = &_gM93rPlayerParasiteEnergyReleaseFamily0Animation,
+            [27] = &_gM93rPlayerParasiteEnergyChargeFamily0Animation,
+            [28] = &_gM93rPlayerParasiteEnergyCastFamily0Animation,
+            [29] = &_gM93rPlayerParasiteEnergyReleaseFamily1Animation,
+            [30] = &_gM93rPlayerParasiteEnergyChargeFamily1Animation,
+            [31] = &_gM93rPlayerParasiteEnergyCastFamily1Animation,
+            [32] = &_gM93rPlayerScriptedPresentationEnterAnimation,
+            [33] = &_gM93rPlayerScriptedPresentationExitAnimation,
+            [34] = &_gM93rPlayerAimEnterAnimation,
+            [35] = &_gM93rPlayerAimExitAnimation,
+            [36] = &_gM93rPlayerStairAscentAnimation,
+            [37] = &_gM93rPlayerStairDescentAnimation,
+            [38] = &_gM93rPlayerStairAscentFinishEvenAnimation,
+            [39] = &_gM93rPlayerStairAscentFinishOddAnimation,
+            [40] = &_gM93rPlayerItemUseAnimation,
+            [41] = &_gM93rPlayerIdleAnimation,
+            [42] = &_gM93rPlayerParasiteEnergyReleaseFamily2Animation,
+            [43] = &_gM93rPlayerParasiteEnergyChargeFamily2Animation,
+            [44] = &_gM93rPlayerParasiteEnergyCastFamily2Animation,
+            // Unused native slots and the writable extension start cleared.
+        },
+    },
+};

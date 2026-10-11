@@ -1,8 +1,20 @@
 #ifndef INCLUDE_WEAPONS_M249_H
 #define INCLUDE_WEAPONS_M249_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Native player animation bank supplied by the loaded M249 package.
+///
+/// The primary character selects bank index 18 for equipped weapon 17.
+/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
+/// are NULL. The 32 extension words start cleared and remain writable for
+/// scripted copies, including payloads that are not clip pointers. Play an
+/// extension slot only after installing a clip pointer there. Keep the bank
+/// and its borrowed clip data loaded while playback or cached records refer to them.
+extern AnimationBank gM249PlayerAnimationBank;
 
 /// Single-part model of the player's equipped M249.
 ///

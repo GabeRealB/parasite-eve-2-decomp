@@ -1608,26 +1608,41 @@ static AnimationSet _gM950PlayerAimEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gM950Animation0E890Bank1[10] = {
+/// Aim-exit translations in model units and rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gM950PlayerAimExitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E890_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0E890Bank4[136] = {
+/// Aim-exit rotations for tracks 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gM950PlayerAimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E890_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0E890Records[169] = {
+/// Aim-exit keyframes and stop controls, without action cues.
+///
+/// Durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gM950PlayerAimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E890_records.inc"
 };
 
-static u16 _gM950Animation0E890Indices[20] = {
+/// Absolute aim-exit record starts for tracks 0..18, followed by a retained serialized halfword.
+static const u16 _gM950PlayerAimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E890_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerAimExitAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_aim_exit_track_starts);
 
-static AnimationSet _gM950Animation0E890 = {
-    _gM950Animation0E890Records,
-    _gM950Animation0E890Indices,
-    { NULL, _gM950Animation0E890Bank1, NULL, NULL, _gM950Animation0E890Bank4, NULL, NULL, NULL },
+/// Player transition out of M950 aiming, at native clip id 8.
+///
+/// Normal and scripted attack exits play child tracks 1..18; every track stops.
+/// Tracks 0..1 carry translation/rotation and 2..18 rotation only. Keep the
+/// M950 package loaded while any slot or cached record refers to this clip.
+static AnimationSet _gM950PlayerAimExitAnimation = {
+    .records           = _gM950PlayerAimExitAnimationRecords,
+    .trackStartIndices = _gM950PlayerAimExitAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerAimExitAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerAimExitAnimationBank4,
+    },
 };
 
 AnimationBank D_m950_8012BA78 = { { {
@@ -1639,7 +1654,7 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950PlayerTurnLeftAnimation,
     &_gM950PlayerTurnRightAnimation,
     &_gM950PlayerAimEntryAnimation,
-    &_gM950Animation0E890,
+    &_gM950PlayerAimExitAnimation,
     &_gM950PlayerAimIdleAnimation,
     &_gM950PlayerFireAnimation,
     &_gM950PlayerFireAnimation,

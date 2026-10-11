@@ -2195,26 +2195,41 @@ static AnimationSet _gMongooseAimEntryAnimation = {
                            [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimEntryAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation0D7D8Bank1[10] = {
+/// Aim-exit translations in model units and rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gMongooseAimExitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D7D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation0D7D8Bank4[145] = {
+/// Aim-exit rotations for tracks 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseAimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D7D8_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation0D7D8Records[176] = {
+/// Aim-exit keyframes and stop controls, without action cues.
+///
+/// Durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gMongooseAimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D7D8_records.inc"
 };
 
-static u16 _gMongooseAnimation0D7D8Indices[20] = {
+/// Absolute aim-exit record starts for tracks 0..18, followed by a retained serialized halfword.
+static const u16 _gMongooseAimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_0D7D8_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gMongooseAimExitAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, mongoose_aim_exit_track_starts);
 
-static AnimationSet _gMongooseAnimation0D7D8 = {
-    _gMongooseAnimation0D7D8Records,
-    _gMongooseAnimation0D7D8Indices,
-    { NULL, _gMongooseAnimation0D7D8Bank1, NULL, NULL, _gMongooseAnimation0D7D8Bank4, NULL, NULL, NULL },
+/// Player transition out of Mongoose aiming, at native clip id 8.
+///
+/// Normal and scripted attack exits play child tracks 1..18; every track stops.
+/// Tracks 0..1 carry translation/rotation and 2..18 rotation only. Keep the
+/// Mongoose package loaded while any slot or cached record refers to this clip.
+static AnimationSet _gMongooseAimExitAnimation = {
+    .records           = _gMongooseAimExitAnimationRecords,
+    .trackStartIndices = _gMongooseAimExitAnimationIndices,
+    .poseBanks         = {
+        [MONGOOSE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMongooseAimExitAnimationBank1,
+        [MONGOOSE_ANIMATION_PACKED_ROTATION_BANK]      = _gMongooseAimExitAnimationBank4,
+    },
 };
 
 AnimationBank D_mongoose_8012A9C0 = { { {
@@ -2226,7 +2241,7 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseNegativeTurnAnimation,
     &_gMongoosePositiveTurnAnimation,
     &_gMongooseAimEntryAnimation,
-    &_gMongooseAnimation0D7D8,
+    &_gMongooseAimExitAnimation,
     &_gMongooseAimIdleAnimation,
     &_gMongooseFireAnimation,
     &_gMongooseFireAnimation,

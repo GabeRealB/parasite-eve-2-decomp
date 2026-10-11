@@ -1623,26 +1623,41 @@ static AnimationSet _gMp5a5AimEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gMp5a5Animation0E1E4Bank1[10] = {
+/// Aim-exit translations in model units and rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gMp5a5AimExitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0E1E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0E1E4Bank4[136] = {
+/// Aim-exit rotations for tracks 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMp5a5AimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0E1E4_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0E1E4Records[169] = {
+/// Aim-exit keyframes and stop controls, without action cues.
+///
+/// Durations count normal-rate frames and pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5AimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0E1E4_records.inc"
 };
 
-static u16 _gMp5a5Animation0E1E4Indices[20] = {
+/// Absolute aim-exit record starts for tracks 0..18, followed by a retained serialized halfword.
+static const u16 _gMp5a5AimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0E1E4_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gMp5a5AimExitAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, mp5a5_aim_exit_track_starts);
 
-static AnimationSet _gMp5a5Animation0E1E4 = {
-    _gMp5a5Animation0E1E4Records,
-    _gMp5a5Animation0E1E4Indices,
-    { NULL, _gMp5a5Animation0E1E4Bank1, NULL, NULL, _gMp5a5Animation0E1E4Bank4, NULL, NULL, NULL },
+/// Player transition out of MP5A5 aiming, at native clip id 8.
+///
+/// Normal and scripted attack exits play child tracks 1..18; every track stops.
+/// Tracks 0..1 carry translation/rotation and 2..18 rotation only. The MP5A5
+/// or active upgrade package must stay loaded while slots or cached records refer to it.
+static AnimationSet _gMp5a5AimExitAnimation = {
+    .records           = _gMp5a5AimExitAnimationRecords,
+    .trackStartIndices = _gMp5a5AimExitAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5AimExitAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5AimExitAnimationBank4,
+    },
 };
 
 AnimationBank D_mp5a5_8012B3CC = { { {
@@ -1654,7 +1669,7 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5TurnLeftAnimation,
     &_gMp5a5TurnRightAnimation,
     &_gMp5a5AimEntryAnimation,
-    &_gMp5a5Animation0E1E4,
+    &_gMp5a5AimExitAnimation,
     &_gMp5a5AimHoldAnimation,
     &_gMp5a5FireAnimation,
     &_gMp5a5FireAnimation,

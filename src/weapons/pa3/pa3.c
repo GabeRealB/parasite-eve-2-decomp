@@ -2416,26 +2416,44 @@ static AnimationSet _gSp12BackwardWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gSp12Animation0EAE0Bank1[25] = {
+/// Run translations in model units and rotations in 1/4096 turns for tracks 0..1.
+static const AnimationPackedPose _gSp12RunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0EAE0_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0EAE0Bank4[223] = {
+/// Run rotations for tracks 2..18, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gSp12RunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0EAE0_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0EAE0Records[311] = {
+/// Run keyframes, loop jumps and retained stops; durations count normal-rate frames.
+///
+/// Pose offsets count four-byte words; jump targets are absolute record indices.
+/// Track 1 carries alternating footstep cues `ANIMATION_RECORD_CUE_1` and
+/// `ANIMATION_RECORD_CUE_2`.
+static const AnimationRecord _gSp12RunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0EAE0_records.inc"
 };
 
-static u16 _gSp12Animation0EAE0Indices[20] = {
+/// Absolute run record starts for tracks 0..18, followed by a retained serialized halfword.
+static const u16 _gSp12RunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0EAE0_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gSp12RunAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, sp12_run_track_starts);
 
-static AnimationSet _gSp12Animation0EAE0 = {
-    _gSp12Animation0EAE0Records,
-    _gSp12Animation0EAE0Indices,
-    { NULL, _gSp12Animation0EAE0Bank1, NULL, NULL, _gSp12Animation0EAE0Bank4, NULL, NULL, NULL },
+/// Looping player run with the SP12, at native clip id 4.
+///
+/// Normal locomotion and scripted run-to playback use child tracks 1..18;
+/// track 1 supplies paired footstep cues. Root displacement is driven separately.
+/// Tracks 0..1 carry translation/rotation and 2..18 rotation only. Keep the
+/// SP12 package loaded while any slot or cached record refers to this clip.
+static AnimationSet _gSp12RunAnimation = {
+    .records           = _gSp12RunAnimationRecords,
+    .trackStartIndices = _gSp12RunAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12RunAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12RunAnimationBank4,
+    },
 };
 
 AnimationBank D_sp12_8012BCC8 = { { {
@@ -2443,7 +2461,7 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12IdleAnimation,
     &_gSp12ForwardWalkAnimation,
     &_gSp12BackwardWalkAnimation,
-    &_gSp12Animation0EAE0,
+    &_gSp12RunAnimation,
     &_gSp12NegativeTurnAnimation,
     &_gSp12PositiveTurnAnimation,
     &_gSp12AimEnterAnimation,
