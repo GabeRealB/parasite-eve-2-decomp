@@ -9,6 +9,7 @@
 #include "shelter_r47_private.h"
 
 #include "actors/actor_143400.h"
+#include "actors/actor_443500.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
@@ -72,11 +73,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern EvsCommand D_actor_443500_8014152C[];
-extern EvsCommand D_actor_443500_80141C1C[];
-extern EvsCommand D_actor_443500_80141D9C[];
-extern EvsCommand D_actor_443500_80142A74[];
-extern EvsCommand D_actor_443500_80142C24[];
 extern EvsCommand D_actor_443500_801432FC[];
 extern EvsCommand D_actor_443500_80143494[];
 
@@ -678,7 +674,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
             break;
         case SHELTER_R47_TOUR_CONSOLE_FOLLOWUP:
             if (gGameSession->cutsceneHold == 0) {
-                evsStartScriptWithSkip(D_actor_443500_80141D9C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_80142A74);
+                evsStartScriptWithSkip(gActor443500ConsoleFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor443500ConsoleFollowupSkipScript);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_OPEN_MAP);
             }
             break;
@@ -693,7 +689,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
             break;
         case SHELTER_R47_TOUR_MAP_FOLLOWUP:
             if (gGameSession->cutsceneHold == 0) {
-                evsStartScriptWithSkip(D_actor_443500_80142C24, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_801432FC);
+                evsStartScriptWithSkip(gActor443500MapFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_801432FC);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_DONE);
             }
             break;
@@ -812,7 +808,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_TERMINAL_TOUR);
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_TERMINAL_TOUR);
-                    evsStartScriptWithSkip(D_actor_443500_8014152C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_80141C1C);
+                    evsStartScriptWithSkip(gActor443500TourOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor443500TourOpeningSkipScript);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_OPEN_CONSOLE);
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
                         gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, 1);
