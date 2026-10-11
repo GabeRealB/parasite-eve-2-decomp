@@ -57520,7 +57520,7 @@ the increment and moving the global store between its two halves keeps that
 pseudo live across the `lui`, which pushes the address to `$a0`:
 
 ```c
-Task* task = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
+Task* task = taskSpawnFromTable(&_gAcropolisBridgeKeypadMovieTaskDesc, 0, 0, 0);
 s32   next = arg0->state + 1;
 
 _gAcropolisBridgeKeypadMovieTask = task;
@@ -59640,13 +59640,13 @@ The same function needed `$a1` to hold `vy` and then `vz`, and `$v0` to hold
 variable reused across its roles is what produced that allocation:
 
 ```c
-prev = D_acropolis_bridge_80189A34[i].vy;      /* $a1 */
+prev = _gAcropolisBridgePlayerWaterPartPositions[i].vy;      /* $a1 */
 axis = prev - part->workm.t[1];                /* $v0 */
 if (axis < 0) {
     axis = part->workm.t[1] - prev;
 }
 dist = delta + axis;                           /* $a0 */
-prev = D_acropolis_bridge_80189A34[i].vz;      /* $a1 again */
+prev = _gAcropolisBridgePlayerWaterPartPositions[i].vz;      /* $a1 again */
 axis = part->workm.t[2];                       /* $v0 again */
 ```
 

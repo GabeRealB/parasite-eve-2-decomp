@@ -226,7 +226,7 @@ gDryfieldNightTrailerCoachRoomCollisionResources = 0x80189508; // absolute:True 
 gDryfieldNightTrailerCoachViewMaps = 0x80189518; // absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachViewCounts = 0x8018951C; // absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachWarpEntries = 0x80189520; // absolute:True owner=dryfield_night_trailer_coach
-gDryfieldNightTrailerCoachViewCameras = 0x80189A44; // absolute:True owner=dryfield_night_trailer_coach shared=rooms
+gDryfieldNightTrailerCoachViewCameras = 0x80189A44; // absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachSpriteViews = 0x8018B64C; // absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachSurfacePropertiesByClass = 0x8018C1E8; // absolute:True owner=dryfield_night_trailer_coach
 dryfieldNightMotelRoom5RoomTask = 0x8017D6D0; // type:func absolute:True owner=dryfield_night_motel_room_5 shared=rooms

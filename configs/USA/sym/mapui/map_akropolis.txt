@@ -198,7 +198,7 @@ gMistShootingGalleryViewMaps = 0x801853B8; // absolute:True owner=mist_shooting_
 gMistShootingGalleryViewCounts = 0x801853BC; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryRoomLightingTable = 0x801853C0; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryWarpEntries = 0x801853C8; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryViewCameras = 0x8018998C; // absolute:True owner=mist_shooting_gallery shared=rooms
+gMistShootingGalleryViewCameras = 0x8018998C; // absolute:True owner=mist_shooting_gallery
 gMistShootingGallerySpriteViews = 0x8018BD10; // absolute:True owner=mist_shooting_gallery
 gMistShootingGallerySurfacePropertiesByClass = 0x8018E09C; // absolute:True owner=mist_shooting_gallery
 mistR21RoomTask = 0x8017D708; // type:func absolute:True owner=mist_r21 shared=rooms
