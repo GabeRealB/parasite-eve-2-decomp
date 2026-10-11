@@ -120,33 +120,29 @@ enum {
         itemMenuDrawItemIcon((object), (rowX), (rowY), (itemId), ITEM_MENU_ICON_DEFAULT);                                             \
     }
 
-u8 Gp_MapRoomId;
+u8 gMenuMapSelectedPage;
 
-u8 Gp_MapRoomOff;
+u8 gMenuMapPictureOffset;
 
 UiList gItemMenuPeElementLists[4];
 
-s32 D_80114E88;
+s32 gItemMenuHotspotActionConfirmed;
 
-s32 D_80114E8C;
+s32 gItemMenuHotspotScreenX;
 
-s32 D_80114E90;
+s32 gItemMenuHotspotScreenY;
 
-s32 D_80114E94;
-
-extern UiObjectDesc D_8010F02C[3];
-
-extern UiListRowCallback D_8010F5C8[2];
+s32 gItemMenuHotspotActionKindCopy;
 
 static const char _gItemMenuHealingStatusTitle[];
 
 static const char _gItemMenuInvokeTitle[];
 
-extern const char Gp_StrPeList[];
+static const char _gItemMenuPeListTitle[];
 
-extern const u8 D_800971A4;
+static const u8 _gItemMenuCountTextTerminator;
 
-extern const char Gp_StrTotal2[];
+static const u8 _gItemMenuInventoryTotalText[];
 
 static const char _gItemPickupQuestionTitle[];
 
@@ -263,10 +259,23 @@ static void _itemMenuBuildCommandList(UiList* list, UiObject* object, s32 itemId
     list->visibleRowCount.unsignedValue = commandCount;
 }
 
-UiObjectDesc D_8010F02C[3] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 136 }, 56, 0, TASK_BODY_NONE, 192, _itemPickupTitleTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, _itemPickupAskTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, _itemPickupInventoryFullTask, 0 },
+/// Slots in the pickup's three-recipe child panel table.
+enum {
+    ITEM_PICKUP_CHILD_PANEL_TITLE          = 0,
+    ITEM_PICKUP_CHILD_PANEL_QUESTION       = 1,
+    ITEM_PICKUP_CHILD_PANEL_INVENTORY_FULL = 2,
+    ITEM_PICKUP_CHILD_PANEL_COUNT          = 3
+};
+
+/// Recipes for the pickup title, Yes/No question and inventory-full warning.
+///
+/// Content is unused; handlers borrow the published pickup id. Bounds use
+/// screen-centered pixels and ordering-table seeds count tags. The obtained
+/// notice is a separate recipe immediately following this table in the image.
+static const UiObjectDesc _gItemPickupChildPanelDescs[ITEM_PICKUP_CHILD_PANEL_COUNT] __attribute__((section(".data"))) = {
+    { .style = USER_INTERFACE_PANEL_TITLE_STYLE, .bounds = { -144, -104, 144, 136 }, .otIndexSeed = 56, .taskFlags = TASK_BODY_NONE, .taskPriority = 192, .contentCallback = _itemPickupTitleTask },
+    { .style = USER_INTERFACE_PANEL_TITLE_STYLE, .bounds = { -144, 32, 288, 48 }, .otIndexSeed = 44, .taskFlags = TASK_BODY_NONE, .taskPriority = 192, .contentCallback = _itemPickupAskTask },
+    { .style = USER_INTERFACE_PANEL_TITLE_STYLE, .bounds = { -144, 32, 288, 48 }, .otIndexSeed = 44, .taskFlags = TASK_BODY_NONE, .taskPriority = 192, .contentCallback = _itemPickupInventoryFullTask },
 };
 
 /// Style and task priority seeds for the pickup's child panels.
@@ -302,7 +311,7 @@ static const UiObjectDesc _gItemPickupPreviewDesc __attribute__((section(".data"
     .contentCallback = _itemPickupPreviewTask,
 };
 
-MenuMapAreaName* Gp_MapNameTables[5] = {
+const MenuMapAreaName* const gMenuMapAreaNameTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisAreaNames,
     gMapDryfieldAreaNames,
     gMapDryfieldFullAreaNames,
@@ -310,7 +319,7 @@ MenuMapAreaName* Gp_MapNameTables[5] = {
     gMapNeoArkAreaNames,
 };
 
-MenuMapIcon* D_8010F0CC[5] = {
+const MenuMapIcon* const gMenuMapIconTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisIcons,
     gMapDryfieldIcons,
     gMapDryfieldFullIcons,
@@ -318,7 +327,7 @@ MenuMapIcon* D_8010F0CC[5] = {
     gMapNeoArkIcons,
 };
 
-MenuMapMarker* D_8010F0E0[5] = {
+const MenuMapMarker* gMenuMapMarkerTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisMarkers,
     gMapDryfieldMarkers,
     gMapDryfieldFullMarkers,
@@ -326,7 +335,7 @@ MenuMapMarker* D_8010F0E0[5] = {
     gMapNeoArkMarkers,
 };
 
-MenuMapArea* Gp_MapRecTables[5] = {
+const MenuMapArea* gMenuMapAreaTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisAreas,
     gMapDryfieldAreas,
     gMapDryfieldFullAreas,
@@ -334,7 +343,7 @@ MenuMapArea* Gp_MapRecTables[5] = {
     gMapNeoArkAreas,
 };
 
-u8* Gp_MapFlagIds[5] = {
+const u8* const gMenuMapPageFlagTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisPageFlagIds,
     gMapDryfieldPageFlagIds,
     gMapDryfieldFullPageFlagIds,
@@ -342,7 +351,7 @@ u8* Gp_MapFlagIds[5] = {
     gMapNeoArkPageFlagIds,
 };
 
-MenuMapAreaShape* Gp_MapMarkTables[5] = {
+const MenuMapAreaShape* const gMenuMapAreaShapeTables[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     gMapAkropolisAreaShapes,
     gMapDryfieldAreaShapes,
     gMapDryfieldFullAreaShapes,
@@ -350,36 +359,70 @@ MenuMapAreaShape* Gp_MapMarkTables[5] = {
     gMapNeoArkAreaShapes,
 };
 
-u8 D_8010F130[5] = { 2, 3, 3, 6, 3 };
+/// Map recipe defaults and the isolated Acropolis/MIST navigation boundary.
+enum {
+    MENU_MAP_ACROPOLIS_NAVIGATION_LAST_PAGE = 2,
+    MENU_MAP_AREA_NAME_PANEL_UNTITLED_STYLE = 3,
+    MENU_MAP_HELP_INITIAL_FILE_INDEX        = 1
+};
 
-u8 Gp_MapMarkCounts[5] = {
+const u8 gMenuMapNavigationLastPages[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
+    MENU_MAP_ACROPOLIS_NAVIGATION_LAST_PAGE,
+    MAP_DRYFIELD_PAGE_COUNT,
+    MAP_DRYFIELD_FULL_PAGE_COUNT,
+    MAP_SHELTER_PAGE_COUNT,
+    MAP_NEO_ARK_PAGE_SHELTER_1F,
+};
+
+const u8 gMenuMapAreaShapeCounts[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
     ARRAY_SIZE(gMapAkropolisAreaShapes),
     ARRAY_SIZE(gMapDryfieldAreaShapes),
     ARRAY_SIZE(gMapDryfieldFullAreaShapes),
     ARRAY_SIZE(gMapShelterAreaShapes),
-    34,
+    MAP_NEO_ARK_AREA_ID_LIMIT + 1,
 };
 
-u8 D_8010F13D = 1;
+u8 gMenuMapHelpFileIndex = MENU_MAP_HELP_INITIAL_FILE_INDEX;
 
-UiObjectDesc D_8010F140 = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -145, -107, 290, 215 }, 56, 0, TASK_BODY_NONE, 192, menuMapTask, 0 };
+const UiObjectDesc gMenuMapPanelDesc __attribute__((section(".data"))) = {
+    .style           = (s32)USER_INTERFACE_PANEL_NO_FRAME,
+    .bounds          = { -145, -107, 290, 215 },
+    .otIndexSeed     = 56,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = menuMapTask,
+};
 
-UiObjectDesc D_8010F15C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, 50, 280, 50 }, 20, 0, TASK_BODY_NONE, 192, menuMapHelpTask, 0 };
+const UiObjectDesc gMenuMapHelpPanelDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -140, 50, 280, 50 },
+    .otIndexSeed     = 20,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = menuMapHelpTask,
+};
 
-UiObjectDesc D_8010F178 = { 3, { -140, -107, 170, 15 }, 24, 0, TASK_BODY_NONE, 192, menuMapAreaNameTask, 0 };
+const UiObjectDesc gMenuMapAreaNamePanelDesc __attribute__((section(".data"))) = {
+    .style           = MENU_MAP_AREA_NAME_PANEL_UNTITLED_STYLE,
+    .bounds          = { -140, -107, 170, 15 },
+    .otIndexSeed     = 24,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = menuMapAreaNameTask,
+};
 
 /// Retained Shift-JIS command text "捨てる" (Discard), with no current reader.
 ///
 /// Includes one zero byte after the NUL terminator.
 static const u8 _gItemMenuJapaneseDiscardText[8] __attribute__((section(".data"))) = "\x8E\xCC\x82\xC4\x82\xE9";
 
-char     Gp_StrDiscard2[]                                              = "Discard";
-const u8 gItemMenuHotspotItemText[5] __attribute__((section(".data"))) = "Item";
-char     Gp_StrExamine[]                                               = "Examine";
-char     Gp_StrPush[]                                                  = "Push";
-const u8 gItemMenuPeReviveText[] __attribute__((section(".data")))     = "Revive";
-const u8 gItemMenuPeStrengthenText[] __attribute__((section(".data"))) = "Strengthen";
-const u8 gItemMenuPeCancelText[12] __attribute__((section(".data")))   = "Cancel\000\000Use";
+const u8 gItemMenuDiscardText[] __attribute__((section(".data")))        = "Discard";
+const u8 gItemMenuHotspotItemText[5] __attribute__((section(".data")))   = "Item";
+const u8 gItemMenuHotspotExamineText[] __attribute__((section(".data"))) = "Examine";
+const u8 gItemMenuHotspotPushText[] __attribute__((section(".data")))    = "Push";
+const u8 gItemMenuPeReviveText[] __attribute__((section(".data")))       = "Revive";
+const u8 gItemMenuPeStrengthenText[] __attribute__((section(".data")))   = "Strengthen";
+const u8 gItemMenuPeCancelText[12] __attribute__((section(".data")))     = "Cancel\000\000Use";
 /// Notice text reporting that the required ammunition is unavailable.
 static const u8 _gItemMenuWrongAmmoText[] __attribute__((section(".data"))) = "You do not habe the correct ammo.";
 /// Notice text for an item whose discard restriction prevents removal.
@@ -484,9 +527,18 @@ const u8* const gItemMenuNoticeTexts[ITEM_MENU_NOTICE_TEXT_COUNT] __attribute__(
     _gItemMenuCannotSwitchWithItemText,
 };
 
-UiListRowCallback D_8010F5C8[2] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow };
+/// Use/Attach and Key Item row dispatch borrowed by the shared Item command list.
+///
+/// Entries are never replaced; the writable pointer type follows `UiList`.
+static UiListRowCallback _gItemMenuItemCommandRowCallbacks[] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow };
 
-UiList D_8010F5D0 = { D_8010F5C8, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuItemCommandList = {
+    .rowCallbacks    = _gItemMenuItemCommandRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gItemMenuItemCommandRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gItemMenuItemCommandRowCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = 10,
+};
 
 /// Writable Upgrade/Cancel row dispatch for the P.E. command list.
 ///
@@ -556,15 +608,6 @@ const UiObjectDesc gItemMenuPeCommandPanelDesc __attribute__((section(".data")))
     .taskPriority    = ITEM_MENU_PE_COMMAND_PANEL_TASK_PRIORITY,
     .contentCallback = itemMenuPeCommandTask,
 };
-
-const char Gp_StrPeList[];
-const u8   D_800971A4;
-const char Gp_StrTotal2[];
-const char Gp_StrHelp[];
-const char Gp_StrUse2[];
-const char Gp_StrKeyItem2[];
-const char Gp_StrMap[];
-const char Gp_StrAttention2[];
 
 /// Carried weapon and mounted add-on catalogue ids in the M4A1 scan table.
 enum {
@@ -1280,7 +1323,7 @@ void itemMenuParasiteEnergyListTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(object)->panel, Gp_StrPeList);
+    uiDrawTitle(&(object)->panel, _gItemMenuPeListTitle);
     if (task->state == ITEM_MENU_PE_LIST_STATE_INIT) {
         elementPanelDescs = gItemMenuPeElementPanelDescs;
         uiSpawnObject(elementPanelDescs, ITEM_MENU_PE_LIST_ELEMENT_FIRE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_PE_LIST_OPEN_DELAY, object);
@@ -1338,7 +1381,7 @@ void itemMenuInventoryCountTask(Task* task)
         uiLimitHiddenDelayOrOpen(&(object)->panel, object->owner, ITEM_MENU_INVENTORY_COUNT_OPEN_DELAY);
     }
     rowY         = object->panel.contentTop.signedValue + 0xD;
-    countText[0] = D_800971A4;
+    countText[0] = _gItemMenuCountTextTerminator;
     memset(&countText[1], 0, sizeof(countText) - sizeof(countText[0]));
     textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
     carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -1366,7 +1409,7 @@ void itemMenuInventoryCountTask(Task* task)
     labelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&labelRequest, (const u8*)Gp_StrTotal2);
+    textDrawString(&labelRequest, _gItemMenuInventoryTotalText);
 }
 
 void itemPickupPanelTask(Task* task)
@@ -1376,32 +1419,32 @@ void itemPickupPanelTask(Task* task)
         ITEM_PICKUP_PANEL_TIMEOUT_ONLY = 0x10000,
         ITEM_PICKUP_PANEL_OPEN_DELAY   = 1
     };
-    UiObject*     object;
-    UiObject*     noticeObject;
-    UiObject*     childObject;
-    UiObjectDesc* pickupPanelDescs;
-    Task*         firstChild;
-    Task*         childTask;
-    Task*         nextChild;
-    s32           childResult;
+    UiObject*           object;
+    UiObject*           noticeObject;
+    UiObject*           childObject;
+    const UiObjectDesc* pickupPanelDescs;
+    Task*               firstChild;
+    Task*               childTask;
+    Task*               nextChild;
+    s32                 childResult;
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_PICKUP_PANEL_STATE_INIT) {
-        pickupPanelDescs = D_8010F02C;
-        uiSpawnObject(pickupPanelDescs, 0, 0, 1, object);
+        pickupPanelDescs = _gItemPickupChildPanelDescs;
+        uiSpawnObject(pickupPanelDescs + ITEM_PICKUP_CHILD_PANEL_TITLE, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
         if (task->spawnArg1.value != 0) {
             inventorySetCollectedBit(gItemPickupPublishedKind);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            // The separate _gItemPickupObtainedNoticeDesc follows the three-entry table in the image.
-            noticeObject = uiSpawnObject(pickupPanelDescs + ARRAY_SIZE(D_8010F02C), gItemPickupPublishedKind | ITEM_PICKUP_PANEL_TIMEOUT_ONLY, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
+            // This original one-past-table access reaches the separate adjacent notice recipe.
+            noticeObject = uiSpawnObject(pickupPanelDescs + ARRAY_SIZE(_gItemPickupChildPanelDescs), gItemPickupPublishedKind | ITEM_PICKUP_PANEL_TIMEOUT_ONLY, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
             if (noticeObject != NULL) {
                 noticeObject->resultValue = USER_INTERFACE_LIST_COMMAND_YES;
             }
         } else if (inventoryCanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, gItemPickupPublishedKind) != 0) {
-            uiSpawnObject(pickupPanelDescs + 1, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
+            uiSpawnObject(pickupPanelDescs + ITEM_PICKUP_CHILD_PANEL_QUESTION, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
         } else {
-            uiSpawnObject(pickupPanelDescs + 2, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
+            uiSpawnObject(pickupPanelDescs + ITEM_PICKUP_CHILD_PANEL_INVENTORY_FULL, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_PICKUP_PANEL_OPEN_DELAY, object);
         }
         task->state = task->state + 1;
     }
@@ -2057,9 +2100,12 @@ static const _ItemMenuM4a1VariantTable _gItemMenuM4a1VariantTable = { {
 } };
 /// Title of the result panel that unlocks or raises an ordinary P.E. item ability.
 static const char _gItemMenuInvokeTitle[] = "Invoke";
-const char        Gp_StrPeList[]          = "PE LIST";
-const u8          D_800971A4              = 0;
-const char        Gp_StrTotal2[]          = "TOTAL";
+/// Title of the four-element P.E. ability list.
+static const char _gItemMenuPeListTitle[] = "PE LIST";
+/// NUL byte seeding the cleared inventory count text before decimal formatting.
+static const u8 _gItemMenuCountTextTerminator = 0;
+/// Heading beside the carried-inventory occupied-row/capacity count.
+static const u8 _gItemMenuInventoryTotalText[] = "TOTAL";
 /// Title of the pickup question while its Yes/No child holds input.
 static const char _gItemPickupQuestionTitle[] = "Message";
 /// Title of the pickup warning when the carried inventory has no capacity.
@@ -2072,13 +2118,11 @@ const TaskFuncTable4 gMenuMapStateHandlers = { {
     menuMapCloseTask,
 } };
 
-/// "Help". The three bytes after the terminator are not zero: the original
-/// toolchain left them in the alignment gap.
-const char Gp_StrHelp[8]                      = "Help\0a~\xC6";
-const char Gp_StrUse2[]                       = "Use";
-const char Gp_StrKeyItem2[]                   = "Key Item";
-const char Gp_StrMap[]                        = "Map";
-const char Gp_StrAttention2[]                 = "Attention";
+const char gMenuMapHelpTitle[8]               = "Help\0a~\xC6";
+const u8   gItemMenuUseAttachCommandText[]    = "Use";
+const u8   gItemMenuKeyItemCommandText[]      = "Key Item";
+const u8   gItemMenuMapCommandText[]          = "Map";
+const char gItemMenuDiscardTitle[]            = "Attention";
 const char gItemMenuNoticeTitle[]             = "Notice";
 const char gItemMenuPeNextLevelTitle[]        = "Next Level";
 const u8   gItemMenuPeUpgradeExpLabel[]       = "EXP";

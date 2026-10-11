@@ -71,7 +71,7 @@ extern MenuMapArea gMapShelterAreas[GAME_AREA_SHELTER_R49 + 2];
 /// Area shapes and icon-only page selections for Mine/Shelter.
 ///
 /// Indexed directly by area ID 0..49; slot zero is hidden. There is no
-/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// terminator: `gMenuMapAreaShapeCounts` includes slot zero and covers this whole array.
 /// Keep this map loaded during drawing, and load the selected page's picture
 /// package before dereferencing a shape model from that page.
 /// Areas 22 and 48 share the pod-bottom shape and name each other in

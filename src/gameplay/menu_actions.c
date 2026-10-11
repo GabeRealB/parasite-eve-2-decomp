@@ -1189,7 +1189,7 @@ void menuMapNavigateTask(Task* mapTask)
     u8        candidatePage;
 
     mapObject   = mapTask->spawnArg2.pointer;
-    pageFlagIds = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
+    pageFlagIds = gMenuMapPageFlagTables[gGameSession->location.loc.stage - 1];
     _menuMapDrawLoadedPage(mapTask);
     if (gDisplayState.keepGraphics != 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
@@ -1208,13 +1208,13 @@ void menuMapNavigateTask(Task* mapTask)
         }
         // Keep independent checks: an exhausted right search can still fall through.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-            if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_PAGE_FLAG_END) {
+            if (pageFlagIds[gMenuMapSelectedPage] == MENU_MAP_PAGE_FLAG_END) {
                 return;
             }
-            for (candidatePage = Gp_MapRoomId + 1; candidatePage <= D_8010F130[gGameSession->location.loc.stage - 1]; candidatePage++) {
+            for (candidatePage = gMenuMapSelectedPage + 1; candidatePage <= gMenuMapNavigationLastPages[gGameSession->location.loc.stage - 1]; candidatePage++) {
                 if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1) {
-                    if ((s8)Gp_MapRoomId != candidatePage) {
-                        Gp_MapRoomId = candidatePage;
+                    if ((s8)gMenuMapSelectedPage != candidatePage) {
+                        gMenuMapSelectedPage = candidatePage;
                         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         _menuMapLoadPage();
@@ -1225,13 +1225,13 @@ void menuMapNavigateTask(Task* mapTask)
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_PAGE_FLAG_END) {
+            if (pageFlagIds[gMenuMapSelectedPage] == MENU_MAP_PAGE_FLAG_END) {
                 return;
             }
-            for (candidatePage = Gp_MapRoomId - 1; candidatePage != 0; candidatePage--) {
+            for (candidatePage = gMenuMapSelectedPage - 1; candidatePage != 0; candidatePage--) {
                 if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1) {
-                    if ((s8)Gp_MapRoomId != candidatePage) {
-                        Gp_MapRoomId = candidatePage;
+                    if ((s8)gMenuMapSelectedPage != candidatePage) {
+                        gMenuMapSelectedPage = candidatePage;
                         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         _menuMapLoadPage();
@@ -1243,9 +1243,9 @@ void menuMapNavigateTask(Task* mapTask)
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             // Latch the objective text selector before its child starts loading.
-            D_8010F13D = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE);
+            gMenuMapHelpFileIndex = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010F15C, 0, USER_INTERFACE_PANEL_ACTIVE, MENU_MAP_HELP_OPEN_DELAY_TICKS, mapObject);
+            uiSpawnObject(&gMenuMapHelpPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, MENU_MAP_HELP_OPEN_DELAY_TICKS, mapObject);
             mapObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -1333,9 +1333,9 @@ static void _menuMapDrawPlayerCursor(const Task* mapTask)
     mapObject    = mapTask->spawnArg2.pointer;
     playerStatus = &gPlayerStatus;
     playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    area         = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
+    area         = gMenuMapAreaTables[gGameSession->location.loc.stage - 1];
     area         = area + gGameSession->location.loc.area;
-    if (area->page != (s8)Gp_MapRoomId) {
+    if (area->page != (s8)gMenuMapSelectedPage) {
         return;
     }
 
@@ -1445,33 +1445,33 @@ static void _menuMapDrawAreas(const Task* mapTask)
         MENU_MAP_NEO_ARK_ALT_ISLAND_SHAPE = 34,
         MENU_MAP_NEO_ARK_ALT_BRIDGE_SHAPE = 35
     };
-    GameSession*          session;
-    GameFlagStageHeader** banks;
-    GameFlagStageHeader*  bank;
-    s32                   visited[2];
-    u8*                   pageFlagIds;
-    MenuMapAreaShape*     shapes;
-    MenuMapAreaShape**    shapeTables;
-    UiObject*             mapObject;
-    u16                   scaleQ12;
-    s32                   areaIndex;
-    s32                   visitedWord;
-    s32                   areaMask;
-    s32                   shapeIndex;
-    s32                   bitSeed;
-    u8                    stage;
-    s32                   stageIndex;
+    GameSession*                   session;
+    GameFlagStageHeader**          banks;
+    GameFlagStageHeader*           bank;
+    s32                            visited[2];
+    const u8*                      pageFlagIds;
+    const MenuMapAreaShape*        shapes;
+    const MenuMapAreaShape* const* shapeTables;
+    UiObject*                      mapObject;
+    u16                            scaleQ12;
+    s32                            areaIndex;
+    s32                            visitedWord;
+    s32                            areaMask;
+    s32                            shapeIndex;
+    s32                            bitSeed;
+    u8                             stage;
+    s32                            stageIndex;
 
     scaleQ12    = MENU_MAP_AREA_DEFAULT_SCALE_Q12;
     session     = gGameSession;
     banks       = gGameFlagStageHeaders;
-    shapeTables = Gp_MapMarkTables;
+    shapeTables = gMenuMapAreaShapeTables;
     stage       = session->location.loc.stage;
     mapObject   = mapTask->spawnArg2.pointer;
     stageIndex  = stage - 1;
     bank        = banks[stage];
     shapes      = shapeTables[stageIndex];
-    pageFlagIds = Gp_MapFlagIds[stageIndex];
+    pageFlagIds = gMenuMapPageFlagTables[stageIndex];
     if (stage == GAME_STAGE_ACROPOLIS) {
         scaleQ12 = MENU_MAP_AREA_ACROPOLIS_SCALE_Q12;
     }
@@ -1484,10 +1484,10 @@ static void _menuMapDrawAreas(const Task* mapTask)
         visited[1] |= bank->visitedAreas[1];
     }
     areaIndex = 0;
-    if (Gp_MapMarkCounts[session->location.loc.stage - 1] != 0) {
+    if (gMenuMapAreaShapeCounts[session->location.loc.stage - 1] != 0) {
         bitSeed = 1;
         do {
-            if (shapes[(u8)areaIndex].page == (s8)Gp_MapRoomId) {
+            if (shapes[(u8)areaIndex].page == (s8)gMenuMapSelectedPage) {
                 if (shapes[(u8)areaIndex].model == NULL) {
                     _menuMapDrawAreaIcons(mapTask, (u8)areaIndex, 0);
                 } else {
@@ -1507,7 +1507,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                         }
                     }
                     shapeIndex = areaIndex;
-                    if (Gp_MapRoomOff == MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET) {
+                    if (gMenuMapPictureOffset == MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET) {
                         if ((u8)areaIndex == GAME_AREA_NEO_ARK_ISLAND) {
                             shapeIndex = MENU_MAP_NEO_ARK_ALT_ISLAND_SHAPE;
                         }
@@ -1515,7 +1515,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                             shapeIndex = MENU_MAP_NEO_ARK_ALT_BRIDGE_SHAPE;
                         }
                     }
-                    if (gameFlagGetNibble(pageFlagIds[Gp_MapRoomId]) == 0) {
+                    if (gameFlagGetNibble(pageFlagIds[gMenuMapSelectedPage]) == 0) {
                         if ((areaMask & visited[visitedWord]) == 0) {
                             if (_menuMapDrawAreaIcons(mapTask, (u8)areaIndex, 1) != 0) {
                                 _menuMapDrawAreaShape(mapObject, shapes[(u8)shapeIndex].model, MENU_MAP_AREA_FILL_DIM, scaleQ12);
@@ -1540,7 +1540,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                 }
             }
             areaIndex++;
-        } while ((u8)areaIndex < Gp_MapMarkCounts[gGameSession->location.loc.stage - 1]);
+        } while ((u8)areaIndex < gMenuMapAreaShapeCounts[gGameSession->location.loc.stage - 1]);
     }
 }
 
@@ -1621,7 +1621,7 @@ static void _menuMapDrawFlagMarkers(const Task* mapTask)
     markerIndex = 0;
     stage       = gGameSession->location.loc.stage;
     mapObject   = mapTask->spawnArg2.pointer;
-    markers     = D_8010F0E0[stage - 1];
+    markers     = gMenuMapMarkerTables[stage - 1];
     flagBank    = gGameFlagStageHeaders[stage];
     // Marker visibility uses this stage's visit bits without merging daytime visits.
     visited[0] = flagBank->visitedAreas[0];
@@ -1650,7 +1650,7 @@ static void _menuMapDrawFlagMarkers(const Task* mapTask)
             }
         }
         markerState = menuMapGetMarkerState(markerIndex);
-        if (markers[markerIndex].page != (s8)Gp_MapRoomId) {
+        if (markers[markerIndex].page != (s8)gMenuMapSelectedPage) {
             markerIndex++;
             continue;
         }
@@ -1697,7 +1697,7 @@ static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
     iconIndex     = 0;
     drewObjective = 0;
     object        = task->spawnArg2.pointer;
-    icons         = D_8010F0CC[gGameSession->location.loc.stage - 1];
+    icons         = gMenuMapIconTables[gGameSession->location.loc.stage - 1];
     brightness    = (rsin(gDisplayState.loopCount << 6) + MENU_MAP_ICON_SINE_ONE_Q12) >> 5;
 
     // Objective markers use the whole objective byte; fixed icons use nibble flags.
@@ -1725,7 +1725,7 @@ static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
             iconIndex++;
             continue;
         }
-        if ((icons[iconIndex].page == (s8)Gp_MapRoomId) && (icons[iconIndex].area == area)) {
+        if ((icons[iconIndex].page == (s8)gMenuMapSelectedPage) && (icons[iconIndex].area == area)) {
             centre          = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapIconCentreScratch);
             centre->field_4 = centre->field_6 = centre->field_8 = 0;
             centre->x                                           = icons[iconIndex].x;
@@ -1784,7 +1784,7 @@ static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
 
 /// Queues the selected stage map picture and requests a later seek to the current view.
 ///
-/// `Gp_MapRoomId` holds a one-based page, rather than a room id. Computes the
+/// Uses `gMenuMapSelectedPage` as the picture page. Computes the
 /// reservoir/altar picture variant, invalidates the loaded sound id and copies
 /// the four-byte CD arguments into the request ring. Requires queue capacity;
 /// returning does not mean the picture is ready to draw.
@@ -1800,22 +1800,22 @@ static void _menuMapLoadPage(void)
     s32 page;
     u8  stage;
 
-    Gp_MapRoomOff             = 0;
+    gMenuMapPictureOffset     = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)Gp_MapRoomId == MENU_MAP_RESERVOIR_PAGE) && (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
-        Gp_MapRoomOff = MENU_MAP_SHELTER_RESERVOIR_PICTURE_OFFSET;
+    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)gMenuMapSelectedPage == MENU_MAP_RESERVOIR_PAGE) && (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
+        gMenuMapPictureOffset = MENU_MAP_SHELTER_RESERVOIR_PICTURE_OFFSET;
     }
     if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
-        page = (s8)Gp_MapRoomId;
+        page = (s8)gMenuMapSelectedPage;
         if ((page == MENU_MAP_ALTAR_PAGE) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == page)) {
-            Gp_MapRoomOff = MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET;
+            gMenuMapPictureOffset = MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET;
         }
     }
     // Global-library file 30000 + stage*100 + page + picture-variant offset.
     // Byte 1 of the file key is ignored; only four bytes of each block are read.
     fileKeyBytes[2] = MENU_MAP_FILE_GROUP;
     fileKeyBytes[3] = 0;
-    fileKeyBytes[0] = Gp_MapRoomId + Gp_MapRoomOff;
+    fileKeyBytes[0] = gMenuMapSelectedPage + gMenuMapPictureOffset;
     stage           = gGameSession->location.loc.stage;
     commandArgs[1]  = 0;
     commandArgs[3]  = 0;
@@ -1838,7 +1838,7 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
         MENU_MAP_PAGE_FLAG_UNAVAILABLE = 0x80
     };
     GameFlagStageHeader* bank;
-    MenuMapArea*         areas;
+    const MenuMapArea*   areas;
     s32                  visited[2];
     s32                  areaIndex;
     s32                  visitedWord;
@@ -1856,7 +1856,7 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
             if (visitedWord && (gameFlagGetNibble(flagId) != 0)) {
                 return 1;
             }
-            areas      = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
+            areas      = gMenuMapAreaTables[gGameSession->location.loc.stage - 1];
             visited[0] = bank->visitedAreas[0];
             visited[1] = bank->visitedAreas[1];
             areaIndex  = 0;
@@ -1970,16 +1970,16 @@ static void _menuMapDrawPageArrows(const Task* mapTask)
 
     stage       = gGameSession->location.loc.stage;
     mapObject   = mapTask->spawnArg2.pointer;
-    pageFlagIds = Gp_MapFlagIds[stage - 1];
+    pageFlagIds = gMenuMapPageFlagTables[stage - 1];
     if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
         return;
     }
-    if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_ARROW_PAGE_END) {
+    if (pageFlagIds[gMenuMapSelectedPage] == MENU_MAP_ARROW_PAGE_END) {
         return;
     }
 
     // Each direction shows one arrow if any reachable page exists before a boundary.
-    pageIndex = Gp_MapRoomId - 1;
+    pageIndex = gMenuMapSelectedPage - 1;
     while ((u8)pageIndex != MENU_MAP_ARROW_PAGE_BOUNDARY) {
         if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_BOUNDARY) {
             break;
@@ -1995,8 +1995,8 @@ static void _menuMapDrawPageArrows(const Task* mapTask)
         pageIndex--;
     }
 
-    pageIndex = Gp_MapRoomId + 1;
-    while ((u8)pageIndex <= D_8010F130[gGameSession->location.loc.stage - 1]) {
+    pageIndex = gMenuMapSelectedPage + 1;
+    while ((u8)pageIndex <= gMenuMapNavigationLastPages[gGameSession->location.loc.stage - 1]) {
         if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_BOUNDARY) {
             return;
         }
@@ -2027,15 +2027,15 @@ void menuMapHelpTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrHelp);
+    uiDrawPanelLabel(&(object)->panel, gMenuMapHelpTitle);
     switch (task->state) {
         case MENU_MAP_HELP_STATE_LOAD:
-            cdCmdEnqueueDisplayResource(MENU_MAP_HELP_DISPLAY_RESOURCE, D_8010F13D, CD_COMMAND_DISPLAY_LOAD_MENU);
+            cdCmdEnqueueDisplayResource(MENU_MAP_HELP_DISPLAY_RESOURCE, gMenuMapHelpFileIndex, CD_COMMAND_DISPLAY_LOAD_MENU);
             task->state = task->state + 1;
             break;
         case MENU_MAP_HELP_STATE_WAIT:
             if (cdCmdIsIdle() & 0xFFFF) {
-                uiSpawnObject(&D_8010F178, 0, 0, 1, object);
+                uiSpawnObject(&gMenuMapAreaNamePanelDesc, 0, 0, 1, object);
                 task->state = task->state + 1;
             }
             break;
@@ -2064,16 +2064,16 @@ void menuMapAreaNameTask(Task* task)
         MENU_MAP_AREA_NAME_LEFT_INSET_PIXELS         = 2,
         MENU_MAP_AREA_NAME_BASELINE_PIXELS           = 11
     };
-    TextDrawReq      measureRequest;
-    TextDrawReq      drawRequest;
-    GameSession*     session;
-    MenuMapAreaName* names;
-    u8*              text;
-    UiObject*        object;
-    s32              width;
+    TextDrawReq            measureRequest;
+    TextDrawReq            drawRequest;
+    GameSession*           session;
+    const MenuMapAreaName* names;
+    const u8*              text;
+    UiObject*              object;
+    s32                    width;
 
     session = gGameSession;
-    names   = Gp_MapNameTables[session->location.loc.stage - 1];
+    names   = gMenuMapAreaNameTables[session->location.loc.stage - 1];
     object  = task->spawnArg2.pointer;
     if (names != NULL) {
         text = names[session->location.loc.area - 1].text;
@@ -2127,10 +2127,10 @@ void menuMapOpenTask(Task* mapTask)
     }
     menuMapRebuildMarkedAreaBits();
     session    = gGameSession;
-    areaRecord = Gp_MapRecTables[session->location.loc.stage - 1];
+    areaRecord = gMenuMapAreaTables[session->location.loc.stage - 1];
     areaRecord = areaRecord + session->location.loc.area;
     // Keep the original low-byte selection, including the no-page marker's zero.
-    Gp_MapRoomId = areaRecord->page;
+    gMenuMapSelectedPage = areaRecord->page;
     _menuMapLoadPage();
     mapTask->state = mapTask->state + 1;
 }
@@ -2218,25 +2218,25 @@ static void _menuMapPrepareClosing(Task* mapTask)
 /// Selects and returns the low byte of the current area's map page.
 ///
 /// Requires stage 1..5 and an area index within that stage's loaded area table.
-/// Stores the page in `Gp_MapRoomId`; no page picture is loaded. The narrowing
+/// Stores the page in `gMenuMapSelectedPage`; no page picture is loaded. The narrowing
 /// also applies to the table's 16-bit no-page/end markers.
 static u8 _menuMapSelectCurrentAreaPage(void)
 {
-    const GameSession*  session;
-    MenuMapArea* const* stageAreaTables;
-    s32                 stageIndex;
-    u8                  areaId;
-    const MenuMapArea*  areaRecord;
+    const GameSession*        session;
+    const MenuMapArea* const* stageAreaTables;
+    s32                       stageIndex;
+    u8                        areaId;
+    const MenuMapArea*        areaRecord;
 
     session         = gGameSession;
-    stageAreaTables = Gp_MapRecTables;
+    stageAreaTables = gMenuMapAreaTables;
     stageIndex      = session->location.loc.stage - 1;
     areaId          = session->location.loc.area;
     areaRecord      = stageAreaTables[stageIndex];
     areaRecord      = areaRecord + areaId;
 
-    Gp_MapRoomId = areaRecord->page;
-    return Gp_MapRoomId;
+    gMenuMapSelectedPage = areaRecord->page;
+    return gMenuMapSelectedPage;
 }
 
 /// Saves the map texture's VRAM strip, or restores it after the cached room image.
@@ -2319,7 +2319,7 @@ void itemMenuItemCommandTask(Task* task)
     object         = task->spawnArg2.pointer;
     ownerTask      = object->owner;
     object->result = USER_INTERFACE_RESULT_NONE;
-    list           = &D_8010F5D0;
+    list           = &gItemMenuItemCommandList;
     if (ownerTask->state == ITEM_MENU_STATE_INITIAL) {
         uiFitPanelToList(list, &object->panel);
         ownerTask->state = ownerTask->state + 1;
@@ -2510,7 +2510,7 @@ void itemMenuDiscardTask(Task* task)
         }
         task->state += 1;
     }
-    uiDrawPanelLabelWithChildFocus(&(object)->panel, Gp_StrAttention2);
+    uiDrawPanelLabelWithChildFocus(&(object)->panel, gItemMenuDiscardTitle);
     textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, promptText, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     // A Yes answer removes the whole stack after clearing its equipment selections.
@@ -3305,14 +3305,14 @@ void itemMenuHotspotMenuTask(Task* task)
         commandObject           = uiSpawnObject(&gItemMenuHotspotCommandPanelDesc, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_OPEN_DELAY_TICKS, NULL);
         task->spawnArg2.pointer = commandObject;
         if (commandObject != NULL) {
-            commandObject->panel.bounds.rect.x = D_80114E8C;
-            commandObject->panel.bounds.rect.y = D_80114E90;
+            commandObject->panel.bounds.rect.x = gItemMenuHotspotScreenX;
+            commandObject->panel.bounds.rect.y = gItemMenuHotspotScreenY;
         }
         stageEnsureHeapTaskPrimitiveBuffer();
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        gGameSession->uiOpen = 1;
-        D_80114E88           = 0;
-        task->state          = task->state + 1;
+        gGameSession->uiOpen            = 1;
+        gItemMenuHotspotActionConfirmed = 0;
+        task->state                     = task->state + 1;
     } else if (task->state == ITEM_MENU_HOTSPOT_STATE_ACTIVE) {
         if ((commandObject->result == USER_INTERFACE_RESULT_CANCEL) || (commandObject->result == USER_INTERFACE_RESULT_CONFIRM)) {
             uiStartTreeClosing(commandObject, commandObject->owner);
@@ -3628,16 +3628,16 @@ UiObject* itemMenuSpawnNotice(UiObject* parent, s32 noticeId, s32 unused, s32 re
 
 s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind)
 {
-    D_80114E94 = actionKind;
-    D_80114E8C = screenX;
-    D_80114E90 = screenY;
+    gItemMenuHotspotActionKindCopy = actionKind;
+    gItemMenuHotspotScreenX        = screenX;
+    gItemMenuHotspotScreenY        = screenY;
     displayQueueModeTask(&gItemMenuHotspotMenuTaskDesc, actionKind, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
 s32 itemMenuIsHotspotActionConfirmed(void)
 {
-    return D_80114E88;
+    return gItemMenuHotspotActionConfirmed;
 }
 
 void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object)
@@ -3653,7 +3653,7 @@ void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&request, (const u8*)Gp_StrUse2);
+    textDrawString(&request, gItemMenuUseAttachCommandText);
 
     panelControl = object->panel.control.word;
     activeMode   = USER_INTERFACE_PANEL_ACTIVE;
@@ -3685,7 +3685,7 @@ void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&request, (const u8*)Gp_StrKeyItem2);
+    textDrawString(&request, gItemMenuKeyItemCommandText);
 
     panelControl = object->panel.control.word;
     activeMode   = USER_INTERFACE_PANEL_ACTIVE;
@@ -3752,7 +3752,7 @@ void itemMenuDrawMapCommandRow(UiList* list, UiObject* object)
     s32         panelControl;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
-    textDrawString(&request, (const u8*)Gp_StrMap);
+    textDrawString(&request, gItemMenuMapCommandText);
 
     panelControl = object->panel.control.word;
 
@@ -3782,7 +3782,7 @@ void itemMenuDrawDiscardRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Gp_StrDiscard2);
+    textDrawString(&request, gItemMenuDiscardText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -3922,9 +3922,9 @@ void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object)
     const u8*   label;
     s32         rowInputEnabled;
 
-    label = (const u8*)Gp_StrExamine;
+    label = gItemMenuHotspotExamineText;
     if (object->owner->spawnArg1.value == ACTION_PROMPT_COMMAND_PUSH) {
-        label = (const u8*)Gp_StrPush;
+        label = gItemMenuHotspotPushText;
     }
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
     textDrawString(&request, label);
@@ -3932,8 +3932,8 @@ void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object)
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            D_80114E88     = rowInputEnabled;
-            object->result = USER_INTERFACE_RESULT_CONFIRM;
+            gItemMenuHotspotActionConfirmed = rowInputEnabled;
+            object->result                  = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

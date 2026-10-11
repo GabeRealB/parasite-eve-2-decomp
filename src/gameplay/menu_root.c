@@ -798,7 +798,7 @@ void menuRootTask(Task* task)
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
                 rootObject = uiSpawnObject(&gMistShootingGalleryWeaponSelectPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == DISPLAY_MODE_MAP) {
-                rootObject = uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS, NULL);
+                rootObject = uiSpawnObject(&gMenuMapPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_ATTACHMENTS) {
                 display->keepGraphics = 1;
                 rootObject            = uiSpawnObject(&gItemMenuArmorAttachmentPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);

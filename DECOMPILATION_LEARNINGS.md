@@ -6346,8 +6346,8 @@ first:
 
 ```
 li     s6, 0x5d7
-lui    a0, %hi(Gp_MapMarkTables)      # too early
-addiu  a0, a0, %lo(Gp_MapMarkTables)
+lui    a0, %hi(gMenuMapAreaShapeTables)      # too early
+addiu  a0, a0, %lo(gMenuMapAreaShapeTables)
 lui    v0, %hi(gGameSession)
 ```
 
@@ -6361,7 +6361,7 @@ keep        = arg0;
 color       = 0x5D7;
 session     = gGameSession;
 banks       = gGameFlagStageHeaders;
-shapeTables = (keep, Gp_MapMarkTables);
+shapeTables = (keep, gMenuMapAreaShapeTables);
 ```
 
 `volatile` asm barriers also order the `lui`s but split the block and
@@ -7155,7 +7155,7 @@ Loading a per-stage name table and immediately folding it into the
 final string pointer:
 
 ```c
-text = Gp_MapNameTables[stage - 1];
+text = gMenuMapAreaNameTables[stage - 1];
 if (text != NULL) {
     text = text + (room * 0x20 - 0x20);
 ```
@@ -7166,7 +7166,7 @@ table entry in its own temp so the `lw` stays in `$a1`; index a
 32-byte record with `arr[i - 1]`:
 
 ```c
-names = Gp_MapNameTables[stage - 1];
+names = gMenuMapAreaNameTables[stage - 1];
 if (names != NULL) {
     text = names[room - 1].text;
 ```
@@ -25402,7 +25402,7 @@ register u8                  areaId asm("a0");
 register const MenuMapArea*  areaRecord asm("v1");
 
 session         = gGameSession;
-stageAreaTables = Gp_MapRecTables;
+stageAreaTables = gMenuMapAreaTables;
 stageIndex      = session->location.loc.stage - 1;
 areaId          = session->location.loc.area;
 areaRecord      = stageAreaTables[stageIndex];
@@ -25411,7 +25411,7 @@ areaRecord      = areaRecord + areaId;
     register u8 page asm("v1");
 
     page = areaRecord->page;
-    Gp_MapRoomId = page;
+    gMenuMapSelectedPage = page;
     return page;
 }
 ```
@@ -29142,7 +29142,7 @@ The load becomes its own statement, so it cannot stay glued to the
 final store, and the zeros can no longer slip in front of the add:
 
 ```c
-param1[0] = Gp_MapRoomId + Gp_MapRoomOff;
+param1[0] = gMenuMapSelectedPage + gMenuMapPictureOffset;
 stage     = gGameSession->location.loc.stage;
 param2[1] = 0;
 param2[3] = 0;
@@ -42159,7 +42159,7 @@ exact rename list is ever needed.
 
 `configs/USA/sym.gameplay.aliases.txt` used to hold labels splat folds into a
 parent symbol, appended onto `undefined_syms_auto.gameplay.txt` by
-`ninja_config.py`. Over time all eight of its entries — `Gp_StrTotal2`,
+`ninja_config.py`. Over time all eight of its entries — `_gItemMenuInventoryTotalText`,
 `_gItemMenuNoCompatibleAmmoText` and the `D_8011xxxx` interiors — were *also* added to
 `sym.gameplay.txt`, so the linker received each assignment twice.
 
@@ -65753,7 +65753,7 @@ for the store. A separate m2c `s8` result local added moves and conversions.
 Likewise, preserve `if (displayFlag) displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM); else
 displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);`: building a 0/1 temporary before one call instead
 produced `sltu`, where the target has a branch and a shared call.
-Use a byte-array declaration for the per-stage page limit (`D_8010F130`);
+Use a byte-array declaration for the per-stage page limit (`gMenuMapNavigationLastPages`);
 m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.
 
 ## _effectDarknessScreenDimTaskE8: put duplicated draw tails inside the final state's active arms
@@ -146425,7 +146425,7 @@ The target read `lw v0,gItemMenuSelectedRow; nop; lbu v1,0(v0); lui v0,%hi(gItem
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.
 
 ## A pin on a value stored to a global and returned is `g = x; return g;` (_menuMapSelectCurrentAreaPage, 2026-09-27)
-The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`page = areaRecord->page; Gp_MapRoomId = page; return page;`, or `return Gp_MapRoomId = areaRecord->page;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `Gp_MapRoomId = areaRecord->page; return Gp_MapRoomId;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
+The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`page = areaRecord->page; gMenuMapSelectedPage = page; return page;`, or `return gMenuMapSelectedPage = areaRecord->page;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `gMenuMapSelectedPage = areaRecord->page; return gMenuMapSelectedPage;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
 ## A `move` from a register that was itself filled by a copy is a real RTL copy, never a `reload_cse` fold (itemMenuBuildConsumableChoiceList, 2026-09-27)
 
 **Shape.** `count = 0` before a call, then `move s3,s5` (`n = count`) and

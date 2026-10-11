@@ -102,7 +102,7 @@ extern MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 /// Area shapes and icon-only page selections for Acropolis and MIST.
 ///
 /// Indexed directly by area ID 0..20; slot zero is hidden. There is no
-/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// terminator: `gMenuMapAreaShapeCounts` includes slot zero and covers this whole array.
 /// Keep this map loaded during drawing, and load the selected page's picture
 /// package before dereferencing a shape model from that page.
 /// MIST areas 19 and 20 have no shape model; only their icons are drawn.

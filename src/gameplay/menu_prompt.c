@@ -197,7 +197,7 @@ void itemMenuDispatchCommand(UiObject* object, Task* task)
             break;
         case ITEM_MENU_COMMAND_MAP:
             gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_PENDING;
-            uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            uiSpawnObject(&gMenuMapPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             break;
         case ITEM_MENU_COMMAND_RETURN_FROM_MAP:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);

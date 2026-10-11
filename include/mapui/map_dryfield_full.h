@@ -74,7 +74,7 @@ extern MenuMapArea gMapDryfieldFullAreas[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 2];
 /// Area shapes and icon-only page selections for Dryfield at night.
 ///
 /// Indexed directly by area ID 0..38; slot zero is hidden. There is no
-/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// terminator: `gMenuMapAreaShapeCounts` includes slot zero and covers this whole array.
 /// Keep this map loaded during drawing, and load the selected page's picture
 /// package before dereferencing a shape model from that page.
 extern MenuMapAreaShape gMapDryfieldFullAreaShapes[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 1];

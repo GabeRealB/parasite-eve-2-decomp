@@ -122,40 +122,93 @@ void itemMenuInitializeCaptionTask(UiObject* object, Task* task);
 /// loaded for dispatch; the selected callback may start closing the UI tree.
 void itemMenuCaptionTask(Task* task);
 
-/// Per-stage table of `MenuMapArea` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern MenuMapArea* Gp_MapRecTables[];
+/// Number of stage-minus-one entries in the menu map directories (stages 1..5).
+enum { MENU_MAP_STAGE_COUNT = 5 };
 
-/// Per-stage table of `MenuMapAreaName` arrays. Index is `GameSession.location.loc.stage - 1`.
-/// A NULL entry skips the name draw (`menuMapAreaNameTask`).
-extern MenuMapAreaName* Gp_MapNameTables[];
+/// Area-to-page and world-to-map mappings selected by stage minus one.
+///
+/// Requires stage 1..5 and that stage's map overlay to remain loaded. Within a
+/// table, the live area ID indexes a record directly, including reserved slot
+/// zero. Page-availability scans stop at the 0xFFFF page marker; Dryfield night
+/// retains its missing-terminator scan into adjacent overlay data.
+extern const MenuMapArea* gMenuMapAreaTables[MENU_MAP_STAGE_COUNT];
 
-/// Per-stage table of `MenuMapAreaShape` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern MenuMapAreaShape* Gp_MapMarkTables[];
+/// Current-area name tables selected by stage minus one.
+///
+/// All five entries are populated; the renderer still checks for NULL. Name
+/// records use area minus one, so area must be nonzero and within the selected
+/// table. Keep that stage's map overlay loaded while its text is borrowed.
+extern const MenuMapAreaName* const gMenuMapAreaNameTables[MENU_MAP_STAGE_COUNT];
 
-/// Per-stage table of `MenuMapIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern MenuMapIcon* D_8010F0CC[];
+/// Area-fill shape tables selected by stage minus one.
+///
+/// Requires stage 1..5 and its map overlay. Area IDs index the selected table
+/// directly; `gMenuMapAreaShapeCounts` bounds the ordinary walk including slot
+/// zero. Neo Ark adds two substitution records beyond that walk. Each model
+/// also requires the selected page's map-picture overlay to remain loaded.
+extern const MenuMapAreaShape* const gMenuMapAreaShapeTables[MENU_MAP_STAGE_COUNT];
 
-/// Per-stage table of `MenuMapMarker` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern MenuMapMarker* D_8010F0E0[];
+/// Page-zero-terminated icon lists selected by stage minus one.
+///
+/// Requires stage 1..5 and its map overlay to remain loaded. List indices fit
+/// in a byte; records select an area and page rather than using either as an
+/// array index. Each stage's complete list includes its page-zero terminator.
+extern const MenuMapIcon* const gMenuMapIconTables[MENU_MAP_STAGE_COUNT];
 
-/// Per-stage table of GameFlag nibble ids, indexed by room (`Gp_MapRoomId`).
-/// Index is `GameSession.location.loc.stage - 1`.
-extern u8* Gp_MapFlagIds[];
+/// Page-zero-terminated flag-marker lists selected by stage minus one.
+///
+/// Requires stage 1..5 and its map overlay to remain loaded. Each byte-sized
+/// list index selects the same index in that stage's marker-flag word table;
+/// the page-zero terminator has no corresponding flag lookup.
+extern const MenuMapMarker* gMenuMapMarkerTables[MENU_MAP_STAGE_COUNT];
 
-/// Highest selectable map room id per stage. Index is `GameSession.location.loc.stage - 1`.
-extern u8 D_8010F130[];
+/// Page-shading and navigation flag tables selected by stage minus one.
+///
+/// Requires stage 1..5 and its loaded map overlay. A selected page indexes
+/// its table directly, with slot zero reserved as the left boundary. Entries
+/// are nibble flag IDs: 0 uses visited-area fallback, 0x80 rejects navigation,
+/// and 0xFF stops navigation. Shading still tests the entry as a nibble ID;
+/// Neo Ark disables navigation and uses 0x80 on its second page.
+extern const u8* const gMenuMapPageFlagTables[MENU_MAP_STAGE_COUNT];
 
-/// Map-screen child prompt spawned by `menuMapNavigateTask`.
-extern UiObjectDesc D_8010F15C;
+/// Inclusive upper page limits for navigation, selected by stage minus one.
+///
+/// The five values are 2, 3, 3, 6, 3. These do not bound every selectable
+/// current-area page: Acropolis's isolated MIST page is 3 and stops navigation
+/// through its 0xFF page flag. The selected page and the limit must both fit
+/// the stage's separately sized page-flag table.
+extern const u8 gMenuMapNavigationLastPages[MENU_MAP_STAGE_COUNT];
 
-/// Per-stage `MenuMapAreaShape` counts. Index is `GameSession.location.loc.stage - 1`.
-extern u8 Gp_MapMarkCounts[];
+/// Recipe for the map's objective-help text panel.
+///
+/// Content is unused; it loads `gMenuMapHelpFileIndex` and adds an area-name
+/// child. Bounds use screen-centered pixels and the ordering-table seed counts
+/// tags. The map parent suspends its own input until this child completes.
+extern const UiObjectDesc gMenuMapHelpPanelDesc;
 
-/// Current room id copied from `MenuMapArea.page` by `_menuMapSelectCurrentAreaPage`.
-extern u8 Gp_MapRoomId;
+/// Ordinary area-shape walk lengths selected by stage minus one.
+///
+/// Includes reserved area slot zero. The first four cover their whole shape
+/// table; Neo Ark walks slots 0..33 and separately substitutes records 34/35
+/// for Island/Bridge on the alternate altar picture.
+extern const u8 gMenuMapAreaShapeCounts[MENU_MAP_STAGE_COUNT];
 
-/// Room-id offset applied by `_menuMapLoadPage` (0, or 1 / 3 for two flagged rooms).
-extern u8 Gp_MapRoomOff;
+/// Selected picture page shared by the singleton map screen.
+///
+/// Stores the low byte of the current area's `MenuMapArea.page`, then changes
+/// during navigation. Ordinary pages are 1..6; the no-page marker narrows to
+/// zero, and an end marker would narrow to 0xFF. Shape/icon/marker comparisons
+/// use a signed-byte view; page-table indices and file-number sums use the
+/// unsigned byte. Map records and picture resources must stay loaded for use.
+extern u8 gMenuMapSelectedPage;
+
+/// Picture-file offset for the selected map page (0 ordinary, 1 or 3 alternate).
+///
+/// Recomputed on each picture load. Offset 1 selects Shelter reservoir page 6
+/// before its event completes; offset 3 selects Neo Ark page 1 with altar
+/// switch state 1 and enables the Island/Bridge shape substitutions. The map
+/// file number is 30000 + stage*100 + selected page + this offset.
+extern u8 gMenuMapPictureOffset;
 
 /// Single shared row callback for every ability in each P.E. element list.
 ///
@@ -177,22 +230,40 @@ extern const char* const gItemMenuPeElementTitles[4];
 /// scrolling persist in this singleton storage until the next initialization.
 extern UiList gItemMenuPeElementLists[4];
 
-extern u8 D_8010F13D;
+/// Current-objective byte latched as the map Help display-resource file index.
+///
+/// Starts at 1; opening Help replaces it with `GAME_FLAG_CURRENT_OBJECTIVE`'s
+/// whole byte. Resource group 8 loads file 20800 + this byte, which must exist.
+/// It remains valid throughout the child's asynchronous load; no resource-range
+/// check is made.
+extern u8 gMenuMapHelpFileIndex;
 
-extern UiObjectDesc D_8010F140;
+/// Frameless root recipe for the map screen opened from gameplay or a menu.
+///
+/// Content starts at zero; closing reuses it as the image-restoration latch.
+/// Bounds use screen-centered pixels and the ordering-table seed counts tags;
+/// the callback owns picture loading, navigation and closing.
+extern const UiObjectDesc gMenuMapPanelDesc;
 
-extern UiObjectDesc D_8010F178;
+/// Untitled recipe displaying the player's current area name above map Help.
+///
+/// Content is unused; the handler fits its bounds to the loaded area name.
+/// Bounds use screen-centered pixels and the ordering-table seed counts tags.
+extern const UiObjectDesc gMenuMapAreaNamePanelDesc;
 
-extern char Gp_StrDiscard2[];
+/// NUL-terminated Discard command text for an inventory row.
+extern const u8 gItemMenuDiscardText[];
 
 /// NUL-terminated Item command text that opens the hotspot's collected-item picker.
 ///
 /// Borrowed encoded bytes, valid for the gameplay overlay's lifetime.
 extern const u8 gItemMenuHotspotItemText[5];
 
-extern char Gp_StrExamine[];
+/// NUL-terminated hotspot action text for every action kind except Push (1).
+extern const u8 gItemMenuHotspotExamineText[];
 
-extern char Gp_StrPush[];
+/// NUL-terminated hotspot action text for the Push action kind (1).
+extern const u8 gItemMenuHotspotPushText[];
 
 /// Upgrade command text for a P.E. ability whose learned level is zero.
 extern const u8 gItemMenuPeReviveText[];
@@ -230,7 +301,13 @@ enum {
 /// Consumers use the low 16 bits of a task payload and require an in-range id.
 extern const u8* const gItemMenuNoticeTexts[ITEM_MENU_NOTICE_TEXT_COUNT];
 
-extern UiList D_8010F5D0;
+/// Shared writable Use/Attach and Key Item list, with wrapping and ten-pixel rows.
+///
+/// The two callbacks and item count are fixed. Fitting recomputes the viewport
+/// and clears scroll/input state; selection persists when the live save's
+/// cursorMode is zero. Updates mutate selection and draw state. This singleton
+/// list remains borrowed throughout the Item command panel's lifetime.
+extern UiList gItemMenuItemCommandList;
 
 /// Shared writable P.E. Upgrade/Cancel list, with wrapping and ten-pixel rows.
 ///
@@ -245,13 +322,29 @@ extern UiList gItemMenuPeCommandList;
 /// two-row command list. Bounds use screen-centered pixels; depth counts tags.
 extern const UiObjectDesc gItemMenuPeCommandPanelDesc;
 
-extern s32 D_80114E88;
+/// Latched acceptance of the hotspot's Examine/Push row (0 none, 1 confirmed).
+///
+/// Cleared when the hotspot menu host starts and set only on action-row Confirm.
+/// Persists after the menu closes; it does not report visibility or Item-row use.
+extern s32 gItemMenuHotspotActionConfirmed;
 
-extern s32 D_80114E8C;
+/// Copied initial hotspot command-panel X in screen-centered pixels.
+///
+/// The opener stores the full word before queuing the host; construction narrows
+/// it to the panel's signed halfword. The pending singleton menu owns this value.
+extern s32 gItemMenuHotspotScreenX;
 
-extern s32 D_80114E90;
+/// Copied initial hotspot command-panel Y in screen-centered pixels.
+///
+/// The opener stores the full word before queuing the host; construction narrows
+/// it to the panel's signed halfword. The pending singleton menu owns this value.
+extern s32 gItemMenuHotspotScreenY;
 
-extern s32 D_80114E94;
+/// Unread copy of the action kind supplied when a hotspot menu is queued.
+///
+/// The queued task word selects Push (1) or Examine (every other value). This
+/// separate full-word copy has no C or assembly reader; its purpose is unproven.
+extern s32 gItemMenuHotspotActionKindCopy;
 
 /// Map-screen task handlers: 0 open, 1 wait for page, 2 navigate, 3 close.
 ///
@@ -259,17 +352,23 @@ extern s32 D_80114E94;
 /// the dispatcher copies the complete table before calling one handler.
 extern const TaskFuncTable4 gMenuMapStateHandlers;
 
-/// "Help". The three bytes after the terminator are not zero: the original
-/// toolchain left them in the alignment gap.
-extern const char Gp_StrHelp[8];
+/// Title of the map objective-help panel.
+///
+/// The eight-byte storage retains 0x61, 0x7E, 0xC6 after "Help" and its NUL;
+/// title drawing stops at the NUL, before those retained bytes.
+extern const char gMenuMapHelpTitle[8];
 
-extern const char Gp_StrUse2[];
+/// NUL-terminated Use label of the Item menu's Use/Attach command row.
+extern const u8 gItemMenuUseAttachCommandText[];
 
-extern const char Gp_StrKeyItem2[];
+/// NUL-terminated Key Item label opening the collected-item command picker.
+extern const u8 gItemMenuKeyItemCommandText[];
 
-extern const char Gp_StrMap[];
+/// NUL-terminated Map command label in the item menu.
+extern const u8 gItemMenuMapCommandText[];
 
-extern const char Gp_StrAttention2[];
+/// Attention title of the item discard confirmation panel.
+extern const char gItemMenuDiscardTitle[];
 
 /// Title of the timed item-menu notice panel.
 extern const char gItemMenuNoticeTitle[];
