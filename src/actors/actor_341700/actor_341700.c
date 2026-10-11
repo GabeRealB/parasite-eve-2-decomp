@@ -1197,7 +1197,13 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
-#define MAD_CHASER_STEP_STATE             _madChaserWalkState
+#define MAD_CHASER_STEP_STATE _madChaserWalkState
+/// Selects the combat walk's three-phase table for this dispatch instance.
+///
+/// A readable `TaskFuncTable3` value, copied once before the hit interrupt.
+/// When uninterrupted, `subState` 0..2 selects start, approach or finish.
+/// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
+/// Undefine this binding after the fragment; it has no default.
 #define MAD_CHASER_STEP_TABLE             _gMadChaserWalkSteps
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
@@ -1305,6 +1311,12 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 /// Requires live Mad Chaser work and `subState` in 0..2: start the idle hold,
 /// wait for its timeout or player proximity, then wait to enter the look state.
 #define MAD_CHASER_STEP_STATE _madChaserLurkIdleState
+/// Selects the lurk idle hold's three-phase table for this dispatch instance.
+///
+/// A readable `TaskFuncTable3` value, copied once before the alert interrupt.
+/// When uninterrupted, `subState` 0..2 selects start hold, wait or enter look.
+/// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
+/// Undefine this binding after the fragment; it has no default.
 #define MAD_CHASER_STEP_TABLE _gMadChaserLurkIdleSteps
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
@@ -1318,6 +1330,12 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 /// Requires live Mad Chaser work and `subState` in 0..2: prepare the transition,
 /// start a timed look hold, then sway or face the player until rise or alert.
 #define MAD_CHASER_STEP_STATE _madChaserLurkLookState
+/// Selects the lurk look hold's three-phase table for this dispatch instance.
+///
+/// A readable `TaskFuncTable3` value, copied once before the alert interrupt.
+/// When uninterrupted, `subState` 0..2 selects prepare, start hold or look around.
+/// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
+/// Undefine this binding after the fragment; it has no default.
 #define MAD_CHASER_STEP_TABLE _gMadChaserLurkLookSteps
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert

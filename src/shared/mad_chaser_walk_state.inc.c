@@ -10,6 +10,10 @@
 // no tokens. Undefine it after inclusion. The carrier also supplies an
 // s16(Task*) MAD_CHASER_WALK_INTERRUPT_HANDLER.
 
+#ifndef MAD_CHASER_STEP_TABLE
+#error "Bind MAD_CHASER_STEP_TABLE to this instance's TaskFuncTable3 value before inclusion"
+#endif
+
 /// Dispatches one Mad Chaser behavior step unless an interrupt takes over.
 ///
 /// Borrows the task's live `MadChaserWork`; `subState` must be in 0..2 and all
