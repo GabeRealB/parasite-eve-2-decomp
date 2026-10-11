@@ -198,7 +198,10 @@ WorldCollisionBody* gWorldCollisionBlastListHead;
 /// four times and each index twice; `productsArg` is a writable VECTOR
 /// lvalue evaluated for each store and test. `resultArg` is assigned only on
 /// opposition. Arguments must be live, disjoint and free of side effects;
-/// normals use 4096 per unit. Captures no caller locals and leaves Y/pad alone.
+/// each index must select a readable contact. Normals use 4096 per unit, so
+/// the signed products are Q24: either X or Z below minus half a squared unit
+/// marks opposition; equality does not. This is an axis test, not a dot product.
+/// Captures no caller locals and leaves Y/pad and a non-opposed result alone.
 /// Expands to a block plus the call site's semicolon; use only as a standalone
 /// statement inside braces, never as an unbraced if/else body.
 #define WORLD_COLLISION_CHECK_OPPOSED_NORMALS(contactsArg, firstIndexArg, secondIndexArg, productsArg, resultArg)                     \

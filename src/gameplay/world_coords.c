@@ -333,6 +333,10 @@ static void _worldCoordInitPlayerLighting(Task* task);
 /// layout with attenuation and result.color members, overwritten here. Source,
 /// output and scratch must be disjoint. Changes GTE arithmetic state. Expands
 /// to a compound statement; use only as a standalone statement inside braces.
+/// light is a readable WorldCoordLight* with attenuation in 0..ONE. GPF12
+/// multiplies the signed RGB coefficients by that Q12 factor and saturates
+/// the signed-halfword result. Rows are RGB, columns selected lights; matrix
+/// translation, other columns and the scratch colour pad remain untouched.
 #define WORLD_COORDINATE_WRITE_ATTENUATED_LIGHT_COLOR_COLUMN(lightIndex, light, lightScratch, colorMtx) \
     {                                                                                                   \
         (lightScratch)->attenuation = (light)->transform.lighting.attenuation;                          \
@@ -345,14 +349,18 @@ static void _worldCoordInitPlayerLighting(Task* task);
         (colorMtx)->m[2][(lightIndex)] = (lightScratch)->result.color.b;                                \
     }
 
-/// Applies the squared-distance fade shared by point and cone light scoring.
+/// Attenuates a light contribution across the squared-distance interval between its radii.
 ///
 /// falloff is a side-effect-free pointer to either query scratch layout, with
 /// distanceSquared, outerLimit, innerRadiusSquared and attenuation initialized;
-/// the sample is inside outerLimit and attenuation is ONE. contributionScore
+/// distances/radius squares use quarter squared game units (XYZ halved before
+/// squaring); innerRadiusSquared <= outerLimit, the sample is inside outerLimit
+/// and attenuation is ONE. contributionScore
 /// is a separate s32 lvalue, overwritten here. Mutates the unsigned spans in
 /// four-bit steps, divides in Q12 and preserves the unsigned score multiply
-/// and logical shift. Arguments are evaluated repeatedly. Expands to a compound
+/// and logical shift. At/below the inner radius both outputs stay unchanged;
+/// a span reduced to zero also retains the original score and attenuation.
+/// Arguments are evaluated repeatedly; no caller locals are captured. Expands to a compound
 /// statement; use only as a standalone statement inside braces.
 #define WORLD_COORDINATE_APPLY_RADIAL_LIGHT_FADE(falloff, contributionScore)                                                                                             \
     {                                                                                                                                                                    \
@@ -1501,22 +1509,30 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
     /// Recolours all columns from signed Q12 (7r+6g+3b)/33 and integer RGB scales.
     ///
     /// colorMatrix is a writable MATRIX*. Arguments must be side-effect-free;
-    /// captures this function's s32 lightIndex. Ambient translation is preserved;
+    /// lightIndex is a distinct writable s32 scratch lvalue ending at three.
+    /// Captures no caller locals. Ambient translation is preserved;
     /// division truncates toward zero and stores narrow to signed halfwords.
-#define WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMatrix, redScale, greenScale, blueScale)                                                                      \
-    {                                                                                                                                                                 \
-        s32 weightedIntensity;                                                                                                                                        \
-        for (lightIndex = 0; lightIndex < (s32)ARRAY_SIZE((colorMatrix)->m[0]); lightIndex++) {                                                                       \
-            weightedIntensity               = ((colorMatrix)->m[0][lightIndex] * 7 + (colorMatrix)->m[1][lightIndex] * 6 + (colorMatrix)->m[2][lightIndex] * 3) / 33; \
-            (colorMatrix)->m[0][lightIndex] = weightedIntensity * (redScale);                                                                                         \
-            (colorMatrix)->m[1][lightIndex] = weightedIntensity * (greenScale);                                                                                       \
-            (colorMatrix)->m[2][lightIndex] = weightedIntensity * (blueScale);                                                                                        \
-        }                                                                                                                                                             \
+#define WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMatrix, redScale, greenScale, blueScale, lightIndex)    \
+    {                                                                                                           \
+        enum { WORLD_COORDINATE_ACTOR_TINT_RED_WEIGHT     = 7,                                                  \
+               WORLD_COORDINATE_ACTOR_TINT_GREEN_WEIGHT   = 6,                                                  \
+               WORLD_COORDINATE_ACTOR_TINT_BLUE_WEIGHT    = 3,                                                  \
+               WORLD_COORDINATE_ACTOR_TINT_WEIGHT_DIVISOR = 33 };                                               \
+        s32 weightedIntensity;                                                                                  \
+        for ((lightIndex) = 0; (lightIndex) < (s32)ARRAY_SIZE((colorMatrix)->m[0]); (lightIndex)++) {           \
+            weightedIntensity = ((colorMatrix)->m[0][(lightIndex)] * WORLD_COORDINATE_ACTOR_TINT_RED_WEIGHT +   \
+                                 (colorMatrix)->m[1][(lightIndex)] * WORLD_COORDINATE_ACTOR_TINT_GREEN_WEIGHT + \
+                                 (colorMatrix)->m[2][(lightIndex)] * WORLD_COORDINATE_ACTOR_TINT_BLUE_WEIGHT) / \
+                                WORLD_COORDINATE_ACTOR_TINT_WEIGHT_DIVISOR;                                     \
+            (colorMatrix)->m[0][(lightIndex)] = weightedIntensity * (redScale);                                 \
+            (colorMatrix)->m[1][(lightIndex)] = weightedIntensity * (greenScale);                               \
+            (colorMatrix)->m[2][(lightIndex)] = weightedIntensity * (blueScale);                                \
+        }                                                                                                       \
     }
 
     switch (colorMode) {
         case ENEMY_COLOR_WEIGHTED:
-            WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 4, 2, 1);
+            WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 4, 2, 1, lightIndex);
             break;
 
         case ENEMY_COLOR_TINT:
@@ -1540,7 +1556,7 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
             if ((enemy->colorMode & ENEMY_COLOR_TARGET_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
                 _worldCoordApplyActorHitFlash(enemy, colorMtx);
             } else if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-                WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 3, 1, 3);
+                WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 3, 1, 3, lightIndex);
             }
             break;
     }

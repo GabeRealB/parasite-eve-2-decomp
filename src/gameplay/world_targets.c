@@ -572,36 +572,43 @@ void worldTargetAddReadoutAmount(WorldTargetNode* node, s32 amount, s32 unusedAr
     s32                 readoutIndex;
     WorldTargetReadout* readout;
 
-    // Finds the existing sign-class total, writing found and advancing the scan locals.
-    // Reads _gWorldTargetReadouts and captures node, amount, found, readoutIndex and readout.
-    // Inputs may be read repeatedly; each break exits only the search loop.
-#define WORLD_TARGET_FIND_READOUT()                                                \
-    {                                                                              \
-        found        = NULL;                                                       \
-        readoutIndex = 0;                                                          \
-        readout      = _gWorldTargetReadouts;                                      \
-        for (; readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts); readoutIndex++) { \
-            if (readout->binding.node == node) {                                   \
-                if (amount >= 0) {                                                 \
-                    if (readout->amount >= 0) {                                    \
-                        found = readout;                                           \
-                        break;                                                     \
-                    }                                                              \
-                    readout++;                                                     \
-                } else if (readout->amount < 0) {                                  \
-                    found = readout;                                               \
-                    break;                                                         \
-                } else {                                                           \
-                    readout++;                                                     \
-                }                                                                  \
-            } else {                                                               \
-                readout++;                                                         \
-            }                                                                      \
-        }                                                                          \
+    /// Finds the first readout bound to a target with the requested amount sign.
+    ///
+    /// Zero belongs to the nonnegative damage class; negative totals are heals.
+    /// nodeArg and amountArg are side-effect-free inputs. foundArg, indexArg and
+    /// readoutArg are distinct writable WorldTargetReadout*/s32/WorldTargetReadout*
+    /// scratch lvalues, evaluated repeatedly. A miss writes NULL and advances
+    /// index/cursor past the complete `_gWorldTargetReadouts` array; a hit leaves
+    /// them at its slot. Captures that array only; changes no slot or game state.
+    /// Binding comparison uses pointer identity and never dereferences the node.
+    /// Each break exits the internal search loop. Invoke inside a braced block.
+#define WORLD_TARGET_FIND_READOUT(nodeArg, amountArg, foundArg, indexArg, readoutArg) \
+    {                                                                                 \
+        (foundArg)   = NULL;                                                          \
+        (indexArg)   = 0;                                                             \
+        (readoutArg) = _gWorldTargetReadouts;                                         \
+        for (; (indexArg) < ARRAY_SIZE(_gWorldTargetReadouts); (indexArg)++) {        \
+            if ((readoutArg)->binding.node == (nodeArg)) {                            \
+                if ((amountArg) >= 0) {                                               \
+                    if ((readoutArg)->amount >= 0) {                                  \
+                        (foundArg) = (readoutArg);                                    \
+                        break;                                                        \
+                    }                                                                 \
+                    (readoutArg)++;                                                   \
+                } else if ((readoutArg)->amount < 0) {                                \
+                    (foundArg) = (readoutArg);                                        \
+                    break;                                                            \
+                } else {                                                              \
+                    (readoutArg)++;                                                   \
+                }                                                                     \
+            } else {                                                                  \
+                (readoutArg)++;                                                       \
+            }                                                                         \
+        }                                                                             \
     }
 
     // Keep damage and healing in separate totals for the same target.
-    WORLD_TARGET_FIND_READOUT();
+    WORLD_TARGET_FIND_READOUT(node, amount, found, readoutIndex, readout);
 #undef WORLD_TARGET_FIND_READOUT
     if (found == NULL) {
         for (readoutIndex = 0, readout = _gWorldTargetReadouts; readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts); readoutIndex++, readout++) {

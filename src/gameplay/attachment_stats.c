@@ -351,39 +351,45 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
     if (releaseEffects == ATTACHMENT_TARGET_RELEASE) {
         abilityIndex = gAttachmentState.activeIndex;
     }
-/// Resolves the target area's level with the same training/Berserker rules as cast arming.
+/// Resolves the effective level used to select an attachment's target-area row.
 ///
-/// Inputs are simple s32 locals: abilityIndex is read repeatedly, level is a
-/// writable output. Captures player, usesTrainingLevels and learnedLevels scratch
-/// locals, the live save/player/session and training table. Changes no game state.
-#define ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level)                                                                                                                          \
+/// abilityIndex is a side-effect-free s32 expression: spells 0..11 borrow the
+/// live save's learned byte or the shooting-gallery training byte; items 12..17
+/// use level one. Learned zero becomes one; Berserker adds one below level
+/// three. Stored values above three survive, so table callers require 0..3.
+/// level is a writable s32 output. player, usesTrainingLevels and learnedLevels
+/// are distinct writable const PlayerStatus*/s32/const u8* scratch lvalues,
+/// unused on the item path. Arguments repeat and must not alias. Captures the
+/// live player/session/save, training table and enclosing target constants.
+/// Changes no game state; invoke as a standalone block inside braces.
+#define ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level, player, usesTrainingLevels, learnedLevels)                                                                               \
     {                                                                                                                                                                                 \
         if ((abilityIndex) >= ATTACHMENT_SPELL_COUNT) {                                                                                                                               \
             (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                    \
         } else {                                                                                                                                                                      \
-            player = &gPlayerStatus;                                                                                                                                                  \
+            (player) = &gPlayerStatus;                                                                                                                                                \
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
-                usesTrainingLevels = 0;                                                                                                                                               \
+                (usesTrainingLevels) = 0;                                                                                                                                             \
             } else {                                                                                                                                                                  \
-                usesTrainingLevels = player->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                          \
+                (usesTrainingLevels) = (player)->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                      \
             }                                                                                                                                                                         \
-            if (usesTrainingLevels == 0) {                                                                                                                                            \
-                learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                                \
+            if ((usesTrainingLevels) == 0) {                                                                                                                                          \
+                (learnedLevels) = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                              \
             } else {                                                                                                                                                                  \
-                learnedLevels = gAttachmentTrainingLevels;                                                                                                                            \
+                (learnedLevels) = gAttachmentTrainingLevels;                                                                                                                          \
             }                                                                                                                                                                         \
-            (level) = learnedLevels[(abilityIndex)];                                                                                                                                  \
+            (level) = (learnedLevels)[(abilityIndex)];                                                                                                                                \
             if ((level) == 0) {                                                                                                                                                       \
                 (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
             }                                                                                                                                                                         \
-            if (player->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                      \
+            if ((player)->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                    \
                 if ((level) < ATTACHMENT_LEVEL_COUNT) {                                                                                                                               \
                     (level)++;                                                                                                                                                        \
                 }                                                                                                                                                                     \
             }                                                                                                                                                                         \
         }                                                                                                                                                                             \
     }
-    ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level);
+    ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level, (player), (usesTrainingLevels), (learnedLevels));
     // Reset cast totals and convert the selected region to whole world units.
     area                  = &gAttachmentAreaTable[abilityIndex][level - 1].area;
     combat                = &gSceneCombatState;
@@ -446,34 +452,54 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
 
 #undef ATTACHMENT_RESOLVE_TARGET_LEVEL
 
-/// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
-/// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                                         \
-    {                                                                                        \
-        req.x          = promptPanel.panel.contentOriginX.unsignedValue + (dx) + promptLeft; \
-        req.y          = (promptPanel.panel.contentOriginY.unsignedValue + 9) + (line);      \
-        req.otIndex    = promptPanel.panel.otIndex.signedValue + 1;                          \
-        req.colorRgb   = (color);                                                            \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                             \
-        req.alignment  = TEXT_ALIGNMENT_LEFT;                                                \
-        req.drawMode   = TEXT_DRAW_OUTLINED;                                                 \
-        textDrawString(&req, (str));                                                         \
+/// Pixel offsets from the weapon-supply prompt panel's content origin.
+enum { HUD_WEAPON_PROMPT_BASELINE_OFFSET_Y     = 9,
+       HUD_WEAPON_PROMPT_QUANTITY_RIGHT_EDGE_X = 0x94 };
+
+/// Draws an outlined small-font button label in the weapon-supply prompt.
+///
+/// request is a writable TextDrawReq lvalue, promptPanelArg a readable UiObject
+/// lvalue. promptLeftArg/dx/lineY are pixel offsets; colour is packed RGB24 and
+/// labelText borrows NUL-terminated encoded u8 text through this synchronous draw.
+/// Requests use panel OT + 1, panel origin + promptLeftArg + dx, and the line's
+/// baseline inset. Arguments must be side-effect-free and disjoint: request and
+/// panel repeat, other inputs occur once. Captures no caller locals. Request
+/// fields retain their signed-halfword/selector-byte narrowing. Invoke inside braces.
+#define HUD_WEAPON_PROMPT_DRAW_LABEL(request, promptPanelArg, promptLeftArg, dx, lineY, color, labelText)                             \
+    {                                                                                                                                 \
+        (request).x          = (promptPanelArg).panel.contentOriginX.unsignedValue + (dx) + (promptLeftArg);                          \
+        (request).y          = ((promptPanelArg).panel.contentOriginY.unsignedValue + HUD_WEAPON_PROMPT_BASELINE_OFFSET_Y) + (lineY); \
+        (request).otIndex    = (promptPanelArg).panel.otIndex.signedValue + 1;                                                        \
+        (request).colorRgb   = (color);                                                                                               \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                   \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                                    \
+        textDrawString(&(request), (labelText));                                                                                      \
     }
 
-/// Draws a quantity right-aligned on line `line`; an empty count sets `missingSupply`.
-#define DRAW_PROMPT_COUNT(req, line, count)                                             \
-    {                                                                                   \
-        req.colorRgb   = 0x606060;                                                      \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                        \
-        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                          \
-        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                           \
-        req.x          = promptPanel.panel.contentOriginX.unsignedValue + 0x94;         \
-        req.y          = (promptPanel.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = promptPanel.panel.otIndex.signedValue + 1;                     \
-        textDrawString(&req, textItoaSigned(quantityDigits, (count)));                  \
-        if ((count) == 0) {                                                             \
-            missingSupply = 1;                                                          \
-        }                                                                               \
+/// Draws a right-aligned supply quantity and marks zero supply for the prompt frame.
+///
+/// request/promptPanelArg are disjoint writable TextDrawReq/readable UiObject
+/// lvalues; lineY is a pixel offset and count a nonnegative signed quantity.
+/// quantityDigitsArg borrows writable encoded-text storage through the draw;
+/// the caller's 16 bytes fit every s32 decimal string including NUL.
+/// missingSupplyArg is a distinct writable s32 lvalue, set only for zero count.
+/// Arguments must have no side effects: count is read twice, request/panel
+/// repeatedly, other inputs once. Captures the enclosing
+/// HUD_WEAPON_PROMPT_TEXT_COLOR constant, no caller locals. Invoke inside braces.
+#define HUD_WEAPON_PROMPT_DRAW_QUANTITY(request, promptPanelArg, lineY, count, quantityDigitsArg, missingSupplyArg)                   \
+    {                                                                                                                                 \
+        (request).colorRgb   = HUD_WEAPON_PROMPT_TEXT_COLOR;                                                                          \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                \
+        (request).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                  \
+        (request).drawMode   = TEXT_DRAW_FILL_ONLY;                                                                                   \
+        (request).x          = (promptPanelArg).panel.contentOriginX.unsignedValue + HUD_WEAPON_PROMPT_QUANTITY_RIGHT_EDGE_X;         \
+        (request).y          = ((promptPanelArg).panel.contentOriginY.unsignedValue + HUD_WEAPON_PROMPT_BASELINE_OFFSET_Y) + (lineY); \
+        (request).otIndex    = (promptPanelArg).panel.otIndex.signedValue + 1;                                                        \
+        textDrawString(&(request), textItoaSigned((quantityDigitsArg), (count)));                                                     \
+        if ((count) == 0) {                                                                                                           \
+            (missingSupplyArg) = 1;                                                                                                   \
+        }                                                                                                                             \
     }
 
 /// Draws the equipped weapon's button labels and loaded supply quantities.
@@ -550,19 +576,19 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     lineY = lineY - gDisplayState.vramYOffset;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
         if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
-            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR1LabelText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(primaryLabel, promptPanel, promptLeft, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR1LabelText);
         } else {
-            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(primaryLabel, promptPanel, promptLeft, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
         }
     } else {
         if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
-            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR, _gHudWeaponPrimaryButtonGlyphText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(primaryLabel, promptPanel, promptLeft, 6, lineY, HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR, _gHudWeaponPrimaryButtonGlyphText);
         } else {
-            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(primaryLabel, promptPanel, promptLeft, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
         }
     }
     if (weaponLoad->primaryItemId != INVENTORY_ITEM_NONE) {
-        DRAW_PROMPT_COUNT(primaryLabel, lineY, primaryQuantity);
+        HUD_WEAPON_PROMPT_DRAW_QUANTITY(primaryLabel, promptPanel, lineY, primaryQuantity, quantityDigits, missingSupply);
     } else {
         missingSupply = 1;
     }
@@ -572,12 +598,12 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
         missingSupply = 0;
         lineY        += 0xA;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
-            DRAW_PROMPT_LABEL(secondaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(secondaryLabel, promptPanel, promptLeft, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
         } else {
-            DRAW_PROMPT_LABEL(secondaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
+            HUD_WEAPON_PROMPT_DRAW_LABEL(secondaryLabel, promptPanel, promptLeft, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
         }
         if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE) {
-            DRAW_PROMPT_COUNT(secondaryLabel, lineY, secondaryQuantity);
+            HUD_WEAPON_PROMPT_DRAW_QUANTITY(secondaryLabel, promptPanel, lineY, secondaryQuantity, quantityDigits, missingSupply);
         } else {
             missingSupply = 1;
         }
@@ -595,8 +621,8 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     }
 }
 
-#undef DRAW_PROMPT_LABEL
-#undef DRAW_PROMPT_COUNT
+#undef HUD_WEAPON_PROMPT_DRAW_LABEL
+#undef HUD_WEAPON_PROMPT_DRAW_QUANTITY
 
 /// Tests whether the live shooting-gallery session uses training spell levels.
 ///
@@ -1002,11 +1028,14 @@ static s32 _attachmentUpdateAndDrawWheel(HudState* hud, s32 panelX, s32 panelY)
         wheelPanel.panel.otIndex.signedValue          = -3;
         wheelPanel.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
         placementPoints                               = scratch.points;
-        /// Places twelve points using a learned count and signed quarter-slot turn.
+        /// Places learned spell icons on a Q12 circle and retires unused entries.
         ///
-        /// Inputs must have no side effects; points borrows twelve writable entries.
-        /// index, angle and point are distinct scratch lvalues, changed by the loop.
-        /// Unused entries retire; zero count performs no division.
+        /// points borrows twelve writable `_AttachmentWheelPoint` entries;
+        /// learnedCount is 0..12, quarterTurn a signed quarter-slot offset (-4..4
+        /// in wheel use). Inputs repeat and must have no side effects. index,
+        /// angle and point are distinct s32/s32/_AttachmentWheelPoint* scratch
+        /// lvalues. Angle has 4096 units per turn, with division after scaling;
+        /// one learned icon uses angle zero, and zero icons perform no division.
         /// Uses the enclosing wheel's quarter-slot and angle-scale constants;
         /// expand as a standalone statement inside a compound block.
 #define ATTACHMENT_WHEEL_PLACE_POINTS(points, learnedCount, quarterTurn, index, angle, point)                                                                                               \
@@ -1104,10 +1133,11 @@ static void _hudDrawAttachmentCastGauge(HudState* unusedHud, s32 panelX, s32 pan
     /// Uses the enclosing gauge's CLUT constant; expand inside a compound block.
 #define HUD_ATTACHMENT_GAUGE_INIT_CAP(cap, screenX, screenY, textureLeft) \
     {                                                                     \
+        enum { HUD_ATTACHMENT_GAUGE_TEXTURE_TOP_V = 0x68 };               \
         (cap)->x0   = (screenX);                                          \
         (cap)->y0   = (screenY);                                          \
         (cap)->u0   = (textureLeft);                                      \
-        (cap)->v0   = 0x68;                                               \
+        (cap)->v0   = HUD_ATTACHMENT_GAUGE_TEXTURE_TOP_V;                 \
         (cap)->clut = HUD_ATTACHMENT_GAUGE_CLUT;                          \
         setSprt8((cap));                                                  \
         setSemiTrans((cap), 1);                                           \

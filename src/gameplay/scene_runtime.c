@@ -1760,34 +1760,37 @@ void gfxBlendOrthonormalRotation(const MATRIX* fromRotation, const MATRIX* toRot
 
 void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
 {
-    /// Blends pitch/yaw in Q12 and widens clamps to the existing head pose.
+    /// Blends head pitch/yaw toward the target while preserving the current roll.
     ///
     /// aimAngles is a writable SVECTOR lvalue, distinct from currentAngles.
-    /// Limits are nonnegative angle units; blendWeight is normally 0..ONE.
+    /// Angles use 4096 units per turn; blendWeight is Q12, normally 0..ONE.
+    /// Limits are nonnegative angle units, widened to fit the current pose
+    /// before clamping the blended, signed-halfword angles.
     /// Arguments must be stable and side-effect-free; they are read repeatedly.
-    /// Captures the four s32 magnitude temporaries declared below; preserves roll
-    /// and signed division rounding. Limits must be distinct writable s32 lvalues.
-#define ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit)                     \
-    {                                                                                                             \
-        (aimAngles).vx        = (currentAngles).vx + ((aimAngles).vx - (currentAngles).vx) * (blendWeight) / ONE; \
-        (aimAngles).vy        = (currentAngles).vy + ((aimAngles).vy - (currentAngles).vy) * (blendWeight) / ONE; \
-        (aimAngles).vz        = (currentAngles).vz;                                                               \
-        currentPitchMagnitude = (currentAngles).vx >= 0 ? (currentAngles).vx : -(currentAngles).vx;               \
-        if ((pitchLimit) < currentPitchMagnitude) {                                                               \
-            (pitchLimit) = currentPitchMagnitude;                                                                 \
-        }                                                                                                         \
-        currentYawMagnitude = (currentAngles).vy >= 0 ? (currentAngles).vy : -(currentAngles).vy;                 \
-        if ((yawLimit) < currentYawMagnitude) {                                                                   \
-            (yawLimit) = currentYawMagnitude;                                                                     \
-        }                                                                                                         \
-        pitchMagnitude = (aimAngles).vx >= 0 ? (aimAngles).vx : -(aimAngles).vx;                                  \
-        if ((pitchLimit) < pitchMagnitude) {                                                                      \
-            (aimAngles).vx = (aimAngles).vx < 0 ? -(pitchLimit) : (pitchLimit);                                   \
-        }                                                                                                         \
-        yawMagnitude = (aimAngles).vy >= 0 ? (aimAngles).vy : -(aimAngles).vy;                                    \
-        if ((yawLimit) < yawMagnitude) {                                                                          \
-            (aimAngles).vy = (aimAngles).vy < 0 ? -(yawLimit) : (yawLimit);                                       \
-        }                                                                                                         \
+    /// The four magnitude arguments are distinct writable s32 scratch lvalues.
+    /// Captures no caller locals; preserves signed division rounding. Limits
+    /// must be distinct writable s32 lvalues. Invoke inside a braced block.
+#define ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit, currentPitchMagnitude, currentYawMagnitude, pitchMagnitude, yawMagnitude) \
+    {                                                                                                                                                                   \
+        (aimAngles).vx          = (currentAngles).vx + ((aimAngles).vx - (currentAngles).vx) * (blendWeight) / ONE;                                                     \
+        (aimAngles).vy          = (currentAngles).vy + ((aimAngles).vy - (currentAngles).vy) * (blendWeight) / ONE;                                                     \
+        (aimAngles).vz          = (currentAngles).vz;                                                                                                                   \
+        (currentPitchMagnitude) = (currentAngles).vx >= 0 ? (currentAngles).vx : -(currentAngles).vx;                                                                   \
+        if ((pitchLimit) < (currentPitchMagnitude)) {                                                                                                                   \
+            (pitchLimit) = (currentPitchMagnitude);                                                                                                                     \
+        }                                                                                                                                                               \
+        (currentYawMagnitude) = (currentAngles).vy >= 0 ? (currentAngles).vy : -(currentAngles).vy;                                                                     \
+        if ((yawLimit) < (currentYawMagnitude)) {                                                                                                                       \
+            (yawLimit) = (currentYawMagnitude);                                                                                                                         \
+        }                                                                                                                                                               \
+        (pitchMagnitude) = (aimAngles).vx >= 0 ? (aimAngles).vx : -(aimAngles).vx;                                                                                      \
+        if ((pitchLimit) < (pitchMagnitude)) {                                                                                                                          \
+            (aimAngles).vx = (aimAngles).vx < 0 ? -(pitchLimit) : (pitchLimit);                                                                                         \
+        }                                                                                                                                                               \
+        (yawMagnitude) = (aimAngles).vy >= 0 ? (aimAngles).vy : -(aimAngles).vy;                                                                                        \
+        if ((yawLimit) < (yawMagnitude)) {                                                                                                                              \
+            (aimAngles).vy = (aimAngles).vy < 0 ? -(yawLimit) : (yawLimit);                                                                                             \
+        }                                                                                                                                                               \
     }
 
     enum { ANIMATION_HEAD_QUARTER_TURN = ACTOR_TRANSFORM_ANGLE_TURN / 4 };
@@ -1896,7 +1899,7 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     subjectPart  = subjectParts + ANIMATION_HEAD_PART_INDEX;
     gfxExtractSmallestEuler(&currentAngles, &subjectParts[ANIMATION_HEAD_PART_INDEX].coord);
 
-    ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit);
+    ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit, currentPitchMagnitude, currentYawMagnitude, pitchMagnitude, yawMagnitude);
 #undef ANIMATION_BLEND_HEAD_AIM
 
     gfxSetRotIdentity(&subjectPart->coord);

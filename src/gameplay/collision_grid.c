@@ -547,15 +547,17 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
     ///
     /// `faceIndicesArg` must be a writable s16* local pointing to valid face
     /// indices followed by WORLD_COLLISION_GRID_CELL_END. It is evaluated
-    /// repeatedly and advanced to the sentinel. Captures the signed-halfword
-    /// `faceIndex`, WORLD_COLLISION_GRID_FACE_CANDIDATE and `_gWorldCollisionGridFaceCandidates`;
+    /// repeatedly and advanced to the sentinel. `faceIndex` is a distinct writable
+    /// s16 scratch lvalue. Captures WORLD_COLLISION_GRID_FACE_CANDIDATE and
+    /// `_gWorldCollisionGridFaceCandidates`; indices must be nonnegative and below
+    /// the active grid's face count and the candidate array's capacity. The macro
     /// sets marks without clearing any or retaining pointers. The loop expands
     /// as a standalone statement within this query's two cell-scan branches.
-#define WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndicesArg)                            \
-    while (*(faceIndicesArg) != WORLD_COLLISION_GRID_CELL_END) {                             \
-        faceIndex                                     = *(faceIndicesArg);                   \
-        _gWorldCollisionGridFaceCandidates[faceIndex] = WORLD_COLLISION_GRID_FACE_CANDIDATE; \
-        (faceIndicesArg)++;                                                                  \
+#define WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndicesArg, faceIndex)                   \
+    while (*(faceIndicesArg) != WORLD_COLLISION_GRID_CELL_END) {                               \
+        (faceIndex)                                     = *(faceIndicesArg);                   \
+        _gWorldCollisionGridFaceCandidates[(faceIndex)] = WORLD_COLLISION_GRID_FACE_CANDIDATE; \
+        (faceIndicesArg)++;                                                                    \
     }
 
     scratchCursor            = SCRATCH_STACK_CURSOR(u8);
@@ -586,7 +588,7 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
                     faceIndices = pointGrid->cellFaceIds[cellX * pointGrid->cellCountZ + cellZ];
                     if (faceIndices != NULL) {
                         // Cell lists select face candidates; their indices are signed.
-                        WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndices);
+                        WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndices, faceIndex);
                     }
                 }
             }
@@ -621,7 +623,7 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
                             segmentRadiusSquared) {
                             faceIndices = segmentGrid->cellFaceIds[cellX * segmentGrid->cellCountZ + cellZ];
                             if (faceIndices != NULL) {
-                                WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndices);
+                                WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndices, faceIndex);
                             }
                         }
                     }
@@ -718,7 +720,9 @@ static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, cons
     /// Uses the active grid's bound view transform and writes only grid XYZ,
     /// truncating X/Z to signed halfwords and setting Y to zero. Arguments must
     /// be side-effect-free scratch/vector identifiers and endpoint index 0 or 1;
-    /// they are evaluated repeatedly. Captures `gWorldCollisionActiveGrid`, changes GTE state,
+    /// they are evaluated repeatedly. `rotatedArg` must address scratchArg's
+    /// rotatedEndpoint member: the matrix call writes there and the following
+    /// stores read that member. Captures `gWorldCollisionActiveGrid`, changes GTE state,
     /// and expands to a statement sequence used only as a standalone phase here.
 #define WORLD_COLLISION_PLACE_VIEW_GRID_ENDPOINT(scratchArg, rotatedArg, endpointIndex)                                                      \
     ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(scratchArg)->viewEndpoint, (rotatedArg));                         \

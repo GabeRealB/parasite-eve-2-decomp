@@ -90,11 +90,18 @@ enum {
     EFFECT_RIFLE_FLASH_SIZE                = 896,
 };
 
-/// Flag in `_EffectCriticalHitStyle::color` that adds four radial spikes, each
-/// at a random angle within its own quarter turn, to the ring.
+/// Packed critical-hit style bit enabling four additive radial spikes.
+///
+/// Bit 12 is separate from the three RGB weight nibbles. The spikes share the
+/// ring's brightness-scaled colour and fade to black at their outer corners.
 #define EFFECT_CRITICAL_HIT_STYLE_SPIKES 0x1000
 
-/// Packs the channel weights of `_EffectCriticalHitStyle::color`, each 0 to 15.
+/// Packs critical-hit RGB brightness weights into bits 8..11, 4..7 and 0..3.
+///
+/// Inputs are integers in 0..15, evaluated once each without masking or casts.
+/// Returns an integer constant expression for style-table initialization;
+/// bit 12 remains clear for `EFFECT_CRITICAL_HIT_STYLE_SPIKES`. The drawer
+/// multiplies each weight by the current brightness to obtain an 8-bit channel.
 #define EFFECT_CRITICAL_HIT_STYLE_COLOR(red, green, blue) (((red) << 8) | ((green) << 4) | (blue))
 
 /// One look of the `EFFECT_CRITICAL_HIT` burst, selected by the effect's spawn

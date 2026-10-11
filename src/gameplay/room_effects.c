@@ -484,7 +484,8 @@ enum {
 
 /// Builds and queries a world +Y ground segment in an already reserved scratch block.
 ///
-/// `savedCursor` points immediately above `probe`, whose origin X/Y are filled.
+/// `savedCursor` must equal `probe + 1`; both views address the same reserved
+/// `_WorldCollisionGroundProbeScratch`, whose origin X/Y are already filled.
 /// `sourceZBits` supplies the low 16 source-Z bits; `segmentEnd` and `hitResult`
 /// are writable pointer/status locals. Arguments must be side-effect-free local
 /// identifiers: pointer and output arguments occur repeatedly. Captures the
@@ -1714,12 +1715,17 @@ EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnA
     EffectWork* work;
     s32         taskBank;
 
-/// Records a spawn offset before substituting caller-owned zero-vector storage.
+/// Retains the borrowed spawn offset and snapshots its XYZ for effect placement.
 ///
-/// Arguments must be side-effect-free pointers; spawnOffset must also be a
-/// writable pointer local. Each occurs repeatedly. The zero vector stays live
-/// through placement, while the retained pointer keeps its original value.
-/// Expands to statements; invoke only inside a braced block.
+/// effectWork is writable EffectWork*, spawnOffset a writable const SVECTOR*
+/// local, and zeroVector a disjoint writable SVECTOR*. Arguments are evaluated
+/// repeatedly and must have no side effects. Clears the complete zero vector,
+/// including its pad, before retaining the original offset pointer (even NULL).
+/// Only a NULL offset redirects the local to zeroVector; that temporary must
+/// remain live through the caller's GTE placement. Copies signed-halfword XYZ
+/// without a frame conversion and leaves pos.pad alone. No input vector is
+/// retained through the temporary; a non-NULL original pointer stays borrowed.
+/// Captures no caller locals; expands to statements inside a braced block.
 #define EFFECT_INIT_SPAWN_OFFSET(effectWork, spawnOffset, zeroVector) \
     memset((zeroVector), 0, sizeof(*(zeroVector)));                   \
     (effectWork)->field_C = (spawnOffset);                            \

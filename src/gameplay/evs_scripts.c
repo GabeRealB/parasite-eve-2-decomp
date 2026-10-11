@@ -968,11 +968,17 @@ void evsScreenShakeTask(Task* task)
     /// Samples the triangular shake envelope and alternates sign with the task cursor.
     ///
     /// `packed` contains the signed pixel amplitude above bit 7; `halfDuration`
-    /// must be nonzero. `sample` and `weightedAmplitude` must be distinct s32
+    /// is 1..255 frames and the task cursor is within [-halfDuration, halfDuration].
+    /// The cursor starts at the negative endpoint; amplitude grows toward zero
+    /// then decays. One LCG advance supplies an unsigned 16-bit fraction. Odd
+    /// cursor values select positive displacement, even values negative.
+    /// `sample` and `weightedAmplitude` must be distinct s32
     /// local lvalues that do not alias the input arguments. All argument
     /// evaluations must be side-effect-free. Re-reads the task
     /// cursor after advancing `gRandomLcgState`. Uses the local packing and
-    /// fractional-bit constants and shared random state; expands to a compound statement.
+    /// fractional-bit constants and shared random state; no caller locals are
+    /// captured. Preserves signed multiply/divide then arithmetic-shift order;
+    /// inputs must keep the signed products representable. Expands to a compound statement.
 #define EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE(shakeTask, packed, halfDuration, sample, weightedAmplitude)                                                                                 \
     {                                                                                                                                                                                \
         (sample)            = (halfDuration) - ABS((shakeTask)->spawnArg1.value);                                                                                                    \

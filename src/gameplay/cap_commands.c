@@ -135,11 +135,15 @@ static const TaskFuncTable3 _gObjectTaskRoomStates = { {
 
 void capRunCommand(s32 commandIndex, s16 playbackMode)
 {
-    /// Advances and stores a CAP counter after the playback attempt.
+    /// Advances a CAP variant counter, then stores it in its selected backing state.
     ///
     /// `command` must be a side-effect-free pointer expression and `variantKey`
     /// a writable s32 lvalue: both are evaluated repeatedly. `flagId` is evaluated
-    /// once only for a persisted counter. Byte/nibble stores retain truncation.
+    /// once only for a persisted counter. Below counterLimit the key increments;
+    /// BRANCH also increments at the limit to arm the next call's overflow branch.
+    /// Otherwise WRAP resets to zero, or the counter saturates. PERSIST writes
+    /// the game-flag nibble; other commands write the loaded command's byte.
+    /// Byte/nibble stores retain truncation. Captures no caller locals.
     /// Use as a standalone compound statement; the macro is undefined after this function.
 #define CAP_ADVANCE_COMMAND_COUNTER(command, flagId, variantKey)                                   \
     {                                                                                              \

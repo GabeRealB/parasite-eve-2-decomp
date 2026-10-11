@@ -119,18 +119,23 @@ STATIC_ASSERT(OFFSET_OF(POLY_GT4, u1) - OFFSET_OF(POLY_GT4, u0) == TMD_ENV_CORNE
 /// SVECTOR after masking its low bits. The caller configures GTE lighting and
 /// supplies the layer/base material RGB/code words. GTE lighting registers and
 /// workspace normal scratch change; packet cursors and counts do not.
+/// cornerRefs is a readable TmdLayerCornerRefs*, not a halfword cursor. Masked
+/// normalByteRef is a byte offset, not a vertex/normal index; its complete
+/// eight-byte normal must be readable. Each destination receives a four-byte
+/// RGB/code store. Lighting precedes rotation, and the rotated normal is saved
+/// immediately for the caller's later mapping; no projected XY is written here.
 /// Arguments are evaluated repeatedly: supply side-effect-free pointers.
 /// Captures no caller identifiers. Expands to several statements: use only
 /// inside an enclosing compound block, never as an unbraced conditional body.
-#define TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, elementHalfwords, layerMaterial, baseMaterial)                             \
-    gte_ldv0((const u8*)(workspace)->normals + ((elementHalfwords)->normalByteRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK)); \
-    gte_ldrgb((layerMaterial));                                                                                             \
-    gte_nccs();                                                                                                             \
-    gte_strgb((workspace)->preXformWrite + (elementHalfwords)->layerColorByteOffset);                                       \
-    gte_ldrgb((baseMaterial));                                                                                              \
-    gte_nccs();                                                                                                             \
-    gte_strgb((workspace)->preXformWrite + (elementHalfwords)->baseColorByteOffset);                                        \
-    gte_rtv0();                                                                                                             \
+#define MODEL_LIGHTING_LIGHT_OFFSET_LAYER_CORNER(workspace, cornerRefs, layerMaterial, baseMaterial)                  \
+    gte_ldv0((const u8*)(workspace)->normals + ((cornerRefs)->normalByteRef & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK)); \
+    gte_ldrgb((layerMaterial));                                                                                       \
+    gte_nccs();                                                                                                       \
+    gte_strgb((workspace)->preXformWrite + (cornerRefs)->layerColorByteOffset);                                       \
+    gte_ldrgb((baseMaterial));                                                                                        \
+    gte_nccs();                                                                                                       \
+    gte_strgb((workspace)->preXformWrite + (cornerRefs)->baseColorByteOffset);                                        \
+    gte_rtv0();                                                                                                       \
     gte_stsv(&(workspace)->elemNormal);
 
 /// Work block of the task that runs play.
@@ -769,7 +774,7 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
     triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 }
 
-/// Blends one environment-layer RGB word toward neutral grey.
+/// Interpolates one lit environment-layer colour with the reference RGB vector.
 ///
 /// Uses GPF12/GPL12 with the object's twelve-fraction-bit blend, reading the
 /// blend separately at both loads. Caller gates this at colorBlend < 4096.
@@ -777,21 +782,25 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// reference address select live word-aligned colour groups. Cursor assignment
 /// follows the first GTE weight load. Workspace is evaluated twice, destination
 /// and reference once; use simple side-effect-free arguments. Captures no caller
-/// locals. Clobbers GTE interpolation state and writes the destination RGB.
+/// locals. colorCursor is u8*, and referenceColor points to a readable CVECTOR.
+/// GPF12/GPL12 operate on RGB and retain their GTE saturation; this is a Q12
+/// weighted sum. Writes destination RGB while preserving its code/page-marker
+/// byte and clobbers GTE interpolation state.
 /// This statement sequence must stand inside a compound block.
-#define TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, colorCursor, colorDestination, referenceColor) \
-    gte_lddp((workspace)->obj->shading.colorBlend);                                                 \
-    (colorCursor) = (colorDestination);                                                             \
-    gte_ldcv(colorCursor);                                                                          \
-    gte_gpf12();                                                                                    \
-    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend);                    \
-    gte_ldcv(referenceColor);                                                                       \
-    gte_gpl12();                                                                                    \
+#define MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, colorCursor, colorDestination, referenceColor) \
+    gte_lddp((workspace)->obj->shading.colorBlend);                                                            \
+    (colorCursor) = (colorDestination);                                                                        \
+    gte_ldcv(colorCursor);                                                                                     \
+    gte_gpf12();                                                                                               \
+    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend);                               \
+    gte_ldcv(referenceColor);                                                                                  \
+    gte_gpl12();                                                                                               \
     gte_stcv(colorCursor)
 
 /// Rebases unmarked environment U bytes for the second overlapping page.
 ///
-/// The U/marker cursors must traverse three or four live packet corner groups,
+/// The u8* U/marker cursors traverse the layer of a live POLY_GT3[2] or POLY_GT4[2],
+/// so their final increments remain within the pair's storage. Corner groups are
 /// twelve bytes apart; the caller initializes cornerIndex to zero. Marker 0
 /// means first page and 1 second page. The signed-byte test selects U >= 128;
 /// adding 128 then storing to u8 subtracts 128 modulo 256. Smaller U clamps
@@ -800,18 +809,18 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// repeatedly and must be simple cursor/index lvalues or a side-effect-free
 /// count, with no aliasing among the cursors. Captures no caller locals; does
 /// not use the GTE. This loop is a single do/while statement.
-#define TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, cornerCount) \
-    do {                                                                            \
-        if (*(pageMarker) == TMD_ENV_FIRST_PAGE_MARKER) {                           \
-            if ((s8) * (textureU) < 0) {                                            \
-                *(textureU) = *(textureU) + TMD_ENV_PAGE_U_DISPLACEMENT;            \
-            } else {                                                                \
-                *(textureU) = 0;                                                    \
-            }                                                                       \
-        }                                                                           \
-        (textureU) += TMD_ENV_CORNER_STRIDE_BYTES;                                  \
-        (cornerIndex)++;                                                            \
-        (pageMarker) += TMD_ENV_CORNER_STRIDE_BYTES;                                \
+#define MODEL_LIGHTING_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, cornerCount) \
+    do {                                                                                       \
+        if (*(pageMarker) == TMD_ENV_FIRST_PAGE_MARKER) {                                      \
+            if ((s8) * (textureU) < 0) {                                                       \
+                *(textureU) = *(textureU) + TMD_ENV_PAGE_U_DISPLACEMENT;                       \
+            } else {                                                                           \
+                *(textureU) = 0;                                                               \
+            }                                                                                  \
+        }                                                                                      \
+        (textureU) += TMD_ENV_CORNER_STRIDE_BYTES;                                             \
+        (cornerIndex)++;                                                                       \
+        (pageMarker) += TMD_ENV_CORNER_STRIDE_BYTES;                                           \
     } while ((cornerIndex) < (cornerCount))
 
 /// Lights one corner from its material RGB and complete referenced normal.
@@ -820,12 +829,17 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// word aligned and remain live for the operation. Each argument is evaluated
 /// once, in material/normal/destination order; no caller identifier is captured.
 /// Uses the caller's light/colour matrices and overwrites GTE lighting state.
+/// The material is a readable four-byte CVECTOR/RGB-code word, the normal a
+/// complete eight-byte SVECTOR with Q12 components. NCCS clamps the lit RGB
+/// channels and carries the material's code byte into the four-byte store;
+/// the primitive caller overwrites that code later. Source and output must not
+/// overlap during the operation. No geometry projection or OT linking occurs.
 /// Expands to several statements: use only as a standalone sequence inside a
 /// compound block, never as an unbraced conditional or loop body.
-#define TMD_LIGHT_STREAM_CORNER(materialColor, normal, rgb) \
-    gte_ldrgb((materialColor));                             \
-    gte_ldv0((normal));                                     \
-    gte_nccs();                                             \
+#define MODEL_LIGHTING_LIGHT_STREAM_CORNER(materialColor, normal, rgb) \
+    gte_ldrgb((materialColor));                                        \
+    gte_ldv0((normal));                                                \
+    gte_nccs();                                                        \
     gte_strgb((rgb));
 
 /// Prepends layer then base, retaining GPU DMA address and length fields.
@@ -838,7 +852,11 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// supply simple side-effect-free pointers/mask values. Captures no caller locals.
 /// This statement sequence requires an enclosing compound block; it cannot serve
 /// as an unbraced conditional or loop body. Neither GTE nor workspace scratch changes.
-#define TMD_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask)                                                                                                                                                       \
+/// Slot 0 is the translucent layer and slot 1 the base. Prepends in that order
+/// leave the base first in GPU traversal. The u32 pointer conversions encode
+/// 24-bit DMA addresses; both OT stores preserve the existing high length byte.
+/// Depth selection and tag loads repeat for each insertion, after AVSZ3 is saved.
+#define MODEL_LIGHTING_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask)                                                                                                                                            \
     (packetPair)[0].tag = ((packetPair)[0].tag & (lengthMask)) | ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (addressMask)); \
     (workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] =                                                                               \
         ((workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))] & (lengthMask)) | ((u32) & (packetPair)[0] & (addressMask));               \
@@ -857,31 +875,39 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// conditional or loop body. The caller stores V
 /// and the page marker in its required order. Normal coefficients have twelve
 /// fractional bits; colorBlend is normally 0..4096. GTE state is clobbered.
-#define TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage) \
-    gte_lddp((workspace)->obj->shading.colorBlend >> TMD_ENV_NORMAL_BLEND_SHIFT);                                                       \
-    gte_ldsv((rotatedNormal));                                                                                                          \
-    gte_gpf12();                                                                                                                        \
-    gte_stsv((rotatedNormal));                                                                                                          \
-    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_X;                                                                 \
-    (textureComponent) -= (rotatedNormal)->vx;                                                                                          \
-    if ((textureComponent) < 0) {                                                                                                       \
-        (textureComponent) = 0;                                                                                                         \
-    } else if ((textureComponent) >= TMD_ENV_FIRST_PAGE_U_LIMIT) {                                                                      \
-        (textureComponent) -= TMD_ENV_PAGE_U_DISPLACEMENT;                                                                              \
-        (secondPage)        = TMD_ENV_SECOND_PAGE_MARKER;                                                                               \
-        if ((textureComponent) >= TMD_ENV_SECOND_PAGE_U_LIMIT) {                                                                        \
-            (textureComponent) = TMD_ENV_SECOND_PAGE_U_LIMIT - 1;                                                                       \
-        }                                                                                                                               \
-    }                                                                                                                                   \
-    *(textureCoordinate) = (textureComponent);                                                                                          \
-    (screenComponent)++;                                                                                                                \
-    (textureCoordinate)++;                                                                                                              \
-    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_Y;                                                                 \
-    (textureComponent) -= (rotatedNormal)->vy;                                                                                          \
-    if ((textureComponent) < 0) {                                                                                                       \
-        (textureComponent) = 0;                                                                                                         \
-    } else if ((textureComponent) >= TMD_ENV_V_LIMIT) {                                                                                 \
-        (textureComponent) = TMD_ENV_V_LIMIT - 1;                                                                                       \
+/// workspace is TmdStreamWorkspace*, rotatedNormal writable SVECTOR*,
+/// screenComponent a writable s16* cursor starting at X, textureCoordinate a
+/// writable u8* cursor starting at U. textureComponent/secondPage are distinct
+/// s32 scratch outputs. The normal weight is colorBlend >> 9 in GPF12; a Q12
+/// unit normal therefore displaces at most eight pixels at full blend. Screen
+/// centres are (160,120); U >= 256 moves to the overlapping page by subtracting
+/// 128 and clamps to 191, while V clamps to [0,239]. Normal scratch and the
+/// texture packet must be disjoint; the caller owns all storage.
+#define MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage) \
+    gte_lddp((workspace)->obj->shading.colorBlend >> TMD_ENV_NORMAL_BLEND_SHIFT);                                                                  \
+    gte_ldsv((rotatedNormal));                                                                                                                     \
+    gte_gpf12();                                                                                                                                   \
+    gte_stsv((rotatedNormal));                                                                                                                     \
+    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_X;                                                                            \
+    (textureComponent) -= (rotatedNormal)->vx;                                                                                                     \
+    if ((textureComponent) < 0) {                                                                                                                  \
+        (textureComponent) = 0;                                                                                                                    \
+    } else if ((textureComponent) >= TMD_ENV_FIRST_PAGE_U_LIMIT) {                                                                                 \
+        (textureComponent) -= TMD_ENV_PAGE_U_DISPLACEMENT;                                                                                         \
+        (secondPage)        = TMD_ENV_SECOND_PAGE_MARKER;                                                                                          \
+        if ((textureComponent) >= TMD_ENV_SECOND_PAGE_U_LIMIT) {                                                                                   \
+            (textureComponent) = TMD_ENV_SECOND_PAGE_U_LIMIT - 1;                                                                                  \
+        }                                                                                                                                          \
+    }                                                                                                                                              \
+    *(textureCoordinate) = (textureComponent);                                                                                                     \
+    (screenComponent)++;                                                                                                                           \
+    (textureCoordinate)++;                                                                                                                         \
+    (textureComponent)  = *(screenComponent) + TMD_ENV_SCREEN_CENTER_Y;                                                                            \
+    (textureComponent) -= (rotatedNormal)->vy;                                                                                                     \
+    if ((textureComponent) < 0) {                                                                                                                  \
+        (textureComponent) = 0;                                                                                                                    \
+    } else if ((textureComponent) >= TMD_ENV_V_LIMIT) {                                                                                            \
+        (textureComponent) = TMD_ENV_V_LIMIT - 1;                                                                                                  \
     }
 
 /// Completes and links a projected, front-facing raw-texture triangle.
@@ -895,20 +921,16 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// arguments are evaluated repeatedly and must have no side effects; the command
 /// is evaluated once. Captures no caller locals. The do/while wrapper is one
 /// statement. GTE depth/result state and both DMA tags are updated.
-#define TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, rawTextureCommand)             \
-    do {                                                                                                                   \
-        enum {                                                                                                             \
-            TMD_FT3_OT_INDEX_SHIFT = 4 /* Sixteen scaled depth units per OT tag */                                         \
-        };                                                                                                                 \
-                                                                                                                           \
-        gte_stsxy3_ft3((triangle));                                                                                        \
-        gte_avsz3();                                                                                                       \
-        setlen((triangle), (sizeof(*(triangle)) - sizeof((triangle)->tag)) / sizeof(u32));                                 \
-        setcode((triangle), (rawTextureCommand));                                                                          \
-        gte_stotz((gteResultDestination));                                                                                 \
-        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_FT3_OT_INDEX_SHIFT & \
-                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                         \
-                (triangle));                                                                                               \
+#define MODEL_LIGHTING_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, rawTextureCommand)   \
+    do {                                                                                                                    \
+        gte_stsxy3_ft3((triangle));                                                                                         \
+        gte_avsz3();                                                                                                        \
+        setlen((triangle), (sizeof(*(triangle)) - sizeof((triangle)->tag)) / sizeof(u32));                                  \
+        setcode((triangle), (rawTextureCommand));                                                                           \
+        gte_stotz((gteResultDestination));                                                                                  \
+        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & \
+                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                          \
+                (triangle));                                                                                                \
     } while (0)
 
 /// Completes and links a projected, front-facing raw-texture quad.
@@ -922,20 +944,16 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
 /// arguments are evaluated repeatedly and must have no side effects; the command
 /// is evaluated once. Captures no caller locals. The do/while wrapper is one
 /// statement. GTE depth/result state and both DMA tags are updated.
-#define TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, rawTextureCommand)                 \
-    do {                                                                                                                   \
-        enum {                                                                                                             \
-            TMD_FT4_OT_INDEX_SHIFT = 4                                                                                     \
-        };                                                                                                                 \
-                                                                                                                           \
-        gte_stsxy2(&(quad)->x3);                                                                                           \
-        gte_avsz4();                                                                                                       \
-        setlen((quad), (sizeof(*(quad)) - sizeof((quad)->tag)) / sizeof(u32));                                             \
-        setcode((quad), (rawTextureCommand));                                                                              \
-        gte_stotz((gteResultDestination));                                                                                 \
-        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_FT4_OT_INDEX_SHIFT & \
-                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                         \
-                (quad));                                                                                                   \
+#define MODEL_LIGHTING_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, rawTextureCommand)       \
+    do {                                                                                                                    \
+        gte_stsxy2(&(quad)->x3);                                                                                            \
+        gte_avsz4();                                                                                                        \
+        setlen((quad), (sizeof(*(quad)) - sizeof((quad)->tag)) / sizeof(u32));                                              \
+        setcode((quad), (rawTextureCommand));                                                                               \
+        gte_stotz((gteResultDestination));                                                                                  \
+        addPrim(&(workspace)->ot[((u32)(workspace)->gteResult << (displayState)->otDepthShift) >> TMD_DRAW_OT_INDEX_SHIFT & \
+                                 (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*(workspace)->ot))],                          \
+                (quad));                                                                                                    \
     } while (0)
 
 u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -1006,7 +1024,7 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
             secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
             textureCoordinate = workspace->preXformWrite + cornerRefs->layerColorByteOffset + (OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, r0));
             rotatedNormal     = &workspace->elemNormal;
-            TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+            MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
             *textureCoordinate                                 = textureComponent;
             textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
         } while (workspace->elemCount-- > 0);
@@ -1065,7 +1083,7 @@ u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFla
             screenDestination = workspace->preXformWrite + cornerRefs->baseColorByteOffset + sizeof(CVECTOR);
             gte_stsxy(screenDestination);
             gte_stsxy(&workspace->texCoord);
-            TMD_LIGHT_OFFSET_LAYER_CORNER(workspace, cornerRefs, &layerMaterial, &baseMaterial);
+            MODEL_LIGHTING_LIGHT_OFFSET_LAYER_CORNER(workspace, cornerRefs, &layerMaterial, &baseMaterial);
             elements += workspace->elemStride;
         } while (workspace->elemCount-- > 0);
     }
@@ -1120,9 +1138,9 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                     gte_ncct();
                     gte_strgb3_gt3(&packetPair[1]);
                     if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
+                        MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
+                        MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
+                        MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
                     }
                     // Map screen pixels minus scaled view-space normals into the environment texture.
                     gte_rtv0();
@@ -1132,7 +1150,7 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                     textureCoordinate = &packetPair[0].u0;
                     secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                     rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                     anySecondPage                                     |= secondPage;
                     *textureCoordinate                                 = textureComponent;
                     textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
@@ -1143,7 +1161,7 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                     textureCoordinate = &packetPair[0].u1;
                     secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                     rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                     anySecondPage                                     |= secondPage;
                     *textureCoordinate                                 = textureComponent;
                     textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
@@ -1154,7 +1172,7 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                     textureCoordinate = &packetPair[0].u2;
                     secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                     rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                    MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                     anySecondPage                                     |= secondPage;
                     *textureCoordinate                                 = textureComponent;
                     textureCoordinate[-TMD_ENV_V_TO_PAGE_MARKER_BYTES] = secondPage;
@@ -1166,7 +1184,7 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                         pageMarker  = &packetPair[0].code;
                         cornerIndex = 0;
                         textureU    = &packetPair[0].u0;
-                        TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT3_CORNER_COUNT);
+                        MODEL_LIGHTING_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT3_CORNER_COUNT);
                         packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
                     }
                     setlen(&packetPair[0], payloadWordCount);
@@ -1253,7 +1271,7 @@ u32* tmdDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                     setcode(&packetPair[1], baseCommand);
                     packetPair[0].tpage |= TMD_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
                     gte_stotz(gteResultDestination);
-                    TMD_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask);
+                    MODEL_LIGHTING_LINK_OFFSET_LAYER_TRIANGLE_PAIR(packetPair, workspace, displayState, addressMask, lengthMask);
                 }
             }
             packetPair += 2;
@@ -1439,7 +1457,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 textureCoordinate = &packetPair[0].u0;
                 secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                 rotatedNormal     = &workspace->elemNormal;
-                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                 *textureCoordinate = textureComponent;
                 textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
                 *textureCoordinate = secondPage;
@@ -1450,7 +1468,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 textureCoordinate = &packetPair[0].u1;
                 secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                 rotatedNormal     = &workspace->elemNormal;
-                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                 *textureCoordinate = textureComponent;
                 textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
                 *textureCoordinate = secondPage;
@@ -1461,7 +1479,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 textureCoordinate = &packetPair[0].u2;
                 secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                 rotatedNormal     = &workspace->elemNormal;
-                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                 *textureCoordinate    = textureComponent;
                 textureCoordinate    -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
                 *textureCoordinate    = secondPage;
@@ -1480,20 +1498,20 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 textureCoordinate = &packetPair[0].u3;
                 secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
                 rotatedNormal     = &workspace->elemNormal;
-                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                MODEL_LIGHTING_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
                 *textureCoordinate = textureComponent;
                 textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
                 *textureCoordinate = secondPage;
 
                 anySecondPage |= secondPage;
                 if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
+                    MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
 
-                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
+                    MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
 
-                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
+                    MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
 
-                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, corner3LayerColor, &packetPair[0].r3, &referenceColor);
+                    MODEL_LIGHTING_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, corner3LayerColor, &packetPair[0].r3, &referenceColor);
                 }
 
                 pageMarker = &packetPair[0].code;
@@ -1502,7 +1520,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 } else {
                     cornerIndex = 0;
                     textureU    = &packetPair[0].u0;
-                    TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT4_CORNER_COUNT);
+                    MODEL_LIGHTING_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT4_CORNER_COUNT);
                     packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
                 }
 
@@ -1656,7 +1674,7 @@ u32* tmdDrawStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                 gte_nclip();
                 gte_stopz(gteResultDestination);
                 if (workspace->gteResult > 0) {
-                    TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_OPAQUE_COMMAND);
+                    MODEL_LIGHTING_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_OPAQUE_COMMAND);
                 }
             }
             // Rejected triangles consume their construction-reserved slots too.
@@ -1704,7 +1722,7 @@ u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // The FIFO now holds corners 1,2,3; either half may face forward.
                     if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
-                        TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_OPAQUE_COMMAND);
+                        MODEL_LIGHTING_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_OPAQUE_COMMAND);
                     }
                 }
             }
@@ -1885,7 +1903,7 @@ u32* tmdDrawStreamPrimFt3SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_nclip();
                 gte_stopz(gteResultDestination);
                 if (workspace->gteResult > 0) {
-                    TMD_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_SEMI_TRANS_COMMAND);
+                    MODEL_LIGHTING_LINK_PROJECTED_RAW_FT3(triangle, workspace, gteResultDestination, displayState, TMD_FT3_RAW_SEMI_TRANS_COMMAND);
                 }
             }
             triangle++;
@@ -1929,7 +1947,7 @@ u32* tmdDrawStreamPrimFt4SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
-                        TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_SEMI_TRANS_COMMAND);
+                        MODEL_LIGHTING_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_SEMI_TRANS_COMMAND);
                     }
                 }
             }
@@ -1968,9 +1986,9 @@ u32* tmdDrawStreamPrimG3CornerColors(TmdStreamWorkspace* workspace, s32 objectFl
                 if (workspace->gteResult > 0) {
                     gte_stsxy3_g3(triangle);
                     gte_avsz3();
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
                     setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
                     setcode(triangle, TMD_G3_OPAQUE_COMMAND);
                     gte_stotz(gteResultDestination);
@@ -2012,9 +2030,9 @@ u32* tmdDrawStreamPrimG3CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32
                 if (workspace->gteResult > 0) {
                     gte_stsxy3_g3(triangle);
                     gte_avsz3();
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
-                    TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r0);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r1);
+                    MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &triangle->r2);
                     setlen(triangle, sizeof(*triangle) / sizeof(u32) - 1);
                     setcode(triangle, TMD_G3_SEMI_TRANS_COMMAND);
                     gte_stotz(gteResultDestination);
@@ -2065,10 +2083,10 @@ u32* tmdDrawStreamPrimG4CornerColors(TmdStreamWorkspace* workspace, s32 objectFl
                     if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
-                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
-                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
-                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
-                        TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
+                        MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
+                        MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
+                        MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
+                        MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
                         setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
                         setcode(quad, TMD_G4_OPAQUE_COMMAND);
                         gte_stotz(gteResultDestination);
@@ -2121,10 +2139,10 @@ u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32
                         if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                             gte_stsxy2(&quad->x3);
                             gte_avsz4();
-                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
-                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
-                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
-                            TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
+                            MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
+                            MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 1, (const u8*)workspace->normals + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r1);
+                            MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 2, (const u8*)workspace->normals + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r2);
+                            MODEL_LIGHTING_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX + 3, (const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r3);
                             setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
                             setcode(quad, TMD_G4_SEMI_TRANS_COMMAND);
                             gte_stotz(gteResultDestination);

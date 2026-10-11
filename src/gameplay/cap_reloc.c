@@ -68,13 +68,17 @@ u8 gCapChoiceRowStride;
 
 bool capRelocateFile(CapFile* file)
 {
-    /// Rebases a text reference or skips the slot following a terminator.
+    /// Relocates one CAP text byte offset, or skips a terminator's following slot.
     ///
     /// `recordCursor` is a writable `CapSequenceRecord*` local, `fileBase` is
     /// its containing `CapFile*`, and `endTextRef` is `CAP_TEXT_REF_END`.
+    /// The record table and every following slot must lie in the loaded file;
+    /// the caller invokes this only before its positive serialized offsets have
+    /// become signed-negative KSEG0 addresses. Casting fileBase to u32 encodes
+    /// its byte address, so addition wraps a word without pointer scaling.
     /// Arguments have no side effects; the cursor is evaluated more than once.
     /// The caller advances one record after this block. A terminal reference
-    /// is preserved, and its extra skip is not counted.
+    /// is preserved, and its extra skip is not counted. Captures no caller locals.
 #define CAP_RELOCATE_SEQUENCE_TEXT_RECORD(recordCursor, fileBase, endTextRef) \
     {                                                                         \
         if ((recordCursor)->textRef.offset != (endTextRef)) {                 \
