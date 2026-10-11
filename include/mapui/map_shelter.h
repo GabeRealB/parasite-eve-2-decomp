@@ -26,6 +26,12 @@
 /// its purpose here is unproven. No bounds or empty-slot checks are performed.
 extern GfxImageSlot gMapShelterImageSlotsByArea[50];
 
+/// Map page and live marker counts; the marker array adds a page-zero terminator.
+enum {
+    MAP_SHELTER_PAGE_COUNT   = 6,
+    MAP_SHELTER_MARKER_COUNT = 30,
+};
+
 /// Number of scene columns in each Mine/Shelter area-music row.
 enum { MAP_SHELTER_MUSIC_COLUMN_COUNT = 12 };
 
@@ -37,25 +43,59 @@ enum { MAP_SHELTER_MUSIC_COLUMN_COUNT = 12 };
 /// overlay loaded throughout selection and any music task borrowing the table.
 extern StageMusicEntry gMapShelterAreaMusicEntries[(GAME_AREA_SHELTER_R49 + 1) * MAP_SHELTER_MUSIC_COLUMN_COUNT];
 
-extern StageMusicEntry D_map_shelter_8017C2D8[];
+/// Scene-indexed countdown music for Mine/Shelter.
+///
+/// `gStageCountdownMusicEntry` selects 0..19 directly, without a bounds check
+/// or terminator. Entries 0..3 and 8..11 start immediately; 4..6 use the
+/// view-ready policy, entry 7 selects no sequence, and 12..19 retain sequence
+/// zero with the view-ready policy. Keep this overlay loaded until the music
+/// task releases its borrowed selection.
+extern StageMusicEntry gMapShelterCountdownMusicEntries[20];
 
-/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
-extern u8 D_map_shelter_80179CD0[];
+/// Availability and area-shading flags for Mine/Shelter's six map pages.
+///
+/// Indexed by page 1..6: pages 1..3 (mine and B1) use nibble flag 0x17;
+/// pages 4..6 (B2..B4) use 0x18. A nonzero nibble unlocks a page and reveals its
+/// unvisited areas; otherwise visited areas determine availability. Slot 0
+/// is the navigation boundary; there is no terminator. Keep this map loaded.
+extern u8 gMapShelterPageFlagIds[MAP_SHELTER_PAGE_COUNT + 1];
 
-/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern MenuMapArea D_map_shelter_80179CD8[];
+/// Area-to-map coordinate mappings for Mine/Shelter.
+///
+/// Area IDs 0..49 index directly; slot 0 and areas 23, 26, 36..38 and 49 use
+/// `MENU_MAP_AREA_PAGE_NONE`. Record 50 closes page-availability walks with
+/// `MENU_MAP_AREA_PAGE_END`. Origins use world X/Z units, map points use
+/// pixels, and scales use world units per pixel. Keep this overlay loaded.
+extern MenuMapArea gMapShelterAreas[GAME_AREA_SHELTER_R49 + 2];
 
 /// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
 extern MenuMapAreaShape D_map_shelter_80179FA4[];
 
-/// This stage's `D_8010F0E0` entry, ended by a page of 0.
-extern MenuMapMarker D_map_shelter_8017A134[];
+/// Flag-controlled Mine/Shelter map markers in signed picture-centred pixels.
+///
+/// Entries 0..29 correspond to `gMapShelterMarkerFlags`; a flag nibble of two
+/// shows its marker. Entries 17, 18, 20, 28 and 29 also require their area's
+/// visit bit. The final page-zero record ends the list and has no flag entry.
+/// Keep this map overlay loaded during lookup and drawing.
+extern MenuMapMarker gMapShelterMarkers[MAP_SHELTER_MARKER_COUNT + 1];
 
-/// This stage's `D_8010F0CC` entry, ended by a page of 0.
-extern MenuMapIcon D_map_shelter_8017A1F0[];
+/// Fixed and objective icons on the Mine/Shelter map.
+///
+/// Fourteen records and a page-zero terminator; areas and pages are one-based.
+/// Fixed icons require a visited area and optionally a nonzero flag nibble;
+/// objectives compare their condition with the current objective byte and
+/// can appear before visiting. Coordinates are signed picture-centred pixels.
+/// The kind-zero picture's subject is unproven. Keep this map loaded to draw.
+extern MenuMapIcon gMapShelterIcons[15];
 
-/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern MenuMapAreaName D_map_shelter_8017A268[];
+/// Area names displayed by the Mine/Shelter map.
+///
+/// Indexed by area ID minus one, covering 1..49 without a terminator. Each
+/// record holds a NUL-terminated UI-text line in 32 bytes; areas 37 and 38
+/// are unnamed. Oval Office suffixes retain 0x81 bytes followed by literal
+/// i/j; the large font's 0x81 metrics are zero and the intended punctuation
+/// is unproven. Keep this map loaded while measuring or drawing the text.
+extern MenuMapAreaName gMapShelterAreaNames[GAME_AREA_SHELTER_R49];
 
 /// Mine/Shelter's object placements and spawn recipes, indexed directly by area.
 ///
@@ -70,8 +110,14 @@ extern AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2];
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
 extern TaskDesc D_map_shelter_8017AB30[];
 
-/// This stage's flag table for `menuMapGetMarkerState`.
-extern u16 D_map_shelter_8017AD88[];
+/// Packed flag words parallel to Mine/Shelter's thirty live map markers.
+///
+/// Indices 0..29 match `gMapShelterMarkers`, excluding its terminator. Low
+/// eleven bits select a game-flag nibble; `MENU_MAP_MARKER_ALTERNATE_PICTURE`
+/// selects the second picture. Marker zero also uses that picture in chapter
+/// six. Repeated flag IDs intentionally control several marker locations.
+/// Keep this overlay loaded for lookup; this array has no terminator.
+extern u16 gMapShelterMarkerFlags[MAP_SHELTER_MARKER_COUNT];
 
 /// Mine/Shelter model-lighting arrays indexed by `GameLocationKey.area - 1`.
 ///
@@ -89,7 +135,14 @@ extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 /// object records are this overlay's own.
 extern DirectionWarpEntry* D_map_shelter_8017AF88[];
 
-extern ViewCountTable D_map_shelter_8017B110;
+/// Mine/Shelter's directory of logical-view counts for all 49 areas.
+///
+/// Select `viewCounts[area - 1][room - 1]` with valid one-based area and room
+/// IDs; every area pointer is populated, and each borrowed room array has its
+/// own extent. Counts are signed halfword element counts for reverse view-map
+/// searches, independent of camera/image capacities. Neither level terminates.
+/// Keep the map and selected room overlays loaded during lookup.
+extern ViewCountTable gMapShelterViewCountTable;
 
 extern WorldCollisionStageResources D_map_shelter_8017B3B8;
 

@@ -307,7 +307,7 @@ MenuMapAreaName* Gp_MapNameTables[5] = {
     gMapAkropolisAreaNames,
     gMapDryfieldAreaNames,
     gMapDryfieldFullAreaNames,
-    D_map_shelter_8017A268,
+    gMapShelterAreaNames,
     gMapNeoArkAreaNames,
 };
 
@@ -315,7 +315,7 @@ MenuMapIcon* D_8010F0CC[5] = {
     gMapAkropolisIcons,
     gMapDryfieldIcons,
     gMapDryfieldFullIcons,
-    D_map_shelter_8017A1F0,
+    gMapShelterIcons,
     gMapNeoArkIcons,
 };
 
@@ -323,7 +323,7 @@ MenuMapMarker* D_8010F0E0[5] = {
     gMapAkropolisMarkers,
     gMapDryfieldMarkers,
     gMapDryfieldFullMarkers,
-    D_map_shelter_8017A134,
+    gMapShelterMarkers,
     gMapNeoArkMarkers,
 };
 
@@ -331,7 +331,7 @@ MenuMapArea* Gp_MapRecTables[5] = {
     gMapAkropolisAreas,
     gMapDryfieldAreas,
     gMapDryfieldFullAreas,
-    D_map_shelter_80179CD8,
+    gMapShelterAreas,
     gMapNeoArkAreas,
 };
 
@@ -339,7 +339,7 @@ u8* Gp_MapFlagIds[5] = {
     gMapAkropolisPageFlagIds,
     gMapDryfieldPageFlagIds,
     gMapDryfieldFullPageFlagIds,
-    D_map_shelter_80179CD0,
+    gMapShelterPageFlagIds,
     gMapNeoArkPageFlagIds,
 };
 

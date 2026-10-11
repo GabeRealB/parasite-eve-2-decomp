@@ -139,7 +139,7 @@ static StageMusicEntry* Stage_CountdownMusicTables[] = {
     gMapAkropolisCountdownMusicEntries,
     gMapDryfieldCountdownMusicEntries,
     gMapDryfieldFullCountdownMusicEntries,
-    D_map_shelter_8017C2D8,
+    gMapShelterCountdownMusicEntries,
     gMapNeoArkCountdownMusicEntries,
 };
 /// Columns per area row in each stage's flat music matrix, indexed by stage minus one.

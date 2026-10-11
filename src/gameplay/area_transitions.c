@@ -467,7 +467,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
         MENU_MAP_ACROPOLIS_MARKER_COUNT            = ARRAY_SIZE(gMapAkropolisMarkerFlags),
         MENU_MAP_DRYFIELD_MARKER_COUNT             = ARRAY_SIZE(gMapDryfieldMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = ARRAY_SIZE(gMapDryfieldFullMarkerFlags),
-        MENU_MAP_SHELTER_MARKER_COUNT              = 30,
+        MENU_MAP_SHELTER_MARKER_COUNT              = ARRAY_SIZE(gMapShelterMarkerFlags),
         MENU_MAP_NEO_ARK_MARKER_COUNT              = ARRAY_SIZE(gMapNeoArkMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_STORY_MARKER       = 29,
         MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER = 6
@@ -501,9 +501,9 @@ s16 menuMapGetMarkerState(s16 markerIndex)
                 break;
             }
             if (markerIndex == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER) {
-                return gameFlagGetNibble(D_map_shelter_8017AD88[0] & MENU_MAP_MARKER_FLAG_ID_MASK) + MENU_MAP_MARKER_ALTERNATE_PICTURE;
+                return gameFlagGetNibble(gMapShelterMarkerFlags[0] & MENU_MAP_MARKER_FLAG_ID_MASK) + MENU_MAP_MARKER_ALTERNATE_PICTURE;
             }
-            return _menuMapReadMarkerState(D_map_shelter_8017AD88, markerIndex);
+            return _menuMapReadMarkerState(gMapShelterMarkerFlags, markerIndex);
         case GAME_STAGE_SHELTER_NEO_ARK:
             if (markerIndex >= MENU_MAP_NEO_ARK_MARKER_COUNT) {
                 break;

@@ -218,60 +218,85 @@ GfxImageSlot gMapShelterImageSlotsByArea[50] = {
     [GAME_AREA_SHELTER_R49]                           = GFX_IMAGE_SLOT(0x58970),
 };
 
-u8 D_map_shelter_80179CD0[7] = { 0, 0x17, 0x17, 0x17, 0x18, 0x18, 0x18 };
+/// Picture-page IDs used by this overlay's map records.
+enum {
+    MAP_SHELTER_PAGE_MINE_UNDERGROUND = 1,
+    MAP_SHELTER_PAGE_MINE             = 2,
+    MAP_SHELTER_PAGE_B1               = 3,
+    MAP_SHELTER_PAGE_B2               = 4,
+    MAP_SHELTER_PAGE_B3               = 5,
+    MAP_SHELTER_PAGE_B4               = 6,
+};
 
-MenuMapArea D_map_shelter_80179CD8[51] = {
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0x13B, 0xDEA, 0x4B, 0xFFF5, 0x12C, 0x12C, 2 },
-    { 0x4522, 0x9C4, 0x15, 0xFFEB, 0x12C, 0x12C, 1 },
-    { 0x4204, 0x4B0, 0x3F, 0xFFF3, 0x12C, 0x12C, 2 },
-    { 0x3CF0, 0x4B0, 2, 0xFFF5, 0x12C, 0x12C, 2 },
-    { 0x43F8, 0x640, 0xFFC8, 0xFFF4, 0x12C, 0x12C, 2 },
-    { 0x5C0, 0x12B, 0xFF90, 0xFFEB, 0x12C, 0x12C, 2 },
-    { 0x92E, 0x2904, 0x11, 2, 0x12C, 0x12C, 2 },
-    { 0x514, 0x36B0, 0xFFE0, 0xFFFC, 0x12C, 0x12C, 1 },
-    { -0x2EE0, 0, 0xFFF1, 0x5F, 0x10E, 0x12C, 3 },
-    { -0x935, -0xF96, 0x4D, 0x4F, 0x12C, 0x12C, 3 },
-    { 0x1388, -0x820, 0x5A, 0x2A, 0xF0, 0x12C, 3 },
-    { -0x7D0, 0xE10, 0x4D, 0xFFF9, 0x12C, 0x12C, 3 },
-    { 0, 0x834, 0x21, 0x34, 0x104, 0x104, 3 },
-    { 0, -0x35C, 0x23, 0x18, 0x12C, 0x118, 3 },
-    { 0, -0x4A38, 0xE, 0x55, 0x12C, 0x118, 3 },
-    { 0xD80, 0x3C0, 0xF, 0xB, 0xDC, 0x118, 3 },
-    { 0x6A2, -0x178C, 0xE, 0xFFD5, 0x12C, 0x104, 3 },
-    { 0x2774, 0x520, 0xFFE1, 0x24, 0x12C, 0x12C, 3 },
-    { 0x26E1, 0x5C2, 0xFFDF, 0x26, 0x10E, 0x12C, 3 },
-    { 0x779, -0x1C0C, 0xFFBA, 8, 0x12C, 0x12C, 3 },
-    { 0x1A6B, 0x3E8, 0xFFD2, 0x21, 0x12C, 0x12C, 3 },
-    { 0x606, 0x1CCE, 0xFFFA, 0xFFB2, 0x12C, 0x12C, 4 },
-    { 0, 0, 0, 0, 0x12C, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0x1846, 0x3C, 0xFFF8, 0x18, 0x12C, 0x12C, 3 },
-    { 0x150D, 0xC2, 0xFFF8, 0x35, 0x12C, 0x12C, 3 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { -0x1559, 0x410, 0xFFE2, 0x59, 0x11B, 0x12C, 4 },
-    { -0x96C, -0xF6A, 0x1F, 0x4D, 0x12C, 0x12C, 4 },
-    { 0x261B, 0x409, 0x2B, 0x27, 0x118, 0x12C, 4 },
-    { 0x7D0, -0x1194, 0x2D, 0x11, 0x12C, 0x12C, 4 },
-    { 0, 0x2BC, 0xFFF3, 0x38, 0x104, 0x12C, 4 },
-    { 0, 0, 0xFFF3, 0x16, 0x118, 0x118, 4 },
-    { -0x43, -0x4909, 0xFFE0, 0x53, 0x12C, 0x10E, 4 },
-    { -0x59, -0x3395, 0xFFE0, 7, 0x12C, 0x12C, 4 },
-    { 0x761, -0x251C, 0xFFE0, 0xFFCF, 0x10E, 0x12C, 4 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0x4CF4, -0x1162, 0xFFEB, 0xFFC5, 0x12C, 0x12C, 5 },
-    { 0x280, -0xA60, 0xFFF7, 0xFFCC, 0x12C, 0x12C, 5 },
-    { -0x14D5, 0xBA8, 0x23, 0x23, 0x12C, 0x12C, 5 },
-    { -0x179F, 0x5DC, 0x22, 0x3E, 0x12C, 0x12C, 5 },
-    { -0x1E8D, 0x995, 0xFFB6, 0xFFEA, 0x12C, 0x12C, 6 },
-    { -0x23F3, 0x193A, 3, 0xFFEC, 0x122, 0x12C, 6 },
-    { 0x148A, -0xB74, 0x4D, 0xE, 0x12C, 0x12C, 6 },
-    { 0x190, -0x400, 0x36, 0xFFE3, 0x12C, 0x12C, 6 },
-    { 0x9E7, 0xC94, 0x2D, 0xFFC5, 0x12C, 0x12C, 3 },
-    { 0x606, 0x1CCE, 0xFFFA, 0xFFB2, 0x12C, 0x12C, 4 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_END },
+/// Marker/icon list terminator and the fixed icon's ungated condition.
+enum {
+    MAP_SHELTER_LIST_PAGE_END      = 0,
+    MAP_SHELTER_ICON_FIXED_PICTURE = 0,
+    MAP_SHELTER_ICON_ALWAYS        = 0,
+};
+
+u8 gMapShelterPageFlagIds[MAP_SHELTER_PAGE_COUNT + 1] = {
+    [0]                                 = 0,
+    [MAP_SHELTER_PAGE_MINE_UNDERGROUND] = GAME_FLAG_SHELTER_B2_LABORATORY_017,
+    [MAP_SHELTER_PAGE_MINE]             = GAME_FLAG_SHELTER_B2_LABORATORY_017,
+    [MAP_SHELTER_PAGE_B1]               = GAME_FLAG_SHELTER_B2_LABORATORY_017,
+    [MAP_SHELTER_PAGE_B2]               = GAME_FLAG_SHELTER_B2_LABORATORY_018,
+    [MAP_SHELTER_PAGE_B3]               = GAME_FLAG_SHELTER_B2_LABORATORY_018,
+    [MAP_SHELTER_PAGE_B4]               = GAME_FLAG_SHELTER_B2_LABORATORY_018,
+};
+
+MenuMapArea gMapShelterAreas[GAME_AREA_SHELTER_R49 + 2] = {
+    [0]                                               = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_MINE_MESA]                             = { 0x13B, 0xDEA, 0x4B, 0xFFF5, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_CAVERN]                           = { 0x4522, 0x9C4, 0x15, 0xFFEB, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE_UNDERGROUND },
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE]                  = { 0x4204, 0x4B0, 0x3F, 0xFFF3, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_TUNNEL]                           = { 0x3CF0, 0x4B0, 2, 0xFFF5, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_GORGE]                            = { 0x43F8, 0x640, 0xFFC8, 0xFFF4, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_REFUGE]                           = { 0x5C0, 0x12B, 0xFF90, 0xFFEB, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_FORKED_TUNNEL]                    = { 0x92E, 0x2904, 0x11, 2, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE },
+    [GAME_AREA_MINE_SECRET_PASSAGE]                   = { 0x514, 0x36B0, 0xFFE0, 0xFFFC, 0x12C, 0x12C, MAP_SHELTER_PAGE_MINE_UNDERGROUND },
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL]              = { -0x2EE0, 0, 0xFFF1, 0x5F, 0x10E, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY]  = { -0x935, -0xF96, 0x4D, 0x4F, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_STOREROOM]                  = { 0x1388, -0x820, 0x5A, 0x2A, 0xF0, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY]  = { -0x7D0, 0xE10, 0x4D, 0xFFF9, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_ARMORY]                     = { 0, 0x834, 0x21, 0x34, 0x104, 0x104, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS]          = { 0, -0x35C, 0x23, 0x18, 0x12C, 0x118, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR]              = { 0, -0x4A38, 0xE, 0x55, 0x12C, 0x118, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM]         = { 0xD80, 0x3C0, 0xF, 0xB, 0xDC, 0x118, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL]          = { 0x6A2, -0x178C, 0xE, 0xFFD5, 0x12C, 0x104, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM]               = { 0x2774, 0x520, 0xFFE1, 0x24, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL]              = { 0x26E1, 0x5C2, 0xFFDF, 0x26, 0x10E, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING]        = { 0x779, -0x1C0C, 0xFFBA, 8, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1]            = { 0x1A6B, 0x3E8, 0xFFD2, 0x21, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM]                 = { 0x606, 0x1CCE, 0xFFFA, 0xFFB2, 0x12C, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY]         = { 0, 0, 0, 0, 0x12C, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL]            = { 0x1846, 0x3C, 0xFFF8, 0x18, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL] = { 0x150D, 0xC2, 0xFFF8, 0x35, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_B2_ELEVATOR]                   = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL]              = { -0x1559, 0x410, 0xFFE2, 0x59, 0x11B, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY]  = { -0x96C, -0xF6A, 0x1F, 0x4D, 0x12C, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM]             = { 0x261B, 0x409, 0x2B, 0x27, 0x118, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY]  = { 0x7D0, -0x1194, 0x2D, 0x11, 0x12C, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_LABORATORY]                 = { 0, 0x2BC, 0xFFF3, 0x38, 0x104, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM]              = { 0, 0, 0xFFF3, 0x16, 0x118, 0x118, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR]              = { -0x43, -0x4909, 0xFFE0, 0x53, 0x12C, 0x10E, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK]                = { -0x59, -0x3395, 0xFFE0, 7, 0x12C, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL]          = { 0x761, -0x251C, 0xFFE0, 0xFFCF, 0x10E, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_R36]                           = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_R37]                           = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4]                = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE]               = { 0x4CF4, -0x1162, 0xFFEB, 0xFFC5, 0x12C, 0x12C, MAP_SHELTER_PAGE_B3 },
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR]        = { 0x280, -0xA60, 0xFFF7, 0xFFCC, 0x12C, 0x12C, MAP_SHELTER_PAGE_B3 },
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM]   = { -0x14D5, 0xBA8, 0x23, 0x23, 0x12C, 0x12C, MAP_SHELTER_PAGE_B3 },
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL]              = { -0x179F, 0x5DC, 0x22, 0x3E, 0x12C, 0x12C, MAP_SHELTER_PAGE_B3 },
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER]                = { -0x1E8D, 0x995, 0xFFB6, 0xFFEA, 0x12C, 0x12C, MAP_SHELTER_PAGE_B4 },
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER]                = { -0x23F3, 0x193A, 3, 0xFFEC, 0x122, 0x12C, MAP_SHELTER_PAGE_B4 },
+    [GAME_AREA_SHELTER_B4_RESERVOIR]                  = { 0x148A, -0xB74, 0x4D, 0xE, 0x12C, 0x12C, MAP_SHELTER_PAGE_B4 },
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY]               = { 0x190, -0x400, 0x36, 0xFFE3, 0x12C, 0x12C, MAP_SHELTER_PAGE_B4 },
+    [GAME_AREA_SHELTER_R47]                           = { 0x9E7, 0xC94, 0x2D, 0xFFC5, 0x12C, 0x12C, MAP_SHELTER_PAGE_B1 },
+    [GAME_AREA_SHELTER_R48]                           = { 0x606, 0x1CCE, 0xFFFA, 0xFFB2, 0x12C, 0x12C, MAP_SHELTER_PAGE_B2 },
+    [GAME_AREA_SHELTER_R49]                           = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_SHELTER_R49 + 1]                       = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_END },
 };
 
 MenuMapAreaShape D_map_shelter_80179FA4[50] = {
@@ -327,108 +352,119 @@ MenuMapAreaShape D_map_shelter_80179FA4[50] = {
     { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
 };
 
-MenuMapMarker D_map_shelter_8017A134[31] = {
-    { 3, MENU_MAP_MARKER_AREA_ANY, 14, 90 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 58, 44 },
-    { 5, MENU_MAP_MARKER_AREA_ANY, 35, 57 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, 45, 18 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, 28, 77 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, 44, 44 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, -32, 85 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 0, 24 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, -34, 45 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, -46, 22 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, -19, 51 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 36, -58 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, -12, -76 },
-    { 2, MENU_MAP_MARKER_AREA_ANY, -116, -12 },
-    { 5, MENU_MAP_MARKER_AREA_ANY, 64, 55 },
-    { 6, MENU_MAP_MARKER_AREA_ANY, 49, 14 },
-    { 6, MENU_MAP_MARKER_AREA_ANY, 102, -29 },
-    { 3, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, 70, 96 },
-    { 4, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 26, 95 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -31, -11 },
-    { 3, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 25, -68 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, -94, -16 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 77, -4 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, -37, 34 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 90, 25 },
-    { 4, MENU_MAP_MARKER_AREA_ANY, -49, 51 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 90, 45 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 52, 70 },
-    { 4, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, -20, -69 },
-    { 5, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 39, 64 },
-    { 0, 0, 0, 0 },
+MenuMapMarker gMapShelterMarkers[MAP_SHELTER_MARKER_COUNT + 1] = {
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 14, .y = 90 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 58, .y = 44 },
+    { .page = MAP_SHELTER_PAGE_B3, .area = MENU_MAP_MARKER_AREA_ANY, .x = 35, .y = 57 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = 45, .y = 18 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = 28, .y = 77 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = 44, .y = 44 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = -32, .y = 85 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 0, .y = 24 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = -34, .y = 45 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = -46, .y = 22 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = -19, .y = 51 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 36, .y = -58 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = -12, .y = -76 },
+    { .page = MAP_SHELTER_PAGE_MINE, .area = MENU_MAP_MARKER_AREA_ANY, .x = -116, .y = -12 },
+    { .page = MAP_SHELTER_PAGE_B3, .area = MENU_MAP_MARKER_AREA_ANY, .x = 64, .y = 55 },
+    { .page = MAP_SHELTER_PAGE_B4, .area = MENU_MAP_MARKER_AREA_ANY, .x = 49, .y = 14 },
+    { .page = MAP_SHELTER_PAGE_B4, .area = MENU_MAP_MARKER_AREA_ANY, .x = 102, .y = -29 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL, .x = 70, .y = 96 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL, .x = 26, .y = 95 },
+    { .page = MAP_SHELTER_PAGE_MINE_UNDERGROUND, .area = MENU_MAP_MARKER_AREA_ANY, .x = -31, .y = -11 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, .x = 25, .y = -68 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = -94, .y = -16 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 77, .y = -4 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = -37, .y = 34 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 90, .y = 25 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = MENU_MAP_MARKER_AREA_ANY, .x = -49, .y = 51 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 90, .y = 45 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = MENU_MAP_MARKER_AREA_ANY, .x = 52, .y = 70 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, .x = -20, .y = -69 },
+    { .page = MAP_SHELTER_PAGE_B3, .area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL, .x = 39, .y = 64 },
+    { .page = MAP_SHELTER_LIST_PAGE_END, .area = 0, .x = 0, .y = 0 },
 };
 
-MenuMapIcon D_map_shelter_8017A1F0[15] = {
-    { 2, 1, 0, GAME_FLAG_09A, 97, -13 },
-    { 2, 6, MENU_MAP_ICON_KIND_TELEPHONE, 0, -114, -27 },
-    { 3, 0x10, MENU_MAP_ICON_KIND_TELEPHONE, 0, 3, -36 },
-    { 3, 0x10, 0, 0, 26, -36 },
-    { 3, 0x14, MENU_MAP_ICON_KIND_TELEPHONE, 0, -76, 0 },
-    { 3, 0x14, 0, GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, -77, -16 },
-    { 4, 0x1F, MENU_MAP_ICON_KIND_TELEPHONE, 0, -2, 68 },
-    { 4, 0x1F, 0, 0, 0, 43 },
-    { 5, 0x29, MENU_MAP_ICON_KIND_TELEPHONE, 0, 38, 50 },
-    { 3, 0x2F, MENU_MAP_ICON_KIND_TELEPHONE, 0, 82, -80 },
-    { 3, 0xC, MENU_MAP_ICON_KIND_OBJECTIVE, 0x20, 90, 0 },
-    { 3, 0x2F, MENU_MAP_ICON_KIND_OBJECTIVE, 0x28, 85, -73 },
-    { 3, 0x2F, MENU_MAP_ICON_KIND_OBJECTIVE, 0x29, 85, -73 },
-    { 4, 0x21, MENU_MAP_ICON_KIND_OBJECTIVE, 0x2E, -48, 52 },
-    { 0, 0, 0, 0, 0, 0 },
+/// Objective-byte values selecting this map's four objective-icon records.
+///
+/// The laboratory chooses 40/41 from its route flag; the walkway scene sets 32.
+/// Value 46 marks the B2 main corridor; these are objective IDs, not nibble IDs.
+enum {
+    MAP_SHELTER_OBJECTIVE_AFTER_WALKWAY_SCENE = 0x20,
+    MAP_SHELTER_OBJECTIVE_LAB_ROUTE_SET       = 0x28,
+    MAP_SHELTER_OBJECTIVE_LAB_ROUTE_CLEAR     = 0x29,
+    MAP_SHELTER_OBJECTIVE_B2_MAIN_CORRIDOR    = 0x2E,
 };
 
-MenuMapAreaName D_map_shelter_8017A268[49] = {
-    { "Mesa" },
-    { "Cavern" },
-    { "Tunnel entrance" },
-    { "Tunnel" },
-    { "Gorge" },
-    { "Refuge" },
-    { "Forked tunnel" },
-    { "Secret passage" },
-    { "Elevator hall" },
-    { "South maintenance walkway" },
-    { "Storeroom" },
-    { "North maintenance walkway" },
-    { "Armory" },
-    { "Sleeping quarters" },
-    { "Main corridor" },
-    { "Sterilization room" },
-    { "Pod access tunnel" },
-    { "Control room" },
-    { "Access tunnel" },
-    { "Underground parking" },
-    { "Golem freezer 1" },
-    { "Pod bottom" },
-    { "Pod service gantry" },
-    { "Transfer tunnel" },
-    { "Control room access tunnel" },
-    { "Elevator" },
-    { "Elevator hall" },
-    { "South maintenance walkway" },
-    { "Operating room" },
-    { "North maintenance walkway" },
-    { "Laboratory" },
-    { "Breeding room" },
-    { "Main corridor" },
-    { "Septic tank" },
-    { "Pod access tunnel" },
-    { "Oval Office\x81\x69night\x81\x6A" },
-    { "" },
-    { "" },
-    { "Dumping hole" },
-    { "Garbage incinerator" },
-    { "Incinerator control room" },
-    { "Elevator hall" },
-    { "Lower sewer" },
-    { "Upper sewer" },
-    { "Reservoir" },
-    { "Water supply" },
-    { "Pod deck" },
-    { "Pod bottom" },
-    { "Oval Office\x81\x69morning\x81\x6A" },
+MenuMapIcon gMapShelterIcons[15] = {
+    { .page = MAP_SHELTER_PAGE_MINE, .area = GAME_AREA_MINE_MESA, .kind = MAP_SHELTER_ICON_FIXED_PICTURE, .condition = GAME_FLAG_09A, .x = 97, .y = -13 },
+    { .page = MAP_SHELTER_PAGE_MINE, .area = GAME_AREA_MINE_REFUGE, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = -114, .y = -27 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = 3, .y = -36 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, .kind = MAP_SHELTER_ICON_FIXED_PICTURE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = 26, .y = -36 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = -76, .y = 0 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, .kind = MAP_SHELTER_ICON_FIXED_PICTURE, .condition = GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, .x = -77, .y = -16 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = GAME_AREA_SHELTER_B2_LABORATORY, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = -2, .y = 68 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = GAME_AREA_SHELTER_B2_LABORATORY, .kind = MAP_SHELTER_ICON_FIXED_PICTURE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = 0, .y = 43 },
+    { .page = MAP_SHELTER_PAGE_B3, .area = GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = 38, .y = 50 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_R47, .kind = MENU_MAP_ICON_KIND_TELEPHONE, .condition = MAP_SHELTER_ICON_ALWAYS, .x = 82, .y = -80 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, .kind = MENU_MAP_ICON_KIND_OBJECTIVE, .condition = MAP_SHELTER_OBJECTIVE_AFTER_WALKWAY_SCENE, .x = 90, .y = 0 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_R47, .kind = MENU_MAP_ICON_KIND_OBJECTIVE, .condition = MAP_SHELTER_OBJECTIVE_LAB_ROUTE_SET, .x = 85, .y = -73 },
+    { .page = MAP_SHELTER_PAGE_B1, .area = GAME_AREA_SHELTER_R47, .kind = MENU_MAP_ICON_KIND_OBJECTIVE, .condition = MAP_SHELTER_OBJECTIVE_LAB_ROUTE_CLEAR, .x = 85, .y = -73 },
+    { .page = MAP_SHELTER_PAGE_B2, .area = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, .kind = MENU_MAP_ICON_KIND_OBJECTIVE, .condition = MAP_SHELTER_OBJECTIVE_B2_MAIN_CORRIDOR, .x = -48, .y = 52 },
+    { .page = MAP_SHELTER_LIST_PAGE_END },
+};
+
+MenuMapAreaName gMapShelterAreaNames[GAME_AREA_SHELTER_R49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = { "Mesa" },
+    [GAME_AREA_MINE_CAVERN - 1]                           = { "Cavern" },
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = { "Tunnel entrance" },
+    [GAME_AREA_MINE_TUNNEL - 1]                           = { "Tunnel" },
+    [GAME_AREA_MINE_GORGE - 1]                            = { "Gorge" },
+    [GAME_AREA_MINE_REFUGE - 1]                           = { "Refuge" },
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = { "Forked tunnel" },
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = { "Secret passage" },
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = { "Elevator hall" },
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = { "South maintenance walkway" },
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = { "Storeroom" },
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = { "North maintenance walkway" },
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = { "Armory" },
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = { "Sleeping quarters" },
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = { "Main corridor" },
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = { "Sterilization room" },
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = { "Pod access tunnel" },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = { "Control room" },
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = { "Access tunnel" },
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = { "Underground parking" },
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = { "Golem freezer 1" },
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = { "Pod bottom" },
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = { "Pod service gantry" },
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = { "Transfer tunnel" },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = { "Control room access tunnel" },
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = { "Elevator" },
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = { "Elevator hall" },
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = { "South maintenance walkway" },
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = { "Operating room" },
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = { "North maintenance walkway" },
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = { "Laboratory" },
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = { "Breeding room" },
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = { "Main corridor" },
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = { "Septic tank" },
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = { "Pod access tunnel" },
+    [GAME_AREA_SHELTER_R36 - 1]                           = { "Oval Office\201inight\201j" },
+    [GAME_AREA_SHELTER_R37 - 1]                           = { "" },
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = { "" },
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = { "Dumping hole" },
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = { "Garbage incinerator" },
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = { "Incinerator control room" },
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = { "Elevator hall" },
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = { "Lower sewer" },
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = { "Upper sewer" },
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = { "Reservoir" },
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = { "Water supply" },
+    [GAME_AREA_SHELTER_R47 - 1]                           = { "Pod deck" },
+    [GAME_AREA_SHELTER_R48 - 1]                           = { "Pod bottom" },
+    [GAME_AREA_SHELTER_R49 - 1]                           = { "Oval Office\201imorning\201j" },
 };
 
 /// Initial two-bit object states used by this stage's placements.
@@ -745,37 +781,51 @@ TaskDesc D_map_shelter_8017AB30[] = {
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
-u16 D_map_shelter_8017AD88[30] = {
-    0x1CD,
-    0x1CC,
+/// Game-flag nibble IDs for marker words without a resident named ID.
+enum {
+    MAP_SHELTER_MARKER_FLAG_1AD = 0x1AD,
+    MAP_SHELTER_MARKER_FLAG_1AF = 0x1AF,
+    MAP_SHELTER_MARKER_FLAG_1B1 = 0x1B1,
+    MAP_SHELTER_MARKER_FLAG_1C0 = 0x1C0,
+    MAP_SHELTER_MARKER_FLAG_1C3 = 0x1C3,
+    MAP_SHELTER_MARKER_FLAG_1C5 = 0x1C5,
+    MAP_SHELTER_MARKER_FLAG_1C8 = 0x1C8,
+    MAP_SHELTER_MARKER_FLAG_1C9 = 0x1C9,
+    MAP_SHELTER_MARKER_FLAG_1CA = 0x1CA,
+    MAP_SHELTER_MARKER_FLAG_1CC = 0x1CC,
+};
+
+u16 gMapShelterMarkerFlags[MAP_SHELTER_MARKER_COUNT] = {
+    GAME_FLAG_MAP_MARK_SHELTER_1CD,
+    MAP_SHELTER_MARKER_FLAG_1CC,
     GAME_FLAG_MAP_MARK_B3_INCINERATOR_CONTROL_DOOR,
-    0x1CA,
-    0x1C9,
-    0x1C8,
-    0x1C7,
-    0x1C6,
-    0x1C5,
-    0x1C4,
-    0x1C3,
-    0x1C2,
-    0x1C1,
-    0x1C0,
-    0x9BF,
-    0x9BE,
-    0x1BD,
-    0x1BB,
-    0x1BB,
-    0x1B9,
-    0x1B6,
-    0x1B4,
-    0x9B3,
-    0x1B1,
-    0x9B0,
-    0x9AF,
-    0x9AE,
-    0x1AD,
-    0x1B6,
-    0x1BB,
+    MAP_SHELTER_MARKER_FLAG_1CA,
+    MAP_SHELTER_MARKER_FLAG_1C9,
+    MAP_SHELTER_MARKER_FLAG_1C8,
+    GAME_FLAG_MAP_MARK_SHELTER_1C7,
+    GAME_FLAG_MAP_MARK_SHELTER_R47_1C6,
+    MAP_SHELTER_MARKER_FLAG_1C5,
+    GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR,
+    MAP_SHELTER_MARKER_FLAG_1C3,
+    GAME_FLAG_MAP_MARK_B2_LABORATORY,
+    GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY,
+    MAP_SHELTER_MARKER_FLAG_1C0,
+    GAME_FLAG_MAP_MARK_RESERVOIR_1BF | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    GAME_FLAG_MAP_MARK_RESERVOIR_1BE | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    GAME_FLAG_MAP_MARK_WATER,
+    GAME_FLAG_MAP_MARK_SHELTER_1BB,
+    GAME_FLAG_MAP_MARK_SHELTER_1BB,
+    GAME_FLAG_MAP_MARK_MINE_CAVERN,
+    GAME_FLAG_MAP_MARK_POD,
+    GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING,
+    GAME_FLAG_MAP_MARK_SHELTER_1B3 | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    MAP_SHELTER_MARKER_FLAG_1B1,
+    GAME_FLAG_MAP_MARK_SHELTER_1B0 | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    MAP_SHELTER_MARKER_FLAG_1AF | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    GAME_FLAG_MAP_MARK_SHELTER_1AE | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    MAP_SHELTER_MARKER_FLAG_1AD,
+    GAME_FLAG_MAP_MARK_POD,
+    GAME_FLAG_MAP_MARK_SHELTER_1BB,
 };
 
 /// Model-lighting descriptors for Shelter B1 north maintenance walkway, room 1.
@@ -1125,59 +1175,64 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterR49WarpEntries,
 };
 
-static ViewCount* D_map_shelter_8017B04C[49] = {
-    gMineMesaRoomViewCounts,
-    gMineCavernRoomViewCounts,
-    gMineTunnelEntranceRoomViewCounts,
-    gMineTunnelRoomViewCounts,
-    gMineGorgeRoomViewCounts,
-    gMineRefugeRoomViewCounts,
-    gMineForkedTunnelRoomViewCounts,
-    gMineSecretPassageRoomViewCounts,
-    gShelterB1ElevatorHallRoomViewCounts,
-    gShelterB1SouthMaintenanceWalkwayRoomViewCounts,
-    gShelterB1StoreroomRoomViewCounts,
-    gShelterB1NorthMaintenanceWalkwayRoomViewCounts,
-    gShelterB1ArmoryRoomViewCounts,
-    gShelterB1SleepingQuartersRoomViewCounts,
-    gShelterB1MainCorridorRoomViewCounts,
-    gShelterB1SterilizationRoomViewCounts,
-    gShelterB1PodAccessTunnelRoomViewCounts,
-    gShelterB1ControlRoomRoomViewCounts,
-    gShelterB1AccessTunnelRoomViewCounts,
-    gShelterB1UndergroundParkingRoomViewCounts,
-    gShelterB1GolemFreezer1ViewCounts,
-    gShelterB2PodBottomRoomViewCounts,
-    gShelterB1PodServiceGantryRoomViewCounts,
-    gShelterB1TransferTunnelRoomViewCounts,
-    gShelterB1ControlRoomAccessTunnelRoomViewCounts,
-    gShelterB2ElevatorViewCounts,
-    gShelterB2ElevatorHallRoomViewCounts,
-    gShelterB2SouthMaintenanceWalkwayRoomViewCounts,
-    gShelterB2OperatingRoomRoomViewCounts,
-    gShelterB2NorthMaintenanceWalkwayRoomViewCounts,
-    gShelterB2LaboratoryRoomViewCounts,
-    gShelterB2BreedingRoomRoomViewCounts,
-    gShelterB2MainCorridorViewCounts,
-    gShelterB2SepticTankRoomViewCounts,
-    gShelterB2PodAccessTunnelRoomViewCounts,
-    gShelterR36ViewCounts,
-    gShelterR37ViewCounts,
-    gShelter1fHeliportS4RoomViewCounts,
-    gShelterB3DumpingHoleViewCounts,
-    gShelterB3GarbageIncineratorRoomViewCounts,
-    gShelterB3IncineratorControlRoomViewCounts,
-    gShelterB3ElevatorHallRoomViewCounts,
-    gShelterB4LowerSewerRoomViewCounts,
-    gShelterB4UpperSewerViewCounts,
-    gShelterB4ReservoirRoomViewCounts,
-    gShelterB4WaterSupplyViewCounts,
-    gShelterR47ViewCounts,
-    gShelterR48ViewCounts,
-    gShelterR49RoomViewCounts,
+/// Borrowed per-room logical-view count arrays for all 49 Mine/Shelter areas.
+///
+/// Area ID minus one selects a populated pointer; room ID minus one selects a
+/// signed halfword count within that room overlay's own extent. Neither level
+/// terminates. Keep this map and the selected room overlay loaded for lookup.
+static ViewCount* _gMapShelterAreaViewCounts[GAME_AREA_SHELTER_R49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = gMineMesaRoomViewCounts,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernRoomViewCounts,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceRoomViewCounts,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelRoomViewCounts,
+    [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeRoomViewCounts,
+    [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeRoomViewCounts,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = gMineForkedTunnelRoomViewCounts,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = gMineSecretPassageRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwayRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1NorthMaintenanceWalkwayRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = gShelterB1ArmoryRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = gShelterB1SleepingQuartersRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = gShelterB1MainCorridorRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = gShelterB1PodAccessTunnelRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = gShelterB1ControlRoomRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = gShelterB1AccessTunnelRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = gShelterB1GolemFreezer1ViewCounts,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = gShelterB1PodServiceGantryRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = gShelterB1TransferTunnelRoomViewCounts,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = gShelterB1ControlRoomAccessTunnelRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = gShelterB2ElevatorViewCounts,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = gShelterB2ElevatorHallRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2SouthMaintenanceWalkwayRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = gShelterB2OperatingRoomRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2NorthMaintenanceWalkwayRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = gShelterB2LaboratoryRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = gShelterB2BreedingRoomRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = gShelterB2MainCorridorViewCounts,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = gShelterB2SepticTankRoomViewCounts,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelRoomViewCounts,
+    [GAME_AREA_SHELTER_R36 - 1]                           = gShelterR36ViewCounts,
+    [GAME_AREA_SHELTER_R37 - 1]                           = gShelterR37ViewCounts,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = gShelter1fHeliportS4RoomViewCounts,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = gShelterB3DumpingHoleViewCounts,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorRoomViewCounts,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = gShelterB3IncineratorControlRoomViewCounts,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = gShelterB3ElevatorHallRoomViewCounts,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = gShelterB4LowerSewerRoomViewCounts,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = gShelterB4UpperSewerViewCounts,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirRoomViewCounts,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = gShelterB4WaterSupplyViewCounts,
+    [GAME_AREA_SHELTER_R47 - 1]                           = gShelterR47ViewCounts,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48ViewCounts,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49RoomViewCounts,
 };
 
-ViewCountTable D_map_shelter_8017B110 = { D_map_shelter_8017B04C };
+ViewCountTable gMapShelterViewCountTable = { .viewCounts = _gMapShelterAreaViewCounts };
 
 static WorldCollisionRoomResources D_map_shelter_8017B114[1] = {
     { &gShelterB1NorthMaintenanceWalkwayCollisionGrid, D_shelter_b1_north_maintenance_walkway_801855EC, D_shelter_b1_north_maintenance_walkway_80185A98, D_shelter_b1_north_maintenance_walkway_801857B4 },
@@ -1187,109 +1242,358 @@ static WorldCollisionRoomResources D_map_shelter_8017B124[1] = {
     { &gShelterB1ArmoryCollisionGrid, D_shelter_b1_armory_80184B14, D_shelter_b1_armory_80184E0C, NULL },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B134[1] = {
-    { &gShelterB1SleepingQuartersCollisionGrid, gShelterB1SleepingQuartersViewBoundaryTriggers, gShelterB1SleepingQuartersActionTriggers, gShelterB1SleepingQuartersOccluders },
+/// Collision-resource descriptors for Shelter B1 sleeping quarters.
+///
+/// Area 14 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1SleepingQuartersRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1SleepingQuartersCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1SleepingQuartersViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1SleepingQuartersActionTriggers,
+        .occluders            = gShelterB1SleepingQuartersOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B144[1] = {
-    { &gShelterB1MainCorridorCollisionGrid, gShelterB1MainCorridorViewBoundaries, gShelterB1MainCorridorWarpTriggers, NULL },
+/// Collision-resource descriptors for Shelter B1 main corridor.
+///
+/// Area 15 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1MainCorridorRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1MainCorridorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1MainCorridorViewBoundaries,
+        .actionTriggers       = gShelterB1MainCorridorWarpTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B154[1] = {
-    { &gShelterB1PodAccessTunnelCollisionGrid, gShelterB1PodAccessTunnelViewBoundaryTriggers, gShelterB1PodAccessTunnelActionTriggers, gShelterB1PodAccessTunnelSightOccluders },
+/// Collision-resource descriptors for Shelter B1 pod access tunnel.
+///
+/// Area 17 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1PodAccessTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1PodAccessTunnelCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1PodAccessTunnelViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1PodAccessTunnelActionTriggers,
+        .occluders            = gShelterB1PodAccessTunnelSightOccluders,
+    },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
     { &gShelterB1ControlRoomRoomCollision, D_shelter_b1_control_room_801834F4, D_shelter_b1_control_room_80183624, NULL },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B174[1] = {
-    { &gShelterB1AccessTunnelCollisionGrid, gShelterB1AccessTunnelViewBoundaryTriggers, gShelterB1AccessTunnelWarpTriggers, gShelterB1AccessTunnelSightOccluders },
+/// Collision-resource descriptors for Shelter B1 access tunnel.
+///
+/// Area 19 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1AccessTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1AccessTunnelCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1AccessTunnelViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1AccessTunnelWarpTriggers,
+        .occluders            = gShelterB1AccessTunnelSightOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B184[1] = {
-    { &gShelterB1GolemFreezer1RoomCollision, gShelterB1GolemFreezer1ViewBoundaryTriggers, gShelterB1GolemFreezer1ActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B1 golem freezer 1.
+///
+/// Area 21 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1GolemFreezer1RoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1GolemFreezer1RoomCollision,
+        .viewBoundaryTriggers = gShelterB1GolemFreezer1ViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1GolemFreezer1ActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B194[1] = {
-    { &gShelterB1PodServiceGantryRoomCollision, NULL, NULL, NULL },
+/// Collision-resource descriptors for Shelter B1 pod service gantry.
+///
+/// Area 23 selects this array; room ID minus one selects room 1.
+/// No view boundaries, action triggers, sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1PodServiceGantryRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1PodServiceGantryRoomCollision,
+        .viewBoundaryTriggers = NULL,
+        .actionTriggers       = NULL,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1A4[1] = {
-    { &gShelterB1TransferTunnelRoomCollision, gShelterB1TransferTunnelViewBoundaryTriggers, gShelterB1TransferTunnelWarpTriggers, NULL },
+/// Collision-resource descriptors for Shelter B1 transfer tunnel.
+///
+/// Area 24 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1TransferTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1TransferTunnelRoomCollision,
+        .viewBoundaryTriggers = gShelterB1TransferTunnelViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1TransferTunnelWarpTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1B4[1] = {
-    { &gShelterB1ControlRoomAccessTunnelCollisionGrid, gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers, gShelterB1ControlRoomAccessTunnelWarpTriggers, NULL },
+/// Collision-resource descriptors for Shelter B1 control room access tunnel.
+///
+/// Area 25 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB1ControlRoomAccessTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1ControlRoomAccessTunnelCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1ControlRoomAccessTunnelWarpTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1C4[1] = {
-    { &gShelterB2ElevatorCollisionGrid, gShelterB2ElevatorViewBoundaryTriggers, gShelterB2ElevatorActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B2 elevator.
+///
+/// Area 26 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2ElevatorRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2ElevatorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2ElevatorViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2ElevatorActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1D4[1] = {
-    { &gShelterB2ElevatorHallRoomCollision, gShelterB2ElevatorHallViewBoundaryTriggers, gShelterB2ElevatorHallWarpTriggers, gShelterB2ElevatorHallSightOccluders },
+/// Collision-resource descriptors for Shelter B2 elevator hall.
+///
+/// Area 27 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2ElevatorHallRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2ElevatorHallRoomCollision,
+        .viewBoundaryTriggers = gShelterB2ElevatorHallViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2ElevatorHallWarpTriggers,
+        .occluders            = gShelterB2ElevatorHallSightOccluders,
+    },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
     { &gShelterB2SouthMaintenanceWalkwayCollisionGrid, D_shelter_b2_south_maintenance_walkway_801832AC, D_shelter_b2_south_maintenance_walkway_80183474, D_shelter_b2_south_maintenance_walkway_8018385C },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1F4[1] = {
-    { &gShelterB2OperatingRoomCollisionGrid, gShelterB2OperatingRoomViewBoundaryTriggers, gShelterB2OperatingRoomActionTriggers, gShelterB2OperatingRoomOccluders },
+/// Collision-resource descriptors for Shelter B2 operating room.
+///
+/// Area 29 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2OperatingRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2OperatingRoomCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2OperatingRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2OperatingRoomActionTriggers,
+        .occluders            = gShelterB2OperatingRoomOccluders,
+    },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B204[1] = {
     { &gShelterB2NorthMaintenanceWalkwayCollisionGrid, D_shelter_b2_north_maintenance_walkway_80185D5C, D_shelter_b2_north_maintenance_walkway_80185F24, D_shelter_b2_north_maintenance_walkway_80186308 },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B214[1] = {
-    { &gShelterB2LaboratoryCollisionGrid, gShelterB2LaboratoryViewBoundaryTriggers, gShelterB2LaboratoryActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B2 laboratory.
+///
+/// Area 31 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2LaboratoryRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2LaboratoryCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2LaboratoryViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2LaboratoryActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B224[1] = {
-    { &gShelterB2BreedingRoomCollisionGrid, gShelterB2BreedingRoomViewBoundaryTriggers, gShelterB2BreedingRoomActionTriggers, gShelterB2BreedingRoomOccluders },
+/// Collision-resource descriptors for Shelter B2 breeding room.
+///
+/// Area 32 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2BreedingRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2BreedingRoomCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2BreedingRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2BreedingRoomActionTriggers,
+        .occluders            = gShelterB2BreedingRoomOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
-    { &gShelterB2MainCorridorCollisionGrid, gShelterB2MainCorridorViewBoundaryTriggers, gShelterB2MainCorridorActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B2 main corridor.
+///
+/// Area 33 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2MainCorridorRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2MainCorridorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2MainCorridorViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2MainCorridorActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B244[1] = {
-    { &gShelterB2SepticTankCollisionGrid, gShelterB2SepticTankViewBoundaryTriggers, gShelterB2SepticTankActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B2 septic tank.
+///
+/// Area 34 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB2SepticTankRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2SepticTankCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2SepticTankViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2SepticTankActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B254[1] = {
-    { &gShelterR36FloorCollisionGrid, gShelterR36ViewBoundaryTriggers, NULL, NULL },
+/// Collision-resource descriptors for Shelter area 36.
+///
+/// Area 36 selects this array; room ID minus one selects room 1.
+/// No action triggers, sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterR36RoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterR36FloorCollisionGrid,
+        .viewBoundaryTriggers = gShelterR36ViewBoundaryTriggers,
+        .actionTriggers       = NULL,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B264[1] = {
-    { &gShelterR37RoomCollision, gShelterR37ViewBoundaryTriggers, NULL, NULL },
+/// Collision-resource descriptors for Shelter area 37.
+///
+/// Area 37 selects this array; room ID minus one selects room 1.
+/// No action triggers, sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterR37RoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterR37RoomCollision,
+        .viewBoundaryTriggers = gShelterR37ViewBoundaryTriggers,
+        .actionTriggers       = NULL,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B274[1] = {
-    { &gShelter1fHeliportS4CollisionGrid, gShelter1fHeliportS4ViewBoundaryTriggers, NULL, NULL },
+/// Collision-resource descriptors for Shelter 1F heliport.
+///
+/// Area 38 selects this array; room ID minus one selects room 1.
+/// No action triggers, sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelter1fHeliportS4RoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelter1fHeliportS4CollisionGrid,
+        .viewBoundaryTriggers = gShelter1fHeliportS4ViewBoundaryTriggers,
+        .actionTriggers       = NULL,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B284[2] = {
-    { &gShelterB3IncineratorControlRoomCollisionGrid, gShelterB3IncineratorControlRoomViewBoundaryTriggers, gShelterB3IncineratorControlRoomRoom1ActionTriggers, gShelterB3IncineratorControlRoomOccluders },
-    { &gShelterB3IncineratorControlRoomCollisionGrid, gShelterB3IncineratorControlRoomViewBoundaryTriggers, gShelterB3IncineratorControlRoomRoom2ActionTriggers, gShelterB3IncineratorControlRoomOccluders },
+/// Collision-resource descriptors for Shelter B3 incinerator control room.
+///
+/// Area 41 selects this array; room ID minus one selects rooms 1 and 2.
+/// Both rooms share the grid, view boundaries and occluders, with separate actions.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB3IncineratorControlRoomCollisionResources[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT] = {
+    {
+        .grid                 = &gShelterB3IncineratorControlRoomCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3IncineratorControlRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB3IncineratorControlRoomRoom1ActionTriggers,
+        .occluders            = gShelterB3IncineratorControlRoomOccluders,
+    },
+    {
+        .grid                 = &gShelterB3IncineratorControlRoomCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3IncineratorControlRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB3IncineratorControlRoomRoom2ActionTriggers,
+        .occluders            = gShelterB3IncineratorControlRoomOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B2A4[1] = {
-    { &gShelterB3ElevatorHallCollisionGrid, gShelterB3ElevatorHallViewBoundaryTriggers, gShelterB3ElevatorHallActionTriggers, gShelterB3ElevatorHallOccluders },
+/// Collision-resource descriptors for Shelter B3 elevator hall.
+///
+/// Area 42 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB3ElevatorHallRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB3ElevatorHallCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3ElevatorHallViewBoundaryTriggers,
+        .actionTriggers       = gShelterB3ElevatorHallActionTriggers,
+        .occluders            = gShelterB3ElevatorHallOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
-    { &gShelterB4LowerSewerCollisionGrid, gShelterB4LowerSewerViewBoundaryTriggers, gShelterB4LowerSewerActionTriggers, NULL },
+/// Collision-resource descriptors for Shelter B4 lower sewer.
+///
+/// Area 43 selects this array; room ID minus one selects room 1.
+/// No sight occluders.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB4LowerSewerRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB4LowerSewerCollisionGrid,
+        .viewBoundaryTriggers = gShelterB4LowerSewerViewBoundaryTriggers,
+        .actionTriggers       = gShelterB4LowerSewerActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
-    { &gShelterB4UpperSewerCollisionGrid, gShelterB4UpperSewerViewBoundaryTriggers, gShelterB4UpperSewerActionTriggers, gShelterB4UpperSewerOccluders },
+/// Collision-resource descriptors for Shelter B4 upper sewer.
+///
+/// Area 44 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB4UpperSewerRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB4UpperSewerCollisionGrid,
+        .viewBoundaryTriggers = gShelterB4UpperSewerViewBoundaryTriggers,
+        .actionTriggers       = gShelterB4UpperSewerActionTriggers,
+        .occluders            = gShelterB4UpperSewerOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B2D4[1] = {
-    { &gShelterB4WaterSupplyCollisionGrid, gShelterB4WaterSupplyViewBoundaryTriggers, gShelterB4WaterSupplyActionTriggers, gShelterB4WaterSupplyOccluders },
+/// Collision-resource descriptors for Shelter B4 water supply.
+///
+/// Area 46 selects this array; room ID minus one selects room 1.
+/// Borrows mutable room-overlay resources: keep the grid and its pools loaded
+/// while active, and trigger/occluder storage loaded until unlinked.
+static WorldCollisionRoomResources _gMapShelterB4WaterSupplyRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB4WaterSupplyCollisionGrid,
+        .viewBoundaryTriggers = gShelterB4WaterSupplyViewBoundaryTriggers,
+        .actionTriggers       = gShelterB4WaterSupplyActionTriggers,
+        .occluders            = gShelterB4WaterSupplyOccluders,
+    },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
@@ -1310,39 +1614,39 @@ static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
     gShelterB1StoreroomRoomCollisionResources,
     D_map_shelter_8017B114,
     D_map_shelter_8017B124,
-    D_map_shelter_8017B134,
-    D_map_shelter_8017B144,
+    _gMapShelterB1SleepingQuartersRoomCollisionResources,
+    _gMapShelterB1MainCorridorRoomCollisionResources,
     gShelterB1SterilizationRoomCollisionResources,
-    D_map_shelter_8017B154,
+    _gMapShelterB1PodAccessTunnelRoomCollisionResources,
     D_map_shelter_8017B164,
-    D_map_shelter_8017B174,
+    _gMapShelterB1AccessTunnelRoomCollisionResources,
     D_shelter_b1_underground_parking_801877F4,
-    D_map_shelter_8017B184,
+    _gMapShelterB1GolemFreezer1RoomCollisionResources,
     gShelterB2PodBottomRoomCollisionResources,
-    D_map_shelter_8017B194,
-    D_map_shelter_8017B1A4,
-    D_map_shelter_8017B1B4,
-    D_map_shelter_8017B1C4,
-    D_map_shelter_8017B1D4,
+    _gMapShelterB1PodServiceGantryRoomCollisionResources,
+    _gMapShelterB1TransferTunnelRoomCollisionResources,
+    _gMapShelterB1ControlRoomAccessTunnelRoomCollisionResources,
+    _gMapShelterB2ElevatorRoomCollisionResources,
+    _gMapShelterB2ElevatorHallRoomCollisionResources,
     D_map_shelter_8017B1E4,
-    D_map_shelter_8017B1F4,
+    _gMapShelterB2OperatingRoomCollisionResources,
     D_map_shelter_8017B204,
-    D_map_shelter_8017B214,
-    D_map_shelter_8017B224,
-    D_map_shelter_8017B234,
-    D_map_shelter_8017B244,
+    _gMapShelterB2LaboratoryRoomCollisionResources,
+    _gMapShelterB2BreedingRoomCollisionResources,
+    _gMapShelterB2MainCorridorRoomCollisionResources,
+    _gMapShelterB2SepticTankRoomCollisionResources,
     gShelterB2PodAccessTunnelRoomCollisionResources,
-    D_map_shelter_8017B254,
-    D_map_shelter_8017B264,
-    D_map_shelter_8017B274,
+    _gMapShelterR36RoomCollisionResources,
+    _gMapShelterR37RoomCollisionResources,
+    _gMapShelter1fHeliportS4RoomCollisionResources,
     gShelterB3DumpingHoleRoomCollisionResources,
     D_shelter_b3_garbage_incinerator_801872B8,
-    D_map_shelter_8017B284,
-    D_map_shelter_8017B2A4,
-    D_map_shelter_8017B2B4,
-    D_map_shelter_8017B2C4,
+    _gMapShelterB3IncineratorControlRoomCollisionResources,
+    _gMapShelterB3ElevatorHallRoomCollisionResources,
+    _gMapShelterB4LowerSewerRoomCollisionResources,
+    _gMapShelterB4UpperSewerRoomCollisionResources,
     gShelterB4ReservoirRoomCollisionResources,
-    D_map_shelter_8017B2D4,
+    _gMapShelterB4WaterSupplyRoomCollisionResources,
     D_map_shelter_8017B2E4,
     gShelterR48RoomCollisionResources,
     gShelterR49RoomCollisionResources,
@@ -2536,25 +2840,25 @@ StageMusicEntry gMapShelterAreaMusicEntries[(GAME_AREA_SHELTER_R49 + 1) * MAP_SH
     { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
 };
 
-StageMusicEntry D_map_shelter_8017C2D8[20] = {
-    { 0x44, 2 },
-    { 0x30, 2 },
-    { 0x3C, 2 },
-    { 0x42, 2 },
-    { 0x4A, 0 },
-    { 0x5E, 0 },
-    { 0x5F, 0 },
-    { 0xFF, 0 },
-    { 0x5D, 2 },
-    { 0x52, 2 },
-    { 0x45, 2 },
-    { 0x46, 2 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
+StageMusicEntry gMapShelterCountdownMusicEntries[20] = {
+    { .sequenceId = 0x44, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x30, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x3C, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x42, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x4A, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5E, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x45, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0x46, .startMode = STAGE_MUSIC_START_IMMEDIATE },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
 };

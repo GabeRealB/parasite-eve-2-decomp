@@ -295,7 +295,7 @@ gMapNeoArkAreaMusicEntries = 0x8017CB54; // absolute:True owner=map_neo_ark
 gMapAkropolisCountdownMusicEntries = 0x8017C304; // absolute:True owner=map_akropolis
 gMapDryfieldCountdownMusicEntries = 0x8017C004; // absolute:True owner=map_dryfield
 gMapDryfieldFullCountdownMusicEntries = 0x8017D594; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017C2D8 = 0x8017C2D8; // absolute:True owner=map_shelter
+gMapShelterCountdownMusicEntries = 0x8017C2D8; // absolute:True owner=map_shelter
 gMapNeoArkCountdownMusicEntries = 0x8017CDFC; // absolute:True owner=map_neo_ark
 gFsImageWorkspace = 0x801D7000; // absolute:True
 D_80400000 = 0x80400000; // absolute:True
