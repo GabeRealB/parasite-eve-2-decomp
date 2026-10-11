@@ -1088,136 +1088,270 @@ static AnimationSet _gMp5a5LowHealthIdleAnimation = {
     },
 };
 
-static AnimationPackedPose _gMp5a5Animation09ED8Bank1[9] = {
+/// Encoding-1 local translations and rotations for mid-health idle.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5MidHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_09ED8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation09ED8Bank4[144] = {
+/// Encoding-4 rotations for mid-health idle, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5MidHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_09ED8_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation09ED8Records[264] = {
+/// Keyframes and loop/stop controls for mid-health idle.
+///
+/// Track-local jumps repeat the tail; forward playback bypasses the final stop.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5MidHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_09ED8_records.inc"
 };
 
-static u16 _gMp5a5Animation09ED8Indices[20] = {
+/// Absolute record starts for the 19 tracks of mid-health idle.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5MidHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_09ED8_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation09ED8 = {
-    _gMp5a5Animation09ED8Records,
-    _gMp5a5Animation09ED8Indices,
-    { NULL, _gMp5a5Animation09ED8Bank1, NULL, NULL, _gMp5a5Animation09ED8Bank4, NULL, NULL, NULL },
+/// MP5A5 player's mid-health idle clip in native bank slot 24.
+///
+/// Selected after 300 idle ticks while HP is above a quarter and at most half
+/// the maximum. Track-local jumps repeat the idle motion.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5MidHealthIdleAnimation = {
+    .records           = _gMp5a5MidHealthIdleAnimationRecords,
+    .trackStartIndices = _gMp5a5MidHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5MidHealthIdleAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5MidHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0A358Bank1[6] = {
+/// Encoding-1 local translations and rotations for scripted presentation entry.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ScriptedPresentationEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0A358_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0A358Bank4[107] = {
+/// Encoding-4 rotations for scripted presentation entry, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ScriptedPresentationEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A358_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0A358Records[143] = {
+/// Keyframes and stop controls for scripted presentation entry.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ScriptedPresentationEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A358_records.inc"
 };
 
-static u16 _gMp5a5Animation0A358Indices[20] = {
+/// Absolute record starts for the 19 tracks of scripted presentation entry.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ScriptedPresentationEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A358_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0A358 = {
-    _gMp5a5Animation0A358Records,
-    _gMp5a5Animation0A358Indices,
-    { NULL, _gMp5a5Animation0A358Bank1, NULL, NULL, _gMp5a5Animation0A358Bank4, NULL, NULL, NULL },
+/// MP5A5 player's scripted event-entry clip in native bank slots 32 and 34.
+///
+/// The zero presentation selector plays slot 32 before CAP weapon events
+/// and scripted room interactions. All tracks stop at their final pose.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ScriptedPresentationEntryAnimation = {
+    .records           = _gMp5a5ScriptedPresentationEntryAnimationRecords,
+    .trackStartIndices = _gMp5a5ScriptedPresentationEntryAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ScriptedPresentationEntryAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ScriptedPresentationEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0A530Bank1[3] = {
+/// Encoding-1 local translations and rotations for scripted presentation exit.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ScriptedPresentationExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0A530_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0A530Bank4[32] = {
+/// Encoding-4 rotations for scripted presentation exit, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ScriptedPresentationExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A530_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0A530Records[57] = {
+/// Keyframes and stop controls for scripted presentation exit.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ScriptedPresentationExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A530_records.inc"
 };
 
-static u16 _gMp5a5Animation0A530Indices[20] = {
+/// Absolute record starts for the 19 tracks of scripted presentation exit.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ScriptedPresentationExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0A530_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0A530 = {
-    _gMp5a5Animation0A530Records,
-    _gMp5a5Animation0A530Indices,
-    { NULL, _gMp5a5Animation0A530Bank1, NULL, NULL, _gMp5a5Animation0A530Bank4, NULL, NULL, NULL },
+/// MP5A5 player's scripted event-exit clip in native bank slots 33 and 35.
+///
+/// The nonzero presentation selector plays slot 33 after CAP weapon events
+/// and scripted room interactions. All tracks stop at their final pose.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ScriptedPresentationExitAnimation = {
+    .records           = _gMp5a5ScriptedPresentationExitAnimationRecords,
+    .trackStartIndices = _gMp5a5ScriptedPresentationExitAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ScriptedPresentationExitAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ScriptedPresentationExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0AA94Bank1[11] = {
+/// Encoding-1 local translations and rotations for Parasite Energy family-2 release.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ParasiteEnergyReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0AA94_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0AA94Bank4[125] = {
+/// Encoding-4 rotations for Parasite Energy family-2 release, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ParasiteEnergyReleaseFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AA94_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0AA94Records[167] = {
+/// Keyframes and stop controls for Parasite Energy family-2 release.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ParasiteEnergyReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AA94_records.inc"
 };
 
-static u16 _gMp5a5Animation0AA94Indices[20] = {
+/// Absolute record starts for the 19 tracks of Parasite Energy family-2 release.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ParasiteEnergyReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AA94_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0AA94 = {
-    _gMp5a5Animation0AA94Records,
-    _gMp5a5Animation0AA94Indices,
-    { NULL, _gMp5a5Animation0AA94Bank1, NULL, NULL, _gMp5a5Animation0AA94Bank4, NULL, NULL, NULL },
+/// MP5A5 player's Parasite Energy family-2 release clip in native bank slot 42.
+///
+/// Starts the release/charge/cast sequence while the attachment countdown begins.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ParasiteEnergyReleaseFamily2Animation = {
+    .records           = _gMp5a5ParasiteEnergyReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gMp5a5ParasiteEnergyReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ParasiteEnergyReleaseFamily2AnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ParasiteEnergyReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0AC88Bank1[3] = {
+/// Encoding-1 local translations and rotations for Parasite Energy family-2 charge.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ParasiteEnergyChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0AC88_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0AC88Bank4[20] = {
+/// Encoding-4 rotations for Parasite Energy family-2 charge, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ParasiteEnergyChargeFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AC88_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0AC88Records[76] = {
+/// Keyframes and loop/stop controls for Parasite Energy family-2 charge.
+///
+/// Track-local jumps restart the two-keyframe loop; playback bypasses the final stop.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ParasiteEnergyChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AC88_records.inc"
 };
 
-static u16 _gMp5a5Animation0AC88Indices[20] = {
+/// Absolute record starts for the 19 tracks of Parasite Energy family-2 charge.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ParasiteEnergyChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0AC88_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0AC88 = {
-    _gMp5a5Animation0AC88Records,
-    _gMp5a5Animation0AC88Indices,
-    { NULL, _gMp5a5Animation0AC88Bank1, NULL, NULL, _gMp5a5Animation0AC88Bank4, NULL, NULL, NULL },
+/// MP5A5 player's Parasite Energy family-2 charge clip in native bank slot 43.
+///
+/// Loops the charge stance after release until the attachment countdown reaches zero.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ParasiteEnergyChargeFamily2Animation = {
+    .records           = _gMp5a5ParasiteEnergyChargeFamily2AnimationRecords,
+    .trackStartIndices = _gMp5a5ParasiteEnergyChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ParasiteEnergyChargeFamily2AnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ParasiteEnergyChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation0B108Bank1[8] = {
+/// Encoding-1 local translations and rotations for Parasite Energy family-2 cast.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ParasiteEnergyCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mp5a5_animation_0B108_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation0B108Bank4[105] = {
+/// Encoding-4 rotations for Parasite Energy family-2 cast, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ParasiteEnergyCastFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0B108_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation0B108Records[139] = {
+/// Keyframes and stop controls for Parasite Energy family-2 cast.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ParasiteEnergyCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0B108_records.inc"
 };
 
-static u16 _gMp5a5Animation0B108Indices[20] = {
+/// Absolute record starts for the 19 tracks of Parasite Energy family-2 cast.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ParasiteEnergyCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_0B108_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation0B108 = {
-    _gMp5a5Animation0B108Records,
-    _gMp5a5Animation0B108Indices,
-    { NULL, _gMp5a5Animation0B108Bank1, NULL, NULL, _gMp5a5Animation0B108Bank4, NULL, NULL, NULL },
+/// MP5A5 player's Parasite Energy family-2 cast clip in native bank slot 44.
+///
+/// Starts when the attachment countdown reaches zero and stops at its final pose.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ParasiteEnergyCastFamily2Animation = {
+    .records           = _gMp5a5ParasiteEnergyCastFamily2AnimationRecords,
+    .trackStartIndices = _gMp5a5ParasiteEnergyCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ParasiteEnergyCastFamily2AnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ParasiteEnergyCastFamily2AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMp5a5Animation0BBB0Bank1[19] = {
@@ -1399,7 +1533,7 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5IdleAnimation,
     &_gMp5a5IdleAnimation,
     &_gMp5a5HealthyIdleAnimation,
-    &_gMp5a5Animation09ED8,
+    &_gMp5a5MidHealthIdleAnimation,
     &_gMp5a5LowHealthIdleAnimation,
     &_gMp5a5ParasiteEnergyReleaseFamily0Animation,
     &_gMp5a5ParasiteEnergyChargeFamily0Animation,
@@ -1407,19 +1541,19 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5ParasiteEnergyReleaseFamily1Animation,
     &_gMp5a5ParasiteEnergyChargeFamily1Animation,
     &_gMp5a5ParasiteEnergyCastFamily1Animation,
-    &_gMp5a5Animation0A358,
-    &_gMp5a5Animation0A530,
-    &_gMp5a5Animation0A358,
-    &_gMp5a5Animation0A530,
+    &_gMp5a5ScriptedPresentationEntryAnimation,
+    &_gMp5a5ScriptedPresentationExitAnimation,
+    &_gMp5a5ScriptedPresentationEntryAnimation,
+    &_gMp5a5ScriptedPresentationExitAnimation,
     &_gMp5a5StairAscentAnimation,
     &_gMp5a5StairDescentAnimation,
     &_gMp5a5StairAscentFinishEvenAnimation,
     &_gMp5a5StairAscentFinishOddAnimation,
     &_gMp5a5ItemUseAnimation,
     &_gMp5a5IdleAnimation,
-    &_gMp5a5Animation0AA94,
-    &_gMp5a5Animation0AC88,
-    &_gMp5a5Animation0B108,
+    &_gMp5a5ParasiteEnergyReleaseFamily2Animation,
+    &_gMp5a5ParasiteEnergyChargeFamily2Animation,
+    &_gMp5a5ParasiteEnergyCastFamily2Animation,
     NULL,
     NULL,
     NULL,
