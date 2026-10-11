@@ -264,8 +264,7 @@ static u8 _gMcTextNewBlock[sizeof("New Block")];
 
 static u8 _gMcTextLoadAbortedCorrupted[sizeof("Save data corrupted.\nLoad aborted")];
 
-/// Unreferenced.
-static u8 McText_SlotCorrupted[];
+static char _gMcTextUnusedSaveCorrupted[sizeof("Save data corrupted.")];
 
 static McPromptPair _gMcPrompts[24];
 
@@ -613,8 +612,8 @@ static u8 _gMcTextSaveCorrupted[] = "Save data corrupted.";
 static u8 _gMcTextCannotLoadData[] = "Cannot load data.";
 /// NUL-terminated corrupted-preview notice, with an embedded line break before Load aborted.
 static u8 _gMcTextLoadAbortedCorrupted[sizeof("Save data corrupted.\nLoad aborted")] = "Save data corrupted.\nLoad aborted";
-/// Unreferenced.
-static u8 McText_SlotCorrupted[] = "Save data corrupted.";
+/// Retained NUL-terminated save-corruption notice, unused by the card dialogs.
+static char _gMcTextUnusedSaveCorrupted[sizeof("Save data corrupted.")] = "Save data corrupted.";
 
 /// Two-line prompts indexed unchecked by McWork.promptId in 0..23.
 ///

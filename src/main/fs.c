@@ -139,7 +139,7 @@ static s16 _gFsImageColumnRowsRemaining;
 /// VRAM rectangle shared by complete-image and 64-halfword by 32-row strip uploads.
 static RECT _gFsImageUploadRect;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006ACE0[8];
 
 /// Resident copy of the active image-column table, including its terminator.
@@ -178,7 +178,7 @@ static u8 _gFsLoadBank;
 /// All writes must fit the borrowed workspace before image decoding reuses it.
 static u32 _gFsBackgroundWriteOffset;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006AE00[8];
 
 /// STAGE0.CDF-relative sectors indexed by category-zero file number.
@@ -221,7 +221,7 @@ static _FsStage0CategoryFile _gFsStage0Category1Files[FILE_SYSTEM_STAGE0_CATEGOR
 /// Active category-one record count (0..60); HED reload resets it without clearing storage.
 static u8 _gFsStage0Category1FileCount;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006B180[8];
 
 /// Compact category-two STAGE0 entries, searched by category-local file ID.
@@ -233,7 +233,7 @@ static _FsStage0CategoryFile _gFsStage0Category2Files[FILE_SYSTEM_STAGE0_CATEGOR
 /// Active category-two record count (0..352); kept at halfword width for this larger table.
 static u16 _gFsStage0Category2FileCount;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006B710[8];
 
 /// Uncategorized STAGE0 entries searched by their complete file ID.
@@ -250,7 +250,7 @@ static FsCdfFile _gFsStage0FullIdFiles[FILE_SYSTEM_STAGE0_FULL_ID_CAPACITY];
 /// keep it in 0..FILE_SYSTEM_STAGE0_FULL_ID_CAPACITY.
 static u16 _gFsStage0FullIdFileCount;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006BF90[8];
 
 /// STAGE0.CDF-relative sectors indexed by category-ninety file ID modulo 100.
@@ -274,7 +274,7 @@ static _FsCdfFolder _gFsStageFolders[FILE_SYSTEM_STAGE_FOLDER_CAPACITY];
 /// and existing requested IDs are required by the unchecked folder lookups.
 static u16 _gFsStageFolderCount;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006C150[8];
 
 /// Stage-CDF-relative file sectors indexed by the currently loaded folder's file IDs.
@@ -311,7 +311,7 @@ s8 gFsImageXPageOffset;
 
 s8 gFsImageHeaderYShiftRows;
 
-/// Referenced only by the table at the start of the image.
+/// BSS storage of unproven role, retained by an unused startup-table entry.
 u8 D_8006C238[0x100];
 
 FsResourceSlot gFsResourceSlots[50];
@@ -338,7 +338,7 @@ StreamSlot gStreamSlots[15];
 
 u16 gFsLzssDecodeStatus;
 
-/// Referenced only by the table at the start of the image.
+/// BSS storage of unproven role, retained by an unused startup-table entry.
 u8 D_8006D750[0x100];
 
 void* gFsLzssResumeAddress;
@@ -355,7 +355,7 @@ u16 gFsLzssRingWriteIndex;
 
 u16 gFsLzssUnreadBitCount;
 
-/// Unreferenced.
+/// BSS word with no established use; its original type and role are unproven.
 static s32 D_8006D85C;
 
 s32 gFsActorBufferWrittenBytes[3];
@@ -377,11 +377,26 @@ static u_long _gFsImageUploadBuffer[0x460];
 
 s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
 
-s16 D_8006EA08;
+/// Saved token scratch value for the resumable LZSS decoder.
+///
+/// Holds a flag, literal/length fragment, or the last copied history byte,
+/// according to the decoder's continuation. Halfword stores and signed loads
+/// preserve it across input intervals; a fresh token overwrites it before use.
+s16 gFsLzssTokenValue;
 
-s16 D_8006EA0A;
+/// Saved number of bits still needed by the current LZSS token component (0..8).
+///
+/// Literal and history-index components start at 8 bits, lengths at 4.
+/// A split component retains the remaining count across input intervals.
+/// The decoder initializes it before use and saves/restores a signed halfword.
+s16 gFsLzssTokenBitsNeeded;
 
-s32 D_8006EA0C;
+/// Saved absolute history-ring index or partial index for a resumable LZSS match.
+///
+/// The eight-bit index uses zero as the stream terminator, rather than as a
+/// match source. Copying increments this word without wrapping; each history
+/// read masks it to 0..255. A new match initializes it before use.
+s32 gFsLzssMatchReadIndex;
 
 s32 gFsCdProgressVBlank;
 

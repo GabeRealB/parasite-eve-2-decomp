@@ -29,7 +29,7 @@ static TaskNode* _gTaskActiveList;
 
 TaskNode gTaskDefaultList;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_800716E8[8];
 
 #include "main/task.h"

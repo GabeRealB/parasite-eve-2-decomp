@@ -350,7 +350,7 @@ enum {
 /// Retry/progress polls for the serialized chunk read, or remaining speed-settle polls.
 static s32 _gCdStreamReadStepPollCount;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_800827F0[8];
 
 /// Scratch storage for the CD sector header preceding an audio or scene-image payload.

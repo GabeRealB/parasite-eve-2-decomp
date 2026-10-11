@@ -121,7 +121,7 @@ static _AsyncCbQueue _gAsyncCbQueue;
 /// stream starts are accounted for separately by their owner.
 static _SpuVoiceState _gSpuVoiceState;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8007E510[8];
 
 /// Resident pending voice-attribute batch; references expire at the next flush.

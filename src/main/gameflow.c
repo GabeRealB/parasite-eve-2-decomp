@@ -86,7 +86,7 @@ STATIC_ASSERT_SIZEOF(_PadScratch, 0x6);
 /// clear its contents without releasing the storage.
 static GameSession _gGameSessionState;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_80071600[0x20];
 
 PadState gPadStates[PAD_PORT_COUNT];

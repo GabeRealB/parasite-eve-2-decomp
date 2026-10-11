@@ -3038,7 +3038,7 @@ _gMcTextCannotLoadData = 0x80060CB8;
 
 _gMcTextLoadAbortedCorrupted = 0x80060CCC;
 
-McText_SlotCorrupted = 0x80060CF0;
+_gMcTextUnusedSaveCorrupted = 0x80060CF0;
 
 _gMcSaveFileNamePattern = 0x80060DC8;
 
@@ -3140,7 +3140,7 @@ gFsActorBuffer1Base = 0x8005C370;
 
 gFsActorBuffer2Base = 0x8005C374;
 
-Mem_UnusedTopRamPointer = 0x8005C368;
+_gMemUnusedImageRegionEnd = 0x8005C368;
 
 _gMemUnusedDevKitAddress = 0x8005C378;
 
@@ -3396,3 +3396,6 @@ _gGameMainPauseTile = 0x8006ec18;
 _gGameMainPauseDrawMode = 0x8006ec28;
 gDisplayTaskImageSourceSnapshot = 0x8006ec30;
 gDisplayTaskFlipControlSnapshot = 0x80070e38;
+gFsLzssTokenValue = 0x8006ea08;
+gFsLzssTokenBitsNeeded = 0x8006ea0a;
+gFsLzssMatchReadIndex = 0x8006ea0c;

@@ -36,7 +36,7 @@ static u16 D_8006EBB8;
 /// before refreshing MIDI, script, streaming and CD-input gains.
 static u8 _gSndOutputStereoEnabled;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006EBC0[8];
 
 /// Software mirror of the SPU common output attributes last submitted here.
@@ -57,7 +57,7 @@ static s16 D_8006EBF2;
 /// the level at 256 SPU register units per level. Volatile accesses are retained.
 static volatile s32 _gCdVolFadeLevel;
 
-/// Unreferenced.
+/// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_8006EBF8[8];
 
 static void _cdSyncCompleteDiscInit(AsyncCbEntry* entry);
