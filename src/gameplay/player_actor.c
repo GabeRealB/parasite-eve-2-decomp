@@ -646,8 +646,6 @@ extern AnimationBank D_m4a1_grenade_8012DF50;
 
 extern AnimationBank D_m4a1_pyke_8012D500;
 
-extern AnimationBank D_m4a1_javelin_8012EA20;
-
 extern AnimationBank D_mp5a5_8012B3CC;
 
 extern GpuImageUpload* D_aya_10400_8011CCBC[];
@@ -954,7 +952,7 @@ u16 Gp_WeaponIdBase[2] = {
     1,
     0,
 };
-AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &D_m93r_8012ADF8, &D_m950_8012BA78, &gP08PlayerAnimationBank, &D_p229_8012B51C, &D_unused_85_8012A474, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &D_mongoose_8012A9C0, &D_unused_86_8012A0D8, &gGrenadePistolPlayerAnimationBank, &D_mm1_8012D184, &D_pa3_8012C18C, &D_sp12_8012BCC8, &gAs12PlayerAnimationBank, &D_m4a1_8012B9E4, &D_m249_8012CF58, &D_unused_86_8012A0D8, &D_tonfa_baton_8012BAB0, &D_m4a1_8012B9E4, &D_m4a1_8012B9E4, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &D_unused_86_8012A0D8, &gM4a1HammerPlayerAnimationBank, &D_m4a1_bayonet_8012D25C, &D_m4a1_grenade_8012DF50, &D_m4a1_pyke_8012D500, &D_m4a1_javelin_8012EA20, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC };
+AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &D_m93r_8012ADF8, &D_m950_8012BA78, &gP08PlayerAnimationBank, &D_p229_8012B51C, &D_unused_85_8012A474, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &D_mongoose_8012A9C0, &D_unused_86_8012A0D8, &gGrenadePistolPlayerAnimationBank, &D_mm1_8012D184, &D_pa3_8012C18C, &D_sp12_8012BCC8, &gAs12PlayerAnimationBank, &D_m4a1_8012B9E4, &D_m249_8012CF58, &D_unused_86_8012A0D8, &D_tonfa_baton_8012BAB0, &D_m4a1_8012B9E4, &D_m4a1_8012B9E4, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &D_unused_86_8012A0D8, &gM4a1HammerPlayerAnimationBank, &D_m4a1_bayonet_8012D25C, &D_m4a1_grenade_8012DF50, &D_m4a1_pyke_8012D500, &gM4a1JavelinPlayerAnimationBank, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC };
 u16            D_80112DF4[4]           = {
     0,
     64,

@@ -2380,179 +2380,241 @@ static AnimationSet _gM4a1JavelinAimEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0FE0CBank1[16] = {
+/// Translation/rotation poses for the aim-exit clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinAimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0FE0C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0FE0CBank4[234] = {
+/// Packed rotations for the aim-exit clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinAimExitAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0FE0C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0FE0CRecords[278] = {
+/// Keyframes and stop controls for leaving aim with the M4A1 Javelin.
+///
+/// Every track stops at its final pose; durations count normal-rate frames.
+/// Pose offsets count four-byte words. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinAimExitAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0FE0C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0FE0CIndices[20] = {
+/// Absolute record starts for the aim-exit clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinAimExitAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0FE0C_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM4a1JavelinAimExitAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m4a1JavelinAimExitTrackCount);
 
-static AnimationSet _gM4a1JavelinAnimation0FE0C = {
-    _gM4a1JavelinAnimation0FE0CRecords,
-    _gM4a1JavelinAnimation0FE0CIndices,
-    { NULL, _gM4a1JavelinAnimation0FE0CBank1, NULL, NULL, _gM4a1JavelinAnimation0FE0CBank4, NULL, NULL, NULL },
+/// Aim-exit clip for lowering the equipped M4A1 Javelin out of its ready pose.
+///
+/// Native bank entry 8, blended into child tracks over six frames when aim ends,
+/// including after a scripted attack. Every track stops before locomotion resumes.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinAimExitAnimation = {
+    .records           = _gM4a1JavelinAimExitAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinAimExitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinAimExitAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinAimExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation106C4Bank1[18] = {
+/// Translation/rotation poses for the armed forward-walk clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_106C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation106C4Bank4[201] = {
+/// Packed rotations for the armed forward-walk clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinWalkAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_106C4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation106C4Records[283] = {
+/// Keyframes and loop controls for walking forward with the M4A1 Javelin.
+///
+/// Each track jumps within itself before its retained stop control.
+/// Track 1 carries the paired footstep cues; durations count normal-rate frames
+/// and pose offsets count four-byte words.
+static const AnimationRecord _gM4a1JavelinWalkAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_106C4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation106C4Indices[20] = {
+/// Absolute record starts for the armed forward-walk clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinWalkAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_106C4_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM4a1JavelinWalkAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m4a1JavelinWalkTrackCount);
 
-static AnimationSet _gM4a1JavelinAnimation106C4 = {
-    _gM4a1JavelinAnimation106C4Records,
-    _gM4a1JavelinAnimation106C4Indices,
-    { NULL, _gM4a1JavelinAnimation106C4Bank1, NULL, NULL, _gM4a1JavelinAnimation106C4Bank4, NULL, NULL, NULL },
+/// Looping forward-walk clip for the player holding the M4A1 Javelin.
+///
+/// Native bank entry 2, selected for ordinary forward walking with a held
+/// weapon model. Track 1's cues time footsteps and optional ground dust.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinWalkAnimation = {
+    .records           = _gM4a1JavelinWalkAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinWalkAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation10E64Bank1[16] = {
+/// Translation/rotation poses for the backward-walk clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinBackwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_10E64_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation10E64Bank4[157] = {
+/// Packed rotations for the backward-walk clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinBackwardWalkAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_10E64_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation10E64Records[263] = {
+/// Keyframes and loop controls for walking backward with the M4A1 Javelin.
+///
+/// Each track jumps within itself before its retained stop control.
+/// Track 1 carries the paired footstep cues; durations count normal-rate frames
+/// and pose offsets count four-byte words.
+static const AnimationRecord _gM4a1JavelinBackwardWalkAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_10E64_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation10E64Indices[20] = {
+/// Absolute record starts for the backward-walk clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinBackwardWalkAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_10E64_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM4a1JavelinBackwardWalkAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m4a1JavelinBackwardWalkTrackCount);
 
-static AnimationSet _gM4a1JavelinAnimation10E64 = {
-    _gM4a1JavelinAnimation10E64Records,
-    _gM4a1JavelinAnimation10E64Indices,
-    { NULL, _gM4a1JavelinAnimation10E64Bank1, NULL, NULL, _gM4a1JavelinAnimation10E64Bank4, NULL, NULL, NULL },
+/// Looping backward-walk clip for the player using the M4A1 Javelin bank.
+///
+/// Native bank entry 3, selected for backward movement outside aim.
+/// Track 1's cues time footsteps and optional ground dust.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinBackwardWalkAnimation = {
+    .records           = _gM4a1JavelinBackwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinBackwardWalkAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinBackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation11838Bank1[25] = {
+/// Translation/rotation poses for the running clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gM4a1JavelinRunAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_11838_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation11838Bank4[223] = {
+/// Packed rotations for the running clip's tracks 2..18.
+///
+/// Signed 11/10/11-bit X/Y/Z components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinRunAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_11838_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation11838Records[311] = {
+/// Keyframes and loop controls for running with the M4A1 Javelin bank.
+///
+/// Each track jumps within itself before its retained stop control.
+/// Track 1 carries the paired footstep cues; durations count normal-rate frames
+/// and pose offsets count four-byte words.
+static const AnimationRecord _gM4a1JavelinRunAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_11838_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation11838Indices[20] = {
+/// Absolute record starts for the running clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinRunAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_11838_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM4a1JavelinRunAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m4a1JavelinRunTrackCount);
 
-static AnimationSet _gM4a1JavelinAnimation11838 = {
-    _gM4a1JavelinAnimation11838Records,
-    _gM4a1JavelinAnimation11838Indices,
-    { NULL, _gM4a1JavelinAnimation11838Bank1, NULL, NULL, _gM4a1JavelinAnimation11838Bank4, NULL, NULL, NULL },
+/// Looping run clip for the player using the M4A1 Javelin bank.
+///
+/// Native bank entry 4, selected for forward running outside aim according to
+/// the saved movement mode and run input. Track 1's cues time running footsteps
+/// and optional ground dust.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinRunAnimation = {
+    .records           = _gM4a1JavelinRunAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinRunAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinRunAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinRunAnimationBank4,
+    },
 };
 
-AnimationBank D_m4a1_javelin_8012EA20 = { { {
-    NULL,
-    &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinAnimation106C4,
-    &_gM4a1JavelinAnimation10E64,
-    &_gM4a1JavelinAnimation11838,
-    &_gM4a1JavelinNegativeTurnAnimation,
-    &_gM4a1JavelinPositiveTurnAnimation,
-    &_gM4a1JavelinAimEntryAnimation,
-    &_gM4a1JavelinAnimation0FE0C,
-    &_gM4a1JavelinAimHoldAnimation,
-    &_gM4a1JavelinRifleShotAnimation,
-    &_gM4a1JavelinBeamFireAnimation,
-    &_gM4a1JavelinAimForwardAnimation,
-    &_gM4a1JavelinAimBackwardOrTurnAnimation,
-    &_gM4a1JavelinReloadAnimation,
-    &_gM4a1JavelinReloadAnimation,
-    &_gM4a1JavelinPart4HitReactionAnimation,
-    &_gM4a1JavelinOtherBodyHitReactionAnimation,
-    &_gM4a1JavelinStoppedPoseAnimation,
-    &_gM4a1JavelinUnarmedWalkAnimation,
-    &_gM4a1JavelinReloadAnimation,
-    &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinHighHealthIdleAnimation,
-    &_gM4a1JavelinMidHealthIdleAnimation,
-    &_gM4a1JavelinLowHealthIdleAnimation,
-    &_gM4a1JavelinParasiteEnergyReleaseFamily0Animation,
-    &_gM4a1JavelinParasiteEnergyChargeFamily0Animation,
-    &_gM4a1JavelinParasiteEnergyCastFamily0Animation,
-    &_gM4a1JavelinParasiteEnergyReleaseFamily1Animation,
-    &_gM4a1JavelinParasiteEnergyChargeFamily1Animation,
-    &_gM4a1JavelinParasiteEnergyCastFamily1Animation,
-    &_gM4a1JavelinEventEntryAnimation,
-    &_gM4a1JavelinEventExitAnimation,
-    &_gM4a1JavelinEventEntryAnimation,
-    &_gM4a1JavelinEventExitAnimation,
-    &_gM4a1JavelinStairAscentAnimation,
-    &_gM4a1JavelinStairDescentAnimation,
-    &_gM4a1JavelinStairAscentFinishEvenAnimation,
-    &_gM4a1JavelinStairAscentFinishOddAnimation,
-    &_gM4a1JavelinItemUseAnimation,
-    &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinParasiteEnergyReleaseFamily2Animation,
-    &_gM4a1JavelinParasiteEnergyChargeFamily2Animation,
-    &_gM4a1JavelinParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gM4a1JavelinPlayerAnimationBank = {
+    .table = { .sets = {
+                   [1] = &_gM4a1JavelinIdleAnimation,
+                   &_gM4a1JavelinWalkAnimation,
+                   &_gM4a1JavelinBackwardWalkAnimation,
+                   &_gM4a1JavelinRunAnimation,
+                   &_gM4a1JavelinNegativeTurnAnimation,
+                   &_gM4a1JavelinPositiveTurnAnimation,
+                   &_gM4a1JavelinAimEntryAnimation,
+                   &_gM4a1JavelinAimExitAnimation,
+                   &_gM4a1JavelinAimHoldAnimation,
+                   &_gM4a1JavelinRifleShotAnimation,
+                   &_gM4a1JavelinBeamFireAnimation,
+                   &_gM4a1JavelinAimForwardAnimation,
+                   &_gM4a1JavelinAimBackwardOrTurnAnimation,
+                   &_gM4a1JavelinReloadAnimation,
+                   &_gM4a1JavelinReloadAnimation,
+                   &_gM4a1JavelinPart4HitReactionAnimation,
+                   &_gM4a1JavelinOtherBodyHitReactionAnimation,
+                   &_gM4a1JavelinStoppedPoseAnimation,
+                   &_gM4a1JavelinUnarmedWalkAnimation,
+                   &_gM4a1JavelinReloadAnimation,
+                   &_gM4a1JavelinIdleAnimation,
+                   &_gM4a1JavelinIdleAnimation,
+                   &_gM4a1JavelinHighHealthIdleAnimation,
+                   &_gM4a1JavelinMidHealthIdleAnimation,
+                   &_gM4a1JavelinLowHealthIdleAnimation,
+                   &_gM4a1JavelinParasiteEnergyReleaseFamily0Animation,
+                   &_gM4a1JavelinParasiteEnergyChargeFamily0Animation,
+                   &_gM4a1JavelinParasiteEnergyCastFamily0Animation,
+                   &_gM4a1JavelinParasiteEnergyReleaseFamily1Animation,
+                   &_gM4a1JavelinParasiteEnergyChargeFamily1Animation,
+                   &_gM4a1JavelinParasiteEnergyCastFamily1Animation,
+                   &_gM4a1JavelinEventEntryAnimation,
+                   &_gM4a1JavelinEventExitAnimation,
+                   &_gM4a1JavelinEventEntryAnimation,
+                   &_gM4a1JavelinEventExitAnimation,
+                   &_gM4a1JavelinStairAscentAnimation,
+                   &_gM4a1JavelinStairDescentAnimation,
+                   &_gM4a1JavelinStairAscentFinishEvenAnimation,
+                   &_gM4a1JavelinStairAscentFinishOddAnimation,
+                   &_gM4a1JavelinItemUseAnimation,
+                   &_gM4a1JavelinIdleAnimation,
+                   &_gM4a1JavelinParasiteEnergyReleaseFamily2Animation,
+                   &_gM4a1JavelinParasiteEnergyChargeFamily2Animation,
+                   &_gM4a1JavelinParasiteEnergyCastFamily2Animation,
+               } },
+};
 
-/// A word between the bank and the work state that nothing refers to. Its
-/// value is not zero and its purpose is not established.
-u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
+/// Unreferenced four-byte value following the player animation bank; role unproven.
+static u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
 
 /// Cached screen direction shared by visible segments of the airborne guide beam.
 ///

@@ -20,3 +20,4 @@ _gM4a1JavelinBeamScreenAngle = 0x8012eb60;
 _gM4a1JavelinBeamAngleRefreshPending = 0x8012eb64;
 _gM4a1JavelinTrackedImpactPoint = 0x8012eb68;
 _gM4a1JavelinTrackedImpactValid = 0x8012eb70;
+gM4a1JavelinPlayerAnimationBank = 0x8012ea20;
